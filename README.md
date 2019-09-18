@@ -1,5 +1,5 @@
-# TypeScriptFullStackShell
-Setting up a web application for full-stack TypeScript development
+# Click & Dossard
+Application aimed at managing riders engagement in races
 
 ## Commands:
 - `npm start`: start the app in production mode. Production code must be built for production first: `npm run build`.
@@ -9,6 +9,3 @@ and generate  source-maps.
 - `npm test`: Run back-end unit-tests. If you want to run a specific unit test run `npm run test -- "path to the unit-test file"`, 
 i.e. `npm test -- controllers/demo/ClickAndDossardController`. 
 Because source-map files are generated for map files too, debugging in IDEs should still work.
-
-## Links
-<a href='https://github.com/seanpmaxwell/overnight'>OvernightJS</a>
