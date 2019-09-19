@@ -48,7 +48,7 @@ class HomePage extends React.Component<IDashboardProps, IPageState> {
 
         return (
             <Paper className={classNames(classes.paper, classes.users)}>
-                <h3 className={classes.sectionTitle}>Customers</h3>
+                <h3 className={classes.sectionTitle}>Utilisateurs</h3>
                 <Table className={classes.table}>
                     <TableHead>
                         <TableRow>
@@ -137,7 +137,7 @@ class HomePage extends React.Component<IDashboardProps, IPageState> {
                     <Grid item={true} lg={3} xs={12} sm={6}>
                         <Paper className={classNames(classes.paper, classes.headerTiles)}>
                             <GroupIcon className={classes.headerTileIcon} />
-                            <Typography className={classes.tileText}> {this.props.users.items.length} Customers</Typography>
+                            <Typography className={classes.tileText}> {this.props.users.items.length} Utilisateurs</Typography>
                         </Paper>
                     </Grid>
                     <Grid item={true} lg={3} xs={12} sm={6}>
