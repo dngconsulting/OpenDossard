@@ -1,5 +1,5 @@
-import { IAppAction, ActionType } from './../actions/Helpers';
-import { Utility } from '../state/Utility';
+import {ActionType, IAppAction} from './../actions/Helpers';
+import {Utility} from '../state/Utility';
 
 export const UtilityReducer = (state: Utility = new Utility(), action: IAppAction): Utility => {
     switch (action.type) {

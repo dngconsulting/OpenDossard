@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { User } from '../../state/User';
+import {User} from '../../state/User';
 import LoginPage from './Login';
-import { Route, Switch } from 'react-router';
-import { ProfilePage } from './Profile';
-import { isAuthenticated } from '../../state/AppState';
+import {Route, Switch} from 'react-router';
+import {ProfilePage} from './Profile';
+import {isAuthenticated} from '../../state/AppState';
 
 interface IAccountProps {
     login?: (data: any) => void;

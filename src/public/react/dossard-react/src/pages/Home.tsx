@@ -1,13 +1,34 @@
 import * as React from 'react';
 import {
-    Theme, withStyles, Paper, Table, TableHead, TableRow,
-    TableCell, TableBody, TablePagination, Grid, Typography
+    Grid,
+    Paper,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TablePagination,
+    TableRow,
+    Theme,
+    Typography,
+    withStyles
 } from '@material-ui/core';
-import { BarChart, CartesianGrid, XAxis, YAxis, Bar, Tooltip, Legend, PieChart, Pie, ResponsiveContainer } from 'recharts';
+import {
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Legend,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis
+} from 'recharts';
 import GroupIcon from '@material-ui/icons/Group';
 import MailIcon from '@material-ui/icons/Mail';
 import SettingsIcon from '@material-ui/icons/Settings';
 import BusinessIcon from '@material-ui/icons/BusinessCenter';
+
 const classNames = require('classnames');
 
 interface IDashboardProps {
@@ -53,8 +74,8 @@ class HomePage extends React.Component<IDashboardProps, IPageState> {
                     <TableHead>
                         <TableRow>
                             <TableCell>Id</TableCell>
+                            <TableCell>CalendardId</TableCell>
                             <TableCell>Name</TableCell>
-                            <TableCell>Email</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -65,8 +86,8 @@ class HomePage extends React.Component<IDashboardProps, IPageState> {
                                         <TableCell component="th" scope="row">
                                             {n.id}
                                         </TableCell>
+                                        <TableCell>{n.calendardId}</TableCell>
                                         <TableCell>{n.name}</TableCell>
-                                        <TableCell>{n.email}</TableCell>
                                     </TableRow>
                                 );
                             })}

@@ -1,16 +1,31 @@
 import * as React from 'react';
-import InboxIcon from '@material-ui/icons/Inbox';
-import DraftsIcon from '@material-ui/icons/Drafts';
-import SendIcon from '@material-ui/icons/Send';
+import AssignmentIcon from '@material-ui/icons/Assignment';
+import FormatListNumberedIcon from '@material-ui/icons/FormatListNumbered';
+import PeopleIcon from '@material-ui/icons/People';
 import AccountCircleIcon from '@material-ui/icons/AccountCircle';
+import ShowChartIcon from '@material-ui/icons/ShowChart';
 import DashboardIcon from '@material-ui/icons/Dashboard';
-import { Drawer, IconButton, Divider, Theme, ListItem, ListItemIcon, ListItemText, withStyles } from '@material-ui/core';
+import {
+    Divider,
+    Drawer,
+    IconButton,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
+    Theme,
+    withStyles
+} from '@material-ui/core';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import { User } from '../state/User';
-import { Utility } from '../state/Utility';
-import { NavLink } from 'react-router-dom';
-import { styles } from './styles';
+import {User} from '../state/User';
+import {Utility} from '../state/Utility';
+import {NavLink} from 'react-router-dom';
+import {styles} from './styles';
+import {AccountPage} from '../pages/account/Account';
+import CoureursPage from '../pages/Coureurs';
+import ResultatsPage from '../pages/Resultats';
+import StatsPage from '../pages/Stats'
+
 const classNames = require('classnames');
 
 interface IAppDrawer {
@@ -23,11 +38,12 @@ interface IAppDrawer {
 
 class AppDrawer extends React.Component<IAppDrawer, {}> {
     public routes = [
-        { path: '/', title: 'Dashboard', icon: () => <DashboardIcon /> },
-        { path: '/mail/inbox', title: 'Inbox', icon: () => <InboxIcon /> },
-        { path: '/mail/sent', title: 'Sent', icon: () => <SendIcon /> },
-        { path: '/mail/drafts', title: 'Drafts', icon: () => <DraftsIcon /> },
-        { path: '/account', title: 'Profile', icon: () => <AccountCircleIcon /> }
+        { path: '/',  title: 'Tableau de bord', icon: () => <DashboardIcon /> },
+        { path: '/engagements', component : CoureursPage, title: 'Engagements', icon: () => <AssignmentIcon /> },
+        { path: '/riders', component : CoureursPage, title: 'Coureurs', icon: () => <PeopleIcon /> },
+        { path: '/results', component : ResultatsPage, title: 'Résultats', icon: () => <FormatListNumberedIcon /> },
+        { path: '/stats', component : StatsPage, title: 'Statistiques', icon: () => <ShowChartIcon /> },
+        { path: '/account', component : AccountPage, title: 'Profile', icon: () => <AccountCircleIcon /> }
     ]
 
     public render(): JSX.Element {

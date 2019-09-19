@@ -1,34 +1,37 @@
 //#region
 import * as React from 'react';
-import { withStyles } from '@material-ui/core/styles';
+import {withStyles} from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
-import { ListItemText, Menu, MenuItem, Badge, Avatar } from '@material-ui/core';
-import { Route, withRouter } from 'react-router-dom';
+import {Avatar, Badge, ListItemText, Menu, MenuItem} from '@material-ui/core';
+import {Route, withRouter} from 'react-router-dom';
 import Hidden from '@material-ui/core/Hidden';
-import { styles } from './styles';
-import { IApplicationProps } from '../actions/App.Actions';
+import {styles} from './styles';
 import * as AppActionCreators from '../actions/App.Actions';
-import { AppState, isAuthenticated } from '../state/AppState';
-import { connect } from 'react-redux';
+import {IApplicationProps} from '../actions/App.Actions';
+import {AppState, isAuthenticated} from '../state/AppState';
+import {connect} from 'react-redux';
 import * as _ from 'lodash';
-import { bindActionCreators, Dispatch} from 'redux';
-import { Alert } from '../state/Alert';
-import { AlertDialog } from '../alert/Alert';
+import {bindActionCreators, Dispatch} from 'redux';
+import {Alert} from '../state/Alert';
+import {AlertDialog} from '../alert/Alert';
 import SpinnerDialog from '../spinner/Spinner';
-import { AccountPage } from '../pages/account/Account';
-import { MailPage } from '../pages/mail/Mail';
+import {AccountPage} from '../pages/account/Account';
 import HomePage from '../pages/Home';
 import AccountCircle from '@material-ui/icons/Mail';
-import { actions as UserActionCreators } from '../data/users';
-import { actions as MailActionCreators } from '../data/mail';
-import { actions as MaterialActionCreators } from '../data/material';
-import { getMaterialChartItems, getMailitems } from '../selectors';
+import {actions as UserActionCreators} from '../data/users';
+import {actions as MailActionCreators} from '../data/mail';
+import {actions as MaterialActionCreators} from '../data/material';
+import {getMailitems, getMaterialChartItems} from '../selectors';
 import AppDrawer from './App.Drawer';
 import NotificationIcon from '@material-ui/icons/Notifications';
+import EngagementPage from '../pages/Engagement';
+import CoureursPage from '../pages/Coureurs';
+import StatsPage from '../pages/Stats';
+import ResultatsPage from '../pages/Resultats';
 const classNames = require('classnames');
 //#endregion
 
@@ -257,15 +260,6 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
       );
     });
 
-    const MailBoard = isAuthenticated((props: any): any => {
-      return (
-        <MailPage
-          mail={this.props.mail}
-        />
-      );
-    });
-
-
     return (
       <div className={classes.root}>
         {this.renderAppBar()}
@@ -274,8 +268,10 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
         <main className={classes.content}>
           <div className={classes.toolbar} />
           <Route path='/' exact={true} component={Dashboard} />
-          <Route path='/dashboard' component={Dashboard} />
-          <Route path='/mail' component={MailBoard} />
+          <Route path='/engagements' component={EngagementPage} />
+          <Route path='/riders' component={CoureursPage} />
+          <Route path='/results' component={ResultatsPage} />
+          <Route path='/stats' component={StatsPage} />
           <Route path='/account' render={this.renderAccount} />
           {this.renderAlert()}
           {this.renderSpinner()}

@@ -1,7 +1,7 @@
-import { connectedRouterRedirect } from 'redux-auth-wrapper/history4/redirect';
-import { Utility } from './Utility';
-import { Model } from "./Helpers";
-import { User } from './User';
+import {connectedRouterRedirect} from 'redux-auth-wrapper/history4/redirect';
+import {Utility} from './Utility';
+import {Model} from './Helpers';
+import {User} from './User';
 
 export interface IAppState {
     utility?: Utility;

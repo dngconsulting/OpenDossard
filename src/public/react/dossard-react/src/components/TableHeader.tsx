@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { TableHead, TableRow, TableCell, Checkbox, Tooltip, TableSortLabel } from '@material-ui/core';
+import {Checkbox, TableCell, TableHead, TableRow, TableSortLabel, Tooltip} from '@material-ui/core';
 
 export interface IColumnData {
     id?: string;

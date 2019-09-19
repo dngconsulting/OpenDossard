@@ -1,18 +1,18 @@
-import { IAppAction, ActionType } from './Helpers';
-import { match } from 'react-router';
-import { Utility } from '../state/Utility';
-import { Alert } from '../state/Alert';
-import { Spinner } from '../state/Spinner';
-import { User } from '../state/User';
+import {ActionType, IAppAction} from './Helpers';
+import {match} from 'react-router';
+import {Utility} from '../state/Utility';
+import {Alert} from '../state/Alert';
+import {Spinner} from '../state/Spinner';
+import {User} from '../state/User';
 
 export interface IApplicationProps {
     openDrawer: () => IAppAction;
     closeDrawer: () => IAppAction;
     showPopup: (alert: Alert) => IAppAction;
-    closePopup: () => IAppAction;  
+    closePopup: () => IAppAction;
     showSpinner: (message: string) => IAppAction;
-    hideSpinner: () => IAppAction; 
-    login: (data: any) => IAppAction; 
+    hideSpinner: () => IAppAction;
+    login: (data: any) => IAppAction;
     logout: () => IAppAction;
     createUser: (content: any) => any;
     getUser: (id: any) => any;

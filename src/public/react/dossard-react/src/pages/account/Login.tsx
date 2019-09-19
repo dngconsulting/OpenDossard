@@ -1,9 +1,18 @@
 import * as React from 'react';
-import { Theme, withStyles, FormControl, InputLabel, Input, InputAdornment, Button, Icon } from '@material-ui/core';
+import {
+    Button,
+    FormControl,
+    Icon,
+    Input,
+    InputAdornment,
+    InputLabel,
+    Theme,
+    withStyles
+} from '@material-ui/core';
 import Paper from '@material-ui/core/Paper';
 import * as querystring from 'querystring';
-import { User } from '../../state/User';
-import { Redirect } from 'react-router';
+import {User} from '../../state/User';
+import {Redirect} from 'react-router';
 
 interface ILoginProps {
     login?: (data: any) => void;
@@ -41,7 +50,7 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
 
         if (this.props.user) {
             const path: string = querystring.
-                parse((this.props.location.search as string).substr(1)).redirect as any || '/inbox';
+                parse((this.props.location.search as string).substr(1)).redirect as any || '/engagements';
             return <Redirect to={path} />
         }
 

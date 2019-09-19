@@ -1,7 +1,8 @@
-import { AppState } from '../state/AppState';
-import { createSelector } from 'reselect';
+import {AppState} from '../state/AppState';
+import {createSelector} from 'reselect';
 import * as _ from 'lodash';
 import moment from 'moment';
+
 const randomColor = require('randomcolor');
 const materialItemsSelector = (state: AppState) => state.materials.items;
 const mailSelector = (state: AppState) => state.mail;

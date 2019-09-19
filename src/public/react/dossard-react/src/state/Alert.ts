@@ -1,4 +1,4 @@
-import { Model } from "./Helpers";
+import {Model} from './Helpers';
 
 interface IAlertButtonOptions {
     label: string;

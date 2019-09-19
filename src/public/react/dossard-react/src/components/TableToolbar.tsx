@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { Toolbar, Typography, Tooltip, IconButton, Theme, withStyles } from '@material-ui/core';
-const classNames = require('classnames');
+import {IconButton, Theme, Toolbar, Tooltip, Typography, withStyles} from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 import FilterListIcon from '@material-ui/icons/FilterList';
+
+const classNames = require('classnames');
 
 interface IEnhancedTableToolbarProps {
     classes?: any;
