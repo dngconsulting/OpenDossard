@@ -2,5 +2,5 @@
   "watch": ["src"],
   "ext": "ts",
   "ignore": ["src/public"],
-  "exec": "SET NODE_ENV=development & ts-node src/start.ts"
+  "exec": "SET NODE_ENV=development & ts-node src/index.ts"
 }

@@ -1,29 +1,31 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    "module": "commonjs",
-    "strict": true,
-    "baseUrl": "./",
-    "outDir": "build",
-    "sourceMap": true,
-    "removeComments": true,
-    "experimentalDecorators": true,
-    "target": "es6",
-    "emitDecoratorMetadata": true,
-    "moduleResolution": "node",
-    "importHelpers": true,
-    "types": [
-      "node"
+    "baseUrl": "src",
+    "outDir": "./dist",
+    "target": "es2016",
+    "lib": [
+      "es2016",
+      "dom"
     ],
     "typeRoots": [
-      "node_modules/@types"
-    ]
+      "./node_modules/@types"
+    ],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "sourceMap": true,
+    "declaration": false,
+    "allowSyntheticDefaultImports": true
   },
   "include": [
     "./src/**/*.ts"
   ],
   "exclude": [
-    "./src/**/*.test.ts",
-    "./src/public/"
+    "node_modules",
+    "./public",
+    "dist",
+    "test"
   ]
 }
