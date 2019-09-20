@@ -4,14 +4,14 @@
 ###back :
 ```
 cd services/api
-npm install
+npm ci
 npm run start-dev
 ```
 
 ### front :
 ```
 cd services/webapp
-npm install
+npm ci
 npm start
 ```
 
