@@ -10,16 +10,19 @@ import {
   Put,
   Required,
   Status
-} from "@tsed/common";
-import {NotFound} from "ts-httpexceptions";
-import {Event} from "../../interfaces/Event";
-import {Task} from "../../interfaces/Task";
+} from '@tsed/common';
+import {NotFound} from 'ts-httpexceptions';
+import {Event} from '../../interfaces/Event';
+import {Task} from '../../interfaces/Task';
+import {createConnection} from 'typeorm';
+import {Licence} from '../../entity/Licence';
 
 @Controller("/:calendarId/events")
 @MergeParams(true)
 export class EventsCtrl {
   private AUTO_INC = 5;
   private events: Event[] = require("../../../resources/events.json");
+  private licences : Licence[] = require("../../../resources/licences.json")
 
   /**
    *
@@ -106,7 +109,8 @@ export class EventsCtrl {
   }
 
   @Get("/")
-  async getEvents(@Required() @PathParams("calendarId") calendarId: string): Promise<Event[]> {
-    return this.events.filter(event => event.calendarId === calendarId);
+  async getLicences(): Promise<Event[]> {
+
+    return this.events;
   }
 }
