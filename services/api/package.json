@@ -4,9 +4,9 @@
   "description": "Click & Dossard Application",
   "main": "src/index.js",
   "scripts": {
-    "start": "npm install --only=prod & SET NODE_ENV=production & node ./build/index.js",
+    "start": "npm install --only=prod && SET NODE_ENV=production & node ./build/index.js",
     "start-dev": "nodemon --config \"./util/nodemon.json\"/",
-    "test": "SET NODE_ENV=testing & ts-node ./src/index.ts",
+    "test": "NODE_ENV=testing && ts-node ./src/index.ts",
     "build": "sh ./util/buildForProd.sh"
   },
   "dependencies": {

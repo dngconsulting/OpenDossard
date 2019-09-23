@@ -25,10 +25,14 @@ export class LicencesCtrl {
 
     @Get("/")
     async getAllLicences(): Promise<Licence[]> {
-        createConnection().then(async connection => {
-        return await connection.getRepository(Licence).find();
-        }).catch(error => console.log(error));
-        return null
+        try {
+            const connection = await createConnection();
+            const license = await connection.getRepository(Licence).find();
+            return license;
+        } catch (error) {
+            console.log(error)
+            return null;
+        }
     }
 
     @Put("/")
