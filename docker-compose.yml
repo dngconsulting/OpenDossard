@@ -1,0 +1,38 @@
+version: "3.4"
+
+services:
+  dossarddb:
+    container_name: dossarddb
+    image: postgres:9.6-alpine
+    env_file:
+      - ./config/dev.env
+    volumes:
+      - ./var/postgres-data:/var/lib/postgresql/data:rw
+    ports:
+      - "5432:5432"
+
+  api:
+    container_name: api
+    image: node:10.12.0-alpine
+    working_dir: "/app"
+    env_file:
+      - ./config/dev.env
+    volumes:
+      - ./services/api:/app
+    command: "npm run start-dev"
+    ports:
+      - "8080:8080"
+
+  webapp:
+    container_name: webapp
+    image: node:10.12.0-alpine
+    working_dir: "/app"
+    env_file:
+      - ./config/dev.env
+    volumes:
+      - ./services/webapp:/app
+    command: "npm start"
+    ports:
+      - "3000:3000"
+
+
