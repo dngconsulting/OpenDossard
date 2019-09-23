@@ -1,4 +1,5 @@
 import {
+  $log,
   Authenticated,
   BodyParams,
   Controller,
@@ -14,8 +15,10 @@ import {
 import {NotFound} from 'ts-httpexceptions';
 import {Event} from '../../interfaces/Event';
 import {Task} from '../../interfaces/Task';
-import {createConnection} from 'typeorm';
 import {Licence} from '../../entity/Licence';
+import {CategoriesEpreuve, Epreuve} from '../../entity/Epreuve';
+import {Federation} from '../../entity/Federation';
+import {getRepository} from 'typeorm';
 
 @Controller("/:calendarId/events")
 @MergeParams(true)
@@ -111,6 +114,6 @@ export class EventsCtrl {
   @Get("/")
   async getLicences(): Promise<Event[]> {
 
-    return this.events;
+    return null
   }
 }

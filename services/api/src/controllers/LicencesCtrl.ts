@@ -1,8 +1,11 @@
-import {BodyParams, Controller, Get, PathParams, Put, Required} from '@tsed/common';
+import {$log, BodyParams, Controller, Get, PathParams, Put, Required} from '@tsed/common';
 import {NotFound} from 'ts-httpexceptions';
 import {Licence} from '../entity/Licence';
-import {Event} from '../interfaces/Event';
 import {createConnection} from 'typeorm';
+import {CategoriesEpreuve, Epreuve} from '../entity/Epreuve';
+import {Federation} from '../entity/Federation';
+import {Club} from '../entity/Club';
+import {Course} from '../entity/Course';
 
 /**
  * Add @Controller annotation to declare your class as Router controller.
@@ -22,31 +25,10 @@ export class LicencesCtrl {
 
     @Get("/")
     async getAllLicences(): Promise<Licence[]> {
-
         createConnection().then(async connection => {
-            console.log("Inserting a new user into the database...");
-            this.licences.forEach(async function (licence, index) {
-                console.log("licence " + JSON.stringify(licence))
-                const licenceToI = new Licence();
-                licenceToI.nom = licence.NOM;
-                licenceToI.prenom = licence.PRENOM;
-                licenceToI.genre = licence.GENRE;
-                licenceToI.club = licence.CLUB;
-                licenceToI.dept = licence.DEPT
-                licenceToI.catev = licence.CATEV
-                licenceToI.catea = licence.CATEA
-                licenceToI.age = licence.AGE
-                await connection.manager.save(licenceToI);
-            });
-
-
-
-        }).catch(error => console.log(error));
-        return null;
-        /*createConnection().then(async connection => {
         return await connection.getRepository(Licence).find();
         }).catch(error => console.log(error));
-        return null*/
+        return null
     }
 
     @Put("/")

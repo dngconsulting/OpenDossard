@@ -1,4 +1,5 @@
 import {Entity, PrimaryGeneratedColumn, Column} from "typeorm";
+import {Federation} from './Federation';
 
 @Entity()
 export class Licence {
@@ -23,5 +24,11 @@ export class Licence {
     catea:string
     @Column({ nullable: true })
     catev:string
-
+    @Column({
+        type: "enum",
+        enum: Federation,
+        nullable:true,
+        default: Federation.NL,
+    })
+    fede:Federation
 }

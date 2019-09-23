@@ -1,0 +1,2 @@
+INSERT INTO public.epreuve (id, nom, "categoriesEpreuve", "dateEpreuve", fede, "clubOrganisateurId", "codePostal", "infoCircuit", observations, tarifs) VALUES (5, 'Grand Prix de Castanet', '1ere,2eme,3eme,4eme,5eme,Feminines', '2019-09-23 12:38:23.616000', 'FSGT', 2, '31320', 'Circuit plat', 'Epreuve ouverte aux catégories de valeurs renseignées ci-dessus, disputée sous les règlements cyclistes
+', '{"tarifName":"FSGT","tarif":10}');
