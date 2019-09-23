@@ -3,3 +3,5 @@
 
 var/postgres-data
 
+.idea/
+.idea/*
