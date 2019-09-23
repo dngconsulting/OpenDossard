@@ -1,6 +1,11 @@
 {
   "watch": ["src"],
   "ext": "ts",
+  "verbose": true,
+  "env": {
+    "NODE_ENV": "development"
+  },
   "ignore": ["src/public"],
-  "exec": "NODE_ENV=development && ts-node src/index.ts"
+  "legacyWatch": true,
+  "exec": "ts-node src/index.ts"
 }
