@@ -7,7 +7,7 @@ export class Licence {
     @PrimaryGeneratedColumn()
     public id : number
     @Column({ nullable: true })
-    licencenumber: string;
+    licenceNumber: string;
     @Column({ nullable: true })
     nom: string
     @Column({ nullable: true })
