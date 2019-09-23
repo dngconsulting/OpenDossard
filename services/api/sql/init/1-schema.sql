@@ -1,3 +1,11 @@
+create type licence_fede_enum as enum ('FSGT', 'UFOLEP', 'FFC', 'Non Licencié');
+
+alter type licence_fede_enum owner to postgres;
+
+create type epreuve_fede_enum as enum ('FSGT', 'UFOLEP', 'FFC', 'Non Licencié');
+
+alter type epreuve_fede_enum owner to postgres;
+
 create table licence
 (
 	id serial not null
