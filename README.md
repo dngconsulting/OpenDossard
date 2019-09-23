@@ -1,14 +1,17 @@
+ClickAndDossard repository is composed by :
+- services API
+- Front React Application
 
 # Quick start
 
-###back :
+### backend :
 ```
 cd services/api
 npm ci
 npm run start-dev
 ```
 
-### front :
+### React front :
 ```
 cd services/webapp
 npm ci
