@@ -4,17 +4,26 @@ ClickAndDossard repository is composed by :
 
 # Quick start
 
-### backend :
 ```
-cd services/api
-npm ci
-npm run start-dev
+./cad.sh install        # install dependencies
+./cad.sh start          # start all services
+./cad.sh stop           # stop all services
 ```
 
-### React front :
+- Webapp : http://localhost:3000
+- Backend api : http://localhost:8080/api-docs
+
+# logs
+
 ```
-cd services/webapp
-npm ci
-npm start
+./cad.sh log api
+./cad.sh log webapp
 ```
+
+
+### Postgres Database : 
+
+IntelliJ Settings
+
+![IntelliJ DB Settings](documentation/img/intellij-dbsettings.png)
 
