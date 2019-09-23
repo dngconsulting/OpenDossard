@@ -1,10 +1,10 @@
 create type licence_fede_enum as enum ('FSGT', 'UFOLEP', 'FFC', 'Non Licencié');
 
-alter type licence_fede_enum owner to postgres;
+alter type licence_fede_enum owner to dossarduser;
 
 create type epreuve_fede_enum as enum ('FSGT', 'UFOLEP', 'FFC', 'Non Licencié');
 
-alter type epreuve_fede_enum owner to postgres;
+alter type epreuve_fede_enum owner to dossarduser;
 
 create table licence
 (
@@ -23,7 +23,7 @@ create table licence
 	fede licence_fede_enum default 'Non Licencié'::licence_fede_enum
 );
 
-alter table licence owner to postgres;
+alter table licence owner to dossarduser;
 
 create table club
 (
@@ -35,7 +35,7 @@ create table club
 	nomCourt varchar
 );
 
-alter table club owner to postgres;
+alter table club owner to dossarduser;
 
 create table epreuve
 (
@@ -55,7 +55,7 @@ create table epreuve
 	tarifs text not null
 );
 
-alter table epreuve owner to postgres;
+alter table epreuve owner to dossarduser;
 
 create table course
 (
@@ -77,5 +77,5 @@ create table course
 			references licence
 );
 
-alter table course owner to postgres;
+alter table course owner to dossarduser;
 

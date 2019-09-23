@@ -1,10 +1,10 @@
 {
    "type": "postgres",
-   "host": "localhost",
+   "host": "dossarddb",
    "port": 5432,
-   "username": "postgres",
-   "password": "admin",
-   "database": "dbdossard",
+   "username": "dossarduser",
+   "password": "dossardpwd",
+   "database": "dossarddb",
    "synchronize": false,
    "logging": true,
    "entities": [
