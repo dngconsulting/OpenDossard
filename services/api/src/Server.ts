@@ -1,6 +1,7 @@
 import {GlobalAcceptMimesMiddleware, ServerLoader, ServerSettings} from "@tsed/common";
 import "@tsed/swagger";
 import {$log} from "ts-log-debug";
+import config from './config';
 
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
@@ -47,7 +48,7 @@ export class Server extends ServerLoader {
   }
 
   $onReady() {
-    $log.debug("Server initialized");
+    $log.debug(config.server);
   }
 
   $onServerInitError(error): any {
