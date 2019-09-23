@@ -2,3 +2,4 @@
 *.iml
 .idea/
 var/postgres-data
+/.idea/
