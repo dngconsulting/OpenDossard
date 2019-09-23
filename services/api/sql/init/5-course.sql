@@ -1,1 +1,1 @@
-INSERT INTO public.course (id, nom, dossard, "classementScratch", closed, "dossardCourseMin", "dossardCourseMax", surclassed, "epreuveId", "licenceId") VALUES (1, 'Course caté 2 et 3', 51, 1, null, null, null, false, 5, 10752);
+INSERT INTO public.course (id, nom, dossard, classementScratch, closed, dossardCourseMin, dossardCourseMax, surclassed, epreuveId, licenceId) VALUES (1, 'Course caté 2 et 3', 51, 1, null, null, null, false, 5, 10752);

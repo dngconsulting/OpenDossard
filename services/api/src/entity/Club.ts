@@ -4,10 +4,10 @@ import {Column, Entity, PrimaryGeneratedColumn} from 'typeorm';
 export class Club {
     @PrimaryGeneratedColumn()
     public id: number
-    @Column({nullable: false})
+    @Column({nullable: true})
     nomCourt: string
     @Column({nullable: true})
     dept : string
-    @Column({nullable: true})
+    @Column({nullable: false})
     nomLong: string
 }

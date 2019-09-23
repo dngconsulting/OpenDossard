@@ -1,6 +1,7 @@
 import {Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn} from 'typeorm';
 import {Federation} from './Federation';
 import {Club} from './Club';
+import {Type} from '@tsed/core';
 
 /**
  * Cette énum représente les catégories gérées par une épreuve
@@ -14,6 +15,13 @@ export enum CategoriesEpreuve {
     CADETS = "Cadets",
     MINIMES = "Minimes",
     FEMININES = "Feminines",
+}
+
+export enum TypeEpreuve {
+    CX = "CX",
+    ROUTE = "ROUTE",
+    VTT = "VTT",
+    AUTRE = ""
 }
 
 /**
@@ -80,4 +88,12 @@ export class Epreuve {
         default: Federation.NL,
     })
     fede : Federation
+
+    @Column({
+        type: "enum",
+        enum: TypeEpreuve,
+        nullable:true,
+        default: TypeEpreuve.ROUTE,
+    })
+    typeEpreuve : TypeEpreuve
 }
