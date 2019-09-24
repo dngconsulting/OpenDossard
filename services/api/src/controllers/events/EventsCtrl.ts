@@ -33,7 +33,7 @@ export class EventsCtrl {
    */
   @Get('/:id')
   public async get(@Required() @PathParams('calendarId') calendarId: string,
-            @PathParams('id') id: string): Promise<Event> {
+                   @PathParams('id') id: string): Promise<Event> {
     const event = this.events.find((event) => event.id === id && event.calendarId === calendarId);
 
     if (event) {
@@ -49,7 +49,7 @@ export class EventsCtrl {
    */
   @Get('/:id/tasks')
   public async getTasks(@Required() @PathParams('calendarId') calendarId: string,
-                 @PathParams('id') id: string): Promise<Task[]> {
+                        @PathParams('id') id: string): Promise<Task[]> {
     const event = this.events.find((event) => event.id === id && event.calendarId === calendarId);
 
     if (event) {
@@ -65,9 +65,9 @@ export class EventsCtrl {
    */
   @Put('/')
   public async save(@Required() @PathParams('calendarId') calendarId: string,
-             @BodyParams('startDate') startDate: string,
-             @BodyParams('endDate') endDate: string,
-             @BodyParams('name') name: string): Promise<Event> {
+                    @BodyParams('startDate') startDate: string,
+                    @BodyParams('endDate') endDate: string,
+                    @BodyParams('name') name: string): Promise<Event> {
 
 
     this.AUTO_INC++;
@@ -84,10 +84,10 @@ export class EventsCtrl {
    */
   @Post('/:id')
   public async update(@Required() @PathParams('calendarId') calendarId: string,
-               @PathParams('id') id: string,
-               @BodyParams('startDate') startDate: string,
-               @BodyParams('endDate') endDate: string,
-               @BodyParams('name') name: string): Promise<Event> {
+                      @PathParams('id') id: string,
+                      @BodyParams('startDate') startDate: string,
+                      @BodyParams('endDate') endDate: string,
+                      @BodyParams('name') name: string): Promise<Event> {
 
     const event = await this.get(calendarId, id);
     event.name = name;
@@ -104,7 +104,7 @@ export class EventsCtrl {
   @Authenticated()
   @Status(204)
   public async remove(@Required() @PathParams('calendarId') calendarId: string,
-               @PathParams('id') id: string): Promise<Event> {
+                      @PathParams('id') id: string): Promise<Event> {
 
     this.events = this.events.filter((event) => event.id === id && event.calendarId === calendarId);
 

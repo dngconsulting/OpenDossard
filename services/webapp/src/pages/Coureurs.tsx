@@ -8,7 +8,7 @@ interface ICoureursProps {
     classes: any;
 }
 const data = () => {
-    let mytable = []
+    const mytable = []
     for (let i = 0; i < 1000; i++) {
         mytable.push({licenceNumber : i, nom : "Nom"+i , prenom : "Prénom"+i, sexe : 'M', dept : '31', age : i%100, catea : 'SENIOR', catev : '4'})
     }

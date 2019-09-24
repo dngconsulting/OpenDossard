@@ -55,7 +55,7 @@ export class CalendarsCtrl {
    */
   @Post('/:id')
   public async update(@PathParams('id') @Required() id: string,
-               @BodyParams('name') @Required() name: string): Promise<Calendar> {
+                      @BodyParams('name') @Required() name: string): Promise<Calendar> {
     return this.calendarsService.update({id, name});
   }
 

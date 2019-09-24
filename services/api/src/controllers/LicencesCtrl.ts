@@ -1,11 +1,7 @@
-import {$log, BodyParams, Controller, Get, PathParams, Put, Required} from '@tsed/common';
+import {BodyParams, Controller, Get, PathParams, Put, Required} from '@tsed/common';
 import {NotFound} from 'ts-httpexceptions';
 import {Licence} from '../entity/Licence';
 import {createConnection} from 'typeorm';
-import {CategoriesEpreuve, Epreuve} from '../entity/Epreuve';
-import {Federation} from '../entity/Federation';
-import {Club} from '../entity/Club';
-import {Course} from '../entity/Course';
 
 /**
  * Add @Controller annotation to declare your class as Router controller.
@@ -17,7 +13,7 @@ import {Course} from '../entity/Course';
  */
 @Controller('/licences')
 export class LicencesCtrl {
-    private licences = require('../../resources/licences.json');
+
     @Get('/:id')
     public async get(@Required() @PathParams('id') id: string): Promise<Licence> {
         throw new NotFound('Not Implemented Yet');
@@ -37,9 +33,9 @@ export class LicencesCtrl {
 
     @Put('/')
     public async save(@BodyParams('licenceNumber')licenceId: string,
-               @BodyParams('nom') nom: string,
-               @BodyParams('prenom') prenom: string,
-               @BodyParams('genre') sexe: string): Promise<Licence> {
+                      @BodyParams('nom') nom: string,
+                      @BodyParams('prenom') prenom: string,
+                      @BodyParams('genre') sexe: string): Promise<Licence> {
         const licence = new Licence();
         createConnection().then(async (connection) => {
             console.log('Inserting a new user into the database...');

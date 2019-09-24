@@ -1,32 +1,32 @@
-import {GlobalAcceptMimesMiddleware, ServerLoader, ServerSettings} from "@tsed/common";
-import "@tsed/swagger";
-import {$log} from "ts-log-debug";
+import {GlobalAcceptMimesMiddleware, ServerLoader, ServerSettings} from '@tsed/common';
+import '@tsed/swagger';
+import {$log} from 'ts-log-debug';
 import config from './config';
 
-const cookieParser = require("cookie-parser");
-const bodyParser = require("body-parser");
-const compress = require("compression");
-const methodOverride = require("method-override");
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
+const compress = require('compression');
+const methodOverride = require('method-override');
 const rootDir = __dirname;
 
 @ServerSettings({
   rootDir,
-  acceptMimes: ["application/json"],
+  acceptMimes: ['application/json'],
   logger: {
     debug: true,
     logRequest: true,
-    requestFields: ["reqId", "method", "url", "headers", "query", "params", "duration"]
+    requestFields: ['reqId', 'method', 'url', 'headers', 'query', 'params', 'duration'],
   },
   swagger: {
-    path: "/api-docs"
+    path: '/api-docs',
   },
   calendar: {
-    token: true
+    token: true,
   },
   mount: {
-    "/api": "${rootDir}/controllers/**/*.ts" // support ts with ts-node then fallback to js
+    '/api': '${rootDir}/controllers/**/*.ts', // support ts with ts-node then fallback to js
   },
-  debug: true
+  debug: true,
 })
 export class Server extends ServerLoader {
   /**
@@ -41,7 +41,7 @@ export class Server extends ServerLoader {
       .use(methodOverride())
       .use(bodyParser.json())
       .use(bodyParser.urlencoded({
-        extended: true
+        extended: true,
       }));
 
     return null;
@@ -52,6 +52,6 @@ export class Server extends ServerLoader {
   }
 
   $onServerInitError(error): any {
-    $log.error("Server encounter an error =>", error);
+    $log.error('Server encounter an error =>', error);
   }
 }

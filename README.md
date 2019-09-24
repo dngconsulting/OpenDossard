@@ -2,7 +2,7 @@ ClickAndDossard repository is composed by :
 - services API
 - Front React Application
 
-# Quick start
+### Quick start
 
 ```
 ./cad.sh install        # install dependencies
@@ -26,4 +26,10 @@ ClickAndDossard repository is composed by :
 IntelliJ Settings
 
 ![IntelliJ DB Settings](documentation/img/intellij-dbsettings.png)
+
+- Use services/api/sql to populate
+
+### Other resources
+
+- [TS Lint configuration](documentation/tslint.md)
 
