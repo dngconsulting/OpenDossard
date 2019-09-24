@@ -7,5 +7,5 @@
   },
   "ignore": ["src/public"],
   "legacyWatch": true,
-  "exec": "ts-node src/index.ts"
+  "exec": "ts-node -T src/index.ts"
 }

@@ -18,7 +18,7 @@ services:
     env_file:
       - ./config/dev.env
     volumes:
-      - ./services/api:/app
+      - ./services/api:/app:delegated
     command: "npm run start-dev"
     ports:
       - "8080:8080"
@@ -30,7 +30,7 @@ services:
     env_file:
       - ./config/dev.env
     volumes:
-      - ./services/webapp:/app
+      - ./services/webapp:/app:delegated
     command: "npm start"
     ports:
       - "3000:3000"
