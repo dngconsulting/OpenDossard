@@ -27,3 +27,5 @@ IntelliJ Settings
 
 ![IntelliJ DB Settings](documentation/img/intellij-dbsettings.png)
 
+DB Init files are located in /sql/init/1-schema.sql for the db shema creation
+Please run the other files in the right order 2-club.sql followed by 3-licence.sql and so forth
