@@ -8,6 +8,11 @@ stop() {
     docker-compose down
 }
 
+restart() {
+    stop
+    start
+}
+
 clean() {
     rm -rf ./services/api/node_modules/
     rm -rf ./services/webapp/node_modules/
