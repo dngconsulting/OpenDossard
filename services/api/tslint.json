@@ -16,6 +16,7 @@
     "quotemark": [true, "single"],
     "variable-name": [true, "allow-leading-underscore"],
     "member-access": false,
-    "arrow-parens": false
+    "arrow-parens": false,
+    "no-var-requires": false
   }
 }
