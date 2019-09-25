@@ -2,18 +2,19 @@ import * as React from 'react';
 
 import {Theme, withStyles} from '@material-ui/core';
 import MaterialTable from 'material-table';
+import { AppText as T } from '../utils/text';
 
 interface ICoureursProps {
     items: any[];
     classes: any;
 }
 const data = () => {
-    const mytable = []
+    const mytable = [];
     for (let i = 0; i < 1000; i++) {
         mytable.push({licenceNumber : i, nom : "Nom"+i , prenom : "Prénom"+i, sexe : 'M', dept : '31', age : i%100, catea : 'SENIOR', catev : '4'})
     }
     return mytable
-}
+};
 class CoureursPage extends React.Component<ICoureursProps, {}> {
 
     public render(): JSX.Element {
@@ -32,7 +33,33 @@ class CoureursPage extends React.Component<ICoureursProps, {}> {
                 ]}
                 data={data()}
                 options={{
-                    filtering: true
+                    filtering: true,
+                    actionsColumnIndex: -1
+                }}
+                editable={{
+                    onRowUpdate: (newData, oldData) =>
+                        new Promise((resolve, reject) => {
+                            setTimeout(() => {
+                                resolve()
+                            }, 1000)
+                        }),
+                    onRowDelete: oldData =>
+                        new Promise((resolve, reject) => {
+                            setTimeout(() => {
+                                resolve()
+                            }, 1000)
+                        }),
+                }}
+                localization={{
+                    body: {
+                        editRow: {
+                            saveTooltip: T.COUREURS.EDITROW.SAVETOOLTIP,
+                            cancelTooltip: T.COUREURS.EDITROW.CANCELTOOLTIP,
+                            deleteText: T.COUREURS.EDITROW.DELETETEXT
+                        },
+                        deleteTooltip: T.COUREURS.DELETETOOLTIP,
+                        editTooltip: T.COUREURS.EDITTOOLTIP
+                    }
                 }}
             />
         );
