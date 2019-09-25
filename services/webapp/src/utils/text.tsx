@@ -6,6 +6,9 @@ export const AppText = {
             DELETETEXT: 'Confirmez vous de supprimer ce coureur ? '
         },
         DELETETOOLTIP: 'Supprimer',
-        EDITTOOLTIP: 'Editer'
+        EDITTOOLTIP: 'Editer',
+        PAGINATION: {
+            LABELROWSSELECT: 'lignes'
+        }
     }
 };

@@ -34,7 +34,9 @@ class CoureursPage extends React.Component<ICoureursProps, {}> {
                 data={data()}
                 options={{
                     filtering: true,
-                    actionsColumnIndex: -1
+                    actionsColumnIndex: -1,
+                    pageSize: 10,
+                    pageSizeOptions: [5, 10, 20]
                 }}
                 editable={{
                     onRowUpdate: (newData, oldData) =>
@@ -59,6 +61,9 @@ class CoureursPage extends React.Component<ICoureursProps, {}> {
                         },
                         deleteTooltip: T.COUREURS.DELETETOOLTIP,
                         editTooltip: T.COUREURS.EDITTOOLTIP
+                    },
+                    pagination: {
+                        labelRowsSelect: T.COUREURS.PAGINATION.LABELROWSSELECT
                     }
                 }}
             />
