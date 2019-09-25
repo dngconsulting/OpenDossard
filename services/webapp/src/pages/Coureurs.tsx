@@ -2,19 +2,30 @@ import * as React from 'react';
 
 import {Theme, withStyles} from '@material-ui/core';
 import MaterialTable from 'material-table';
-import { AppText as T } from '../utils/text';
+import {AppText as T} from '../utils/text';
 
 interface ICoureursProps {
     items: any[];
     classes: any;
 }
+
 const data = () => {
     const mytable = [];
     for (let i = 0; i < 1000; i++) {
-        mytable.push({licenceNumber : i, nom : "Nom"+i , prenom : "Prénom"+i, sexe : 'M', dept : '31', age : i%100, catea : 'SENIOR', catev : '4'})
+        mytable.push({
+            licenceNumber: i,
+            nom: 'Nom' + i,
+            prenom: 'Prénom' + i,
+            sexe: 'M',
+            dept: '31',
+            age: i % 100,
+            catea: 'SENIOR',
+            catev: '4'
+        });
     }
-    return mytable
+    return mytable;
 };
+
 class CoureursPage extends React.Component<ICoureursProps, {}> {
 
     public render(): JSX.Element {
@@ -22,14 +33,14 @@ class CoureursPage extends React.Component<ICoureursProps, {}> {
             <MaterialTable
                 title="Annuaire des coureurs"
                 columns={[
-                    { title: "Numéro licence", field: "licenceNumber" },
-                    { title: "Nom", field: "nom" },
-                    { title: "Prénom", field: "prenom" },
-                    { title: "Sexe", field: "sexe" },
-                    { title: "Dept", field: "dept" },
-                    { title: "Age", field: "age" },
-                    { title: "CatéA", field: "catea" },
-                    { title: "CatéV", field: "catev" },
+                    {title: 'Numéro licence', field: 'licenceNumber'},
+                    {title: 'Nom', field: 'nom'},
+                    {title: 'Prénom', field: 'prenom'},
+                    {title: 'Sexe', field: 'sexe'},
+                    {title: 'Dept', field: 'dept'},
+                    {title: 'Age', field: 'age'},
+                    {title: 'CatéA', field: 'catea'},
+                    {title: 'CatéV', field: 'catev'},
                 ]}
                 data={data()}
                 options={{
@@ -42,14 +53,14 @@ class CoureursPage extends React.Component<ICoureursProps, {}> {
                     onRowUpdate: (newData, oldData) =>
                         new Promise((resolve, reject) => {
                             setTimeout(() => {
-                                resolve()
-                            }, 1000)
+                                resolve();
+                            }, 1000);
                         }),
                     onRowDelete: oldData =>
                         new Promise((resolve, reject) => {
                             setTimeout(() => {
-                                resolve()
-                            }, 1000)
+                                resolve();
+                            }, 1000);
                         }),
                 }}
                 localization={{
@@ -60,10 +71,23 @@ class CoureursPage extends React.Component<ICoureursProps, {}> {
                             deleteText: T.COUREURS.EDITROW.DELETETEXT
                         },
                         deleteTooltip: T.COUREURS.DELETETOOLTIP,
-                        editTooltip: T.COUREURS.EDITTOOLTIP
+                        editTooltip: T.COUREURS.EDITTOOLTIP,
+                        emptyDataSourceMessage:  T.COUREURS.EMPTYDATASOURCEMESSAGE,
+                        filterRow:{
+                            filterTooltip: T.COUREURS.FILTERTOOLTIP
+                        },
                     },
                     pagination: {
-                        labelRowsSelect: T.COUREURS.PAGINATION.LABELROWSSELECT
+                        labelRowsSelect: T.COUREURS.PAGINATION.LABELROWSSELECT,
+                        firstTooltip: T.COUREURS.PAGINATION.FIRSTTOOLTIP,
+                        previousTooltip: T.COUREURS.PAGINATION.PREVIOUSTOOLTIP,
+                        nextTooltip: T.COUREURS.PAGINATION.NEXTTOOLTIP,
+                        lastTooltip: T.COUREURS.PAGINATION.LASTTOOLTIP,
+                        labelDisplayedRows: T.COUREURS.PAGINATION.LABELDISPLAYEDROWS
+                    },
+                    toolbar: {
+                        searchTooltip: T.COUREURS.TOOLBAR.SEARCHTOOLTIP,
+                        searchPlaceholder: T.COUREURS.TOOLBAR.SEARCHPLACEHOLDER
                     }
                 }}
             />
