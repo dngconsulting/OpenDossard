@@ -1,7 +1,7 @@
 import {BodyParams, Controller, Get, PathParams, Put, Required} from '@tsed/common';
 import {NotFound} from 'ts-httpexceptions';
 import {Licence} from '../entity/Licence';
-import {getConnection} from '../util/LazyConnection';
+import {getManager, getRepository} from 'typeorm';
 
 /**
  * Add @Controller annotation to declare your class as Router controller.
@@ -21,8 +21,7 @@ export class LicencesCtrl {
 
     @Get('/')
     public async getAllLicences(): Promise<Licence[]> {
-        const connection = await getConnection();
-        return await connection.getRepository(Licence).find();
+        return getRepository(Licence).find();
     }
 
     @Put('/')
@@ -31,8 +30,7 @@ export class LicencesCtrl {
                       @BodyParams('prenom') prenom: string,
                       @BodyParams('genre') sexe: string): Promise<Licence> {
 
-        const connection = await getConnection();
-        return await connection.transaction<Licence>(async t => {
+        return await getManager().transaction<Licence>( async t => {
             const licence = new Licence();
             licence.nom = nom;
             licence.prenom = prenom;
