@@ -2,11 +2,12 @@ import * as React from 'react';
 
 import {Theme, withStyles} from '@material-ui/core';
 import MaterialTable from 'material-table';
-import {AppText as T} from '../utils/text';
+import {AppText as T} from '../../utils/text';
 
 interface ICoureursProps {
     items: any[];
     classes: any;
+    history: any;
 }
 
 const data = () => {
@@ -68,7 +69,7 @@ class CoureursPage extends React.Component<ICoureursProps, {}> {
                         icon: 'add',
                         tooltip: T.RIDERS.ADD_NEW_RIDER,
                         isFreeAction: true,
-                        onClick: (event) => alert("to create a new rider page")
+                        onClick: (event) => {this.props.history.push('/new_rider')}
                     }
                 ]}
                 localization={{

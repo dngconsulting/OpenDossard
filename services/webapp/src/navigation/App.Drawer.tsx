@@ -22,7 +22,7 @@ import {Utility} from '../state/Utility';
 import {NavLink} from 'react-router-dom';
 import {styles} from './styles';
 import {AccountPage} from '../pages/account/Account';
-import CoureursPage from '../pages/Coureurs';
+import CoureursPage from '../pages/coureur/Coureurs';
 import ResultatsPage from '../pages/Resultats';
 import StatsPage from '../pages/Stats'
 
@@ -44,7 +44,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
         { path: '/results', component : ResultatsPage, title: 'Résultats', icon: () => <FormatListNumberedIcon /> },
         { path: '/stats', component : StatsPage, title: 'Statistiques', icon: () => <ShowChartIcon /> },
         { path: '/account', component : AccountPage, title: 'Profile', icon: () => <AccountCircleIcon /> }
-    ]
+    ];
 
     public render(): JSX.Element {
         const { authentication, classes, utility, theme } = this.props;
