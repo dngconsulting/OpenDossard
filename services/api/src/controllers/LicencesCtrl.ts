@@ -2,6 +2,7 @@ import {BodyParams, Controller, Get, PathParams, Put, Required} from '@tsed/comm
 import {NotFound} from 'ts-httpexceptions';
 import {Licence} from '../entity/Licence';
 import {getManager, getRepository} from 'typeorm';
+import {ReturnsArray} from '@tsed/swagger';
 
 /**
  * Add @Controller annotation to declare your class as Router controller.
@@ -20,6 +21,7 @@ export class LicencesCtrl {
     }
 
     @Get('/')
+    @ReturnsArray(Licence,{description:"Liste des licences",})
     public async getAllLicences(): Promise<Licence[]> {
         return getRepository(Licence).find();
     }

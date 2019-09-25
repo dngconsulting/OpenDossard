@@ -7,12 +7,14 @@ interface ICoureursProps {
     items: any[];
     classes: any;
 }
-const data = () => {
-    const mytable = []
-    for (let i = 0; i < 1000; i++) {
-        mytable.push({licenceNumber : i, nom : "Nom"+i , prenom : "Prénom"+i, sexe : 'M', dept : '31', age : i%100, catea : 'SENIOR', catev : '4'})
-    }
-    return mytable
+/*const data = async () => {
+   const licences : Licence[] = await apiLicences.licencesCtrlGetAllLicences()
+   console.log("Premiere licence = " + JSON.stringify(licences[0]));
+   return licences ;
+}*/
+
+const data = () : any => {
+    return []
 }
 class CoureursPage extends React.Component<ICoureursProps, {}> {
 
@@ -21,14 +23,16 @@ class CoureursPage extends React.Component<ICoureursProps, {}> {
             <MaterialTable
                 title="Annuaire des coureurs"
                 columns={[
+                    { title: "Numéro", field: "id" },
                     { title: "Numéro licence", field: "licenceNumber" },
                     { title: "Nom", field: "nom" },
                     { title: "Prénom", field: "prenom" },
-                    { title: "Sexe", field: "sexe" },
-                    { title: "Dept", field: "dept" },
+                    { title: "Sexe", field: "genre" },
+                    { title: "Dept", field: "club" },
                     { title: "Age", field: "age" },
                     { title: "CatéA", field: "catea" },
                     { title: "CatéV", field: "catev" },
+                    { title: "CatéV", field: "fede" }
                 ]}
                 data={data()}
                 options={{

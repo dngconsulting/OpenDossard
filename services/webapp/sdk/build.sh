@@ -1,4 +1,5 @@
  echo "Generation du SDK ..."
+ # Pour customiser la génération, s'appuyer sur ce projet : https://github.com/mgechev/swagger-typescript-fetch-api
  # CONFIG OPTIONS
  #        sortParamsByRequiredFlag
  #            Sort method arguments to place required parameters before optional parameters. (Default: true)

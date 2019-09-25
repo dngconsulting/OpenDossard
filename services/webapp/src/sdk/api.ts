@@ -175,6 +175,80 @@ export interface EventsCtrlUpdatePayload {
 /**
  * 
  * @export
+ * @interface Licence
+ */
+export interface Licence {
+    /**
+     * 
+     * @type {number}
+     * @memberof Licence
+     */
+    id?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof Licence
+     */
+    licenceNumber?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Licence
+     */
+    nom?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Licence
+     */
+    prenom?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Licence
+     */
+    genre?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Licence
+     */
+    club?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Licence
+     */
+    dept?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Licence
+     */
+    age?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Licence
+     */
+    catea?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Licence
+     */
+    catev?: string;
+    /**
+     * 
+     * @type {any}
+     * @memberof Licence
+     */
+    fede?: any;
+}
+
+/**
+ * 
+ * @export
  * @interface LicencesCtrlSavePayload
  */
 export interface LicencesCtrlSavePayload {
@@ -1122,12 +1196,12 @@ export const LicencesCtrlApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        licencesCtrlGetAllLicences(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+        licencesCtrlGetAllLicences(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<Licence>> {
             const localVarFetchArgs = LicencesCtrlApiFetchParamCreator(configuration).licencesCtrlGetAllLicences(options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
-                        return response;
+                        return response.json();
                     } else {
                         throw response;
                     }

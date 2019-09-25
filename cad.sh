@@ -23,9 +23,12 @@ install() {
     docker-compose run --rm -v "$HOME/.npm:/root/.npm" webapp npm install
 }
 
-installci() {
-    docker-compose run --rm -v "$HOME/.npm:/root/.npm" api npm ci
+installciwebapp() {
     docker-compose run --rm -v "$HOME/.npm:/root/.npm" webapp npm ci
+}
+
+installciapi() {
+    docker-compose run --rm -v "$HOME/.npm:/root/.npm" api npm ci
 }
 
 log() {
