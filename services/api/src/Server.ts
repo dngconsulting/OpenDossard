@@ -1,5 +1,6 @@
 import {GlobalAcceptMimesMiddleware, ServerLoader, ServerSettings} from '@tsed/common';
 import '@tsed/swagger';
+import '@tsed/typeorm';
 import {$log} from 'ts-log-debug';
 import config from './config';
 
@@ -11,6 +12,32 @@ const rootDir = __dirname;
 
 @ServerSettings({
   rootDir,
+  typeorm: [
+    {
+      type: 'postgres',
+      host: config.db.host,
+      port: config.db.port,
+      username: config.db.username,
+      password: config.db.password,
+      database: config.db.database,
+      synchronize: false,
+      logging: true,
+      entities: [
+        `${__dirname}/entity/**/*.ts`,
+      ],
+      migrations: [
+        `${__dirname}/migration/**/*.ts`,
+      ],
+      subscribers: [
+        `${__dirname}/subscriber/**/*.ts`,
+      ],
+      cli: {
+        entitiesDir: `${__dirname}/entity`,
+        migrationsDir: `${__dirname}/migration`,
+        subscribersDir: `${__dirname}/subscriber`,
+      },
+    },
+  ],
   acceptMimes: ['application/json'],
   logger: {
     debug: true,
@@ -45,10 +72,6 @@ export class Server extends ServerLoader {
       }));
 
     return null;
-  }
-
-  $onReady() {
-    $log.debug(config.server);
   }
 
   $onServerInitError(error): any {
