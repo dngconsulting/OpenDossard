@@ -1,7 +1,7 @@
 import {BodyParams, Controller, Get, PathParams, Put, Required} from '@tsed/common';
 import {NotFound} from 'ts-httpexceptions';
 import {Licence} from '../entity/Licence';
-import {createConnection} from 'typeorm';
+import {getConnection} from '../util/LazyConnection';
 
 /**
  * Add @Controller annotation to declare your class as Router controller.
@@ -21,14 +21,8 @@ export class LicencesCtrl {
 
     @Get('/')
     public async getAllLicences(): Promise<Licence[]> {
-        try {
-            const connection = await createConnection();
-            const license = await connection.getRepository(Licence).find();
-            return license;
-        } catch (error) {
-            console.log(error);
-            return null;
-        }
+        const connection = await getConnection();
+        return await connection.getRepository(Licence).find();
     }
 
     @Put('/')
@@ -36,17 +30,15 @@ export class LicencesCtrl {
                       @BodyParams('nom') nom: string,
                       @BodyParams('prenom') prenom: string,
                       @BodyParams('genre') sexe: string): Promise<Licence> {
-        const licence = new Licence();
-        createConnection().then(async (connection) => {
-            console.log('Inserting a new user into the database...');
-            licence.nom = 'RUBY';
-            licence.prenom = 'Jérome';
-            licence.genre = 'H';
-            await connection.manager.save(licence);
-            console.log('Saved a new licence with id: ' + licence.id);
 
-        }).catch((error) => console.log(error));
-
-        return licence;
+        const connection = await getConnection();
+        return await connection.transaction<Licence>(async t => {
+            const licence = new Licence();
+            licence.nom = nom;
+            licence.prenom = prenom;
+            licence.genre = sexe;
+            await t.save(licence);
+            return licence;
+        });
     }
 }
