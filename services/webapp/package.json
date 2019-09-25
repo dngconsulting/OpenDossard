@@ -65,7 +65,7 @@
     "tslint:check": "tslint --project .",
     "tslint:fix": "tslint --fix --project ."
   },
-  "proxy": "http://localhost:8080",
+  "proxy": "http://api:8080",
   "eslintConfig": {
     "extends": "react-app"
   },
