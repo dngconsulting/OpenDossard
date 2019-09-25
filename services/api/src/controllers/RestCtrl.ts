@@ -1,12 +1,12 @@
-import {Controller, Get, RouteService} from "@tsed/common";
+import {Controller, Get, RouteService} from '@tsed/common';
 
-@Controller("/api")
+@Controller('/api')
 export class RestCtrl {
 
   constructor(private routeService: RouteService) {
   }
 
-  @Get("/")
+  @Get('/')
   public getRoutes() {
     return this.routeService.getAll();
   }

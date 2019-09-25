@@ -1,4 +1,4 @@
-import {Service} from "@tsed/common";
+import {Service} from '@tsed/common';
 
 @Service()
 export class MemoryStorage {

@@ -6,35 +6,35 @@ import {Licence} from './Licence';
 @Entity()
 export class Course {
     @PrimaryGeneratedColumn()
-    public id: number
+    public id: number;
 
     @Column({nullable: false})
-    nom: string
+    nom: string;
 
-    @ManyToOne(type => Epreuve)
+    @ManyToOne((type) => Epreuve)
     @JoinColumn()
-    public epreuve : Epreuve
+    public epreuve: Epreuve;
 
-    @ManyToOne(type => Licence)
+    @ManyToOne((type) => Licence)
     @JoinColumn()
-    public licence : Licence
+    public licence: Licence;
 
     @Column({nullable: true})
-    public dossard: number
+    public dossard: number;
 
     @Column({nullable: true})
-    public classementScratch: number
+    public classementScratch: number;
 
     @Column({nullable: true})
-    public closed: boolean
+    public closed: boolean;
 
     @Column({nullable: true})
-    public dossardCourseMin: number
+    public dossardCourseMin: number;
 
     @Column({nullable: true})
-    public dossardCourseMax: number
+    public dossardCourseMax: number;
 
-    @Column({nullable:true})
-    public surclassed : boolean
+    @Column({nullable: true})
+    public surclassed: boolean;
 
 }
