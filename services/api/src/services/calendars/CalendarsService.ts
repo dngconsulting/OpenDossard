@@ -1,21 +1,21 @@
-import {Constant, Service} from "@tsed/common";
-import {NotFound} from "ts-httpexceptions";
-import {$log} from "ts-log-debug";
-import {Calendar} from "../../interfaces/Calendar";
-import {MemoryStorage} from "../storage/MemoryStorage";
+import {Constant, Service} from '@tsed/common';
+import {NotFound} from 'ts-httpexceptions';
+import {$log} from 'ts-log-debug';
+import {Calendar} from '../../interfaces/Calendar';
+import {MemoryStorage} from '../storage/MemoryStorage';
 
 @Service()
 export class CalendarsService {
 
-  @Constant("calendar.token")
+  @Constant('calendar.token')
   useToken: boolean;
 
   constructor(private memoryStorage: MemoryStorage) {
-    this.memoryStorage.set("calendars", require("../../../resources/calendars.json"));
+    this.memoryStorage.set('calendars', require('../../../resources/calendars.json'));
   }
 
   $onInit() {
-    $log.info("===useToken", this.useToken);
+    $log.info('===useToken', this.useToken);
   }
 
   /**
@@ -26,7 +26,7 @@ export class CalendarsService {
   async find(id: string): Promise<Calendar> {
     const calendars: Calendar[] = await this.query();
 
-    return calendars.find(calendar => calendar.id === id);
+    return calendars.find((calendar) => calendar.id === id);
   }
 
   /**
@@ -35,12 +35,12 @@ export class CalendarsService {
    * @returns {{id: any, name: string}}
    */
   async create(name: string) {
-    const calendar = {id: require("node-uuid").v4(), name};
-    const calendars = this.memoryStorage.get<Calendar[]>("calendars");
+    const calendar = {id: require('node-uuid').v4(), name};
+    const calendars = this.memoryStorage.get<Calendar[]>('calendars');
 
     calendars.push(calendar);
 
-    this.memoryStorage.set("calendars", calendars);
+    this.memoryStorage.set('calendars', calendars);
 
     return calendar;
   }
@@ -50,7 +50,7 @@ export class CalendarsService {
    * @returns {Calendar[]}
    */
   async query(): Promise<Calendar[]> {
-    return this.memoryStorage.get<Calendar[]>("calendars");
+    return this.memoryStorage.get<Calendar[]>('calendars');
   }
 
   /**
@@ -65,7 +65,7 @@ export class CalendarsService {
 
     calendars[index] = calendar;
 
-    this.memoryStorage.set("calendars", calendars);
+    this.memoryStorage.set('calendars', calendars);
 
     return calendar;
   }
@@ -80,12 +80,12 @@ export class CalendarsService {
     const calendar = await this.find(id);
 
     if (!calendar) {
-      throw new NotFound("Calendar not found");
+      throw new NotFound('Calendar not found');
     }
 
     const calendars = await this.query();
 
-    this.memoryStorage.set("calendars", calendars.filter(calendar => calendar.id === id));
+    this.memoryStorage.set('calendars', calendars.filter((calendar) => calendar.id === id));
 
     return calendar;
   }

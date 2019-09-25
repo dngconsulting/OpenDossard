@@ -1,34 +1,34 @@
-import {Entity, PrimaryGeneratedColumn, Column} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column} from 'typeorm';
 import {Federation} from './Federation';
 
 @Entity()
 export class Licence {
 
     @PrimaryGeneratedColumn()
-    public id : number
+    public id: number;
     @Column({ nullable: true })
     licenceNumber: string;
     @Column({ nullable: true })
-    nom: string
+    nom: string;
     @Column({ nullable: true })
-    prenom: string
+    prenom: string;
     @Column({ nullable: true })
-    genre : string
+    genre: string;
     @Column({ nullable: true })
-    club : string
+    club: string;
     @Column({ nullable: true })
-    dept : string
+    dept: string;
     @Column({ nullable: true })
-    age:string
+    age: string; cat;
     @Column({ nullable: true })
-    catea:string
+    catea: string;
     @Column({ nullable: true })
-    catev:string
+    catev: string;
     @Column({
-        type: "enum",
+        type: 'enum',
         enum: Federation,
-        nullable:true,
+        nullable: true,
         default: Federation.NL,
     })
-    fede:Federation
+    fede: Federation;
 }

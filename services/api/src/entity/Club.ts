@@ -3,11 +3,11 @@ import {Column, Entity, PrimaryGeneratedColumn} from 'typeorm';
 @Entity()
 export class Club {
     @PrimaryGeneratedColumn()
-    public id: number
+    public id: number;
     @Column({nullable: true})
-    nomCourt: string
+    nomCourt: string;
     @Column({nullable: true})
-    dept : string
+    dept: string;
     @Column({nullable: false})
-    nomLong: string
+    nomLong: string;
 }

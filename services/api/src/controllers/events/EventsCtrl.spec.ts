@@ -1,3 +1,3 @@
-describe("EventsCtrl", () => {
+describe('EventsCtrl', () => {
 
 });
