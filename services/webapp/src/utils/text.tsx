@@ -1,13 +1,13 @@
 export const AppText = {
     COUREURS:{
         EDITROW: {
-            SAVETOOLTIP: 'Enregistrer',
-            CANCELTOOLTIP: 'Annuler',
+            SAVETOOLTIP: 'Oui',
+            CANCELTOOLTIP: 'Non',
             DELETETEXT: 'Confirmez vous de supprimer ce coureur ? '
         },
         FILTERTOOLTIP: 'Filtre',
         DELETETOOLTIP: 'Supprimer',
-        EDITTOOLTIP: 'Editer',
+        EDITTOOLTIP: 'Modifier',
         EMPTYDATASOURCEMESSAGE: 'Aucun enregistrement à afficher',
         PAGINATION: {
             LABELROWSSELECT: 'Lignes',
