@@ -15,11 +15,11 @@ const rootDir = __dirname;
   typeorm: [
     {
       type: 'postgres',
-      host: 'dossarddb',
-      port: 5432,
-      username: 'dossarduser',
-      password: 'dossardpwd',
-      database: 'dossarddb',
+      host: config.db.host,
+      port: config.db.port,
+      username: config.db.username,
+      password: config.db.password,
+      database: config.db.database,
       synchronize: false,
       logging: true,
       entities: [
@@ -72,10 +72,6 @@ export class Server extends ServerLoader {
       }));
 
     return null;
-  }
-
-  $onReady() {
-    $log.debug(config.server);
   }
 
   $onServerInitError(error): any {
