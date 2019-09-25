@@ -16,7 +16,7 @@ const data = () => {
             licenceNumber: i,
             nom: 'Nom' + i,
             prenom: 'Prénom' + i,
-            sexe: 'M',
+            genre: 'M',
             dept: '31',
             age: i % 100,
             catea: 'SENIOR',
@@ -31,23 +31,23 @@ class CoureursPage extends React.Component<ICoureursProps, {}> {
     public render(): JSX.Element {
         return (
             <MaterialTable
-                title="Annuaire des coureurs"
+                title= {T.RIDERS.TITLE}
                 columns={[
                     {title: 'Numéro licence', field: 'licenceNumber'},
                     {title: 'Nom', field: 'nom'},
                     {title: 'Prénom', field: 'prenom'},
-                    {title: 'Sexe', field: 'sexe'},
+                    {title: 'Genre', field: 'genre'},
                     {title: 'Dept', field: 'dept'},
                     {title: 'Age', field: 'age'},
-                    {title: 'CatéA', field: 'catea'},
-                    {title: 'CatéV', field: 'catev'},
+                    {title: 'Caté Age', field: 'catea'},
+                    {title: 'Caté Valeur', field: 'catev'},
                 ]}
                 data={data()}
                 options={{
                     filtering: true,
                     actionsColumnIndex: -1,
                     pageSize: 10,
-                    pageSizeOptions: [5, 10, 20]
+                    pageSizeOptions: [5, 10, 20],
                 }}
                 editable={{
                     onRowUpdate: (newData, oldData) =>
@@ -63,31 +63,39 @@ class CoureursPage extends React.Component<ICoureursProps, {}> {
                             }, 1000);
                         }),
                 }}
+                actions={[
+                    {
+                        icon: 'add',
+                        tooltip: T.RIDERS.ADD_NEW_RIDER,
+                        isFreeAction: true,
+                        onClick: (event) => alert("to create a new rider page")
+                    }
+                ]}
                 localization={{
                     body: {
                         editRow: {
-                            saveTooltip: T.COUREURS.EDITROW.SAVETOOLTIP,
-                            cancelTooltip: T.COUREURS.EDITROW.CANCELTOOLTIP,
-                            deleteText: T.COUREURS.EDITROW.DELETETEXT
+                            saveTooltip: T.RIDERS.EDIT_ROW.SAVE_TOOL_TIP,
+                            cancelTooltip: T.RIDERS.EDIT_ROW.CANCEL_TOOL_TIP,
+                            deleteText: T.RIDERS.EDIT_ROW.DELETE_TEXT
                         },
-                        deleteTooltip: T.COUREURS.DELETETOOLTIP,
-                        editTooltip: T.COUREURS.EDITTOOLTIP,
-                        emptyDataSourceMessage:  T.COUREURS.EMPTYDATASOURCEMESSAGE,
+                        deleteTooltip: T.RIDERS.DELETE_TOOL_TIP,
+                        editTooltip: T.RIDERS.EDIT_TOOL_TIP,
+                        emptyDataSourceMessage:  T.RIDERS.EMPTY_DATA_SOURCE_MESSAGE,
                         filterRow:{
-                            filterTooltip: T.COUREURS.FILTERTOOLTIP
+                            filterTooltip: T.RIDERS.FILTER_TOOL_TIP
                         },
                     },
                     pagination: {
-                        labelRowsSelect: T.COUREURS.PAGINATION.LABELROWSSELECT,
-                        firstTooltip: T.COUREURS.PAGINATION.FIRSTTOOLTIP,
-                        previousTooltip: T.COUREURS.PAGINATION.PREVIOUSTOOLTIP,
-                        nextTooltip: T.COUREURS.PAGINATION.NEXTTOOLTIP,
-                        lastTooltip: T.COUREURS.PAGINATION.LASTTOOLTIP,
-                        labelDisplayedRows: T.COUREURS.PAGINATION.LABELDISPLAYEDROWS
+                        labelRowsSelect: T.RIDERS.PAGINATION.LABEL_ROWS_SELECT,
+                        firstTooltip: T.RIDERS.PAGINATION.FIRST_TOOL_TIP,
+                        previousTooltip: T.RIDERS.PAGINATION.PREVIOUS_TOOL_TIP,
+                        nextTooltip: T.RIDERS.PAGINATION.NEXT_TOOL_TIP,
+                        lastTooltip: T.RIDERS.PAGINATION.LAST_TOOL_TIP,
+                        labelDisplayedRows: T.RIDERS.PAGINATION.LABEL_DISPLAYED_ROWS
                     },
                     toolbar: {
-                        searchTooltip: T.COUREURS.TOOLBAR.SEARCHTOOLTIP,
-                        searchPlaceholder: T.COUREURS.TOOLBAR.SEARCHPLACEHOLDER
+                        searchTooltip: T.RIDERS.TOOLBAR.SEARCH_TOOL_TIP,
+                        searchPlaceholder: T.RIDERS.TOOLBAR.SEARCH_PLACE_HOLDER
                     }
                 }}
             />
