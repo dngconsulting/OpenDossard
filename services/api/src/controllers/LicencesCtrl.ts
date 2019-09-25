@@ -1,7 +1,7 @@
 import {BodyParams, Controller, Get, PathParams, Put, Required} from '@tsed/common';
 import {NotFound} from 'ts-httpexceptions';
 import {Licence} from '../entity/Licence';
-import {createConnection} from 'typeorm';
+import {EntityManager, getRepository, Transaction, TransactionManager} from 'typeorm';
 
 /**
  * Add @Controller annotation to declare your class as Router controller.
@@ -21,32 +21,14 @@ export class LicencesCtrl {
 
     @Get('/')
     public async getAllLicences(): Promise<Licence[]> {
-        try {
-            const connection = await createConnection();
-            const license = await connection.getRepository(Licence).find();
-            return license;
-        } catch (error) {
-            console.log(error);
-            return null;
-        }
+        return getRepository(Licence).find();
     }
 
     @Put('/')
-    public async save(@BodyParams('licenceNumber')licenceId: string,
-                      @BodyParams('nom') nom: string,
-                      @BodyParams('prenom') prenom: string,
-                      @BodyParams('genre') sexe: string): Promise<Licence> {
-        const licence = new Licence();
-        createConnection().then(async (connection) => {
-            console.log('Inserting a new user into the database...');
-            licence.nom = 'RUBY';
-            licence.prenom = 'Jérome';
-            licence.genre = 'H';
-            await connection.manager.save(licence);
-            console.log('Saved a new licence with id: ' + licence.id);
-
-        }).catch((error) => console.log(error));
-
+    @Transaction()
+    public async save(@BodyParams(Licence) licence: Licence, @TransactionManager() em: EntityManager)
+                : Promise<Licence> {
+        await em.save(licence);
         return licence;
     }
 }

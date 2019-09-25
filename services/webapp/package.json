@@ -25,6 +25,7 @@
     "mobx": "^4.8.0",
     "mobx-react-devtools": "^5.0.1",
     "moment": "^2.24.0",
+    "portable-fetch": "^3.0.0",
     "querystring": "^0.2.0",
     "randomcolor": "^0.5.4",
     "react": "^16.7.0",
@@ -64,7 +65,7 @@
     "tslint:check": "tslint --project .",
     "tslint:fix": "tslint --fix --project ."
   },
-  "proxy": "http://localhost:8080",
+  "proxy": "http://api:8080",
   "eslintConfig": {
     "extends": "react-app"
   },

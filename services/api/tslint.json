@@ -7,7 +7,7 @@
   },
   "rules": {
     "max-line-length": {
-      "options": [100]
+      "options": [120]
     },
     "member-ordering": false,
     "no-consecutive-blank-lines": false,
@@ -15,6 +15,8 @@
     "ordered-imports": false,
     "quotemark": [true, "single"],
     "variable-name": [true, "allow-leading-underscore"],
-    "member-access": false
+    "member-access": false,
+    "arrow-parens": false,
+    "no-var-requires": false
   }
 }
