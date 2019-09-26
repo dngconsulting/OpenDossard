@@ -54,8 +54,27 @@ dropdb() {
     from pg_tables
     where schemaname = 'public';
 EOM
+
     DROPQUERY=$(docker exec -it dossarddb psql -U dossarduser dossarddb -t -c "$GENQUERY")
     docker exec -it dossarddb psql -U dossarduser dossarddb -c "$DROPQUERY"
+
+    read -r -d '' GENQUERY << EOM
+select distinct 'DROP TYPE "' || t.typname || '";'as enum_name
+from pg_type t
+   join pg_enum e on t.oid = e.enumtypid
+   join pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+EOM
+
+    DROPQUERY=$(docker exec -it dossarddb psql -U dossarduser dossarddb -t -c "$GENQUERY")
+    docker exec -it dossarddb psql -U dossarduser dossarddb -c "$DROPQUERY"
+}
+
+installdb() {
+    dropdb
+    cat services/api/sql/init/* > services/api/sql/init/all.sql
+    docker cp services/api/sql/init/all.sql dossarddb:/all.sql
+    docker exec -it dossarddb psql -U dossarduser dossarddb -f '/all.sql'
+    rm services/api/sql/init/all.sql
 }
 
 $@
