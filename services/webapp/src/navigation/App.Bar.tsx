@@ -12,7 +12,7 @@ import Hidden from '@material-ui/core/Hidden';
 import {styles} from './styles';
 import * as AppActionCreators from '../actions/App.Actions';
 import {IApplicationProps} from '../actions/App.Actions';
-import {AppState, isAuthenticated} from '../state/AppState';
+import {ReduxState, isAuthenticated} from '../state/ReduxState';
 import {connect} from 'react-redux';
 import * as _ from 'lodash';
 import {bindActionCreators, Dispatch} from 'redux';
@@ -239,7 +239,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
   }
 }
 
-const mapStateToProps = (state: AppState) => ({
+const mapStateToProps = (state: ReduxState) => ({
   utility: state.utility,
   authentication: state.authentication,
 

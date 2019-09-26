@@ -1,6 +1,7 @@
 import {Action} from 'redux';
 
 export enum ActionType {
+    LISTE_COUREURS,
     OPEN_DRAWER,
     CLOSE_DRAWER,
     OPEN_ALERT,
@@ -12,7 +13,8 @@ export enum ActionType {
     LOGIN_FAIL,
     LOGOUT_REQUEST,
     LOGOUT_SUCCESS,
-    LOGOUT_FAIL
+    LOGOUT_FAIL,
+    TEST
 }
 
 export interface IAppAction extends Action<ActionType> {

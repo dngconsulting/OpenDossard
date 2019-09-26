@@ -1,38 +1,20 @@
-import {combineReducers} from 'redux';
-import {
-    TEST_ACTION
-} from '../actions'
+import {ActionType, IAppAction} from '../actions/Helpers';
+import {AppState} from '../state/AppState';
 
-export interface ITypedAppState {
-    test: string,
-}
-
-export type AppState = ITypedAppState
-
-export interface IReduxState {
-    app: AppState
-}
-
-const initAppState: AppState = {
-    test: 'bonjour'
-}
-
-const app = (state = initAppState, action : any) => {
-    const {type, payload} = action;
-
-    switch(type) {
-        case TEST_ACTION:
-            return{
+export const AppReducer = (state: AppState = null, action: IAppAction): AppState => {
+    switch (action.type) {
+        case ActionType.TEST:
+            return {
                 ...state,
-                test: payload
-            }
+                ...action.payload
+            };
+        case ActionType.LISTE_COUREURS:
+            return {
+                ...state,
+                licences : [],
+            };
+
         default:
             return state;
     }
-
 };
-
-export const AppReducer = combineReducers({
-    app
-});
-

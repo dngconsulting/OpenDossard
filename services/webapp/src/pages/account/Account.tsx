@@ -3,7 +3,7 @@ import {User} from '../../state/User';
 import LoginPage from './Login';
 import {Route, Switch} from 'react-router';
 import {ProfilePage} from './Profile';
-import {isAuthenticated} from '../../state/AppState';
+import {isAuthenticated} from '../../state/ReduxState';
 
 interface IAccountProps {
     login?: (data: any) => void;
