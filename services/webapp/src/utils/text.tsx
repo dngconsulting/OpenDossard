@@ -1,5 +1,5 @@
 export const AppText = {
-    RIDERS:{
+    LICENCES:{
         TITLE: 'Annuaire des coureurs',
         EDIT_ROW: {
             SAVE_TOOL_TIP: 'Oui',

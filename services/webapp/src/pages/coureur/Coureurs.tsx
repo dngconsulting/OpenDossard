@@ -32,7 +32,7 @@ class CoureursPage extends React.Component<ICoureursProps, {}> {
     public render(): JSX.Element {
         return (
             <MaterialTable
-                title= {T.RIDERS.TITLE}
+                title= {T.LICENCES.TITLE}
                 columns={[
                     {title: 'Numéro licence', field: 'licenceNumber'},
                     {title: 'Nom', field: 'nom'},
@@ -67,36 +67,36 @@ class CoureursPage extends React.Component<ICoureursProps, {}> {
                 actions={[
                     {
                         icon: 'add',
-                        tooltip: T.RIDERS.ADD_NEW_RIDER,
+                        tooltip: T.LICENCES.ADD_NEW_RIDER,
                         isFreeAction: true,
-                        onClick: (event) => {this.props.history.push('/new_rider')}
+                        onClick: (event) => {this.props.history.push('/new_licence')}
                     }
                 ]}
                 localization={{
                     body: {
                         editRow: {
-                            saveTooltip: T.RIDERS.EDIT_ROW.SAVE_TOOL_TIP,
-                            cancelTooltip: T.RIDERS.EDIT_ROW.CANCEL_TOOL_TIP,
-                            deleteText: T.RIDERS.EDIT_ROW.DELETE_TEXT
+                            saveTooltip: T.LICENCES.EDIT_ROW.SAVE_TOOL_TIP,
+                            cancelTooltip: T.LICENCES.EDIT_ROW.CANCEL_TOOL_TIP,
+                            deleteText: T.LICENCES.EDIT_ROW.DELETE_TEXT
                         },
-                        deleteTooltip: T.RIDERS.DELETE_TOOL_TIP,
-                        editTooltip: T.RIDERS.EDIT_TOOL_TIP,
-                        emptyDataSourceMessage:  T.RIDERS.EMPTY_DATA_SOURCE_MESSAGE,
+                        deleteTooltip: T.LICENCES.DELETE_TOOL_TIP,
+                        editTooltip: T.LICENCES.EDIT_TOOL_TIP,
+                        emptyDataSourceMessage:  T.LICENCES.EMPTY_DATA_SOURCE_MESSAGE,
                         filterRow:{
-                            filterTooltip: T.RIDERS.FILTER_TOOL_TIP
+                            filterTooltip: T.LICENCES.FILTER_TOOL_TIP
                         },
                     },
                     pagination: {
-                        labelRowsSelect: T.RIDERS.PAGINATION.LABEL_ROWS_SELECT,
-                        firstTooltip: T.RIDERS.PAGINATION.FIRST_TOOL_TIP,
-                        previousTooltip: T.RIDERS.PAGINATION.PREVIOUS_TOOL_TIP,
-                        nextTooltip: T.RIDERS.PAGINATION.NEXT_TOOL_TIP,
-                        lastTooltip: T.RIDERS.PAGINATION.LAST_TOOL_TIP,
-                        labelDisplayedRows: T.RIDERS.PAGINATION.LABEL_DISPLAYED_ROWS
+                        labelRowsSelect: T.LICENCES.PAGINATION.LABEL_ROWS_SELECT,
+                        firstTooltip: T.LICENCES.PAGINATION.FIRST_TOOL_TIP,
+                        previousTooltip: T.LICENCES.PAGINATION.PREVIOUS_TOOL_TIP,
+                        nextTooltip: T.LICENCES.PAGINATION.NEXT_TOOL_TIP,
+                        lastTooltip: T.LICENCES.PAGINATION.LAST_TOOL_TIP,
+                        labelDisplayedRows: T.LICENCES.PAGINATION.LABEL_DISPLAYED_ROWS
                     },
                     toolbar: {
-                        searchTooltip: T.RIDERS.TOOLBAR.SEARCH_TOOL_TIP,
-                        searchPlaceholder: T.RIDERS.TOOLBAR.SEARCH_PLACE_HOLDER
+                        searchTooltip: T.LICENCES.TOOLBAR.SEARCH_TOOL_TIP,
+                        searchPlaceholder: T.LICENCES.TOOLBAR.SEARCH_PLACE_HOLDER
                     }
                 }}
             />
