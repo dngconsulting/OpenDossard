@@ -48,5 +48,15 @@ log() {
     docker logs -f $1
 }
 
+dropdb() {
+    read -r -d '' GENQUERY << EOM
+    select 'drop table if exists "' || tablename || '" cascade;'
+    from pg_tables
+    where schemaname = 'public';
+EOM
+    DROPQUERY=$(docker exec -it dossarddb psql -U dossarduser dossarddb -t -c "$GENQUERY")
+    docker exec -it dossarddb psql -U dossarduser dossarddb -c "$DROPQUERY"
+}
+
 $@
 
