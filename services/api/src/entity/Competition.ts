@@ -34,10 +34,10 @@ export class Competition {
     @PrimaryGeneratedColumn()
     public id: number;
     /**
-     * La date de l'épreuve au format JS
+     * La eventDate de l'épreuve au format JS
      */
     @Column({nullable: false})
-    public date: Date;
+    public eventDate: Date;
     /**
      * La référence du club organisateur
      */
