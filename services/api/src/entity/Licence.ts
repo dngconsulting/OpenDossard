@@ -14,15 +14,15 @@ export class Licence {
 
     @Property()
     @Column({ nullable: true })
-    nom: string;
+    name: string;
 
     @Property()
     @Column({ nullable: true })
-    prenom: string;
+    firstName: string;
 
     @Property()
     @Column({ nullable: true })
-    genre: string;
+    gender: string;
 
     @Property()
     @Column({ nullable: true })
@@ -34,7 +34,7 @@ export class Licence {
 
     @Property()
     @Column({ nullable: true })
-    age: string; cat;
+    birthYear: string;
 
     @Property()
     @Column({ nullable: true })
