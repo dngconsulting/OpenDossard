@@ -15,6 +15,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Button from '@material-ui/core/Button';
 
 import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
+import ClubSelect from './ClubSelect';
 
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -103,9 +104,8 @@ const NewCoureursPage = () => {
                         margin="normal"
                     />
                 </Grid>
-
-                <Grid item={true} xs={12} style={{display:'flex'}}>
-                    <div><span style={{position:'relative',top:'11px'}}>Genre</span></div>
+                <Grid item={true} xs={12} style={{display: 'flex'}}>
+                    <div><span style={{position: 'relative', top: '11px'}}>Genre</span></div>
                     <RadioGroup aria-label="position" name="position" value={genre}
                                 onChange={handleRadioChange} row={true}>
                         <FormControlLabel
@@ -136,6 +136,11 @@ const NewCoureursPage = () => {
                         margin="normal"
                     />
                 </Grid>
+                <Grid item={true} xs={12}>
+                    <Grid item={true} xs={10}>
+                        <ClubSelect/>
+                    </Grid>
+                </Grid>
                 <Grid item={true} xs={6}>
                     <FormControl className={classes.formControl}>
                         <InputLabel htmlFor="cateA">Catégorie Age</InputLabel>
@@ -156,7 +161,7 @@ const NewCoureursPage = () => {
                     </FormControl>
                 </Grid>
                 <Grid item={true} xs={6}>
-                    <FormControl className={classes.formControl} >
+                    <FormControl className={classes.formControl}>
                         <InputLabel htmlFor="cateA">Catégorie Valeur</InputLabel>
                         <Select
                             value={values.cateV}
