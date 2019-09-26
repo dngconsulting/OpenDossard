@@ -1,35 +1,6 @@
 import * as React from 'react';
-import {
-    Grid,
-    Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TablePagination,
-    TableRow,
-    Theme,
-    Typography,
-    withStyles
-} from '@material-ui/core';
-import {
-    Bar,
-    BarChart,
-    CartesianGrid,
-    Legend,
-    Pie,
-    PieChart,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis
-} from 'recharts';
-import GroupIcon from '@material-ui/icons/Group';
-import MailIcon from '@material-ui/icons/Mail';
-import SettingsIcon from '@material-ui/icons/Settings';
-import BusinessIcon from '@material-ui/icons/BusinessCenter';
-
-const classNames = require('classnames');
+import {Grid, Theme, withStyles} from '@material-ui/core';
+import {Text} from 'recharts';
 
 interface IDashboardProps {
     fetchUsers: (context?: any) => void;
@@ -52,142 +23,12 @@ class HomePage extends React.Component<IDashboardProps, IPageState> {
         usersTableRowsPerPage: 5
     };
 
-    private handleChangeUsersPage = (event: any, page: number) => {
-        console.log(event);
-        this.setState({ usersTablePage: page });
-    };
-
-    private handleChangeTableRowsPerPage = (event: any) => {
-        this.setState({ usersTableRowsPerPage: event.target.value });
-    };
-
-    private renderUsers(): JSX.Element {
-        const { users, classes } = this.props;
-        if (!users) {
-            return null;
-        }
-
-        return (
-            <Paper className={classNames(classes.paper, classes.users)}>
-                <h3 className={classes.sectionTitle}>Utilisateurs</h3>
-                <Table className={classes.table}>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Id</TableCell>
-                            <TableCell>CalendardId</TableCell>
-                            <TableCell>Name</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {users.items.slice(this.state.usersTablePage * this.state.usersTableRowsPerPage,
-                            this.state.usersTablePage * this.state.usersTableRowsPerPage + this.state.usersTableRowsPerPage).map((n: any) => {
-                                return (
-                                    <TableRow key={n.id}>
-                                        <TableCell component="th" scope="row">
-                                            {n.id}
-                                        </TableCell>
-                                        <TableCell>{n.calendardId}</TableCell>
-                                        <TableCell>{n.name}</TableCell>
-                                    </TableRow>
-                                );
-                            })}
-                    </TableBody>
-                </Table>
-                <TablePagination
-                    component="div"
-                    count={users.items.length}
-                    rowsPerPage={this.state.usersTableRowsPerPage}
-                    page={this.state.usersTablePage}
-                    backIconButtonProps={{
-                        'aria-label': 'Previous Page',
-                    }}
-                    nextIconButtonProps={{
-                        'aria-label': 'Next Page',
-                    }}
-                    onChangePage={this.handleChangeUsersPage}
-                    onChangeRowsPerPage={this.handleChangeTableRowsPerPage}
-                />
-            </Paper>
-        );
-
-    }
-
-    private renderRadialBarChart(): JSX.Element {
-        return (
-            <Paper className={this.props.classes.paper}>
-                <h3 className={this.props.classes.sectionTitle}>Material Inventory</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                        <Pie
-                            data={this.props.materialChartData}
-                            dataKey="value"
-                            nameKey="name"
-                            cx="50%"
-                            cy="50%"
-                            label={true}
-                            fill="#8884d8" />
-                        <Legend />
-                    </PieChart>
-                </ResponsiveContainer>
-            </Paper>
-        );
-    }
-
-    private renderBarChart(): JSX.Element {
-        return (
-            <Paper className={this.props.classes.paper}>
-                <h3 className={this.props.classes.sectionTitle}>Material Sales</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={this.props.materialChartData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
-                        <Bar dataKey="value" fill="#8884d8" />
-                    </BarChart>
-                </ResponsiveContainer>
-            </Paper>
-        );
-    }
-
     public render(): JSX.Element {
         const { classes } = this.props;
         return (
             <div className={classes.root}>
                 <Grid container={true}>
-                    <Grid item={true} lg={3} xs={12} sm={6}>
-                        <Paper className={classNames(classes.paper, classes.headerTiles)}>
-                            <GroupIcon className={classes.headerTileIcon} />
-                            <Typography className={classes.tileText}> {this.props.users.items.length} Utilisateurs</Typography>
-                        </Paper>
-                    </Grid>
-                    <Grid item={true} lg={3} xs={12} sm={6}>
-                        <Paper className={classNames(classes.paper, classes.headerTiles)}>
-                            <MailIcon className={classes.headerTileIcon} />
-                            <Typography className={classes.tileText}>Inbox</Typography>
-                        </Paper>
-                    </Grid>
-                    <Grid item={true} lg={3} xs={12} sm={6}>
-                        <Paper className={classNames(classes.paper, classes.headerTiles)}>
-                            <BusinessIcon className={classes.headerTileIcon} />
-                            <Typography className={classes.tileText}>Purchases</Typography>
-                        </Paper>
-                    </Grid>
-                    <Grid item={true} lg={3} xs={12} sm={6}>
-                        <Paper className={classNames(classes.paper, classes.headerTiles)}>
-                            <SettingsIcon className={classes.headerTileIcon} />
-                            <Typography className={classes.tileText}>Settings</Typography>
-                        </Paper>
-                    </Grid>
-                    <Grid item={true} xs={12} md={6}>
-                        {this.renderBarChart()}
-                    </Grid>
-                    <Grid item={true} xs={12} md={6}>
-                        {this.renderRadialBarChart()}
-                    </Grid>
-                    <Grid item={true} xs={12}>
-                        {this.renderUsers()}
-                    </Grid>
+                    <Text>Home page content</Text>
                 </Grid>
             </div>
         );

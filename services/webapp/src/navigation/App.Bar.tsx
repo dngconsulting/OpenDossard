@@ -6,7 +6,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
-import {Avatar, Badge, ListItemText, Menu, MenuItem} from '@material-ui/core';
+import {Badge, Menu, MenuItem} from '@material-ui/core';
 import {Route, withRouter} from 'react-router-dom';
 import Hidden from '@material-ui/core/Hidden';
 import {styles} from './styles';
@@ -22,16 +22,13 @@ import SpinnerDialog from '../spinner/Spinner';
 import {AccountPage} from '../pages/account/Account';
 import HomePage from '../pages/Home';
 import AccountCircle from '@material-ui/icons/Mail';
-import {actions as UserActionCreators} from '../data/users';
-import {actions as MailActionCreators} from '../data/mail';
-import {actions as MaterialActionCreators} from '../data/material';
-import {getMailitems, getMaterialChartItems} from '../selectors';
 import AppDrawer from './App.Drawer';
 import NotificationIcon from '@material-ui/icons/Notifications';
 import EngagementPage from '../pages/Engagement';
 import CoureursPage from '../pages/Coureurs';
 import StatsPage from '../pages/Stats';
 import ResultatsPage from '../pages/Resultats';
+
 const classNames = require('classnames');
 //#endregion
 
@@ -53,17 +50,11 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
   };
 
   public componentWillMount() {
-    this.props.fetchUsers();
-    this.props.fetchMaterials();
-    this.props.fetchMails();
+
   }
 
   private handleNotificationMenu = (event: any) => {
     this.setState({ notificationEl: event.currentTarget });
-  };
-
-  private handleNotificationMenuClose = () => {
-    this.setState({ notificationEl: null });
   };
 
   private handleMenu = (event: any) => {
@@ -130,41 +121,13 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
     return null
   }
 
-  private renderNotifications(notifications: any[]) {
-    const { classes } = this.props;
-    return (
-      <Menu
-        id="notifications"
-        anchorEl={this.state.notificationEl}
-        anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
-        }}
-        className={classes.notifications}
-        open={Boolean(this.state.notificationEl)}
-        onClose={this.handleNotificationMenuClose}
-      >
-          {notifications.map((n: any) => (
-            <MenuItem key={n.id} onClick={this.handleNotificationMenuClose} dense={true} button={true} className={classes.notificationListItem}>
-              <Avatar src={n.avatar} />
-              <ListItemText primary={n.subject} />
-            </MenuItem>
-          ))}
-      </Menu>
-    );
-  }
+
 
   private renderAppBar() {
     if (this.props.authentication) {
       const { classes, utility } = this.props;
-      const { anchorEl, notificationEl } = this.state;
+      const { anchorEl } = this.state;
       const open = Boolean(anchorEl);
-      const notificationsOpen = Boolean(notificationEl);
-      const unreadMessages = this.props.mail.filter(x => x.seen === false);
 
       return (
         <AppBar
@@ -185,16 +148,15 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
             </Typography>
             <div>
               <IconButton
-                aria-owns={notificationsOpen ? 'notifications' : null}
                 aria-haspopup="true"
                 color="inherit"
                 onClick={this.handleNotificationMenu}
               >
-                <Badge badgeContent={unreadMessages.length} color="secondary">
+                <Badge badgeContent={2} color="secondary">
                   <NotificationIcon />
                 </Badge>
               </IconButton>
-              {this.renderNotifications(unreadMessages)}
+
               <IconButton
                 aria-owns={open ? 'menu-appbar' : null}
                 aria-haspopup="true"
@@ -252,11 +214,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
     const { classes } = this.props;
     const Dashboard = isAuthenticated((props: any): any => {
       return (
-        <HomePage
-          users={this.props.users}
-          fetchUsers={this.props.fetchUsers}
-          materialChartData={this.props.materialCharts}
-        />
+        <HomePage/>
       );
     });
 
@@ -284,14 +242,10 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
 const mapStateToProps = (state: AppState) => ({
   utility: state.utility,
   authentication: state.authentication,
-  users: state.users,
-  materials: state.materials,
-  materialCharts: getMaterialChartItems(state),
-  mail: getMailitems(state)
+
 });
 
 const mapDispatchtoProps = (dispatch: Dispatch) =>
-  bindActionCreators(_.assign({}, AppActionCreators, MailActionCreators,
-    UserActionCreators, MaterialActionCreators), dispatch);
+  bindActionCreators(_.assign({}, AppActionCreators), dispatch);
 
 export default withRouter(connect(mapStateToProps, mapDispatchtoProps)(withStyles(styles as any, { withTheme: true })(MiniDrawer as any)) as any);

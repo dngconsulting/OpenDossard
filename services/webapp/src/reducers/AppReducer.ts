@@ -17,7 +17,7 @@ const initAppState: AppState = {
     test: 'bonjour'
 }
 
-const app = (state = initAppState, action) => {
+const app = (state = initAppState, action : any) => {
     const {type, payload} = action;
 
     switch(type) {

@@ -6,3 +6,4 @@ export function setTest(value: string) {
         payload: {test: value}
     }
 }
+

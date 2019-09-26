@@ -14,9 +14,9 @@ export interface IAppState {
 export const AppStateModel = Model<IAppState>({
     utility: new Utility(),
     authentication: null,
-    users: null,
-    materials: null,
-    mail: null
+    users: {},
+    materials: {},
+    mail: {}
 });
 
 export class AppState extends AppStateModel {
