@@ -23,6 +23,19 @@ install() {
     docker-compose run --rm -v "$HOME/.npm:/root/.npm" webapp npm install
 }
 
+# usage :
+#       cad installci                  # install all
+#       cad installci api|webapp       # install api or webapp only
+installci() {
+    if [ -z "$1" ]
+    then
+        docker-compose run --rm -v "$HOME/.npm:/root/.npm" api npm ci
+        docker-compose run --rm -v "$HOME/.npm:/root/.npm" webapp npm ci
+    else
+        docker-compose run --rm -v "$HOME/.npm:/root/.npm" $1 npm ci
+    fi
+}
+
 installciwebapp() {
     docker-compose run --rm -v "$HOME/.npm:/root/.npm" webapp npm ci
 }
