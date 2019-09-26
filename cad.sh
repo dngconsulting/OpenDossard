@@ -77,5 +77,9 @@ installdb() {
     rm services/api/sql/init/all.sql
 }
 
+buildsdk() {
+    cd services/webapp/sdk && . ./build.sh
+}
+
 $@
 
