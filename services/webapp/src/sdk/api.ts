@@ -81,100 +81,6 @@ export class RequiredError extends Error {
 /**
  * 
  * @export
- * @interface CalendarsCtrlRemovePayload
- */
-export interface CalendarsCtrlRemovePayload {
-    /**
-     * 
-     * @type {string}
-     * @memberof CalendarsCtrlRemovePayload
-     */
-    id: string;
-}
-
-/**
- * 
- * @export
- * @interface CalendarsCtrlSavePayload
- */
-export interface CalendarsCtrlSavePayload {
-    /**
-     * 
-     * @type {string}
-     * @memberof CalendarsCtrlSavePayload
-     */
-    name?: string;
-}
-
-/**
- * 
- * @export
- * @interface CalendarsCtrlUpdatePayload
- */
-export interface CalendarsCtrlUpdatePayload {
-    /**
-     * 
-     * @type {string}
-     * @memberof CalendarsCtrlUpdatePayload
-     */
-    name: string;
-}
-
-/**
- * 
- * @export
- * @interface EventsCtrlSavePayload
- */
-export interface EventsCtrlSavePayload {
-    /**
-     * 
-     * @type {string}
-     * @memberof EventsCtrlSavePayload
-     */
-    startDate?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof EventsCtrlSavePayload
-     */
-    endDate?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof EventsCtrlSavePayload
-     */
-    name?: string;
-}
-
-/**
- * 
- * @export
- * @interface EventsCtrlUpdatePayload
- */
-export interface EventsCtrlUpdatePayload {
-    /**
-     * 
-     * @type {string}
-     * @memberof EventsCtrlUpdatePayload
-     */
-    startDate?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof EventsCtrlUpdatePayload
-     */
-    endDate?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof EventsCtrlUpdatePayload
-     */
-    name?: string;
-}
-
-/**
- * 
- * @export
  * @interface Licence
  */
 export interface Licence {
@@ -195,19 +101,19 @@ export interface Licence {
      * @type {string}
      * @memberof Licence
      */
-    nom?: string;
+    name?: string;
     /**
      * 
      * @type {string}
      * @memberof Licence
      */
-    prenom?: string;
+    firstName?: string;
     /**
      * 
      * @type {string}
      * @memberof Licence
      */
-    genre?: string;
+    gender?: string;
     /**
      * 
      * @type {string}
@@ -225,7 +131,7 @@ export interface Licence {
      * @type {string}
      * @memberof Licence
      */
-    age?: string;
+    birthYear?: string;
     /**
      * 
      * @type {string}
@@ -249,842 +155,55 @@ export interface Licence {
 /**
  * 
  * @export
- * @interface LicencesCtrlSavePayload
+ * @interface PassportCtrlLoginPayload
  */
-export interface LicencesCtrlSavePayload {
+export interface PassportCtrlLoginPayload {
     /**
      * 
      * @type {string}
-     * @memberof LicencesCtrlSavePayload
+     * @memberof PassportCtrlLoginPayload
      */
-    licenceNumber?: string;
+    email: string;
     /**
      * 
      * @type {string}
-     * @memberof LicencesCtrlSavePayload
+     * @memberof PassportCtrlLoginPayload
      */
-    nom?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LicencesCtrlSavePayload
-     */
-    prenom?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LicencesCtrlSavePayload
-     */
-    genre?: string;
-}
-
-
-/**
- * CalendarsCtrlApi - fetch parameter creator
- * @export
- */
-export const CalendarsCtrlApiFetchParamCreator = function (configuration?: Configuration) {
-    return {
-        /**
-         * 
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        calendarsCtrlGet(id: string, options: any = {}): FetchArgs {
-            // verify required parameter 'id' is not null or undefined
-            if (id === null || id === undefined) {
-                throw new RequiredError('id','Required parameter id was null or undefined when calling calendarsCtrlGet.');
-            }
-            const localVarPath = `/api/calendars/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        calendarsCtrlGetAllCalendars(options: any = {}): FetchArgs {
-            const localVarPath = `/api/calendars`;
-            const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        calendarsCtrlRemove(options: any = {}): FetchArgs {
-            const localVarPath = `/api/calendars`;
-            const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'DELETE' }, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        calendarsCtrlSave(options: any = {}): FetchArgs {
-            const localVarPath = `/api/calendars`;
-            const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'PUT' }, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        calendarsCtrlUpdate(id: string, options: any = {}): FetchArgs {
-            // verify required parameter 'id' is not null or undefined
-            if (id === null || id === undefined) {
-                throw new RequiredError('id','Required parameter id was null or undefined when calling calendarsCtrlUpdate.');
-            }
-            const localVarPath = `/api/calendars/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    }
-};
-
-/**
- * CalendarsCtrlApi - functional programming interface
- * @export
- */
-export const CalendarsCtrlApiFp = function(configuration?: Configuration) {
-    return {
-        /**
-         * 
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        calendarsCtrlGet(id: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = CalendarsCtrlApiFetchParamCreator(configuration).calendarsCtrlGet(id, options);
-            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
-                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
-                    if (response.status >= 200 && response.status < 300) {
-                        return response;
-                    } else {
-                        throw response;
-                    }
-                });
-            };
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        calendarsCtrlGetAllCalendars(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = CalendarsCtrlApiFetchParamCreator(configuration).calendarsCtrlGetAllCalendars(options);
-            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
-                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
-                    if (response.status >= 200 && response.status < 300) {
-                        return response;
-                    } else {
-                        throw response;
-                    }
-                });
-            };
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        calendarsCtrlRemove(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = CalendarsCtrlApiFetchParamCreator(configuration).calendarsCtrlRemove(options);
-            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
-                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
-                    if (response.status >= 200 && response.status < 300) {
-                        return response;
-                    } else {
-                        throw response;
-                    }
-                });
-            };
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        calendarsCtrlSave(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = CalendarsCtrlApiFetchParamCreator(configuration).calendarsCtrlSave(options);
-            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
-                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
-                    if (response.status >= 200 && response.status < 300) {
-                        return response;
-                    } else {
-                        throw response;
-                    }
-                });
-            };
-        },
-        /**
-         * 
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        calendarsCtrlUpdate(id: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = CalendarsCtrlApiFetchParamCreator(configuration).calendarsCtrlUpdate(id, options);
-            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
-                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
-                    if (response.status >= 200 && response.status < 300) {
-                        return response;
-                    } else {
-                        throw response;
-                    }
-                });
-            };
-        },
-    }
-};
-
-/**
- * CalendarsCtrlApi - factory interface
- * @export
- */
-export const CalendarsCtrlApiFactory = function (configuration?: Configuration, fetch?: FetchAPI, basePath?: string) {
-    return {
-        /**
-         * 
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        calendarsCtrlGet(id: string, options?: any) {
-            return CalendarsCtrlApiFp(configuration).calendarsCtrlGet(id, options)(fetch, basePath);
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        calendarsCtrlGetAllCalendars(options?: any) {
-            return CalendarsCtrlApiFp(configuration).calendarsCtrlGetAllCalendars(options)(fetch, basePath);
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        calendarsCtrlRemove(options?: any) {
-            return CalendarsCtrlApiFp(configuration).calendarsCtrlRemove(options)(fetch, basePath);
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        calendarsCtrlSave(options?: any) {
-            return CalendarsCtrlApiFp(configuration).calendarsCtrlSave(options)(fetch, basePath);
-        },
-        /**
-         * 
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        calendarsCtrlUpdate(id: string, options?: any) {
-            return CalendarsCtrlApiFp(configuration).calendarsCtrlUpdate(id, options)(fetch, basePath);
-        },
-    };
-};
-
-/**
- * CalendarsCtrlApi - object-oriented interface
- * @export
- * @class CalendarsCtrlApi
- * @extends {BaseAPI}
- */
-export class CalendarsCtrlApi extends BaseAPI {
-    /**
-     * 
-     * @param {string} id 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CalendarsCtrlApi
-     */
-    public calendarsCtrlGet(id: string, options?: any) {
-        return CalendarsCtrlApiFp(this.configuration).calendarsCtrlGet(id, options)(this.fetch, this.basePath);
-    }
-
-    /**
-     * 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CalendarsCtrlApi
-     */
-    public calendarsCtrlGetAllCalendars(options?: any) {
-        return CalendarsCtrlApiFp(this.configuration).calendarsCtrlGetAllCalendars(options)(this.fetch, this.basePath);
-    }
-
-    /**
-     * 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CalendarsCtrlApi
-     */
-    public calendarsCtrlRemove(options?: any) {
-        return CalendarsCtrlApiFp(this.configuration).calendarsCtrlRemove(options)(this.fetch, this.basePath);
-    }
-
-    /**
-     * 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CalendarsCtrlApi
-     */
-    public calendarsCtrlSave(options?: any) {
-        return CalendarsCtrlApiFp(this.configuration).calendarsCtrlSave(options)(this.fetch, this.basePath);
-    }
-
-    /**
-     * 
-     * @param {string} id 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CalendarsCtrlApi
-     */
-    public calendarsCtrlUpdate(id: string, options?: any) {
-        return CalendarsCtrlApiFp(this.configuration).calendarsCtrlUpdate(id, options)(this.fetch, this.basePath);
-    }
-
+    password: string;
 }
 
 /**
- * EventsCtrlApi - fetch parameter creator
+ * 
  * @export
+ * @interface PassportCtrlSignupPayload
  */
-export const EventsCtrlApiFetchParamCreator = function (configuration?: Configuration) {
-    return {
-        /**
-         * 
-         * @param {string} calendarId 
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        eventsCtrlGet(calendarId: string, id: string, options: any = {}): FetchArgs {
-            // verify required parameter 'calendarId' is not null or undefined
-            if (calendarId === null || calendarId === undefined) {
-                throw new RequiredError('calendarId','Required parameter calendarId was null or undefined when calling eventsCtrlGet.');
-            }
-            // verify required parameter 'id' is not null or undefined
-            if (id === null || id === undefined) {
-                throw new RequiredError('id','Required parameter id was null or undefined when calling eventsCtrlGet.');
-            }
-            const localVarPath = `/api/calendars/{calendarId}/events/{id}`
-                .replace(`{${"calendarId"}}`, encodeURIComponent(String(calendarId)))
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {string} calendarId 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        eventsCtrlGetLicences(calendarId: string, options: any = {}): FetchArgs {
-            // verify required parameter 'calendarId' is not null or undefined
-            if (calendarId === null || calendarId === undefined) {
-                throw new RequiredError('calendarId','Required parameter calendarId was null or undefined when calling eventsCtrlGetLicences.');
-            }
-            const localVarPath = `/api/calendars/{calendarId}/events`
-                .replace(`{${"calendarId"}}`, encodeURIComponent(String(calendarId)));
-            const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {string} calendarId 
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        eventsCtrlGetTasks(calendarId: string, id: string, options: any = {}): FetchArgs {
-            // verify required parameter 'calendarId' is not null or undefined
-            if (calendarId === null || calendarId === undefined) {
-                throw new RequiredError('calendarId','Required parameter calendarId was null or undefined when calling eventsCtrlGetTasks.');
-            }
-            // verify required parameter 'id' is not null or undefined
-            if (id === null || id === undefined) {
-                throw new RequiredError('id','Required parameter id was null or undefined when calling eventsCtrlGetTasks.');
-            }
-            const localVarPath = `/api/calendars/{calendarId}/events/{id}/tasks`
-                .replace(`{${"calendarId"}}`, encodeURIComponent(String(calendarId)))
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {string} calendarId 
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        eventsCtrlRemove(calendarId: string, id: string, options: any = {}): FetchArgs {
-            // verify required parameter 'calendarId' is not null or undefined
-            if (calendarId === null || calendarId === undefined) {
-                throw new RequiredError('calendarId','Required parameter calendarId was null or undefined when calling eventsCtrlRemove.');
-            }
-            // verify required parameter 'id' is not null or undefined
-            if (id === null || id === undefined) {
-                throw new RequiredError('id','Required parameter id was null or undefined when calling eventsCtrlRemove.');
-            }
-            const localVarPath = `/api/calendars/{calendarId}/events/{id}`
-                .replace(`{${"calendarId"}}`, encodeURIComponent(String(calendarId)))
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'DELETE' }, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {string} calendarId 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        eventsCtrlSave(calendarId: string, options: any = {}): FetchArgs {
-            // verify required parameter 'calendarId' is not null or undefined
-            if (calendarId === null || calendarId === undefined) {
-                throw new RequiredError('calendarId','Required parameter calendarId was null or undefined when calling eventsCtrlSave.');
-            }
-            const localVarPath = `/api/calendars/{calendarId}/events`
-                .replace(`{${"calendarId"}}`, encodeURIComponent(String(calendarId)));
-            const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'PUT' }, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {string} calendarId 
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        eventsCtrlUpdate(calendarId: string, id: string, options: any = {}): FetchArgs {
-            // verify required parameter 'calendarId' is not null or undefined
-            if (calendarId === null || calendarId === undefined) {
-                throw new RequiredError('calendarId','Required parameter calendarId was null or undefined when calling eventsCtrlUpdate.');
-            }
-            // verify required parameter 'id' is not null or undefined
-            if (id === null || id === undefined) {
-                throw new RequiredError('id','Required parameter id was null or undefined when calling eventsCtrlUpdate.');
-            }
-            const localVarPath = `/api/calendars/{calendarId}/events/{id}`
-                .replace(`{${"calendarId"}}`, encodeURIComponent(String(calendarId)))
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    }
-};
-
-/**
- * EventsCtrlApi - functional programming interface
- * @export
- */
-export const EventsCtrlApiFp = function(configuration?: Configuration) {
-    return {
-        /**
-         * 
-         * @param {string} calendarId 
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        eventsCtrlGet(calendarId: string, id: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = EventsCtrlApiFetchParamCreator(configuration).eventsCtrlGet(calendarId, id, options);
-            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
-                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
-                    if (response.status >= 200 && response.status < 300) {
-                        return response;
-                    } else {
-                        throw response;
-                    }
-                });
-            };
-        },
-        /**
-         * 
-         * @param {string} calendarId 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        eventsCtrlGetLicences(calendarId: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = EventsCtrlApiFetchParamCreator(configuration).eventsCtrlGetLicences(calendarId, options);
-            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
-                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
-                    if (response.status >= 200 && response.status < 300) {
-                        return response;
-                    } else {
-                        throw response;
-                    }
-                });
-            };
-        },
-        /**
-         * 
-         * @param {string} calendarId 
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        eventsCtrlGetTasks(calendarId: string, id: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = EventsCtrlApiFetchParamCreator(configuration).eventsCtrlGetTasks(calendarId, id, options);
-            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
-                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
-                    if (response.status >= 200 && response.status < 300) {
-                        return response;
-                    } else {
-                        throw response;
-                    }
-                });
-            };
-        },
-        /**
-         * 
-         * @param {string} calendarId 
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        eventsCtrlRemove(calendarId: string, id: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = EventsCtrlApiFetchParamCreator(configuration).eventsCtrlRemove(calendarId, id, options);
-            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
-                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
-                    if (response.status >= 200 && response.status < 300) {
-                        return response;
-                    } else {
-                        throw response;
-                    }
-                });
-            };
-        },
-        /**
-         * 
-         * @param {string} calendarId 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        eventsCtrlSave(calendarId: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = EventsCtrlApiFetchParamCreator(configuration).eventsCtrlSave(calendarId, options);
-            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
-                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
-                    if (response.status >= 200 && response.status < 300) {
-                        return response;
-                    } else {
-                        throw response;
-                    }
-                });
-            };
-        },
-        /**
-         * 
-         * @param {string} calendarId 
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        eventsCtrlUpdate(calendarId: string, id: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = EventsCtrlApiFetchParamCreator(configuration).eventsCtrlUpdate(calendarId, id, options);
-            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
-                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
-                    if (response.status >= 200 && response.status < 300) {
-                        return response;
-                    } else {
-                        throw response;
-                    }
-                });
-            };
-        },
-    }
-};
-
-/**
- * EventsCtrlApi - factory interface
- * @export
- */
-export const EventsCtrlApiFactory = function (configuration?: Configuration, fetch?: FetchAPI, basePath?: string) {
-    return {
-        /**
-         * 
-         * @param {string} calendarId 
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        eventsCtrlGet(calendarId: string, id: string, options?: any) {
-            return EventsCtrlApiFp(configuration).eventsCtrlGet(calendarId, id, options)(fetch, basePath);
-        },
-        /**
-         * 
-         * @param {string} calendarId 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        eventsCtrlGetLicences(calendarId: string, options?: any) {
-            return EventsCtrlApiFp(configuration).eventsCtrlGetLicences(calendarId, options)(fetch, basePath);
-        },
-        /**
-         * 
-         * @param {string} calendarId 
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        eventsCtrlGetTasks(calendarId: string, id: string, options?: any) {
-            return EventsCtrlApiFp(configuration).eventsCtrlGetTasks(calendarId, id, options)(fetch, basePath);
-        },
-        /**
-         * 
-         * @param {string} calendarId 
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        eventsCtrlRemove(calendarId: string, id: string, options?: any) {
-            return EventsCtrlApiFp(configuration).eventsCtrlRemove(calendarId, id, options)(fetch, basePath);
-        },
-        /**
-         * 
-         * @param {string} calendarId 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        eventsCtrlSave(calendarId: string, options?: any) {
-            return EventsCtrlApiFp(configuration).eventsCtrlSave(calendarId, options)(fetch, basePath);
-        },
-        /**
-         * 
-         * @param {string} calendarId 
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        eventsCtrlUpdate(calendarId: string, id: string, options?: any) {
-            return EventsCtrlApiFp(configuration).eventsCtrlUpdate(calendarId, id, options)(fetch, basePath);
-        },
-    };
-};
-
-/**
- * EventsCtrlApi - object-oriented interface
- * @export
- * @class EventsCtrlApi
- * @extends {BaseAPI}
- */
-export class EventsCtrlApi extends BaseAPI {
+export interface PassportCtrlSignupPayload {
     /**
      * 
-     * @param {string} calendarId 
-     * @param {string} id 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof EventsCtrlApi
+     * @type {string}
+     * @memberof PassportCtrlSignupPayload
      */
-    public eventsCtrlGet(calendarId: string, id: string, options?: any) {
-        return EventsCtrlApiFp(this.configuration).eventsCtrlGet(calendarId, id, options)(this.fetch, this.basePath);
-    }
-
+    email: string;
     /**
      * 
-     * @param {string} calendarId 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof EventsCtrlApi
+     * @type {string}
+     * @memberof PassportCtrlSignupPayload
      */
-    public eventsCtrlGetLicences(calendarId: string, options?: any) {
-        return EventsCtrlApiFp(this.configuration).eventsCtrlGetLicences(calendarId, options)(this.fetch, this.basePath);
-    }
-
+    password: string;
     /**
      * 
-     * @param {string} calendarId 
-     * @param {string} id 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof EventsCtrlApi
+     * @type {string}
+     * @memberof PassportCtrlSignupPayload
      */
-    public eventsCtrlGetTasks(calendarId: string, id: string, options?: any) {
-        return EventsCtrlApiFp(this.configuration).eventsCtrlGetTasks(calendarId, id, options)(this.fetch, this.basePath);
-    }
-
+    firstName: string;
     /**
      * 
-     * @param {string} calendarId 
-     * @param {string} id 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof EventsCtrlApi
+     * @type {string}
+     * @memberof PassportCtrlSignupPayload
      */
-    public eventsCtrlRemove(calendarId: string, id: string, options?: any) {
-        return EventsCtrlApiFp(this.configuration).eventsCtrlRemove(calendarId, id, options)(this.fetch, this.basePath);
-    }
-
-    /**
-     * 
-     * @param {string} calendarId 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof EventsCtrlApi
-     */
-    public eventsCtrlSave(calendarId: string, options?: any) {
-        return EventsCtrlApiFp(this.configuration).eventsCtrlSave(calendarId, options)(this.fetch, this.basePath);
-    }
-
-    /**
-     * 
-     * @param {string} calendarId 
-     * @param {string} id 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof EventsCtrlApi
-     */
-    public eventsCtrlUpdate(calendarId: string, id: string, options?: any) {
-        return EventsCtrlApiFp(this.configuration).eventsCtrlUpdate(calendarId, id, options)(this.fetch, this.basePath);
-    }
-
+    lastName: string;
 }
+
 
 /**
  * LicencesCtrlApi - fetch parameter creator
@@ -1144,20 +263,25 @@ export const LicencesCtrlApiFetchParamCreator = function (configuration?: Config
         },
         /**
          * 
+         * @param {Licence} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        licencesCtrlSave(options: any = {}): FetchArgs {
+        licencesCtrlSave(body?: Licence, options: any = {}): FetchArgs {
             const localVarPath = `/api/licences`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'PUT' }, options);
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
             localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
             // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
             delete localVarUrlObj.search;
             localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+            const needsSerialization = (<any>"Licence" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(body || {}) : (body || "");
 
             return {
                 url: url.format(localVarUrlObj),
@@ -1210,11 +334,12 @@ export const LicencesCtrlApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {Licence} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        licencesCtrlSave(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = LicencesCtrlApiFetchParamCreator(configuration).licencesCtrlSave(options);
+        licencesCtrlSave(body?: Licence, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = LicencesCtrlApiFetchParamCreator(configuration).licencesCtrlSave(body, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -1253,11 +378,12 @@ export const LicencesCtrlApiFactory = function (configuration?: Configuration, f
         },
         /**
          * 
+         * @param {Licence} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        licencesCtrlSave(options?: any) {
-            return LicencesCtrlApiFp(configuration).licencesCtrlSave(options)(fetch, basePath);
+        licencesCtrlSave(body?: Licence, options?: any) {
+            return LicencesCtrlApiFp(configuration).licencesCtrlSave(body, options)(fetch, basePath);
         },
     };
 };
@@ -1292,12 +418,244 @@ export class LicencesCtrlApi extends BaseAPI {
 
     /**
      * 
+     * @param {Licence} [body] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof LicencesCtrlApi
      */
-    public licencesCtrlSave(options?: any) {
-        return LicencesCtrlApiFp(this.configuration).licencesCtrlSave(options)(this.fetch, this.basePath);
+    public licencesCtrlSave(body?: Licence, options?: any) {
+        return LicencesCtrlApiFp(this.configuration).licencesCtrlSave(body, options)(this.fetch, this.basePath);
+    }
+
+}
+
+/**
+ * PassportCtrlApi - fetch parameter creator
+ * @export
+ */
+export const PassportCtrlApiFetchParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {PassportCtrlLoginPayload} body 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passportCtrlLogin(body: PassportCtrlLoginPayload, options: any = {}): FetchArgs {
+            // verify required parameter 'body' is not null or undefined
+            if (body === null || body === undefined) {
+                throw new RequiredError('body','Required parameter body was null or undefined when calling passportCtrlLogin.');
+            }
+            const localVarPath = `/api/passport/login`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+            const needsSerialization = (<any>"PassportCtrlLoginPayload" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(body || {}) : (body || "");
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passportCtrlLogout(options: any = {}): FetchArgs {
+            const localVarPath = `/api/passport/logout`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {PassportCtrlSignupPayload} body 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passportCtrlSignup(body: PassportCtrlSignupPayload, options: any = {}): FetchArgs {
+            // verify required parameter 'body' is not null or undefined
+            if (body === null || body === undefined) {
+                throw new RequiredError('body','Required parameter body was null or undefined when calling passportCtrlSignup.');
+            }
+            const localVarPath = `/api/passport/signup`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+            const needsSerialization = (<any>"PassportCtrlSignupPayload" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(body || {}) : (body || "");
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * PassportCtrlApi - functional programming interface
+ * @export
+ */
+export const PassportCtrlApiFp = function(configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {PassportCtrlLoginPayload} body 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passportCtrlLogin(body: PassportCtrlLoginPayload, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = PassportCtrlApiFetchParamCreator(configuration).passportCtrlLogin(body, options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response;
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passportCtrlLogout(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = PassportCtrlApiFetchParamCreator(configuration).passportCtrlLogout(options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response;
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+        /**
+         * 
+         * @param {PassportCtrlSignupPayload} body 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passportCtrlSignup(body: PassportCtrlSignupPayload, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = PassportCtrlApiFetchParamCreator(configuration).passportCtrlSignup(body, options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response;
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+    }
+};
+
+/**
+ * PassportCtrlApi - factory interface
+ * @export
+ */
+export const PassportCtrlApiFactory = function (configuration?: Configuration, fetch?: FetchAPI, basePath?: string) {
+    return {
+        /**
+         * 
+         * @param {PassportCtrlLoginPayload} body 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passportCtrlLogin(body: PassportCtrlLoginPayload, options?: any) {
+            return PassportCtrlApiFp(configuration).passportCtrlLogin(body, options)(fetch, basePath);
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passportCtrlLogout(options?: any) {
+            return PassportCtrlApiFp(configuration).passportCtrlLogout(options)(fetch, basePath);
+        },
+        /**
+         * 
+         * @param {PassportCtrlSignupPayload} body 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passportCtrlSignup(body: PassportCtrlSignupPayload, options?: any) {
+            return PassportCtrlApiFp(configuration).passportCtrlSignup(body, options)(fetch, basePath);
+        },
+    };
+};
+
+/**
+ * PassportCtrlApi - object-oriented interface
+ * @export
+ * @class PassportCtrlApi
+ * @extends {BaseAPI}
+ */
+export class PassportCtrlApi extends BaseAPI {
+    /**
+     * 
+     * @param {PassportCtrlLoginPayload} body 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof PassportCtrlApi
+     */
+    public passportCtrlLogin(body: PassportCtrlLoginPayload, options?: any) {
+        return PassportCtrlApiFp(this.configuration).passportCtrlLogin(body, options)(this.fetch, this.basePath);
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof PassportCtrlApi
+     */
+    public passportCtrlLogout(options?: any) {
+        return PassportCtrlApiFp(this.configuration).passportCtrlLogout(options)(this.fetch, this.basePath);
+    }
+
+    /**
+     * 
+     * @param {PassportCtrlSignupPayload} body 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof PassportCtrlApi
+     */
+    public passportCtrlSignup(body: PassportCtrlSignupPayload, options?: any) {
+        return PassportCtrlApiFp(this.configuration).passportCtrlSignup(body, options)(this.fetch, this.basePath);
     }
 
 }

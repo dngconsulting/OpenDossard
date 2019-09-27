@@ -25,7 +25,8 @@ import AccountCircle from '@material-ui/icons/Mail';
 import AppDrawer from './App.Drawer';
 import NotificationIcon from '@material-ui/icons/Notifications';
 import EngagementPage from '../pages/Engagement';
-import CoureursPage from '../pages/Coureurs';
+import CoureursPage from '../pages/coureur/Coureurs';
+import NewCoureurPage from '../pages/coureur/NewCoureur';
 import StatsPage from '../pages/Stats';
 import ResultatsPage from '../pages/Resultats';
 
@@ -75,7 +76,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
     if (path) {
       this.props.history.push(path);
     }
-  }
+  };
 
   public handleDrawerOpen = () => {
     this.props.openDrawer();
@@ -90,11 +91,11 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
       title: "Testing title",
       message: "This is a very long message, expect alert to be very wide"
     }))
-  }
+  };
 
   public showSpinner = () => {
     this.props.showSpinner("I am loading here please...")
-  }
+  };
 
   private renderAlert(): JSX.Element {
     if (this.props.utility.alert) {
@@ -195,7 +196,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
     return (
       <AccountPage user={this.props.authentication} login={this.props.login} match={this.props.match} location={this.props.location} />
     );
-  }
+  };
 
   private renderDrawer() {
     const { utility, authentication } = this.props;
@@ -227,7 +228,8 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
           <div className={classes.toolbar} />
           <Route path='/' exact={true} component={Dashboard} />
           <Route path='/engagements' component={isAuthenticated(EngagementPage)} />
-          <Route path='/riders' component={isAuthenticated(CoureursPage)} />
+          <Route path='/licences' component={isAuthenticated(CoureursPage)} />
+          <Route path='/new_licence' component={isAuthenticated(NewCoureurPage)} />
           <Route path='/results' component={isAuthenticated(ResultatsPage)} />
           <Route path='/stats' component={isAuthenticated(StatsPage)} />
           <Route path='/account' render={this.renderAccount} />
