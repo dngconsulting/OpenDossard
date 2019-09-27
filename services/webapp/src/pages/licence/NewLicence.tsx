@@ -30,13 +30,14 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 
-const NewCoureursPage = () => {
+const NewLicencesPage = () => {
 
     const [values, setValues] = React.useState({
         federation: '',
         age: '',
         cateA: '',
-        cateV: ''
+        cateV: '',
+        disableCateV: true
     });
 
     const handleChange = (event: React.ChangeEvent<{ name?: string; value: unknown }>) => {
@@ -44,6 +45,8 @@ const NewCoureursPage = () => {
             ...oldValues,
             [event.target.name as string]: event.target.value,
         }));
+        console.log(event.target.value);
+
     };
 
     const [genre, setGenre] = React.useState('m');
@@ -59,7 +62,7 @@ const NewCoureursPage = () => {
         <Container maxWidth="sm">
             <Grid container={true} spacing={3}>
                 <Grid item={true} xs={12}>
-                    <h1>Ajouter un nouveau Coureur</h1>
+                    <h1>Ajouter une nouvelle Licence</h1>
                 </Grid>
                 <Grid item={true} xs={6}>
                     <TextField
@@ -161,7 +164,7 @@ const NewCoureursPage = () => {
                     </FormControl>
                 </Grid>
                 <Grid item={true} xs={6}>
-                    <FormControl className={classes.formControl}>
+                    <FormControl className={classes.formControl} disabled={values.disableCateV}>
                         <InputLabel htmlFor="cateA">Catégorie Valeur</InputLabel>
                         <Select
                             value={values.cateV}
@@ -197,4 +200,4 @@ const NewCoureursPage = () => {
 
 const styles = (theme: Theme) => ({});
 
-export default withStyles(styles as any)(NewCoureursPage as any) as any;
+export default withStyles(styles as any)(NewLicencesPage as any) as any;

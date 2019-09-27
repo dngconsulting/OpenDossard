@@ -4,7 +4,7 @@ import {Theme, withStyles} from '@material-ui/core';
 import MaterialTable from 'material-table';
 import {AppText as T} from '../../utils/text';
 
-interface ICoureursProps {
+interface ILicencesProps {
     items: any[];
     classes: any;
     history: any;
@@ -27,7 +27,7 @@ const data = () => {
     return mytable;
 };
 
-class CoureursPage extends React.Component<ICoureursProps, {}> {
+class LicencesPage extends React.Component<ILicencesProps, {}> {
 
     public render(): JSX.Element {
         return (
@@ -67,7 +67,7 @@ class CoureursPage extends React.Component<ICoureursProps, {}> {
                 actions={[
                     {
                         icon: 'add',
-                        tooltip: T.LICENCES.ADD_NEW_RIDER,
+                        tooltip: T.LICENCES.ADD_NEW_LICENCE,
                         isFreeAction: true,
                         onClick: (event) => {this.props.history.push('/new_licence')}
                     }
@@ -106,4 +106,4 @@ class CoureursPage extends React.Component<ICoureursProps, {}> {
 
 const styles = (theme: Theme) => ({});
 
-export default withStyles(styles as any)(CoureursPage as any) as any;
+export default withStyles(styles as any)(LicencesPage as any) as any;
