@@ -1,38 +1,35 @@
 import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from 'typeorm';
 import {Club} from './Club';
-import {Epreuve} from './Epreuve';
+import {Competition} from './Competition';
 import {Licence} from './Licence';
 
 @Entity()
-export class Course {
+export class Race {
     @PrimaryGeneratedColumn()
     public id: number;
 
     @Column({nullable: false})
-    nom: string;
+    name: string;
 
-    @ManyToOne((type) => Epreuve)
+    @ManyToOne((type) => Competition)
     @JoinColumn()
-    public epreuve: Epreuve;
+    public competition: Competition;
 
     @ManyToOne((type) => Licence)
     @JoinColumn()
     public licence: Licence;
 
     @Column({nullable: true})
-    public dossard: number;
+    public riderNumber: number;
 
     @Column({nullable: true})
-    public classementScratch: number;
+    public rankingScratch: number;
 
     @Column({nullable: true})
-    public closed: boolean;
+    public numberMin: number;
 
     @Column({nullable: true})
-    public dossardCourseMin: number;
-
-    @Column({nullable: true})
-    public dossardCourseMax: number;
+    public numberMax: number;
 
     @Column({nullable: true})
     public surclassed: boolean;

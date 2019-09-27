@@ -5,9 +5,9 @@ export class Club {
     @PrimaryGeneratedColumn()
     public id: number;
     @Column({nullable: true})
-    nomCourt: string;
+    shortName: string;
     @Column({nullable: true})
     dept: string;
     @Column({nullable: false})
-    nomLong: string;
+    longName: string;
 }
