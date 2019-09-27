@@ -204,6 +204,14 @@ export interface PassportCtrlSignupPayload {
     lastName: string;
 }
 
+/**
+ * 
+ * @export
+ * @interface User
+ */
+export interface User {
+}
+
 
 /**
  * LicencesCtrlApi - fetch parameter creator
@@ -534,12 +542,12 @@ export const PassportCtrlApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        login(body: PassportCtrlLoginPayload, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+        login(body: PassportCtrlLoginPayload, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<User> {
             const localVarFetchArgs = PassportCtrlApiFetchParamCreator(configuration).login(body, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
-                        return response;
+                        return response.json();
                     } else {
                         throw response;
                     }

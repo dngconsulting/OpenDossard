@@ -11,7 +11,7 @@ import {Strategy} from "passport-local";
 import {BadRequest, NotFound} from "ts-httpexceptions";
 
 import {UsersService} from "../users/UsersService";
-import {IUser} from '../../entity/User';
+import {User} from '../../entity/User';
 
 @Service()
 export class PassportLocalService implements BeforeRoutesInit, AfterRoutesInit {
@@ -96,7 +96,7 @@ export class PassportLocalService implements BeforeRoutesInit, AfterRoutesInit {
    * @param user
    * @returns {Promise<any>}
    */
-  async signup(user: IUser) {
+  async signup(user: User) {
 
     const exists = await this.usersService.findByEmail(user.email);
 
@@ -138,7 +138,7 @@ export class PassportLocalService implements BeforeRoutesInit, AfterRoutesInit {
    * @param password
    * @returns {Promise<boolean>}
    */
-  async login(email: string, password: string): Promise<IUser> {
+  async login(email: string, password: string): Promise<User> {
     const user = await this.usersService.findByCredential(email, password);
     if (user) {
       return user;

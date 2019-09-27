@@ -32,7 +32,7 @@ class CoureursPage extends React.Component<ICoureursProps, {}> {
     public render(): JSX.Element {
         return (
             <MaterialTable
-                title= {T.LICENCES.TITLE}
+                title={T.LICENCES.TITLE}
                 columns={[
                     {title: 'Numéro licence', field: 'licenceNumber'},
                     {title: 'Nom', field: 'nom'},
@@ -69,7 +69,9 @@ class CoureursPage extends React.Component<ICoureursProps, {}> {
                         icon: 'add',
                         tooltip: T.LICENCES.ADD_NEW_RIDER,
                         isFreeAction: true,
-                        onClick: (event) => {this.props.history.push('/new_licence')}
+                        onClick: (event) => {
+                            this.props.history.push('/new_licence');
+                        }
                     }
                 ]}
                 localization={{
@@ -81,8 +83,8 @@ class CoureursPage extends React.Component<ICoureursProps, {}> {
                         },
                         deleteTooltip: T.LICENCES.DELETE_TOOL_TIP,
                         editTooltip: T.LICENCES.EDIT_TOOL_TIP,
-                        emptyDataSourceMessage:  T.LICENCES.EMPTY_DATA_SOURCE_MESSAGE,
-                        filterRow:{
+                        emptyDataSourceMessage: T.LICENCES.EMPTY_DATA_SOURCE_MESSAGE,
+                        filterRow: {
                             filterTooltip: T.LICENCES.FILTER_TOOL_TIP
                         },
                     },

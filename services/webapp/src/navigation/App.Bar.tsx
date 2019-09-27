@@ -78,12 +78,12 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
     }
   };
 
-  public handleDrawerOpen = () => {
-    this.props.openDrawer();
-  };
-
-  public handleDrawerClose = () => {
-    this.props.closeDrawer();
+  public handleDrawer = (open : boolean) => {
+    if (!open) {
+      this.props.openDrawer();
+    } else {
+      this.props.closeDrawer()
+    }
   };
 
   public showPopup = () => {
@@ -139,7 +139,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
             <IconButton
               color="inherit"
               aria-label="open drawer"
-              onClick={this.handleDrawerOpen}
+              onClick={()=>this.handleDrawer(utility.drawerOpen)}
               className={classNames(classes.menuButton, utility.drawerOpen && classes.hide)}
             >
               <MenuIcon />
@@ -205,7 +205,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
         <AppDrawer
           utility={utility}
           authentication={authentication}
-          handleDrawerClose={this.handleDrawerClose}
+          handleDrawer={()=>this.handleDrawer(utility.drawerOpen)}
         />
       </Hidden>
     );
