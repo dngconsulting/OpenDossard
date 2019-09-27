@@ -3,7 +3,7 @@ import '@tsed/swagger';
 import '@tsed/typeorm';
 import {$log} from 'ts-log-debug';
 import config from './config';
-const session = require("express-session");
+const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const compress = require('compression');
@@ -46,9 +46,10 @@ const rootDir = __dirname;
     },
     swagger: {
         path: '/api-docs',
-        doc : "api-v2",
-        spec : {swagger: "2.0"},
-        showExplorer: true
+        doc : 'api-v2',
+        spec : {swagger: '2.0'},
+        showExplorer: true,
+        operationIdFormat: '%m',
     },
     calendar: {
         token: true,
@@ -64,7 +65,7 @@ export class Server extends ServerLoader {
      * This method let you configure the middleware required by your application to works.
      * @returns {Server}
      */
-    $beforeRoutesInit(): void | Promise<any> {
+    $onMountingMiddlewares(): void | Promise<any> {
         this
             .use(GlobalAcceptMimesMiddleware)
             .use(cookieParser())
@@ -83,8 +84,8 @@ export class Server extends ServerLoader {
                     path: '/',
                     httpOnly: true,
                     secure: false,
-                    maxAge: null
-                }
+                    maxAge: null,
+                },
             }));
 
         return null;
