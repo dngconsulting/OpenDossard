@@ -29,8 +29,8 @@ import {getMailitems, getMaterialChartItems} from '../selectors';
 import AppDrawer from './App.Drawer';
 import NotificationIcon from '@material-ui/icons/Notifications';
 import EngagementPage from '../pages/Engagement';
-import CoureursPage from '../pages/licence/Licences';
-import NewCoureurPage from '../pages/licence/NewLicence';
+import LicencesPage from '../pages/licence/Licences';
+import NewLicencePage from '../pages/licence/NewLicence';
 import StatsPage from '../pages/Stats';
 import ResultatsPage from '../pages/Resultats';
 const classNames = require('classnames');
@@ -270,8 +270,8 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
           <div className={classes.toolbar} />
           <Route path='/' exact={true} component={Dashboard} />
           <Route path='/engagements' component={isAuthenticated(EngagementPage)} />
-          <Route path='/licences' component={isAuthenticated(CoureursPage)} />
-          <Route path='/new_licence' component={isAuthenticated(NewCoureurPage)} />
+          <Route path='/licences' component={isAuthenticated(LicencesPage)} />
+          <Route path='/new_licence' component={isAuthenticated(NewLicencePage)} />
           <Route path='/results' component={isAuthenticated(ResultatsPage)} />
           <Route path='/stats' component={isAuthenticated(StatsPage)} />
           <Route path='/account' render={this.renderAccount} />

@@ -40,7 +40,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
     public routes = [
         { path: '/',  title: 'Tableau de bord', icon: () => <DashboardIcon /> },
         { path: '/engagements', component : LicencesPage, title: 'Engagements', icon: () => <AssignmentIcon /> },
-        { path: '/licences', component : LicencesPage, title: 'Coureurs', icon: () => <PeopleIcon /> },
+        { path: '/licences', component : LicencesPage, title: 'Licences', icon: () => <PeopleIcon /> },
         { path: '/results', component : ResultatsPage, title: 'Résultats', icon: () => <FormatListNumberedIcon /> },
         { path: '/stats', component : StatsPage, title: 'Statistiques', icon: () => <ShowChartIcon /> },
         { path: '/account', component : AccountPage, title: 'Profile', icon: () => <AccountCircleIcon /> }
