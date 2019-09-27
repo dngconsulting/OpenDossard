@@ -152,6 +152,58 @@ export interface Licence {
     fede?: any;
 }
 
+/**
+ * 
+ * @export
+ * @interface PassportCtrlLoginPayload
+ */
+export interface PassportCtrlLoginPayload {
+    /**
+     * 
+     * @type {string}
+     * @memberof PassportCtrlLoginPayload
+     */
+    email: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PassportCtrlLoginPayload
+     */
+    password: string;
+}
+
+/**
+ * 
+ * @export
+ * @interface PassportCtrlSignupPayload
+ */
+export interface PassportCtrlSignupPayload {
+    /**
+     * 
+     * @type {string}
+     * @memberof PassportCtrlSignupPayload
+     */
+    email: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PassportCtrlSignupPayload
+     */
+    password: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PassportCtrlSignupPayload
+     */
+    firstName: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof PassportCtrlSignupPayload
+     */
+    lastName: string;
+}
+
 
 /**
  * LicencesCtrlApi - fetch parameter creator
@@ -211,20 +263,25 @@ export const LicencesCtrlApiFetchParamCreator = function (configuration?: Config
         },
         /**
          * 
+         * @param {Licence} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        licencesCtrlSave(options: any = {}): FetchArgs {
+        licencesCtrlSave(body?: Licence, options: any = {}): FetchArgs {
             const localVarPath = `/api/licences`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'PUT' }, options);
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
             localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
             // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
             delete localVarUrlObj.search;
             localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+            const needsSerialization = (<any>"Licence" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(body || {}) : (body || "");
 
             return {
                 url: url.format(localVarUrlObj),
@@ -277,11 +334,12 @@ export const LicencesCtrlApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {Licence} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        licencesCtrlSave(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = LicencesCtrlApiFetchParamCreator(configuration).licencesCtrlSave(options);
+        licencesCtrlSave(body?: Licence, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = LicencesCtrlApiFetchParamCreator(configuration).licencesCtrlSave(body, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -320,11 +378,12 @@ export const LicencesCtrlApiFactory = function (configuration?: Configuration, f
         },
         /**
          * 
+         * @param {Licence} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        licencesCtrlSave(options?: any) {
-            return LicencesCtrlApiFp(configuration).licencesCtrlSave(options)(fetch, basePath);
+        licencesCtrlSave(body?: Licence, options?: any) {
+            return LicencesCtrlApiFp(configuration).licencesCtrlSave(body, options)(fetch, basePath);
         },
     };
 };
@@ -359,12 +418,244 @@ export class LicencesCtrlApi extends BaseAPI {
 
     /**
      * 
+     * @param {Licence} [body] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof LicencesCtrlApi
      */
-    public licencesCtrlSave(options?: any) {
-        return LicencesCtrlApiFp(this.configuration).licencesCtrlSave(options)(this.fetch, this.basePath);
+    public licencesCtrlSave(body?: Licence, options?: any) {
+        return LicencesCtrlApiFp(this.configuration).licencesCtrlSave(body, options)(this.fetch, this.basePath);
+    }
+
+}
+
+/**
+ * PassportCtrlApi - fetch parameter creator
+ * @export
+ */
+export const PassportCtrlApiFetchParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {PassportCtrlLoginPayload} body 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passportCtrlLogin(body: PassportCtrlLoginPayload, options: any = {}): FetchArgs {
+            // verify required parameter 'body' is not null or undefined
+            if (body === null || body === undefined) {
+                throw new RequiredError('body','Required parameter body was null or undefined when calling passportCtrlLogin.');
+            }
+            const localVarPath = `/api/passport/login`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+            const needsSerialization = (<any>"PassportCtrlLoginPayload" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(body || {}) : (body || "");
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passportCtrlLogout(options: any = {}): FetchArgs {
+            const localVarPath = `/api/passport/logout`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {PassportCtrlSignupPayload} body 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passportCtrlSignup(body: PassportCtrlSignupPayload, options: any = {}): FetchArgs {
+            // verify required parameter 'body' is not null or undefined
+            if (body === null || body === undefined) {
+                throw new RequiredError('body','Required parameter body was null or undefined when calling passportCtrlSignup.');
+            }
+            const localVarPath = `/api/passport/signup`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+            const needsSerialization = (<any>"PassportCtrlSignupPayload" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(body || {}) : (body || "");
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * PassportCtrlApi - functional programming interface
+ * @export
+ */
+export const PassportCtrlApiFp = function(configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {PassportCtrlLoginPayload} body 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passportCtrlLogin(body: PassportCtrlLoginPayload, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = PassportCtrlApiFetchParamCreator(configuration).passportCtrlLogin(body, options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response;
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passportCtrlLogout(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = PassportCtrlApiFetchParamCreator(configuration).passportCtrlLogout(options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response;
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+        /**
+         * 
+         * @param {PassportCtrlSignupPayload} body 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passportCtrlSignup(body: PassportCtrlSignupPayload, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = PassportCtrlApiFetchParamCreator(configuration).passportCtrlSignup(body, options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response;
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+    }
+};
+
+/**
+ * PassportCtrlApi - factory interface
+ * @export
+ */
+export const PassportCtrlApiFactory = function (configuration?: Configuration, fetch?: FetchAPI, basePath?: string) {
+    return {
+        /**
+         * 
+         * @param {PassportCtrlLoginPayload} body 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passportCtrlLogin(body: PassportCtrlLoginPayload, options?: any) {
+            return PassportCtrlApiFp(configuration).passportCtrlLogin(body, options)(fetch, basePath);
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passportCtrlLogout(options?: any) {
+            return PassportCtrlApiFp(configuration).passportCtrlLogout(options)(fetch, basePath);
+        },
+        /**
+         * 
+         * @param {PassportCtrlSignupPayload} body 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passportCtrlSignup(body: PassportCtrlSignupPayload, options?: any) {
+            return PassportCtrlApiFp(configuration).passportCtrlSignup(body, options)(fetch, basePath);
+        },
+    };
+};
+
+/**
+ * PassportCtrlApi - object-oriented interface
+ * @export
+ * @class PassportCtrlApi
+ * @extends {BaseAPI}
+ */
+export class PassportCtrlApi extends BaseAPI {
+    /**
+     * 
+     * @param {PassportCtrlLoginPayload} body 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof PassportCtrlApi
+     */
+    public passportCtrlLogin(body: PassportCtrlLoginPayload, options?: any) {
+        return PassportCtrlApiFp(this.configuration).passportCtrlLogin(body, options)(this.fetch, this.basePath);
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof PassportCtrlApi
+     */
+    public passportCtrlLogout(options?: any) {
+        return PassportCtrlApiFp(this.configuration).passportCtrlLogout(options)(this.fetch, this.basePath);
+    }
+
+    /**
+     * 
+     * @param {PassportCtrlSignupPayload} body 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof PassportCtrlApi
+     */
+    public passportCtrlSignup(body: PassportCtrlSignupPayload, options?: any) {
+        return PassportCtrlApiFp(this.configuration).passportCtrlSignup(body, options)(this.fetch, this.basePath);
     }
 
 }
