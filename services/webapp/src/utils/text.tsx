@@ -1,6 +1,6 @@
 export const AppText = {
     LICENCES:{
-        TITLE: 'Annuaire des coureurs',
+        TITLE: 'Annuaire des licences',
         EDIT_ROW: {
             SAVE_TOOL_TIP: 'Oui',
             CANCEL_TOOL_TIP: 'Non',
@@ -18,7 +18,7 @@ export const AppText = {
             LAST_TOOL_TIP: 'Dernière Page',
             LABEL_DISPLAYED_ROWS: '{from}-{to} sur {count}'
         },
-        ADD_NEW_RIDER: 'Ajouter un nouveau coureur',
+        ADD_NEW_LICENCE: 'Ajouter une nouvelle licence',
         TOOLBAR:{
             SEARCH_TOOL_TIP: 'Recherche',
             SEARCH_PLACE_HOLDER: 'Recherche'
