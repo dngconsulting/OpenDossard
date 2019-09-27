@@ -14,6 +14,7 @@ import {NotFound} from 'ts-httpexceptions';
 import {Calendar} from '../../interfaces/Calendar';
 import {CalendarsService} from '../../services/calendars/CalendarsService';
 import {EventsCtrl} from '../events/EventsCtrl';
+import {Docs} from '@tsed/swagger';
 
 /**
  * Add @Controller annotation to declare your class as Router controller.
@@ -24,6 +25,7 @@ import {EventsCtrl} from '../events/EventsCtrl';
  * All routes of EventsCtrl will be mounted on the `/calendars` path.
  */
 @Controller('/calendars', EventsCtrl)
+@Docs('api-v2')
 export class CalendarsCtrl {
 
   constructor(private calendarsService: CalendarsService) {

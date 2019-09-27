@@ -19,9 +19,11 @@ import {Licence} from '../../entity/Licence';
 import {CategoriesEpreuve, Epreuve} from '../../entity/Epreuve';
 import {Federation} from '../../entity/Federation';
 import {getRepository} from 'typeorm';
+import {Docs} from '@tsed/swagger';
 
 @Controller('/:calendarId/events')
 @MergeParams(true)
+@Docs('api-v2')
 export class EventsCtrl {
   private AUTO_INC = 5;
   private events: Event[] = require('../../../resources/events.json');

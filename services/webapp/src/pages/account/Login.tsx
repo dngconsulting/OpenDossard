@@ -13,6 +13,7 @@ import Paper from '@material-ui/core/Paper';
 import * as querystring from 'querystring';
 import {User} from '../../state/User';
 import {Redirect} from 'react-router';
+import {passportCtrl} from '../../util/api';
 
 interface ILoginProps {
     login?: (data: any) => void;
@@ -41,7 +42,9 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
         this.setState({ password: event.target.value })
     }
 
-    private handleLogin = () => {
+    private handleLogin = async () => {
+        // TODO Ne fonctionne pas en mode BodyParams
+        // await passportCtrl.passportCtrlLogin({email : 'xavier@xavier.com',password:'azerty'})
         this.props.login(this.state);
     }
 

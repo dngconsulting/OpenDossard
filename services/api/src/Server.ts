@@ -46,6 +46,9 @@ const rootDir = __dirname;
     },
     swagger: {
         path: '/api-docs',
+        doc : "api-v2",
+        spec : {swagger: "2.0"},
+        showExplorer: true
     },
     calendar: {
         token: true,
@@ -61,7 +64,7 @@ export class Server extends ServerLoader {
      * This method let you configure the middleware required by your application to works.
      * @returns {Server}
      */
-    $onMountingMiddlewares(): void | Promise<any> {
+    $beforeRoutesInit(): void | Promise<any> {
         this
             .use(GlobalAcceptMimesMiddleware)
             .use(cookieParser())

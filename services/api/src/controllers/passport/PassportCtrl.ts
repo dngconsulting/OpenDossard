@@ -1,10 +1,10 @@
-import {BodyParams, Controller, Get, Post, Req, Required, Title, UseAfter} from '@tsed/common';
+import {BodyParams, Controller, Get, Post, Property, Req, Required, UseAfter} from '@tsed/common';
 import * as Express from 'express';
 import * as Passport from 'passport';
 import {BadRequest} from 'ts-httpexceptions';
 import {IUser} from '../../entity/User';
 import {checkEmail} from '../../util/checkEmail';
-import {Description} from '@tsed/swagger';
+import {Consumes, Docs} from '@tsed/swagger';
 
 function passportAuthenticate(event: string) {
   return (request: Express.Request, response: Express.Response, next: Express.NextFunction) => {
@@ -25,6 +25,7 @@ function passportAuthenticate(event: string) {
 }
 
 @Controller("/passport")
+@Docs('api-v2')
 export class PassportCtrl {
   /**
    * Authenticate user with local info (in Database).
@@ -33,8 +34,8 @@ export class PassportCtrl {
    */
   @Post("/login")
   @UseAfter(passportAuthenticate("login"))
-  async login(@Required() @Title("Email") @Description("L'email de l'utilisateur") @BodyParams("email",String) email: string,
-              @Required() @BodyParams("password",String) password: string) {
+  @Consumes("application/json")
+  async login(@Required() @Property() @BodyParams("email") email : string, @Property() @BodyParams("password") password : string ) {
     checkEmail(email);
   }
 
