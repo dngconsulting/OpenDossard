@@ -2,9 +2,9 @@ create type licence_fede_enum as enum ('FSGT', 'UFOLEP', 'FFC', 'Non Licencié')
 
 alter type licence_fede_enum owner to dossarduser;
 
-create type epreuve_fede_enum as enum ('FSGT', 'UFOLEP', 'FFC', 'Non Licencié');
+create type competition_fede_enum as enum ('FSGT', 'UFOLEP', 'FFC', 'Non Licencié');
 
-alter type epreuve_fede_enum owner to dossarduser;
+alter type competition_fede_enum owner to dossarduser;
 
 create table licence
 (
@@ -12,12 +12,12 @@ create table licence
 		constraint "PK_3b4f2cda4a38b8026e4c700844c"
 			primary key,
 	"licenceNumber" varchar,
-	nom varchar,
-	prenom varchar,
-	genre varchar,
+	name varchar,
+	"firstName" varchar,
+	gender varchar,
 	club varchar,
 	dept varchar,
-	age varchar,
+	"birthYear" varchar,
 	catea varchar,
 	catev varchar,
 	fede licence_fede_enum default 'Non Licencié'::licence_fede_enum
@@ -30,52 +30,52 @@ create table club
 	id serial not null
 		constraint "PK_79282481e036a6e0b180afa38aa"
 			primary key,
-	"nomLong" varchar not null,
+	"longName" varchar not null,
 	dept varchar,
-	"nomCourt" varchar
+	"shortName" varchar
 );
 
 alter table club owner to dossarduser;
 
-create table epreuve
+create table competition
 (
 	id serial not null
 		constraint "PK_23c5c77cf9b2f87186a42c8ed11"
 			primary key,
-	nom varchar,
-	"categoriesEpreuve" text not null,
-	"dateEpreuve" timestamp not null,
-	fede epreuve_fede_enum default 'Non Licencié'::epreuve_fede_enum,
-	"clubOrganisateurId" integer
+	name varchar,
+	categories text not null,
+	"eventDate" timestamp not null,
+	fede competition_fede_enum default 'Non Licencié'::competition_fede_enum,
+	"clubId" integer
 		constraint "FK_6f77790f439124a20b189e5bad4"
 			references club,
-	"codePostal" varchar not null,
-	"infoCircuit" varchar,
+	"zipCode" varchar not null,
+	info varchar,
 	observations varchar,
-	tarifs text not null
+	pricing text not null,
+    "competitionType" varchar
 );
 
-alter table epreuve owner to dossarduser;
+alter table competition owner to dossarduser;
 
-create table course
+create table race
 (
 	id serial not null
 		constraint "PK_bf95180dd756fd204fb01ce4916"
 			primary key,
-	nom varchar not null,
-	dossard integer,
-	"classementScratch" integer,
-	closed boolean,
-	"dossardCourseMin" integer,
-	"dossardCourseMax" integer,
+	"raceCode" varchar not null,
+	"riderNumber" integer,
+	"rankingScratch" integer,
+	"numberMin" integer,
+	"numberMax" integer,
 	surclassed boolean,
-	"epreuveId" integer
+	"competitionId" integer
 		constraint "FK_c2f200c86d364f440af1feda535"
-			references epreuve,
+			references competition,
 	"licenceId" integer
 		constraint "FK_093f17c2dd6b28ea95b06329f07"
 			references licence
 );
 
-alter table course owner to dossarduser;
+alter table race owner to dossarduser;
 
