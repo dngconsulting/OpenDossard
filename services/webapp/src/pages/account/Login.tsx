@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {
     Button,
-    FormControl,
+    FormControl, FormHelperText,
     Icon,
     Input,
     InputAdornment,
@@ -26,35 +26,40 @@ interface ILoginProps {
 interface ILoginState {
     email: string;
     password: string;
+    error : boolean
 }
 
 class LoginPage extends React.Component<ILoginProps, ILoginState> {
     public state = {
-        email: "",
-        password: ""
+        email: '',
+        password: '',
+        error: false
     };
 
     private handleEmailAddressChange = (event: any) => {
-        this.setState({ email: event.target.value })
-    }
+
+        this.setState({email: event.target.value, error:false});
+    };
 
     private handlePasswordChange = (event: any) => {
-        this.setState({ password: event.target.value })
-    }
+        this.setState({password: event.target.value, error : false});
+    };
 
     private handleLogin = async () => {
-        // TODO Ne fonctionne pas en mode BodyParams
-        // await passportCtrl.passportCtrlLogin({email : 'xavier@xavier.com',password:'azerty'})
-        this.props.login(this.state);
-    }
+        try {
+            await passportCtrl.passportCtrlLogin(this.state);
+            this.props.login(this.state);
+        } catch (err) {
+            this.setState({error:true})
+        }
+    };
 
     public render(): JSX.Element {
         const classes = this.props.classes;
 
         if (this.props.user) {
-            const path: string = querystring.
-                parse((this.props.location.search as string).substr(1)).redirect as any || '/engagements';
-            return <Redirect to={path} />
+            const path: string = querystring.parse((this.props.location.search as string).substr(1)).redirect as any || '/engagements';
+            return <Redirect to={path}/>;
         }
 
         return (
@@ -65,6 +70,7 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
                         <InputLabel htmlFor="email">Email Address</InputLabel>
                         <Input
                             value={this.state.email}
+                            error={this.state.error}
                             onChange={this.handleEmailAddressChange}
                             id="email"
                             startAdornment={
@@ -77,6 +83,7 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
                         <InputLabel htmlFor="password">Password</InputLabel>
                         <Input
                             value={this.state.password}
+                            error={this.state.error}
                             onChange={this.handlePasswordChange}
                             type="password"
                             id="password"
@@ -86,6 +93,9 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
                                 </InputAdornment>}
                         />
                     </FormControl>
+                    {this.state.error && <FormControl error={true} component="fieldset" className={classes.formControl}>
+                        <FormHelperText>Le login ou le mot de passe est incorrect</FormHelperText>
+                    </FormControl>}
                     <div className={classes.actions}>
                         <Button variant="text" className={classes.button}>
                             Cancel
@@ -137,5 +147,5 @@ const styles = (theme: Theme) => ({
     },
 });
 
-export default withStyles(styles, { withTheme: true })(LoginPage as any) as any;
+export default withStyles(styles, {withTheme: true})(LoginPage as any) as any;
 
