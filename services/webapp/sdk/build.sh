@@ -23,4 +23,4 @@
  #            Setting this property to true will generate interfaces next to the default class implementations. (Default: false)
 
  curl http://localhost:8080/api-docs/swagger.json | sed -E 's/"BODY"/"body"/g' > swagger.json
- java -jar swagger-codegen-cli-2.4.8.jar generate -i ./swagger.json -l typescript-fetch -o ../src/sdk
+ java -jar swagger-codegen-cli-2.4.8.jar generate -i ./swagger.json --additional-properties supportsES6=true -l typescript-fetch -o ../src/sdk
