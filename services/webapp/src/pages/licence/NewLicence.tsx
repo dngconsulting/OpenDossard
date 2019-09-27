@@ -59,7 +59,7 @@ const NewCoureursPage = () => {
         <Container maxWidth="sm">
             <Grid container={true} spacing={3}>
                 <Grid item={true} xs={12}>
-                    <h1>Ajouter un nouveau Coureur</h1>
+                    <h1>Ajouter une nouvelle Licence</h1>
                 </Grid>
                 <Grid item={true} xs={6}>
                     <TextField

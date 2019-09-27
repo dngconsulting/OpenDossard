@@ -18,7 +18,7 @@ export const AppText = {
             LAST_TOOL_TIP: 'Dernière Page',
             LABEL_DISPLAYED_ROWS: '{from}-{to} sur {count}'
         },
-        ADD_NEW_RIDER: 'Ajouter un nouveau coureur',
+        ADD_NEW_LICENCE: 'Ajouter une nouvelle licence',
         TOOLBAR:{
             SEARCH_TOOL_TIP: 'Recherche',
             SEARCH_PLACE_HOLDER: 'Recherche'

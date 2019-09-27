@@ -67,7 +67,7 @@ class CoureursPage extends React.Component<ICoureursProps, {}> {
                 actions={[
                     {
                         icon: 'add',
-                        tooltip: T.LICENCES.ADD_NEW_RIDER,
+                        tooltip: T.LICENCES.ADD_NEW_LICENCE,
                         isFreeAction: true,
                         onClick: (event) => {this.props.history.push('/new_licence')}
                     }
