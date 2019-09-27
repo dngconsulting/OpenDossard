@@ -1,0 +1,1 @@
+INSERT INTO public.race (id, "raceCode", "riderNumber", "rankingScratch", "numberMin", "numberMax", surclassed, "competitionId", "licenceId") VALUES (1, 'Course caté 2 et 3', 51, 1, null, null, false, 5, 10752);
