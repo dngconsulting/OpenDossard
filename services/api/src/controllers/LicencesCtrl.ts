@@ -2,7 +2,7 @@ import {BodyParams, Controller, Get, PathParams, Put, Required} from '@tsed/comm
 import {NotFound} from 'ts-httpexceptions';
 import {Licence} from '../entity/Licence';
 import {EntityManager, getManager, getRepository, Transaction, TransactionManager} from 'typeorm';
-import {ReturnsArray} from '@tsed/swagger';
+import {Docs, ReturnsArray} from '@tsed/swagger';
 
 /**
  * Add @Controller annotation to declare your class as Router controller.
@@ -13,6 +13,7 @@ import {ReturnsArray} from '@tsed/swagger';
  * All routes of EventsCtrl will be mounted on the `/calendars` path.
  */
 @Controller('/licences')
+@Docs('api-v2')
 export class LicencesCtrl {
 
     @Get('/:id')

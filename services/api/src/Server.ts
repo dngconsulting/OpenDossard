@@ -46,6 +46,9 @@ const rootDir = __dirname;
     },
     swagger: {
         path: '/api-docs',
+        doc : 'api-v2',
+        spec : {swagger: '2.0'},
+        showExplorer: true,
         operationIdFormat: '%m',
     },
     calendar: {

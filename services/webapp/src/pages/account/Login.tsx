@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {
     Button,
-    FormControl,
+    FormControl, FormHelperText,
     Icon,
     Input,
     InputAdornment,
@@ -13,6 +13,7 @@ import Paper from '@material-ui/core/Paper';
 import * as querystring from 'querystring';
 import {User} from '../../state/User';
 import {Redirect} from 'react-router';
+import {passportCtrl} from '../../util/api';
 
 interface ILoginProps {
     login?: (data: any) => void;
@@ -25,33 +26,40 @@ interface ILoginProps {
 interface ILoginState {
     email: string;
     password: string;
+    error : boolean
 }
 
 class LoginPage extends React.Component<ILoginProps, ILoginState> {
     public state = {
-        email: "",
-        password: ""
+        email: '',
+        password: '',
+        error: false
     };
 
     private handleEmailAddressChange = (event: any) => {
-        this.setState({ email: event.target.value })
-    }
+
+        this.setState({email: event.target.value, error:false});
+    };
 
     private handlePasswordChange = (event: any) => {
-        this.setState({ password: event.target.value })
-    }
+        this.setState({password: event.target.value, error : false});
+    };
 
-    private handleLogin = () => {
-        this.props.login(this.state);
-    }
+    private handleLogin = async () => {
+        try {
+            await passportCtrl.passportCtrlLogin(this.state);
+            this.props.login(this.state);
+        } catch (err) {
+            this.setState({error:true})
+        }
+    };
 
     public render(): JSX.Element {
         const classes = this.props.classes;
 
         if (this.props.user) {
-            const path: string = querystring.
-                parse((this.props.location.search as string).substr(1)).redirect as any || '/engagements';
-            return <Redirect to={path} />
+            const path: string = querystring.parse((this.props.location.search as string).substr(1)).redirect as any || '/engagements';
+            return <Redirect to={path}/>;
         }
 
         return (
@@ -62,6 +70,7 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
                         <InputLabel htmlFor="email">Email Address</InputLabel>
                         <Input
                             value={this.state.email}
+                            error={this.state.error}
                             onChange={this.handleEmailAddressChange}
                             id="email"
                             startAdornment={
@@ -74,6 +83,7 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
                         <InputLabel htmlFor="password">Password</InputLabel>
                         <Input
                             value={this.state.password}
+                            error={this.state.error}
                             onChange={this.handlePasswordChange}
                             type="password"
                             id="password"
@@ -83,6 +93,9 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
                                 </InputAdornment>}
                         />
                     </FormControl>
+                    {this.state.error && <FormControl error={true} component="fieldset" className={classes.formControl}>
+                        <FormHelperText>Le login ou le mot de passe est incorrect</FormHelperText>
+                    </FormControl>}
                     <div className={classes.actions}>
                         <Button variant="text" className={classes.button}>
                             Cancel
@@ -134,5 +147,5 @@ const styles = (theme: Theme) => ({
     },
 });
 
-export default withStyles(styles, { withTheme: true })(LoginPage as any) as any;
+export default withStyles(styles, {withTheme: true})(LoginPage as any) as any;
 

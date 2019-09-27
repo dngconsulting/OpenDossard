@@ -5,7 +5,6 @@ import {BrowserRouter as Router} from 'react-router-dom';
 import {Provider} from 'react-redux';
 import {store} from './store/Store';
 import {createMuiTheme, MuiThemeProvider} from '@material-ui/core';
-// import {AccountPage} from './pages/account/Account';
 
 const theme = createMuiTheme({
     palette: {
@@ -14,6 +13,7 @@ const theme = createMuiTheme({
             main: '#006064',
             dark: '#00363a',
             contrastText: 'white'
+
         },
         secondary: {
             light: '#f9683a',
@@ -25,17 +25,17 @@ const theme = createMuiTheme({
 });
 
 class App extends React.Component {
-  public componentDidMount(): void {
-   /* fetch(`http://localhost:8080/api/calendars/2/events`)
-        .then(response => response.json())
-        .then(data =>
-            console.log("data" + JSON.stringify(data))
-        )
-        // Catch any errors we hit and update the app
-        .catch(error => console.error(error));*/
-  }
+    public componentDidMount(): void {
+        /* fetch(`http://localhost:8080/api/calendars/2/events`)
+             .then(response => response.json())
+             .then(data =>
+                 console.log("data" + JSON.stringify(data))
+             )
+             // Catch any errors we hit and update the app
+             .catch(error => console.error(error));*/
+    }
 
-  public render() {
+    public render() {
         return (
             <Provider store={store}>
                 <Router>
