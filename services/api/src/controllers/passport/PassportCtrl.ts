@@ -49,7 +49,7 @@ export class PassportCtrl {
     ): Promise<User> {
         checkEmail(email);
         const user: User = await this.usersService.findByEmail(email);
-        // Remove password field before sending
+        delete user.password
         return user;
     }
 

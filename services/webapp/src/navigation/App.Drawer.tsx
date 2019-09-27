@@ -21,7 +21,6 @@ import {
 } from '@material-ui/core';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import {User} from '../state/User';
 import {Utility} from '../state/Utility';
 import {NavLink} from 'react-router-dom';
 import {styles} from './styles';
@@ -29,6 +28,7 @@ import {AccountPage} from '../pages/account/Account';
 import CoureursPage from '../pages/coureur/Coureurs';
 import ResultatsPage from '../pages/Resultats';
 import StatsPage from '../pages/Stats';
+import {User} from '../sdk';
 
 const classNames = require('classnames');
 
@@ -85,7 +85,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
                             <AccountCircleIcon/>
                           </Avatar>
                         </ListItemAvatar>
-                        <ListItemText primary={authentication.email} secondary={authentication.name}/>
+                        <ListItemText primary={authentication.firstName + " " + authentication.lastName} secondary={authentication.email}/>
                       </ListItem>
                     </List>
                   </Box>

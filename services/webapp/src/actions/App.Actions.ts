@@ -3,7 +3,7 @@ import {match} from 'react-router';
 import {Utility} from '../state/Utility';
 import {Alert} from '../state/Alert';
 import {Spinner} from '../state/Spinner';
-import {User} from '../state/User';
+import {User} from '../sdk';
 
 export interface IApplicationProps {
     openDrawer: () => IAppAction;
@@ -77,7 +77,7 @@ export const hideSpinner = (): IAppAction => {
     };
 };
 
-export const login = (data: any): IAppAction => {
+export const login = (data: User): IAppAction => {
     return { type: ActionType.LOGIN_REQUEST, payload: data };
 };
 

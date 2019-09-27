@@ -210,6 +210,30 @@ export interface PassportCtrlSignupPayload {
  * @interface User
  */
 export interface User {
+    /**
+     * 
+     * @type {string}
+     * @memberof User
+     */
+    firstName?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof User
+     */
+    lastName?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof User
+     */
+    email?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof User
+     */
+    phone?: string;
 }
 
 

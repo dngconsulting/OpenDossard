@@ -11,9 +11,9 @@ import {
 } from '@material-ui/core';
 import Paper from '@material-ui/core/Paper';
 import * as querystring from 'querystring';
-import {User} from '../../state/User';
 import {Redirect} from 'react-router';
 import {passportCtrl} from '../../util/api';
+import {User} from '../../sdk';
 
 interface ILoginProps {
     login?: (data: any) => void;
@@ -47,8 +47,9 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
 
     private handleLogin = async () => {
         try {
-            await passportCtrl.login(this.state);
-            this.props.login(this.state);
+            const user = await passportCtrl.login(this.state);
+            console.log("User = "+ JSON.stringify(user))
+            this.props.login(user);
         } catch (err) {
             this.setState({error:true})
         }
