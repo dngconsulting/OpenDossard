@@ -1,8 +1,8 @@
 import * as React from 'react';
-
-import {Theme, withStyles} from '@material-ui/core';
 import MaterialTable from 'material-table';
 import {AppText as T} from '../../utils/text';
+import {apiLicences} from '../../util/api';
+import {Theme, withStyles} from '@material-ui/core';
 
 interface ILicencesProps {
     items: any[];
@@ -10,21 +10,9 @@ interface ILicencesProps {
     history: any;
 }
 
-const data = () => {
-    const mytable = [];
-    for (let i = 0; i < 1000; i++) {
-        mytable.push({
-            licenceNumber: i,
-            nom: 'Nom' + i,
-            prenom: 'Prénom' + i,
-            genre: 'M',
-            dept: '31',
-            age: i % 100,
-            catea: 'SENIOR',
-            catev: '4'
-        });
-    }
-    return mytable;
+const fetchLicences = async (query: any) => {
+    const licences = await apiLicences.getAllLicences();
+    return {data: licences, page: query.page, totalCount: licences.length};
 };
 
 class LicencesPage extends React.Component<ILicencesProps, {}> {
@@ -35,15 +23,15 @@ class LicencesPage extends React.Component<ILicencesProps, {}> {
                 title={T.LICENCES.TITLE}
                 columns={[
                     {title: 'Numéro licence', field: 'licenceNumber'},
-                    {title: 'Nom', field: 'nom'},
-                    {title: 'Prénom', field: 'prenom'},
-                    {title: 'Genre', field: 'genre'},
+                    {title: 'Nom', field: 'name'},
+                    {title: 'Prénom', field: 'firstName'},
+                    {title: 'Genre', field: 'gender'},
                     {title: 'Dept', field: 'dept'},
-                    {title: 'Age', field: 'age'},
+                    {title: 'Age', field: 'birthYear'},
                     {title: 'Caté Age', field: 'catea'},
                     {title: 'Caté Valeur', field: 'catev'},
                 ]}
-                data={data()}
+                data={fetchLicences}
                 options={{
                     filtering: true,
                     actionsColumnIndex: -1,
@@ -102,7 +90,8 @@ class LicencesPage extends React.Component<ILicencesProps, {}> {
                     }
                 }}
             />
-        );
+        )
+            ;
     }
 }
 
