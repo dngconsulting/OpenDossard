@@ -85,7 +85,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
                             <AccountCircleIcon/>
                           </Avatar>
                         </ListItemAvatar>
-                        <ListItemText primary={authentication.firstName + " " + authentication.lastName} secondary={authentication.email}/>
+                        <ListItemText primary={(authentication && authentication.firstName ? authentication.firstName: "") + " " + (authentication && authentication.lastName ? authentication.lastName: "")} secondary={authentication.email}/>
                       </ListItem>
                     </List>
                   </Box>

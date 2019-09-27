@@ -73,7 +73,7 @@ export const styles = (theme: Theme) => ({
     content: {
         flexGrow: 1,
         backgroundColor: theme.palette.background.default,
-        padding: theme.spacing(1),
+        padding: theme.spacing(0),
         minHeight: '100%',
         height: '100%',
         flex: '1 1 auto',
