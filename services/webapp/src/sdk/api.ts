@@ -217,10 +217,10 @@ export const LicencesCtrlApiFetchParamCreator = function (configuration?: Config
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        licencesCtrlGet(id: string, options: any = {}): FetchArgs {
+        get(id: string, options: any = {}): FetchArgs {
             // verify required parameter 'id' is not null or undefined
             if (id === null || id === undefined) {
-                throw new RequiredError('id','Required parameter id was null or undefined when calling licencesCtrlGet.');
+                throw new RequiredError('id','Required parameter id was null or undefined when calling get.');
             }
             const localVarPath = `/api/licences/{id}`
                 .replace(`{${"id"}}`, encodeURIComponent(String(id)));
@@ -244,7 +244,7 @@ export const LicencesCtrlApiFetchParamCreator = function (configuration?: Config
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        licencesCtrlGetAllLicences(options: any = {}): FetchArgs {
+        getAllLicences(options: any = {}): FetchArgs {
             const localVarPath = `/api/licences`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
@@ -267,7 +267,7 @@ export const LicencesCtrlApiFetchParamCreator = function (configuration?: Config
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        licencesCtrlSave(body?: Licence, options: any = {}): FetchArgs {
+        save(body?: Licence, options: any = {}): FetchArgs {
             const localVarPath = `/api/licences`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'PUT' }, options);
@@ -303,8 +303,8 @@ export const LicencesCtrlApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        licencesCtrlGet(id: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = LicencesCtrlApiFetchParamCreator(configuration).licencesCtrlGet(id, options);
+        get(id: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = LicencesCtrlApiFetchParamCreator(configuration).get(id, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -320,8 +320,8 @@ export const LicencesCtrlApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        licencesCtrlGetAllLicences(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<Licence>> {
-            const localVarFetchArgs = LicencesCtrlApiFetchParamCreator(configuration).licencesCtrlGetAllLicences(options);
+        getAllLicences(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<Licence>> {
+            const localVarFetchArgs = LicencesCtrlApiFetchParamCreator(configuration).getAllLicences(options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -338,8 +338,8 @@ export const LicencesCtrlApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        licencesCtrlSave(body?: Licence, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = LicencesCtrlApiFetchParamCreator(configuration).licencesCtrlSave(body, options);
+        save(body?: Licence, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = LicencesCtrlApiFetchParamCreator(configuration).save(body, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -365,16 +365,16 @@ export const LicencesCtrlApiFactory = function (configuration?: Configuration, f
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        licencesCtrlGet(id: string, options?: any) {
-            return LicencesCtrlApiFp(configuration).licencesCtrlGet(id, options)(fetch, basePath);
+        get(id: string, options?: any) {
+            return LicencesCtrlApiFp(configuration).get(id, options)(fetch, basePath);
         },
         /**
          * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        licencesCtrlGetAllLicences(options?: any) {
-            return LicencesCtrlApiFp(configuration).licencesCtrlGetAllLicences(options)(fetch, basePath);
+        getAllLicences(options?: any) {
+            return LicencesCtrlApiFp(configuration).getAllLicences(options)(fetch, basePath);
         },
         /**
          * 
@@ -382,8 +382,8 @@ export const LicencesCtrlApiFactory = function (configuration?: Configuration, f
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        licencesCtrlSave(body?: Licence, options?: any) {
-            return LicencesCtrlApiFp(configuration).licencesCtrlSave(body, options)(fetch, basePath);
+        save(body?: Licence, options?: any) {
+            return LicencesCtrlApiFp(configuration).save(body, options)(fetch, basePath);
         },
     };
 };
@@ -402,8 +402,8 @@ export class LicencesCtrlApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof LicencesCtrlApi
      */
-    public licencesCtrlGet(id: string, options?: any) {
-        return LicencesCtrlApiFp(this.configuration).licencesCtrlGet(id, options)(this.fetch, this.basePath);
+    public get(id: string, options?: any) {
+        return LicencesCtrlApiFp(this.configuration).get(id, options)(this.fetch, this.basePath);
     }
 
     /**
@@ -412,8 +412,8 @@ export class LicencesCtrlApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof LicencesCtrlApi
      */
-    public licencesCtrlGetAllLicences(options?: any) {
-        return LicencesCtrlApiFp(this.configuration).licencesCtrlGetAllLicences(options)(this.fetch, this.basePath);
+    public getAllLicences(options?: any) {
+        return LicencesCtrlApiFp(this.configuration).getAllLicences(options)(this.fetch, this.basePath);
     }
 
     /**
@@ -423,8 +423,8 @@ export class LicencesCtrlApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof LicencesCtrlApi
      */
-    public licencesCtrlSave(body?: Licence, options?: any) {
-        return LicencesCtrlApiFp(this.configuration).licencesCtrlSave(body, options)(this.fetch, this.basePath);
+    public save(body?: Licence, options?: any) {
+        return LicencesCtrlApiFp(this.configuration).save(body, options)(this.fetch, this.basePath);
     }
 
 }
@@ -441,10 +441,10 @@ export const PassportCtrlApiFetchParamCreator = function (configuration?: Config
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        passportCtrlLogin(body: PassportCtrlLoginPayload, options: any = {}): FetchArgs {
+        login(body: PassportCtrlLoginPayload, options: any = {}): FetchArgs {
             // verify required parameter 'body' is not null or undefined
             if (body === null || body === undefined) {
-                throw new RequiredError('body','Required parameter body was null or undefined when calling passportCtrlLogin.');
+                throw new RequiredError('body','Required parameter body was null or undefined when calling login.');
             }
             const localVarPath = `/api/passport/login`;
             const localVarUrlObj = url.parse(localVarPath, true);
@@ -471,7 +471,7 @@ export const PassportCtrlApiFetchParamCreator = function (configuration?: Config
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        passportCtrlLogout(options: any = {}): FetchArgs {
+        logout(options: any = {}): FetchArgs {
             const localVarPath = `/api/passport/logout`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
@@ -494,10 +494,10 @@ export const PassportCtrlApiFetchParamCreator = function (configuration?: Config
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        passportCtrlSignup(body: PassportCtrlSignupPayload, options: any = {}): FetchArgs {
+        signup(body: PassportCtrlSignupPayload, options: any = {}): FetchArgs {
             // verify required parameter 'body' is not null or undefined
             if (body === null || body === undefined) {
-                throw new RequiredError('body','Required parameter body was null or undefined when calling passportCtrlSignup.');
+                throw new RequiredError('body','Required parameter body was null or undefined when calling signup.');
             }
             const localVarPath = `/api/passport/signup`;
             const localVarUrlObj = url.parse(localVarPath, true);
@@ -534,8 +534,8 @@ export const PassportCtrlApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        passportCtrlLogin(body: PassportCtrlLoginPayload, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = PassportCtrlApiFetchParamCreator(configuration).passportCtrlLogin(body, options);
+        login(body: PassportCtrlLoginPayload, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = PassportCtrlApiFetchParamCreator(configuration).login(body, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -551,8 +551,8 @@ export const PassportCtrlApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        passportCtrlLogout(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = PassportCtrlApiFetchParamCreator(configuration).passportCtrlLogout(options);
+        logout(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = PassportCtrlApiFetchParamCreator(configuration).logout(options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -569,8 +569,8 @@ export const PassportCtrlApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        passportCtrlSignup(body: PassportCtrlSignupPayload, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = PassportCtrlApiFetchParamCreator(configuration).passportCtrlSignup(body, options);
+        signup(body: PassportCtrlSignupPayload, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = PassportCtrlApiFetchParamCreator(configuration).signup(body, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -596,16 +596,16 @@ export const PassportCtrlApiFactory = function (configuration?: Configuration, f
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        passportCtrlLogin(body: PassportCtrlLoginPayload, options?: any) {
-            return PassportCtrlApiFp(configuration).passportCtrlLogin(body, options)(fetch, basePath);
+        login(body: PassportCtrlLoginPayload, options?: any) {
+            return PassportCtrlApiFp(configuration).login(body, options)(fetch, basePath);
         },
         /**
          * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        passportCtrlLogout(options?: any) {
-            return PassportCtrlApiFp(configuration).passportCtrlLogout(options)(fetch, basePath);
+        logout(options?: any) {
+            return PassportCtrlApiFp(configuration).logout(options)(fetch, basePath);
         },
         /**
          * 
@@ -613,8 +613,8 @@ export const PassportCtrlApiFactory = function (configuration?: Configuration, f
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        passportCtrlSignup(body: PassportCtrlSignupPayload, options?: any) {
-            return PassportCtrlApiFp(configuration).passportCtrlSignup(body, options)(fetch, basePath);
+        signup(body: PassportCtrlSignupPayload, options?: any) {
+            return PassportCtrlApiFp(configuration).signup(body, options)(fetch, basePath);
         },
     };
 };
@@ -633,8 +633,8 @@ export class PassportCtrlApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof PassportCtrlApi
      */
-    public passportCtrlLogin(body: PassportCtrlLoginPayload, options?: any) {
-        return PassportCtrlApiFp(this.configuration).passportCtrlLogin(body, options)(this.fetch, this.basePath);
+    public login(body: PassportCtrlLoginPayload, options?: any) {
+        return PassportCtrlApiFp(this.configuration).login(body, options)(this.fetch, this.basePath);
     }
 
     /**
@@ -643,8 +643,8 @@ export class PassportCtrlApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof PassportCtrlApi
      */
-    public passportCtrlLogout(options?: any) {
-        return PassportCtrlApiFp(this.configuration).passportCtrlLogout(options)(this.fetch, this.basePath);
+    public logout(options?: any) {
+        return PassportCtrlApiFp(this.configuration).logout(options)(this.fetch, this.basePath);
     }
 
     /**
@@ -654,8 +654,8 @@ export class PassportCtrlApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof PassportCtrlApi
      */
-    public passportCtrlSignup(body: PassportCtrlSignupPayload, options?: any) {
-        return PassportCtrlApiFp(this.configuration).passportCtrlSignup(body, options)(this.fetch, this.basePath);
+    public signup(body: PassportCtrlSignupPayload, options?: any) {
+        return PassportCtrlApiFp(this.configuration).signup(body, options)(this.fetch, this.basePath);
     }
 
 }
@@ -671,7 +671,7 @@ export const RestCtrlApiFetchParamCreator = function (configuration?: Configurat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        restCtrlGetRoutes(options: any = {}): FetchArgs {
+        getRoutes(options: any = {}): FetchArgs {
             const localVarPath = `/api`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
@@ -702,8 +702,8 @@ export const RestCtrlApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        restCtrlGetRoutes(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = RestCtrlApiFetchParamCreator(configuration).restCtrlGetRoutes(options);
+        getRoutes(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = RestCtrlApiFetchParamCreator(configuration).getRoutes(options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -728,8 +728,8 @@ export const RestCtrlApiFactory = function (configuration?: Configuration, fetch
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        restCtrlGetRoutes(options?: any) {
-            return RestCtrlApiFp(configuration).restCtrlGetRoutes(options)(fetch, basePath);
+        getRoutes(options?: any) {
+            return RestCtrlApiFp(configuration).getRoutes(options)(fetch, basePath);
         },
     };
 };
@@ -747,8 +747,8 @@ export class RestCtrlApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof RestCtrlApi
      */
-    public restCtrlGetRoutes(options?: any) {
-        return RestCtrlApiFp(this.configuration).restCtrlGetRoutes(options)(this.fetch, this.basePath);
+    public getRoutes(options?: any) {
+        return RestCtrlApiFp(this.configuration).getRoutes(options)(this.fetch, this.basePath);
     }
 
 }
