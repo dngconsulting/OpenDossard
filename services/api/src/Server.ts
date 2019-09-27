@@ -3,7 +3,7 @@ import '@tsed/swagger';
 import '@tsed/typeorm';
 import {$log} from 'ts-log-debug';
 import config from './config';
-const session = require("express-session");
+const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const compress = require('compression');
@@ -84,8 +84,8 @@ export class Server extends ServerLoader {
                     path: '/',
                     httpOnly: true,
                     secure: false,
-                    maxAge: null
-                }
+                    maxAge: null,
+                },
             }));
 
         return null;
