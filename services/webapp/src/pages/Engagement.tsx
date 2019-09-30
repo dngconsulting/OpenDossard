@@ -53,7 +53,7 @@ const EngagementPage = ({match}: {match: any}) => {
             { title: "Année", field: "birthYear", editable: "never" },
             { title: "Club", field: "club", editable: "never" },
             { title: "Dossard", field: "riderNumber" },
-            { title: "Course", field: "raceCode" },
+            { title: "Course", field: "raceCode", editable: "always"},
         ]}
         data={races}
         options={{
@@ -61,6 +61,7 @@ const EngagementPage = ({match}: {match: any}) => {
             actionsColumnIndex: -1,
             pageSize: 10,
             pageSizeOptions: [5, 10, 20],
+            grouping: true
         }}
         editable={{
             onRowAdd: async (newData) => {
