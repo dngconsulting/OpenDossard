@@ -24,6 +24,10 @@ export class RaceRow {
     public name: string;
     @Property()
     public firstName: string;
+    @Property()
+    public club: string;
+    @Property()
+    public birthYear: string;
 }
 
 export class RaceCreate {
@@ -58,7 +62,7 @@ export class RacesCtrl {
     @Transaction()
     public async getAllRaces(@TransactionManager() em: EntityManager): Promise<RaceRow[]> {
 
-        const query = `select r.*, l.name, l."firstName", l."licenceNumber"
+        const query = `select r.*, l.name, l."firstName", l."licenceNumber", l.club, l."birthYear"
                         from race r
                         join licence l on r."licenceId" = l.id`;
         return await em.query(query);

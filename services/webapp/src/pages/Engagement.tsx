@@ -50,6 +50,8 @@ const EngagementPage = ({match}: {match: any}) => {
             { title: "Licence", field: "licenceNumber" },
             { title: "Nom", field: "name", editable: "never" },
             { title: "Prénom", field: "firstName", editable: "never" },
+            { title: "Année", field: "birthYear", editable: "never" },
+            { title: "Club", field: "club", editable: "never" },
             { title: "Dossard", field: "riderNumber" },
             { title: "Course", field: "raceCode" },
         ]}

@@ -296,6 +296,18 @@ export interface RaceRow {
      * @memberof RaceRow
      */
     firstName?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceRow
+     */
+    club?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceRow
+     */
+    birthYear?: string;
 }
 
 /**
