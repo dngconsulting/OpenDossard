@@ -1,7 +1,8 @@
-import {BodyParams, Controller, Get, Property, Put} from '@tsed/common';
+import {BodyParams, Controller, Get, Post, Property, Put} from '@tsed/common';
 import {EntityManager, Transaction, TransactionManager} from 'typeorm';
 import {Docs, ReturnsArray} from '@tsed/swagger';
 import {Race} from '../entity/Race';
+import {Licence} from '../entity/Licence';
 
 export class RaceRow {
     @Property()
@@ -28,6 +29,8 @@ export class RaceUpdate {
     @Property()
     public id: number;
     @Property()
+    public licenceNumber: string;
+    @Property()
     public riderNumber: number;
     @Property()
     public raceCode: string;
@@ -49,9 +52,28 @@ export class RacesCtrl {
         return await em.query(query);
     }
 
+    @Post('/')
+    @Transaction()
+    public async create(@BodyParams(RaceUpdate) race: RaceUpdate, @TransactionManager() em: EntityManager)
+        : Promise<void> {
+
+        const licence = await em.createQueryBuilder()
+            .select('licence')
+            .from(Licence, 'licence')
+            .where('licence.licenceNumber = :licenceNumber', {licenceNumber: race.licenceNumber})
+            .getOne();
+
+        const newRace = new Race() ;
+        newRace.raceCode = race.raceCode;
+        newRace.riderNumber = race.riderNumber;
+        newRace.licence = licence;
+
+        await em.save(newRace);
+    }
+
     @Put('/')
     @Transaction()
-    public async save(@BodyParams(RaceUpdate) race: RaceUpdate, @TransactionManager() em: EntityManager)
+    public async update(@BodyParams(RaceUpdate) race: RaceUpdate, @TransactionManager() em: EntityManager)
         : Promise<void> {
 
         const toUpdate = await em.findOne(Race, race.id);
