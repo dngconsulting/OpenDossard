@@ -11,7 +11,7 @@ interface ILicencesProps {
 }
 
 const fetchLicences = async (query: any) => {
-    const res = await apiLicences.getPageSizeLicencesForPage({currentPage:query.page,pageSize:query.pageSize});
+    const res = await apiLicences.getPageSizeLicencesForPage({currentPage:query.page,pageSize:query.pageSize,orderBy:query.orderBy?query.orderBy.field:'name',orderDirection:query.orderDirection?query.orderDirection.toUpperCase():'ASC'});
     return {data: res.data, page: res.page, totalCount: res.totalCount};
 };
 

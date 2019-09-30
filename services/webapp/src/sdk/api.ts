@@ -170,6 +170,18 @@ export interface LicencesCtrlGetPageSizeLicencesForPagePayload {
      * @memberof LicencesCtrlGetPageSizeLicencesForPagePayload
      */
     pageSize?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof LicencesCtrlGetPageSizeLicencesForPagePayload
+     */
+    orderDirection?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LicencesCtrlGetPageSizeLicencesForPagePayload
+     */
+    orderBy?: string;
 }
 
 /**

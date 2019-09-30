@@ -39,13 +39,16 @@ export class LicencesCtrl {
     @Post('/')
     @Returns(LicencesPage, {description: 'Liste des licences with pagination'})
     public async getPageSizeLicencesForPage(@BodyParams('currentPage') currentPage: number,
-                                            @BodyParams('pageSize') pageSize: number): Promise<LicencesPage> {
+                                            @BodyParams('pageSize') pageSize: number,
+                                            @BodyParams('orderDirection') orderDirection?: 'ASC'|'DESC',
+                                            @BodyParams('orderBy') orderBy?: string): Promise<LicencesPage> {
         const res = await
             getRepository(Licence).createQueryBuilder()
                 .skip(currentPage * pageSize)
                 .take(pageSize)
+                .orderBy(`"${orderBy}"`, orderDirection)
                 .getMany();
-        const total = await getRepository(Licence).createQueryBuilder('LicencePage').getCount();
+        const total = await getRepository(Licence).createQueryBuilder('licence').getCount();
         return {data: res, page: currentPage, totalCount: total};
     }
 
