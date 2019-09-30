@@ -207,6 +207,38 @@ export interface PassportCtrlSignupPayload {
 /**
  * 
  * @export
+ * @interface RaceCreate
+ */
+export interface RaceCreate {
+    /**
+     * 
+     * @type {number}
+     * @memberof RaceCreate
+     */
+    competitionId?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceCreate
+     */
+    licenceNumber?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof RaceCreate
+     */
+    riderNumber?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceCreate
+     */
+    raceCode?: string;
+}
+
+/**
+ * 
+ * @export
  * @interface RaceRow
  */
 export interface RaceRow {
@@ -264,6 +296,18 @@ export interface RaceRow {
      * @memberof RaceRow
      */
     firstName?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceRow
+     */
+    club?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceRow
+     */
+    birthYear?: string;
 }
 
 /**
@@ -278,6 +322,12 @@ export interface RaceUpdate {
      * @memberof RaceUpdate
      */
     id?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceUpdate
+     */
+    licenceNumber?: string;
     /**
      * 
      * @type {number}
@@ -788,6 +838,33 @@ export const RacesCtrlApiFetchParamCreator = function (configuration?: Configura
     return {
         /**
          * 
+         * @param {RaceCreate} [body] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        create(body?: RaceCreate, options: any = {}): FetchArgs {
+            const localVarPath = `/api/races`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+            const needsSerialization = (<any>"RaceCreate" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(body || {}) : (body || "");
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -814,7 +891,7 @@ export const RacesCtrlApiFetchParamCreator = function (configuration?: Configura
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        save(body?: RaceUpdate, options: any = {}): FetchArgs {
+        update(body?: RaceUpdate, options: any = {}): FetchArgs {
             const localVarPath = `/api/races`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'PUT' }, options);
@@ -846,6 +923,24 @@ export const RacesCtrlApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @param {RaceCreate} [body] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        create(body?: RaceCreate, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = RacesCtrlApiFetchParamCreator(configuration).create(body, options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response;
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+        /**
+         * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -867,8 +962,8 @@ export const RacesCtrlApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        save(body?: RaceUpdate, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = RacesCtrlApiFetchParamCreator(configuration).save(body, options);
+        update(body?: RaceUpdate, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = RacesCtrlApiFetchParamCreator(configuration).update(body, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -890,6 +985,15 @@ export const RacesCtrlApiFactory = function (configuration?: Configuration, fetc
     return {
         /**
          * 
+         * @param {RaceCreate} [body] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        create(body?: RaceCreate, options?: any) {
+            return RacesCtrlApiFp(configuration).create(body, options)(fetch, basePath);
+        },
+        /**
+         * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -902,8 +1006,8 @@ export const RacesCtrlApiFactory = function (configuration?: Configuration, fetc
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        save(body?: RaceUpdate, options?: any) {
-            return RacesCtrlApiFp(configuration).save(body, options)(fetch, basePath);
+        update(body?: RaceUpdate, options?: any) {
+            return RacesCtrlApiFp(configuration).update(body, options)(fetch, basePath);
         },
     };
 };
@@ -915,6 +1019,17 @@ export const RacesCtrlApiFactory = function (configuration?: Configuration, fetc
  * @extends {BaseAPI}
  */
 export class RacesCtrlApi extends BaseAPI {
+    /**
+     * 
+     * @param {RaceCreate} [body] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RacesCtrlApi
+     */
+    public create(body?: RaceCreate, options?: any) {
+        return RacesCtrlApiFp(this.configuration).create(body, options)(this.fetch, this.basePath);
+    }
+
     /**
      * 
      * @param {*} [options] Override http request option.
@@ -932,8 +1047,8 @@ export class RacesCtrlApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof RacesCtrlApi
      */
-    public save(body?: RaceUpdate, options?: any) {
-        return RacesCtrlApiFp(this.configuration).save(body, options)(this.fetch, this.basePath);
+    public update(body?: RaceUpdate, options?: any) {
+        return RacesCtrlApiFp(this.configuration).update(body, options)(this.fetch, this.basePath);
     }
 
 }
