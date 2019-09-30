@@ -155,6 +155,52 @@ export interface Licence {
 /**
  * 
  * @export
+ * @interface LicencesCtrlGetPageSizeLicencesForPagePayload
+ */
+export interface LicencesCtrlGetPageSizeLicencesForPagePayload {
+    /**
+     * 
+     * @type {number}
+     * @memberof LicencesCtrlGetPageSizeLicencesForPagePayload
+     */
+    currentPage?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof LicencesCtrlGetPageSizeLicencesForPagePayload
+     */
+    pageSize?: number;
+}
+
+/**
+ * 
+ * @export
+ * @interface LicencesPage
+ */
+export interface LicencesPage {
+    /**
+     * 
+     * @type {Array<any>}
+     * @memberof LicencesPage
+     */
+    data?: Array<any>;
+    /**
+     * 
+     * @type {number}
+     * @memberof LicencesPage
+     */
+    page?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof LicencesPage
+     */
+    totalCount?: number;
+}
+
+/**
+ * 
+ * @export
  * @interface PassportCtrlLoginPayload
  */
 export interface PassportCtrlLoginPayload {
@@ -295,6 +341,33 @@ export const LicencesCtrlApiFetchParamCreator = function (configuration?: Config
         },
         /**
          * 
+         * @param {LicencesCtrlGetPageSizeLicencesForPagePayload} [body] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getPageSizeLicencesForPage(body?: LicencesCtrlGetPageSizeLicencesForPagePayload, options: any = {}): FetchArgs {
+            const localVarPath = `/api/licences`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+            const needsSerialization = (<any>"LicencesCtrlGetPageSizeLicencesForPagePayload" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(body || {}) : (body || "");
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @param {Licence} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -366,6 +439,24 @@ export const LicencesCtrlApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {LicencesCtrlGetPageSizeLicencesForPagePayload} [body] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getPageSizeLicencesForPage(body?: LicencesCtrlGetPageSizeLicencesForPagePayload, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<LicencesPage> {
+            const localVarFetchArgs = LicencesCtrlApiFetchParamCreator(configuration).getPageSizeLicencesForPage(body, options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response.json();
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+        /**
+         * 
          * @param {Licence} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -410,6 +501,15 @@ export const LicencesCtrlApiFactory = function (configuration?: Configuration, f
         },
         /**
          * 
+         * @param {LicencesCtrlGetPageSizeLicencesForPagePayload} [body] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getPageSizeLicencesForPage(body?: LicencesCtrlGetPageSizeLicencesForPagePayload, options?: any) {
+            return LicencesCtrlApiFp(configuration).getPageSizeLicencesForPage(body, options)(fetch, basePath);
+        },
+        /**
+         * 
          * @param {Licence} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -446,6 +546,17 @@ export class LicencesCtrlApi extends BaseAPI {
      */
     public getAllLicences(options?: any) {
         return LicencesCtrlApiFp(this.configuration).getAllLicences(options)(this.fetch, this.basePath);
+    }
+
+    /**
+     * 
+     * @param {LicencesCtrlGetPageSizeLicencesForPagePayload} [body] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof LicencesCtrlApi
+     */
+    public getPageSizeLicencesForPage(body?: LicencesCtrlGetPageSizeLicencesForPagePayload, options?: any) {
+        return LicencesCtrlApiFp(this.configuration).getPageSizeLicencesForPage(body, options)(this.fetch, this.basePath);
     }
 
     /**

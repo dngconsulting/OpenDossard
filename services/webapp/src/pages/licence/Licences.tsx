@@ -11,8 +11,8 @@ interface ILicencesProps {
 }
 
 const fetchLicences = async (query: any) => {
-    const licences = await apiLicences.getAllLicences();
-    return {data: licences, page: query.page, totalCount: licences.length};
+    const res = await apiLicences.getPageSizeLicencesForPage({currentPage:query.page,pageSize:query.pageSize});
+    return {data: res.data, page: res.page, totalCount: res.totalCount};
 };
 
 class LicencesPage extends React.Component<ILicencesProps, {}> {
