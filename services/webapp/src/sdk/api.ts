@@ -207,6 +207,68 @@ export interface PassportCtrlSignupPayload {
 /**
  * 
  * @export
+ * @interface RaceRow
+ */
+export interface RaceRow {
+    /**
+     * 
+     * @type {number}
+     * @memberof RaceRow
+     */
+    id?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceRow
+     */
+    raceCode?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof RaceRow
+     */
+    riderNumber?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof RaceRow
+     */
+    numberMin?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof RaceRow
+     */
+    numberMax?: number;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof RaceRow
+     */
+    surclassed?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceRow
+     */
+    licenceNumber?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceRow
+     */
+    name?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceRow
+     */
+    firstName?: string;
+}
+
+/**
+ * 
+ * @export
  * @interface User
  */
 export interface User {
@@ -688,6 +750,99 @@ export class PassportCtrlApi extends BaseAPI {
      */
     public signup(body: PassportCtrlSignupPayload, options?: any) {
         return PassportCtrlApiFp(this.configuration).signup(body, options)(this.fetch, this.basePath);
+    }
+
+}
+
+/**
+ * RacesCtrlApi - fetch parameter creator
+ * @export
+ */
+export const RacesCtrlApiFetchParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAllRaces(options: any = {}): FetchArgs {
+            const localVarPath = `/api/races`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * RacesCtrlApi - functional programming interface
+ * @export
+ */
+export const RacesCtrlApiFp = function(configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAllRaces(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<RaceRow>> {
+            const localVarFetchArgs = RacesCtrlApiFetchParamCreator(configuration).getAllRaces(options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response.json();
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+    }
+};
+
+/**
+ * RacesCtrlApi - factory interface
+ * @export
+ */
+export const RacesCtrlApiFactory = function (configuration?: Configuration, fetch?: FetchAPI, basePath?: string) {
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAllRaces(options?: any) {
+            return RacesCtrlApiFp(configuration).getAllRaces(options)(fetch, basePath);
+        },
+    };
+};
+
+/**
+ * RacesCtrlApi - object-oriented interface
+ * @export
+ * @class RacesCtrlApi
+ * @extends {BaseAPI}
+ */
+export class RacesCtrlApi extends BaseAPI {
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RacesCtrlApi
+     */
+    public getAllRaces(options?: any) {
+        return RacesCtrlApiFp(this.configuration).getAllRaces(options)(this.fetch, this.basePath);
     }
 
 }
