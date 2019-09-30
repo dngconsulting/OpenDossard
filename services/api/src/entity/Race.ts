@@ -7,9 +7,6 @@ export class Race {
     @PrimaryGeneratedColumn()
     public id: number;
 
-    @Column({nullable: false})
-    name: string;
-
     @ManyToOne((type) => Competition)
     @JoinColumn()
     public competition: Competition;
@@ -17,6 +14,9 @@ export class Race {
     @ManyToOne((type) => Licence)
     @JoinColumn()
     public licence: Licence;
+
+    @Column({nullable: true})
+    public raceCode: string;
 
     @Column({nullable: true})
     public riderNumber: number;

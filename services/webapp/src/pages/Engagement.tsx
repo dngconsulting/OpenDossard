@@ -12,6 +12,14 @@ const styles = (theme : Theme) => ({
 
 });
 
+const update = async (newData: RaceRow) => {
+    await apiRaces.save({
+        id: newData.id,
+        riderNumber: newData.riderNumber,
+        raceCode: newData.raceCode
+    });
+}
+
 const EngagementPage = () => {
 
     const [races, setRaces] = useState<RaceRow[]>([])
@@ -35,7 +43,16 @@ const EngagementPage = () => {
         ]}
         data={races}
         options={{
-            filtering: true
+            filtering: true,
+            actionsColumnIndex: -1,
+            pageSize: 10,
+            pageSizeOptions: [5, 10, 20],
+        }}
+        editable={{
+            onRowUpdate: async (newData, oldData) => {
+                await update(newData)
+                fetchData()
+            }
         }}
     />
 

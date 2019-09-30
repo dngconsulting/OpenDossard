@@ -269,6 +269,32 @@ export interface RaceRow {
 /**
  * 
  * @export
+ * @interface RaceUpdate
+ */
+export interface RaceUpdate {
+    /**
+     * 
+     * @type {number}
+     * @memberof RaceUpdate
+     */
+    id?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof RaceUpdate
+     */
+    riderNumber?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceUpdate
+     */
+    raceCode?: string;
+}
+
+/**
+ * 
+ * @export
  * @interface User
  */
 export interface User {
@@ -782,6 +808,33 @@ export const RacesCtrlApiFetchParamCreator = function (configuration?: Configura
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * 
+         * @param {RaceUpdate} [body] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        save(body?: RaceUpdate, options: any = {}): FetchArgs {
+            const localVarPath = `/api/races`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'PUT' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+            const needsSerialization = (<any>"RaceUpdate" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(body || {}) : (body || "");
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -808,6 +861,24 @@ export const RacesCtrlApiFp = function(configuration?: Configuration) {
                 });
             };
         },
+        /**
+         * 
+         * @param {RaceUpdate} [body] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        save(body?: RaceUpdate, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = RacesCtrlApiFetchParamCreator(configuration).save(body, options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response;
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
     }
 };
 
@@ -824,6 +895,15 @@ export const RacesCtrlApiFactory = function (configuration?: Configuration, fetc
          */
         getAllRaces(options?: any) {
             return RacesCtrlApiFp(configuration).getAllRaces(options)(fetch, basePath);
+        },
+        /**
+         * 
+         * @param {RaceUpdate} [body] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        save(body?: RaceUpdate, options?: any) {
+            return RacesCtrlApiFp(configuration).save(body, options)(fetch, basePath);
         },
     };
 };
@@ -843,6 +923,17 @@ export class RacesCtrlApi extends BaseAPI {
      */
     public getAllRaces(options?: any) {
         return RacesCtrlApiFp(this.configuration).getAllRaces(options)(this.fetch, this.basePath);
+    }
+
+    /**
+     * 
+     * @param {RaceUpdate} [body] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RacesCtrlApi
+     */
+    public save(body?: RaceUpdate, options?: any) {
+        return RacesCtrlApiFp(this.configuration).save(body, options)(this.fetch, this.basePath);
     }
 
 }
