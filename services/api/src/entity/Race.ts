@@ -1,5 +1,4 @@
 import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from 'typeorm';
-import {Club} from './Club';
 import {Competition} from './Competition';
 import {Licence} from './Licence';
 

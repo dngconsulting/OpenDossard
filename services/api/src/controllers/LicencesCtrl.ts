@@ -22,7 +22,7 @@ export class LicencesCtrl {
     }
 
     @Get('/')
-    @ReturnsArray(Licence,{description:"Liste des licences",})
+    @ReturnsArray(Licence, {description: 'Liste des licences'})
     public async getAllLicences(): Promise<Licence[]> {
         return getRepository(Licence).find();
     }
