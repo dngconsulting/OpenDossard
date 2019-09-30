@@ -36,9 +36,10 @@ const EngagementPage = () => {
     return <MaterialTable
         title="Engagement"
         columns={[
+            { title: "Licence", field: "licenceNumber", editable: "never" },
+            { title: "Nom", field: "name", editable: "never" },
+            { title: "Prénom", field: "firstName", editable: "never" },
             { title: "Dossard", field: "riderNumber" },
-            { title: "Nom", field: "name" },
-            { title: "Prénom", field: "firstName" },
             { title: "Course", field: "raceCode" },
         ]}
         data={races}

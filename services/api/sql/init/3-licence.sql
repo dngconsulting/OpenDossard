@@ -1294,3 +1294,6 @@ INSERT INTO public.licence (id, "licenceNumber", name, "firstName", gender, club
 INSERT INTO public.licence (id, "licenceNumber", name, "firstName", gender, club, dept, "birthYear", catea, catev, fede) VALUES (9499, null, 'DANIEAU', 'Stéphane', 'H', 'NL', '81', '1971', 'V', '4', 'FSGT');
 INSERT INTO public.licence (id, "licenceNumber", name, "firstName", gender, club, dept, "birthYear", catea, catev, fede) VALUES (9509, null, 'DAUMOND', 'Cyril', 'H', 'Vélo-Sport Castrais', '81', null, '0', '4', 'FSGT');
 INSERT INTO public.licence (id, "licenceNumber", name, "firstName", gender, club, dept, "birthYear", catea, catev, fede) VALUES (9519, null, 'DE SAUNAC', 'Guilhem', 'H', 'Balma Vélo-Sprint', '31', '1965', 'SV', '5', 'FSGT');
+
+-- don't do this in production : hack to fill column licence number
+update licence set "licenceNumber" = id;
