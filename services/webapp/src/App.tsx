@@ -4,35 +4,39 @@ import AppNavBar from './navigation/App.Bar';
 import {BrowserRouter as Router} from 'react-router-dom';
 import {Provider} from 'react-redux';
 import {store} from './store/Store';
-import {createMuiTheme, MuiThemeProvider} from '@material-ui/core';
+import {createMuiTheme, CssBaseline, MuiThemeProvider} from '@material-ui/core';
 
 const theme = createMuiTheme({
+    typography: {
+        fontFamily: [
+            'Roboto', 'Helvetica', 'Arial'
+        ].join(','),
+        fontSize: 14,
+        fontWeightLight: 300,
+        fontWeightRegular: 400,
+        fontWeightMedium: 500,
+        fontWeightBold: 700,
+    },
     palette: {
         primary: {
-            light: '#006064',
-            main: '#006064',
-            dark: '#00363a',
+            light: '#6e85dc',
+            main: '#3959aa',
+            dark: '#00317a',
             contrastText: 'white'
-
         },
         secondary: {
-            light: '#f9683a',
-            main: '#bf360c',
-            dark: '#870000',
+            light: '#60ac5d',
+            main: '#2e7c31',
+            dark: '#004f04',
             contrastText: 'white'
-        }
+        },
+
     },
 });
 
 class App extends React.Component {
     public componentDidMount(): void {
-        /* fetch(`http://localhost:8080/api/calendars/2/events`)
-             .then(response => response.json())
-             .then(data =>
-                 console.log("data" + JSON.stringify(data))
-             )
-             // Catch any errors we hit and update the app
-             .catch(error => console.error(error));*/
+    console.log("App Starting...")
     }
 
     public render() {
@@ -40,6 +44,7 @@ class App extends React.Component {
             <Provider store={store}>
                 <Router>
                     <MuiThemeProvider theme={theme}>
+                        <CssBaseline />
                         <AppNavBar/>
                     </MuiThemeProvider>
                 </Router>

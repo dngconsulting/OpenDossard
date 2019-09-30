@@ -2,14 +2,15 @@ import {BodyParams, Controller, Get, Post, Property, Req, Required, UseAfter} fr
 import * as Express from 'express';
 import * as Passport from 'passport';
 import {BadRequest} from 'ts-httpexceptions';
-import {IUser} from '../../entity/User';
+import {User} from '../../entity/User';
 import {checkEmail} from '../../util/checkEmail';
-import {Consumes, Docs} from '@tsed/swagger';
+import {Consumes, Docs, Returns} from '@tsed/swagger';
+import {UsersService} from '../../services/users/UsersService';
 
-function passportAuthenticate(event: string) {
+const passportAuthenticate = (event: string) => {
     return (request: Express.Request, response: Express.Response, next: Express.NextFunction) => {
         Passport
-            .authenticate(event, (err, user: IUser) => {
+            .authenticate(event, (err, user: User) => {
                 if (err) {
                     return next(err);
                 }
@@ -26,11 +27,14 @@ function passportAuthenticate(event: string) {
 
             })(request, response, next);
     };
-}
+};
 
 @Controller('/passport')
 @Docs('api-v2')
 export class PassportCtrl {
+    constructor(private usersService: UsersService) {
+    }
+
     /**
      * Authenticate user with local info (in Database).
      * @param email
@@ -39,9 +43,14 @@ export class PassportCtrl {
     @Post('/login')
     @UseAfter(passportAuthenticate('login'))
     @Consumes('application/json')
+    @Returns(User)
     async login(@Required() @Property() @BodyParams('email') email: string,
-                @Property() @BodyParams('password') password: string) {
+                @Property() @BodyParams('password') password: string,
+    ): Promise<User> {
         checkEmail(email);
+        const user: User = await this.usersService.findByEmail(email);
+        delete user.password
+        return user;
     }
 
     /**

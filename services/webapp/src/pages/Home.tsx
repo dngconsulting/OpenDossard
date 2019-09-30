@@ -1,6 +1,5 @@
 import * as React from 'react';
 import {Grid, Theme, withStyles} from '@material-ui/core';
-import {Text} from 'recharts';
 
 interface IDashboardProps {
     fetchUsers: (context?: any) => void;
@@ -28,7 +27,7 @@ class HomePage extends React.Component<IDashboardProps, IPageState> {
         return (
             <div className={classes.root}>
                 <Grid container={true}>
-                    <Text>Home page content</Text>
+                    Home page content
                 </Grid>
             </div>
         );

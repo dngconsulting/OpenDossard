@@ -1,7 +1,7 @@
 import {BodyParams, Controller, Get, PathParams, Put, Required} from '@tsed/common';
 import {NotFound} from 'ts-httpexceptions';
 import {Licence} from '../entity/Licence';
-import {EntityManager, getManager, getRepository, Transaction, TransactionManager} from 'typeorm';
+import {EntityManager, getRepository, Transaction, TransactionManager} from 'typeorm';
 import {Docs, ReturnsArray} from '@tsed/swagger';
 
 /**
@@ -30,7 +30,7 @@ export class LicencesCtrl {
     @Put('/')
     @Transaction()
     public async save(@BodyParams(Licence) licence: Licence, @TransactionManager() em: EntityManager)
-                : Promise<Licence> {
+        : Promise<Licence> {
         await em.save(licence);
         return licence;
     }

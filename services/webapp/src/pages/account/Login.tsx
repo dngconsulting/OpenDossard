@@ -1,7 +1,8 @@
 import * as React from 'react';
 import {
     Button,
-    FormControl, FormHelperText,
+    FormControl,
+    FormHelperText,
     Icon,
     Input,
     InputAdornment,
@@ -11,9 +12,10 @@ import {
 } from '@material-ui/core';
 import Paper from '@material-ui/core/Paper';
 import * as querystring from 'querystring';
-import {User} from '../../state/User';
 import {Redirect} from 'react-router';
 import {passportCtrl} from '../../util/api';
+import {User} from '../../sdk';
+import logohorizontal from '../../assets/logos/logohorizontal.png'
 
 interface ILoginProps {
     login?: (data: any) => void;
@@ -26,7 +28,7 @@ interface ILoginProps {
 interface ILoginState {
     email: string;
     password: string;
-    error : boolean
+    error: boolean
 }
 
 class LoginPage extends React.Component<ILoginProps, ILoginState> {
@@ -37,20 +39,24 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
     };
 
     private handleEmailAddressChange = (event: any) => {
-
-        this.setState({email: event.target.value, error:false});
+        if (event.target.value !== this.state.email) {
+            this.setState({email: event.target.value, error: false});
+        }
     };
 
     private handlePasswordChange = (event: any) => {
-        this.setState({password: event.target.value, error : false});
+        if (event.target.password !== this.state.password) {
+            this.setState({password: event.target.value, error: false});
+        }
     };
 
     private handleLogin = async () => {
         try {
-            await passportCtrl.login(this.state);
-            this.props.login(this.state);
+            const user = await passportCtrl.login(this.state);
+            console.log('User = ' + JSON.stringify(user));
+            this.props.login(user);
         } catch (err) {
-            this.setState({error:true})
+            this.setState({error: true});
         }
     };
 
@@ -65,9 +71,14 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
         return (
             <div className={classes.container}>
                 <Paper className={classes.paper}>
-                    <h2>{'Login'}</h2>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}><img src={logohorizontal} width='225' height='60'/></div>
                     <FormControl required={true} fullWidth={true} className={classes.field}>
-                        <InputLabel htmlFor="email">Email Address</InputLabel>
+                        <InputLabel error={this.state.error} htmlFor="email">Email
+                            Address</InputLabel>
                         <Input
                             value={this.state.email}
                             error={this.state.error}
@@ -80,7 +91,8 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
                         />
                     </FormControl>
                     <FormControl required={true} fullWidth={true} className={classes.field}>
-                        <InputLabel htmlFor="password">Password</InputLabel>
+                        <InputLabel error={this.state.error}
+                                    htmlFor="password">Password</InputLabel>
                         <Input
                             value={this.state.password}
                             error={this.state.error}
@@ -93,19 +105,25 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
                                 </InputAdornment>}
                         />
                     </FormControl>
-                    {this.state.error && <FormControl error={true} component="fieldset" className={classes.formControl}>
-                        <FormHelperText>Le login ou le mot de passe est incorrect</FormHelperText>
+                    {this.state.error &&
+                    <FormControl error={true} component="fieldset" className={classes.formControl}>
+                      <FormHelperText>Le login ou le mot de passe est incorrect</FormHelperText>
                     </FormControl>}
-                    <div className={classes.actions}>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        height : '100px'
+                    }}>
                         <Button variant="text" className={classes.button}>
-                            Cancel
+                            Annuler
                         </Button>
                         <Button
                             onClick={this.handleLogin}
                             variant="text"
                             color="primary"
                             className={classes.button}>
-                            Submit
+                            Valider
                         </Button>
                     </div>
                 </Paper>
