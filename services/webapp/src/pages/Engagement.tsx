@@ -12,11 +12,12 @@ const styles = (theme : Theme) => ({
 
 });
 
-const create = async (newData: RaceRow) => {
+const create = async (newData: RaceRow, competitionId: number) => {
     await apiRaces.create({
-        id: newData.id,
         riderNumber: newData.riderNumber,
-        raceCode: newData.raceCode
+        raceCode: newData.raceCode,
+        licenceNumber: newData.licenceNumber,
+        competitionId
     });
 }
 
@@ -28,7 +29,9 @@ const update = async (newData: RaceRow) => {
     });
 }
 
-const EngagementPage = () => {
+const EngagementPage = ({match}: {match: any}) => {
+
+    const competitionId = match.params.id;
 
     const [races, setRaces] = useState<RaceRow[]>([])
 
@@ -42,7 +45,7 @@ const EngagementPage = () => {
     }, ['loading'])
 
     return <MaterialTable
-        title="Engagement"
+        title={`Engagement ${competitionId}`}
         columns={[
             { title: "Licence", field: "licenceNumber" },
             { title: "Nom", field: "name", editable: "never" },
@@ -59,7 +62,7 @@ const EngagementPage = () => {
         }}
         editable={{
             onRowAdd: async (newData) => {
-                await create(newData)
+                await create(newData, competitionId)
                 fetchData();
             },
             onRowUpdate: async (newData, oldData) => {

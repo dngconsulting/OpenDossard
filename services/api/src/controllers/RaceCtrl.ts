@@ -3,6 +3,7 @@ import {EntityManager, Transaction, TransactionManager} from 'typeorm';
 import {Docs, ReturnsArray} from '@tsed/swagger';
 import {Race} from '../entity/Race';
 import {Licence} from '../entity/Licence';
+import {Competition} from '../entity/Competition';
 
 export class RaceRow {
     @Property()
@@ -23,6 +24,17 @@ export class RaceRow {
     public name: string;
     @Property()
     public firstName: string;
+}
+
+export class RaceCreate {
+    @Property()
+    public competitionId: number;
+    @Property()
+    public licenceNumber: string;
+    @Property()
+    public riderNumber: number;
+    @Property()
+    public raceCode: string;
 }
 
 export class RaceUpdate {
@@ -54,19 +66,20 @@ export class RacesCtrl {
 
     @Post('/')
     @Transaction()
-    public async create(@BodyParams(RaceUpdate) race: RaceUpdate, @TransactionManager() em: EntityManager)
+    public async create(@BodyParams(RaceCreate) race: RaceCreate, @TransactionManager() em: EntityManager)
         : Promise<void> {
 
-        const licence = await em.createQueryBuilder()
-            .select('licence')
-            .from(Licence, 'licence')
-            .where('licence.licenceNumber = :licenceNumber', {licenceNumber: race.licenceNumber})
+        const licence = await em.createQueryBuilder(Licence, 'licence')
+            .where('licence."licenceNumber" = :ln', {ln: race.licenceNumber})
             .getOne();
+
+        const competition = await em.findOne(Competition, race.competitionId);
 
         const newRace = new Race() ;
         newRace.raceCode = race.raceCode;
         newRace.riderNumber = race.riderNumber;
         newRace.licence = licence;
+        newRace.competition = competition;
 
         await em.save(newRace);
     }

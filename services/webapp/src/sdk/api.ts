@@ -207,6 +207,38 @@ export interface PassportCtrlSignupPayload {
 /**
  * 
  * @export
+ * @interface RaceCreate
+ */
+export interface RaceCreate {
+    /**
+     * 
+     * @type {number}
+     * @memberof RaceCreate
+     */
+    competitionId?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceCreate
+     */
+    licenceNumber?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof RaceCreate
+     */
+    riderNumber?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceCreate
+     */
+    raceCode?: string;
+}
+
+/**
+ * 
+ * @export
  * @interface RaceRow
  */
 export interface RaceRow {
@@ -794,11 +826,11 @@ export const RacesCtrlApiFetchParamCreator = function (configuration?: Configura
     return {
         /**
          * 
-         * @param {RaceUpdate} [body] 
+         * @param {RaceCreate} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        create(body?: RaceUpdate, options: any = {}): FetchArgs {
+        create(body?: RaceCreate, options: any = {}): FetchArgs {
             const localVarPath = `/api/races`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
@@ -811,7 +843,7 @@ export const RacesCtrlApiFetchParamCreator = function (configuration?: Configura
             // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
             delete localVarUrlObj.search;
             localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-            const needsSerialization = (<any>"RaceUpdate" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            const needsSerialization = (<any>"RaceCreate" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
             localVarRequestOptions.body =  needsSerialization ? JSON.stringify(body || {}) : (body || "");
 
             return {
@@ -879,11 +911,11 @@ export const RacesCtrlApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
-         * @param {RaceUpdate} [body] 
+         * @param {RaceCreate} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        create(body?: RaceUpdate, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+        create(body?: RaceCreate, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
             const localVarFetchArgs = RacesCtrlApiFetchParamCreator(configuration).create(body, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
@@ -941,11 +973,11 @@ export const RacesCtrlApiFactory = function (configuration?: Configuration, fetc
     return {
         /**
          * 
-         * @param {RaceUpdate} [body] 
+         * @param {RaceCreate} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        create(body?: RaceUpdate, options?: any) {
+        create(body?: RaceCreate, options?: any) {
             return RacesCtrlApiFp(configuration).create(body, options)(fetch, basePath);
         },
         /**
@@ -977,12 +1009,12 @@ export const RacesCtrlApiFactory = function (configuration?: Configuration, fetc
 export class RacesCtrlApi extends BaseAPI {
     /**
      * 
-     * @param {RaceUpdate} [body] 
+     * @param {RaceCreate} [body] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof RacesCtrlApi
      */
-    public create(body?: RaceUpdate, options?: any) {
+    public create(body?: RaceCreate, options?: any) {
         return RacesCtrlApiFp(this.configuration).create(body, options)(this.fetch, this.basePath);
     }
 
