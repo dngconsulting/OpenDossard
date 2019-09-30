@@ -1,6 +1,7 @@
-import {Controller, Get, Property} from '@tsed/common';
+import {BodyParams, Controller, Get, Property, Put} from '@tsed/common';
 import {EntityManager, Transaction, TransactionManager} from 'typeorm';
 import {Docs, ReturnsArray} from '@tsed/swagger';
+import {Race} from '../entity/Race';
 
 export class RaceRow {
     @Property()
@@ -23,6 +24,15 @@ export class RaceRow {
     public firstName: string;
 }
 
+export class RaceUpdate {
+    @Property()
+    public id: number;
+    @Property()
+    public riderNumber: number;
+    @Property()
+    public raceCode: string;
+}
+
 @Controller('/races')
 @Docs('api-v2')
 export class RacesCtrl {
@@ -39,4 +49,14 @@ export class RacesCtrl {
         return await em.query(query);
     }
 
+    @Put('/')
+    @Transaction()
+    public async save(@BodyParams(RaceUpdate) race: RaceUpdate, @TransactionManager() em: EntityManager)
+        : Promise<void> {
+
+        const toUpdate = await em.findOne(Race, race.id);
+        toUpdate.riderNumber = race.riderNumber;
+        toUpdate.raceCode = race.raceCode;
+        await em.save(toUpdate);
+    }
 }

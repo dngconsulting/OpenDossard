@@ -12,6 +12,14 @@ const styles = (theme : Theme) => ({
 
 });
 
+const update = async (newData: RaceRow) => {
+    await apiRaces.save({
+        id: newData.id,
+        riderNumber: newData.riderNumber,
+        raceCode: newData.raceCode
+    });
+}
+
 const EngagementPage = () => {
 
     const [races, setRaces] = useState<RaceRow[]>([])
@@ -28,14 +36,24 @@ const EngagementPage = () => {
     return <MaterialTable
         title="Engagement"
         columns={[
+            { title: "Licence", field: "licenceNumber", editable: "never" },
+            { title: "Nom", field: "name", editable: "never" },
+            { title: "Prénom", field: "firstName", editable: "never" },
             { title: "Dossard", field: "riderNumber" },
-            { title: "Nom", field: "name" },
-            { title: "Prénom", field: "firstName" },
             { title: "Course", field: "raceCode" },
         ]}
         data={races}
         options={{
-            filtering: true
+            filtering: true,
+            actionsColumnIndex: -1,
+            pageSize: 10,
+            pageSizeOptions: [5, 10, 20],
+        }}
+        editable={{
+            onRowUpdate: async (newData, oldData) => {
+                await update(newData)
+                fetchData()
+            }
         }}
     />
 
