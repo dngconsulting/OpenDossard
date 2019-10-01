@@ -12,6 +12,7 @@ import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import makeStyles from "@material-ui/core/styles/makeStyles";
+import {CadSnackBar, EMPTY_NOTIF} from "../components/CadSnackbar";
 
 const create = async (newRace: RaceCreate) => {
     await apiRaces.create(newRace);
@@ -45,6 +46,7 @@ const EngagementPage = ({match}: {match: any}) => {
     const competitionId = match.params.id;
 
     const [races, setRaces] = useState<RaceRow[]>([])
+    const [notification, setNotification] = useState(EMPTY_NOTIF);
 
     const fetchData = async ()  => {
         const data = await apiRaces.getAllRaces();
@@ -56,7 +58,23 @@ const EngagementPage = ({match}: {match: any}) => {
     }, ['loading'])
 
     return <div>
-        <CreationForm {...{competitionId, fetchData}}/>
+        <CreationForm competitionId={competitionId}
+                      onSuccess={(race) => {
+                          fetchData();
+                          setNotification({
+                              message: `Le coureur ${race.licenceNumber} a bien été enregistré sous le dossard ${race.riderNumber}`,
+                              open: true,
+                              type: 'info'
+                          })
+                      }}
+                      onError={() => {
+                          setNotification({
+                              message: `Une erreur est survenue`,
+                              open: true,
+                              type: 'error'
+                          })
+                      }}
+        />
         <MaterialTable
             title={`Engagement ${competitionId}`}
             columns={COLUMNS}
@@ -82,6 +100,7 @@ const EngagementPage = ({match}: {match: any}) => {
                 body: {}
             }}
         />
+        <CadSnackBar notification={notification} onClose={() => setNotification(EMPTY_NOTIF)}/>
       </div>
 
 }
@@ -95,11 +114,17 @@ const useStyles = makeStyles((theme: Theme) =>
     }),
 );
 
-const CreationForm = ({competitionId, fetchData} : { competitionId: number, fetchData: () => {}}) => {
+const CreationForm = (
+        {competitionId, onSuccess, onError}:
+        {
+            competitionId: number,
+            onSuccess: (race: RaceCreate) => void,
+            onError: () => void
+        }
+    ) => {
 
-    const [newRace, setValues] = useState<RaceCreate>({
-        competitionId
-    });
+    const EMPTY_FORM = {licenceNumber: '', riderNumber: '', raceCode: ''};
+    const [newRace, setValues] = useState(EMPTY_FORM);
 
     const classes = useStyles({});
 
@@ -119,7 +144,7 @@ const CreationForm = ({competitionId, fetchData} : { competitionId: number, fetc
                 label="Numéro de dossard"
                 value={newRace.riderNumber}
                 className={classes.field}
-                onChange={e => setValues({...newRace, riderNumber: parseInt(e.target.value)})}
+                onChange={e => setValues({...newRace, riderNumber: e.target.value})}
                 margin="normal"
             />
             <TextField
@@ -133,8 +158,18 @@ const CreationForm = ({competitionId, fetchData} : { competitionId: number, fetc
                 variant="contained"
                 color="primary"
                 onClick={ async () => {
-                    await create(newRace)
-                    await fetchData()
+                    try {
+                        const dto = {
+                            ...newRace,
+                            riderNumber: parseInt(newRace.riderNumber),
+                            competitionId
+                        }
+                        await create(dto);
+                        onSuccess(dto)
+                        setValues(EMPTY_FORM)
+                    } catch (e) {
+                        onError()
+                    }
                 }}
             >
                 OK
