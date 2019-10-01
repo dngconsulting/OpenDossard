@@ -5,15 +5,16 @@ import {Competition} from './entity/Competition';
 import {Club} from './entity/Club';
 import {Race} from './entity/Race';
 import {Apiv2Module} from './apiv2.module';
+import config from './config';
 
 @Module({
     imports: [TypeOrmModule.forRoot({
         type: 'postgres',
-        host: 'dossarddb',
+        host: config.db.host,
         port: 5432,
-        username: 'dossarduser',
-        password: 'dossardpwd',
-        database: 'dossarddb',
+        username: config.db.username,
+        password: config.db.password,
+        database: config.db.database,
         entities: [Licence, Club, Competition, Race],
         synchronize: true,
     }), Apiv2Module],
