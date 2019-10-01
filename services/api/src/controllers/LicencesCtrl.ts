@@ -21,9 +21,24 @@ class LicencesPage {
     totalCount: number;
 }
 
-interface IFilter {
+class IFilter {
+    @Property()
     name: string;
+    @Property()
     value: string;
+}
+
+class ISearch {
+    @Property()
+    currentPage: number;
+    @Property()
+    pageSize: number;
+    @Property()
+    orderDirection?: 'ASC'|'DESC';
+    @Property()
+    orderBy?: string;
+    @Property()
+    filters?: IFilter[];
 }
 
 @Controller('/licences')
@@ -43,11 +58,8 @@ export class LicencesCtrl {
 
     @Post('/search')
     @Returns(LicencesPage, {description: 'Liste des licences with pagination'})
-    public async getPageSizeLicencesForPage(@BodyParams('currentPage') currentPage: number,
-                                            @BodyParams('pageSize') pageSize: number,
-                                            @BodyParams('orderDirection') orderDirection?: 'ASC'|'DESC',
-                                            @BodyParams('orderBy') orderBy?: string,
-                                            @BodyParams('filters') filters?: IFilter[]): Promise<LicencesPage> {
+    public async getPageSizeLicencesForPage(@BodyParams(ISearch) {currentPage, pageSize,
+        filters, orderBy, orderDirection}: ISearch): Promise<LicencesPage> {
         const qb = getRepository(Licence).createQueryBuilder();
         filters.forEach((filter: IFilter) => {
                qb.andWhere(`"${filter.name}"` + ' ilike :' + filter.name , { [filter.name]: '%' + filter.value + '%' });

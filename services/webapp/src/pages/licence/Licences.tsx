@@ -1,8 +1,9 @@
 import * as React from 'react';
-import MaterialTable from 'material-table';
+import MaterialTable, {Query, QueryResult} from 'material-table';
 import {AppText as T} from '../../utils/text';
 import {apiLicences} from '../../util/api';
 import {Theme, withStyles} from '@material-ui/core';
+import {ISearch, Licence} from '../../sdk';
 
 interface ILicencesProps {
     items: any[];
@@ -10,13 +11,13 @@ interface ILicencesProps {
     history: any;
 }
 
-const fetchLicences = async (query: any) => {
+const fetchLicences = async (query: Query<Licence>) : Promise<QueryResult<Licence>> => {
     const res = await apiLicences.getPageSizeLicencesForPage(
         prepareFilter(query));
     return {data: res.data, page: res.page, totalCount: res.totalCount};
 };
 
-const prepareFilter = (query:any) =>{
+const prepareFilter = (query: Query<Licence>) : ISearch =>{
     const filters:any = [];
     if(query.filters.length>0){
         query.filters.forEach((col: any)=>{
