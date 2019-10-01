@@ -47,13 +47,18 @@ const EngagementPage = ({match}: {match: any}) => {
     return <MaterialTable
         title={`Engagement ${competitionId}`}
         columns={[
-            { title: "Licence", field: "licenceNumber" },
+            { title: "Licence", field: "licenceNumber", type: "numeric", headerStyle: { textAlign: "center" },
+                cellStyle: { textAlign: "center"}
+            },
             { title: "Nom", field: "name", editable: "never" },
             { title: "Prénom", field: "firstName", editable: "never" },
             { title: "Année", field: "birthYear", editable: "never" },
             { title: "Club", field: "club", editable: "never" },
-            { title: "Dossard", field: "riderNumber" },
-            { title: "Course", field: "raceCode", editable: "always"},
+            { title: "Dossard", field: "riderNumber", type: "numeric", headerStyle: { textAlign: "center" },
+                cellStyle: { textAlign: "center"},
+                defaultSort: "asc"
+            },
+            { title: "Course", field: "raceCode", editable: "always", defaultGroupOrder: 0},
         ]}
         data={races}
         options={{
@@ -61,7 +66,7 @@ const EngagementPage = ({match}: {match: any}) => {
             actionsColumnIndex: -1,
             pageSize: 10,
             pageSizeOptions: [5, 10, 20],
-            grouping: true
+            grouping: true,
         }}
         editable={{
             onRowAdd: async (newData) => {
@@ -72,6 +77,13 @@ const EngagementPage = ({match}: {match: any}) => {
                 await update(newData)
                 fetchData()
             }
+        }}
+        localization={{
+            grouping: {
+                groupedBy: 'Regroupement par :',
+                placeholder: 'Glisser ici la colonne a regrouper'
+            },
+            body: {}
         }}
     />
 
