@@ -1,9 +1,9 @@
-import {EntityManager, Transaction} from 'typeorm';
+import {EntityManager} from 'typeorm';
 
 import {Race} from '../entity/Race';
 import {Licence} from '../entity/Licence';
 import {Competition} from '../entity/Competition';
-import {ApiModelProperty, ApiOperation, ApiUseTags} from '@nestjs/swagger';
+import {ApiModelProperty, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
 import {Body, Controller, Get, Post, Put} from '@nestjs/common';
 import {InjectEntityManager} from '@nestjs/typeorm';
 
@@ -64,7 +64,12 @@ export class RacesCtrl {
     }
 
     @Get()
-    @ApiOperation({ title: 'Rechercher toutes les courses ' })
+    @ApiOperation({
+        operationId: 'getAllRaces',
+        title: 'Rechercher toutes les courses ',
+        description: 'description'
+    })
+    @ApiResponse({status: 200, type: RaceRow, isArray: true})
     public async getAllRaces(): Promise<RaceRow[]> {
 
         const query = `select r.*, l.name, l."firstName", l."licenceNumber", l.club, l."birthYear"
@@ -74,7 +79,11 @@ export class RacesCtrl {
     }
 
     @Post()
-    @ApiOperation({ title: 'Cree une nouvelle course ' })
+    @ApiOperation({
+        operationId: 'create',
+        title: 'Cree une nouvelle course ',
+        description: 'description'
+    })
     public async create(@Body() race: RaceCreate)
         : Promise<void> {
 
@@ -94,7 +103,11 @@ export class RacesCtrl {
     }
 
     @Put()
-    @ApiOperation({ title: 'Mets à jour une course existante ' })
+    @ApiOperation({
+        operationId: 'update',
+        title: 'Mets à jour une course existante ',
+        description: 'description'
+    })
     public async update(@Body() race: RaceUpdate)
         : Promise<void> {
 
