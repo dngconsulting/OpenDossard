@@ -23,6 +23,18 @@ services:
     ports:
       - "8080:8080"
 
+  apiv2:
+    container_name: apiv2
+    image: node:10.12.0-alpine
+    working_dir: "/app"
+    env_file:
+      - ./config/dev.env
+    volumes:
+      - ./services/apiv2:/app:delegated
+    command: "npm run start:dev"
+    ports:
+      - "9090:9090"
+
   webapp:
     environment:
       - CHOKIDAR_USEPOLLING=true

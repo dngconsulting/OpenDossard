@@ -11,12 +11,13 @@ import {AuthService} from './services/auth.service';
 import {LocalStrategy} from './services/local.strategy';
 import {PassportModule} from '@nestjs/passport';
 import {PassportCtrl} from './controllers/PassportCtrl';
+import {RacesCtrl} from './controllers/RaceCtrl';
 
 @Module({
     imports: [TypeOrmModule.forFeature([Licence, Club, Competition, Race]), PassportModule],
     providers: [AppService, UsersService, AuthService, LocalStrategy],
     exports: [UsersService],
-    controllers: [LicencesCtrl, PassportCtrl],
+    controllers: [LicencesCtrl, PassportCtrl, RacesCtrl],
 })
 export class Apiv2Module {
 }
