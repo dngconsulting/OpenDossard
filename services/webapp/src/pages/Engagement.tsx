@@ -2,7 +2,7 @@ import * as React from 'react';
 import {useEffect, useState} from 'react';
 
 import {Theme, withStyles} from '@material-ui/core';
-import MaterialTable from "material-table";
+import MaterialTable, {Column} from "material-table";
 
 import {apiRaces} from "../util/api";
 import {RaceRow} from "../sdk";
@@ -29,6 +29,21 @@ const update = async (newData: RaceRow) => {
     });
 }
 
+const COLUMNS: Array<Column<RaceRow>> = [
+    { title: "Licence", field: "licenceNumber", type: "numeric", headerStyle: { textAlign: "center" },
+        cellStyle: { textAlign: "center"}
+    },
+    { title: "Nom", field: "name", editable: "never" },
+    { title: "Prénom", field: "firstName", editable: "never" },
+    { title: "Année", field: "birthYear", editable: "never" },
+    { title: "Club", field: "club", editable: "never" },
+    { title: "Dossard", field: "riderNumber", type: "numeric", headerStyle: { textAlign: "center" },
+        cellStyle: { textAlign: "center"},
+        defaultSort: "asc"
+    },
+    { title: "Course", field: "raceCode", editable: "always"},
+];
+
 const EngagementPage = ({match}: {match: any}) => {
 
     const competitionId = match.params.id;
@@ -44,22 +59,11 @@ const EngagementPage = ({match}: {match: any}) => {
         fetchData()
     }, ['loading'])
 
+
+
     return <MaterialTable
         title={`Engagement ${competitionId}`}
-        columns={[
-            { title: "Licence", field: "licenceNumber", type: "numeric", headerStyle: { textAlign: "center" },
-                cellStyle: { textAlign: "center"}
-            },
-            { title: "Nom", field: "name", editable: "never" },
-            { title: "Prénom", field: "firstName", editable: "never" },
-            { title: "Année", field: "birthYear", editable: "never" },
-            { title: "Club", field: "club", editable: "never" },
-            { title: "Dossard", field: "riderNumber", type: "numeric", headerStyle: { textAlign: "center" },
-                cellStyle: { textAlign: "center"},
-                defaultSort: "asc"
-            },
-            { title: "Course", field: "raceCode", editable: "always", defaultGroupOrder: 0},
-        ]}
+        columns={COLUMNS}
         data={races}
         options={{
             filtering: true,
