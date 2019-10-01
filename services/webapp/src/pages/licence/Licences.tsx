@@ -3,7 +3,7 @@ import MaterialTable, {Query, QueryResult} from 'material-table';
 import {AppText as T} from '../../utils/text';
 import {apiLicences} from '../../util/api';
 import {Theme, withStyles} from '@material-ui/core';
-import {ISearch, Licence} from '../../sdk';
+import {Search, Licence} from '../../sdk';
 
 interface ILicencesProps {
     items: any[];
@@ -17,7 +17,7 @@ const fetchLicences = async (query: Query<Licence>) : Promise<QueryResult<Licenc
     return {data: res.data, page: res.page, totalCount: res.totalCount};
 };
 
-const prepareFilter = (query: Query<Licence>) : ISearch =>{
+const prepareFilter = (query: Query<Licence>) : Search =>{
     const filters:any = [];
     if(query.filters.length>0){
         query.filters.forEach((col: any)=>{
