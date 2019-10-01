@@ -21,9 +21,24 @@ class LicencesPage {
     totalCount: number;
 }
 
-interface IFilter {
+class Filter {
+    @Property()
     name: string;
+    @Property()
     value: string;
+}
+
+class Search {
+    @Property()
+    currentPage: number;
+    @Property()
+    pageSize: number;
+    @Property()
+    orderDirection?: 'ASC'|'DESC';
+    @Property()
+    orderBy?: string;
+    @Property()
+    filters?: Filter[];
 }
 
 @Controller('/licences')
@@ -41,15 +56,12 @@ export class LicencesCtrl {
         return getRepository(Licence).find();
     }
 
-    @Post('/')
+    @Post('/search')
     @Returns(LicencesPage, {description: 'Liste des licences with pagination'})
-    public async getPageSizeLicencesForPage(@BodyParams('currentPage') currentPage: number,
-                                            @BodyParams('pageSize') pageSize: number,
-                                            @BodyParams('orderDirection') orderDirection?: 'ASC'|'DESC',
-                                            @BodyParams('orderBy') orderBy?: string,
-                                            @BodyParams('filters') filters?: IFilter[]): Promise<LicencesPage> {
+    public async getPageSizeLicencesForPage(@BodyParams(Search) {currentPage, pageSize,
+        filters, orderBy, orderDirection}: Search): Promise<LicencesPage> {
         const qb = getRepository(Licence).createQueryBuilder();
-        filters.forEach((filter: IFilter) => {
+        filters.forEach((filter: Filter) => {
                qb.andWhere(`"${filter.name}"` + ' ilike :' + filter.name , { [filter.name]: '%' + filter.value + '%' });
         });
         if (typeof orderBy !== 'undefined') {

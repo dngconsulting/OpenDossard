@@ -1,7 +1,9 @@
 import * as React from 'react';
-import MaterialTable from 'material-table';
+import MaterialTable, {Query, QueryResult} from 'material-table';
 import {AppText as T} from '../../utils/text';
+import {apiLicences} from '../../util/api';
 import {Theme, withStyles} from '@material-ui/core';
+import {Search, Licence} from '../../sdk';
 
 interface ILicencesProps {
     items: any[];
@@ -9,11 +11,28 @@ interface ILicencesProps {
     history: any;
 }
 
+const fetchLicences = async (query: Query<Licence>) : Promise<QueryResult<Licence>> => {
+    const res = await apiLicences.getPageSizeLicencesForPage(
+        prepareFilter(query));
+    return {data: res.data, page: res.page, totalCount: res.totalCount};
+};
 
+const prepareFilter = (query: Query<Licence>) : Search =>{
+    const filters:any = [];
+    if(query.filters.length>0){
+        query.filters.forEach((col: any)=>{
+            filters.push({name: col.column.field, value: col.value})
+        })
+    }
+    return {currentPage:query.page,
+        pageSize:query.pageSize,
+        orderBy:query.orderBy?query.orderBy.field:undefined,
+        orderDirection:query.orderDirection?query.orderDirection.toUpperCase():'ASC',
+        filters}
+};
 
-class LicencesPage extends React.Component<ILicencesProps, {}> {
+const LicencesPage = (props: ILicencesProps)=> {
 
-    public render(): JSX.Element {
         return (
             <MaterialTable
                 title={T.LICENCES.TITLE}
@@ -27,7 +46,7 @@ class LicencesPage extends React.Component<ILicencesProps, {}> {
                     {title: 'Caté Age', field: 'catea'},
                     {title: 'Caté Valeur', field: 'catev'},
                 ]}
-                data={null}
+                data={fetchLicences}
                 options={{
                     filtering: true,
                     actionsColumnIndex: -1,
@@ -54,7 +73,7 @@ class LicencesPage extends React.Component<ILicencesProps, {}> {
                         tooltip: T.LICENCES.ADD_NEW_LICENCE,
                         isFreeAction: true,
                         onClick: (event) => {
-                            this.props.history.push('/new_licence');
+                            props.history.push('/new_licence');
                         }
                     }
                 ]}
@@ -88,8 +107,7 @@ class LicencesPage extends React.Component<ILicencesProps, {}> {
             />
         )
             ;
-    }
-}
+};
 
 const styles = (theme: Theme) => ({});
 
