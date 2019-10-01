@@ -6,9 +6,9 @@ import {Apiv2Module} from './apiv2.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const options = new DocumentBuilder()
-      .setTitle('Click And Dossard API')
+      .setTitle('Click And Dossard API V2')
       .setDescription('Documentation de l\'API Click And Dossard API description')
-      .setVersion('1.0')
+      .setVersion('2.0')
       .build();
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('api', app, document);
