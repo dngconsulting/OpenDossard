@@ -81,44 +81,6 @@ export class RequiredError extends Error {
 /**
  * 
  * @export
- * @interface ISearch
- */
-export interface ISearch {
-    /**
-     * 
-     * @type {number}
-     * @memberof ISearch
-     */
-    currentPage?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ISearch
-     */
-    pageSize?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ISearch
-     */
-    orderDirection?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ISearch
-     */
-    orderBy?: string;
-    /**
-     * 
-     * @type {Array<any>}
-     * @memberof ISearch
-     */
-    filters?: Array<any>;
-}
-
-/**
- * 
- * @export
  * @interface Licence
  */
 export interface Licence {
@@ -409,6 +371,44 @@ export interface RaceUpdate {
 /**
  * 
  * @export
+ * @interface Search
+ */
+export interface Search {
+    /**
+     * 
+     * @type {number}
+     * @memberof Search
+     */
+    currentPage?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof Search
+     */
+    pageSize?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof Search
+     */
+    orderDirection?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Search
+     */
+    orderBy?: string;
+    /**
+     * 
+     * @type {Array<any>}
+     * @memberof Search
+     */
+    filters?: Array<any>;
+}
+
+/**
+ * 
+ * @export
  * @interface User
  */
 export interface User {
@@ -497,11 +497,11 @@ export const LicencesCtrlApiFetchParamCreator = function (configuration?: Config
         },
         /**
          * 
-         * @param {ISearch} [body] 
+         * @param {Search} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getPageSizeLicencesForPage(body?: ISearch, options: any = {}): FetchArgs {
+        getPageSizeLicencesForPage(body?: Search, options: any = {}): FetchArgs {
             const localVarPath = `/api/licences/search`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
@@ -514,7 +514,7 @@ export const LicencesCtrlApiFetchParamCreator = function (configuration?: Config
             // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
             delete localVarUrlObj.search;
             localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-            const needsSerialization = (<any>"ISearch" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            const needsSerialization = (<any>"Search" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
             localVarRequestOptions.body =  needsSerialization ? JSON.stringify(body || {}) : (body || "");
 
             return {
@@ -595,11 +595,11 @@ export const LicencesCtrlApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @param {ISearch} [body] 
+         * @param {Search} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getPageSizeLicencesForPage(body?: ISearch, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<LicencesPage> {
+        getPageSizeLicencesForPage(body?: Search, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<LicencesPage> {
             const localVarFetchArgs = LicencesCtrlApiFetchParamCreator(configuration).getPageSizeLicencesForPage(body, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
@@ -657,11 +657,11 @@ export const LicencesCtrlApiFactory = function (configuration?: Configuration, f
         },
         /**
          * 
-         * @param {ISearch} [body] 
+         * @param {Search} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getPageSizeLicencesForPage(body?: ISearch, options?: any) {
+        getPageSizeLicencesForPage(body?: Search, options?: any) {
             return LicencesCtrlApiFp(configuration).getPageSizeLicencesForPage(body, options)(fetch, basePath);
         },
         /**
@@ -706,12 +706,12 @@ export class LicencesCtrlApi extends BaseAPI {
 
     /**
      * 
-     * @param {ISearch} [body] 
+     * @param {Search} [body] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof LicencesCtrlApi
      */
-    public getPageSizeLicencesForPage(body?: ISearch, options?: any) {
+    public getPageSizeLicencesForPage(body?: Search, options?: any) {
         return LicencesCtrlApiFp(this.configuration).getPageSizeLicencesForPage(body, options)(this.fetch, this.basePath);
     }
 
