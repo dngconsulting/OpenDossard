@@ -64,8 +64,8 @@ const EngagementPage = ({match}: {match: any}) => {
         options={{
             filtering: true,
             actionsColumnIndex: -1,
-            pageSize: 10,
-            pageSizeOptions: [5, 10, 20],
+            pageSize: 500,
+            pageSizeOptions: [],
             grouping: true,
         }}
         editable={{
