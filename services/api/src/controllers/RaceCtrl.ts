@@ -4,6 +4,7 @@ import {Docs, ReturnsArray} from '@tsed/swagger';
 import {Race} from '../entity/Race';
 import {Licence} from '../entity/Licence';
 import {Competition} from '../entity/Competition';
+import {BadRequest} from 'ts-httpexceptions';
 
 export class RaceRow {
     @Property()
@@ -76,6 +77,10 @@ export class RacesCtrl {
         const licence = await em.createQueryBuilder(Licence, 'licence')
             .where('licence."licenceNumber" = :ln', {ln: race.licenceNumber})
             .getOne();
+
+        if ( ! licence ) {
+            throw(new BadRequest('Licence inconnue'));
+        }
 
         const competition = await em.findOne(Competition, race.competitionId);
 

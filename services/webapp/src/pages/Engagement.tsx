@@ -64,12 +64,12 @@ const EngagementPage = ({match}: {match: any}) => {
                           setNotification({
                               message: `Le coureur ${race.licenceNumber} a bien été enregistré sous le dossard ${race.riderNumber}`,
                               open: true,
-                              type: 'info'
+                              type: 'success'
                           })
                       }}
-                      onError={() => {
+                      onError={(message) => {
                           setNotification({
-                              message: `Une erreur est survenue`,
+                              message,
                               open: true,
                               type: 'error'
                           })
@@ -119,7 +119,7 @@ const CreationForm = (
         {
             competitionId: number,
             onSuccess: (race: RaceCreate) => void,
-            onError: () => void
+            onError: (message: string) => void
         }
     ) => {
 
@@ -166,9 +166,10 @@ const CreationForm = (
                         }
                         await create(dto);
                         onSuccess(dto)
-                        setValues(EMPTY_FORM)
+                        setValues(EMPTY_FORM);
                     } catch (e) {
-                        onError()
+                        const message:string = await e.text();
+                        onError(message);
                     }
                 }}
             >
