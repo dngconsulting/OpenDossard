@@ -43,7 +43,7 @@ export class Competition {
      */
     @ManyToOne((type) => Club)
     @JoinColumn()
-    public clubId: Club;
+    public club: Club;
     /**
      * Le nom de l'épreuve
      */

@@ -29,6 +29,7 @@ import LicencesPage from '../pages/licence/Licences';
 import ResultatsPage from '../pages/Resultats';
 import StatsPage from '../pages/Stats';
 import {User} from '../sdk';
+import Engagement from "../pages/Engagement";
 
 const classNames = require('classnames');
 
@@ -44,8 +45,8 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
     public routes = [
         {path: '/', title: 'Tableau de bord', icon: () => <DashboardIcon/>},
         {
-            path: '/engagements',
-            component: LicencesPage,
+            path: '/competition/5/engagements',
+            component: Engagement,
             title: 'Engagements',
             icon: () => <AssignmentIcon/>
         },

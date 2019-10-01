@@ -1,5 +1,4 @@
 import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from 'typeorm';
-import {Club} from './Club';
 import {Competition} from './Competition';
 import {Licence} from './Licence';
 
@@ -8,9 +7,6 @@ export class Race {
     @PrimaryGeneratedColumn()
     public id: number;
 
-    @Column({nullable: false})
-    name: string;
-
     @ManyToOne((type) => Competition)
     @JoinColumn()
     public competition: Competition;
@@ -18,6 +14,9 @@ export class Race {
     @ManyToOne((type) => Licence)
     @JoinColumn()
     public licence: Licence;
+
+    @Column({nullable: true})
+    public raceCode: string;
 
     @Column({nullable: true})
     public riderNumber: number;
