@@ -11,8 +11,23 @@ interface ILicencesProps {
 }
 
 const fetchLicences = async (query: any) => {
-    const res = await apiLicences.getPageSizeLicencesForPage({currentPage:query.page,pageSize:query.pageSize,orderBy:query.orderBy?query.orderBy.field:'name',orderDirection:query.orderDirection?query.orderDirection.toUpperCase():'ASC'});
+    const res = await apiLicences.getPageSizeLicencesForPage(
+        prepareFilter(query));
     return {data: res.data, page: res.page, totalCount: res.totalCount};
+};
+
+const prepareFilter = (query:any) =>{
+    const filters:any = [];
+    if(query.filters.length>0){
+        query.filters.forEach((col: any)=>{
+            filters.push({name: col.column.field, value: col.value})
+        })
+    }
+    return {currentPage:query.page,
+        pageSize:query.pageSize,
+        orderBy:query.orderBy?query.orderBy.field:undefined,
+        orderDirection:query.orderDirection?query.orderDirection.toUpperCase():'ASC',
+        filters}
 };
 
 class LicencesPage extends React.Component<ILicencesProps, {}> {

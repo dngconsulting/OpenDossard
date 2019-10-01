@@ -21,6 +21,11 @@ class LicencesPage {
     totalCount: number;
 }
 
+interface IFilter {
+    name: string;
+    value: string;
+}
+
 @Controller('/licences')
 @Docs('api-v2')
 export class LicencesCtrl {
@@ -41,15 +46,21 @@ export class LicencesCtrl {
     public async getPageSizeLicencesForPage(@BodyParams('currentPage') currentPage: number,
                                             @BodyParams('pageSize') pageSize: number,
                                             @BodyParams('orderDirection') orderDirection?: 'ASC'|'DESC',
-                                            @BodyParams('orderBy') orderBy?: string): Promise<LicencesPage> {
+                                            @BodyParams('orderBy') orderBy?: string,
+                                            @BodyParams('filters') filters?: IFilter[]): Promise<LicencesPage> {
+        const qb = getRepository(Licence).createQueryBuilder();
+        filters.forEach((filter: IFilter) => {
+               qb.andWhere(`"${filter.name}"` + ' ilike :' + filter.name , { [filter.name]: '%' + filter.value + '%' });
+        });
+        if (typeof orderBy !== 'undefined') {
+            qb.orderBy(`"${orderBy}"`, orderDirection);
+        }
         const res = await
-            getRepository(Licence).createQueryBuilder()
+            qb
                 .skip(currentPage * pageSize)
                 .take(pageSize)
-                .orderBy(`"${orderBy}"`, orderDirection)
-                .getMany();
-        const total = await getRepository(Licence).createQueryBuilder('licence').getCount();
-        return {data: res, page: currentPage, totalCount: total};
+                .getManyAndCount();
+        return {data: res[0], page: currentPage, totalCount: res[1]};
     }
 
     @Put('/')

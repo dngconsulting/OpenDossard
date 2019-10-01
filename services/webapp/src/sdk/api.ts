@@ -182,6 +182,12 @@ export interface LicencesCtrlGetPageSizeLicencesForPagePayload {
      * @memberof LicencesCtrlGetPageSizeLicencesForPagePayload
      */
     orderBy?: string;
+    /**
+     * 
+     * @type {Array<any>}
+     * @memberof LicencesCtrlGetPageSizeLicencesForPagePayload
+     */
+    filters?: Array<any>;
 }
 
 /**
