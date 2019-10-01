@@ -155,44 +155,6 @@ export interface Licence {
 /**
  * 
  * @export
- * @interface LicencesCtrlGetPageSizeLicencesForPagePayload
- */
-export interface LicencesCtrlGetPageSizeLicencesForPagePayload {
-    /**
-     * 
-     * @type {number}
-     * @memberof LicencesCtrlGetPageSizeLicencesForPagePayload
-     */
-    currentPage?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof LicencesCtrlGetPageSizeLicencesForPagePayload
-     */
-    pageSize?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof LicencesCtrlGetPageSizeLicencesForPagePayload
-     */
-    orderDirection?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LicencesCtrlGetPageSizeLicencesForPagePayload
-     */
-    orderBy?: string;
-    /**
-     * 
-     * @type {Array<any>}
-     * @memberof LicencesCtrlGetPageSizeLicencesForPagePayload
-     */
-    filters?: Array<any>;
-}
-
-/**
- * 
- * @export
  * @interface LicencesPage
  */
 export interface LicencesPage {
@@ -409,6 +371,44 @@ export interface RaceUpdate {
 /**
  * 
  * @export
+ * @interface Search
+ */
+export interface Search {
+    /**
+     * 
+     * @type {number}
+     * @memberof Search
+     */
+    currentPage?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof Search
+     */
+    pageSize?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof Search
+     */
+    orderDirection?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Search
+     */
+    orderBy?: string;
+    /**
+     * 
+     * @type {Array<any>}
+     * @memberof Search
+     */
+    filters?: Array<any>;
+}
+
+/**
+ * 
+ * @export
  * @interface User
  */
 export interface User {
@@ -497,12 +497,12 @@ export const LicencesCtrlApiFetchParamCreator = function (configuration?: Config
         },
         /**
          * 
-         * @param {LicencesCtrlGetPageSizeLicencesForPagePayload} [body] 
+         * @param {Search} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getPageSizeLicencesForPage(body?: LicencesCtrlGetPageSizeLicencesForPagePayload, options: any = {}): FetchArgs {
-            const localVarPath = `/api/licences`;
+        getPageSizeLicencesForPage(body?: Search, options: any = {}): FetchArgs {
+            const localVarPath = `/api/licences/search`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
             const localVarHeaderParameter = {} as any;
@@ -514,7 +514,7 @@ export const LicencesCtrlApiFetchParamCreator = function (configuration?: Config
             // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
             delete localVarUrlObj.search;
             localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-            const needsSerialization = (<any>"LicencesCtrlGetPageSizeLicencesForPagePayload" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            const needsSerialization = (<any>"Search" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
             localVarRequestOptions.body =  needsSerialization ? JSON.stringify(body || {}) : (body || "");
 
             return {
@@ -595,11 +595,11 @@ export const LicencesCtrlApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @param {LicencesCtrlGetPageSizeLicencesForPagePayload} [body] 
+         * @param {Search} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getPageSizeLicencesForPage(body?: LicencesCtrlGetPageSizeLicencesForPagePayload, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<LicencesPage> {
+        getPageSizeLicencesForPage(body?: Search, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<LicencesPage> {
             const localVarFetchArgs = LicencesCtrlApiFetchParamCreator(configuration).getPageSizeLicencesForPage(body, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
@@ -657,11 +657,11 @@ export const LicencesCtrlApiFactory = function (configuration?: Configuration, f
         },
         /**
          * 
-         * @param {LicencesCtrlGetPageSizeLicencesForPagePayload} [body] 
+         * @param {Search} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getPageSizeLicencesForPage(body?: LicencesCtrlGetPageSizeLicencesForPagePayload, options?: any) {
+        getPageSizeLicencesForPage(body?: Search, options?: any) {
             return LicencesCtrlApiFp(configuration).getPageSizeLicencesForPage(body, options)(fetch, basePath);
         },
         /**
@@ -706,12 +706,12 @@ export class LicencesCtrlApi extends BaseAPI {
 
     /**
      * 
-     * @param {LicencesCtrlGetPageSizeLicencesForPagePayload} [body] 
+     * @param {Search} [body] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof LicencesCtrlApi
      */
-    public getPageSizeLicencesForPage(body?: LicencesCtrlGetPageSizeLicencesForPagePayload, options?: any) {
+    public getPageSizeLicencesForPage(body?: Search, options?: any) {
         return LicencesCtrlApiFp(this.configuration).getPageSizeLicencesForPage(body, options)(this.fetch, this.basePath);
     }
 
