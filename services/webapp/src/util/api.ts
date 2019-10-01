@@ -1,12 +1,7 @@
-import {
-    Configuration,
-    LicenceAPIApiFactory,
-    RaceAPIApiFactory,
-    SecurityApiFactory
-} from '../sdk';
+import {Configuration, LicenceAPIApi, RaceAPIApi, SecurityApi} from '../sdk';
 
 const config = new Configuration({basePath :window.location.origin});
 
-export const passportCtrl = SecurityApiFactory(config)
-export const apiLicences = LicenceAPIApiFactory(config)
-export const apiRaces = RaceAPIApiFactory(config)
+export const passportCtrl = new SecurityApi(config)
+export const apiLicences = new LicenceAPIApi(config)
+export const apiRaces = new RaceAPIApi(config)

@@ -2,18 +2,19 @@
  * Application users
  * TODO : not an entity/table yet, users are located in users.json
  */
-import {ApiModelProperty} from '@nestjs/swagger';
+import {ApiModelProperty, ApiModelPropertyOptional} from '@nestjs/swagger';
 
 export class User {
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     id?: string;
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     firstName: string;
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     lastName: string;
+    @ApiModelPropertyOptional()
     password: string;
     @ApiModelProperty()
     email: string;
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     phone?: string;
 }

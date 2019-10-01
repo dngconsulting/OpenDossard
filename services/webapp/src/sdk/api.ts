@@ -163,25 +163,25 @@ export interface RaceCreate {
      * @type {number}
      * @memberof RaceCreate
      */
-    competitionId: number;
+    competitionId?: number;
     /**
      * 
      * @type {string}
      * @memberof RaceCreate
      */
-    licenceNumber: string;
+    licenceNumber?: string;
     /**
      * 
      * @type {number}
      * @memberof RaceCreate
      */
-    riderNumber: number;
+    riderNumber?: number;
     /**
      * 
      * @type {string}
      * @memberof RaceCreate
      */
-    raceCode: string;
+    raceCode?: string;
 }
 
 /**
@@ -195,67 +195,67 @@ export interface RaceRow {
      * @type {number}
      * @memberof RaceRow
      */
-    id: number;
+    id?: number;
     /**
      * 
      * @type {string}
      * @memberof RaceRow
      */
-    raceCode: string;
+    raceCode?: string;
     /**
      * 
      * @type {number}
      * @memberof RaceRow
      */
-    riderNumber: number;
+    riderNumber?: number;
     /**
      * 
      * @type {number}
      * @memberof RaceRow
      */
-    numberMin: number;
+    numberMin?: number;
     /**
      * 
      * @type {number}
      * @memberof RaceRow
      */
-    numberMax: number;
+    numberMax?: number;
     /**
      * 
      * @type {boolean}
      * @memberof RaceRow
      */
-    surclassed: boolean;
+    surclassed?: boolean;
     /**
      * 
      * @type {string}
      * @memberof RaceRow
      */
-    licenceNumber: string;
+    licenceNumber?: string;
     /**
      * 
      * @type {string}
      * @memberof RaceRow
      */
-    name: string;
+    name?: string;
     /**
      * 
      * @type {string}
      * @memberof RaceRow
      */
-    firstName: string;
+    firstName?: string;
     /**
      * 
      * @type {string}
      * @memberof RaceRow
      */
-    club: string;
+    club?: string;
     /**
      * 
      * @type {string}
      * @memberof RaceRow
      */
-    birthYear: string;
+    birthYear?: string;
 }
 
 /**
@@ -269,25 +269,25 @@ export interface RaceUpdate {
      * @type {number}
      * @memberof RaceUpdate
      */
-    id: number;
+    id?: number;
     /**
      * 
      * @type {string}
      * @memberof RaceUpdate
      */
-    licenceNumber: string;
+    licenceNumber?: string;
     /**
      * 
      * @type {number}
      * @memberof RaceUpdate
      */
-    riderNumber: number;
+    riderNumber?: number;
     /**
      * 
      * @type {string}
      * @memberof RaceUpdate
      */
-    raceCode: string;
+    raceCode?: string;
 }
 
 /**
@@ -301,19 +301,25 @@ export interface User {
      * @type {string}
      * @memberof User
      */
-    id: string;
+    id?: string;
     /**
      * 
      * @type {string}
      * @memberof User
      */
-    firstName: string;
+    firstName?: string;
     /**
      * 
      * @type {string}
      * @memberof User
      */
-    lastName: string;
+    lastName?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof User
+     */
+    password?: string;
     /**
      * 
      * @type {string}
@@ -325,7 +331,7 @@ export interface User {
      * @type {string}
      * @memberof User
      */
-    phone: string;
+    phone?: string;
 }
 
 
@@ -821,20 +827,29 @@ export const SecurityApiFetchParamCreator = function (configuration?: Configurat
         /**
          * description
          * @summary Login utilisateur
+         * @param {User} user 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        login(options: any = {}): FetchArgs {
+        login(user: User, options: any = {}): FetchArgs {
+            // verify required parameter 'user' is not null or undefined
+            if (user === null || user === undefined) {
+                throw new RequiredError('user','Required parameter user was null or undefined when calling login.');
+            }
             const localVarPath = `/api/security/login`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
             localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
             // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
             delete localVarUrlObj.search;
             localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+            const needsSerialization = (<any>"User" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(user || {}) : (user || "");
 
             return {
                 url: url.format(localVarUrlObj),
@@ -853,11 +868,12 @@ export const SecurityApiFp = function(configuration?: Configuration) {
         /**
          * description
          * @summary Login utilisateur
+         * @param {User} user 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        login(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<User> {
-            const localVarFetchArgs = SecurityApiFetchParamCreator(configuration).login(options);
+        login(user: User, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<User> {
+            const localVarFetchArgs = SecurityApiFetchParamCreator(configuration).login(user, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -880,11 +896,12 @@ export const SecurityApiFactory = function (configuration?: Configuration, fetch
         /**
          * description
          * @summary Login utilisateur
+         * @param {User} user 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        login(options?: any) {
-            return SecurityApiFp(configuration).login(options)(fetch, basePath);
+        login(user: User, options?: any) {
+            return SecurityApiFp(configuration).login(user, options)(fetch, basePath);
         },
     };
 };
@@ -899,12 +916,13 @@ export class SecurityApi extends BaseAPI {
     /**
      * description
      * @summary Login utilisateur
+     * @param {User} user 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof SecurityApi
      */
-    public login(options?: any) {
-        return SecurityApiFp(this.configuration).login(options)(this.fetch, this.basePath);
+    public login(user: User, options?: any) {
+        return SecurityApiFp(this.configuration).login(user, options)(this.fetch, this.basePath);
     }
 
 }

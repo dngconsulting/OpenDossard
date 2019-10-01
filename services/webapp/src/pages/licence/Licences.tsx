@@ -1,7 +1,6 @@
 import * as React from 'react';
 import MaterialTable from 'material-table';
 import {AppText as T} from '../../utils/text';
-import {apiLicences} from '../../util/api';
 import {Theme, withStyles} from '@material-ui/core';
 
 interface ILicencesProps {
@@ -10,25 +9,7 @@ interface ILicencesProps {
     history: any;
 }
 
-const fetchLicences = async (query: any) => {
-    const res = await apiLicences.getPageSizeLicencesForPage(
-        prepareFilter(query));
-    return {data: res.data, page: res.page, totalCount: res.totalCount};
-};
 
-const prepareFilter = (query:any) =>{
-    const filters:any = [];
-    if(query.filters.length>0){
-        query.filters.forEach((col: any)=>{
-            filters.push({name: col.column.field, value: col.value})
-        })
-    }
-    return {currentPage:query.page,
-        pageSize:query.pageSize,
-        orderBy:query.orderBy?query.orderBy.field:undefined,
-        orderDirection:query.orderDirection?query.orderDirection.toUpperCase():'ASC',
-        filters}
-};
 
 class LicencesPage extends React.Component<ILicencesProps, {}> {
 
@@ -46,7 +27,7 @@ class LicencesPage extends React.Component<ILicencesProps, {}> {
                     {title: 'Caté Age', field: 'catea'},
                     {title: 'Caté Valeur', field: 'catev'},
                 ]}
-                data={fetchLicences}
+                data={null}
                 options={{
                     filtering: true,
                     actionsColumnIndex: -1,

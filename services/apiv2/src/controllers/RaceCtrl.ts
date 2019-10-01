@@ -3,54 +3,54 @@ import {EntityManager} from 'typeorm';
 import {Race} from '../entity/Race';
 import {Licence} from '../entity/Licence';
 import {Competition} from '../entity/Competition';
-import {ApiModelProperty, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
+import {ApiModelPropertyOptional, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
 import {Body, Controller, Get, Post, Put} from '@nestjs/common';
 import {InjectEntityManager} from '@nestjs/typeorm';
 
 export class RaceRow {
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     public id: number;
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     public raceCode: string;
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     public riderNumber: number;
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     public numberMin: number;
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     public numberMax: number;
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     public surclassed: boolean;
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     public licenceNumber: string;
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     public name: string;
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     public firstName: string;
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     public club: string;
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     public birthYear: string;
 }
 
 export class RaceCreate {
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     public competitionId: number;
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     public licenceNumber: string;
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     public riderNumber: number;
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     public raceCode: string;
 }
 
 export class RaceUpdate {
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     public id: number;
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     public licenceNumber: string;
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     public riderNumber: number;
-    @ApiModelProperty()
+    @ApiModelPropertyOptional()
     public raceCode: string;
 }
 

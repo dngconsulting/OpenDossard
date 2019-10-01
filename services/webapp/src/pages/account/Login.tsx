@@ -52,7 +52,7 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
 
     private handleLogin = async () => {
         try {
-            const user = await passportCtrl.login(this.state);
+            const user = await passportCtrl.login({email:this.state.email,password:this.state.password});
             console.log('User = ' + JSON.stringify(user));
             this.props.login(user);
         } catch (err) {
