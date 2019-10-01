@@ -5,6 +5,4 @@ var/postgres-data
 
 .idea/
 .idea/*
-/services/apiv2/node_modules/
-/services/apiv2/node_modules/
-/services/apiv2/dist/
+
