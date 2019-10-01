@@ -1,8 +1,8 @@
-import {BodyParams, Controller, Get, PathParams, Put, Required} from '@tsed/common';
+import {BodyParams, Controller, Get, PathParams, Post, Property, Put, Required} from '@tsed/common';
 import {NotFound} from 'ts-httpexceptions';
 import {Licence} from '../entity/Licence';
 import {EntityManager, getRepository, Transaction, TransactionManager} from 'typeorm';
-import {Docs, ReturnsArray} from '@tsed/swagger';
+import {Docs, Returns, ReturnsArray} from '@tsed/swagger';
 
 /**
  * Add @Controller annotation to declare your class as Router controller.
@@ -12,6 +12,20 @@ import {Docs, ReturnsArray} from '@tsed/swagger';
  * In this case, EventsCtrl is a dependency of CalendarsCtrl.
  * All routes of EventsCtrl will be mounted on the `/calendars` path.
  */
+class LicencesPage {
+    @Property()
+    data: Licence[];
+    @Property()
+    page: number;
+    @Property()
+    totalCount: number;
+}
+
+interface IFilter {
+    name: string;
+    value: string;
+}
+
 @Controller('/licences')
 @Docs('api-v2')
 export class LicencesCtrl {
@@ -25,6 +39,28 @@ export class LicencesCtrl {
     @ReturnsArray(Licence, {description: 'Liste des licences'})
     public async getAllLicences(): Promise<Licence[]> {
         return getRepository(Licence).find();
+    }
+
+    @Post('/')
+    @Returns(LicencesPage, {description: 'Liste des licences with pagination'})
+    public async getPageSizeLicencesForPage(@BodyParams('currentPage') currentPage: number,
+                                            @BodyParams('pageSize') pageSize: number,
+                                            @BodyParams('orderDirection') orderDirection?: 'ASC'|'DESC',
+                                            @BodyParams('orderBy') orderBy?: string,
+                                            @BodyParams('filters') filters?: IFilter[]): Promise<LicencesPage> {
+        const qb = getRepository(Licence).createQueryBuilder();
+        filters.forEach((filter: IFilter) => {
+               qb.andWhere(`"${filter.name}"` + ' ilike :' + filter.name , { [filter.name]: '%' + filter.value + '%' });
+        });
+        if (typeof orderBy !== 'undefined') {
+            qb.orderBy(`"${orderBy}"`, orderDirection);
+        }
+        const res = await
+            qb
+                .skip(currentPage * pageSize)
+                .take(pageSize)
+                .getManyAndCount();
+        return {data: res[0], page: currentPage, totalCount: res[1]};
     }
 
     @Put('/')
