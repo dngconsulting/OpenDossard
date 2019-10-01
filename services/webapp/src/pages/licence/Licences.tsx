@@ -30,9 +30,8 @@ const prepareFilter = (query:any) =>{
         filters}
 };
 
-class LicencesPage extends React.Component<ILicencesProps, {}> {
+const LicencesPage = (props: ILicencesProps)=> {
 
-    public render(): JSX.Element {
         return (
             <MaterialTable
                 title={T.LICENCES.TITLE}
@@ -73,7 +72,7 @@ class LicencesPage extends React.Component<ILicencesProps, {}> {
                         tooltip: T.LICENCES.ADD_NEW_LICENCE,
                         isFreeAction: true,
                         onClick: (event) => {
-                            this.props.history.push('/new_licence');
+                            props.history.push('/new_licence');
                         }
                     }
                 ]}
@@ -107,8 +106,7 @@ class LicencesPage extends React.Component<ILicencesProps, {}> {
             />
         )
             ;
-    }
-}
+};
 
 const styles = (theme: Theme) => ({});
 
