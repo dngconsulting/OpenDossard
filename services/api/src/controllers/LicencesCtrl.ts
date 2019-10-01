@@ -41,7 +41,7 @@ export class LicencesCtrl {
         return getRepository(Licence).find();
     }
 
-    @Post('/')
+    @Post('/search')
     @Returns(LicencesPage, {description: 'Liste des licences with pagination'})
     public async getPageSizeLicencesForPage(@BodyParams('currentPage') currentPage: number,
                                             @BodyParams('pageSize') pageSize: number,

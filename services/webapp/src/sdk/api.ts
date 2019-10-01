@@ -502,7 +502,7 @@ export const LicencesCtrlApiFetchParamCreator = function (configuration?: Config
          * @throws {RequiredError}
          */
         getPageSizeLicencesForPage(body?: LicencesCtrlGetPageSizeLicencesForPagePayload, options: any = {}): FetchArgs {
-            const localVarPath = `/api/licences`;
+            const localVarPath = `/api/licences/search`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
             const localVarHeaderParameter = {} as any;
