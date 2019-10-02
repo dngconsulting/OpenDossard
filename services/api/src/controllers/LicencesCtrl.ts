@@ -94,6 +94,23 @@ export class LicencesCtrl {
         return licence;
     }
 
+    @Put('/update')
+    @Transaction()
+    public async update(@BodyParams(Licence) licence: Licence, @TransactionManager() em: EntityManager)
+        : Promise<void> {
+        $log.debug('Licence ::::::::' + JSON.stringify(licence));
+        const toUpdate = await em.findOne(Licence, licence.id);
+        toUpdate.licenceNumber = licence.licenceNumber;
+        toUpdate.birthYear = licence.birthYear;
+        toUpdate.name = licence.name;
+        toUpdate.firstName = licence.firstName;
+        toUpdate.gender = licence.gender;
+        toUpdate.dept = licence.dept;
+        toUpdate.catea = licence.catea;
+        toUpdate.catev = licence.catev;
+        await em.save(toUpdate);
+    }
+
     @Delete('/:id')
     @Transaction()
     public async delete(@Required() @PathParams('id') id: string, @TransactionManager() em: EntityManager)

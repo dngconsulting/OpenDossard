@@ -56,9 +56,17 @@ const LicencesPage = (props: ILicencesProps)=> {
                 editable={{
                     onRowUpdate: (newData, oldData) =>
                         new Promise((resolve, reject) => {
-                            setTimeout(() => {
-                                resolve();
-                            }, 1000);
+                            apiLicences.update({
+                                id: oldData.id,
+                                licenceNumber : newData.licenceNumber,
+                                birthYear : newData.birthYear,
+                                name : newData.name,
+                                firstName : newData.firstName,
+                                gender : newData.gender,
+                                dept : newData.dept,
+                                catea : newData.catea,
+                                catev : newData.catev,
+                            }).then(()=>resolve());
                         }),
                     onRowDelete: oldData =>
                         new Promise((resolve, reject) => {
