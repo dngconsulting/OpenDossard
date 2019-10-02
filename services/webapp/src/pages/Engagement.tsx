@@ -47,7 +47,6 @@ const EngagementPage = ({match}: {match: any}) => {
 
     const [races, setRaces] = useState<RaceRow[]>([])
     const [notification, setNotification] = useState(EMPTY_NOTIF);
-    const [columns, setColumns] = useState(COLUMNS);
 
     const fetchData = async ()  => {
         const data = await apiRaces.getAllRaces();
@@ -57,28 +56,6 @@ const EngagementPage = ({match}: {match: any}) => {
     useEffect( () => {
         fetchData()
     }, ['loading'])
-
-    const raceStats = races.reduce( (acc: IRaceStat, item) => (
-        {   ...acc,
-            [item.raceCode]: acc[item.raceCode] ? acc[item.raceCode]+1 : 1 }
-        ), {});
-
-    const onRaceSelect = (raceCode: string) => {
-        const newColumns = columns.map(column => {
-            column.defaultFilter = raceCode
-
-            return column.field === 'raceCode' ? {
-                ...column,
-                tableData: {
-                    // @ts-ignore
-                    ...column.tableData,
-                    filterValue: raceCode
-                }
-            } : column
-        });
-        console.log(newColumns)
-        setColumns( newColumns )
-    };
 
     return <div>
         <Grid container={true}>
@@ -99,11 +76,10 @@ const EngagementPage = ({match}: {match: any}) => {
                               })
                           }}
             />
-            <RaceStat stats={raceStats} onRaceSelect={onRaceSelect}/>
         </Grid>
         <MaterialTable
             title={`Engagement ${competitionId}`}
-            columns={columns}
+            columns={COLUMNS}
             data={races}
             options={{
                 filtering: true,
@@ -220,22 +196,6 @@ const CreationForm = (
                 OK
             </Button>
         </Grid>
-    </Card>
-}
-
-interface IRaceStat {[s: string]: number}
-
-const RaceStat = ({stats, onRaceSelect} : {stats: IRaceStat, onRaceSelect: (code: string)=>void}) => {
-
-    return <Card style={{margin: 20, padding: 20}}>
-        <Typography variant="h6" gutterBottom={true}>Inscrits :</Typography>
-        <table><tbody>
-        {
-            Object.keys(stats).sort().map( raceCode => <tr key={raceCode} style={{cursor: 'pointer'}}  onClick={()=>onRaceSelect(raceCode)}>
-                <td>Course <b>{raceCode}</b></td><td> : <b>{stats[raceCode]}</b> inscrits</td>
-            </tr>)
-        }
-        </tbody></table>
     </Card>
 }
 

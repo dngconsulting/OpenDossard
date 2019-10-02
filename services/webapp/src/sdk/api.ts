@@ -81,6 +81,14 @@ export class RequiredError extends Error {
 /**
  * 
  * @export
+ * @interface Competition
+ */
+export interface Competition {
+}
+
+/**
+ * 
+ * @export
  * @interface Filter
  */
 export interface Filter {
@@ -418,6 +426,169 @@ export interface User {
     phone?: string;
 }
 
+
+/**
+ * CompetitionAPIApi - fetch parameter creator
+ * @export
+ */
+export const CompetitionAPIApiFetchParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiCompetitionGet(options: any = {}): FetchArgs {
+            const localVarPath = `/api/competition`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * description
+         * @summary Rechercher d'une épreuve par ID 
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        get(id: string, options: any = {}): FetchArgs {
+            // verify required parameter 'id' is not null or undefined
+            if (id === null || id === undefined) {
+                throw new RequiredError('id','Required parameter id was null or undefined when calling get.');
+            }
+            const localVarPath = `/api/competition/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * CompetitionAPIApi - functional programming interface
+ * @export
+ */
+export const CompetitionAPIApiFp = function(configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiCompetitionGet(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<Competition>> {
+            const localVarFetchArgs = CompetitionAPIApiFetchParamCreator(configuration).apiCompetitionGet(options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response.json();
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+        /**
+         * description
+         * @summary Rechercher d'une épreuve par ID 
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        get(id: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Competition> {
+            const localVarFetchArgs = CompetitionAPIApiFetchParamCreator(configuration).get(id, options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response.json();
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+    }
+};
+
+/**
+ * CompetitionAPIApi - factory interface
+ * @export
+ */
+export const CompetitionAPIApiFactory = function (configuration?: Configuration, fetch?: FetchAPI, basePath?: string) {
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiCompetitionGet(options?: any) {
+            return CompetitionAPIApiFp(configuration).apiCompetitionGet(options)(fetch, basePath);
+        },
+        /**
+         * description
+         * @summary Rechercher d'une épreuve par ID 
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        get(id: string, options?: any) {
+            return CompetitionAPIApiFp(configuration).get(id, options)(fetch, basePath);
+        },
+    };
+};
+
+/**
+ * CompetitionAPIApi - object-oriented interface
+ * @export
+ * @class CompetitionAPIApi
+ * @extends {BaseAPI}
+ */
+export class CompetitionAPIApi extends BaseAPI {
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CompetitionAPIApi
+     */
+    public apiCompetitionGet(options?: any) {
+        return CompetitionAPIApiFp(this.configuration).apiCompetitionGet(options)(this.fetch, this.basePath);
+    }
+
+    /**
+     * description
+     * @summary Rechercher d'une épreuve par ID 
+     * @param {string} id 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CompetitionAPIApi
+     */
+    public get(id: string, options?: any) {
+        return CompetitionAPIApiFp(this.configuration).get(id, options)(this.fetch, this.basePath);
+    }
+
+}
 
 /**
  * LicenceAPIApi - fetch parameter creator
