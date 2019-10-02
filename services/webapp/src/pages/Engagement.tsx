@@ -13,6 +13,7 @@ import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import {CadSnackBar, EMPTY_NOTIF} from "../components/CadSnackbar";
+import AutocompleteInput from "../components/AutocompleteInput";
 
 const create = async (newRace: RaceCreate) => {
     await apiRaces.create(newRace);
@@ -61,7 +62,7 @@ const EngagementPage = ({match}: {match: any}) => {
     const raceStats = races.reduce( (acc: IRaceStat, item) => (
         {   ...acc,
             [item.raceCode]: acc[item.raceCode] ? acc[item.raceCode]+1 : 1 }
-        ), {});
+    ), {});
 
     const onRaceSelect = (raceCode: string) => {
         const newColumns = columns.map(column => {
@@ -81,6 +82,7 @@ const EngagementPage = ({match}: {match: any}) => {
     };
 
     return <div>
+        <AutocompleteInput/>
         <Grid container={true}>
             <CreationForm competitionId={competitionId}
                           onSuccess={(race) => {
@@ -145,7 +147,7 @@ const EngagementPage = ({match}: {match: any}) => {
             }}
         />
         <CadSnackBar notification={notification} onClose={() => setNotification(EMPTY_NOTIF)}/>
-      </div>
+    </div>
 
 }
 
@@ -159,13 +161,13 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 const CreationForm = (
-        {competitionId, onSuccess, onError}:
+    {competitionId, onSuccess, onError}:
         {
             competitionId: number,
             onSuccess: (race: RaceCreate) => void,
             onError: (message: string) => void
         }
-    ) => {
+) => {
 
     const EMPTY_FORM = {licenceNumber: '', riderNumber: '', raceCode: ''};
     const [newRace, setValues] = useState(EMPTY_FORM);

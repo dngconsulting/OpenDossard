@@ -24,6 +24,19 @@ export class LicencesCtrl {
     ) {
     }
 
+    @Get('/getLicencesLike/:param')
+    @ApiOperation({
+        operationId: 'getLicencesLike',
+        title: 'Rechercher des licences en fonction, du nom, prénom ou numéro de licence ',
+        description: 'description',
+    })
+    @ApiResponse({status: 200, type: Licence, isArray: true, description: 'Liste des licences'})
+    public async getLicencesLike(@Param('param') param: string): Promise<Licence> {
+        const filterParam = param + '%';
+        const query: string = 'select l.* from licence l where UPPER(l.name) like $1 or UPPER(l."firstName") like $1 or UPPER(l."licenceNumber") like $1 fetch first 10 rows only';
+        return await this.entityManager.query(query, [filterParam]);
+    }
+
     @Get(':id')
     @ApiOperation({
         operationId: 'get',

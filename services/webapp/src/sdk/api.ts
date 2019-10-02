@@ -81,6 +81,82 @@ export class RequiredError extends Error {
 /**
  * 
  * @export
+ * @interface Club
+ */
+export interface Club {
+}
+
+/**
+ * 
+ * @export
+ * @interface Competition
+ */
+export interface Competition {
+    /**
+     * 
+     * @type {ModelDate}
+     * @memberof Competition
+     */
+    eventDate: ModelDate;
+    /**
+     * 
+     * @type {Club}
+     * @memberof Competition
+     */
+    clubId: Club;
+    /**
+     * 
+     * @type {string}
+     * @memberof Competition
+     */
+    name: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Competition
+     */
+    zipCode: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Competition
+     */
+    info?: string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof Competition
+     */
+    categories: Array<string>;
+    /**
+     * 
+     * @type {string}
+     * @memberof Competition
+     */
+    observations?: string;
+    /**
+     * 
+     * @type {any}
+     * @memberof Competition
+     */
+    pricing?: any;
+    /**
+     * 
+     * @type {string}
+     * @memberof Competition
+     */
+    fede: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Competition
+     */
+    competitionType?: string;
+}
+
+/**
+ * 
+ * @export
  * @interface Filter
  */
 export interface Filter {
@@ -196,6 +272,14 @@ export interface LicencesPage {
      * @memberof LicencesPage
      */
     totalCount?: number;
+}
+
+/**
+ * 
+ * @export
+ * @interface ModelDate
+ */
+export interface ModelDate {
 }
 
 /**
@@ -420,6 +504,173 @@ export interface User {
 
 
 /**
+ * CompetitionAPIApi - fetch parameter creator
+ * @export
+ */
+export const CompetitionAPIApiFetchParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * description
+         * @summary Rechercher d'une épreuve par ID 
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        get(id: string, options: any = {}): FetchArgs {
+            // verify required parameter 'id' is not null or undefined
+            if (id === null || id === undefined) {
+                throw new RequiredError('id','Required parameter id was null or undefined when calling get.');
+            }
+            const localVarPath = `/api/epreuves/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * description
+         * @summary Rechercher Toutes les compétitions 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAllCompetitions(options: any = {}): FetchArgs {
+            const localVarPath = `/api/epreuves`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * CompetitionAPIApi - functional programming interface
+ * @export
+ */
+export const CompetitionAPIApiFp = function(configuration?: Configuration) {
+    return {
+        /**
+         * description
+         * @summary Rechercher d'une épreuve par ID 
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        get(id: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Competition> {
+            const localVarFetchArgs = CompetitionAPIApiFetchParamCreator(configuration).get(id, options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response.json();
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+        /**
+         * description
+         * @summary Rechercher Toutes les compétitions 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAllCompetitions(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<Competition>> {
+            const localVarFetchArgs = CompetitionAPIApiFetchParamCreator(configuration).getAllCompetitions(options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response.json();
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+    }
+};
+
+/**
+ * CompetitionAPIApi - factory interface
+ * @export
+ */
+export const CompetitionAPIApiFactory = function (configuration?: Configuration, fetch?: FetchAPI, basePath?: string) {
+    return {
+        /**
+         * description
+         * @summary Rechercher d'une épreuve par ID 
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        get(id: string, options?: any) {
+            return CompetitionAPIApiFp(configuration).get(id, options)(fetch, basePath);
+        },
+        /**
+         * description
+         * @summary Rechercher Toutes les compétitions 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAllCompetitions(options?: any) {
+            return CompetitionAPIApiFp(configuration).getAllCompetitions(options)(fetch, basePath);
+        },
+    };
+};
+
+/**
+ * CompetitionAPIApi - object-oriented interface
+ * @export
+ * @class CompetitionAPIApi
+ * @extends {BaseAPI}
+ */
+export class CompetitionAPIApi extends BaseAPI {
+    /**
+     * description
+     * @summary Rechercher d'une épreuve par ID 
+     * @param {string} id 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CompetitionAPIApi
+     */
+    public get(id: string, options?: any) {
+        return CompetitionAPIApiFp(this.configuration).get(id, options)(this.fetch, this.basePath);
+    }
+
+    /**
+     * description
+     * @summary Rechercher Toutes les compétitions 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CompetitionAPIApi
+     */
+    public getAllCompetitions(options?: any) {
+        return CompetitionAPIApiFp(this.configuration).getAllCompetitions(options)(this.fetch, this.basePath);
+    }
+
+}
+
+/**
  * LicenceAPIApi - fetch parameter creator
  * @export
  */
@@ -491,6 +742,35 @@ export const LicenceAPIApiFetchParamCreator = function (configuration?: Configur
          */
         getAllLicences(options: any = {}): FetchArgs {
             const localVarPath = `/api/licences`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * description
+         * @summary Rechercher des licences en fonction, du nom, prénom ou numéro de licence 
+         * @param {string} param 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getLicencesLike(param: string, options: any = {}): FetchArgs {
+            // verify required parameter 'param' is not null or undefined
+            if (param === null || param === undefined) {
+                throw new RequiredError('param','Required parameter param was null or undefined when calling getLicencesLike.');
+            }
+            const localVarPath = `/api/licences/getLicencesLike/{param}`
+                .replace(`{${"param"}}`, encodeURIComponent(String(param)));
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
             const localVarHeaderParameter = {} as any;
@@ -668,6 +948,25 @@ export const LicenceAPIApiFp = function(configuration?: Configuration) {
             };
         },
         /**
+         * description
+         * @summary Rechercher des licences en fonction, du nom, prénom ou numéro de licence 
+         * @param {string} param 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getLicencesLike(param: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<Licence>> {
+            const localVarFetchArgs = LicenceAPIApiFetchParamCreator(configuration).getLicencesLike(param, options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response.json();
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+        /**
          * currentPage, pageSize, orderDirection, orderBy et Filters
          * @summary Rechercher par page les licences 
          * @param {Search} search 
@@ -763,6 +1062,16 @@ export const LicenceAPIApiFactory = function (configuration?: Configuration, fet
             return LicenceAPIApiFp(configuration).getAllLicences(options)(fetch, basePath);
         },
         /**
+         * description
+         * @summary Rechercher des licences en fonction, du nom, prénom ou numéro de licence 
+         * @param {string} param 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getLicencesLike(param: string, options?: any) {
+            return LicenceAPIApiFp(configuration).getLicencesLike(param, options)(fetch, basePath);
+        },
+        /**
          * currentPage, pageSize, orderDirection, orderBy et Filters
          * @summary Rechercher par page les licences 
          * @param {Search} search 
@@ -835,6 +1144,18 @@ export class LicenceAPIApi extends BaseAPI {
      */
     public getAllLicences(options?: any) {
         return LicenceAPIApiFp(this.configuration).getAllLicences(options)(this.fetch, this.basePath);
+    }
+
+    /**
+     * description
+     * @summary Rechercher des licences en fonction, du nom, prénom ou numéro de licence 
+     * @param {string} param 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof LicenceAPIApi
+     */
+    public getLicencesLike(param: string, options?: any) {
+        return LicenceAPIApiFp(this.configuration).getLicencesLike(param, options)(this.fetch, this.basePath);
     }
 
     /**
