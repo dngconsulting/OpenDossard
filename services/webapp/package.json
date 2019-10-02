@@ -68,7 +68,7 @@
     "tslint:check": "tslint --project .",
     "tslint:fix": "tslint --fix --project ."
   },
-  "proxy": "http://apiv2:9090",
+  "proxy": "http://api:9090",
   "eslintConfig": {
     "extends": "react-app"
   },

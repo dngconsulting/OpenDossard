@@ -15,13 +15,11 @@ restart() {
 
 clean() {
     rm -rf ./services/api/node_modules/
-    rm -rf ./services/apiv2/node_modules/
     rm -rf ./services/webapp/node_modules/
 }
 
 install() {
     docker-compose run --rm -v "$HOME/.npm:/root/.npm" api npm install
-    docker-compose run --rm -v "$HOME/.npm:/root/.npm" apiv2 npm install
     docker-compose run --rm -v "$HOME/.npm:/root/.npm" webapp npm install
 }
 
@@ -32,7 +30,6 @@ installci() {
     if [ -z "$1" ]
     then
         docker-compose run --rm -v "$HOME/.npm:/root/.npm" api npm ci
-        docker-compose run --rm -v "$HOME/.npm:/root/.npm" apiv2 npm ci
         docker-compose run --rm -v "$HOME/.npm:/root/.npm" webapp npm ci
     else
         docker-compose run --rm -v "$HOME/.npm:/root/.npm" $1 npm ci
@@ -45,7 +42,6 @@ installciwebapp() {
 
 installciapi() {
     docker-compose run --rm -v "$HOME/.npm:/root/.npm" api npm ci
-    docker-compose run --rm -v "$HOME/.npm:/root/.npm" apiv2 npm ci
 }
 
 log() {
