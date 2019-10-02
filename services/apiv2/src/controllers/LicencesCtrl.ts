@@ -1,6 +1,6 @@
 import {Licence} from '../entity/Licence';
 import {EntityManager, Repository} from 'typeorm';
-import {Body, Controller, Get, Param, Post, Put} from '@nestjs/common';
+import {Body, Controller, Delete, Get, Param, Post, Put} from '@nestjs/common';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
 import {ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
 import {Filter, LicencesPage, Search} from './SharedModels';
@@ -48,7 +48,7 @@ export class LicencesCtrl {
     @ApiOperation({
         operationId: 'getPageSizeLicencesForPage',
         title: 'Rechercher par page les licences ',
-        description: 'currentPage, pageSize, orderDirection, orderBy et Filters'
+        description: 'currentPage, pageSize, orderDirection, orderBy et Filters',
     })
     @Post('/search')
     @ApiResponse({status: 200, type: LicencesPage})
@@ -77,5 +77,34 @@ export class LicencesCtrl {
     public async save(@Body() licence: Licence)
         : Promise<Licence> {
         return this.entityManager.save(licence);
+    }
+
+    @Put('/update')
+    @ApiOperation({
+        title: 'update une licence existante',
+        operationId: 'update',
+    })
+    public async update(@Body() licence: Licence)
+        : Promise<void> {
+        const toUpdate = await this.entityManager.findOne(Licence, licence.id);
+        toUpdate.licenceNumber = licence.licenceNumber;
+        toUpdate.birthYear = licence.birthYear;
+        toUpdate.name = licence.name;
+        toUpdate.firstName = licence.firstName;
+        toUpdate.gender = licence.gender;
+        toUpdate.dept = licence.dept;
+        toUpdate.catea = licence.catea;
+        toUpdate.catev = licence.catev;
+        await this.entityManager.save(toUpdate);
+    }
+
+    @Delete('/:id')
+    @ApiOperation({
+        title: 'delete licence',
+        operationId: 'delete',
+    })
+    public async delete(@Param('id') id: string)
+        : Promise<void> {
+        await this.entityManager.delete(Licence, id);
     }
 }

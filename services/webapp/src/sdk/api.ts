@@ -426,8 +426,8 @@ export interface User {
 export const LicenceAPIApiFetchParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * description
-         * @summary Rechercher une licence par ID 
+         * 
+         * @summary delete licence
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -455,7 +455,8 @@ export const LicenceAPIApiFetchParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * 
+         * description
+         * @summary Rechercher une licence par ID 
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -571,11 +572,16 @@ export const LicenceAPIApiFetchParamCreator = function (configuration?: Configur
         },
         /**
          * 
-         * @param {Licence} [body] 
+         * @summary update une licence existante
+         * @param {Licence} licence 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        update(body?: Licence, options: any = {}): FetchArgs {
+        update(licence: Licence, options: any = {}): FetchArgs {
+            // verify required parameter 'licence' is not null or undefined
+            if (licence === null || licence === undefined) {
+                throw new RequiredError('licence','Required parameter licence was null or undefined when calling update.');
+            }
             const localVarPath = `/api/licences/update`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'PUT' }, options);
@@ -589,7 +595,7 @@ export const LicenceAPIApiFetchParamCreator = function (configuration?: Configur
             delete localVarUrlObj.search;
             localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
             const needsSerialization = (<any>"Licence" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
-            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(body || {}) : (body || "");
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(licence || {}) : (licence || "");
 
             return {
                 url: url.format(localVarUrlObj),
@@ -606,14 +612,14 @@ export const LicenceAPIApiFetchParamCreator = function (configuration?: Configur
 export const LicenceAPIApiFp = function(configuration?: Configuration) {
     return {
         /**
-         * description
-         * @summary Rechercher une licence par ID 
+         * 
+         * @summary delete licence
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         _delete(id: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = LicencesCtrlApiFetchParamCreator(configuration)._delete(id, options);
+            const localVarFetchArgs = LicenceAPIApiFetchParamCreator(configuration)._delete(id, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -625,7 +631,8 @@ export const LicenceAPIApiFp = function(configuration?: Configuration) {
             };
         },
         /**
-         * 
+         * description
+         * @summary Rechercher une licence par ID 
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -700,12 +707,13 @@ export const LicenceAPIApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @param {Licence} [body] 
+         * @summary update une licence existante
+         * @param {Licence} licence 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        update(body?: Licence, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = LicencesCtrlApiFetchParamCreator(configuration).update(body, options);
+        update(licence: Licence, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = LicenceAPIApiFetchParamCreator(configuration).update(licence, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -726,17 +734,18 @@ export const LicenceAPIApiFp = function(configuration?: Configuration) {
 export const LicenceAPIApiFactory = function (configuration?: Configuration, fetch?: FetchAPI, basePath?: string) {
     return {
         /**
-         * description
-         * @summary Rechercher une licence par ID 
+         * 
+         * @summary delete licence
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         _delete(id: string, options?: any) {
-            return LicencesCtrlApiFp(configuration)._delete(id, options)(fetch, basePath);
+            return LicenceAPIApiFp(configuration)._delete(id, options)(fetch, basePath);
         },
         /**
-         * 
+         * description
+         * @summary Rechercher une licence par ID 
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -775,12 +784,13 @@ export const LicenceAPIApiFactory = function (configuration?: Configuration, fet
         },
         /**
          * 
-         * @param {Licence} [body] 
+         * @summary update une licence existante
+         * @param {Licence} licence 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        update(body?: Licence, options?: any) {
-            return LicencesCtrlApiFp(configuration).update(body, options)(fetch, basePath);
+        update(licence: Licence, options?: any) {
+            return LicenceAPIApiFp(configuration).update(licence, options)(fetch, basePath);
         },
     };
 };
@@ -793,23 +803,24 @@ export const LicenceAPIApiFactory = function (configuration?: Configuration, fet
  */
 export class LicenceAPIApi extends BaseAPI {
     /**
-     * description
-     * @summary Rechercher une licence par ID 
+     * 
+     * @summary delete licence
      * @param {string} id 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof LicenceAPIApi
      */
     public _delete(id: string, options?: any) {
-        return LicencesCtrlApiFp(this.configuration)._delete(id, options)(this.fetch, this.basePath);
+        return LicenceAPIApiFp(this.configuration)._delete(id, options)(this.fetch, this.basePath);
     }
 
     /**
-     * 
+     * description
+     * @summary Rechercher une licence par ID 
      * @param {string} id 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof LicencesCtrlApi
+     * @memberof LicenceAPIApi
      */
     public get(id: string, options?: any) {
         return LicenceAPIApiFp(this.configuration).get(id, options)(this.fetch, this.basePath);
@@ -852,13 +863,14 @@ export class LicenceAPIApi extends BaseAPI {
 
     /**
      * 
-     * @param {Licence} [body] 
+     * @summary update une licence existante
+     * @param {Licence} licence 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof LicencesCtrlApi
+     * @memberof LicenceAPIApi
      */
-    public update(body?: Licence, options?: any) {
-        return LicencesCtrlApiFp(this.configuration).update(body, options)(this.fetch, this.basePath);
+    public update(licence: Licence, options?: any) {
+        return LicenceAPIApiFp(this.configuration).update(licence, options)(this.fetch, this.basePath);
     }
 
 }

@@ -98,7 +98,6 @@ export class LicencesCtrl {
     @Transaction()
     public async update(@BodyParams(Licence) licence: Licence, @TransactionManager() em: EntityManager)
         : Promise<void> {
-        $log.debug('Licence ::::::::' + JSON.stringify(licence));
         const toUpdate = await em.findOne(Licence, licence.id);
         toUpdate.licenceNumber = licence.licenceNumber;
         toUpdate.birthYear = licence.birthYear;

@@ -2,8 +2,7 @@ import * as React from 'react';
 import MaterialTable, {Query, QueryResult} from 'material-table';
 import {AppText as T} from '../../utils/text';
 import {apiLicences} from '../../util/api';
-import {Theme, withStyles} from '@material-ui/core';
-import {Search, Licence} from '../../sdk';
+import {Licence, Search} from '../../sdk';
 
 interface ILicencesProps {
     items: any[];
@@ -52,6 +51,7 @@ const LicencesPage = (props: ILicencesProps)=> {
                     actionsColumnIndex: -1,
                     pageSize: 10,
                     pageSizeOptions: [5, 10, 20],
+                    search: false
                 }}
                 editable={{
                     onRowUpdate: (newData, oldData) =>
@@ -66,6 +66,8 @@ const LicencesPage = (props: ILicencesProps)=> {
                                 dept : newData.dept,
                                 catea : newData.catea,
                                 catev : newData.catev,
+                                club : oldData.club,
+                                fede : oldData.fede
                             }).then(()=>resolve());
                         }),
                     onRowDelete: oldData =>
@@ -115,6 +117,4 @@ const LicencesPage = (props: ILicencesProps)=> {
             ;
 };
 
-const styles = (theme: Theme) => ({});
-
-export default withStyles(styles as any)(LicencesPage as any) as any;
+export default LicencesPage;
