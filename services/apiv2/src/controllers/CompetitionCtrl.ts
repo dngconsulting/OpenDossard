@@ -27,6 +27,11 @@ export class CompetitionCtrl {
         return this.repository.findOne(id);
     }
 
+    @ApiOperation({
+        operationId: 'getAllCompetitions',
+        title: 'Rechercher Toutes les compétitions ',
+        description: 'description',
+    })
     @ApiResponse({status: 200, type: Competition, isArray: true, description: 'Liste des épreuves totales'})
     @Get()
     public async getAllCompetitions(): Promise<Competition[]> {
