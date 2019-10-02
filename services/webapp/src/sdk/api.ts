@@ -739,6 +739,35 @@ export class LicenceAPIApi extends BaseAPI {
 export const RaceAPIApiFetchParamCreator = function (configuration?: Configuration) {
     return {
         /**
+         * 
+         * @summary delete race
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        _delete(id: string, options: any = {}): FetchArgs {
+            // verify required parameter 'id' is not null or undefined
+            if (id === null || id === undefined) {
+                throw new RequiredError('id','Required parameter id was null or undefined when calling _delete.');
+            }
+            const localVarPath = `/api/races/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'DELETE' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * description
          * @summary Cree une nouvelle course 
          * @param {RaceCreate} raceCreate 
@@ -795,7 +824,7 @@ export const RaceAPIApiFetchParamCreator = function (configuration?: Configurati
         },
         /**
          * description
-         * @summary Mets à jour une course existante 
+         * @summary Mets à jour une course existante
          * @param {RaceUpdate} raceUpdate 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -835,6 +864,25 @@ export const RaceAPIApiFetchParamCreator = function (configuration?: Configurati
 export const RaceAPIApiFp = function(configuration?: Configuration) {
     return {
         /**
+         * 
+         * @summary delete race
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        _delete(id: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = RaceAPIApiFetchParamCreator(configuration)._delete(id, options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response;
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+        /**
          * description
          * @summary Cree une nouvelle course 
          * @param {RaceCreate} raceCreate 
@@ -873,7 +921,7 @@ export const RaceAPIApiFp = function(configuration?: Configuration) {
         },
         /**
          * description
-         * @summary Mets à jour une course existante 
+         * @summary Mets à jour une course existante
          * @param {RaceUpdate} raceUpdate 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -900,6 +948,16 @@ export const RaceAPIApiFp = function(configuration?: Configuration) {
 export const RaceAPIApiFactory = function (configuration?: Configuration, fetch?: FetchAPI, basePath?: string) {
     return {
         /**
+         * 
+         * @summary delete race
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        _delete(id: string, options?: any) {
+            return RaceAPIApiFp(configuration)._delete(id, options)(fetch, basePath);
+        },
+        /**
          * description
          * @summary Cree une nouvelle course 
          * @param {RaceCreate} raceCreate 
@@ -920,7 +978,7 @@ export const RaceAPIApiFactory = function (configuration?: Configuration, fetch?
         },
         /**
          * description
-         * @summary Mets à jour une course existante 
+         * @summary Mets à jour une course existante
          * @param {RaceUpdate} raceUpdate 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -938,6 +996,18 @@ export const RaceAPIApiFactory = function (configuration?: Configuration, fetch?
  * @extends {BaseAPI}
  */
 export class RaceAPIApi extends BaseAPI {
+    /**
+     * 
+     * @summary delete race
+     * @param {string} id 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RaceAPIApi
+     */
+    public _delete(id: string, options?: any) {
+        return RaceAPIApiFp(this.configuration)._delete(id, options)(this.fetch, this.basePath);
+    }
+
     /**
      * description
      * @summary Cree une nouvelle course 
@@ -963,7 +1033,7 @@ export class RaceAPIApi extends BaseAPI {
 
     /**
      * description
-     * @summary Mets à jour une course existante 
+     * @summary Mets à jour une course existante
      * @param {RaceUpdate} raceUpdate 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}

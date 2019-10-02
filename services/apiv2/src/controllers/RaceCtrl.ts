@@ -4,7 +4,7 @@ import {Race} from '../entity/Race';
 import {Licence} from '../entity/Licence';
 import {Competition} from '../entity/Competition';
 import {ApiModelPropertyOptional, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
-import {Body, Controller, Get, Post, Put} from '@nestjs/common';
+import {BadRequestException, Body, Controller, Delete, Get, Param, Post, Put} from '@nestjs/common';
 import {InjectEntityManager} from '@nestjs/typeorm';
 
 export class RaceRow {
@@ -67,7 +67,7 @@ export class RacesCtrl {
     @ApiOperation({
         operationId: 'getAllRaces',
         title: 'Rechercher toutes les courses ',
-        description: 'description'
+        description: 'description',
     })
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
     public async getAllRaces(): Promise<RaceRow[]> {
@@ -82,7 +82,7 @@ export class RacesCtrl {
     @ApiOperation({
         operationId: 'create',
         title: 'Cree une nouvelle course ',
-        description: 'description'
+        description: 'description',
     })
     public async create(@Body() race: RaceCreate)
         : Promise<void> {
@@ -90,6 +90,10 @@ export class RacesCtrl {
         const licence = await this.entityManager.createQueryBuilder(Licence, 'licence')
             .where('licence."licenceNumber" = :ln', {ln: race.licenceNumber})
             .getOne();
+
+        if ( ! licence ) {
+            throw(new BadRequestException('Licence inconnue'));
+        }
 
         const competition = await this.entityManager.findOne(Competition, race.competitionId);
 
@@ -105,8 +109,8 @@ export class RacesCtrl {
     @Put()
     @ApiOperation({
         operationId: 'update',
-        title: 'Mets à jour une course existante ',
-        description: 'description'
+        title: 'Mets à jour une course existante',
+        description: 'description',
     })
     public async update(@Body() race: RaceUpdate)
         : Promise<void> {
@@ -115,5 +119,16 @@ export class RacesCtrl {
         toUpdate.riderNumber = race.riderNumber;
         toUpdate.raceCode = race.raceCode;
         await this.entityManager.save(toUpdate);
+    }
+
+    @Delete('/:id')
+    @ApiOperation({
+        title: 'delete race',
+        operationId: 'delete',
+    })
+    public async delete(@Param('id') id: string)
+        : Promise<void> {
+
+        this.entityManager.delete(Race, id);
     }
 }
