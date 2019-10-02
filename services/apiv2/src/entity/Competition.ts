@@ -1,7 +1,6 @@
-import {Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn} from 'typeorm';
+import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from 'typeorm';
 import {Federation} from './Federation';
 import {Club} from './Club';
-import {Type} from '@tsed/core';
 
 /**
  * Cette énum représente les catégories gérées par une épreuve
@@ -43,7 +42,7 @@ export class Competition {
      */
     @ManyToOne((type) => Club)
     @JoinColumn()
-    public club: Club;
+    public clubId: Club;
     /**
      * Le nom de l'épreuve
      */

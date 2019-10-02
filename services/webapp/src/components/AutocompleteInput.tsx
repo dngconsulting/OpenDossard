@@ -1,12 +1,14 @@
 import React, {useState} from 'react'
 
 import AsyncSelect from 'react-select/async';
-import {apiLicences} from "../util/api";
+import {apiLicences} from '../util/api';
+
 
 
 const filterLicences = async (inputValue: string) => {
     const licences = await apiLicences.getLicencesLike(inputValue.toUpperCase());
-    const strings = licences.slice(0, 9).map(i => {
+    console.log(licences)
+    const strings = licences.slice(0, 9).map((i: any) => {
         return {
             ...i,
 
@@ -25,8 +27,6 @@ const filterLicences = async (inputValue: string) => {
                    </table>
         };
     });
-
-    console.log(strings);
 
     return strings;
 };
