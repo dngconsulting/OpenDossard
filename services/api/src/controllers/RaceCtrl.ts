@@ -1,9 +1,10 @@
-import {BodyParams, Controller, Get, Post, Property, Put} from '@tsed/common';
+import {BodyParams, Controller, Delete, Get, PathParams, Post, Property, Put, Required} from '@tsed/common';
 import {EntityManager, Transaction, TransactionManager} from 'typeorm';
 import {Docs, ReturnsArray} from '@tsed/swagger';
 import {Race} from '../entity/Race';
 import {Licence} from '../entity/Licence';
 import {Competition} from '../entity/Competition';
+import {BadRequest} from 'ts-httpexceptions';
 
 export class RaceRow {
     @Property()
@@ -77,6 +78,10 @@ export class RacesCtrl {
             .where('licence."licenceNumber" = :ln', {ln: race.licenceNumber})
             .getOne();
 
+        if ( ! licence ) {
+            throw(new BadRequest('Licence inconnue'));
+        }
+
         const competition = await em.findOne(Competition, race.competitionId);
 
         const newRace = new Race() ;
@@ -97,5 +102,13 @@ export class RacesCtrl {
         toUpdate.riderNumber = race.riderNumber;
         toUpdate.raceCode = race.raceCode;
         await em.save(toUpdate);
+    }
+
+    @Delete('/:id')
+    @Transaction()
+    public async delete(@Required() @PathParams('id') id: string, @TransactionManager() em: EntityManager)
+        : Promise<void> {
+
+        em.delete(Race, id);
     }
 }

@@ -18,6 +18,7 @@
     "member-access": false,
     "arrow-parens": false,
     "no-var-requires": false,
-    "max-classes-per-file": false
+    "max-classes-per-file": false,
+    "radix": false
   }
 }
