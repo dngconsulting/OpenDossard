@@ -30,7 +30,7 @@ const RLog: FactoryProvider = {
     imports: [TypeOrmModule.forFeature([Licence, Club, Competition, Race]), PassportModule],
     providers: [AppService, UsersService, AuthService, LocalStrategy, RLog],
     exports: [UsersService],
-    controllers: [LicencesCtrl, PassportCtrl, RacesCtrl,CompetitionCtrl],
+    controllers: [LicencesCtrl, PassportCtrl, RacesCtrl, CompetitionCtrl],
 })
 export class Apiv2Module {
 }

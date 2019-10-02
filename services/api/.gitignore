@@ -10,9 +10,11 @@
 
 # Built/Transpiled files
 **/build/
+**/dist/
 **/src/**/*.js
 **/src/**/*.js.map
 
 
 # Misc
 **/node_modules/
+node_modules/

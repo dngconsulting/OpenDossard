@@ -2,17 +2,19 @@
  * Application users
  * TODO : not an entity/table yet, users are located in users.json
  */
-import {Property} from '@tsed/common';
+import {ApiModelProperty, ApiModelPropertyOptional} from '@nestjs/swagger';
 
 export class User {
+    @ApiModelPropertyOptional()
     id?: string;
-    @Property()
+    @ApiModelPropertyOptional()
     firstName: string;
-    @Property()
+    @ApiModelPropertyOptional()
     lastName: string;
+    @ApiModelPropertyOptional()
     password: string;
-    @Property()
+    @ApiModelProperty()
     email: string;
-    @Property()
+    @ApiModelPropertyOptional()
     phone?: string;
 }

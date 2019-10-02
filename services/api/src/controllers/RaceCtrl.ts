@@ -1,114 +1,134 @@
-import {BodyParams, Controller, Delete, Get, PathParams, Post, Property, Put, Required} from '@tsed/common';
-import {EntityManager, Transaction, TransactionManager} from 'typeorm';
-import {Docs, ReturnsArray} from '@tsed/swagger';
+import {EntityManager} from 'typeorm';
+
 import {Race} from '../entity/Race';
 import {Licence} from '../entity/Licence';
 import {Competition} from '../entity/Competition';
-import {BadRequest} from 'ts-httpexceptions';
+import {ApiModelPropertyOptional, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
+import {BadRequestException, Body, Controller, Delete, Get, Param, Post, Put} from '@nestjs/common';
+import {InjectEntityManager} from '@nestjs/typeorm';
 
 export class RaceRow {
-    @Property()
+    @ApiModelPropertyOptional()
     public id: number;
-    @Property()
+    @ApiModelPropertyOptional()
     public raceCode: string;
-    @Property()
+    @ApiModelPropertyOptional()
     public riderNumber: number;
-    @Property()
+    @ApiModelPropertyOptional()
     public numberMin: number;
-    @Property()
+    @ApiModelPropertyOptional()
     public numberMax: number;
-    @Property()
+    @ApiModelPropertyOptional()
     public surclassed: boolean;
-    @Property()
+    @ApiModelPropertyOptional()
     public licenceNumber: string;
-    @Property()
+    @ApiModelPropertyOptional()
     public name: string;
-    @Property()
+    @ApiModelPropertyOptional()
     public firstName: string;
-    @Property()
+    @ApiModelPropertyOptional()
     public club: string;
-    @Property()
+    @ApiModelPropertyOptional()
     public birthYear: string;
 }
 
 export class RaceCreate {
-    @Property()
+    @ApiModelPropertyOptional()
     public competitionId: number;
-    @Property()
+    @ApiModelPropertyOptional()
     public licenceNumber: string;
-    @Property()
+    @ApiModelPropertyOptional()
     public riderNumber: number;
-    @Property()
+    @ApiModelPropertyOptional()
     public raceCode: string;
 }
 
 export class RaceUpdate {
-    @Property()
+    @ApiModelPropertyOptional()
     public id: number;
-    @Property()
+    @ApiModelPropertyOptional()
     public licenceNumber: string;
-    @Property()
+    @ApiModelPropertyOptional()
     public riderNumber: number;
-    @Property()
+    @ApiModelPropertyOptional()
     public raceCode: string;
 }
 
-@Controller('/races')
-@Docs('api-v2')
+@Controller('/api/races')
+@ApiUseTags('RaceAPI')
 export class RacesCtrl {
+    constructor(
+        @InjectEntityManager()
+        private readonly entityManager: EntityManager,
+    ) {
+    }
 
-
-    @Get('/')
-    @ReturnsArray(RaceRow, {description: 'Liste des engagements'})
-    @Transaction()
-    public async getAllRaces(@TransactionManager() em: EntityManager): Promise<RaceRow[]> {
+    @Get()
+    @ApiOperation({
+        operationId: 'getAllRaces',
+        title: 'Rechercher toutes les courses ',
+        description: 'description',
+    })
+    @ApiResponse({status: 200, type: RaceRow, isArray: true})
+    public async getAllRaces(): Promise<RaceRow[]> {
 
         const query = `select r.*, l.name, l."firstName", l."licenceNumber", l.club, l."birthYear"
                         from race r
                         join licence l on r."licenceId" = l.id`;
-        return await em.query(query);
+        return await this.entityManager.query(query);
     }
 
-    @Post('/')
-    @Transaction()
-    public async create(@BodyParams(RaceCreate) race: RaceCreate, @TransactionManager() em: EntityManager)
+    @Post()
+    @ApiOperation({
+        operationId: 'create',
+        title: 'Cree une nouvelle course ',
+        description: 'description',
+    })
+    public async create(@Body() race: RaceCreate)
         : Promise<void> {
 
-        const licence = await em.createQueryBuilder(Licence, 'licence')
+        const licence = await this.entityManager.createQueryBuilder(Licence, 'licence')
             .where('licence."licenceNumber" = :ln', {ln: race.licenceNumber})
             .getOne();
 
         if ( ! licence ) {
-            throw(new BadRequest('Licence inconnue'));
+            throw(new BadRequestException('Licence inconnue'));
         }
 
-        const competition = await em.findOne(Competition, race.competitionId);
+        const competition = await this.entityManager.findOne(Competition, race.competitionId);
 
-        const newRace = new Race() ;
+        const newRace = new Race();
         newRace.raceCode = race.raceCode;
         newRace.riderNumber = race.riderNumber;
         newRace.licence = licence;
         newRace.competition = competition;
 
-        await em.save(newRace);
+        await this.entityManager.save(newRace);
     }
 
-    @Put('/')
-    @Transaction()
-    public async update(@BodyParams(RaceUpdate) race: RaceUpdate, @TransactionManager() em: EntityManager)
+    @Put()
+    @ApiOperation({
+        operationId: 'update',
+        title: 'Mets à jour une course existante',
+        description: 'description',
+    })
+    public async update(@Body() race: RaceUpdate)
         : Promise<void> {
 
-        const toUpdate = await em.findOne(Race, race.id);
+        const toUpdate = await this.entityManager.findOne(Race, race.id);
         toUpdate.riderNumber = race.riderNumber;
         toUpdate.raceCode = race.raceCode;
-        await em.save(toUpdate);
+        await this.entityManager.save(toUpdate);
     }
 
     @Delete('/:id')
-    @Transaction()
-    public async delete(@Required() @PathParams('id') id: string, @TransactionManager() em: EntityManager)
+    @ApiOperation({
+        title: 'delete race',
+        operationId: 'delete',
+    })
+    public async delete(@Param('id') id: string)
         : Promise<void> {
 
-        em.delete(Race, id);
+        this.entityManager.delete(Race, id);
     }
 }
