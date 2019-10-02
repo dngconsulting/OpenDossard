@@ -62,9 +62,7 @@ const LicencesPage = (props: ILicencesProps)=> {
                         }),
                     onRowDelete: oldData =>
                         new Promise((resolve, reject) => {
-                            setTimeout(() => {
-                                resolve();
-                            }, 1000);
+                            apiLicences._delete(`${oldData.id}`).then(()=>resolve());
                         }),
                 }}
                 actions={[
