@@ -53,6 +53,7 @@ create table competition
 	info varchar,
 	observations varchar,
 	pricing text not null,
+    races text not null,
     "competitionType" varchar
 );
 

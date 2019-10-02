@@ -5,7 +5,7 @@ import {EntityManager, Repository} from 'typeorm';
 import {Competition} from '../entity/Competition';
 import {Licence} from '../entity/Licence';
 
-@Controller('/api/epreuves')
+@Controller('/api/competition')
 @ApiUseTags('CompetitionAPI')
 export class CompetitionCtrl {
     constructor(

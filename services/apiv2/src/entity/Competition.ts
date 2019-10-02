@@ -80,6 +80,10 @@ export class Competition {
     @Column('simple-json')
     public pricing: { name: string, price: number };
 
+    @Column({nullable: true})
+    @Column('simple-array')
+    public races: string[];
+
     @Column({
         type: 'enum',
         enum: Federation,
