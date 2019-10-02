@@ -212,7 +212,7 @@ const CreationForm = (
                         onSuccess(dto)
                         setValues(EMPTY_FORM);
                     } catch (e) {
-                        const message:string = await e.text();
+                        const {message} = await e.json();
                         onError(message);
                     }
                 }}
