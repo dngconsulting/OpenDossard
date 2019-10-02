@@ -90,6 +90,11 @@ const EngagementPage = ({match}: {match: any}) => {
                 onRowUpdate: async (newData, oldData) => {
                     await update(newData)
                     fetchData()
+                    setNotification({
+                        message: `L'inscription de ${oldData.name} ${oldData.firstName} a été modifiée`,
+                        type: 'success',
+                        open: true
+                    });
                 },
                 onRowDelete: async (oldData) => {
                     await apiRaces._delete(`${oldData.id}`);
