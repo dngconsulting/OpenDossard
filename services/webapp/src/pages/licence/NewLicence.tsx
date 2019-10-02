@@ -17,6 +17,11 @@ import Button from '@material-ui/core/Button';
 import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
 import ClubSelect from './ClubSelect';
 
+interface ILicencesProps {
+    items: any[];
+    classes: any;
+    history: any;
+}
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -30,7 +35,7 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 
-const NewLicencesPage = () => {
+const NewLicencesPage = (props: ILicencesProps) => {
 
     const [values, setValues] = React.useState({
         federation: '',
@@ -189,7 +194,7 @@ const NewLicencesPage = () => {
                     </Button>
                 </Grid>
                 <Grid item={true} xs={6}>
-                    <Button variant="contained" color="secondary" className={classes.button}>
+                    <Button variant="contained" color="secondary" className={classes.button} onClick={()=>{props.history.goBack()}}>
                         Retour
                     </Button>
                 </Grid>
