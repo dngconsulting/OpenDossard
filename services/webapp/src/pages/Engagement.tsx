@@ -1,6 +1,8 @@
 import * as React from 'react';
 
+
 import {Theme, Typography, withStyles} from '@material-ui/core';
+import AutocompleteInput from "../components/AutocompleteInput";
 
 interface IEngagementPageProps {
     items: any[];
@@ -13,7 +15,12 @@ const styles = (theme : Theme) => ({
 
      public render(): JSX.Element {
          return (
+         <div>
              <Typography noWrap={false} >Engagement</Typography>
+
+             <AutocompleteInput/>
+         </div>
+
          );
      }
 }

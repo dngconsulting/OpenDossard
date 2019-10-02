@@ -295,6 +295,33 @@ export const LicencesCtrlApiFetchParamCreator = function (configuration?: Config
         },
         /**
          * 
+         * @param {string} [param] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getLicencesLike(param?: string, options: any = {}): FetchArgs {
+            const localVarPath = `/api/licences/getLicencesLike`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (param !== undefined) {
+                localVarQueryParameter['param'] = param;
+            }
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @param {Licence} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -366,6 +393,24 @@ export const LicencesCtrlApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {string} [param] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getLicencesLike(param?: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<Licence>> {
+            const localVarFetchArgs = LicencesCtrlApiFetchParamCreator(configuration).getLicencesLike(param, options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response.json();
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+        /**
+         * 
          * @param {Licence} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -410,6 +455,15 @@ export const LicencesCtrlApiFactory = function (configuration?: Configuration, f
         },
         /**
          * 
+         * @param {string} [param] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getLicencesLike(param?: string, options?: any) {
+            return LicencesCtrlApiFp(configuration).getLicencesLike(param, options)(fetch, basePath);
+        },
+        /**
+         * 
          * @param {Licence} [body] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -446,6 +500,17 @@ export class LicencesCtrlApi extends BaseAPI {
      */
     public getAllLicences(options?: any) {
         return LicencesCtrlApiFp(this.configuration).getAllLicences(options)(this.fetch, this.basePath);
+    }
+
+    /**
+     * 
+     * @param {string} [param] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof LicencesCtrlApi
+     */
+    public getLicencesLike(param?: string, options?: any) {
+        return LicencesCtrlApiFp(this.configuration).getLicencesLike(param, options)(this.fetch, this.basePath);
     }
 
     /**
