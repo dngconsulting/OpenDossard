@@ -1,8 +1,19 @@
-import {BodyParams, Controller, Get, PathParams, Post, Property, Put, Required} from '@tsed/common';
+import {
+    BodyParams,
+    Controller,
+    Delete,
+    Get,
+    PathParams,
+    Post,
+    Property,
+    Put,
+    Required,
+} from '@tsed/common';
 import {NotFound} from 'ts-httpexceptions';
 import {Licence} from '../entity/Licence';
 import {EntityManager, getRepository, Transaction, TransactionManager} from 'typeorm';
 import {Docs, Returns, ReturnsArray} from '@tsed/swagger';
+import {$log} from 'ts-log-debug';
 
 /**
  * Add @Controller annotation to declare your class as Router controller.
@@ -81,5 +92,28 @@ export class LicencesCtrl {
         : Promise<Licence> {
         await em.save(licence);
         return licence;
+    }
+
+    @Put('/update')
+    @Transaction()
+    public async update(@BodyParams(Licence) licence: Licence, @TransactionManager() em: EntityManager)
+        : Promise<void> {
+        const toUpdate = await em.findOne(Licence, licence.id);
+        toUpdate.licenceNumber = licence.licenceNumber;
+        toUpdate.birthYear = licence.birthYear;
+        toUpdate.name = licence.name;
+        toUpdate.firstName = licence.firstName;
+        toUpdate.gender = licence.gender;
+        toUpdate.dept = licence.dept;
+        toUpdate.catea = licence.catea;
+        toUpdate.catev = licence.catev;
+        await em.save(toUpdate);
+    }
+
+    @Delete('/:id')
+    @Transaction()
+    public async delete(@Required() @PathParams('id') id: string, @TransactionManager() em: EntityManager)
+        : Promise<void> {
+        await em.delete(Licence, id);
     }
 }
