@@ -45,23 +45,22 @@ const EngagementPage = ({match}: {match: any}) => {
 
     const competitionId = match.params.id;
 
-    const [races, setRaces] = useState<RaceRow[]>([])
+    const [rows, setRows] = useState<RaceRow[]>([])
     const [notification, setNotification] = useState(EMPTY_NOTIF);
 
-    const fetchData = async ()  => {
-        const data = await apiRaces.getAllRaces();
-        setRaces( data );
+    const fetchRows = async ()  => {
+        setRows( await apiRaces.getAllRaces() );
     }
 
     useEffect( () => {
-        fetchData()
+        fetchRows()
     }, ['loading'])
 
     return <div>
         <Grid container={true}>
             <CreationForm competitionId={competitionId}
                           onSuccess={(race) => {
-                              fetchData();
+                              fetchRows();
                               setNotification({
                                   message: `Le coureur ${race.licenceNumber} a bien été enregistré sous le dossard ${race.riderNumber}`,
                                   open: true,
@@ -80,7 +79,7 @@ const EngagementPage = ({match}: {match: any}) => {
         <MaterialTable
             title={`Engagement ${competitionId}`}
             columns={COLUMNS}
-            data={races}
+            data={rows}
             options={{
                 filtering: true,
                 actionsColumnIndex: -1,
@@ -91,7 +90,7 @@ const EngagementPage = ({match}: {match: any}) => {
             editable={{
                 onRowUpdate: async (newData, oldData) => {
                     await update(newData)
-                    fetchData()
+                    fetchRows()
                     setNotification({
                         message: `L'inscription de ${oldData.name} ${oldData.firstName} a été modifiée`,
                         type: 'success',
@@ -100,7 +99,7 @@ const EngagementPage = ({match}: {match: any}) => {
                 },
                 onRowDelete: async (oldData) => {
                     await apiRaces._delete(`${oldData.id}`);
-                    fetchData();
+                    fetchRows();
                     setNotification({
                         message: `Le coureur ${oldData.name} ${oldData.firstName} a été supprimé de la compétition`,
                         type: 'info',
