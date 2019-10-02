@@ -1,6 +1,7 @@
 import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from 'typeorm';
 import {Federation} from './Federation';
 import {Club} from './Club';
+import {ApiModelProperty, ApiModelPropertyOptional} from '@nestjs/swagger';
 
 /**
  * Cette énum représente les catégories gérées par une épreuve
@@ -36,33 +37,39 @@ export class Competition {
      * La eventDate de l'épreuve au format JS
      */
     @Column({nullable: false})
+    @ApiModelProperty()
     public eventDate: Date;
     /**
      * La référence du club organisateur
      */
     @ManyToOne((type) => Club)
     @JoinColumn()
+    @ApiModelProperty()
     public clubId: Club;
     /**
      * Le nom de l'épreuve
      */
     @Column({nullable: true})
+    @ApiModelProperty()
     public name: string;
     /**
      * Le code postal correspondant à la commune
      */
     @Column({nullable: false})
+    @ApiModelProperty()
     public zipCode: string;
     /**
      * L'identifiant OpenRunner du circuit, plat/vallonné/montagneux
      */
     @Column({nullable: true})
+    @ApiModelPropertyOptional()
     public info: string;
     /**
      * La liste des catégories de valeurs concernées par l'épreuve
      * [PREMIERES, SECONDES, QUATRIEMES, CADETS, ...]
      */
     @Column('simple-array')
+    @ApiModelProperty()
     public categories: Category[];
 
     /**
@@ -70,6 +77,7 @@ export class Competition {
      * Les tarifs et les conditions d'inscription
      */
     @Column({nullable: true})
+    @ApiModelPropertyOptional()
     public observations: string;
 
     /**
@@ -78,6 +86,7 @@ export class Competition {
      */
     @Column({nullable: true})
     @Column('simple-json')
+    @ApiModelPropertyOptional()
     public pricing: { name: string, price: number };
 
     @Column({nullable: true})
@@ -90,6 +99,7 @@ export class Competition {
         nullable: true,
         default: Federation.NL,
     })
+    @ApiModelProperty()
     fede: Federation;
 
     @Column({
@@ -98,5 +108,6 @@ export class Competition {
         nullable: true,
         default: CompetitionType.ROUTE,
     })
+    @ApiModelPropertyOptional()
     competitionType: CompetitionType;
 }
