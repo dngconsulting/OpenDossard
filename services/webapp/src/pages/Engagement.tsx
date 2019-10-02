@@ -90,6 +90,15 @@ const EngagementPage = ({match}: {match: any}) => {
                 onRowUpdate: async (newData, oldData) => {
                     await update(newData)
                     fetchData()
+                },
+                onRowDelete: async (oldData) => {
+                    await apiRaces._delete(`${oldData.id}`);
+                    fetchData();
+                    setNotification({
+                        message: `Le coureur ${oldData.name} ${oldData.firstName} a été supprimé de la compétition`,
+                        type: 'info',
+                        open: true
+                    });
                 }
             }}
             localization={{
@@ -97,7 +106,11 @@ const EngagementPage = ({match}: {match: any}) => {
                     groupedBy: 'Regroupement par :',
                     placeholder: 'Glisser ici la colonne a regrouper'
                 },
-                body: {}
+                body: {
+                    editRow: {
+                        deleteText : 'Etes vous sur de vouloir désinscrire ce coureur ?'
+                    }
+                }
             }}
         />
         <CadSnackBar notification={notification} onClose={() => setNotification(EMPTY_NOTIF)}/>
