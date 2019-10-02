@@ -1,50 +1,50 @@
-import {Entity, PrimaryGeneratedColumn, Column} from 'typeorm';
+import {Column, Entity, PrimaryGeneratedColumn} from 'typeorm';
 import {Federation} from './Federation';
-import {Property} from '@tsed/common';
+import {ApiModelProperty} from '@nestjs/swagger';
 
 @Entity()
 export class Licence {
-    @Property()
+    @ApiModelProperty()
     @PrimaryGeneratedColumn()
     public id: number;
 
-    @Property()
+    @ApiModelProperty()
     @Column({ nullable: true })
     licenceNumber: string;
 
-    @Property()
+    @ApiModelProperty()
     @Column({ nullable: true })
     name: string;
 
-    @Property()
+    @ApiModelProperty()
     @Column({ nullable: true })
     firstName: string;
 
-    @Property()
+    @ApiModelProperty()
     @Column({ nullable: true })
     gender: string;
 
-    @Property()
+    @ApiModelProperty()
     @Column({ nullable: true })
     club: string;
 
-    @Property()
+    @ApiModelProperty()
     @Column({ nullable: true })
     dept: string;
 
-    @Property()
+    @ApiModelProperty()
     @Column({ nullable: true })
     birthYear: string;
 
-    @Property()
+    @ApiModelProperty()
     @Column({ nullable: true })
     catea: string;
 
-    @Property()
+    @ApiModelProperty()
     @Column({ nullable: true })
     catev: string;
 
-    @Property()
+    @ApiModelProperty()
     @Column({
         type: 'enum',
         enum: Federation,
