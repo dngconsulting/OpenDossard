@@ -1,4 +1,4 @@
-import React, {CSSProperties, HTMLAttributes} from 'react';
+import React, {CSSProperties, HTMLAttributes, useEffect} from 'react';
 import Select from 'react-select';
 import {createStyles, makeStyles, Theme, useTheme} from '@material-ui/core/styles';
 import TextField, {BaseTextFieldProps} from '@material-ui/core/TextField';
@@ -6,6 +6,7 @@ import Paper from '@material-ui/core/Paper';
 import {ControlProps} from 'react-select/src/components/Control';
 import {MenuProps} from 'react-select/src/components/Menu';
 import {ValueType} from 'react-select/src/types';
+import {apiClubs} from '../../util/api';
 
 interface IOptionType {
     label: string;
@@ -101,6 +102,13 @@ export default function ClubSelect() {
     const classes = useStyles();
     const theme = useTheme();
     const [single, setSingle] = React.useState<ValueType<IOptionType>>(null);
+
+    const fetchData = async ()  => {
+        return await apiClubs.getAllClubs();
+    };
+    useEffect(()=>{
+        fetchData().then(res => console.log('clubs :::: ' + JSON.stringify(res)));
+    },['loading'])
 
     const handleChangeSingle = (value: ValueType<IOptionType>) => {
         setSingle(value);
