@@ -85,7 +85,7 @@ const EngagementPage = ({match}: {match: any}) => {
     const fetchCompetition = async () => {
         const c = await apiCompetitions.get(competitionId);
         setCurrentRace(c.races[0]);
-        setCompetition({...c});
+        setCompetition(c);
     }
 
     useEffect( () => {
