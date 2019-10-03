@@ -16,6 +16,7 @@ import {CadSnackBar, EMPTY_NOTIF} from "../components/CadSnackbar";
 import Box from "@material-ui/core/Box";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
+import Paper from "@material-ui/core/Paper";
 
 const create = async (newRace: RaceCreate) => {
     await apiRaces.create(newRace);
@@ -215,12 +216,12 @@ const CompetitionCard = ({competition} : {competition: Competition}) => {
 }
 
 
-
-const RaceTabs = ({races, currentRace, onRaceChanged} : {races: string[], currentRace: string, onRaceChanged: (race:string) => void}) => {
-
-    return <Tabs value={currentRace} onChange={(e,v) => onRaceChanged(v)}>
-        { races.map( raceCode => <Tab key={raceCode} value={raceCode} label={raceCode} />)}
-    </Tabs>
-}
+const RaceTabs = ({races, currentRace, onRaceChanged}: { races: string[], currentRace: string, onRaceChanged: (race: string) => void }) => (
+    <Paper square={true}>
+        <Tabs value={currentRace} onChange={(e, v) => onRaceChanged(v)}>
+            {races.map(raceCode => <Tab key={raceCode} value={raceCode} label={raceCode}/>)}
+        </Tabs>
+    </Paper>
+)
 
 export default EngagementPage;
