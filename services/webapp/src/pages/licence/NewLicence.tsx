@@ -39,10 +39,10 @@ const NewLicencesPage = (props: ILicencesProps) => {
 
     const [values, setValues] = React.useState({
         federation: '',
-        age: '',
+        birthYear: '',
         cateA: '',
         cateV: '',
-        disableCateV: true
+        disableCateV: false
     });
 
     const handleChange = (event: React.ChangeEvent<{ name?: string; value: unknown }>) => {
@@ -51,8 +51,16 @@ const NewLicencesPage = (props: ILicencesProps) => {
             [event.target.name as string]: event.target.value,
         }));
         console.log(event.target.value);
-
     };
+
+    const handleFederationChange = (event: React.ChangeEvent<{ name?: string; value: unknown }>) => {
+        setValues(oldValues => ({
+            ...oldValues,
+            [event.target.name as string]: event.target.value,
+            disableCateV: !event.target.value
+        }));
+    };
+
 
     const [genre, setGenre] = React.useState('m');
 
@@ -81,7 +89,7 @@ const NewLicencesPage = (props: ILicencesProps) => {
                         <InputLabel htmlFor="federation">Fédération</InputLabel>
                         <Select
                             value={values.federation}
-                            onChange={handleChange}
+                            onChange={handleFederationChange}
                             inputProps={{
                                 name: 'federation',
                                 id: 'federation',
@@ -132,8 +140,8 @@ const NewLicencesPage = (props: ILicencesProps) => {
                 </Grid>
                 <Grid item={true} xs={6}>
                     <TextField
-                        id="age"
-                        label="Age"
+                        id="birthYear"
+                        label="Année de la naissance"
                         margin="normal"
                     />
                 </Grid>
