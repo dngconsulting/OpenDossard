@@ -7,12 +7,12 @@ import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import {Badge, Menu, MenuItem} from '@material-ui/core';
-import {Route, withRouter} from 'react-router-dom';
+import {withRouter} from 'react-router-dom';
 import Hidden from '@material-ui/core/Hidden';
 import {styles} from './styles';
 import * as AppActionCreators from '../actions/App.Actions';
 import {IApplicationProps} from '../actions/App.Actions';
-import {isAuthenticated, ReduxState} from '../state/ReduxState';
+import {ReduxState} from '../state/ReduxState';
 import {connect} from 'react-redux';
 import * as _ from 'lodash';
 import {bindActionCreators, Dispatch} from 'redux';
@@ -20,17 +20,10 @@ import {Alert} from '../state/Alert';
 import {AlertDialog} from '../alert/Alert';
 import SpinnerDialog from '../spinner/Spinner';
 import {AccountPage} from '../pages/account/Account';
-import HomePage from '../pages/Home';
 import AccountCircle from '@material-ui/icons/Mail';
 import AppDrawer from './App.Drawer';
 import NotificationIcon from '@material-ui/icons/Notifications';
-import LicencesPage from '../pages/licence/Licences';
-import NewLicencePage from '../pages/licence/NewLicence';
-import StatsPage from '../pages/Stats';
-import CompetitionChooser from '../pages/CompetitionChooser';
-import EngagementPage from '../pages/Engagement';
-import EditResultsPage from '../pages/results/edit.results'
-import ViewResultsPage from '../pages/results/view.results'
+import AppRoutes from "./AppRoutes";
 
 const classNames = require('classnames');
 
@@ -217,11 +210,6 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
 
     public render() {
         const {classes} = this.props;
-        const Dashboard = isAuthenticated((props: any): any => {
-            return (
-                <HomePage/>
-            );
-        });
 
         return (
             <div className={classes.root}>
@@ -230,15 +218,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
 
                 <main className={classes.content}>
                     <div className={classes.toolbar}/>
-                    <Route path='/' exact={true} component={Dashboard}/>
-                    <Route path='/licences' component={isAuthenticated(LicencesPage)}/>
-                    <Route path='/competitionchooser' component={isAuthenticated(CompetitionChooser)}/>
-                    <Route path='/new_licence' component={isAuthenticated(NewLicencePage)}/>
-                    <Route path='/stats' component={isAuthenticated(StatsPage)}/>
-                    <Route path='/account' render={this.renderAccount}/>
-                    <Route path='/competition/:id/engagements' component={isAuthenticated(EngagementPage)}/>
-                    <Route path='/competition/:id/results/create' component={isAuthenticated(EditResultsPage)}/>
-                    <Route path='/competition/:id/results/view' component={isAuthenticated(ViewResultsPage)}/>
+                    <AppRoutes renderAccount={this.renderAccount}/>
                     {this.renderAlert()}
                     {this.renderSpinner()}
                 </main>

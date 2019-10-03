@@ -1,30 +1,25 @@
-import React, {useState} from 'react'
+import React from 'react'
 
 import AsyncSelect from 'react-select/async';
 import {apiLicences} from '../util/api';
-
+import {Licence} from "../sdk";
 
 
 const filterLicences = async (inputValue: string) => {
-    const licences = await apiLicences.getLicencesLike(inputValue.toUpperCase());
-    console.log(licences)
+    const licences: Licence[] = await apiLicences.getLicencesLike(inputValue.toUpperCase());
     const strings = licences.slice(0, 9).map((i: any) => {
         return {
             ...i,
 
-            label: <table>
-                    <tbody>
-                        <tr>
-                            <td>{i.name}</td>
-                            <td>{i.firstName}</td>
-                            <td>{i.licenceNumber ? i.licenceNumber : 'NR'}</td>
-                            <td>{i.club}</td>
-                            <td>{i.fede}</td>
-                            <td>{i.catea}</td>
-                            <td>{i.catev}</td>
-                        </tr>
-                    </tbody>
-                   </table>
+            label:
+                <div>
+                    <p style={{lineHeight: "normal"}}>
+                        <span style={{fontSize: "medium"}}>{i.name} {i.firstName}<br/></span>
+                        <span style={{fontSize: "small"}}>{i.licenceNumber ? i.licenceNumber : 'NR'}<br/></span>
+                        <span style={{fontSize: "small"}}>{i.club} {i.fede}<br/></span>
+                        <span style={{fontSize: "medium"}}>{i.catev} {i.catea}<br/></span>
+                    </p>
+                </div>
         };
     });
 
@@ -36,17 +31,13 @@ const promiseOptions = async (inputValue: any) =>
         resolve(filterLicences(inputValue))
     })
 
-export default function AutocompleteInput() {
-
-    const [selection, setSelection] = useState(null);
+export default function AutocompleteInput({selection, onChangeSelection, style}: any) {
 
     return (
-        <div>
-            <p> Coureur sélectionné : {selection ? selection.name : ''}
-            </p>
+        <div style={style}>
             <AsyncSelect
                 value={selection}
-                onChange={(i:any) => setSelection(i)}
+                onChange={onChangeSelection}
                 isClearable={true}
                 defaultOptions={false}
                 loadOptions={promiseOptions}
