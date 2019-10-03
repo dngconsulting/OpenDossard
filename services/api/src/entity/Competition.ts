@@ -46,7 +46,7 @@ export class Competition {
     @ManyToOne((type) => Club)
     @JoinColumn()
     @ApiModelProperty()
-    public clubId: Club;
+    public club: Club;
     /**
      * Le nom de l'épreuve
      */
