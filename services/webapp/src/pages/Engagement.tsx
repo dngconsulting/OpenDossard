@@ -185,9 +185,9 @@ const CreationForm = (
                 color="primary"
                 onClick={ async () => {
                     try {
-                        const dto = {
+                        const dto: RaceCreate = {
                             ...newRace,
-                            race,
+                            raceCode: race,
                             riderNumber: parseInt(newRace.riderNumber),
                             competitionId
                         }
