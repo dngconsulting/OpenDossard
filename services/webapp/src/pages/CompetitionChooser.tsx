@@ -49,6 +49,10 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         fetchCompetitions();
     }, []);
 
+    const isResultLink = () : boolean => {
+        return props.history.location.state && props.history.location.state.goto === 'results'
+    }
+
     const goToPage = (event: any, competitionid: number,resultsPage? : string) => {
         if (props.history.location.state && props.history.location.state.goto) {
             props.history.push('/competition/' + competitionid + '/' + (resultsPage?resultsPage : props.history.location.state.goto));
@@ -73,7 +77,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                             <TableCell align="right">Lieu</TableCell>
                             <TableCell align="right">Catégories</TableCell>
                             <TableCell align="right">Fédération</TableCell>
-                            <TableCell/>
+                            {isResultLink() && <TableCell/>}
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -89,7 +93,8 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                                 <TableCell align="right">{row.zipCode}</TableCell>
                                 <TableCell align="right">{row.categories}</TableCell>
                                 <TableCell align="right">{row.fede}</TableCell>
-                                <TableCell align="right">
+
+                                {isResultLink() && <TableCell align="right">
                                     <Button variant={'contained'}
                                             onClick={(event: any) => goToPage(event, row.id,'results/create')}
                                             color="secondary"
@@ -103,7 +108,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                                     >
                                         Visualiser Résultats
                                     </Button>
-                                </TableCell>
+                                </TableCell>}
                             </TableRow>
                         ))}
                     </TableBody>
