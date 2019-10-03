@@ -4,8 +4,8 @@ import {useEffect, useState} from 'react';
 import {createStyles, Theme} from '@material-ui/core';
 import MaterialTable, {Column} from "material-table";
 
-import {apiRaces} from "../util/api";
-import {RaceCreate, RaceRow} from "../sdk";
+import {apiCompetitions, apiRaces} from "../util/api";
+import {Competition, RaceCreate, RaceRow} from "../sdk";
 import Card from "@material-ui/core/Card";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
@@ -13,6 +13,9 @@ import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import {CadSnackBar, EMPTY_NOTIF} from "../components/CadSnackbar";
+import Box from "@material-ui/core/Box";
+import Tabs from "@material-ui/core/Tabs";
+import Tab from "@material-ui/core/Tab";
 
 const create = async (newRace: RaceCreate) => {
     await apiRaces.create(newRace);
@@ -47,16 +50,24 @@ const EngagementPage = ({match}: {match: any}) => {
 
     const [rows, setRows] = useState<RaceRow[]>([])
     const [notification, setNotification] = useState(EMPTY_NOTIF);
+    const [competition, setCompetition] = useState(null);
+    const [currentRace, setCurrentRace] = useState(null);
 
-    const fetchRows = async ()  => {
+    const fetchRows = async () => {
         setRows( await apiRaces.getAllRaces() );
+    }
+    const fetchCompetition = async () => {
+        setCompetition(await apiCompetitions.get(competitionId));
     }
 
     useEffect( () => {
+        fetchCompetition()
         fetchRows()
     }, ['loading'])
 
     return <div>
+        <CompetitionCard competition={competition} />
+        <RaceTabs races={competition ? competition.races : []} currentRace={currentRace} onRaceChanged={race => setCurrentRace(race)}/>
         <Grid container={true}>
             <CreationForm competitionId={competitionId}
                           onSuccess={(race) => {
@@ -196,6 +207,24 @@ const CreationForm = (
             </Button>
         </Grid>
     </Card>
+}
+
+const CompetitionCard = ({competition} : {competition: Competition}) => {
+    return competition &&
+    <Box style={{padding: 20}}>
+        <Typography variant="h6" gutterBottom={true}>
+            {competition.name}
+        </Typography>
+    </Box>
+}
+
+
+
+const RaceTabs = ({races, currentRace, onRaceChanged} : {races: string[], currentRace: string, onRaceChanged: (race:string) => void}) => {
+
+    return <Tabs value={currentRace} onChange={(e,v) => onRaceChanged(v)}>
+        { races.map( raceCode => <Tab key={raceCode} label={raceCode} />)}
+    </Tabs>
 }
 
 export default EngagementPage;
