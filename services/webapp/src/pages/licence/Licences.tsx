@@ -1,6 +1,6 @@
 import * as React from 'react';
 import MaterialTable, {Query, QueryResult} from 'material-table';
-import {AppText as T} from '../../utils/text';
+import {AppText as T} from '../../util/text';
 import {apiLicences} from '../../util/api';
 import {Licence, Search} from '../../sdk';
 
