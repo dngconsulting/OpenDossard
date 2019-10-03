@@ -16,6 +16,7 @@ interface ICompetitionChooserProps {
     classes?: any;
     history: {
         push(url: string): void;
+        location: any
     };
 }
 
@@ -28,6 +29,10 @@ const useStyles = makeStyles((theme: Theme) =>
         table: {
             minWidth: 650,
         },
+        titre: {
+            padding: '10px',
+            fontWeight: 'bold'
+        }
     }),
 );
 const CompetitionChooser = (props: ICompetitionChooserProps) => {
@@ -41,10 +46,14 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
     }, []);
 
     const handleClick = (event: any, competitionid: number) => {
-        props.history.push('/competition/' + competitionid + '/engagements')
+        console.log('History ' + JSON.stringify(props.history));
+        if (props.history.location.state && props.history.location.state.goto) {
+            props.history.push('/competition/' + competitionid + '/' + props.history.location.state.goto);
+        }
     };
     return (
         <Paper className={classes.root}>
+            <div className={classes.titre}>Veuillez sélectionner une épreuve :</div>
             <Table className={classes.table}>
                 <TableHead>
                     <TableRow>
@@ -58,7 +67,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                 <TableBody>
                     {data.map(row => (
                         <TableRow hover={true} key={row.name}
-                                  onClick={(event:any) => handleClick(event, row.id)}>
+                                  onClick={(event: any) => handleClick(event, row.id)}>
                             <TableCell component="th" scope="row">
                                 {row.name}
                             </TableCell>

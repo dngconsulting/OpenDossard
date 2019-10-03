@@ -230,13 +230,13 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
                 <main className={classes.content}>
                     <div className={classes.toolbar}/>
                     <Route path='/' exact={true} component={Dashboard}/>
-                    <Route path='/competitionchooser' component={isAuthenticated(CompetitionChooser)}/>
                     <Route path='/licences' component={isAuthenticated(LicencesPage)}/>
+                    <Route path='/competitionchooser' component={isAuthenticated(CompetitionChooser)}/>
                     <Route path='/new_licence' component={isAuthenticated(NewLicencePage)}/>
-                    <Route path='/results' component={isAuthenticated(ResultatsPage)}/>
                     <Route path='/stats' component={isAuthenticated(StatsPage)}/>
                     <Route path='/account' render={this.renderAccount}/>
                     <Route path='/competition/:id/engagements' component={isAuthenticated(EngagementPage)}/>
+                    <Route path='/competition/:id/results' component={isAuthenticated(ResultatsPage)}/>
                     {this.renderAlert()}
                     {this.renderSpinner()}
                 </main>
