@@ -6,7 +6,6 @@ import MaterialTable, {Column} from "material-table";
 
 import {apiCompetitions, apiRaces} from "../util/api";
 import {RaceCreate, RaceRow} from "../sdk";
-import Card from "@material-ui/core/Card";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
@@ -187,11 +186,11 @@ const CreationForm = (
 
     const classes = useStyles({});
 
-    return <Card style={{margin: 20, padding: 20, overflow: 'visible'}}>
-        <Typography variant="h6" gutterBottom={true}>
-            Nouveau coureur :
-        </Typography>
+    return <div style={{paddingLeft: 20, paddingBottom: 20}}>
         <Grid container={true} spacing={3} alignItems={"baseline"}>
+            <Typography variant="h5" gutterBottom={true} style={{marginRight: 20}}>
+                Nouveau Coureur :
+            </Typography>
             <AutocompleteInput style={{width: '400px', zIndex: 20}} selection={newRace.licence} onChangeSelection={(e: any) => setValues({...newRace, licence: e})}/>
             <TextField
                 label="Numéro de dossard"
@@ -223,7 +222,7 @@ const CreationForm = (
                 OK
             </Button>
         </Grid>
-    </Card>
+    </div>
 }
 
 const CompetitionCard = ({competition} : {competition: ICompetition}) => {
@@ -234,7 +233,7 @@ const CompetitionCard = ({competition} : {competition: ICompetition}) => {
             <Typography variant="subtitle1" color="textSecondary">
                 {moment(competition.eventDate).format('DD/MM/YYYY')}
             </Typography>
-            <Typography variant="subtitle1" paragraph={true}>
+            <Typography variant="subtitle1" paragraph={true} style={{marginBottom: 0}}>
                 {competition.observations}
             </Typography>
         </div>
