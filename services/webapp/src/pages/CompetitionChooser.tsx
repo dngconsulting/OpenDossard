@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
+import Button from '@material-ui/core/Button';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -32,6 +33,9 @@ const useStyles = makeStyles((theme: Theme) =>
         titre: {
             padding: '10px',
             fontWeight: 'bold'
+        },
+        nocomp: {
+            padding: '20px',
         }
     }),
 );
@@ -45,44 +49,70 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         fetchCompetitions();
     }, []);
 
-    const handleClick = (event: any, competitionid: number) => {
+    const goToPage = (event: any, competitionid: number,resultsPage? : string) => {
         console.log('History ' + JSON.stringify(props.history));
         if (props.history.location.state && props.history.location.state.goto) {
-            props.history.push('/competition/' + competitionid + '/' + props.history.location.state.goto);
+            props.history.push('/competition/' + competitionid + '/' + (resultsPage?resultsPage : props.history.location.state.goto));
         }
     };
-    return (
-        <Paper className={classes.root}>
-            <div className={classes.titre}>Veuillez sélectionner une épreuve :</div>
-            <Table className={classes.table}>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Nom l'épreuve</TableCell>
-                        <TableCell align="right">Date</TableCell>
-                        <TableCell align="right">Lieu</TableCell>
-                        <TableCell align="right">Catégories</TableCell>
-                        <TableCell align="right">Fédération</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {data.map(row => (
-                        <TableRow hover={true} key={row.name}
-                                  onClick={(event: any) => handleClick(event, row.id)}>
-                            <TableCell component="th" scope="row">
-                                {row.name}
-                            </TableCell>
-                            <TableCell
-                                align="right">{toMMDDYYYY(row.eventDate)}</TableCell>
-                            <TableCell align="right">{row.zipCode}</TableCell>
-                            <TableCell align="right">{row.categories}</TableCell>
-                            <TableCell align="right">{row.fede}</TableCell>
+
+    if (data && data.length === 0) {
+        return (<Paper>
+            <div className={classes.nocomp}>Aucune épreuve renseignée en base de données correspond
+                aux critères recherchés
+            </div>
+        </Paper>);
+    } else {
+        return (
+            <Paper className={classes.root}>
+                <div className={classes.titre}>Veuillez sélectionner une épreuve :</div>
+                <Table className={classes.table}>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell/>
+                            <TableCell>Nom l'épreuve</TableCell>
+                            <TableCell align="right">Date</TableCell>
+                            <TableCell align="right">Lieu</TableCell>
+                            <TableCell align="right">Catégories</TableCell>
+                            <TableCell align="right">Fédération</TableCell>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </Paper>
-    )
-        ;
+                    </TableHead>
+                    <TableBody>
+
+                        {data.map(row => (
+                            <TableRow hover={true} key={row.name}
+                                      onClick={(event: any) => goToPage(event, row.id)}>
+                                <TableCell align="right">
+                                    <Button variant={'contained'}
+                                            onClick={(event: any) => goToPage(event, row.id,'results/create')}
+                                            color="secondary"
+                                            style={{marginRight: '10px'}}
+                                    >
+                                        Saisir Résultats
+                                    </Button>
+                                    <Button variant={'contained'}
+                                            onClick={(event: any) => goToPage(event, row.id,'results/view')}
+                                            color="primary"
+                                    >
+                                        Visualiser Résultats
+                                    </Button>
+                                </TableCell>
+                                <TableCell component="th" scope="row">
+                                    {row.name}
+                                </TableCell>
+                                <TableCell
+                                    align="right">{toMMDDYYYY(row.eventDate)}</TableCell>
+                                <TableCell align="right">{row.zipCode}</TableCell>
+                                <TableCell align="right">{row.categories}</TableCell>
+                                <TableCell align="right">{row.fede}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </Paper>)
+
+            ;
+    }
 };
 
 
