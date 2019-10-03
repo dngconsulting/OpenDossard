@@ -57,7 +57,9 @@ const EngagementPage = ({match}: {match: any}) => {
         setRows( await apiRaces.getAllRaces() );
     }
     const fetchCompetition = async () => {
-        setCompetition(await apiCompetitions.get(competitionId));
+        const c = await apiCompetitions.get(competitionId);
+        setCurrentRace(c.races[0]);
+        setCompetition(c);
     }
 
     useEffect( () => {
@@ -70,6 +72,7 @@ const EngagementPage = ({match}: {match: any}) => {
         <RaceTabs races={competition ? competition.races : []} currentRace={currentRace} onRaceChanged={race => setCurrentRace(race)}/>
         <Grid container={true}>
             <CreationForm competitionId={competitionId}
+                          race={currentRace}
                           onSuccess={(race) => {
                               fetchRows();
                               setNotification({
@@ -88,7 +91,6 @@ const EngagementPage = ({match}: {match: any}) => {
             />
         </Grid>
         <MaterialTable
-            title={`Engagement ${competitionId}`}
             columns={COLUMNS}
             data={rows}
             options={{
@@ -96,7 +98,7 @@ const EngagementPage = ({match}: {match: any}) => {
                 actionsColumnIndex: -1,
                 pageSize: 500,
                 pageSizeOptions: [],
-                grouping: true,
+                toolbar: false,
             }}
             editable={{
                 onRowUpdate: async (newData, oldData) => {
@@ -145,15 +147,16 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 const CreationForm = (
-    {competitionId, onSuccess, onError}:
+    {competitionId, race, onSuccess, onError}:
         {
             competitionId: number,
+            race: string,
             onSuccess: (race: RaceCreate) => void,
             onError: (message: string) => void
         }
 ) => {
 
-    const EMPTY_FORM = {licenceNumber: '', riderNumber: '', raceCode: ''};
+    const EMPTY_FORM = {licenceNumber: '', riderNumber: ''};
     const [newRace, setValues] = useState(EMPTY_FORM);
 
     const classes = useStyles({});
@@ -177,13 +180,6 @@ const CreationForm = (
                 onChange={e => setValues({...newRace, riderNumber: e.target.value})}
                 margin="normal"
             />
-            <TextField
-                label="Course"
-                value={newRace.raceCode}
-                className={classes.field}
-                onChange={e => setValues({...newRace, raceCode: e.target.value})}
-                margin="normal"
-            />
             <Button
                 variant="contained"
                 color="primary"
@@ -191,6 +187,7 @@ const CreationForm = (
                     try {
                         const dto = {
                             ...newRace,
+                            race,
                             riderNumber: parseInt(newRace.riderNumber),
                             competitionId
                         }
@@ -223,7 +220,7 @@ const CompetitionCard = ({competition} : {competition: Competition}) => {
 const RaceTabs = ({races, currentRace, onRaceChanged} : {races: string[], currentRace: string, onRaceChanged: (race:string) => void}) => {
 
     return <Tabs value={currentRace} onChange={(e,v) => onRaceChanged(v)}>
-        { races.map( raceCode => <Tab key={raceCode} label={raceCode} />)}
+        { races.map( raceCode => <Tab key={raceCode} value={raceCode} label={raceCode} />)}
     </Tabs>
 }
 
