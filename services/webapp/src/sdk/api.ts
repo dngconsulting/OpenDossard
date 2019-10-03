@@ -94,10 +94,16 @@ export interface Club {
 export interface Competition {
     /**
      * 
-     * @type {ModelDate}
+     * @type {number}
      * @memberof Competition
      */
-    eventDate: ModelDate;
+    id: number;
+    /**
+     * 
+     * @type {Date}
+     * @memberof Competition
+     */
+    eventDate: Date;
     /**
      * 
      * @type {Club}
@@ -140,6 +146,12 @@ export interface Competition {
      * @memberof Competition
      */
     pricing?: any;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof Competition
+     */
+    races?: Array<string>;
     /**
      * 
      * @type {string}
@@ -272,14 +284,6 @@ export interface LicencesPage {
      * @memberof LicencesPage
      */
     totalCount?: number;
-}
-
-/**
- * 
- * @export
- * @interface ModelDate
- */
-export interface ModelDate {
 }
 
 /**
@@ -511,7 +515,7 @@ export const CompetitionAPIApiFetchParamCreator = function (configuration?: Conf
     return {
         /**
          * description
-         * @summary Rechercher d'une épreuve par ID 
+         * @summary Recherche d'une épreuve par ID 
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -521,7 +525,7 @@ export const CompetitionAPIApiFetchParamCreator = function (configuration?: Conf
             if (id === null || id === undefined) {
                 throw new RequiredError('id','Required parameter id was null or undefined when calling get.');
             }
-            const localVarPath = `/api/epreuves/{id}`
+            const localVarPath = `/api/competition/{id}`
                 .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
@@ -545,7 +549,7 @@ export const CompetitionAPIApiFetchParamCreator = function (configuration?: Conf
          * @throws {RequiredError}
          */
         getAllCompetitions(options: any = {}): FetchArgs {
-            const localVarPath = `/api/epreuves`;
+            const localVarPath = `/api/competition`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
             const localVarHeaderParameter = {} as any;
@@ -572,7 +576,7 @@ export const CompetitionAPIApiFp = function(configuration?: Configuration) {
     return {
         /**
          * description
-         * @summary Rechercher d'une épreuve par ID 
+         * @summary Recherche d'une épreuve par ID 
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -618,7 +622,7 @@ export const CompetitionAPIApiFactory = function (configuration?: Configuration,
     return {
         /**
          * description
-         * @summary Rechercher d'une épreuve par ID 
+         * @summary Recherche d'une épreuve par ID 
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -647,7 +651,7 @@ export const CompetitionAPIApiFactory = function (configuration?: Configuration,
 export class CompetitionAPIApi extends BaseAPI {
     /**
      * description
-     * @summary Rechercher d'une épreuve par ID 
+     * @summary Recherche d'une épreuve par ID 
      * @param {string} id 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}

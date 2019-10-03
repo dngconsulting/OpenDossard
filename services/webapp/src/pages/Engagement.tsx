@@ -4,8 +4,8 @@ import {useEffect, useState} from 'react';
 import {createStyles, Theme} from '@material-ui/core';
 import MaterialTable, {Column} from "material-table";
 
-import {apiRaces} from "../util/api";
-import {RaceCreate, RaceRow} from "../sdk";
+import {apiCompetitions, apiRaces} from "../util/api";
+import {Competition, RaceCreate, RaceRow} from "../sdk";
 import Card from "@material-ui/core/Card";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
@@ -13,6 +13,10 @@ import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import {CadSnackBar, EMPTY_NOTIF} from "../components/CadSnackbar";
+import Box from "@material-ui/core/Box";
+import Tabs from "@material-ui/core/Tabs";
+import Tab from "@material-ui/core/Tab";
+import Paper from "@material-ui/core/Paper";
 import AutocompleteInput from "../components/AutocompleteInput";
 
 const create = async (newRace: RaceCreate) => {
@@ -28,8 +32,8 @@ const update = async (newData: RaceRow) => {
 }
 
 const COLUMNS: Array<Column<RaceRow>> = [
-    { title: "Licence", field: "licenceNumber", type: "numeric", headerStyle: { textAlign: "center" },
-        cellStyle: { textAlign: "center"}
+    { title: "Licence", field: "licenceNumber", editable: "never", headerStyle: { textAlign: "center" },
+        cellStyle: { textAlign: "center"},
     },
     { title: "Nom", field: "name", editable: "never" },
     { title: "Prénom", field: "firstName", editable: "never" },
@@ -38,61 +42,40 @@ const COLUMNS: Array<Column<RaceRow>> = [
     { title: "Dossard", field: "riderNumber", type: "numeric", headerStyle: { textAlign: "center" },
         cellStyle: { textAlign: "center"},
         defaultSort: "asc"
-    },
-    { title: "Course", field: "raceCode", editable: "always"},
+    }
 ];
 
 const EngagementPage = ({match}: {match: any}) => {
 
     const competitionId = match.params.id;
 
-    const [races, setRaces] = useState<RaceRow[]>([])
+    const [rows, setRows] = useState<RaceRow[]>([])
     const [notification, setNotification] = useState(EMPTY_NOTIF);
-    const [columns, setColumns] = useState(COLUMNS);
-    const [selection, setSelection] = useState(null);
+    const [competition, setCompetition] = useState(null);
+    const [currentRace, setCurrentRace] = useState(null);
 
-    const handleChange = (i: any) => {
-        setSelection(i);
-        console.log(i ? i.name + ' ' + i.firstName : 'rien');
+    const fetchRows = async () => {
+        setRows( await apiRaces.getAllRaces() );
     }
-
-    const fetchData = async ()  => {
-        const data = await apiRaces.getAllRaces();
-        setRaces( data );
+    const fetchCompetition = async () => {
+        const c = await apiCompetitions.get(competitionId);
+        setCurrentRace(c.races[0]);
+        setCompetition(c);
     }
 
     useEffect( () => {
-        fetchData()
+        fetchCompetition()
+        fetchRows()
     }, ['loading'])
 
-    const raceStats = races.reduce( (acc: IRaceStat, item) => (
-        {   ...acc,
-            [item.raceCode]: acc[item.raceCode] ? acc[item.raceCode]+1 : 1 }
-    ), {});
-
-    const onRaceSelect = (raceCode: string) => {
-        const newColumns = columns.map(column => {
-            column.defaultFilter = raceCode
-
-            return column.field === 'raceCode' ? {
-                ...column,
-                tableData: {
-                    // @ts-ignore
-                    ...column.tableData,
-                    filterValue: raceCode
-                }
-            } : column
-        });
-        console.log(newColumns)
-        setColumns( newColumns )
-    };
-
     return <div>
-        <AutocompleteInput selection={selection} onChangeSelection={handleChange}/>
+        <CompetitionCard competition={competition} />
+        <RaceTabs races={competition ? competition.races : []} currentRace={currentRace} onRaceChanged={race => setCurrentRace(race)}/>
         <Grid container={true}>
             <CreationForm competitionId={competitionId}
+                          race={currentRace}
                           onSuccess={(race) => {
-                              fetchData();
+                              fetchRows();
                               setNotification({
                                   message: `Le coureur ${race.licenceNumber} a bien été enregistré sous le dossard ${race.riderNumber}`,
                                   open: true,
@@ -107,23 +90,21 @@ const EngagementPage = ({match}: {match: any}) => {
                               })
                           }}
             />
-            <RaceStat stats={raceStats} onRaceSelect={onRaceSelect}/>
         </Grid>
         <MaterialTable
-            title={`Engagement ${competitionId}`}
-            columns={columns}
-            data={races}
+            columns={COLUMNS}
+            data={rows.filter( row => row.raceCode === currentRace)}
             options={{
                 filtering: true,
                 actionsColumnIndex: -1,
                 pageSize: 500,
                 pageSizeOptions: [],
-                grouping: true,
+                toolbar: false,
             }}
             editable={{
                 onRowUpdate: async (newData, oldData) => {
                     await update(newData)
-                    fetchData()
+                    fetchRows()
                     setNotification({
                         message: `L'inscription de ${oldData.name} ${oldData.firstName} a été modifiée`,
                         type: 'success',
@@ -132,7 +113,7 @@ const EngagementPage = ({match}: {match: any}) => {
                 },
                 onRowDelete: async (oldData) => {
                     await apiRaces._delete(`${oldData.id}`);
-                    fetchData();
+                    fetchRows();
                     setNotification({
                         message: `Le coureur ${oldData.name} ${oldData.firstName} a été supprimé de la compétition`,
                         type: 'info',
@@ -167,31 +148,26 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 const CreationForm = (
-    {competitionId, onSuccess, onError}:
+    {competitionId, race, onSuccess, onError}:
         {
             competitionId: number,
+            race: string,
             onSuccess: (race: RaceCreate) => void,
             onError: (message: string) => void
         }
 ) => {
 
-    const EMPTY_FORM = {licenceNumber: '', riderNumber: '', raceCode: ''};
+    const EMPTY_FORM = {licence: {licenceNumber: ''}, riderNumber: ''};
     const [newRace, setValues] = useState(EMPTY_FORM);
 
     const classes = useStyles({});
 
-    return <Card style={{margin: 20, padding: 20}}>
+    return <Card style={{margin: 20, padding: 20, overflow: 'visible'}}>
         <Typography variant="h6" gutterBottom={true}>
             Nouveau coureur :
         </Typography>
         <Grid container={true} spacing={3} alignItems={"baseline"}>
-            <TextField
-                label="Numéro de licence"
-                value={newRace.licenceNumber}
-                className={classes.field}
-                onChange={e => setValues({...newRace, licenceNumber: e.target.value})}
-                margin="normal"
-            />
+            <AutocompleteInput style={{width: '400px', zIndex: 20}} selection={newRace.licence} onChangeSelection={(e: any) => setValues({...newRace, licence: e})}/>
             <TextField
                 label="Numéro de dossard"
                 value={newRace.riderNumber}
@@ -199,20 +175,14 @@ const CreationForm = (
                 onChange={e => setValues({...newRace, riderNumber: e.target.value})}
                 margin="normal"
             />
-            <TextField
-                label="Course"
-                value={newRace.raceCode}
-                className={classes.field}
-                onChange={e => setValues({...newRace, raceCode: e.target.value})}
-                margin="normal"
-            />
             <Button
                 variant="contained"
                 color="primary"
                 onClick={ async () => {
                     try {
-                        const dto = {
-                            ...newRace,
+                        const dto: RaceCreate = {
+                            licenceNumber: newRace.licence.licenceNumber,
+                            raceCode: race,
                             riderNumber: parseInt(newRace.riderNumber),
                             competitionId
                         }
@@ -231,20 +201,22 @@ const CreationForm = (
     </Card>
 }
 
-interface IRaceStat {[s: string]: number}
-
-const RaceStat = ({stats, onRaceSelect} : {stats: IRaceStat, onRaceSelect: (code: string)=>void}) => {
-
-    return <Card style={{margin: 20, padding: 20}}>
-        <Typography variant="h6" gutterBottom={true}>Inscrits :</Typography>
-        <table><tbody>
-        {
-            Object.keys(stats).sort().map( raceCode => <tr key={raceCode} style={{cursor: 'pointer'}}  onClick={()=>onRaceSelect(raceCode)}>
-                <td>Course <b>{raceCode}</b></td><td> : <b>{stats[raceCode]}</b> inscrits</td>
-            </tr>)
-        }
-        </tbody></table>
-    </Card>
+const CompetitionCard = ({competition} : {competition: Competition}) => {
+    return competition &&
+    <Box style={{padding: 20}}>
+        <Typography variant="h6" gutterBottom={true}>
+            {competition.name}
+        </Typography>
+    </Box>
 }
+
+
+const RaceTabs = ({races, currentRace, onRaceChanged}: { races: string[], currentRace: string, onRaceChanged: (race: string) => void }) => (
+    <Paper square={true}>
+        <Tabs value={currentRace} onChange={(e, v) => onRaceChanged(v)}>
+            {races.map(raceCode => <Tab key={raceCode} value={raceCode} label={raceCode}/>)}
+        </Tabs>
+    </Paper>
+)
 
 export default EngagementPage;

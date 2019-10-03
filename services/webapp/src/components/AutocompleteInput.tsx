@@ -31,10 +31,10 @@ const promiseOptions = async (inputValue: any) =>
         resolve(filterLicences(inputValue))
     })
 
-export default function AutocompleteInput({selection, onChangeSelection}: any) {
+export default function AutocompleteInput({selection, onChangeSelection, style}: any) {
 
     return (
-        <div>
+        <div style={style}>
             <AsyncSelect
                 value={selection}
                 onChange={onChangeSelection}

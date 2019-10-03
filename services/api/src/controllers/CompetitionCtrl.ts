@@ -5,7 +5,7 @@ import {EntityManager, Repository} from 'typeorm';
 import {Competition} from '../entity/Competition';
 import {Licence} from '../entity/Licence';
 
-@Controller('/api/epreuves')
+@Controller('/api/competition')
 @ApiUseTags('CompetitionAPI')
 export class CompetitionCtrl {
     constructor(
@@ -19,7 +19,7 @@ export class CompetitionCtrl {
     @Get(':id')
     @ApiOperation({
         operationId: 'get',
-        title: 'Rechercher d\'une épreuve par ID ',
+        title: 'Recherche d\'une épreuve par ID ',
         description: 'description',
     })
     @ApiResponse({status: 200, type: Competition, isArray: false, description: 'Renvoie une épreuve'})

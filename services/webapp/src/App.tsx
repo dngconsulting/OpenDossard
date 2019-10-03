@@ -6,7 +6,7 @@ import {Provider} from 'react-redux';
 import {store} from './store/Store';
 import {createMuiTheme, CssBaseline, MuiThemeProvider} from '@material-ui/core';
 
-const theme = createMuiTheme({
+export const cadtheme = createMuiTheme({
     typography: {
         fontFamily: [
             'Roboto', 'Helvetica', 'Arial'
@@ -43,7 +43,7 @@ class App extends React.Component {
         return (
             <Provider store={store}>
                 <Router>
-                    <MuiThemeProvider theme={theme}>
+                    <MuiThemeProvider theme={cadtheme}>
                         <CssBaseline />
                         <AppNavBar/>
                     </MuiThemeProvider>
