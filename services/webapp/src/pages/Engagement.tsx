@@ -30,8 +30,8 @@ const update = async (newData: RaceRow) => {
 }
 
 const COLUMNS: Array<Column<RaceRow>> = [
-    { title: "Licence", field: "licenceNumber", type: "numeric", headerStyle: { textAlign: "center" },
-        cellStyle: { textAlign: "center"}
+    { title: "Licence", field: "licenceNumber", editable: "never", headerStyle: { textAlign: "center" },
+        cellStyle: { textAlign: "center"},
     },
     { title: "Nom", field: "name", editable: "never" },
     { title: "Prénom", field: "firstName", editable: "never" },
@@ -40,8 +40,7 @@ const COLUMNS: Array<Column<RaceRow>> = [
     { title: "Dossard", field: "riderNumber", type: "numeric", headerStyle: { textAlign: "center" },
         cellStyle: { textAlign: "center"},
         defaultSort: "asc"
-    },
-    { title: "Course", field: "raceCode", editable: "always"},
+    }
 ];
 
 const EngagementPage = ({match}: {match: any}) => {
