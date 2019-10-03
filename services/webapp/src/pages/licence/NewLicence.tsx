@@ -23,6 +23,11 @@ interface ILicencesProps {
     history: any;
 }
 
+interface ICategory {
+    label: string;
+    value: string;
+}
+
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
         formControl: {
@@ -33,6 +38,36 @@ const useStyles = makeStyles((theme: Theme) =>
         }
     }),
 );
+
+const cateV = [
+    {label: 'Cadet', value: 'cadet'},
+    {label: 'Féminin', value: 'f'},
+    {label: 'Minimes', value: 'm'},
+    {label: '1', value: '1'},
+    {label: '2', value: '2'},
+    {label: '3', value: '3'}];
+
+const cateA = [
+    {label: 'Jeune', value: 'j'},
+    {label: 'Senior', value: 's'},
+    {label: 'Vétéran', value: 'v'},
+    {label: 'Super Vétéran', value: 'sv'},
+    {label: 'Ancien', value: 'a'}];
+
+const federations = {
+    fsgt: {
+        name: {label: 'FSGT', value: 'fsgt'},
+        cateV: [...cateV, {label: '4', value: '4'}, {label: '5', value: '5'}]
+    },
+    ufolep: {
+        name: {label: 'UFOLEP', value: 'ufolep'},
+        cateV: [...cateV, {label: 'GS', value: 'gs'}]
+    },
+    ffc: {
+        name: {label: 'FFC', value: 'ffc'},
+        cateV
+    },
+};
 
 
 const NewLicencesPage = (props: ILicencesProps) => {
@@ -50,7 +85,6 @@ const NewLicencesPage = (props: ILicencesProps) => {
             ...oldValues,
             [event.target.name as string]: event.target.value,
         }));
-        console.log(event.target.value);
     };
 
     const handleFederationChange = (event: React.ChangeEvent<{ name?: string; value: unknown }>) => {
@@ -79,7 +113,6 @@ const NewLicencesPage = (props: ILicencesProps) => {
                 </Grid>
                 <Grid item={true} xs={6}>
                     <TextField
-                        required={true}
                         id="licenceNumber"
                         label="Numéro Licence"
                     />
@@ -98,9 +131,8 @@ const NewLicencesPage = (props: ILicencesProps) => {
                             <MenuItem value="">
                                 <em>None</em>
                             </MenuItem>
-                            <MenuItem value={'fsgt'}>FSGT</MenuItem>
-                            <MenuItem value={'ufolep'}>UFOLEP</MenuItem>
-                            <MenuItem value={'ffc'}>FFC</MenuItem>
+                            {Object.keys(federations).map((key, index) => <MenuItem key={index}
+                                                                                    value={federations[key].name.value}>{federations[key].name.label}</MenuItem>)}
                         </Select>
                     </FormControl>
                 </Grid>
@@ -167,12 +199,10 @@ const NewLicencesPage = (props: ILicencesProps) => {
                                 name: 'cateA',
                                 id: 'cateA',
                             }}
-                        >
-                            <MenuItem value={'jeune'}>Jeune</MenuItem>
-                            <MenuItem value={'senior'}>Senior</MenuItem>
-                            <MenuItem value={'veteran'}>Vétéran</MenuItem>
-                            <MenuItem value={'super_veteran'}>Super Vétéran</MenuItem>
-                            <MenuItem value={'ancien'}>Ancien</MenuItem>
+                        >{
+                            cateA.map((value: ICategory, index: number) => <MenuItem key={index}
+                                                                                     value={value.value}>{value.label}</MenuItem>)
+                        }
                         </Select>
                     </FormControl>
                 </Grid>
@@ -186,13 +216,13 @@ const NewLicencesPage = (props: ILicencesProps) => {
                                 name: 'cateV',
                                 id: 'cateV',
                             }}
-                        >
-                            <MenuItem value={'1'}>1</MenuItem>
-                            <MenuItem value={'2'}>2</MenuItem>
-                            <MenuItem value={'3'}>3</MenuItem>
-                            <MenuItem value={'cadet'}>Cadet</MenuItem>
-                            <MenuItem value={'feminin'}>Féminin</MenuItem>
-                            <MenuItem value={'minimes'}>Minimes</MenuItem>
+                        > {
+
+                            values.federation &&
+                            federations[values.federation].cateV.map((value: ICategory, index: number) =>
+                                <MenuItem key={index} value={value.value}>{value.label}</MenuItem>)
+
+                        }
                         </Select>
                     </FormControl>
                 </Grid>
@@ -202,7 +232,10 @@ const NewLicencesPage = (props: ILicencesProps) => {
                     </Button>
                 </Grid>
                 <Grid item={true} xs={6}>
-                    <Button variant="contained" color="secondary" className={classes.button} onClick={()=>{props.history.goBack()}}>
+                    <Button variant="contained" color="secondary" className={classes.button}
+                            onClick={() => {
+                                props.history.goBack();
+                            }}>
                         Retour
                     </Button>
                 </Grid>
