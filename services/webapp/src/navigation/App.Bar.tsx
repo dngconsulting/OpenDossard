@@ -27,9 +27,10 @@ import NotificationIcon from '@material-ui/icons/Notifications';
 import LicencesPage from '../pages/licence/Licences';
 import NewLicencePage from '../pages/licence/NewLicence';
 import StatsPage from '../pages/Stats';
-import ResultatsPage from '../pages/Resultats';
 import CompetitionChooser from '../pages/CompetitionChooser';
 import EngagementPage from '../pages/Engagement';
+import EditResultsPage from '../pages/results/edit.results'
+import ViewResultsPage from '../pages/results/view.results'
 
 const classNames = require('classnames');
 
@@ -236,7 +237,8 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
                     <Route path='/stats' component={isAuthenticated(StatsPage)}/>
                     <Route path='/account' render={this.renderAccount}/>
                     <Route path='/competition/:id/engagements' component={isAuthenticated(EngagementPage)}/>
-                    <Route path='/competition/:id/results' component={isAuthenticated(ResultatsPage)}/>
+                    <Route path='/competition/:id/results/create' component={isAuthenticated(EditResultsPage)}/>
+                    <Route path='/competition/:id/results/view' component={isAuthenticated(ViewResultsPage)}/>
                     {this.renderAlert()}
                     {this.renderSpinner()}
                 </main>

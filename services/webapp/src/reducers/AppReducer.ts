@@ -1,7 +1,8 @@
 import {ActionType, IAppAction} from '../actions/Helpers';
 import {AppState} from '../state/AppState';
 
-export const AppReducer = (state: AppState = null, action: IAppAction): AppState => {
+const initialState: AppState = {}
+export const AppReducer = (state: AppState = initialState, action: IAppAction): AppState => {
     switch (action.type) {
         case ActionType.TEST:
             return {
@@ -11,7 +12,7 @@ export const AppReducer = (state: AppState = null, action: IAppAction): AppState
         case ActionType.LISTE_COUREURS:
             return {
                 ...state,
-                licences : [],
+                licences: [],
             };
         case ActionType.SET_VAR:
             return {
