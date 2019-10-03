@@ -49,6 +49,12 @@ const EngagementPage = ({match}: {match: any}) => {
     const [races, setRaces] = useState<RaceRow[]>([])
     const [notification, setNotification] = useState(EMPTY_NOTIF);
     const [columns, setColumns] = useState(COLUMNS);
+    const [selection, setSelection] = useState(null);
+
+    const handleChange = (i: any) => {
+        setSelection(i);
+        console.log(i ? i.name + ' ' + i.firstName : 'rien');
+    }
 
     const fetchData = async ()  => {
         const data = await apiRaces.getAllRaces();
@@ -82,7 +88,7 @@ const EngagementPage = ({match}: {match: any}) => {
     };
 
     return <div>
-        <AutocompleteInput/>
+        <AutocompleteInput selection={selection} onChangeSelection={handleChange}/>
         <Grid container={true}>
             <CreationForm competitionId={competitionId}
                           onSuccess={(race) => {
