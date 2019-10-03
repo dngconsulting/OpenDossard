@@ -1,4 +1,4 @@
-import React, {CSSProperties, HTMLAttributes, useEffect} from 'react';
+import React, {CSSProperties, HTMLAttributes, useEffect, useState} from 'react';
 import Select from 'react-select';
 import {createStyles, makeStyles, Theme, useTheme} from '@material-ui/core/styles';
 import TextField, {BaseTextFieldProps} from '@material-ui/core/TextField';
@@ -10,25 +10,8 @@ import {apiClubs} from '../../util/api';
 
 interface IOptionType {
     label: string;
-    value: string;
+    value: number;
 }
-
-const suggestions: IOptionType[] = [
-    { label: 'Association Cycliste Le Fousseret' },
-    { label: 'Team Exper\'Cycle' },
-    { label: 'Cyclo-Club Castanéen' },
-    { label: 'Cercle Athlétique Castelsarrasinois Cyclisme' },
-    { label: 'Sorèze Vélo-Club' },
-    { label: 'Vélo-Club CPRS Pins-Justaret/Vilatte' },
-    { label: 'Vélo-Sport Castrais' },
-    { label: 'Club Cycliste Le Boulou' },
-    { label: 'TOAC Cyclisme' },
-    { label: 'Tolosa Cycling Team' },
-    { label: 'Saint-Gaudens Cyclisme Comminges' },
-].map(suggestion => ({
-    value: suggestion.label,
-    label: suggestion.label,
-}));
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -101,17 +84,30 @@ export default function ClubSelect() {
     // @ts-ignore
     const classes = useStyles();
     const theme = useTheme();
-    const [single, setSingle] = React.useState<ValueType<IOptionType>>(null);
+    const [selectedClub, setSelectedClub] = React.useState<ValueType<IOptionType>>(null);
+    const [clubs, setClubs] = useState<IOptionType[]>([]);
 
     const fetchData = async ()  => {
         return await apiClubs.getAllClubs();
     };
     useEffect(()=>{
-        fetchData().then(res => console.log('clubs :::: ' + JSON.stringify(res)));
-    },['loading'])
+        fetchData().then(res => setClubs(res.map(option => {
+            let label = option.longName;
+            if(option.shortName){
+                label += " ("+option.shortName+")"
+            }
+            if(option.dept){
+                label += " ["+option.dept+"]"
+            }
+            return (
+            {
+            value: option.id,
+            label,
+        })}))).catch(err=>console.log(err));
+    },[]);
 
     const handleChangeSingle = (value: ValueType<IOptionType>) => {
-        setSingle(value);
+        setSelectedClub(value);
     };
 
     const selectStyles = {
@@ -137,9 +133,9 @@ export default function ClubSelect() {
                         },
                     }}
                     placeholder="Rechercher un club"
-                    options={suggestions}
+                    options={clubs}
                     components={components}
-                    value={single}
+                    value={selectedClub}
                     onChange={handleChangeSingle}
                 />
     );

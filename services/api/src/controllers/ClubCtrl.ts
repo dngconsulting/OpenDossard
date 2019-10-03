@@ -1,18 +1,20 @@
-import {Licence} from '../entity/Licence';
 import {EntityManager, Repository} from 'typeorm';
 import {Controller, Get} from '@nestjs/common';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
-import {ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
+import {ApiModelPropertyOptional, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
 import {Club} from '../entity/Club';
 
-/**
- * Add @Controller annotation to declare your class as Router controller.
- * The first param is the global path for your controller.
- * The others params is the controller dependencies.
- *
- * In this case, EventsCtrl is a dependency of CalendarsCtrl.
- * All routes of EventsCtrl will be mounted on the `/calendars` path.
- */
+export class ClubRow {
+    @ApiModelPropertyOptional()
+    public id: number;
+    @ApiModelPropertyOptional()
+    public longName: string;
+    @ApiModelPropertyOptional()
+    public dept: string;
+    @ApiModelPropertyOptional()
+    public shortName: string;
+}
+
 @Controller('/api/clubs')
 @ApiUseTags('ClubAPI')
 export class ClubCtrl {
@@ -29,9 +31,9 @@ export class ClubCtrl {
         title: 'Rechercher tous les clubs',
         description: 'description',
     })
-    @ApiResponse({status: 200, type: Club, isArray: true, description: 'Liste des clubs'})
+    @ApiResponse({status: 200, type: ClubRow, isArray: true, description: 'Liste des clubs'})
     @Get()
-    public async getAllClubs(): Promise<Club[]> {
+    public async getAllClubs(): Promise<ClubRow[]> {
         return this.repository.find();
     }
 

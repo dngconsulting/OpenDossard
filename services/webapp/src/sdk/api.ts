@@ -89,6 +89,38 @@ export interface Club {
 /**
  * 
  * @export
+ * @interface ClubRow
+ */
+export interface ClubRow {
+    /**
+     * 
+     * @type {number}
+     * @memberof ClubRow
+     */
+    id?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ClubRow
+     */
+    longName?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ClubRow
+     */
+    dept?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ClubRow
+     */
+    shortName?: string;
+}
+
+/**
+ * 
+ * @export
  * @interface Competition
  */
 export interface Competition {
@@ -545,7 +577,7 @@ export const ClubAPIApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAllClubs(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<Club>> {
+        getAllClubs(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<ClubRow>> {
             const localVarFetchArgs = ClubAPIApiFetchParamCreator(configuration).getAllClubs(options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
