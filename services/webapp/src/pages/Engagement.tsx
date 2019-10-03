@@ -13,10 +13,10 @@ import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import {CadSnackBar, EMPTY_NOTIF} from "../components/CadSnackbar";
-import Box from "@material-ui/core/Box";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import Paper from "@material-ui/core/Paper";
+import moment from 'moment';
 
 const create = async (newRace: RaceCreate) => {
     await apiRaces.create(newRace);
@@ -208,11 +208,17 @@ const CreationForm = (
 
 const CompetitionCard = ({competition} : {competition: Competition}) => {
     return competition &&
-    <Box style={{padding: 20}}>
-        <Typography variant="h6" gutterBottom={true}>
-            {competition.name}
-        </Typography>
-    </Box>
+        <div style={{padding: 20}}>
+            <Typography component="h2" variant="h5">
+                {competition.name}
+            </Typography>
+            <Typography variant="subtitle1" color="textSecondary">
+                {moment(competition.eventDate).format('DD/MM/YYYY')}
+            </Typography>
+            <Typography variant="subtitle1" paragraph={true}>
+                {competition.observations}
+            </Typography>
+        </div>
 }
 
 
