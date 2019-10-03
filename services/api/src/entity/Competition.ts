@@ -32,12 +32,13 @@ export enum CompetitionType {
 export class Competition {
 
     @PrimaryGeneratedColumn()
+    @ApiModelProperty()
     public id: number;
     /**
      * La eventDate de l'épreuve au format JS
      */
     @Column({nullable: false})
-    @ApiModelProperty()
+    @ApiModelProperty({ type: 'string', format: 'date-time'})
     public eventDate: Date;
     /**
      * La référence du club organisateur

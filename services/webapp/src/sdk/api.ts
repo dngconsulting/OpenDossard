@@ -94,10 +94,16 @@ export interface Club {
 export interface Competition {
     /**
      * 
-     * @type {ModelDate}
+     * @type {number}
      * @memberof Competition
      */
-    eventDate: ModelDate;
+    id: number;
+    /**
+     * 
+     * @type {Date}
+     * @memberof Competition
+     */
+    eventDate: Date;
     /**
      * 
      * @type {Club}
@@ -272,14 +278,6 @@ export interface LicencesPage {
      * @memberof LicencesPage
      */
     totalCount?: number;
-}
-
-/**
- * 
- * @export
- * @interface ModelDate
- */
-export interface ModelDate {
 }
 
 /**
@@ -511,7 +509,7 @@ export const CompetitionAPIApiFetchParamCreator = function (configuration?: Conf
     return {
         /**
          * description
-         * @summary Rechercher d'une épreuve par ID 
+         * @summary Recherche d'une épreuve par ID 
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -572,7 +570,7 @@ export const CompetitionAPIApiFp = function(configuration?: Configuration) {
     return {
         /**
          * description
-         * @summary Rechercher d'une épreuve par ID 
+         * @summary Recherche d'une épreuve par ID 
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -618,7 +616,7 @@ export const CompetitionAPIApiFactory = function (configuration?: Configuration,
     return {
         /**
          * description
-         * @summary Rechercher d'une épreuve par ID 
+         * @summary Recherche d'une épreuve par ID 
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -647,7 +645,7 @@ export const CompetitionAPIApiFactory = function (configuration?: Configuration,
 export class CompetitionAPIApi extends BaseAPI {
     /**
      * description
-     * @summary Rechercher d'une épreuve par ID 
+     * @summary Recherche d'une épreuve par ID 
      * @param {string} id 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
