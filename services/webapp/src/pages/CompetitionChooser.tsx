@@ -50,7 +50,6 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
     }, []);
 
     const goToPage = (event: any, competitionid: number,resultsPage? : string) => {
-        console.log('History ' + JSON.stringify(props.history));
         if (props.history.location.state && props.history.location.state.goto) {
             props.history.push('/competition/' + competitionid + '/' + (resultsPage?resultsPage : props.history.location.state.goto));
         }
@@ -69,12 +68,12 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                 <Table className={classes.table}>
                     <TableHead>
                         <TableRow>
-                            <TableCell/>
                             <TableCell>Nom l'épreuve</TableCell>
                             <TableCell align="right">Date</TableCell>
                             <TableCell align="right">Lieu</TableCell>
                             <TableCell align="right">Catégories</TableCell>
                             <TableCell align="right">Fédération</TableCell>
+                            <TableCell/>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -82,6 +81,14 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                         {data.map(row => (
                             <TableRow hover={true} key={row.name}
                                       onClick={(event: any) => goToPage(event, row.id)}>
+                                <TableCell component="th" scope="row">
+                                    {row.name}
+                                </TableCell>
+                                <TableCell
+                                    align="right">{toMMDDYYYY(row.eventDate)}</TableCell>
+                                <TableCell align="right">{row.zipCode}</TableCell>
+                                <TableCell align="right">{row.categories}</TableCell>
+                                <TableCell align="right">{row.fede}</TableCell>
                                 <TableCell align="right">
                                     <Button variant={'contained'}
                                             onClick={(event: any) => goToPage(event, row.id,'results/create')}
@@ -97,14 +104,6 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                                         Visualiser Résultats
                                     </Button>
                                 </TableCell>
-                                <TableCell component="th" scope="row">
-                                    {row.name}
-                                </TableCell>
-                                <TableCell
-                                    align="right">{toMMDDYYYY(row.eventDate)}</TableCell>
-                                <TableCell align="right">{row.zipCode}</TableCell>
-                                <TableCell align="right">{row.categories}</TableCell>
-                                <TableCell align="right">{row.fede}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
