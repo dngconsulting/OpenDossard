@@ -29,6 +29,7 @@ import NewLicencePage from '../pages/licence/NewLicence';
 import StatsPage from '../pages/Stats';
 import ResultatsPage from '../pages/Resultats';
 import CompetitionChooser from '../pages/CompetitionChooser';
+import EngagementPage from '../pages/Engagement';
 
 const classNames = require('classnames');
 
@@ -235,6 +236,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
                     <Route path='/results' component={isAuthenticated(ResultatsPage)}/>
                     <Route path='/stats' component={isAuthenticated(StatsPage)}/>
                     <Route path='/account' render={this.renderAccount}/>
+                    <Route path='/competition/:id/engagements' component={isAuthenticated(EngagementPage)}/>
                     {this.renderAlert()}
                     {this.renderSpinner()}
                 </main>

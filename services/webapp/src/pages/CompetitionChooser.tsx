@@ -9,10 +9,16 @@ import Paper from '@material-ui/core/Paper';
 import cadtheme from '../App';
 import {apiCompetitions} from '../util/api';
 import {Competition} from '../sdk';
+import {toMMDDYYYY} from '../util/date';
+import {withRouter} from 'react-router-dom';
 
 interface ICompetitionChooserProps {
     classes?: any;
+    history: {
+        push(url: string): void;
+    };
 }
+
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
         root: {
@@ -25,18 +31,18 @@ const useStyles = makeStyles((theme: Theme) =>
     }),
 );
 const CompetitionChooser = (props: ICompetitionChooserProps) => {
-    const [data,setData] = useState<Competition[]>([])
+    const [data, setData] = useState<Competition[]>([]);
     const classes = useStyles(cadtheme);
-    const  fetchCompetitions = async () => {
-       setData(await apiCompetitions.getAllCompetitions());
-    }
-    useEffect( ()=> {
-        fetchCompetitions()
-    },[]);
+    const fetchCompetitions = async () => {
+        setData(await apiCompetitions.getAllCompetitions());
+    };
+    useEffect(() => {
+        fetchCompetitions();
+    }, []);
 
-    const handleClick = (event : any, rowid : string) => {
-        alert('Epreuve ' + rowid + ' selected')
-    }
+    const handleClick = (event: any, competitionid: number) => {
+        props.history.push('/competition/' + competitionid + '/engagements')
+    };
     return (
         <Paper className={classes.root}>
             <Table className={classes.table}>
@@ -51,11 +57,13 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                 </TableHead>
                 <TableBody>
                     {data.map(row => (
-                        <TableRow hover={true} key={row.name} onClick={event => handleClick(event, row.name)}>
+                        <TableRow hover={true} key={row.name}
+                                  onClick={(event:any) => handleClick(event, row.id)}>
                             <TableCell component="th" scope="row">
                                 {row.name}
                             </TableCell>
-                            <TableCell align="right">{row.eventDate}</TableCell>
+                            <TableCell
+                                align="right">{toMMDDYYYY(row.eventDate)}</TableCell>
                             <TableCell align="right">{row.zipCode}</TableCell>
                             <TableCell align="right">{row.categories}</TableCell>
                             <TableCell align="right">{row.fede}</TableCell>
@@ -69,6 +77,4 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
 };
 
 
-
-
-export default CompetitionChooser ;
+export default withRouter(CompetitionChooser);
