@@ -5,18 +5,15 @@ import {createStyles, Theme} from '@material-ui/core';
 import MaterialTable, {Column} from "material-table";
 
 import {apiCompetitions, apiRaces} from "../util/api";
-import {Competition, RaceCreate, RaceRow} from "../sdk";
-import Card from "@material-ui/core/Card";
+import {RaceCreate, RaceRow} from "../sdk";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import {CadSnackBar, EMPTY_NOTIF} from "../components/CadSnackbar";
-import Box from "@material-ui/core/Box";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
-import Paper from "@material-ui/core/Paper";
+import moment from 'moment';
+import RaceTabs, {IRaceStat} from "../components/RaceTabs";
 import AutocompleteInput from "../components/AutocompleteInput";
 
 const create = async (newRace: RaceCreate) => {
@@ -41,9 +38,34 @@ const COLUMNS: Array<Column<RaceRow>> = [
     { title: "Club", field: "club", editable: "never" },
     { title: "Dossard", field: "riderNumber", type: "numeric", headerStyle: { textAlign: "center" },
         cellStyle: { textAlign: "center"},
-        defaultSort: "asc"
+        defaultSort: "desc"
     }
 ];
+
+interface ICompetition {
+    name?: string,
+    eventDate?: Date,
+    observations?: string,
+    races?: string[]
+}
+
+const EMPTY_COMPETITION: ICompetition = {
+    races: ['1/2/3', '4/5']
+};
+
+const computeTabs = (rows: RaceRow[], races: string[]):IRaceStat => {
+
+    const fromRaces = races.reduce( (acc: IRaceStat , item) => ({...acc, [item]: 0}), {});
+    const fromRows = rows.reduce( (acc: IRaceStat , row) => (
+        {   ...acc,
+            [row.raceCode]: acc[row.raceCode] ? acc[row.raceCode]+1 : 1 }
+    ), {})
+
+    return {
+        ...fromRaces,
+        ...fromRows
+    }
+}
 
 const EngagementPage = ({match}: {match: any}) => {
 
@@ -51,12 +73,14 @@ const EngagementPage = ({match}: {match: any}) => {
 
     const [rows, setRows] = useState<RaceRow[]>([])
     const [notification, setNotification] = useState(EMPTY_NOTIF);
-    const [competition, setCompetition] = useState(null);
+    const [competition, setCompetition] = useState(EMPTY_COMPETITION);
     const [currentRace, setCurrentRace] = useState(null);
+    const tabs = computeTabs(rows, competition.races);
 
     const fetchRows = async () => {
         setRows( await apiRaces.getAllRaces() );
     }
+
     const fetchCompetition = async () => {
         const c = await apiCompetitions.get(competitionId);
         setCurrentRace(c.races[0]);
@@ -70,7 +94,7 @@ const EngagementPage = ({match}: {match: any}) => {
 
     return <div>
         <CompetitionCard competition={competition} />
-        <RaceTabs races={competition ? competition.races : []} currentRace={currentRace} onRaceChanged={race => setCurrentRace(race)}/>
+        <RaceTabs tabs={tabs} value={currentRace} onChange={race => setCurrentRace(race)}/>
         <Grid container={true}>
             <CreationForm competitionId={competitionId}
                           race={currentRace}
@@ -162,11 +186,11 @@ const CreationForm = (
 
     const classes = useStyles({});
 
-    return <Card style={{margin: 20, padding: 20, overflow: 'visible'}}>
-        <Typography variant="h6" gutterBottom={true}>
-            Nouveau coureur :
-        </Typography>
+    return <div style={{paddingLeft: 20, paddingBottom: 20}}>
         <Grid container={true} spacing={3} alignItems={"baseline"}>
+            <Typography variant="h5" gutterBottom={true} style={{marginRight: 20}}>
+                Nouveau Coureur :
+            </Typography>
             <AutocompleteInput style={{width: '400px', zIndex: 20}} selection={newRace.licence} onChangeSelection={(e: any) => setValues({...newRace, licence: e})}/>
             <TextField
                 label="Numéro de dossard"
@@ -198,25 +222,21 @@ const CreationForm = (
                 OK
             </Button>
         </Grid>
-    </Card>
+    </div>
 }
 
-const CompetitionCard = ({competition} : {competition: Competition}) => {
-    return competition &&
-    <Box style={{padding: 20}}>
-        <Typography variant="h6" gutterBottom={true}>
-            {competition.name}
-        </Typography>
-    </Box>
+const CompetitionCard = ({competition} : {competition: ICompetition}) => {
+    return <div style={{padding: 20}}>
+            <Typography component="h2" variant="h5">
+                {competition.name}
+            </Typography>
+            <Typography variant="subtitle1" color="textSecondary">
+                {moment(competition.eventDate).format('DD/MM/YYYY')}
+            </Typography>
+            <Typography variant="subtitle1" paragraph={true} style={{marginBottom: 0}}>
+                {competition.observations}
+            </Typography>
+        </div>
 }
-
-
-const RaceTabs = ({races, currentRace, onRaceChanged}: { races: string[], currentRace: string, onRaceChanged: (race: string) => void }) => (
-    <Paper square={true}>
-        <Tabs value={currentRace} onChange={(e, v) => onRaceChanged(v)}>
-            {races.map(raceCode => <Tab key={raceCode} value={raceCode} label={raceCode}/>)}
-        </Tabs>
-    </Paper>
-)
 
 export default EngagementPage;
