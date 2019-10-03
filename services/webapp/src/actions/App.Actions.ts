@@ -13,6 +13,7 @@ export interface IApplicationProps {
     showSpinner: (message: string) => IAppAction;
     hideSpinner: () => IAppAction;
     login: (data: any) => IAppAction;
+    setVar : (data : any) => IAppAction;
     logout: () => IAppAction;
     createUser: (content: any) => any;
     getUser: (id: any) => any;
@@ -80,6 +81,13 @@ export const hideSpinner = (): IAppAction => {
 export const login = (data: User): IAppAction => {
     return { type: ActionType.LOGIN_REQUEST, payload: data };
 };
+
+export function setVar(variable : any) {
+    return {
+        type: ActionType.SET_VAR,
+        payload: {...variable}
+    }
+}
 
 export const logout = (): IAppAction => {
     return { type: ActionType.LOGOUT_REQUEST };
