@@ -148,6 +148,12 @@ export interface Competition {
     pricing?: any;
     /**
      * 
+     * @type {Array<string>}
+     * @memberof Competition
+     */
+    races?: Array<string>;
+    /**
+     * 
      * @type {string}
      * @memberof Competition
      */
@@ -519,7 +525,7 @@ export const CompetitionAPIApiFetchParamCreator = function (configuration?: Conf
             if (id === null || id === undefined) {
                 throw new RequiredError('id','Required parameter id was null or undefined when calling get.');
             }
-            const localVarPath = `/api/epreuves/{id}`
+            const localVarPath = `/api/competition/{id}`
                 .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
@@ -543,7 +549,7 @@ export const CompetitionAPIApiFetchParamCreator = function (configuration?: Conf
          * @throws {RequiredError}
          */
         getAllCompetitions(options: any = {}): FetchArgs {
-            const localVarPath = `/api/epreuves`;
+            const localVarPath = `/api/competition`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
             const localVarHeaderParameter = {} as any;
