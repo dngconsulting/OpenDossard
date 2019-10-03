@@ -13,7 +13,6 @@ import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import {CadSnackBar, EMPTY_NOTIF} from "../components/CadSnackbar";
-import AutocompleteInput from "../components/AutocompleteInput";
 
 const create = async (newRace: RaceCreate) => {
     await apiRaces.create(newRace);
@@ -58,7 +57,6 @@ const EngagementPage = ({match}: {match: any}) => {
     }, ['loading'])
 
     return <div>
-        <AutocompleteInput/>
         <Grid container={true}>
             <CreationForm competitionId={competitionId}
                           onSuccess={(race) => {
