@@ -40,7 +40,7 @@ const COLUMNS: Array<Column<RaceRow>> = [
     { title: "Club", field: "club", editable: "never" },
     { title: "Dossard", field: "riderNumber", type: "numeric", headerStyle: { textAlign: "center" },
         cellStyle: { textAlign: "center"},
-        defaultSort: "asc"
+        defaultSort: "desc"
     }
 ];
 
