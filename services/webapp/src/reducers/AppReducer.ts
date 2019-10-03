@@ -13,7 +13,11 @@ export const AppReducer = (state: AppState = null, action: IAppAction): AppState
                 ...state,
                 licences : [],
             };
-
+        case ActionType.SET_VAR:
+            return {
+                ...state,
+                ...action.payload
+            };
         default:
             return state;
     }

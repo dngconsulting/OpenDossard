@@ -2,5 +2,6 @@ import {Licence} from '../sdk';
 
 export interface AppState {
     test?: string;
-    licences? : Licence[]
+    licences? : Licence[];
+    currentCompetition : string;
 }
