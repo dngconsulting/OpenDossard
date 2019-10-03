@@ -92,7 +92,7 @@ const EngagementPage = ({match}: {match: any}) => {
         </Grid>
         <MaterialTable
             columns={COLUMNS}
-            data={rows}
+            data={rows.filter( row => row.raceCode === currentRace)}
             options={{
                 filtering: true,
                 actionsColumnIndex: -1,
