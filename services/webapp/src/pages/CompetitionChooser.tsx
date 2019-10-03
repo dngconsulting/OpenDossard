@@ -1,44 +1,74 @@
-import * as React from 'react';
-import MaterialTable, {Query} from 'material-table';
+import React, {useEffect, useState} from 'react';
+import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import Paper from '@material-ui/core/Paper';
+import cadtheme from '../App';
 import {apiCompetitions} from '../util/api';
 import {Competition} from '../sdk';
-import {Theme, withStyles} from '@material-ui/core';
 
-const fetchCompetitions = async (query: Query<Competition>)  => {
-   const competitions = await apiCompetitions.getAllCompetitions();
-    return {data: competitions, page: query.page, totalCount: competitions.length};
-};
 interface ICompetitionChooserProps {
     classes?: any;
 }
+const useStyles = makeStyles((theme: Theme) =>
+    createStyles({
+        root: {
+            width: '100%',
+            overflowX: 'auto',
+        },
+        table: {
+            minWidth: 650,
+        },
+    }),
+);
 const CompetitionChooser = (props: ICompetitionChooserProps) => {
+    const [data,setData] = useState<Competition[]>([])
+    const classes = useStyles(cadtheme);
+    const  fetchCompetitions = async () => {
+       setData(await apiCompetitions.getAllCompetitions());
+    }
+    useEffect( ()=> {
+        fetchCompetitions()
+    },[]);
 
+    const handleClick = (event : any, rowid : string) => {
+        alert('Epreuve ' + rowid + ' selected')
+    }
     return (
-        <MaterialTable
-            style={props.classes.root}
-            title={'Liste des épreuves'}
-            columns={[
-                {title: 'Date de l\'épreuve', field: 'eventDate'},
-                {title: 'Nom de l\'épreuve', field: 'name'},
-                {title: 'Lieu/Dept', field: 'zipCode'},
-                {title: 'Catégories', field: 'categories'},
-                {title: 'Fédération', field: 'fede'},
-                {title: 'Organisé par', field: 'clubId'},
-            ]}
-            data={fetchCompetitions}
-            options={{
-                selection: true,
-                rowStyle: rowData => ({ backgroundColor: rowData.tableData.checked ? '#37b15933' : '' })
-            }}
-        />
+        <Paper className={classes.root}>
+            <Table className={classes.table}>
+                <TableHead>
+                    <TableRow>
+                        <TableCell>Nom l'épreuve</TableCell>
+                        <TableCell align="right">Date</TableCell>
+                        <TableCell align="right">Lieu</TableCell>
+                        <TableCell align="right">Catégories</TableCell>
+                        <TableCell align="right">Fédération</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {data.map(row => (
+                        <TableRow hover={true} key={row.name} onClick={event => handleClick(event, row.name)}>
+                            <TableCell component="th" scope="row">
+                                {row.name}
+                            </TableCell>
+                            <TableCell align="right">{row.eventDate}</TableCell>
+                            <TableCell align="right">{row.zipCode}</TableCell>
+                            <TableCell align="right">{row.categories}</TableCell>
+                            <TableCell align="right">{row.fede}</TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </Paper>
     )
         ;
 };
 
-const styles = (theme: Theme) => ({
-    root: {
-        backgroundColor: 'black',
-    }
-})
 
-export default withStyles(styles as any)(CompetitionChooser as any) as any;
+
+
+export default CompetitionChooser ;
