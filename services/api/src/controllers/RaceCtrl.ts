@@ -95,15 +95,26 @@ export class RacesCtrl {
             throw(new BadRequestException('Licence inconnue'));
         }
 
-        const conflict = await this.entityManager.createQueryBuilder(Race, 'race')
+        const numberConflict = await this.entityManager.createQueryBuilder(Race, 'race')
             .where('race."competitionId" = :cid and race."riderNumber" = :riderNumber', {
                 cid: race.competitionId,
                 riderNumber: race.riderNumber,
             })
             .getOne();
 
-        if ( conflict ) {
+        if ( numberConflict ) {
             throw(new BadRequestException(`Le numéro de dossard ${race.riderNumber} est déjà pris`));
+        }
+
+        const licenceConflict = await this.entityManager.createQueryBuilder(Race, 'race')
+            .where('race."competitionId" = :cid and race."licenceId" = :licenceId', {
+                cid: race.competitionId,
+                licenceId: licence.id,
+            })
+            .getOne();
+
+        if ( licenceConflict ) {
+            throw(new BadRequestException(`Ce licencié est déjà inscrit sur cette épreuve`));
         }
 
         const competition = await this.entityManager.findOne(Competition, race.competitionId);
