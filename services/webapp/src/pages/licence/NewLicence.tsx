@@ -72,34 +72,39 @@ const federations = {
 
 const NewLicencesPage = (props: ILicencesProps) => {
 
-    const [values, setValues] = React.useState({
+    const [newLicence, setValues] = React.useState({
+        name:'',
+        firstName: '',
+        licenceNumber: '',
+        gender:'m',
         federation: '',
         birthYear: '',
+        dept: '',
         cateA: '',
-        cateV: '',
-        disableCateV: false
+        cateV: ''
     });
+    const [disableCateV, setDisableCateV] = React.useState(true);
 
     const handleChange = (event: React.ChangeEvent<{ name?: string; value: unknown }>) => {
-        setValues(oldValues => ({
-            ...oldValues,
-            [event.target.name as string]: event.target.value,
-        }));
+        if(event.target.name ==='federation' && !event.target.value){
+            setValues(oldValues => ({
+                ...oldValues,
+                [event.target.name as string]: event.target.value,
+                cateV: ''
+            }))
+        }else{
+            setValues(oldValues => ({
+                ...oldValues,
+                [event.target.name as string]: event.target.value,
+            }))
+        }
     };
-
-    const handleFederationChange = (event: React.ChangeEvent<{ name?: string; value: unknown }>) => {
-        setValues(oldValues => ({
-            ...oldValues,
-            [event.target.name as string]: event.target.value,
-            disableCateV: !event.target.value
-        }));
-    };
-
-
-    const [genre, setGenre] = React.useState('m');
 
     const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setGenre((event.target as HTMLInputElement).value);
+        setValues(oldValues => ({
+            ...oldValues,
+            gender: (event.target as HTMLInputElement).value
+        }))
     };
 
     // @ts-ignore
@@ -115,14 +120,19 @@ const NewLicencesPage = (props: ILicencesProps) => {
                     <TextField
                         id="licenceNumber"
                         label="Numéro Licence"
+                        onChange={e => setValues({...newLicence, licenceNumber: e.target.value})}
                     />
                 </Grid>
                 <Grid item={true} xs={6}>
                     <FormControl className={classes.formControl}>
                         <InputLabel htmlFor="federation">Fédération</InputLabel>
                         <Select
-                            value={values.federation}
-                            onChange={handleFederationChange}
+                            value={newLicence.federation}
+                            onChange={e=> {
+                                handleChange(e);
+                                setDisableCateV(!e.target.value);
+                                }
+                            }
                             inputProps={{
                                 name: 'federation',
                                 id: 'federation',
@@ -139,22 +149,24 @@ const NewLicencesPage = (props: ILicencesProps) => {
                 <Grid item={true} xs={6}>
                     <TextField
                         required={true}
-                        id="surname"
+                        id="name"
                         label="Nom"
                         margin="normal"
+                        onChange={e => setValues({...newLicence, name: e.target.value})}
                     />
                 </Grid>
                 <Grid item={true} xs={6}>
                     <TextField
                         required={true}
-                        id="firstname"
+                        id="firstName"
                         label="Prénom"
                         margin="normal"
+                        onChange={e => setValues({...newLicence, firstName: e.target.value})}
                     />
                 </Grid>
                 <Grid item={true} xs={12} style={{display: 'flex'}}>
                     <div><span style={{position: 'relative', top: '11px'}}>Genre</span></div>
-                    <RadioGroup aria-label="position" name="position" value={genre}
+                    <RadioGroup aria-label="position" name="position" value={newLicence.gender}
                                 onChange={handleRadioChange} row={true}>
                         <FormControlLabel
                             value="m"
@@ -175,13 +187,15 @@ const NewLicencesPage = (props: ILicencesProps) => {
                         id="birthYear"
                         label="Année de la naissance"
                         margin="normal"
+                        onChange={e => setValues({...newLicence, birthYear: e.target.value})}
                     />
                 </Grid>
                 <Grid item={true} xs={6}>
                     <TextField
-                        id="departement"
-                        label="Departement"
+                        id="department"
+                        label="Département"
                         margin="normal"
+                        onChange={e => setValues({...newLicence, dept: e.target.value})}
                     />
                 </Grid>
                 <Grid item={true} xs={12}>
@@ -193,7 +207,7 @@ const NewLicencesPage = (props: ILicencesProps) => {
                     <FormControl className={classes.formControl}>
                         <InputLabel htmlFor="cateA">Catégorie Age</InputLabel>
                         <Select
-                            value={values.cateA}
+                            value={newLicence.cateA}
                             onChange={handleChange}
                             inputProps={{
                                 name: 'cateA',
@@ -207,10 +221,10 @@ const NewLicencesPage = (props: ILicencesProps) => {
                     </FormControl>
                 </Grid>
                 <Grid item={true} xs={6}>
-                    <FormControl className={classes.formControl} disabled={values.disableCateV}>
+                    <FormControl className={classes.formControl} disabled={disableCateV}>
                         <InputLabel htmlFor="cateA">Catégorie Valeur</InputLabel>
                         <Select
-                            value={values.cateV}
+                            value={newLicence.cateV}
                             onChange={handleChange}
                             inputProps={{
                                 name: 'cateV',
@@ -218,8 +232,8 @@ const NewLicencesPage = (props: ILicencesProps) => {
                             }}
                         > {
 
-                            values.federation &&
-                            federations[values.federation].cateV.map((value: ICategory, index: number) =>
+                            newLicence.federation &&
+                            federations[newLicence.federation].cateV.map((value: ICategory, index: number) =>
                                 <MenuItem key={index} value={value.value}>{value.label}</MenuItem>)
 
                         }
@@ -227,7 +241,8 @@ const NewLicencesPage = (props: ILicencesProps) => {
                     </FormControl>
                 </Grid>
                 <Grid item={true} xs={6}>
-                    <Button variant="contained" color="primary" className={classes.button}>
+                    <Button variant="contained" color="primary" className={classes.button} onClick={()=>
+                    console.log(JSON.stringify(newLicence))}>
                         Sauvegarder
                     </Button>
                 </Grid>
