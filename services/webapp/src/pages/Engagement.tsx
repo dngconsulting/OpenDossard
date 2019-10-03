@@ -4,8 +4,8 @@ import {useEffect, useState} from 'react';
 import {createStyles, Theme} from '@material-ui/core';
 import MaterialTable, {Column} from "material-table";
 
-import {apiRaces} from "../util/api";
-import {RaceCreate, RaceRow} from "../sdk";
+import {apiCompetitions, apiRaces} from "../util/api";
+import {Competition, RaceCreate, RaceRow} from "../sdk";
 import Card from "@material-ui/core/Card";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
@@ -13,7 +13,10 @@ import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import {CadSnackBar, EMPTY_NOTIF} from "../components/CadSnackbar";
-import AutocompleteInput from "../components/AutocompleteInput";
+import Box from "@material-ui/core/Box";
+import Tabs from "@material-ui/core/Tabs";
+import Tab from "@material-ui/core/Tab";
+import Paper from "@material-ui/core/Paper";
 
 const create = async (newRace: RaceCreate) => {
     await apiRaces.create(newRace);
@@ -28,8 +31,8 @@ const update = async (newData: RaceRow) => {
 }
 
 const COLUMNS: Array<Column<RaceRow>> = [
-    { title: "Licence", field: "licenceNumber", type: "numeric", headerStyle: { textAlign: "center" },
-        cellStyle: { textAlign: "center"}
+    { title: "Licence", field: "licenceNumber", editable: "never", headerStyle: { textAlign: "center" },
+        cellStyle: { textAlign: "center"},
     },
     { title: "Nom", field: "name", editable: "never" },
     { title: "Prénom", field: "firstName", editable: "never" },
@@ -38,8 +41,7 @@ const COLUMNS: Array<Column<RaceRow>> = [
     { title: "Dossard", field: "riderNumber", type: "numeric", headerStyle: { textAlign: "center" },
         cellStyle: { textAlign: "center"},
         defaultSort: "asc"
-    },
-    { title: "Course", field: "raceCode", editable: "always"},
+    }
 ];
 
 const EngagementPage = ({match}: {match: any}) => {
@@ -48,19 +50,29 @@ const EngagementPage = ({match}: {match: any}) => {
 
     const [rows, setRows] = useState<RaceRow[]>([])
     const [notification, setNotification] = useState(EMPTY_NOTIF);
+    const [competition, setCompetition] = useState(null);
+    const [currentRace, setCurrentRace] = useState(null);
 
-    const fetchRows = async ()  => {
+    const fetchRows = async () => {
         setRows( await apiRaces.getAllRaces() );
+    }
+    const fetchCompetition = async () => {
+        const c = await apiCompetitions.get(competitionId);
+        setCurrentRace(c.races[0]);
+        setCompetition(c);
     }
 
     useEffect( () => {
+        fetchCompetition()
         fetchRows()
     }, ['loading'])
 
     return <div>
-        <AutocompleteInput/>
+        <CompetitionCard competition={competition} />
+        <RaceTabs races={competition ? competition.races : []} currentRace={currentRace} onRaceChanged={race => setCurrentRace(race)}/>
         <Grid container={true}>
             <CreationForm competitionId={competitionId}
+                          race={currentRace}
                           onSuccess={(race) => {
                               fetchRows();
                               setNotification({
@@ -79,15 +91,14 @@ const EngagementPage = ({match}: {match: any}) => {
             />
         </Grid>
         <MaterialTable
-            title={`Engagement ${competitionId}`}
             columns={COLUMNS}
-            data={rows}
+            data={rows.filter( row => row.raceCode === currentRace)}
             options={{
                 filtering: true,
                 actionsColumnIndex: -1,
                 pageSize: 500,
                 pageSizeOptions: [],
-                grouping: true,
+                toolbar: false,
             }}
             editable={{
                 onRowUpdate: async (newData, oldData) => {
@@ -136,15 +147,16 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 const CreationForm = (
-    {competitionId, onSuccess, onError}:
+    {competitionId, race, onSuccess, onError}:
         {
             competitionId: number,
+            race: string,
             onSuccess: (race: RaceCreate) => void,
             onError: (message: string) => void
         }
 ) => {
 
-    const EMPTY_FORM = {licenceNumber: '', riderNumber: '', raceCode: ''};
+    const EMPTY_FORM = {licenceNumber: '', riderNumber: ''};
     const [newRace, setValues] = useState(EMPTY_FORM);
 
     const classes = useStyles({});
@@ -168,20 +180,14 @@ const CreationForm = (
                 onChange={e => setValues({...newRace, riderNumber: e.target.value})}
                 margin="normal"
             />
-            <TextField
-                label="Course"
-                value={newRace.raceCode}
-                className={classes.field}
-                onChange={e => setValues({...newRace, raceCode: e.target.value})}
-                margin="normal"
-            />
             <Button
                 variant="contained"
                 color="primary"
                 onClick={ async () => {
                     try {
-                        const dto = {
+                        const dto: RaceCreate = {
                             ...newRace,
+                            raceCode: race,
                             riderNumber: parseInt(newRace.riderNumber),
                             competitionId
                         }
@@ -199,5 +205,23 @@ const CreationForm = (
         </Grid>
     </Card>
 }
+
+const CompetitionCard = ({competition} : {competition: Competition}) => {
+    return competition &&
+    <Box style={{padding: 20}}>
+        <Typography variant="h6" gutterBottom={true}>
+            {competition.name}
+        </Typography>
+    </Box>
+}
+
+
+const RaceTabs = ({races, currentRace, onRaceChanged}: { races: string[], currentRace: string, onRaceChanged: (race: string) => void }) => (
+    <Paper square={true}>
+        <Tabs value={currentRace} onChange={(e, v) => onRaceChanged(v)}>
+            {races.map(raceCode => <Tab key={raceCode} value={raceCode} label={raceCode}/>)}
+        </Tabs>
+    </Paper>
+)
 
 export default EngagementPage;
