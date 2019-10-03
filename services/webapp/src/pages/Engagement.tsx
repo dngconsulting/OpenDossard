@@ -15,6 +15,7 @@ import makeStyles from "@material-ui/core/styles/makeStyles";
 import {CadSnackBar, EMPTY_NOTIF} from "../components/CadSnackbar";
 import moment from 'moment';
 import RaceTabs, {IRaceStat} from "../components/RaceTabs";
+import AutocompleteInput from "../components/AutocompleteInput";
 
 const create = async (newRace: RaceCreate) => {
     await apiRaces.create(newRace);
@@ -181,23 +182,17 @@ const CreationForm = (
         }
 ) => {
 
-    const EMPTY_FORM = {licenceNumber: '', riderNumber: ''};
+    const EMPTY_FORM = {licence: {licenceNumber: ''}, riderNumber: ''};
     const [newRace, setValues] = useState(EMPTY_FORM);
 
     const classes = useStyles({});
 
-    return <Card style={{margin: 20, padding: 20}}>
+    return <Card style={{margin: 20, padding: 20, overflow: 'visible'}}>
         <Typography variant="h6" gutterBottom={true}>
             Nouveau coureur :
         </Typography>
         <Grid container={true} spacing={3} alignItems={"baseline"}>
-            <TextField
-                label="Numéro de licence"
-                value={newRace.licenceNumber}
-                className={classes.field}
-                onChange={e => setValues({...newRace, licenceNumber: e.target.value})}
-                margin="normal"
-            />
+            <AutocompleteInput style={{width: '400px', zIndex: 20}} selection={newRace.licence} onChangeSelection={(e: any) => setValues({...newRace, licence: e})}/>
             <TextField
                 label="Numéro de dossard"
                 value={newRace.riderNumber}
@@ -211,7 +206,7 @@ const CreationForm = (
                 onClick={ async () => {
                     try {
                         const dto: RaceCreate = {
-                            ...newRace,
+                            licenceNumber: newRace.licence.licenceNumber,
                             raceCode: race,
                             riderNumber: parseInt(newRace.riderNumber),
                             competitionId

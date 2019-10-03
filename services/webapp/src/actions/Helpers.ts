@@ -14,7 +14,8 @@ export enum ActionType {
     LOGOUT_REQUEST,
     LOGOUT_SUCCESS,
     LOGOUT_FAIL,
-    TEST
+    TEST,
+    SET_VAR
 }
 
 export interface IAppAction extends Action<ActionType> {
