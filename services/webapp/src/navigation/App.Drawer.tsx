@@ -45,7 +45,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
     public routes = [
         {path: '/', title: 'Tableau de bord', icon: () => <DashboardIcon/>},
         {
-            path: '/competition/5/engagements',
+            path: '/competitionchooser',
             component: Engagement,
             title: 'Engagements',
             icon: () => <AssignmentIcon/>

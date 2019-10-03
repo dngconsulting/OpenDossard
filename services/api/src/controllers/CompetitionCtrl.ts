@@ -19,7 +19,7 @@ export class CompetitionCtrl {
     @Get(':id')
     @ApiOperation({
         operationId: 'get',
-        title: 'Rechercher d\'une épreuve par ID ',
+        title: 'Recherche d\'une épreuve par ID ',
         description: 'description',
     })
     @ApiResponse({status: 200, type: Competition, isArray: false, description: 'Renvoie une épreuve'})
