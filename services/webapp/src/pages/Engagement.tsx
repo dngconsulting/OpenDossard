@@ -23,7 +23,7 @@ const create = async (newRace: RaceCreate) => {
 
 const COLUMNS: Array<Column<RaceRow>> = [
     { title: "Dossard", field: "riderNumber", type: "numeric", headerStyle: { textAlign: "center" },
-        cellStyle: { textAlign: "center"}
+        cellStyle: { textAlign: "center", width: 150 }
     },
     { title: "Coureur", field: "name", editable: "never" },
     { title: "Club", field: "club", editable: "never" },
@@ -114,6 +114,7 @@ const EngagementPage = ({match}: {match: any}) => {
                 actionsColumnIndex: -1,
                 paging: false,
                 toolbar: false,
+                padding: "dense"
             }}
             editable={{
                 onRowDelete: async (oldData) => {
