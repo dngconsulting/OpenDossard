@@ -212,7 +212,8 @@ const CreationForm = (
                 onChange={e => setValues({...form, riderNumber: e.target.value})}
                 margin="normal"
                 inputProps={{
-                    onKeyPress: e => e.key === 'Enter' && submit()
+                    onKeyPress: e => e.key === 'Enter' && submit(),
+                    style: {textAlign: 'center'}
                 }}
             />
             <Button
@@ -220,7 +221,7 @@ const CreationForm = (
                 color="primary"
                 onClick={submit}
             >
-                OK
+                Ajouter
             </Button>
         </Grid>
     </div>

@@ -40,6 +40,7 @@ export default function AutocompleteInput({selection, onChangeSelection, style}:
                 onChange={onChangeSelection}
                 isClearable={true}
                 defaultOptions={false}
+                placeholder="Coureur (nom, numéro de licence...)"
                 loadOptions={promiseOptions}
             />
         </div>
