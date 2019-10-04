@@ -90,11 +90,10 @@ const EngagementPage = ({match}: {match: any}) => {
         <Grid container={true}>
             <CreationForm competitionId={competitionId}
                           race={currentRace}
-                          onSuccess={(race) => {
+                          onSuccess={(form) => {
                               fetchRows();
                               setNotification({
-                                  // TODO GPE : licenceId
-                                  message: `Le coureur ${race.licenceId} a bien été enregistré sous le dossard ${race.riderNumber}`,
+                                  message: `Le coureur ${form.licence.name} ${form.licence.firstName} a bien été enregistré sous le dossard ${form.riderNumber}`,
                                   open: true,
                                   type: 'success'
                               })
@@ -157,7 +156,9 @@ const useStyles = makeStyles((theme: Theme) =>
 
 interface IForm {
     licence: null | {
-        id: number
+        id: number,
+        name: string,
+        firstName: string
     },
     riderNumber: string
 }
@@ -167,7 +168,7 @@ const CreationForm = (
         {
             competitionId: number,
             race: string,
-            onSuccess: (race: RaceCreate) => void,
+            onSuccess: (race: IForm) => void,
             onError: (message: string) => void
         }
 ) => {
@@ -201,7 +202,7 @@ const CreationForm = (
                             competitionId
                         }
                         await create(dto);
-                        onSuccess(dto)
+                        onSuccess(form)
                         setValues({licence: null, riderNumber: ''});
                     } catch (e) {
                         const {message} = await e.json();
