@@ -29,7 +29,7 @@ const useStyle = makeStyles(theme => ({
     },
     tooltip: {
         color: theme.palette.common.white,
-        background: theme.palette.primary.main,
+        background: theme.palette.secondary.main,
         height: 20,
         minWidth: 20,
         borderRadius: 10,

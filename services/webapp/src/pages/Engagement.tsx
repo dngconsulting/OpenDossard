@@ -222,7 +222,7 @@ const CreationForm = (
             <Typography variant="h5" gutterBottom={true} style={{marginRight: 20}}>
                 Nouveau Coureur :
             </Typography>
-            <AutocompleteInput style={{width: '400px', zIndex: 20}} selection={form.licence} onChangeSelection={(e: any) => setValues({...form, licence: e})}/>
+            <AutocompleteInput style={{width: '450px', zIndex: 20}} selection={form.licence} onChangeSelection={(e: any) => setValues({...form, licence: e})}/>
             <TextField
                 label="Numéro de dossard"
                 value={form.riderNumber}
