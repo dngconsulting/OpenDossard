@@ -4,6 +4,7 @@ import {withStyles} from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import Container from '@material-ui/core/Container';
 import TextField from '@material-ui/core/TextField';
+import FormHelperText from '@material-ui/core/FormHelperText';
 import 'date-fns';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -92,6 +93,11 @@ const NewLicencesPage = (props: ILicencesProps) => {
     });
     const [disableCateV, setDisableCateV] = React.useState(true);
 
+    const [validation, setValidation] = React.useState({
+        name:false,
+        firstName:false
+    });
+
     const handleChange = (event: React.ChangeEvent<{ name?: string; value: unknown }>) => {
         if(event.target.name ==='fede' && !event.target.value){
             setValues(oldValues => ({
@@ -116,6 +122,15 @@ const NewLicencesPage = (props: ILicencesProps) => {
 
     const onSelectClub = (value:string)=>{
         setValues({...newLicence, club: value});
+    };
+
+    const createLicence = ()=>{
+        newLicence.name && newLicence.firstName ?
+        apiLicences.create(newLicence).then(()=>props.history.goBack()) :
+            setValidation({
+                name: !newLicence.name,
+                firstName: !newLicence.firstName
+            })
     };
 
     // @ts-ignore
@@ -155,22 +170,30 @@ const NewLicencesPage = (props: ILicencesProps) => {
                     </FormControl>
                 </Grid>
                 <Grid item={true} xs={6}>
-                    <TextField
-                        required={true}
-                        id="name"
-                        label="Nom"
-                        margin="normal"
-                        onChange={e => setValues({...newLicence, name: e.target.value})}
-                    />
+                    <FormControl className={classes.formControl} error={validation.name}>
+                        <TextField
+                            required={true}
+                            id="name"
+                            label="Nom"
+                            margin="normal"
+                            error={validation.name}
+                            onChange={e => setValues({...newLicence, name: e.target.value})}
+                        />
+                        <FormHelperText id="component-error-text" hidden={!validation.name}>Veuillez compléter le nom</FormHelperText>
+                    </FormControl>
                 </Grid>
                 <Grid item={true} xs={6}>
+                    <FormControl className={classes.formControl} error={validation.firstName}>
                     <TextField
                         required={true}
                         id="firstName"
                         label="Prénom"
                         margin="normal"
+                        error={validation.firstName}
                         onChange={e => setValues({...newLicence, firstName: e.target.value})}
                     />
+                        <FormHelperText id="component-error-text" hidden={!validation.firstName}>Veuillez compléter le prénom</FormHelperText>
+                    </FormControl>
                 </Grid>
                 <Grid item={true} xs={12} style={{display: 'flex'}}>
                     <div><span style={{position: 'relative', top: '11px'}}>Genre</span></div>
@@ -250,7 +273,7 @@ const NewLicencesPage = (props: ILicencesProps) => {
                 </Grid>
                 <Grid item={true} xs={6}>
                     <Button variant="contained" color="primary" className={classes.button} onClick={()=>
-                    apiLicences.create(newLicence).then(()=>props.history.goBack())}>
+                    createLicence()}>
                         Sauvegarder
                     </Button>
                 </Grid>
