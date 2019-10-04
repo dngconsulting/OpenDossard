@@ -76,6 +76,14 @@ export class RacesCtrl {
     public async create(@Body() race: RaceCreate)
         : Promise<void> {
 
+        if ( ! race.licenceId ) {
+            throw(new BadRequestException('Veuillez renseigner un coureur'));
+        }
+
+        if ( ! race.riderNumber ) {
+            throw(new BadRequestException('Veuillez renseigner un numéro de dossard'));
+        }
+
         const licence = await this.entityManager.findOne(Licence, race.licenceId);
 
         if ( ! licence ) {

@@ -178,7 +178,7 @@ const CreationForm = (
     const submit = async () => {
         try {
             const dto: RaceCreate = {
-                licenceId: form.licence.id,
+                licenceId: form.licence && form.licence.id,
                 raceCode: race,
                 riderNumber: parseInt(form.riderNumber),
                 competitionId
@@ -187,8 +187,13 @@ const CreationForm = (
             onSuccess(form)
             setValues({licence: null, riderNumber: ''});
         } catch (e) {
-            const {message} = await e.json();
-            onError(message);
+            if ( e.json ) {
+                const {message} = (await e.json());
+                onError(message);
+            } else {
+                console.log(e)
+                onError('Une erreur est survenue');
+            }
         }
     };
 
