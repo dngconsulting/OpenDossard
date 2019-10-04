@@ -43,6 +43,7 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 const catev = [
+    {label: 'Non Licencié', value: 'nl'},
     {label: 'Cadet', value: 'cadet'},
     {label: 'Féminin', value: 'f'},
     {label: 'Minimes', value: 'm'},
@@ -55,7 +56,10 @@ const catea = [
     {label: 'Senior', value: 's'},
     {label: 'Vétéran', value: 'v'},
     {label: 'Super Vétéran', value: 'sv'},
-    {label: 'Ancien', value: 'a'}];
+    {label: 'Ancien', value: 'a'},
+    {label: 'Cadet', value: 'c'},
+    {label: 'Minimes', value: 'm'},
+    {label: 'Espoir', value: 'e'}];
 
 const federations = {
     fsgt: {

@@ -122,8 +122,10 @@ export class LicencesCtrl {
         newLicence.club = licence.club;
         newLicence.dept = licence.dept;
         newLicence.birthYear = licence.birthYear;
-        newLicence.catea = licence.gender.toUpperCase() === 'F' ? 'F' + licence.catea.toUpperCase() : licence.catea.toUpperCase();
-        newLicence.catev = licence.catev;
+        newLicence.catea = licence.catea ?
+            licence.gender.toUpperCase() === 'F' ? 'F' + licence.catea.toUpperCase() : licence.catea.toUpperCase()
+            : '';
+        newLicence.catev = licence.catev.toUpperCase();
         newLicence.fede = Federation[licence.fede.toUpperCase()];
         await this.entityManager.save(newLicence);
     }
