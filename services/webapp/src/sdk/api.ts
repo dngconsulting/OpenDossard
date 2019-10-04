@@ -109,7 +109,7 @@ export interface Competition {
      * @type {Club}
      * @memberof Competition
      */
-    clubId: Club;
+    club: Club;
     /**
      * 
      * @type {string}
@@ -390,38 +390,6 @@ export interface RaceRow {
      * @memberof RaceRow
      */
     birthYear?: string;
-}
-
-/**
- * 
- * @export
- * @interface RaceUpdate
- */
-export interface RaceUpdate {
-    /**
-     * 
-     * @type {number}
-     * @memberof RaceUpdate
-     */
-    id?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof RaceUpdate
-     */
-    licenceNumber?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof RaceUpdate
-     */
-    riderNumber?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof RaceUpdate
-     */
-    raceCode?: string;
 }
 
 /**
@@ -1290,38 +1258,6 @@ export const RaceAPIApiFetchParamCreator = function (configuration?: Configurati
                 options: localVarRequestOptions,
             };
         },
-        /**
-         * description
-         * @summary Mets à jour une course existante
-         * @param {RaceUpdate} raceUpdate 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        update(raceUpdate: RaceUpdate, options: any = {}): FetchArgs {
-            // verify required parameter 'raceUpdate' is not null or undefined
-            if (raceUpdate === null || raceUpdate === undefined) {
-                throw new RequiredError('raceUpdate','Required parameter raceUpdate was null or undefined when calling update.');
-            }
-            const localVarPath = `/api/races`;
-            const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'PUT' }, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-            const needsSerialization = (<any>"RaceUpdate" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
-            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(raceUpdate || {}) : (raceUpdate || "");
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
     }
 };
 
@@ -1387,25 +1323,6 @@ export const RaceAPIApiFp = function(configuration?: Configuration) {
                 });
             };
         },
-        /**
-         * description
-         * @summary Mets à jour une course existante
-         * @param {RaceUpdate} raceUpdate 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        update(raceUpdate: RaceUpdate, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = RaceAPIApiFetchParamCreator(configuration).update(raceUpdate, options);
-            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
-                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
-                    if (response.status >= 200 && response.status < 300) {
-                        return response;
-                    } else {
-                        throw response;
-                    }
-                });
-            };
-        },
     }
 };
 
@@ -1443,16 +1360,6 @@ export const RaceAPIApiFactory = function (configuration?: Configuration, fetch?
          */
         getAllRaces(options?: any) {
             return RaceAPIApiFp(configuration).getAllRaces(options)(fetch, basePath);
-        },
-        /**
-         * description
-         * @summary Mets à jour une course existante
-         * @param {RaceUpdate} raceUpdate 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        update(raceUpdate: RaceUpdate, options?: any) {
-            return RaceAPIApiFp(configuration).update(raceUpdate, options)(fetch, basePath);
         },
     };
 };
@@ -1497,18 +1404,6 @@ export class RaceAPIApi extends BaseAPI {
      */
     public getAllRaces(options?: any) {
         return RaceAPIApiFp(this.configuration).getAllRaces(options)(this.fetch, this.basePath);
-    }
-
-    /**
-     * description
-     * @summary Mets à jour une course existante
-     * @param {RaceUpdate} raceUpdate 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof RaceAPIApi
-     */
-    public update(raceUpdate: RaceUpdate, options?: any) {
-        return RaceAPIApiFp(this.configuration).update(raceUpdate, options)(this.fetch, this.basePath);
     }
 
 }

@@ -20,14 +20,6 @@ const create = async (newRace: RaceCreate) => {
     await apiRaces.create(newRace);
 }
 
-const update = async (newData: RaceRow) => {
-    await apiRaces.update({
-        id: newData.id,
-        riderNumber: newData.riderNumber,
-        raceCode: newData.raceCode
-    });
-}
-
 const COLUMNS: Array<Column<RaceRow>> = [
     { title: "Licence", field: "licenceNumber", editable: "never", headerStyle: { textAlign: "center" },
         cellStyle: { textAlign: "center"},
@@ -126,15 +118,6 @@ const EngagementPage = ({match}: {match: any}) => {
                 toolbar: false,
             }}
             editable={{
-                onRowUpdate: async (newData, oldData) => {
-                    await update(newData)
-                    fetchRows()
-                    setNotification({
-                        message: `L'inscription de ${oldData.name} ${oldData.firstName} a été modifiée`,
-                        type: 'success',
-                        open: true
-                    });
-                },
                 onRowDelete: async (oldData) => {
                     await apiRaces._delete(`${oldData.id}`);
                     fetchRows();

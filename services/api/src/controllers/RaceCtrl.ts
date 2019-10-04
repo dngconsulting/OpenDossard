@@ -43,17 +43,6 @@ export class RaceCreate {
     public raceCode: string;
 }
 
-export class RaceUpdate {
-    @ApiModelPropertyOptional()
-    public id: number;
-    @ApiModelPropertyOptional()
-    public licenceNumber: string;
-    @ApiModelPropertyOptional()
-    public riderNumber: number;
-    @ApiModelPropertyOptional()
-    public raceCode: string;
-}
-
 @Controller('/api/races')
 @ApiUseTags('RaceAPI')
 export class RacesCtrl {
@@ -126,21 +115,6 @@ export class RacesCtrl {
         newRace.competition = competition;
 
         await this.entityManager.save(newRace);
-    }
-
-    @Put()
-    @ApiOperation({
-        operationId: 'update',
-        title: 'Mets à jour une course existante',
-        description: 'description',
-    })
-    public async update(@Body() race: RaceUpdate)
-        : Promise<void> {
-
-        const toUpdate = await this.entityManager.findOne(Race, race.id);
-        toUpdate.riderNumber = race.riderNumber;
-        toUpdate.raceCode = race.raceCode;
-        await this.entityManager.save(toUpdate);
     }
 
     @Delete('/:id')
