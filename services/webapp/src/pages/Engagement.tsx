@@ -67,6 +67,14 @@ const computeTabs = (rows: RaceRow[], races: string[]):IRaceStat => {
     }
 }
 
+const pageStyles = makeStyles((theme: Theme) =>
+    createStyles({
+        container: {
+            backgroundColor: theme.palette.grey[100]
+        },
+    }),
+);
+
 const EngagementPage = ({match}: {match: any}) => {
 
     const competitionId = match.params.id;
@@ -92,7 +100,9 @@ const EngagementPage = ({match}: {match: any}) => {
         fetchRows()
     }, ['loading'])
 
-    return <div>
+    const classes = pageStyles({})
+
+    return <div className={classes.container}>
         <CompetitionCard competition={competition} />
         <RaceTabs tabs={tabs} value={currentRace} onChange={race => setCurrentRace(race)}/>
         <Grid container={true}>
