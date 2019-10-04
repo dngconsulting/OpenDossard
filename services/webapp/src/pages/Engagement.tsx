@@ -175,6 +175,23 @@ const CreationForm = (
 
     const [form, setValues] = useState<IForm>({licence: null, riderNumber: ''});
 
+    const submit = async () => {
+        try {
+            const dto: RaceCreate = {
+                licenceId: form.licence.id,
+                raceCode: race,
+                riderNumber: parseInt(form.riderNumber),
+                competitionId
+            }
+            await create(dto);
+            onSuccess(form)
+            setValues({licence: null, riderNumber: ''});
+        } catch (e) {
+            const {message} = await e.json();
+            onError(message);
+        }
+    };
+
     const classes = useStyles({});
 
     return <div style={{paddingLeft: 20, paddingBottom: 20}}>
@@ -189,26 +206,14 @@ const CreationForm = (
                 className={classes.field}
                 onChange={e => setValues({...form, riderNumber: e.target.value})}
                 margin="normal"
+                inputProps={{
+                    onKeyPress: e => e.key === 'Enter' && submit()
+                }}
             />
             <Button
                 variant="contained"
                 color="primary"
-                onClick={ async () => {
-                    try {
-                        const dto: RaceCreate = {
-                            licenceId: form.licence.id,
-                            raceCode: race,
-                            riderNumber: parseInt(form.riderNumber),
-                            competitionId
-                        }
-                        await create(dto);
-                        onSuccess(form)
-                        setValues({licence: null, riderNumber: ''});
-                    } catch (e) {
-                        const {message} = await e.json();
-                        onError(message);
-                    }
-                }}
+                onClick={submit}
             >
                 OK
             </Button>
