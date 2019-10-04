@@ -93,7 +93,8 @@ const EngagementPage = ({match}: {match: any}) => {
                           onSuccess={(race) => {
                               fetchRows();
                               setNotification({
-                                  message: `Le coureur ${race.licenceNumber} a bien été enregistré sous le dossard ${race.riderNumber}`,
+                                  // TODO GPE : licenceId
+                                  message: `Le coureur ${race.licenceId} a bien été enregistré sous le dossard ${race.riderNumber}`,
                                   open: true,
                                   type: 'success'
                               })
@@ -154,6 +155,13 @@ const useStyles = makeStyles((theme: Theme) =>
     }),
 );
 
+interface IForm {
+    licence: null | {
+        id: number
+    },
+    riderNumber: string
+}
+
 const CreationForm = (
     {competitionId, race, onSuccess, onError}:
         {
@@ -164,8 +172,7 @@ const CreationForm = (
         }
 ) => {
 
-    const EMPTY_FORM = {licence: {licenceNumber: ''}, riderNumber: ''};
-    const [newRace, setValues] = useState(EMPTY_FORM);
+    const [form, setValues] = useState<IForm>({licence: null, riderNumber: ''});
 
     const classes = useStyles({});
 
@@ -174,12 +181,12 @@ const CreationForm = (
             <Typography variant="h5" gutterBottom={true} style={{marginRight: 20}}>
                 Nouveau Coureur :
             </Typography>
-            <AutocompleteInput style={{width: '400px', zIndex: 20}} selection={newRace.licence} onChangeSelection={(e: any) => setValues({...newRace, licence: e})}/>
+            <AutocompleteInput style={{width: '400px', zIndex: 20}} selection={form.licence} onChangeSelection={(e: any) => setValues({...form, licence: e})}/>
             <TextField
                 label="Numéro de dossard"
-                value={newRace.riderNumber}
+                value={form.riderNumber}
                 className={classes.field}
-                onChange={e => setValues({...newRace, riderNumber: e.target.value})}
+                onChange={e => setValues({...form, riderNumber: e.target.value})}
                 margin="normal"
             />
             <Button
@@ -188,14 +195,14 @@ const CreationForm = (
                 onClick={ async () => {
                     try {
                         const dto: RaceCreate = {
-                            licenceNumber: newRace.licence.licenceNumber,
+                            licenceId: form.licence.id,
                             raceCode: race,
-                            riderNumber: parseInt(newRace.riderNumber),
+                            riderNumber: parseInt(form.riderNumber),
                             competitionId
                         }
                         await create(dto);
                         onSuccess(dto)
-                        setValues(EMPTY_FORM);
+                        setValues({licence: null, riderNumber: ''});
                     } catch (e) {
                         const {message} = await e.json();
                         onError(message);

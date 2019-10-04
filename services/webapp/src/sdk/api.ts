@@ -300,10 +300,10 @@ export interface RaceCreate {
     competitionId?: number;
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof RaceCreate
      */
-    licenceNumber?: string;
+    licenceId?: number;
     /**
      * 
      * @type {number}

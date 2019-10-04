@@ -36,7 +36,7 @@ export class RaceCreate {
     @ApiModelPropertyOptional()
     public competitionId: number;
     @ApiModelPropertyOptional()
-    public licenceNumber: string;
+    public licenceId: number;
     @ApiModelPropertyOptional()
     public riderNumber: number;
     @ApiModelPropertyOptional()
@@ -76,9 +76,7 @@ export class RacesCtrl {
     public async create(@Body() race: RaceCreate)
         : Promise<void> {
 
-        const licence = await this.entityManager.createQueryBuilder(Licence, 'licence')
-            .where('licence."licenceNumber" = :ln', {ln: race.licenceNumber})
-            .getOne();
+        const licence = await this.entityManager.findOne(Licence, race.licenceId);
 
         if ( ! licence ) {
             throw(new BadRequestException('Licence inconnue'));
