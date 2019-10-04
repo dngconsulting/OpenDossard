@@ -36,18 +36,7 @@ export class RaceCreate {
     @ApiModelPropertyOptional()
     public competitionId: number;
     @ApiModelPropertyOptional()
-    public licenceNumber: string;
-    @ApiModelPropertyOptional()
-    public riderNumber: number;
-    @ApiModelPropertyOptional()
-    public raceCode: string;
-}
-
-export class RaceUpdate {
-    @ApiModelPropertyOptional()
-    public id: number;
-    @ApiModelPropertyOptional()
-    public licenceNumber: string;
+    public licenceId: number;
     @ApiModelPropertyOptional()
     public riderNumber: number;
     @ApiModelPropertyOptional()
@@ -87,9 +76,7 @@ export class RacesCtrl {
     public async create(@Body() race: RaceCreate)
         : Promise<void> {
 
-        const licence = await this.entityManager.createQueryBuilder(Licence, 'licence')
-            .where('licence."licenceNumber" = :ln', {ln: race.licenceNumber})
-            .getOne();
+        const licence = await this.entityManager.findOne(Licence, race.licenceId);
 
         if ( ! licence ) {
             throw(new BadRequestException('Licence inconnue'));
@@ -126,21 +113,6 @@ export class RacesCtrl {
         newRace.competition = competition;
 
         await this.entityManager.save(newRace);
-    }
-
-    @Put()
-    @ApiOperation({
-        operationId: 'update',
-        title: 'Mets à jour une course existante',
-        description: 'description',
-    })
-    public async update(@Body() race: RaceUpdate)
-        : Promise<void> {
-
-        const toUpdate = await this.entityManager.findOne(Race, race.id);
-        toUpdate.riderNumber = race.riderNumber;
-        toUpdate.raceCode = race.raceCode;
-        await this.entityManager.save(toUpdate);
     }
 
     @Delete('/:id')

@@ -20,14 +20,6 @@ const create = async (newRace: RaceCreate) => {
     await apiRaces.create(newRace);
 }
 
-const update = async (newData: RaceRow) => {
-    await apiRaces.update({
-        id: newData.id,
-        riderNumber: newData.riderNumber,
-        raceCode: newData.raceCode
-    });
-}
-
 const COLUMNS: Array<Column<RaceRow>> = [
     { title: "Licence", field: "licenceNumber", editable: "never", headerStyle: { textAlign: "center" },
         cellStyle: { textAlign: "center"},
@@ -98,10 +90,10 @@ const EngagementPage = ({match}: {match: any}) => {
         <Grid container={true}>
             <CreationForm competitionId={competitionId}
                           race={currentRace}
-                          onSuccess={(race) => {
+                          onSuccess={(form) => {
                               fetchRows();
                               setNotification({
-                                  message: `Le coureur ${race.licenceNumber} a bien été enregistré sous le dossard ${race.riderNumber}`,
+                                  message: `Le coureur ${form.licence.name} ${form.licence.firstName} a bien été enregistré sous le dossard ${form.riderNumber}`,
                                   open: true,
                                   type: 'success'
                               })
@@ -126,15 +118,6 @@ const EngagementPage = ({match}: {match: any}) => {
                 toolbar: false,
             }}
             editable={{
-                onRowUpdate: async (newData, oldData) => {
-                    await update(newData)
-                    fetchRows()
-                    setNotification({
-                        message: `L'inscription de ${oldData.name} ${oldData.firstName} a été modifiée`,
-                        type: 'success',
-                        open: true
-                    });
-                },
                 onRowDelete: async (oldData) => {
                     await apiRaces._delete(`${oldData.id}`);
                     fetchRows();
@@ -171,18 +154,26 @@ const useStyles = makeStyles((theme: Theme) =>
     }),
 );
 
+interface IForm {
+    licence: null | {
+        id: number,
+        name: string,
+        firstName: string
+    },
+    riderNumber: string
+}
+
 const CreationForm = (
     {competitionId, race, onSuccess, onError}:
         {
             competitionId: number,
             race: string,
-            onSuccess: (race: RaceCreate) => void,
+            onSuccess: (race: IForm) => void,
             onError: (message: string) => void
         }
 ) => {
 
-    const EMPTY_FORM = {licence: {licenceNumber: ''}, riderNumber: ''};
-    const [newRace, setValues] = useState(EMPTY_FORM);
+    const [form, setValues] = useState<IForm>({licence: null, riderNumber: ''});
 
     const classes = useStyles({});
 
@@ -191,12 +182,12 @@ const CreationForm = (
             <Typography variant="h5" gutterBottom={true} style={{marginRight: 20}}>
                 Nouveau Coureur :
             </Typography>
-            <AutocompleteInput style={{width: '400px', zIndex: 20}} selection={newRace.licence} onChangeSelection={(e: any) => setValues({...newRace, licence: e})}/>
+            <AutocompleteInput style={{width: '400px', zIndex: 20}} selection={form.licence} onChangeSelection={(e: any) => setValues({...form, licence: e})}/>
             <TextField
                 label="Numéro de dossard"
-                value={newRace.riderNumber}
+                value={form.riderNumber}
                 className={classes.field}
-                onChange={e => setValues({...newRace, riderNumber: e.target.value})}
+                onChange={e => setValues({...form, riderNumber: e.target.value})}
                 margin="normal"
             />
             <Button
@@ -205,14 +196,14 @@ const CreationForm = (
                 onClick={ async () => {
                     try {
                         const dto: RaceCreate = {
-                            licenceNumber: newRace.licence.licenceNumber,
+                            licenceId: form.licence.id,
                             raceCode: race,
-                            riderNumber: parseInt(newRace.riderNumber),
+                            riderNumber: parseInt(form.riderNumber),
                             competitionId
                         }
                         await create(dto);
-                        onSuccess(dto)
-                        setValues(EMPTY_FORM);
+                        onSuccess(form)
+                        setValues({licence: null, riderNumber: ''});
                     } catch (e) {
                         const {message} = await e.json();
                         onError(message);
