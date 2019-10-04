@@ -80,7 +80,7 @@ const components = {
     Menu
 };
 
-export default function ClubSelect() {
+export default function ClubSelect({onSelect} : {onSelect : (value:string)=>void}) {
     // @ts-ignore
     const classes = useStyles();
     const theme = useTheme();
@@ -91,23 +91,16 @@ export default function ClubSelect() {
         return await apiClubs.getAllClubs();
     };
     useEffect(()=>{
-        fetchData().then(res => setClubs(res.map(option => {
-            let label = option.longName;
-            if(option.shortName){
-                label += " ("+option.shortName+")"
-            }
-            if(option.dept){
-                label += " ["+option.dept+"]"
-            }
-            return (
-            {
+        fetchData().then(res => setClubs(res.map(option => ({
             value: option.id,
-            label,
-        })}))).catch(err=>console.log(err));
+            label:option.longName
+        })))).catch(err=>console.log(err));
     },[]);
 
     const handleChangeSingle = (value: ValueType<IOptionType>) => {
         setSelectedClub(value);
+        const selected = value as IOptionType;
+        onSelect(selected.label)
     };
 
     const selectStyles = {

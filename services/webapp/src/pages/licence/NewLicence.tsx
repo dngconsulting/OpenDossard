@@ -39,7 +39,7 @@ const useStyles = makeStyles((theme: Theme) =>
     }),
 );
 
-const cateV = [
+const catev = [
     {label: 'Cadet', value: 'cadet'},
     {label: 'Féminin', value: 'f'},
     {label: 'Minimes', value: 'm'},
@@ -47,7 +47,7 @@ const cateV = [
     {label: '2', value: '2'},
     {label: '3', value: '3'}];
 
-const cateA = [
+const catea = [
     {label: 'Jeune', value: 'j'},
     {label: 'Senior', value: 's'},
     {label: 'Vétéran', value: 'v'},
@@ -57,16 +57,20 @@ const cateA = [
 const federations = {
     fsgt: {
         name: {label: 'FSGT', value: 'fsgt'},
-        cateV: [...cateV, {label: '4', value: '4'}, {label: '5', value: '5'}]
+        catev: [...catev, {label: '4', value: '4'}, {label: '5', value: '5'}]
     },
     ufolep: {
         name: {label: 'UFOLEP', value: 'ufolep'},
-        cateV: [...cateV, {label: 'GS', value: 'gs'}]
+        catev: [...catev, {label: 'GS', value: 'gs'}]
     },
     ffc: {
         name: {label: 'FFC', value: 'ffc'},
-        cateV
+        catev
     },
+    nl:{
+        name:{label: 'Non Lincencié', value: 'nl'},
+        catev: [...catev, {label: '4', value: '4'}, {label: '5', value: '5'}]
+    }
 };
 
 
@@ -76,21 +80,22 @@ const NewLicencesPage = (props: ILicencesProps) => {
         name:'',
         firstName: '',
         licenceNumber: '',
-        gender:'m',
-        federation: '',
+        gender:'H',
+        fede: '',
         birthYear: '',
         dept: '',
-        cateA: '',
-        cateV: ''
+        club: '',
+        catea: '',
+        catev: ''
     });
     const [disableCateV, setDisableCateV] = React.useState(true);
 
     const handleChange = (event: React.ChangeEvent<{ name?: string; value: unknown }>) => {
-        if(event.target.name ==='federation' && !event.target.value){
+        if(event.target.name ==='fede' && !event.target.value){
             setValues(oldValues => ({
                 ...oldValues,
                 [event.target.name as string]: event.target.value,
-                cateV: ''
+                catev: ''
             }))
         }else{
             setValues(oldValues => ({
@@ -105,6 +110,10 @@ const NewLicencesPage = (props: ILicencesProps) => {
             ...oldValues,
             gender: (event.target as HTMLInputElement).value
         }))
+    };
+
+    const onSelectClub = (value:string)=>{
+        setValues({...newLicence, club: value});
     };
 
     // @ts-ignore
@@ -125,22 +134,19 @@ const NewLicencesPage = (props: ILicencesProps) => {
                 </Grid>
                 <Grid item={true} xs={6}>
                     <FormControl className={classes.formControl}>
-                        <InputLabel htmlFor="federation">Fédération</InputLabel>
+                        <InputLabel htmlFor="fede">Fédération</InputLabel>
                         <Select
-                            value={newLicence.federation}
+                            value={newLicence.fede}
                             onChange={e=> {
                                 handleChange(e);
-                                setDisableCateV(!e.target.value);
+                                setDisableCateV(e.target.value==='NL');
                                 }
                             }
                             inputProps={{
-                                name: 'federation',
-                                id: 'federation',
+                                name: 'fede',
+                                id: 'fede',
                             }}
                         >
-                            <MenuItem value="">
-                                <em>None</em>
-                            </MenuItem>
                             {Object.keys(federations).map((key, index) => <MenuItem key={index}
                                                                                     value={federations[key].name.value}>{federations[key].name.label}</MenuItem>)}
                         </Select>
@@ -169,13 +175,13 @@ const NewLicencesPage = (props: ILicencesProps) => {
                     <RadioGroup aria-label="position" name="position" value={newLicence.gender}
                                 onChange={handleRadioChange} row={true}>
                         <FormControlLabel
-                            value="m"
+                            value="H"
                             control={<Radio color="primary"/>}
-                            label="M"
+                            label="H"
                             labelPlacement="start"
                         />
                         <FormControlLabel
-                            value="f"
+                            value="F"
                             control={<Radio color="primary"/>}
                             label="F"
                             labelPlacement="start"
@@ -200,21 +206,21 @@ const NewLicencesPage = (props: ILicencesProps) => {
                 </Grid>
                 <Grid item={true} xs={12}>
                     <Grid item={true} xs={10}>
-                        <ClubSelect/>
+                        <ClubSelect onSelect={onSelectClub}/>
                     </Grid>
                 </Grid>
                 <Grid item={true} xs={6}>
                     <FormControl className={classes.formControl}>
-                        <InputLabel htmlFor="cateA">Catégorie Age</InputLabel>
+                        <InputLabel htmlFor="catea">Catégorie Age</InputLabel>
                         <Select
-                            value={newLicence.cateA}
+                            value={newLicence.catea}
                             onChange={handleChange}
                             inputProps={{
-                                name: 'cateA',
-                                id: 'cateA',
+                                name: 'catea',
+                                id: 'catea',
                             }}
                         >{
-                            cateA.map((value: ICategory, index: number) => <MenuItem key={index}
+                            catea.map((value: ICategory, index: number) => <MenuItem key={index}
                                                                                      value={value.value}>{value.label}</MenuItem>)
                         }
                         </Select>
@@ -222,18 +228,18 @@ const NewLicencesPage = (props: ILicencesProps) => {
                 </Grid>
                 <Grid item={true} xs={6}>
                     <FormControl className={classes.formControl} disabled={disableCateV}>
-                        <InputLabel htmlFor="cateA">Catégorie Valeur</InputLabel>
+                        <InputLabel htmlFor="catev">Catégorie Valeur</InputLabel>
                         <Select
-                            value={newLicence.cateV}
+                            value={newLicence.catev}
                             onChange={handleChange}
                             inputProps={{
-                                name: 'cateV',
-                                id: 'cateV',
+                                name: 'catev',
+                                id: 'catev',
                             }}
                         > {
 
-                            newLicence.federation &&
-                            federations[newLicence.federation].cateV.map((value: ICategory, index: number) =>
+                            newLicence.fede &&
+                            federations[newLicence.fede].catev.map((value: ICategory, index: number) =>
                                 <MenuItem key={index} value={value.value}>{value.label}</MenuItem>)
 
                         }
