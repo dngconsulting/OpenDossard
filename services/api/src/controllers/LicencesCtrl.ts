@@ -59,8 +59,9 @@ export class LicencesCtrl {
         title: 'Rechercher une licence par ID ',
         description: 'description',
     })
+    @ApiResponse({status: 200, type: Licence, isArray: false, description: 'Renvoie une licence'})
     public async get(@Param('id') id: string): Promise<Licence> {
-        throw new Error('Not Implemented Yet');
+        return await this.repository.createQueryBuilder().where('id = :id', {id}).getOne();
     }
 
     @ApiOperation({

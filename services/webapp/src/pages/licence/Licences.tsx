@@ -54,22 +54,6 @@ const LicencesPage = (props: ILicencesProps)=> {
                     search: false
                 }}
                 editable={{
-                    onRowUpdate: (newData, oldData) =>
-                        new Promise((resolve, reject) => {
-                            apiLicences.update({
-                                id: oldData.id,
-                                licenceNumber : newData.licenceNumber,
-                                birthYear : newData.birthYear,
-                                name : newData.name,
-                                firstName : newData.firstName,
-                                gender : newData.gender,
-                                dept : newData.dept,
-                                catea : newData.catea,
-                                catev : newData.catev,
-                                club : oldData.club,
-                                fede : oldData.fede
-                            }).then(()=>resolve());
-                        }),
                     onRowDelete: oldData =>
                         new Promise((resolve, reject) => {
                             apiLicences._delete(`${oldData.id}`).then(()=>resolve());
@@ -80,8 +64,15 @@ const LicencesPage = (props: ILicencesProps)=> {
                         icon: 'add',
                         tooltip: T.LICENCES.ADD_NEW_LICENCE,
                         isFreeAction: true,
-                        onClick: (event) => {
-                            props.history.push('/new_licence');
+                        onClick: () => {
+                            props.history.push('/licence/new');
+                        }
+                    },
+                    {
+                        icon: 'edit',
+                        tooltip: T.LICENCES.EDIT_TOOL_TIP,
+                        onClick: (event, rowData:any)=> {
+                            props.history.push('/licence/'+rowData.id);
                         }
                     }
                 ]}

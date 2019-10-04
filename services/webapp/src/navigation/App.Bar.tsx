@@ -25,7 +25,7 @@ import AccountCircle from '@material-ui/icons/Mail';
 import AppDrawer from './App.Drawer';
 import NotificationIcon from '@material-ui/icons/Notifications';
 import LicencesPage from '../pages/licence/Licences';
-import NewLicencePage from '../pages/licence/NewLicence';
+import LicencePage from '../pages/licence/LicencePage';
 import StatsPage from '../pages/Stats';
 import ResultatsPage from '../pages/Resultats';
 import CompetitionChooser from '../pages/CompetitionChooser';
@@ -231,7 +231,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
                     <Route path='/' exact={true} component={Dashboard}/>
                     <Route path='/competitionchooser' component={isAuthenticated(CompetitionChooser)}/>
                     <Route path='/licences' component={isAuthenticated(LicencesPage)}/>
-                    <Route path='/new_licence' component={isAuthenticated(NewLicencePage)}/>
+                    <Route path='/licence/:id' component={isAuthenticated(LicencePage)}/>
                     <Route path='/results' component={isAuthenticated(ResultatsPage)}/>
                     <Route path='/stats' component={isAuthenticated(StatsPage)}/>
                     <Route path='/account' render={this.renderAccount}/>

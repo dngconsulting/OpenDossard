@@ -17,13 +17,16 @@ import Button from '@material-ui/core/Button';
 
 import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
 import ClubSelect from './ClubSelect';
-import {LicenceCreate} from '../../sdk';
+import {Licence,LicenceCreate} from '../../sdk';
 import {apiLicences} from '../../util/api';
+
+import {useEffect} from 'react';
 
 interface ILicencesProps {
     items: any[];
     classes: any;
     history: any;
+    match: any;
 }
 
 interface ICategory {
@@ -81,7 +84,7 @@ const federations = {
 };
 
 
-const NewLicencesPage = (props: ILicencesProps) => {
+const LicencesPage = (props: ILicencesProps) => {
 
     const [newLicence, setValues] = React.useState<LicenceCreate>({
         name:'',
@@ -95,6 +98,27 @@ const NewLicencesPage = (props: ILicencesProps) => {
         catea: '',
         catev: ''
     });
+
+    useEffect(()=>{
+        const id = props.match.params.id;
+        if(!isNaN(parseInt(id))){
+            apiLicences.get(id).then((res:Licence) =>{
+                setValues({...newLicence,
+                    name:res.name,
+                    firstName:res.firstName,
+                    licenceNumber: res.licenceNumber,
+                    gender: res.gender,
+                    birthYear: res.birthYear,
+                    fede: res.fede.toLowerCase(),
+                    dept: res.dept,
+                    club: res.club,
+                    catea: res.catea.indexOf('F')>-1?res.catea.replace('F','').toLowerCase():res.catea,
+                    catev: res.catev
+                });
+                setDisableCateV(res.fede === '');
+        })
+        }
+    },[]);
     const [disableCateV, setDisableCateV] = React.useState(true);
 
     const [validation, setValidation] = React.useState({
@@ -150,6 +174,7 @@ const NewLicencesPage = (props: ILicencesProps) => {
                     <TextField
                         id="licenceNumber"
                         label="Numéro Licence"
+                        value={newLicence.licenceNumber}
                         onChange={e => setValues({...newLicence, licenceNumber: e.target.value})}
                     />
                 </Grid>
@@ -181,6 +206,7 @@ const NewLicencesPage = (props: ILicencesProps) => {
                             label="Nom"
                             margin="normal"
                             error={validation.name}
+                            value={newLicence.name}
                             onChange={e => setValues({...newLicence, name: e.target.value})}
                         />
                         <FormHelperText id="component-error-text" hidden={!validation.name}>Veuillez compléter le nom</FormHelperText>
@@ -194,6 +220,7 @@ const NewLicencesPage = (props: ILicencesProps) => {
                         label="Prénom"
                         margin="normal"
                         error={validation.firstName}
+                        value={newLicence.firstName}
                         onChange={e => setValues({...newLicence, firstName: e.target.value})}
                     />
                         <FormHelperText id="component-error-text" hidden={!validation.firstName}>Veuillez compléter le prénom</FormHelperText>
@@ -222,6 +249,7 @@ const NewLicencesPage = (props: ILicencesProps) => {
                         id="birthYear"
                         label="Année de la naissance"
                         margin="normal"
+                        value={newLicence.birthYear}
                         onChange={e => setValues({...newLicence, birthYear: e.target.value})}
                     />
                 </Grid>
@@ -230,6 +258,7 @@ const NewLicencesPage = (props: ILicencesProps) => {
                         id="department"
                         label="Département"
                         margin="normal"
+                        value={newLicence.dept}
                         onChange={e => setValues({...newLicence, dept: e.target.value})}
                     />
                 </Grid>
@@ -296,4 +325,4 @@ const NewLicencesPage = (props: ILicencesProps) => {
 
 const styles = (theme: Theme) => ({});
 
-export default withStyles(styles as any)(NewLicencesPage as any) as any;
+export default withStyles(styles as any)(LicencesPage as any) as any;
