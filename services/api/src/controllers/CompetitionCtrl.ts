@@ -1,9 +1,8 @@
-import {Controller, Get, Param} from '@nestjs/common';
+import {Controller, Get, Param, BadRequestException} from '@nestjs/common';
 import {ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
 import {EntityManager, Repository} from 'typeorm';
 import {Competition} from '../entity/Competition';
-import {Licence} from '../entity/Licence';
 
 @Controller('/api/competition')
 @ApiUseTags('CompetitionAPI')
@@ -24,7 +23,14 @@ export class CompetitionCtrl {
     })
     @ApiResponse({status: 200, type: Competition, isArray: false, description: 'Renvoie une épreuve'})
     public async get(@Param('id') id: string): Promise<Competition> {
-        return this.repository.findOne(id);
+
+        const r = await this.repository.find({where: {id}, relations: ['club']});
+
+        if ( r.length !== 1 ) {
+            throw new BadRequestException(`Competition ${id} not found`);
+        }
+
+        return r[0];
     }
 
     @ApiOperation({

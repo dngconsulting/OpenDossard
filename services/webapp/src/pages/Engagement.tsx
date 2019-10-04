@@ -32,11 +32,15 @@ interface ICompetition {
     name?: string,
     eventDate?: Date,
     observations?: string,
-    races?: string[]
+    races?: string[],
+    club: {
+        longName: string
+    }
 }
 
 const EMPTY_COMPETITION: ICompetition = {
-    races: ['1/2/3', '4/5']
+    races: ['1/2/3', '4/5'],
+    club: { longName: '' }
 };
 
 const computeTabs = (rows: RaceRow[], races: string[]):IRaceStat => {
@@ -115,7 +119,7 @@ const EngagementPage = ({match}: {match: any}) => {
                     await apiRaces._delete(`${oldData.id}`);
                     fetchRows();
                     setNotification({
-                        message: `Le coureur ${oldData.name} ${oldData.firstName} a été supprimé de la compétition`,
+                        message: `Le coureur ${oldData.name} a été supprimé de la compétition`,
                         type: 'info',
                         open: true
                     });
@@ -138,7 +142,7 @@ const EngagementPage = ({match}: {match: any}) => {
 
 }
 
-const useStyles = makeStyles((theme: Theme) =>
+const formStyles = makeStyles((theme: Theme) =>
     createStyles({
         field: {
             marginLeft: 10,
@@ -190,7 +194,7 @@ const CreationForm = (
         }
     };
 
-    const classes = useStyles({});
+    const classes = formStyles({});
 
     return <div style={{paddingLeft: 20, paddingBottom: 20}}>
         <Grid container={true} spacing={3} alignItems={"baseline"}>
@@ -220,18 +224,29 @@ const CreationForm = (
     </div>
 }
 
-const CompetitionCard = ({competition} : {competition: ICompetition}) => {
-    return <div style={{padding: 20}}>
-            <Typography component="h2" variant="h5">
-                {competition.name}
-            </Typography>
-            <Typography variant="subtitle1" color="textSecondary">
+const CompetitionCard = ({competition}: { competition: ICompetition }) => {
+    return <Grid container={true} style={{padding: 5}}>
+        <Grid item={true} xs={2}>
+            <Typography variant="subtitle1" color="textSecondary" component="span">
                 {moment(competition.eventDate).format('DD/MM/YYYY')}
             </Typography>
-            <Typography variant="subtitle1" paragraph={true} style={{marginBottom: 0}}>
+        </Grid>
+        <Grid item={true} xs={8}>
+            <Typography component="h2" variant="h5" align="center">
+                {competition.name}
+            </Typography>
+        </Grid>
+        <Grid item={true} xs={2}>
+            <Typography variant="subtitle1" color="textSecondary" align="right">
+                {competition.club.longName}
+            </Typography>
+        </Grid>
+        <Grid item={true} xs={12}>
+            <Typography variant="subtitle1" paragraph={true} align="center" style={{marginBottom: 0}}>
                 {competition.observations}
             </Typography>
-        </div>
+        </Grid>
+    </Grid>
 }
 
 export default EngagementPage;
