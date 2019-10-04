@@ -289,6 +289,74 @@ export interface Licence {
 /**
  * 
  * @export
+ * @interface LicenceCreate
+ */
+export interface LicenceCreate {
+    /**
+     * 
+     * @type {string}
+     * @memberof LicenceCreate
+     */
+    licenceNumber?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LicenceCreate
+     */
+    name?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LicenceCreate
+     */
+    firstName?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LicenceCreate
+     */
+    gender?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LicenceCreate
+     */
+    club?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LicenceCreate
+     */
+    dept?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LicenceCreate
+     */
+    birthYear?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LicenceCreate
+     */
+    catea?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LicenceCreate
+     */
+    catev?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LicenceCreate
+     */
+    fede?: string;
+}
+
+/**
+ * 
+ * @export
  * @interface LicencesPage
  */
 export interface LicencesPage {
@@ -833,6 +901,38 @@ export const LicenceAPIApiFetchParamCreator = function (configuration?: Configur
             };
         },
         /**
+         * 
+         * @summary Cree une nouvelle licence
+         * @param {LicenceCreate} licenceCreate 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        create(licenceCreate: LicenceCreate, options: any = {}): FetchArgs {
+            // verify required parameter 'licenceCreate' is not null or undefined
+            if (licenceCreate === null || licenceCreate === undefined) {
+                throw new RequiredError('licenceCreate','Required parameter licenceCreate was null or undefined when calling create.');
+            }
+            const localVarPath = `/api/licences`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+            const needsSerialization = (<any>"LicenceCreate" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(licenceCreate || {}) : (licenceCreate || "");
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * description
          * @summary Rechercher une licence par ID 
          * @param {string} id 
@@ -1038,6 +1138,25 @@ export const LicenceAPIApiFp = function(configuration?: Configuration) {
             };
         },
         /**
+         * 
+         * @summary Cree une nouvelle licence
+         * @param {LicenceCreate} licenceCreate 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        create(licenceCreate: LicenceCreate, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = LicenceAPIApiFetchParamCreator(configuration).create(licenceCreate, options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response;
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+        /**
          * description
          * @summary Rechercher une licence par ID 
          * @param {string} id 
@@ -1170,6 +1289,16 @@ export const LicenceAPIApiFactory = function (configuration?: Configuration, fet
             return LicenceAPIApiFp(configuration)._delete(id, options)(fetch, basePath);
         },
         /**
+         * 
+         * @summary Cree une nouvelle licence
+         * @param {LicenceCreate} licenceCreate 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        create(licenceCreate: LicenceCreate, options?: any) {
+            return LicenceAPIApiFp(configuration).create(licenceCreate, options)(fetch, basePath);
+        },
+        /**
          * description
          * @summary Rechercher une licence par ID 
          * @param {string} id 
@@ -1248,6 +1377,18 @@ export class LicenceAPIApi extends BaseAPI {
      */
     public _delete(id: string, options?: any) {
         return LicenceAPIApiFp(this.configuration)._delete(id, options)(this.fetch, this.basePath);
+    }
+
+    /**
+     * 
+     * @summary Cree une nouvelle licence
+     * @param {LicenceCreate} licenceCreate 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof LicenceAPIApi
+     */
+    public create(licenceCreate: LicenceCreate, options?: any) {
+        return LicenceAPIApiFp(this.configuration).create(licenceCreate, options)(this.fetch, this.basePath);
     }
 
     /**

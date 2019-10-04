@@ -2,17 +2,33 @@ import {Licence} from '../entity/Licence';
 import {EntityManager, Repository} from 'typeorm';
 import {Body, Controller, Delete, Get, Param, Post, Put} from '@nestjs/common';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
-import {ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
+import {ApiModelPropertyOptional, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
 import {Filter, LicencesPage, Search} from './SharedModels';
+import {Federation} from '../entity/Federation';
 
-/**
- * Add @Controller annotation to declare your class as Router controller.
- * The first param is the global path for your controller.
- * The others params is the controller dependencies.
- *
- * In this case, EventsCtrl is a dependency of CalendarsCtrl.
- * All routes of EventsCtrl will be mounted on the `/calendars` path.
- */
+export class LicenceCreate {
+    @ApiModelPropertyOptional()
+    public licenceNumber: string;
+    @ApiModelPropertyOptional()
+    public name: string;
+    @ApiModelPropertyOptional()
+    public firstName: string;
+    @ApiModelPropertyOptional()
+    public gender: string;
+    @ApiModelPropertyOptional()
+    public club: string;
+    @ApiModelPropertyOptional()
+    public dept: string;
+    @ApiModelPropertyOptional()
+    public birthYear: string;
+    @ApiModelPropertyOptional()
+    public catea: string;
+    @ApiModelPropertyOptional()
+    public catev: string;
+    @ApiModelPropertyOptional()
+    public fede: string;
+}
+
 @Controller('/api/licences')
 @ApiUseTags('LicenceAPI')
 export class LicencesCtrl {
@@ -90,6 +106,26 @@ export class LicencesCtrl {
     public async save(@Body() licence: Licence)
         : Promise<Licence> {
         return this.entityManager.save(licence);
+    }
+
+    @Post()
+    @ApiOperation({
+        operationId: 'create',
+        title: 'Cree une nouvelle licence',
+    })
+    public async create(@Body() licence: LicenceCreate): Promise<void> {
+        const newLicence = new Licence();
+        newLicence.licenceNumber = licence.licenceNumber;
+        newLicence.name = licence.name;
+        newLicence.firstName = licence.firstName;
+        newLicence.gender = licence.gender.toUpperCase();
+        newLicence.club = licence.club;
+        newLicence.dept = licence.dept;
+        newLicence.birthYear = licence.birthYear;
+        newLicence.catea = licence.gender.toUpperCase() === 'F' ? 'F' + licence.catea.toUpperCase() : licence.catea.toUpperCase();
+        newLicence.catev = licence.catev;
+        newLicence.fede = Federation[licence.fede.toUpperCase()];
+        await this.entityManager.save(newLicence);
     }
 
     @Put('/update')

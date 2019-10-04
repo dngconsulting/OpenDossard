@@ -16,6 +16,8 @@ import Button from '@material-ui/core/Button';
 
 import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
 import ClubSelect from './ClubSelect';
+import {LicenceCreate} from '../../sdk';
+import {apiLicences} from '../../util/api';
 
 interface ILicencesProps {
     items: any[];
@@ -76,7 +78,7 @@ const federations = {
 
 const NewLicencesPage = (props: ILicencesProps) => {
 
-    const [newLicence, setValues] = React.useState({
+    const [newLicence, setValues] = React.useState<LicenceCreate>({
         name:'',
         firstName: '',
         licenceNumber: '',
@@ -248,7 +250,7 @@ const NewLicencesPage = (props: ILicencesProps) => {
                 </Grid>
                 <Grid item={true} xs={6}>
                     <Button variant="contained" color="primary" className={classes.button} onClick={()=>
-                    console.log(JSON.stringify(newLicence))}>
+                    apiLicences.create(newLicence).then(()=>props.history.goBack())}>
                         Sauvegarder
                     </Button>
                 </Grid>
