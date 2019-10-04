@@ -15,6 +15,7 @@ import {CadSnackBar, EMPTY_NOTIF} from "../components/CadSnackbar";
 import moment from 'moment';
 import RaceTabs, {IRaceStat} from "../components/RaceTabs";
 import AutocompleteInput from "../components/AutocompleteInput";
+import Paper from "@material-ui/core/Paper";
 
 const create = async (newRace: RaceCreate) => {
     await apiRaces.create(newRace);
@@ -196,7 +197,7 @@ const CreationForm = (
 
     const classes = formStyles({});
 
-    return <div style={{paddingLeft: 20, paddingBottom: 20}}>
+    return <Paper style={{paddingLeft: 20, paddingBottom: 20, width: '100%'}} square={true}>
         <Grid container={true} spacing={3} alignItems={"baseline"}>
             <Typography variant="h5" gutterBottom={true} style={{marginRight: 20}}>
                 Nouveau Coureur :
@@ -221,7 +222,7 @@ const CreationForm = (
                 Ajouter
             </Button>
         </Grid>
-    </div>
+    </Paper>
 }
 
 const CompetitionCard = ({competition}: { competition: ICompetition }) => {
