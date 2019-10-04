@@ -21,17 +21,11 @@ const create = async (newRace: RaceCreate) => {
 }
 
 const COLUMNS: Array<Column<RaceRow>> = [
-    { title: "Licence", field: "licenceNumber", editable: "never", headerStyle: { textAlign: "center" },
-        cellStyle: { textAlign: "center"},
-    },
-    { title: "Nom", field: "name", editable: "never" },
-    { title: "Prénom", field: "firstName", editable: "never" },
-    { title: "Année", field: "birthYear", editable: "never" },
-    { title: "Club", field: "club", editable: "never" },
     { title: "Dossard", field: "riderNumber", type: "numeric", headerStyle: { textAlign: "center" },
-        cellStyle: { textAlign: "center"},
-        defaultSort: "desc"
-    }
+        cellStyle: { textAlign: "center"}
+    },
+    { title: "Coureur", field: "name", editable: "never" },
+    { title: "Club", field: "club", editable: "never" },
 ];
 
 interface ICompetition {
@@ -113,8 +107,7 @@ const EngagementPage = ({match}: {match: any}) => {
             options={{
                 filtering: true,
                 actionsColumnIndex: -1,
-                pageSize: 500,
-                pageSizeOptions: [],
+                paging: false,
                 toolbar: false,
             }}
             editable={{

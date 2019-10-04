@@ -15,21 +15,13 @@ export class RaceRow {
     @ApiModelPropertyOptional()
     public riderNumber: number;
     @ApiModelPropertyOptional()
-    public numberMin: number;
-    @ApiModelPropertyOptional()
-    public numberMax: number;
-    @ApiModelPropertyOptional()
     public surclassed: boolean;
     @ApiModelPropertyOptional()
     public licenceNumber: string;
     @ApiModelPropertyOptional()
     public name: string;
     @ApiModelPropertyOptional()
-    public firstName: string;
-    @ApiModelPropertyOptional()
     public club: string;
-    @ApiModelPropertyOptional()
-    public birthYear: string;
 }
 
 export class RaceCreate {
@@ -61,9 +53,10 @@ export class RacesCtrl {
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
     public async getAllRaces(): Promise<RaceRow[]> {
 
-        const query = `select r.*, l.name, l."firstName", l."licenceNumber", l.club, l."birthYear"
+        const query = `select r.*, concat(l.name,' ',l."firstName") as name, l."licenceNumber", l.club
                         from race r
-                        join licence l on r."licenceId" = l.id`;
+                        join licence l on r."licenceId" = l.id
+                        order by r.id desc`;
         return await this.entityManager.query(query);
     }
 
