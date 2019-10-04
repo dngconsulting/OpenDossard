@@ -15,34 +15,42 @@ import {CadSnackBar, EMPTY_NOTIF} from "../components/CadSnackbar";
 import moment from 'moment';
 import RaceTabs, {IRaceStat} from "../components/RaceTabs";
 import AutocompleteInput from "../components/AutocompleteInput";
+import Paper from "@material-ui/core/Paper";
 
 const create = async (newRace: RaceCreate) => {
     await apiRaces.create(newRace);
 }
 
 const COLUMNS: Array<Column<RaceRow>> = [
-    { title: "Licence", field: "licenceNumber", editable: "never", headerStyle: { textAlign: "center" },
-        cellStyle: { textAlign: "center"},
+    { title: "Dossard", field: "riderNumber",
+        headerStyle: { textAlign: "center" },
+        cellStyle: { textAlign: "center", width: 150 }
     },
-    { title: "Nom", field: "name", editable: "never" },
-    { title: "Prénom", field: "firstName", editable: "never" },
-    { title: "Année", field: "birthYear", editable: "never" },
-    { title: "Club", field: "club", editable: "never" },
-    { title: "Dossard", field: "riderNumber", type: "numeric", headerStyle: { textAlign: "center" },
-        cellStyle: { textAlign: "center"},
-        defaultSort: "desc"
-    }
+    { title: "Coureur", field: "name"},
+    { title: "Catégorie", field: "catev",
+        headerStyle: { textAlign: "center" },
+        cellStyle: { textAlign: "center", width: 150 }
+    },
+    { title: "H/F", field: "gender",
+        headerStyle: { textAlign: "center" },
+        cellStyle: { textAlign: "center", width: 150 }
+    },
+    { title: "Club", field: "club"},
 ];
 
 interface ICompetition {
     name?: string,
     eventDate?: Date,
     observations?: string,
-    races?: string[]
+    races?: string[],
+    club: {
+        longName: string
+    }
 }
 
 const EMPTY_COMPETITION: ICompetition = {
-    races: ['1/2/3', '4/5']
+    races: ['1/2/3', '4/5'],
+    club: { longName: '' }
 };
 
 const computeTabs = (rows: RaceRow[], races: string[]):IRaceStat => {
@@ -58,6 +66,14 @@ const computeTabs = (rows: RaceRow[], races: string[]):IRaceStat => {
         ...fromRows
     }
 }
+
+const pageStyles = makeStyles((theme: Theme) =>
+    createStyles({
+        container: {
+            backgroundColor: theme.palette.grey[100]
+        },
+    }),
+);
 
 const EngagementPage = ({match}: {match: any}) => {
 
@@ -84,7 +100,9 @@ const EngagementPage = ({match}: {match: any}) => {
         fetchRows()
     }, ['loading'])
 
-    return <div>
+    const classes = pageStyles({})
+
+    return <div className={classes.container}>
         <CompetitionCard competition={competition} />
         <RaceTabs tabs={tabs} value={currentRace} onChange={race => setCurrentRace(race)}/>
         <Grid container={true}>
@@ -113,16 +131,16 @@ const EngagementPage = ({match}: {match: any}) => {
             options={{
                 filtering: true,
                 actionsColumnIndex: -1,
-                pageSize: 500,
-                pageSizeOptions: [],
+                paging: false,
                 toolbar: false,
+                padding: "dense"
             }}
             editable={{
                 onRowDelete: async (oldData) => {
                     await apiRaces._delete(`${oldData.id}`);
                     fetchRows();
                     setNotification({
-                        message: `Le coureur ${oldData.name} ${oldData.firstName} a été supprimé de la compétition`,
+                        message: `Le coureur ${oldData.name} a été supprimé de la compétition`,
                         type: 'info',
                         open: true
                     });
@@ -145,7 +163,7 @@ const EngagementPage = ({match}: {match: any}) => {
 
 }
 
-const useStyles = makeStyles((theme: Theme) =>
+const formStyles = makeStyles((theme: Theme) =>
     createStyles({
         field: {
             marginLeft: 10,
@@ -197,9 +215,9 @@ const CreationForm = (
         }
     };
 
-    const classes = useStyles({});
+    const classes = formStyles({});
 
-    return <div style={{paddingLeft: 20, paddingBottom: 20}}>
+    return <Paper style={{paddingLeft: 20, paddingBottom: 20, width: '100%'}} square={true}>
         <Grid container={true} spacing={3} alignItems={"baseline"}>
             <Typography variant="h5" gutterBottom={true} style={{marginRight: 20}}>
                 Nouveau Coureur :
@@ -212,7 +230,8 @@ const CreationForm = (
                 onChange={e => setValues({...form, riderNumber: e.target.value})}
                 margin="normal"
                 inputProps={{
-                    onKeyPress: e => e.key === 'Enter' && submit()
+                    onKeyPress: e => e.key === 'Enter' && submit(),
+                    style: {textAlign: 'center'}
                 }}
             />
             <Button
@@ -220,24 +239,35 @@ const CreationForm = (
                 color="primary"
                 onClick={submit}
             >
-                OK
+                Ajouter
             </Button>
         </Grid>
-    </div>
+    </Paper>
 }
 
-const CompetitionCard = ({competition} : {competition: ICompetition}) => {
-    return <div style={{padding: 20}}>
-            <Typography component="h2" variant="h5">
-                {competition.name}
-            </Typography>
-            <Typography variant="subtitle1" color="textSecondary">
+const CompetitionCard = ({competition}: { competition: ICompetition }) => {
+    return <Grid container={true} style={{padding: 5}}>
+        <Grid item={true} xs={2}>
+            <Typography variant="subtitle1" color="textSecondary" component="span">
                 {moment(competition.eventDate).format('DD/MM/YYYY')}
             </Typography>
-            <Typography variant="subtitle1" paragraph={true} style={{marginBottom: 0}}>
+        </Grid>
+        <Grid item={true} xs={8}>
+            <Typography component="h2" variant="h5" align="center">
+                {competition.name}
+            </Typography>
+        </Grid>
+        <Grid item={true} xs={2}>
+            <Typography variant="subtitle1" color="textSecondary" align="right">
+                {competition.club.longName}
+            </Typography>
+        </Grid>
+        <Grid item={true} xs={12}>
+            <Typography variant="subtitle1" paragraph={true} align="center" style={{marginBottom: 0}}>
                 {competition.observations}
             </Typography>
-        </div>
+        </Grid>
+    </Grid>
 }
 
 export default EngagementPage;

@@ -84,6 +84,30 @@ export class RequiredError extends Error {
  * @interface Club
  */
 export interface Club {
+    /**
+     * 
+     * @type {number}
+     * @memberof Club
+     */
+    id: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof Club
+     */
+    shortName: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Club
+     */
+    dept: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Club
+     */
+    longName: string;
 }
 
 /**
@@ -344,18 +368,6 @@ export interface RaceRow {
     riderNumber?: number;
     /**
      * 
-     * @type {number}
-     * @memberof RaceRow
-     */
-    numberMin?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof RaceRow
-     */
-    numberMax?: number;
-    /**
-     * 
      * @type {boolean}
      * @memberof RaceRow
      */
@@ -377,19 +389,19 @@ export interface RaceRow {
      * @type {string}
      * @memberof RaceRow
      */
-    firstName?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof RaceRow
-     */
     club?: string;
     /**
      * 
      * @type {string}
      * @memberof RaceRow
      */
-    birthYear?: string;
+    catev?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceRow
+     */
+    gender?: string;
 }
 
 /**

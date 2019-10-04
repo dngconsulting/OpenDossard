@@ -1,5 +1,4 @@
 import Button from "@material-ui/core/Button";
-import Paper from "@material-ui/core/Paper";
 import * as React from "react";
 import {makeStyles} from "@material-ui/core";
 
@@ -14,18 +13,19 @@ interface IRaceTabs {
 const useStyle = makeStyles(theme => ({
     tab: {
         display: 'inline-block',
+        width: 200
     },
     button: {
-        background: theme.palette.common.white,
+        background: theme.palette.grey[300],
         paddingLeft: 50, paddingRight: 20,
-        paddingTop: 20, paddingBottom: 20,
+        paddingTop: 15, paddingBottom: 10,
+        width: '100%',
+        display: 'inline-block',
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
     },
-    selected: {
-        background: theme.palette.primary.main,
-        height: 3
-    },
-    notselected: {
-        height: 3
+    buttonselected: {
+        background: theme.palette.common.white,
     },
     tooltip: {
         color: theme.palette.common.white,
@@ -50,16 +50,16 @@ const RaceTab = ({code, n, selected, onClick} : {
     const classes = useStyle({});
 
     return <div className={classes.tab}>
-        <Button onClick={() => onClick(code)} className={classes.button} title={`${n} coureurs inscrits en catégorie ${code}`}>
+        <Button onClick={() => onClick(code)} className={`${classes.button} ${selected && classes.buttonselected}`}
+                title={`${n} coureurs inscrits en catégorie ${code}`}>
             <span>{code}</span>
             <div className={classes.tooltip}>{n}</div>
         </Button>
-        <div className={selected ? classes.selected: classes.notselected}/>
     </div>
 }
 
 const RaceTabs = ({tabs, value, onChange}: IRaceTabs) => (
-    <Paper square={true}>
+    <div style={{textAlign: 'center'}}>
         {
             Object.keys(tabs).sort().map(code => <RaceTab
                 key={code}
@@ -68,7 +68,7 @@ const RaceTabs = ({tabs, value, onChange}: IRaceTabs) => (
                 onClick={onChange} selected={code === value}/>
             )
         }
-    </Paper>
+    </div>
 )
 
 export default RaceTabs
