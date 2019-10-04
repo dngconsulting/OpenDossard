@@ -390,6 +390,18 @@ export interface RaceRow {
      * @memberof RaceRow
      */
     club?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceRow
+     */
+    catev?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceRow
+     */
+    gender?: string;
 }
 
 /**

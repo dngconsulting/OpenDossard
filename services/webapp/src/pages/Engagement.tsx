@@ -22,11 +22,20 @@ const create = async (newRace: RaceCreate) => {
 }
 
 const COLUMNS: Array<Column<RaceRow>> = [
-    { title: "Dossard", field: "riderNumber", type: "numeric", headerStyle: { textAlign: "center" },
+    { title: "Dossard", field: "riderNumber",
+        headerStyle: { textAlign: "center" },
         cellStyle: { textAlign: "center", width: 150 }
     },
-    { title: "Coureur", field: "name", editable: "never" },
-    { title: "Club", field: "club", editable: "never" },
+    { title: "Coureur", field: "name"},
+    { title: "Catégorie", field: "catev",
+        headerStyle: { textAlign: "center" },
+        cellStyle: { textAlign: "center", width: 150 }
+    },
+    { title: "H/F", field: "gender",
+        headerStyle: { textAlign: "center" },
+        cellStyle: { textAlign: "center", width: 150 }
+    },
+    { title: "Club", field: "club"},
 ];
 
 interface ICompetition {

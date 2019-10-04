@@ -22,6 +22,10 @@ export class RaceRow {
     public name: string;
     @ApiModelPropertyOptional()
     public club: string;
+    @ApiModelPropertyOptional()
+    public catev: string;
+    @ApiModelPropertyOptional()
+    public gender: string;
 }
 
 export class RaceCreate {
@@ -53,7 +57,7 @@ export class RacesCtrl {
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
     public async getAllRaces(): Promise<RaceRow[]> {
 
-        const query = `select r.*, concat(l.name,' ',l."firstName") as name, l."licenceNumber", l.club
+        const query = `select r.*, concat(l.name,' ',l."firstName") as name, l."licenceNumber", l.club, l.catev, l.gender
                         from race r
                         join licence l on r."licenceId" = l.id
                         order by r.id desc`;
