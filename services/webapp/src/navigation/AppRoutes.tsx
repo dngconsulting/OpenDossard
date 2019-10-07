@@ -8,8 +8,8 @@ import NewLicencePage from "../pages/licence/NewLicence";
 import StatsPage from "../pages/Stats";
 import EngagementPage from "../pages/Engagement";
 import HomePage from '../pages/Home';
-import EditResultsPage from '../pages/results/edit.results';
-import ViewResultsPage from '../pages/results/view.results';
+import EditResultsPage from '../pages/results/Edit';
+import ViewResultsPage from '../pages/results/View';
 
 export default ( {renderAccount} : {renderAccount: () => ReactElement} ) => (
     <React.Fragment>
