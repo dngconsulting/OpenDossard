@@ -4,6 +4,7 @@ import {Utility} from '../state/Utility';
 import {Alert} from '../state/Alert';
 import {Spinner} from '../state/Spinner';
 import {User} from '../sdk';
+import {INotification} from "../components/CadSnackbar";
 
 export interface IApplicationProps {
     openDrawer: () => IAppAction;
@@ -86,6 +87,13 @@ export function setVar(variable : any) {
     return {
         type: ActionType.SET_VAR,
         payload: {...variable}
+    }
+}
+
+export function setNotification(notification : INotification) {
+    return {
+        type: ActionType.SET_NOTIFICATION,
+        payload: notification
     }
 }
 
