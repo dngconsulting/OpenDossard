@@ -24,7 +24,6 @@ import AccountCircle from '@material-ui/icons/Mail';
 import AppDrawer from './App.Drawer';
 import NotificationIcon from '@material-ui/icons/Notifications';
 import AppRoutes from "./AppRoutes";
-import CadSnackBar from "../components/CadSnackbar";
 
 const classNames = require('classnames');
 
@@ -219,7 +218,6 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
 
                 <main className={classes.content}>
                     <div className={classes.toolbar}/>
-                    <CadSnackBar />
                     <AppRoutes renderAccount={this.renderAccount}/>
                     {this.renderAlert()}
                     {this.renderSpinner()}

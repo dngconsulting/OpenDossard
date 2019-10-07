@@ -14,10 +14,6 @@ import makeStyles from "@material-ui/core/styles/makeStyles";
 import AutocompleteInput from "../components/AutocompleteInput";
 import Paper from "@material-ui/core/Paper";
 import {CompetitionLayout} from "./CompetitionLayout";
-import {setNotification} from "../actions/App.Actions";
-import {Dispatch} from "redux";
-import {connect} from "react-redux";
-import {INotification} from "../components/CadSnackbar";
 
 const create = async (newRace: RaceCreate) => {
     await apiRaces.create(newRace);
@@ -42,26 +38,26 @@ const COLUMNS: Array<Column<RaceRow>> = [
 
 
 
-const EngagementPage = ({match, notify}: {match: any, notify: (n : INotification) => void}) => {
+const EngagementPage = ({match}: {match: any}) => {
     const competitionId = match.params.id;
 
     return <CompetitionLayout competitionId={competitionId}>
         {
-            ({currentRace, rows, fetchRows}) => (
+            ({currentRace, rows, fetchRows, setNotification}) => (
                 <Fragment>
                     <Grid container={true}>
                         <CreationForm competitionId={competitionId}
                                       race={currentRace}
                                       onSuccess={(form) => {
                                           fetchRows();
-                                          notify({
+                                          setNotification({
                                               message: `Le coureur ${form.licence.name} ${form.licence.firstName} a bien été enregistré sous le dossard ${form.riderNumber}`,
                                               open: true,
                                               type: 'success'
                                           })
                                       }}
                                       onError={(message) => {
-                                          notify({
+                                          setNotification({
                                               message,
                                               open: true,
                                               type: 'error'
@@ -83,7 +79,7 @@ const EngagementPage = ({match, notify}: {match: any, notify: (n : INotification
                             onRowDelete: async (oldData) => {
                                 await apiRaces._delete(`${oldData.id}`);
                                 fetchRows();
-                                notify({
+                                setNotification({
                                     message: `Le coureur ${oldData.name} a été supprimé de la compétition`,
                                     type: 'info',
                                     open: true
@@ -193,17 +189,4 @@ const CreationForm = (
 
 
 
-const mapStateToProps = () => ({})
-const mapDispatchToProps = (dispatch: Dispatch) => {
-    return {
-        notify: (notification: INotification) => {
-            dispatch(setNotification(notification))
-        }
-    }
-}
-
-export default connect(
-    mapStateToProps,
-    mapDispatchToProps
-)(EngagementPage)
-
+export default EngagementPage;

@@ -1,17 +1,13 @@
 import * as React from 'react';
-import {SyntheticEvent} from 'react';
+import {SyntheticEvent} from "react";
 import Snackbar from "@material-ui/core/Snackbar";
 import ThumbUp from "@material-ui/icons/ThumbUp";
 import ErrorIcon from "@material-ui/icons/Error";
 import InfoIcon from "@material-ui/icons/Info";
 import SnackbarContent from "@material-ui/core/SnackbarContent";
 import {makeStyles} from "@material-ui/core/styles";
-import {amber, green} from '@material-ui/core/colors';
+import { amber, green } from '@material-ui/core/colors';
 import clsx from "clsx";
-import {setNotification} from "../actions/App.Actions";
-import {connect} from "react-redux";
-import {ReduxState} from "../state/ReduxState";
-import {Dispatch} from "redux";
 
 const variantIcon = {
     success: ThumbUp,
@@ -51,14 +47,9 @@ export interface INotification {
     open: boolean;
 }
 
-const EMPTY_NOTIF: INotification = {message: '', type: 'info', open: false}
+export const EMPTY_NOTIF: INotification = {message: '', type: 'info', open: false}
 
-interface IProps {
-    notification?: INotification,
-    onClose?: () => void
-}
-
-const CadSnackBar = ({notification, onClose} : IProps) => {
+export const CadSnackBar = ({notification, onClose}: {notification : INotification, onClose: () => void}) => {
 
     const classes = useStyles1({});
     const Icon = variantIcon[notification.type];
@@ -82,26 +73,6 @@ const CadSnackBar = ({notification, onClose} : IProps) => {
 }/>
     </Snackbar>
 }
-
-const mapStateToProps = (state: ReduxState): IProps => {
-    return {
-        notification: state.app.notification || EMPTY_NOTIF
-    }
-}
-
-const mapDispatchToProps = (dispatch: Dispatch): IProps => {
-    return {
-        onClose: () => {
-            dispatch(setNotification(EMPTY_NOTIF))
-        }
-    }
-}
-
-export default connect(
-    mapStateToProps,
-    mapDispatchToProps
-)(CadSnackBar)
-
 
 
 
