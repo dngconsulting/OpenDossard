@@ -1,6 +1,9 @@
-import Button from "@material-ui/core/Button";
 import * as React from "react";
-import {makeStyles} from "@material-ui/core";
+import Tabs from "@material-ui/core/Tabs";
+import Badge from "@material-ui/core/Badge";
+import Tab from "@material-ui/core/Tab";
+import {createStyles, Theme} from "@material-ui/core";
+import makeStyles from "@material-ui/core/styles/makeStyles";
 
 export interface IRaceStat {[code:string] : number}
 
@@ -10,65 +13,53 @@ interface IRaceTabs {
     onChange: (value:string) => void
 }
 
-const useStyle = makeStyles(theme => ({
-    tab: {
-        display: 'inline-block',
-        width: 200
-    },
-    button: {
-        background: theme.palette.grey[300],
-        paddingLeft: 50, paddingRight: 20,
-        paddingTop: 15, paddingBottom: 10,
-        width: '100%',
-        display: 'inline-block',
-        borderBottomLeftRadius: 0,
-        borderBottomRightRadius: 0,
-    },
-    buttonselected: {
-        background: theme.palette.common.white,
-    },
-    tooltip: {
-        color: theme.palette.common.white,
-        background: theme.palette.secondary.main,
-        height: 20,
-        minWidth: 20,
-        borderRadius: 10,
-        display: 'inline-block',
-        marginLeft: 20,
-        lineHeight: '20px',
-        paddingLeft: 5,
-        paddingRight: 5,
-    }
-}));
+const useStyles = makeStyles((theme: Theme) =>
+    createStyles({
+        tabs: {
+            minHeight: 0,
+            '& button': {
+                minHeight: 0,
+                paddingBottom: 3,
+                paddingTop: 13,
+                borderTopLeftRadius: 6,
+                borderTopRightRadius: 6,
+                backgroundColor: theme.palette.grey[300],
+                '&[aria-selected="true"]': {
+                    backgroundColor: theme.palette.common.white,
+                }
+            }
+        },
+        badge: {
+            padding: theme.spacing(0, 2),
+        },
+    }),
+);
 
-const RaceTab = ({code, n, selected, onClick} : {
-    code: string,
-    n:number,
-    selected: boolean,
-    onClick: (race: string) => void
-}) => {
-    const classes = useStyle({});
+const RaceTabs = ({tabs, value, onChange}: IRaceTabs) => {
+    const classes = useStyles({});
 
-    return <div className={classes.tab}>
-        <Button onClick={() => onClick(code)} className={`${classes.button} ${selected && classes.buttonselected}`}
-                title={`${n} coureurs inscrits en catégorie ${code}`}>
-            <span>{code}</span>
-            <div className={classes.tooltip}>{n}</div>
-        </Button>
-    </div>
+    return (
+        <Tabs value={value} onChange={(e, v) => onChange(v)}
+                            className={classes.tabs}
+                            centered={true}
+                            TabIndicatorProps={{style: {height: 0}}} >
+            {
+                Object.keys(tabs).sort().map(code => (
+                        <Tab key={code}
+                             value={code}
+                             label={
+                            <Badge badgeContent={tabs[code]}
+                                   max={999}
+                                   className={classes.badge}
+                                   color="secondary">
+                                {code}
+                            </Badge>
+                        }/>
+                    )
+                )
+            }
+        </Tabs>
+    );
 }
-
-const RaceTabs = ({tabs, value, onChange}: IRaceTabs) => (
-    <div style={{textAlign: 'center'}}>
-        {
-            Object.keys(tabs).sort().map(code => <RaceTab
-                key={code}
-                code={code}
-                n={tabs[code]}
-                onClick={onChange} selected={code === value}/>
-            )
-        }
-    </div>
-)
 
 export default RaceTabs
