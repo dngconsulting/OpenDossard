@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {SyntheticEvent} from 'react';
+import {ReactNode, SyntheticEvent, useState} from 'react';
 import Snackbar from "@material-ui/core/Snackbar";
 import ThumbUp from "@material-ui/icons/ThumbUp";
 import ErrorIcon from "@material-ui/icons/Error";
@@ -8,10 +8,6 @@ import SnackbarContent from "@material-ui/core/SnackbarContent";
 import {makeStyles} from "@material-ui/core/styles";
 import {amber, green} from '@material-ui/core/colors';
 import clsx from "clsx";
-import {setNotification} from "../actions/App.Actions";
-import {connect} from "react-redux";
-import {ReduxState} from "../state/ReduxState";
-import {Dispatch} from "redux";
 
 const variantIcon = {
     success: ThumbUp,
@@ -45,7 +41,7 @@ const useStyles1 = makeStyles((theme) => ({
     },
 }));
 
-export interface INotification {
+interface INotification {
     message: string;
     type: "success"|"error"|"info";
     open: boolean;
@@ -53,12 +49,11 @@ export interface INotification {
 
 const EMPTY_NOTIF: INotification = {message: '', type: 'info', open: false}
 
-interface IProps {
-    notification?: INotification,
-    onClose?: () => void
-}
+export const NotificationContext = React.createContext([]);
 
-const CadSnackBar = ({notification, onClose} : IProps) => {
+export const CadSnackBar = ({children} : {children: ReactNode}) => {
+
+    const [notification, setNotification] = useState(EMPTY_NOTIF);
 
     const classes = useStyles1({});
     const Icon = variantIcon[notification.type];
@@ -67,41 +62,25 @@ const CadSnackBar = ({notification, onClose} : IProps) => {
         if (reason === 'clickaway') {
             return;
         }
-        onClose();
+        setNotification(EMPTY_NOTIF);
     };
 
-    return <Snackbar open={notification.open} anchorOrigin={{vertical: "top", horizontal: "right"}}
-    autoHideDuration={6000} onClose={handleClose}>
-    <SnackbarContent
-        className={clsx(classes[notification.type], notification.type)}
-        message={
-        <span id="client-snackbar" className={classes.message}>
-          <Icon className={clsx(classes.icon, classes.iconVariant)} />
-            {notification.message}
-        </span>
-}/>
-    </Snackbar>
+    return <NotificationContext.Provider value={[notification, setNotification]}>
+        <Snackbar open={notification.open}
+                  anchorOrigin={{vertical: "top", horizontal: "right"}}
+                  autoHideDuration={6000}
+                  onClose={handleClose}>
+            <SnackbarContent
+                className={clsx(classes[notification.type], notification.type)}
+                message={
+                    <span id="client-snackbar" className={classes.message}>
+                        <Icon className={clsx(classes.icon, classes.iconVariant)}/> {notification.message}
+                    </span>
+                }/>
+        </Snackbar>
+        {children}
+    </NotificationContext.Provider>
 }
-
-const mapStateToProps = (state: ReduxState): IProps => {
-    return {
-        notification: state.app.notification || EMPTY_NOTIF
-    }
-}
-
-const mapDispatchToProps = (dispatch: Dispatch): IProps => {
-    return {
-        onClose: () => {
-            dispatch(setNotification(EMPTY_NOTIF))
-        }
-    }
-}
-
-export default connect(
-    mapStateToProps,
-    mapDispatchToProps
-)(CadSnackBar)
-
 
 
 

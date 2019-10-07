@@ -48,7 +48,7 @@ const pageStyles = makeStyles((theme: Theme) =>
 interface ILayoutChildren {
     currentRace: string,
     rows: RaceRow[],
-    fetchRows: () => Promise<void>,
+    fetchRows: () => Promise<void>
 }
 
 export const CompetitionLayout = ({competitionId, children}: {competitionId: number, children: (props: ILayoutChildren) => ReactNode}) => {
