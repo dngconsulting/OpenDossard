@@ -19,6 +19,11 @@ export const AppReducer = (state: AppState = initialState, action: IAppAction): 
                 ...state,
                 ...action.payload
             };
+        case ActionType.SET_NOTIFICATION:
+            return {
+                ...state,
+                notification: action.payload
+            };
         default:
             return state;
     }

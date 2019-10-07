@@ -3,7 +3,6 @@ import RaceTabs, {IRaceStat} from "../components/RaceTabs";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import {createStyles, Theme} from "@material-ui/core";
 import {default as React, ReactNode, useEffect, useState} from "react";
-import {CadSnackBar, EMPTY_NOTIF, INotification} from "../components/CadSnackbar";
 import {apiCompetitions, apiRaces} from "../util/api";
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
@@ -50,12 +49,10 @@ interface ILayoutChildren {
     currentRace: string,
     rows: RaceRow[],
     fetchRows: () => Promise<void>,
-    setNotification: (n: INotification) => void,
 }
 
 export const CompetitionLayout = ({competitionId, children}: {competitionId: number, children: (props: ILayoutChildren) => ReactNode}) => {
     const [rows, setRows] = useState<RaceRow[]>([])
-    const [notification, setNotification] = useState(EMPTY_NOTIF);
     const [competition, setCompetition] = useState(EMPTY_COMPETITION);
     const [currentRace, setCurrentRace] = useState(null);
     const tabs = computeTabs(rows, competition.races);
@@ -80,8 +77,7 @@ export const CompetitionLayout = ({competitionId, children}: {competitionId: num
     return <div className={classes.container}>
         <CompetitionCard competition={competition} />
         <RaceTabs tabs={tabs} value={currentRace} onChange={race => setCurrentRace(race)}/>
-        { children({currentRace, rows, fetchRows, setNotification}) }
-        <CadSnackBar notification={notification} onClose={() => setNotification(EMPTY_NOTIF)}/>
+        { children({currentRace, rows, fetchRows}) }
     </div>
 }
 
