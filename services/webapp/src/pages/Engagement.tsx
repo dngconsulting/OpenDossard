@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Fragment, useState} from 'react';
+import {Fragment, useContext, useState} from 'react';
 
 import {createStyles, Theme} from '@material-ui/core';
 import MaterialTable, {Column} from "material-table";
@@ -14,6 +14,7 @@ import makeStyles from "@material-ui/core/styles/makeStyles";
 import AutocompleteInput from "../components/AutocompleteInput";
 import Paper from "@material-ui/core/Paper";
 import {CompetitionLayout} from "./CompetitionLayout";
+import {NotificationContext} from "../components/CadSnackbar";
 
 const create = async (newRace: RaceCreate) => {
     await apiRaces.create(newRace);
@@ -41,9 +42,11 @@ const COLUMNS: Array<Column<RaceRow>> = [
 const EngagementPage = ({match}: {match: any}) => {
     const competitionId = match.params.id;
 
+    const [ ,setNotification] = useContext(NotificationContext);
+
     return <CompetitionLayout competitionId={competitionId}>
         {
-            ({currentRace, rows, fetchRows, setNotification}) => (
+            ({currentRace, rows, fetchRows}) => (
                 <Fragment>
                     <Grid container={true}>
                         <CreationForm competitionId={competitionId}
