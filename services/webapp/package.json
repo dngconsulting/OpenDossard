@@ -33,6 +33,7 @@
     "randomcolor": "^0.5.4",
     "react": "^16.7.0",
     "react-data-grid": "^6.1.0",
+    "react-data-grid-addons": "^6.1.0",
     "react-dom": "^16.7.0",
     "react-mobx": "0.0.3",
     "react-redux": "^5.1.1",
