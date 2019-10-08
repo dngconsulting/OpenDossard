@@ -1,5 +1,5 @@
 import {default as React, useContext, useState} from "react";
-import {RaceCreate} from "../../sdk";
+import {Competition, Licence, RaceCreate} from "../../sdk";
 import Paper from "@material-ui/core/Paper";
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
@@ -31,18 +31,21 @@ interface IForm {
         firstName: string
     },
     riderNumber: string
+    catev: string
 }
 
+const EMPTY_FORM:IForm = {licence: null, riderNumber: '', catev: ''}
+
 export const CreationForm = (
-    {competitionId, race, onSuccess}:
+    {competition, race, onSuccess}:
         {
-            competitionId: number,
+            competition: Competition,
             race: string,
             onSuccess: (race: IForm) => void,
         }
 ) => {
 
-    const [form, setValues] = useState<IForm>({licence: null, riderNumber: ''});
+    const [form, setForm] = useState<IForm>(EMPTY_FORM);
     const [ ,setNotification] = useContext(NotificationContext);
 
     const onError = (message:string) => setNotification({
@@ -57,7 +60,8 @@ export const CreationForm = (
                 licenceId: form.licence && form.licence.id,
                 raceCode: race,
                 riderNumber: parseInt(form.riderNumber),
-                competitionId
+                catev: form.catev,
+                competitionId: competition.id
             }
             await create(dto);
             setNotification({
@@ -66,7 +70,7 @@ export const CreationForm = (
                 type: 'success'
             })
             onSuccess(form)
-            setValues({licence: null, riderNumber: ''});
+            setForm(EMPTY_FORM);
         } catch (e) {
             if ( e.json ) {
                 const {message} = (await e.json());
@@ -78,6 +82,15 @@ export const CreationForm = (
         }
     };
 
+    const onRiderChange = (licence: Licence) => {
+        setForm({
+            ...form,
+            licence,
+            riderNumber: '',
+            catev: competition && licence && (competition.fede === licence.fede) ? licence.catev : ''
+        })
+    }
+
     const classes = formStyles({});
 
     return <Paper style={{paddingLeft: 20, paddingBottom: 20, width: '100%'}} square={true}>
@@ -85,12 +98,23 @@ export const CreationForm = (
             <Typography variant="h5" gutterBottom={true} style={{marginRight: 20}}>
                 Nouveau Coureur :
             </Typography>
-            <AutocompleteInput style={{width: '450px', zIndex: 20}} selection={form.licence} onChangeSelection={(e: any) => setValues({...form, licence: e})}/>
+            <AutocompleteInput style={{width: '450px', zIndex: 20}} selection={form.licence} onChangeSelection={onRiderChange}/>
             <TextField
                 label="Numéro de dossard"
                 value={form.riderNumber}
                 className={classes.field}
-                onChange={e => setValues({...form, riderNumber: e.target.value})}
+                onChange={e => setForm({...form, riderNumber: e.target.value})}
+                margin="normal"
+                inputProps={{
+                    onKeyPress: e => e.key === 'Enter' && submit(),
+                    style: {textAlign: 'center'}
+                }}
+            />
+            <TextField
+                label="Catégorie"
+                value={form.catev}
+                className={classes.field}
+                onChange={e => setForm({...form, catev: e.target.value})}
                 margin="normal"
                 inputProps={{
                     onKeyPress: e => e.key === 'Enter' && submit(),

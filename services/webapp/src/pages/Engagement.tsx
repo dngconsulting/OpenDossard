@@ -36,10 +36,10 @@ const EngagementPage = ({match}: {match: any}) => {
 
     return <CompetitionLayout competitionId={competitionId}>
         {
-            ({currentRace, rows, fetchRows}) => (
+            ({competition, currentRace, rows, fetchRows}) => (
                 <Fragment>
                     <Grid container={true}>
-                        <CreationForm competitionId={competitionId}
+                        <CreationForm competition={competition}
                                       race={currentRace}
                                       onSuccess={fetchRows}
                         />
