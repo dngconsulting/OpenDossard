@@ -36,10 +36,10 @@ export class AlertDialog extends React.Component<IAlertProps, {}> {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={this.handleClose} color="primary">
-                        Disagree
+                        Annuler
             </Button>
                     <Button onClick={this.handleClose} color="primary" autoFocus={true}>
-                        Agree
+                        Confirmer
             </Button>
                 </DialogActions>
             </Dialog>
