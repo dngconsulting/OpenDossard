@@ -41,10 +41,7 @@ const EngagementPage = ({match}: {match: any}) => {
                     <Grid container={true}>
                         <CreationForm competitionId={competitionId}
                                       race={currentRace}
-                                      onSuccess={() => {
-                                          fetchRows();
-
-                                      }}
+                                      onSuccess={fetchRows}
                         />
                     </Grid>
                     <MaterialTable
