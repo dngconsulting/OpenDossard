@@ -1,6 +1,5 @@
 import {default as React, useContext, useState} from "react";
 import {Competition, Licence, RaceCreate} from "../../sdk";
-import Paper from "@material-ui/core/Paper";
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import AutocompleteInput from "../../components/AutocompleteInput";
@@ -21,6 +20,11 @@ const formStyles = makeStyles((theme: Theme) =>
             marginLeft: 10,
             marginRight: 10
         },
+        form: {
+            backgroundColor: theme.palette.common.white,
+            paddingBottom: 9,
+            paddingLeft: 10
+        }
     }),
 );
 
@@ -93,41 +97,47 @@ export const CreationForm = (
 
     const classes = formStyles({});
 
-    return <Paper style={{paddingLeft: 20, paddingBottom: 20, width: '100%'}} square={true}>
-        <Grid container={true} spacing={3} alignItems={"baseline"}>
-            <Typography variant="h5" gutterBottom={true} style={{marginRight: 20}}>
-                Nouveau Coureur :
-            </Typography>
-            <AutocompleteInput style={{width: '450px', zIndex: 20}} selection={form.licence} onChangeSelection={onRiderChange}/>
-            <TextField
-                label="Numéro de dossard"
-                value={form.riderNumber}
-                className={classes.field}
-                onChange={e => setForm({...form, riderNumber: e.target.value})}
-                margin="normal"
-                inputProps={{
-                    onKeyPress: e => e.key === 'Enter' && submit(),
-                    style: {textAlign: 'center'}
-                }}
-            />
-            <TextField
-                label="Catégorie"
-                value={form.catev}
-                className={classes.field}
-                onChange={e => setForm({...form, catev: e.target.value})}
-                margin="normal"
-                inputProps={{
-                    onKeyPress: e => e.key === 'Enter' && submit(),
-                    style: {textAlign: 'center'}
-                }}
-            />
-            <Button
-                variant="contained"
-                color="primary"
-                onClick={submit}
-            >
-                Ajouter
-            </Button>
+    return <Grid container={true} alignItems="flex-end" className={classes.form}>
+            <Grid item={true}>
+                <Typography variant="h5" style={{marginRight: 20}}>
+                    Nouveau Coureur :
+                </Typography>
+            </Grid>
+            <Grid item={true} style={{zIndex: 20}}>
+                <AutocompleteInput style={{width: '450px'}} selection={form.licence} onChangeSelection={onRiderChange}/>
+            </Grid>
+            <Grid item={true}>
+                <TextField
+                    label="Numéro de dossard"
+                    value={form.riderNumber}
+                    className={classes.field}
+                    onChange={e => setForm({...form, riderNumber: e.target.value})}
+                    inputProps={{
+                        onKeyPress: e => e.key === 'Enter' && submit(),
+                        style: {textAlign: 'center'}
+                    }}
+                />
+            </Grid>
+            <Grid item={true} xs={1}>
+                <TextField
+                    label="Catégorie"
+                    value={form.catev}
+                    className={classes.field}
+                    onChange={e => setForm({...form, catev: e.target.value})}
+                    inputProps={{
+                        onKeyPress: e => e.key === 'Enter' && submit(),
+                        style: {textAlign: 'center'}
+                    }}
+                />
+            </Grid>
+            <Grid item={true}>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={submit}
+                >
+                    Ajouter
+                </Button>
+            </Grid>
         </Grid>
-    </Paper>
 }

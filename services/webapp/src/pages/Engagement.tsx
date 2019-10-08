@@ -4,7 +4,6 @@ import MaterialTable, {Column} from "material-table";
 
 import {apiRaces} from "../util/api";
 import {RaceRow} from "../sdk";
-import Grid from "@material-ui/core/Grid";
 import {CompetitionLayout} from "./CompetitionLayout";
 import {NotificationContext} from "../components/CadSnackbar";
 import {CreationForm} from "./engagement/EngagementCreation";
@@ -38,12 +37,10 @@ const EngagementPage = ({match}: {match: any}) => {
         {
             ({competition, currentRace, rows, fetchRows}) => (
                 <Fragment>
-                    <Grid container={true}>
-                        <CreationForm competition={competition}
-                                      race={currentRace}
-                                      onSuccess={fetchRows}
-                        />
-                    </Grid>
+                    <CreationForm competition={competition}
+                                  race={currentRace}
+                                  onSuccess={fetchRows}
+                    />
                     <MaterialTable
                         columns={COLUMNS}
                         data={rows.filter( row => row.raceCode === currentRace)}
