@@ -39,7 +39,7 @@ const RaceTabs = ({tabs, value, onChange}: IRaceTabs) => {
     const classes = useStyles({});
 
     return (
-        <Tabs value={value} onChange={(e, v) => onChange(v)}
+        <Tabs value={value || Object.keys(tabs)[0] } onChange={(e, v) => onChange(v)}
                             className={classes.tabs}
                             centered={true}
                             TabIndicatorProps={{style: {height: 0}}} >
