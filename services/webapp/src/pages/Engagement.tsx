@@ -1,84 +1,128 @@
-import * as React from 'react';
-import {Fragment, useContext} from 'react';
-import MaterialTable, {Column} from "material-table";
+import React, {Fragment, useContext, useRef, useState} from 'react';
 
-import {apiRaces} from "../util/api";
-import {RaceRow} from "../sdk";
-import {CompetitionLayout} from "./CompetitionLayout";
-import {NotificationContext} from "../components/CadSnackbar";
-import {CreationForm} from "./engagement/EngagementCreation";
-
-
-const COLUMNS: Array<Column<RaceRow>> = [
-    { title: "Dossard", field: "riderNumber",
-        headerStyle: { textAlign: "center" },
-        cellStyle: { textAlign: "center", width: 150 }
-    },
-    { title: "Coureur", field: "name"},
-    { title: "Catégorie", field: "catev",
-        headerStyle: { textAlign: "center" },
-        cellStyle: { textAlign: "center", width: 150 }
-    },
-    { title: "H/F", field: "gender",
-        headerStyle: { textAlign: "center" },
-        cellStyle: { textAlign: "center", width: 150 }
-    },
-    { title: "Club", field: "club"},
-];
+import {
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle
+} from '@material-ui/core';
+import 'primereact/resources/themes/nova-light/theme.css';
+import 'primereact/resources/primereact.min.css';
+import 'primeicons/primeicons.css';
+import {apiRaces} from '../util/api';
+import Grid from '@material-ui/core/Grid';
+import Button from '@material-ui/core/Button';
+import {CompetitionLayout} from './CompetitionLayout';
+import {NotificationContext} from '../components/CadSnackbar';
+import {DataTable} from 'primereact/datatable';
+import {Column} from 'primereact/column';
+import {CreationForm} from './engagement/EngagementCreation';
+import {ContextMenu} from 'primereact/contextmenu';
+import {RaceRow} from '../sdk';
 
 
+const ConfirmDialog = (props: any) => {
+    return (
+        <div>
+            <Dialog
+                open={props.open}
+                onClose={props.handleClose}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">{'Désengager un coureur'}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        Êtes-vous sûr de vouloir désengager le coureur {props.name} ?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={props.handleClose} color="primary">
+                        Annuler
+                    </Button>
+                    <Button onClick={props.handleOk} color="primary" autoFocus>
+                        Confirmer
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </div>
+    );
+};
+const filterByRace = (rows : RaceRow[] , race : string) : RaceRow[] => {
+    return rows.filter((coureur) => coureur.raceCode === race)
+}
 
-const EngagementPage = ({match}: {match: any}) => {
+const EngagementPage = ({match}: { match: any }) => {
     const competitionId = match.params.id;
-
-    const [ ,setNotification] = useContext(NotificationContext);
-
+    const dg = useRef(null);
+    const [, setNotification] = useContext(NotificationContext);
+    const contextMenu = useRef(null);
+    const [selectedRow, selectRow] = useState();
+    const [open, openDialog] = React.useState(false);
+    const closeDialog = () => {
+        openDialog(false);
+    };
+    const handleOk = async (fetchRows: any) => {
+        await apiRaces._delete(selectedRow.id);
+        fetchRows();
+        setNotification({
+            message: `Le coureur ${selectedRow.id} a été supprimé de la compétition`,
+            type: 'info',
+            open: true
+        });
+        closeDialog();
+    };
     return <CompetitionLayout competitionId={competitionId}>
         {
-            ({competition, currentRace, rows, fetchRows}) => (
+            ({competition,currentRace, rows, fetchRows}) => (
                 <Fragment>
-                    <CreationForm competition={competition}
-                                  race={currentRace}
-                                  onSuccess={fetchRows}
-                    />
-                    <MaterialTable
-                        columns={COLUMNS}
-                        data={rows.filter( row => row.raceCode === currentRace)}
-                        options={{
-                            filtering: true,
-                            actionsColumnIndex: -1,
-                            paging: false,
-                            toolbar: false,
-                            padding: "dense"
-                        }}
-                        editable={{
-                            onRowDelete: async (oldData) => {
-                                await apiRaces._delete(`${oldData.id}`);
-                                fetchRows();
+                    <Grid container={true}>
+                        <ConfirmDialog name={selectedRow ? selectedRow.name : null} open={open}
+                                       handleClose={closeDialog}
+                                       handleOk={() => handleOk(fetchRows)}/>
+                        <CreationForm competition={competition}
+                                      race={currentRace}
+                                      onSuccess={fetchRows}
+                        />
+                    </Grid>
+                    <ContextMenu style={{width:'220px'}} model={[
+                        {
+                            label: 'Détail du coureur',
+                            icon: 'pi pi-fw pi-search',
+                            command: (event) => {
                                 setNotification({
-                                    message: `Le coureur ${oldData.name} a été supprimé de la compétition`,
+                                    message: `TODO Aller sur le détail du coureur `,
                                     type: 'info',
                                     open: true
                                 });
                             }
-                        }}
-                        localization={{
-                            grouping: {
-                                groupedBy: 'Regroupement par :',
-                                placeholder: 'Glisser ici la colonne a regrouper'
-                            },
-                            body: {
-                                editRow: {
-                                    deleteText : 'Etes vous sur de vouloir désinscrire ce coureur ?'
-                                }
+                        },
+                        {
+                            label: 'Désengager ce coureur',
+                            icon: 'pi pi-fw pi-times',
+                            command: async (event) => {
+                                openDialog(true);
                             }
-                        }}
-                    />
+                        }
+                    ]} ref={contextMenu}/>
+                    <DataTable ref={dg} value={filterByRace(rows,currentRace)} selectionMode="single"
+                               emptyMessage="Aucun enregistrement dans la table"
+                               onContextMenu={e => contextMenu.current.show(e.originalEvent)}
+                               contextMenuSelection={selectedRow}
+                               onContextMenuSelectionChange={e => selectRow(e.value)}
+                    >
+                        <Column field="riderNumber" header="Dossard" filter={true} sortable={true} filterMatchMode='contains'/>
+                        <Column field="name" header="Coureur" filter={true} sortable={true} filterMatchMode='contains'/>
+                        <Column field="gender" header="H/F" filter={true} sortable={true} filterMatchMode='contains'/>
+                        <Column field="club" header="Club" filter={true} sortable={true} filterMatchMode='contains'/>
+                        <Column field="catev" header="Catégorie" filter={true} sortable={true} filterMatchMode='contains'/>
+                    </DataTable>
                 </Fragment>
             )
         }
-    </CompetitionLayout>
+    </CompetitionLayout>;
 
-}
+};
 
 export default EngagementPage;
