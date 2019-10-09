@@ -75,13 +75,13 @@ const EngagementPage = ({match}: { match: any }) => {
     };
     return <CompetitionLayout competitionId={competitionId}>
         {
-            ({currentRace, rows, fetchRows}) => (
+            ({competition,currentRace, rows, fetchRows}) => (
                 <Fragment>
                     <Grid container={true}>
                         <ConfirmDialog name={selectedRow ? selectedRow.name : null} open={open}
                                        handleClose={closeDialog}
                                        handleOk={() => handleOk(fetchRows)}/>
-                        <CreationForm competitionId={competitionId}
+                        <CreationForm competition={competition}
                                       race={currentRace}
                                       onSuccess={fetchRows}
                         />
