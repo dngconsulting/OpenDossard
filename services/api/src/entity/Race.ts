@@ -19,6 +19,9 @@ export class Race {
     public raceCode: string;
 
     @Column({nullable: true})
+    public catev: string;
+
+    @Column({nullable: true})
     public riderNumber: number;
 
     @Column({nullable: true})

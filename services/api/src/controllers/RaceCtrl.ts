@@ -37,6 +37,8 @@ export class RaceCreate {
     public riderNumber: number;
     @ApiModelPropertyOptional()
     public raceCode: string;
+    @ApiModelPropertyOptional()
+    public catev: string;
 }
 
 @Controller('/api/races')
@@ -57,7 +59,7 @@ export class RacesCtrl {
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
     public async getAllRaces(): Promise<RaceRow[]> {
 
-        const query = `select r.*, concat(l.name,' ',l."firstName") as name, l."licenceNumber", l.club, l.catev, l.gender
+        const query = `select r.*, concat(l.name,' ',l."firstName") as name, l."licenceNumber", l.club, l.gender
                         from race r
                         join licence l on r."licenceId" = l.id
                         order by r.id desc`;
@@ -79,6 +81,10 @@ export class RacesCtrl {
 
         if ( ! race.riderNumber ) {
             throw(new BadRequestException('Veuillez renseigner un numéro de dossard'));
+        }
+
+        if ( ! race.catev ) {
+            throw(new BadRequestException('Veuillez renseigner la catégorie dans laquelle le coureur participe'));
         }
 
         const licence = await this.entityManager.findOne(Licence, race.licenceId);
@@ -116,6 +122,7 @@ export class RacesCtrl {
         newRace.riderNumber = race.riderNumber;
         newRace.licence = licence;
         newRace.competition = competition;
+        newRace.catev = race.catev;
 
         await this.entityManager.save(newRace);
     }
