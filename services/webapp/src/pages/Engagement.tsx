@@ -19,7 +19,6 @@ import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
 import {CreationForm} from './engagement/EngagementCreation';
 import {ContextMenu} from 'primereact/contextmenu';
-import {RaceRow} from '../sdk';
 
 
 const ConfirmDialog = (props: any) => {
@@ -49,9 +48,6 @@ const ConfirmDialog = (props: any) => {
         </div>
     );
 };
-const filterByRace = (rows : RaceRow[] , race : string) : RaceRow[] => {
-    return rows.filter((coureur) => coureur.raceCode === race)
-}
 
 const EngagementPage = ({match}: { match: any }) => {
     const competitionId = match.params.id;
@@ -106,7 +102,7 @@ const EngagementPage = ({match}: { match: any }) => {
                             }
                         }
                     ]} ref={contextMenu}/>
-                    <DataTable ref={dg} value={filterByRace(rows,currentRace)} selectionMode="single"
+                    <DataTable ref={dg} value={rows} selectionMode="single"
                                emptyMessage="Aucun enregistrement dans la table"
                                onContextMenu={e => contextMenu.current.show(e.originalEvent)}
                                contextMenuSelection={selectedRow}
