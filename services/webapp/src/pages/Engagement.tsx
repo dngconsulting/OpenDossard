@@ -1,12 +1,6 @@
-import React, {Fragment, useContext, useRef, useState} from 'react';
+import React, {useContext, useRef, useState} from 'react';
 
-import {
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle
-} from '@material-ui/core';
+import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from '@material-ui/core';
 import 'primereact/resources/themes/nova-light/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
@@ -20,6 +14,8 @@ import {Column} from 'primereact/column';
 import {CreationForm} from './engagement/EngagementCreation';
 import {ContextMenu} from 'primereact/contextmenu';
 import {RaceRow} from '../sdk';
+import {Reorganizer} from "./engagement/ReorganizeRaces";
+import Box from "@material-ui/core/Box";
 
 
 const ConfirmDialog = (props: any) => {
@@ -76,7 +72,10 @@ const EngagementPage = ({match}: { match: any }) => {
     return <CompetitionLayout competitionId={competitionId}>
         {
             ({competition,currentRace, rows, fetchRows}) => (
-                <Fragment>
+                <Box position="relative">
+                    <Box top={-38} right={10} position="absolute">
+                        <Reorganizer competition={competition}/>
+                    </Box>
                     <Grid container={true}>
                         <ConfirmDialog name={selectedRow ? selectedRow.name : null} open={open}
                                        handleClose={closeDialog}
@@ -118,7 +117,7 @@ const EngagementPage = ({match}: { match: any }) => {
                         <Column field="club" header="Club" filter={true} sortable={true} filterMatchMode='contains'/>
                         <Column field="catev" header="Catégorie" filter={true} sortable={true} filterMatchMode='contains'/>
                     </DataTable>
-                </Fragment>
+                </Box>
             )
         }
     </CompetitionLayout>;
