@@ -340,6 +340,12 @@ export interface RaceCreate {
      * @memberof RaceCreate
      */
     raceCode?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceCreate
+     */
+    catev?: string;
 }
 
 /**
