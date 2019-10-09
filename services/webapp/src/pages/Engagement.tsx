@@ -82,7 +82,7 @@ const EngagementPage = ({match}: { match: any }) => {
                                       onSuccess={fetchRows}
                         />
                     </Grid>
-                    <ContextMenu style={{width:'250px'}} model={[
+                    <ContextMenu style={{width:'220px'}} model={[
                         {
                             label: 'Détail du coureur',
                             icon: 'pi pi-fw pi-search',
@@ -108,11 +108,11 @@ const EngagementPage = ({match}: { match: any }) => {
                                contextMenuSelection={selectedRow}
                                onContextMenuSelectionChange={e => selectRow(e.value)}
                     >
-                        <Column field="riderNumber" header="Dossard" filter={true} sortable={true}/>
-                        <Column field="name" header="Coureur" filter={true} sortable={true}/>
-                        <Column field="gender" header="H/F" filter={true} sortable={true}/>
-                        <Column field="club" header="Club" filter={true} sortable={true}/>
-                        <Column field="catev" header="Catégorie" filter={true} sortable={true}/>
+                        <Column field="riderNumber" header="Dossard" filter={true} sortable={true} filterMatchMode='contains'/>
+                        <Column field="name" header="Coureur" filter={true} sortable={true} filterMatchMode='contains'/>
+                        <Column field="gender" header="H/F" filter={true} sortable={true} filterMatchMode='contains'/>
+                        <Column field="club" header="Club" filter={true} sortable={true} filterMatchMode='contains'/>
+                        <Column field="catev" header="Catégorie" filter={true} sortable={true} filterMatchMode='contains'/>
                     </DataTable>
                 </Fragment>
             )
