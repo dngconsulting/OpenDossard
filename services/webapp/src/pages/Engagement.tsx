@@ -40,7 +40,7 @@ const ConfirmDialog = (props: any) => {
                     <Button onClick={props.handleClose} color="primary">
                         Annuler
                     </Button>
-                    <Button onClick={props.handleOk} color="primary" autoFocus>
+                    <Button onClick={props.handleOk} color="primary" autoFocus={true}>
                         Confirmer
                     </Button>
                 </DialogActions>

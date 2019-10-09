@@ -26,6 +26,8 @@ export class RaceRow {
     public catev: string;
     @ApiModelPropertyOptional()
     public gender: string;
+    @ApiModelPropertyOptional()
+    public rankingScratch: number;
 }
 
 export class RaceCreate {
@@ -75,21 +77,21 @@ export class RacesCtrl {
     public async create(@Body() race: RaceCreate)
         : Promise<void> {
 
-        if ( ! race.licenceId ) {
+        if (!race.licenceId) {
             throw(new BadRequestException('Veuillez renseigner un coureur'));
         }
 
-        if ( ! race.riderNumber ) {
+        if (!race.riderNumber) {
             throw(new BadRequestException('Veuillez renseigner un numéro de dossard'));
         }
 
-        if ( ! race.catev ) {
+        if (!race.catev) {
             throw(new BadRequestException('Veuillez renseigner la catégorie dans laquelle le coureur participe'));
         }
 
         const licence = await this.entityManager.findOne(Licence, race.licenceId);
 
-        if ( ! licence ) {
+        if (!licence) {
             throw(new BadRequestException('Licence inconnue'));
         }
 
@@ -100,7 +102,7 @@ export class RacesCtrl {
             })
             .getOne();
 
-        if ( numberConflict ) {
+        if (numberConflict) {
             throw(new BadRequestException(`Le numéro de dossard ${race.riderNumber} est déjà pris`));
         }
 
@@ -111,7 +113,7 @@ export class RacesCtrl {
             })
             .getOne();
 
-        if ( licenceConflict ) {
+        if (licenceConflict) {
             throw(new BadRequestException(`Ce licencié est déjà inscrit sur cette épreuve`));
         }
 
@@ -125,6 +127,25 @@ export class RacesCtrl {
         newRace.catev = race.catev;
 
         await this.entityManager.save(newRace);
+    }
+
+    @Put('/update')
+    @ApiOperation({
+        title: 'Met à jour le classement du coureur ',
+        operationId: 'update',
+    })
+    public async updateRanking(@Body() raceRow: RaceRow)
+        : Promise<void> {
+        // Lets find first the corresponding Race
+        const race = await this.entityManager.findOne(Race, {
+            riderNumber: raceRow.riderNumber,
+            raceCode: raceRow.raceCode,
+        });
+        if (!race) {
+            throw(new BadRequestException('Impossible de classer ce coureur'));
+        }
+        race.rankingScratch = raceRow.rankingScratch;
+        await this.entityManager.save(race);
     }
 
     @Delete('/:id')
