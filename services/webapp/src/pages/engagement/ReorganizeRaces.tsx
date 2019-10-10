@@ -2,12 +2,13 @@ import {Dialog, DialogActions, DialogContent, DialogTitle} from "@material-ui/co
 import Button from "@material-ui/core/Button";
 import React, {useEffect, useState} from "react";
 import TextField from "@material-ui/core/TextField";
-import {Competition} from "../../sdk";
+import {Competition, RaceRow} from "../../sdk";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import Fab from "@material-ui/core/Fab";
 import {Add, Delete, ThreeSixty} from "@material-ui/icons";
 import Typography from "@material-ui/core/Typography";
 import Box from "@material-ui/core/Box";
+import Badge from "@material-ui/core/Badge/Badge";
 
 const styles = makeStyles(theme => ({
     button: {
@@ -25,13 +26,41 @@ const styles = makeStyles(theme => ({
             marginTop: 10,
             marginLeft: 10,
         }
+    },
+    categories: {
+        display: 'flex',
+        flexDirection: 'column',
+        margin: '20px 0 0 0',
+        color: theme.palette.grey[600],
+        '& table': {
+            borderCollapse: 'collapse',
+            justifySelf: 'center',
+            alignSelf: 'center'
+        },
+        '& th': {
+            textAlign: 'left',
+            paddingRight: 10
+        },
+        '& td': {
+            border: '1px solid grey',
+            textAlign: 'center',
+            padding: '0 10px 0 10px'
+        },
+        '& span': {
+            justifySelf: 'center',
+            alignSelf: 'center',
+        }
     }
 }))
 
-export const Reorganizer = ({competition} : { competition: Competition}) => {
+const compute = (rows: RaceRow[], categories: string[]) : number => {
+    return rows.filter( row => categories.indexOf(''+row.catev) >= 0 ).length
+}
+
+export const Reorganizer = ({competition, rows} : {competition: Competition, rows: RaceRow[]}) => {
 
     const [races, setRaces] = useState([]);
-    const [open, setOpen] = useState(true);
+    const [open, setOpen] = useState(false);
 
     const classes = styles({});
 
@@ -55,12 +84,16 @@ export const Reorganizer = ({competition} : { competition: Competition}) => {
                 </Typography>
                 {
                     races.map((raceCode, i) => (
-                            <Box justifySelf="center" alignSelf="center">
-                                <TextField key={i} data-cp="field" value={raceCode} onChange={e => {
-                                const newOne = [...races]
-                                newOne[i] = e.target.value
-                                setRaces(newOne)
-                                }}/>
+                            <Box key={i} justifySelf="center" alignSelf="center">
+                                <Badge badgeContent={compute(rows, raceCode.split('/'))}
+                                       max={999}
+                                       color="secondary">
+                                    <TextField data-cp="field" value={raceCode} onChange={e => {
+                                    const newOne = [...races]
+                                    newOne[i] = e.target.value
+                                    setRaces(newOne)
+                                    }}/>
+                                </Badge>
                                 {   races.length > 1 &&
                                     <Fab color="primary" data-cp="icon" onClick={() => setRaces(races.filter((item,j) => i !== j))}>
                                         <Delete />
@@ -76,6 +109,7 @@ export const Reorganizer = ({competition} : { competition: Competition}) => {
                         )
                     )
                 }
+                <Categories rows={rows}/>
             </DialogContent>
             <DialogActions>
                 <Button onClick={() => setOpen(false)} color="primary">
@@ -87,5 +121,35 @@ export const Reorganizer = ({competition} : { competition: Competition}) => {
             </DialogActions>
         </Dialog>
     </div>
+}
+
+const Categories = ({rows} : {rows: RaceRow[]}) => {
+
+    const classes = styles({});
+
+    const computed = rows.reduce( (acc: {[catev:string]: number}, row) => {
+        return {
+            ...acc,
+            [row.catev]: acc[row.catev] ? acc[row.catev] + 1 : 1
+        }
+    }, {});
+    const byCatev = Object.keys(computed).map( catev => ({
+        catev,
+        participants: computed[catev]
+    }) );
+
+    return <Box className={classes.categories}>
+        <table>
+            <tr>
+                <th>Catégories : </th>
+                { byCatev.map( stat => <td key={stat.catev}>{stat.catev}</td>) }
+            </tr>
+            <tr>
+                <th>Inscrits : </th>
+                { byCatev.map( stat => <td key={stat.catev}>{stat.participants}</td>) }
+            </tr>
+        </table>
+        <span>Répartition des coureurs par catégories</span>
+    </Box>
 }
 

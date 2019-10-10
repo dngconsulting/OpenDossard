@@ -74,7 +74,7 @@ const EngagementPage = ({match}: { match: any }) => {
             ({competition,currentRace, rows, fetchRows}) => (
                 <Box position="relative">
                     <Box top={-38} right={10} position="absolute">
-                        <Reorganizer competition={competition}/>
+                        <Reorganizer competition={competition} rows={rows}/>
                     </Box>
                     <Grid container={true}>
                         <ConfirmDialog name={selectedRow ? selectedRow.name : null} open={open}

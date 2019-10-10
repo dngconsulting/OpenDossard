@@ -63,7 +63,7 @@ export const CompetitionLayout = ({competitionId, children}: {competitionId: num
     return <div className={classes.container}>
         <CompetitionCard competition={competition} />
         <RaceTabs tabs={tabs} value={currentRace} onChange={race => setCurrentRace(race)}/>
-        { children({competition, currentRace, rows: rows.filter( row => row.raceCode === currentRace ), fetchRows}) }
+        { children({competition, currentRace, rows, fetchRows}) }
     </div>
 }
 
