@@ -21,6 +21,10 @@ const transformRows = (rows: RaceRow[]) => {
     return rowsTransformed;
 };
 
+const filterByRace = (rows : RaceRow[] , race : string) : RaceRow[] => {
+    return rows.filter((coureur) => coureur.raceCode === race)
+}
+
 const EditResultsPage = ({match}: { match: any }) => {
     const competitionId = match.params.id;
     const [, setNotification] = useContext(NotificationContext);
@@ -45,7 +49,7 @@ const EditResultsPage = ({match}: { match: any }) => {
     return <CompetitionLayout competitionId={competitionId}>
         {
             ({competition, currentRace, rows, fetchRows}) => {
-                const transformedRows = transformRows(rows);
+                const transformedRows = transformRows(filterByRace(rows, currentRace));
 
                 return (
                     <Fragment>
