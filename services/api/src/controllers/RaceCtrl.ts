@@ -4,7 +4,17 @@ import {Race} from '../entity/Race';
 import {Licence} from '../entity/Licence';
 import {Competition} from '../entity/Competition';
 import {ApiModelPropertyOptional, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
-import {BadRequestException, Body, Controller, Delete, Get, Param, Post, Put} from '@nestjs/common';
+import {
+    BadRequestException,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Logger,
+    Param,
+    Post,
+    Put
+} from '@nestjs/common';
 import {InjectEntityManager} from '@nestjs/typeorm';
 
 export class RaceRow {
@@ -136,16 +146,41 @@ export class RacesCtrl {
     })
     public async updateRanking(@Body() raceRow: RaceRow)
         : Promise<void> {
-        // Lets find first the corresponding Race
-        const race = await this.entityManager.findOne(Race, {
+        // Lets find first the corresponding Race row rider
+        const requestedRankedRider = await this.entityManager.findOne(Race, {
             riderNumber: raceRow.riderNumber,
             raceCode: raceRow.raceCode,
         });
-        if (!race) {
-            throw(new BadRequestException('Impossible de classer ce coureur'));
+        if (!requestedRankedRider) {
+            throw(new BadRequestException('Impossible de classer ce coureur, ' + JSON.stringify(requestedRankedRider) + ' il n\'existe pas'));
         }
-        race.rankingScratch = raceRow.rankingScratch;
-        await this.entityManager.save(race);
+        console.log('Rank for ' + JSON.stringify(requestedRankedRider))
+        // Check if this rider has already a rank
+        if (requestedRankedRider.rankingScratch != null) {
+            throw(new BadRequestException('Impossible de classer ce coureur, ' + JSON.stringify(requestedRankedRider) + ' il existe déjà dans le classement'));
+        }
+        // Check if there is existing rider with this rank in this race with the same dossard
+        const existRankRider = await this.entityManager.findOne(Race, {
+            rankingScratch: raceRow.rankingScratch,
+            raceCode: raceRow.raceCode,
+        });
+        // If a rider already exist, it depends on the existing ranking
+        // if the ranking is the one we want to change, its and edit, no problem, we remove the existing
+        // if the ranking is another one, raise a message and ask the user to remove manually the existing
+        // rider
+        if (existRankRider) {
+            Logger.debug('A rider exist with this rank ' + JSON.stringify(existRankRider));
+            if (existRankRider.rankingScratch === raceRow.rankingScratch) {
+                Logger.debug('Existing rider will be removed from ranking ' + JSON.stringify(existRankRider));
+                existRankRider.rankingScratch = null;
+                await this.entityManager.save(existRankRider);
+            } else {
+                Logger.warn('Impossible to rank this rider please remove before ' + JSON.stringify(existRankRider));
+                throw(new BadRequestException('Désengager le coureur ' + existRankRider.id + ' avant de classer ce coureur'));
+            }
+        }
+        requestedRankedRider.rankingScratch = raceRow.rankingScratch;
+        await this.entityManager.save(requestedRankedRider);
     }
 
     @Delete('/:id')
