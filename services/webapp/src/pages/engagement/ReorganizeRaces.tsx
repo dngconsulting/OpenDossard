@@ -27,10 +27,19 @@ const styles = makeStyles(theme => ({
             marginLeft: 10,
         }
     },
-    categories: {
+    races: {
+        flex: 1,
         display: 'flex',
         flexDirection: 'column',
-        margin: '20px 0 0 0',
+        minHeight: 200,
+        justifyContent: 'center',
+        paddingLeft: 10
+    },
+    categories: {
+        display: 'flex',
+        alignSelf: 'center',
+        flex: 1,
+        flexDirection: 'column',
         color: theme.palette.grey[600],
         '& table': {
             borderCollapse: 'collapse',
@@ -82,34 +91,10 @@ export const Reorganizer = ({competition, rows} : {competition: Competition, row
                 <Typography variant="body2">
                     Ici, vous pouvez revoir les catégories de chaque courses, ajouter ou supprimer des courses...
                 </Typography>
-                {
-                    races.map((raceCode, i) => (
-                            <Box key={i} justifySelf="center" alignSelf="center">
-                                <Badge badgeContent={compute(rows, raceCode.split('/'))}
-                                       max={999}
-                                       color="secondary">
-                                    <TextField data-cp="field" value={raceCode} onChange={e => {
-                                    const newOne = [...races]
-                                    newOne[i] = e.target.value
-                                    setRaces(newOne)
-                                    }}/>
-                                </Badge>
-                                {   races.length > 1 &&
-                                    <Fab color="primary" data-cp="icon" onClick={() => setRaces(races.filter((item,j) => i !== j))}>
-                                        <Delete />
-                                    </Fab>
-                                }
-                                <Fab style={{visibility: i === (races.length-1) ? 'visible' : 'hidden'}}
-                                     color="primary"
-                                     data-cp="icon"
-                                     onClick={() => setRaces([...races, ''])}>
-                                  <Add />
-                                </Fab>
-                            </Box>
-                        )
-                    )
-                }
-                <Categories rows={rows}/>
+                <Box display="flex">
+                    <Races races={races} setRaces={setRaces} rows={rows}/>
+                    <Categories rows={rows}/>
+                </Box>
             </DialogContent>
             <DialogActions>
                 <Button onClick={() => setOpen(false)} color="primary">
@@ -121,6 +106,37 @@ export const Reorganizer = ({competition, rows} : {competition: Competition, row
             </DialogActions>
         </Dialog>
     </div>
+}
+
+const Races = ({races, setRaces, rows} : {races: string[], setRaces: (races:string[]) => void, rows: RaceRow[]}) => {
+
+    const classes = styles({});
+
+    return <Box className={classes.races}>{
+        races.map((raceCode, i) => (
+            <Box key={i} justifySelf="center" alignSelf="center">
+                <Badge badgeContent={compute(rows, raceCode.split('/'))}
+                       max={999}
+                       color="secondary">
+                    <TextField data-cp="field" value={raceCode} onChange={e => {
+                        const newOne = [...races]
+                        newOne[i] = e.target.value
+                        setRaces(newOne)
+                    }}/>
+                </Badge>
+                {   races.length > 1 &&
+                <Fab color="primary" data-cp="icon" onClick={() => setRaces(races.filter((item,j) => i !== j))}>
+                  <Delete />
+                </Fab>
+                }
+                <Fab style={{visibility: i === (races.length-1) ? 'visible' : 'hidden'}}
+                     color="primary"
+                     data-cp="icon"
+                     onClick={() => setRaces([...races, ''])}>
+                    <Add />
+                </Fab>
+            </Box>))
+    }</Box>
 }
 
 const Categories = ({rows} : {rows: RaceRow[]}) => {
