@@ -35,6 +35,10 @@ export class RaceRow {
     @ApiModelPropertyOptional()
     public catev: string;
     @ApiModelPropertyOptional()
+    public catea: string;
+    @ApiModelPropertyOptional()
+    public fede: string;
+    @ApiModelPropertyOptional()
     public gender: string;
     @ApiModelPropertyOptional()
     public rankingScratch: number;
@@ -62,20 +66,20 @@ export class RacesCtrl {
     ) {
     }
 
-    @Get()
+    @Get('/:id')
     @ApiOperation({
         operationId: 'getAllRaces',
         title: 'Rechercher toutes les courses ',
         description: 'description',
     })
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
-    public async getAllRaces(): Promise<RaceRow[]> {
-
-        const query = `select r.*, concat(l.name,' ',l."firstName") as name, l."licenceNumber", l.club, l.gender
+    public async getAllRaces(@Param('id') competitionId: number): Promise<RaceRow[]> {
+        Logger.debug('getAllRaces for competition ' + competitionId);
+        const query = `select r.*, concat(l.name,' ',l."firstName") as name, l."licenceNumber", l.club, l.gender, l.catea, l.fede
                         from race r
                         join licence l on r."licenceId" = l.id
-                        order by r.id desc`;
-        return await this.entityManager.query(query);
+                        where r."competitionId" = $1 order by r.id desc `;
+        return await this.entityManager.query(query, [competitionId]);
     }
 
     @Post()

@@ -427,6 +427,18 @@ export interface RaceRow {
      * @type {string}
      * @memberof RaceRow
      */
+    catea?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceRow
+     */
+    fede?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceRow
+     */
     gender?: string;
     /**
      * 
@@ -1355,11 +1367,17 @@ export const RaceAPIApiFetchParamCreator = function (configuration?: Configurati
         /**
          * description
          * @summary Rechercher toutes les courses 
+         * @param {number} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAllRaces(options: any = {}): FetchArgs {
-            const localVarPath = `/api/races`;
+        getAllRaces(id: number, options: any = {}): FetchArgs {
+            // verify required parameter 'id' is not null or undefined
+            if (id === null || id === undefined) {
+                throw new RequiredError('id','Required parameter id was null or undefined when calling getAllRaces.');
+            }
+            const localVarPath = `/api/races/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
             const localVarHeaderParameter = {} as any;
@@ -1457,11 +1475,12 @@ export const RaceAPIApiFp = function(configuration?: Configuration) {
         /**
          * description
          * @summary Rechercher toutes les courses 
+         * @param {number} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAllRaces(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<RaceRow>> {
-            const localVarFetchArgs = RaceAPIApiFetchParamCreator(configuration).getAllRaces(options);
+        getAllRaces(id: number, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<RaceRow>> {
+            const localVarFetchArgs = RaceAPIApiFetchParamCreator(configuration).getAllRaces(id, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -1523,11 +1542,12 @@ export const RaceAPIApiFactory = function (configuration?: Configuration, fetch?
         /**
          * description
          * @summary Rechercher toutes les courses 
+         * @param {number} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAllRaces(options?: any) {
-            return RaceAPIApiFp(configuration).getAllRaces(options)(fetch, basePath);
+        getAllRaces(id: number, options?: any) {
+            return RaceAPIApiFp(configuration).getAllRaces(id, options)(fetch, basePath);
         },
         /**
          * 
@@ -1576,12 +1596,13 @@ export class RaceAPIApi extends BaseAPI {
     /**
      * description
      * @summary Rechercher toutes les courses 
+     * @param {number} id 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof RaceAPIApi
      */
-    public getAllRaces(options?: any) {
-        return RaceAPIApiFp(this.configuration).getAllRaces(options)(this.fetch, this.basePath);
+    public getAllRaces(id: number, options?: any) {
+        return RaceAPIApiFp(this.configuration).getAllRaces(id, options)(this.fetch, this.basePath);
     }
 
     /**

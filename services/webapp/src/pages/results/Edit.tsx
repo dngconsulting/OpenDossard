@@ -10,14 +10,13 @@ import {apiRaces} from '../../util/api';
 
 const transformRows = (rows: RaceRow[]) => {
     const sortedByRanking = _.orderBy(rows, ['rankingScratch'], ['asc']);
-    const rowsTransformed = sortedByRanking.map((item: any, index: number) => {
+    return sortedByRanking.map((item: any, index: number) => {
             return {
                 classement: index + 1,
                 ...(item.rankingScratch != null ? {...item} : {})
             };
         }
     );
-    return rowsTransformed;
 };
 
 const filterByRace = (rows : RaceRow[] , race : string) : RaceRow[] => {
@@ -96,10 +95,13 @@ const EditResultsPage = ({match}: { match: any }) => {
                                     filterMatchMode='contains'/>
                             <Column field="club" header="Club" filter={true}
                                     filterMatchMode='contains'/>
-                            <Column field="catev" header="Caté. valeur" filter={true}
+                            <Column field="catev" header="Caté." filter={true}
                                     filterMatchMode='contains'  style={{width: '5%'}}/>
-
+                            <Column field="catea" header="Age" filter={true}
+                                    filterMatchMode='contains'  style={{width: '5%'}}/>
                             <Column field="gender" header="Genre" filter={true}
+                                    filterMatchMode='contains'  style={{width: '5%'}}/>
+                            <Column field="fede" header="Fédé." filter={true}
                                     filterMatchMode='contains'  style={{width: '5%'}}/>
                         </DataTable>
                     </Fragment>
