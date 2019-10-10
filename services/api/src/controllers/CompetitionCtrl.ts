@@ -67,6 +67,8 @@ export class CompetitionCtrl {
             throw new BadRequestException(`Competition ${dto.competitionId} not found`);
         }
 
+        dto.races = dto.races.filter( race => race.trim().length );
+
         const rows = await this.entityManager.find(Race, {where: {competitionId: dto.competitionId}});
         dto.races.map( race => race.split('/')) ;
 
