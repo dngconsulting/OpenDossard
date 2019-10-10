@@ -34,6 +34,7 @@ interface ILayoutChildren {
     currentRace: string,
     rows: RaceRow[],
     fetchRows: () => Promise<void>,
+    fetchCompetition: () => Promise<void>,
     competition: Competition
 }
 
@@ -63,7 +64,7 @@ export const CompetitionLayout = ({competitionId, children}: {competitionId: num
     return <div className={classes.container}>
         <CompetitionCard competition={competition} />
         <RaceTabs tabs={tabs} value={currentRace} onChange={race => setCurrentRace(race)}/>
-        { children({competition, currentRace, rows, fetchRows}) }
+        { children({competition, currentRace, rows, fetchRows, fetchCompetition}) }
     </div>
 }
 

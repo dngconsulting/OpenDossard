@@ -1,6 +1,6 @@
 import {Dialog, DialogActions, DialogContent, DialogTitle} from "@material-ui/core";
 import Button from "@material-ui/core/Button";
-import React, {useEffect, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import TextField from "@material-ui/core/TextField";
 import {Competition, RaceRow} from "../../sdk";
 import makeStyles from "@material-ui/core/styles/makeStyles";
@@ -9,6 +9,8 @@ import {Add, Delete, ThreeSixty} from "@material-ui/icons";
 import Typography from "@material-ui/core/Typography";
 import Box from "@material-ui/core/Box";
 import Badge from "@material-ui/core/Badge/Badge";
+import {apiCompetitions} from "../../util/api";
+import {NotificationContext} from "../../components/CadSnackbar";
 
 const styles = makeStyles(theme => ({
     button: {
@@ -72,16 +74,40 @@ const compute = (rows: RaceRow[], categories: string[]) : number => {
     return rows.filter( row => categories.indexOf(''+row.catev) >= 0 ).length
 }
 
-export const Reorganizer = ({competition, rows} : {competition: Competition, rows: RaceRow[]}) => {
+export const Reorganizer = ({competition, rows, onSuccess} : {competition: Competition, rows: RaceRow[], onSuccess: () => void}) => {
 
     const [races, setRaces] = useState([]);
     const [open, setOpen] = useState(false);
+    const [, setNotification] = useContext(NotificationContext);
 
     const classes = styles({});
 
     useEffect( () => {
         setRaces(competition ? competition.races  : ['1/2'])
     }, [open])
+
+    const save = async () => {
+        try {
+            await apiCompetitions.reorganize({
+                competitionId: competition.id,
+                races
+            })
+            setNotification({
+                message: `La compétition a été réorganisée avec succès`,
+                type: 'info',
+                open: true
+            });
+            setOpen(false)
+            onSuccess()
+        } catch(e) {
+            setNotification({
+                message: `Une erreur s'est produite`,
+                type: 'error',
+                open: true
+            });
+        }
+    }
+
 
     return <div>
         <Button className={classes.button}
@@ -106,7 +132,7 @@ export const Reorganizer = ({competition, rows} : {competition: Competition, row
                 <Button onClick={() => setOpen(false)} color="primary">
                     Annuler
                 </Button>
-                <Button onClick={() => setOpen(false)} color="primary">
+                <Button onClick={() => save()} color="primary">
                     Réorganiser
                 </Button>
             </DialogActions>

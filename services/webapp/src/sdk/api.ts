@@ -193,6 +193,26 @@ export interface Competition {
 /**
  * 
  * @export
+ * @interface CompetitionReorganize
+ */
+export interface CompetitionReorganize {
+    /**
+     * 
+     * @type {number}
+     * @memberof CompetitionReorganize
+     */
+    competitionId?: number;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof CompetitionReorganize
+     */
+    races?: Array<string>;
+}
+
+/**
+ * 
+ * @export
  * @interface Filter
  */
 export interface Filter {
@@ -551,6 +571,38 @@ export const CompetitionAPIApiFetchParamCreator = function (configuration?: Conf
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * 
+         * @summary Réorganisation des courses
+         * @param {CompetitionReorganize} competitionReorganize 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        reorganize(competitionReorganize: CompetitionReorganize, options: any = {}): FetchArgs {
+            // verify required parameter 'competitionReorganize' is not null or undefined
+            if (competitionReorganize === null || competitionReorganize === undefined) {
+                throw new RequiredError('competitionReorganize','Required parameter competitionReorganize was null or undefined when calling reorganize.');
+            }
+            const localVarPath = `/api/competition/reorganize`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+            const needsSerialization = (<any>"CompetitionReorganize" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(competitionReorganize || {}) : (competitionReorganize || "");
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -597,6 +649,25 @@ export const CompetitionAPIApiFp = function(configuration?: Configuration) {
                 });
             };
         },
+        /**
+         * 
+         * @summary Réorganisation des courses
+         * @param {CompetitionReorganize} competitionReorganize 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        reorganize(competitionReorganize: CompetitionReorganize, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = CompetitionAPIApiFetchParamCreator(configuration).reorganize(competitionReorganize, options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response;
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
     }
 };
 
@@ -624,6 +695,16 @@ export const CompetitionAPIApiFactory = function (configuration?: Configuration,
          */
         getAllCompetitions(options?: any) {
             return CompetitionAPIApiFp(configuration).getAllCompetitions(options)(fetch, basePath);
+        },
+        /**
+         * 
+         * @summary Réorganisation des courses
+         * @param {CompetitionReorganize} competitionReorganize 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        reorganize(competitionReorganize: CompetitionReorganize, options?: any) {
+            return CompetitionAPIApiFp(configuration).reorganize(competitionReorganize, options)(fetch, basePath);
         },
     };
 };
@@ -656,6 +737,18 @@ export class CompetitionAPIApi extends BaseAPI {
      */
     public getAllCompetitions(options?: any) {
         return CompetitionAPIApiFp(this.configuration).getAllCompetitions(options)(this.fetch, this.basePath);
+    }
+
+    /**
+     * 
+     * @summary Réorganisation des courses
+     * @param {CompetitionReorganize} competitionReorganize 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CompetitionAPIApi
+     */
+    public reorganize(competitionReorganize: CompetitionReorganize, options?: any) {
+        return CompetitionAPIApiFp(this.configuration).reorganize(competitionReorganize, options)(this.fetch, this.basePath);
     }
 
 }

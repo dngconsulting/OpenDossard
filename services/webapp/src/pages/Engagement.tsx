@@ -71,10 +71,13 @@ const EngagementPage = ({match}: { match: any }) => {
     };
     return <CompetitionLayout competitionId={competitionId}>
         {
-            ({competition,currentRace, rows, fetchRows}) => (
+            ({competition,currentRace, rows, fetchRows, fetchCompetition}) => (
                 <Box position="relative">
                     <Box top={-38} right={10} position="absolute">
-                        <Reorganizer competition={competition} rows={rows}/>
+                        <Reorganizer competition={competition} rows={rows} onSuccess={() => {
+                            fetchRows()
+                            fetchCompetition()
+                        }}/>
                     </Box>
                     <Grid container={true}>
                         <ConfirmDialog name={selectedRow ? selectedRow.name : null} open={open}
