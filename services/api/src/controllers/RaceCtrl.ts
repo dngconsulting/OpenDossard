@@ -57,6 +57,10 @@ export class RaceCreate {
     public catev: string;
 }
 
+/***
+ * Races Controller manages races inside Competitions
+ * Races a generally organized by categories
+ */
 @Controller('/api/races')
 @ApiUseTags('RaceAPI')
 export class RacesCtrl {

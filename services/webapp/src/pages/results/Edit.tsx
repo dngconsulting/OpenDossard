@@ -7,6 +7,7 @@ import {RaceRow} from '../../sdk';
 import _ from 'lodash';
 import {NotificationContext} from '../../components/CadSnackbar';
 import {apiRaces} from '../../util/api';
+import {filterByRace} from '../../util/services';
 
 const transformRows = (rows: RaceRow[]) => {
     const sortedByRanking = _.orderBy(rows, ['rankingScratch'], ['asc']);
@@ -18,10 +19,6 @@ const transformRows = (rows: RaceRow[]) => {
         }
     );
 };
-
-const filterByRace = (rows : RaceRow[] , race : string) : RaceRow[] => {
-    return rows.filter((coureur) => coureur.raceCode === race)
-}
 
 const previousRowEmpty = (index: number, transformedRows: any) => {
     return ((index > 0) && (transformedRows[index - 1].riderNumber === undefined));

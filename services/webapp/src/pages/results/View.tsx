@@ -1,60 +1,45 @@
-import * as React from 'react';
-import {Grid, Theme, withStyles} from '@material-ui/core';
+import React, {Fragment} from 'react';
+import {DataTable} from 'primereact/datatable';
+import {Column} from 'primereact/column';
+import {CompetitionLayout} from '../CompetitionLayout';
+import _ from 'lodash';
+import {filterByRace} from '../../util/services';
 
+const ViewResultsPage = ({match}: { match: any }) => {
+    const competitionId = match.params.id;
 
-interface IProps {
-    classes?: any;
-}
+    return <CompetitionLayout competitionId={competitionId}>
+        {
+            ({competition, currentRace, rows, fetchRows}) => {
 
-class ViewResultsPage extends React.Component<IProps,{}> {
-    public render(): JSX.Element {
-        const { classes } = this.props;
-        return (
-            <div className={classes.root}>
-            <Grid container={true}>
-               Visualiser les résultats
-        </Grid>
-        </div>
-    );
-    }
-}
+                return (
+                    <Fragment>
+                        <DataTable value={filterByRace(_.orderBy(rows, ['rankingScratch'], ['asc']),currentRace)}
+                                   columnResizeMode="expand" >
+                            <Column field="rankingScratch" header="Clt" filter={true}
+                                    filterMatchMode='contains' style={{width: '5%'}}/>
+                            <Column field="riderNumber" header="Doss." filter={true}
+                                    style={{width: '5%'}}
+                                    filterMatchMode='contains'/>
+                            <Column field="name" header="Nom" filter={true}
+                                    filterMatchMode='contains'/>
+                            <Column field="club" header="Club" filter={true}
+                                    filterMatchMode='contains'/>
+                            <Column field="catev" header="Caté." filter={true}
+                                    filterMatchMode='contains'  style={{width: '5%'}}/>
+                            <Column field="catea" header="Age" filter={true}
+                                    filterMatchMode='contains'  style={{width: '5%'}}/>
+                            <Column field="gender" header="Genre" filter={true}
+                                    filterMatchMode='contains'  style={{width: '5%'}}/>
+                            <Column field="fede" header="Fédé." filter={true}
+                                    filterMatchMode='contains'  style={{width: '5%'}}/>
+                        </DataTable>
+                    </Fragment>
+                );
+            }
+        }
+    </CompetitionLayout>;
+};
 
-const styles = (theme: Theme) => ({
-    root: {
-        flexGrow: 1,
-        marginBottom: 24,
-    },
-    paper: {
-        padding: theme.spacing(2),
-        textAlign: 'center',
-        color: theme.palette.text.secondary,
-    },
-    headerTiles: {
-        overflowX: 'hidden',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderRight: `5px solid ${theme.palette.secondary.main}`,
-    },
-    headerTileIcon: {
-        fontSize: 40,
-        color: theme.palette.primary.main,
-        paddingRight: 5
-    },
-    tileText: {
-        fontSize: 20,
-        color: theme.palette.grey["400"],
-    },
-    sectionTitle: {
-        paddingLeft: theme.spacing(2),
-    },
-    users: {
-        marginBottom: 24,
-        overflowX: 'scroll'
-    },
-    chart: {
-        width: '100%'
-    },
-});
+export default ViewResultsPage;
 
-export default withStyles(styles as any)(ViewResultsPage as any) as any;
