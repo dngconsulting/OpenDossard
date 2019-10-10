@@ -59,6 +59,12 @@ const styles = makeStyles(theme => ({
             justifySelf: 'center',
             alignSelf: 'center',
         }
+    },
+    badges: {
+        '& span': {
+            top: 14,
+            right: 22
+        }
     }
 }))
 
@@ -117,6 +123,7 @@ const Races = ({races, setRaces, rows} : {races: string[], setRaces: (races:stri
             <Box key={i} justifySelf="center" alignSelf="center">
                 <Badge badgeContent={compute(rows, raceCode.split('/'))}
                        max={999}
+                       className={classes.badges}
                        color="secondary">
                     <TextField data-cp="field" value={raceCode} onChange={e => {
                         const newOne = [...races]
