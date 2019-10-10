@@ -428,6 +428,12 @@ export interface RaceRow {
      * @memberof RaceRow
      */
     gender?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof RaceRow
+     */
+    rankingScratch?: number;
 }
 
 /**
@@ -1369,6 +1375,38 @@ export const RaceAPIApiFetchParamCreator = function (configuration?: Configurati
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * 
+         * @summary Met à jour le classement du coureur 
+         * @param {RaceRow} raceRow 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        update(raceRow: RaceRow, options: any = {}): FetchArgs {
+            // verify required parameter 'raceRow' is not null or undefined
+            if (raceRow === null || raceRow === undefined) {
+                throw new RequiredError('raceRow','Required parameter raceRow was null or undefined when calling update.');
+            }
+            const localVarPath = `/api/races/update`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'PUT' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+            const needsSerialization = (<any>"RaceRow" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(raceRow || {}) : (raceRow || "");
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -1434,6 +1472,25 @@ export const RaceAPIApiFp = function(configuration?: Configuration) {
                 });
             };
         },
+        /**
+         * 
+         * @summary Met à jour le classement du coureur 
+         * @param {RaceRow} raceRow 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        update(raceRow: RaceRow, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = RaceAPIApiFetchParamCreator(configuration).update(raceRow, options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response;
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
     }
 };
 
@@ -1471,6 +1528,16 @@ export const RaceAPIApiFactory = function (configuration?: Configuration, fetch?
          */
         getAllRaces(options?: any) {
             return RaceAPIApiFp(configuration).getAllRaces(options)(fetch, basePath);
+        },
+        /**
+         * 
+         * @summary Met à jour le classement du coureur 
+         * @param {RaceRow} raceRow 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        update(raceRow: RaceRow, options?: any) {
+            return RaceAPIApiFp(configuration).update(raceRow, options)(fetch, basePath);
         },
     };
 };
@@ -1515,6 +1582,18 @@ export class RaceAPIApi extends BaseAPI {
      */
     public getAllRaces(options?: any) {
         return RaceAPIApiFp(this.configuration).getAllRaces(options)(this.fetch, this.basePath);
+    }
+
+    /**
+     * 
+     * @summary Met à jour le classement du coureur 
+     * @param {RaceRow} raceRow 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RaceAPIApi
+     */
+    public update(raceRow: RaceRow, options?: any) {
+        return RaceAPIApiFp(this.configuration).update(raceRow, options)(this.fetch, this.basePath);
     }
 
 }

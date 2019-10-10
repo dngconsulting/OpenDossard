@@ -13,7 +13,6 @@ import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
 import {CreationForm} from './engagement/EngagementCreation';
 import {ContextMenu} from 'primereact/contextmenu';
-import {RaceRow} from '../sdk';
 import {Reorganizer} from "./engagement/ReorganizeRaces";
 import Box from "@material-ui/core/Box";
 
@@ -37,7 +36,7 @@ const ConfirmDialog = (props: any) => {
                     <Button onClick={props.handleClose} color="primary">
                         Annuler
                     </Button>
-                    <Button onClick={props.handleOk} color="primary" autoFocus>
+                    <Button onClick={props.handleOk} color="primary" autoFocus={true}>
                         Confirmer
                     </Button>
                 </DialogActions>
@@ -45,9 +44,6 @@ const ConfirmDialog = (props: any) => {
         </div>
     );
 };
-const filterByRace = (rows : RaceRow[] , race : string) : RaceRow[] => {
-    return rows.filter((coureur) => coureur.raceCode === race)
-}
 
 const EngagementPage = ({match}: { match: any }) => {
     const competitionId = match.params.id;
@@ -108,7 +104,7 @@ const EngagementPage = ({match}: { match: any }) => {
                             }
                         }
                     ]} ref={contextMenu}/>
-                    <DataTable ref={dg} value={filterByRace(rows,currentRace)} selectionMode="single"
+                    <DataTable ref={dg} value={rows} selectionMode="single"
                                emptyMessage="Aucun enregistrement dans la table"
                                onContextMenu={e => contextMenu.current.show(e.originalEvent)}
                                contextMenuSelection={selectedRow}
