@@ -1,8 +1,17 @@
-import {Controller, Get, Param, BadRequestException} from '@nestjs/common';
-import {ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
+import {BadRequestException, Controller, Get, Param, Post, Body} from '@nestjs/common';
+import {ApiModelPropertyOptional, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
 import {EntityManager, Repository} from 'typeorm';
 import {Competition} from '../entity/Competition';
+import {RaceCreate} from './RaceCtrl';
+import {Race} from '../entity/Race';
+
+export class CompetitionReorganize {
+    @ApiModelPropertyOptional()
+    public competitionId: number;
+    @ApiModelPropertyOptional()
+    public races: string[];
+}
 
 @Controller('/api/competition')
 @ApiUseTags('CompetitionAPI')
@@ -42,5 +51,35 @@ export class CompetitionCtrl {
     @Get()
     public async getAllCompetitions(): Promise<Competition[]> {
         return this.repository.find();
+    }
+
+    @Post('/reorganize')
+    @ApiOperation({
+        operationId: 'reorganize',
+        title: 'Réorganisation des courses',
+    })
+    @ApiResponse({status: 200, isArray: false})
+    public async reorganize(@Body() dto: CompetitionReorganize): Promise<void> {
+
+        const competition = await this.repository.findOne(dto.competitionId);
+
+        if ( ! competition ) {
+            throw new BadRequestException(`Competition ${dto.competitionId} not found`);
+        }
+
+        dto.races = dto.races.filter( race => race.trim().length );
+
+        const rows = await this.entityManager.find(Race, {where: {competitionId: dto.competitionId}});
+        dto.races.map( race => race.split('/')) ;
+
+        rows.forEach( row => {
+            const raceCode = dto.races
+                .filter( race => race.split('/').indexOf(row.catev) >= 0 )[0];
+            row.raceCode = raceCode;
+            this.entityManager.save(row);
+        });
+
+        competition.races = dto.races;
+        await this.entityManager.save(competition);
     }
 }
