@@ -1,12 +1,6 @@
-import React, {Fragment, useContext, useRef, useState} from 'react';
+import React, {useContext, useRef, useState} from 'react';
 
-import {
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle
-} from '@material-ui/core';
+import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from '@material-ui/core';
 import 'primereact/resources/themes/nova-light/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
@@ -19,6 +13,9 @@ import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
 import {CreationForm} from './engagement/EngagementCreation';
 import {ContextMenu} from 'primereact/contextmenu';
+import {Reorganizer} from "./engagement/ReorganizeRaces";
+import Box from "@material-ui/core/Box";
+import {RaceRow} from "../sdk";
 
 
 const ConfirmDialog = (props: any) => {
@@ -49,6 +46,10 @@ const ConfirmDialog = (props: any) => {
     );
 };
 
+const filterByRace = (rows : RaceRow[] , race : string) : RaceRow[] => {
+    return rows.filter((coureur) => coureur.raceCode === race)
+}
+
 const EngagementPage = ({match}: { match: any }) => {
     const competitionId = match.params.id;
     const dg = useRef(null);
@@ -71,8 +72,14 @@ const EngagementPage = ({match}: { match: any }) => {
     };
     return <CompetitionLayout competitionId={competitionId}>
         {
-            ({competition,currentRace, rows, fetchRows}) => (
-                <Fragment>
+            ({competition,currentRace, rows, fetchRows, fetchCompetition}) => (
+                <Box position="relative">
+                    <Box top={-38} right={10} position="absolute">
+                        <Reorganizer competition={competition} rows={rows} onSuccess={() => {
+                            fetchRows()
+                            fetchCompetition()
+                        }}/>
+                    </Box>
                     <Grid container={true}>
                         <ConfirmDialog name={selectedRow ? selectedRow.name : null} open={open}
                                        handleClose={closeDialog}
@@ -102,7 +109,7 @@ const EngagementPage = ({match}: { match: any }) => {
                             }
                         }
                     ]} ref={contextMenu}/>
-                    <DataTable ref={dg} value={rows} selectionMode="single"
+                    <DataTable ref={dg} value={filterByRace(rows, currentRace)} selectionMode="single"
                                emptyMessage="Aucun enregistrement dans la table"
                                onContextMenu={e => contextMenu.current.show(e.originalEvent)}
                                contextMenuSelection={selectedRow}
@@ -114,7 +121,7 @@ const EngagementPage = ({match}: { match: any }) => {
                         <Column field="club" header="Club" filter={true} sortable={true} filterMatchMode='contains'/>
                         <Column field="catev" header="Catégorie" filter={true} sortable={true} filterMatchMode='contains'/>
                     </DataTable>
-                </Fragment>
+                </Box>
             )
         }
     </CompetitionLayout>;
