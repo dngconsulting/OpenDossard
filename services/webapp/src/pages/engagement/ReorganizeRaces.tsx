@@ -67,11 +67,52 @@ const styles = makeStyles(theme => ({
             top: 14,
             right: 22
         }
+    },
+    errors: {
+        color: theme.palette.error.main,
+        alignSelf: 'center'
     }
 }))
 
-const compute = (rows: RaceRow[], categories: string[]) : number => {
+const computeByRace = (rows: RaceRow[], categories: string[]) : number => {
     return rows.filter( row => categories.indexOf(''+row.catev) >= 0 ).length
+}
+
+const computeByCate = (rows: RaceRow[]) => {
+    const catemap = rows.reduce( (acc: {[catev:string]: number}, row) => {
+        return {
+            ...acc,
+            [row.catev]: acc[row.catev] ? acc[row.catev] + 1 : 1
+        }
+    }, {});
+    return Object.keys(catemap).map( catev => ({
+        catev,
+        participants: catemap[catev]
+    }) );
+}
+
+const computeErrors = (races: string[], categories: string[]) => {
+
+    const messages = races.filter( race => ! /^\d+(\/\d+)*\/?$/.test(race))
+        .filter( race => race.length !== 0 )
+        .map(input => `Saisie incorrecte "${input}"`)
+    if ( messages.length ) {
+        return messages
+    }
+
+    const flatCategories = races.map( race => race.split('/') ).reduce( (acc, cate) => ([...acc, ...cate]), [])
+    const uniqueCategories = Array.from(new Set(flatCategories))
+    const remaining = categories.filter( c => uniqueCategories.indexOf(c) < 0 )
+
+    if ( remaining.length ) {
+        return [`Les inscrits en catégories ${remaining.join(',')} n'ont pas été pris en charge`]
+    }
+
+    if ( flatCategories.length !== uniqueCategories.length ) {
+        return [`Certaines catégories sont renseignées en double`]
+    }
+
+    return []
 }
 
 export const Reorganizer = ({competition, rows, onSuccess} : {competition: Competition, rows: RaceRow[], onSuccess: () => void}) => {
@@ -108,6 +149,8 @@ export const Reorganizer = ({competition, rows, onSuccess} : {competition: Compe
         }
     }
 
+    const byCate = computeByCate(rows);
+    const errors = computeErrors(races, byCate.map( c => c.catev));
 
     return <div>
         <Button className={classes.button}
@@ -125,14 +168,18 @@ export const Reorganizer = ({competition, rows, onSuccess} : {competition: Compe
                 </Typography>
                 <Box display="flex">
                     <Races races={races} setRaces={setRaces} rows={rows}/>
-                    <Categories rows={rows}/>
+                    <Categories byCate={byCate}/>
                 </Box>
+                {
+                    errors.length === 0 ? <br/> :
+                    errors.map( (error,i) => <span key={i} className={classes.errors}>{error}</span>)
+                }
             </DialogContent>
             <DialogActions>
                 <Button onClick={() => setOpen(false)} color="primary">
                     Annuler
                 </Button>
-                <Button onClick={() => save()} color="primary">
+                <Button onClick={() => save()} color="primary" disabled={errors.length > 0}>
                     Réorganiser
                 </Button>
             </DialogActions>
@@ -147,7 +194,7 @@ const Races = ({races, setRaces, rows} : {races: string[], setRaces: (races:stri
     return <Box className={classes.races}>{
         races.map((raceCode, i) => (
             <Box key={i} justifySelf="center" alignSelf="center">
-                <Badge badgeContent={compute(rows, raceCode.split('/'))}
+                <Badge badgeContent={computeByRace(rows, raceCode.split('/'))}
                        max={999}
                        className={classes.badges}
                        color="secondary">
@@ -172,30 +219,19 @@ const Races = ({races, setRaces, rows} : {races: string[], setRaces: (races:stri
     }</Box>
 }
 
-const Categories = ({rows} : {rows: RaceRow[]}) => {
+const Categories = ({byCate} : {byCate: Array<{catev:string, participants: number}>}) => {
 
     const classes = styles({});
-
-    const computed = rows.reduce( (acc: {[catev:string]: number}, row) => {
-        return {
-            ...acc,
-            [row.catev]: acc[row.catev] ? acc[row.catev] + 1 : 1
-        }
-    }, {});
-    const byCatev = Object.keys(computed).map( catev => ({
-        catev,
-        participants: computed[catev]
-    }) );
 
     return <Box className={classes.categories}>
         <table>
             <tr>
                 <th>Catégories : </th>
-                { byCatev.map( stat => <td key={stat.catev}>{stat.catev}</td>) }
+                { byCate.map( stat => <td key={stat.catev}>{stat.catev}</td>) }
             </tr>
             <tr>
                 <th>Inscrits : </th>
-                { byCatev.map( stat => <td key={stat.catev}>{stat.participants}</td>) }
+                { byCate.map( stat => <td key={stat.catev}>{stat.participants}</td>) }
             </tr>
         </table>
         <span>Répartition des coureurs par catégories</span>
