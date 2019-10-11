@@ -6,12 +6,8 @@ import {ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
 import {Filter, LicencesPage, Search} from './SharedModels';
 
 /**
- * Add @Controller annotation to declare your class as Router controller.
- * The first param is the global path for your controller.
- * The others params is the controller dependencies.
- *
- * In this case, EventsCtrl is a dependency of CalendarsCtrl.
- * All routes of EventsCtrl will be mounted on the `/calendars` path.
+ * Licence Controler is in charge of handling rider licences
+ * Mainly Crud operations & pagination
  */
 @Controller('/api/licences')
 @ApiUseTags('LicenceAPI')

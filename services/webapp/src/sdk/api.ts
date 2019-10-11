@@ -427,6 +427,18 @@ export interface RaceRow {
      * @type {string}
      * @memberof RaceRow
      */
+    catea?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceRow
+     */
+    fede?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceRow
+     */
     gender?: string;
     /**
      * 

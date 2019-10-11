@@ -84,7 +84,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
 
                         {data.map(row => (
                             <TableRow hover={true} key={row.name}
-                                      onClick={(event: any) => goToPage(event, row.id)}>
+                                      onClick={(event: any) => goToPage(event, row.id,isResultLink()? 'results/view':null)}>
                                 <TableCell component="th" scope="row">
                                     {row.name}
                                 </TableCell>
