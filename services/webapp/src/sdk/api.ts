@@ -345,6 +345,44 @@ export interface RaceCreate {
 /**
  * 
  * @export
+ * @interface RaceNbRider
+ */
+export interface RaceNbRider {
+    /**
+     * 
+     * @type {number}
+     * @memberof RaceNbRider
+     */
+    count?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceNbRider
+     */
+    raceCode?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceNbRider
+     */
+    name?: string;
+    /**
+     * 
+     * @type {Date}
+     * @memberof RaceNbRider
+     */
+    date?: Date;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceNbRider
+     */
+    fede?: string;
+}
+
+/**
+ * 
+ * @export
  * @interface RaceRow
  */
 export interface RaceRow {
@@ -1270,6 +1308,29 @@ export const RaceAPIApiFetchParamCreator = function (configuration?: Configurati
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * description
+         * @summary Rechercher le nombre de coureur par course 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getNumberRider(options: any = {}): FetchArgs {
+            const localVarPath = `/api/races/nbRider`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -1335,6 +1396,24 @@ export const RaceAPIApiFp = function(configuration?: Configuration) {
                 });
             };
         },
+        /**
+         * description
+         * @summary Rechercher le nombre de coureur par course 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getNumberRider(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<RaceNbRider>> {
+            const localVarFetchArgs = RaceAPIApiFetchParamCreator(configuration).getNumberRider(options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response.json();
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
     }
 };
 
@@ -1372,6 +1451,15 @@ export const RaceAPIApiFactory = function (configuration?: Configuration, fetch?
          */
         getAllRaces(options?: any) {
             return RaceAPIApiFp(configuration).getAllRaces(options)(fetch, basePath);
+        },
+        /**
+         * description
+         * @summary Rechercher le nombre de coureur par course 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getNumberRider(options?: any) {
+            return RaceAPIApiFp(configuration).getNumberRider(options)(fetch, basePath);
         },
     };
 };
@@ -1416,6 +1504,17 @@ export class RaceAPIApi extends BaseAPI {
      */
     public getAllRaces(options?: any) {
         return RaceAPIApiFp(this.configuration).getAllRaces(options)(this.fetch, this.basePath);
+    }
+
+    /**
+     * description
+     * @summary Rechercher le nombre de coureur par course 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RaceAPIApi
+     */
+    public getNumberRider(options?: any) {
+        return RaceAPIApiFp(this.configuration).getNumberRider(options)(this.fetch, this.basePath);
     }
 
 }

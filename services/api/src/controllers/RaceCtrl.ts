@@ -39,6 +39,19 @@ export class RaceCreate {
     public raceCode: string;
 }
 
+export class RaceNbRider {
+    @ApiModelPropertyOptional()
+    public count: number;
+    @ApiModelPropertyOptional()
+    public raceCode: string;
+    @ApiModelPropertyOptional()
+    public name: string;
+    @ApiModelPropertyOptional({ type: 'string', format: 'date-time'})
+    public date: Date;
+    @ApiModelPropertyOptional()
+    public fede: string;
+}
+
 @Controller('/api/races')
 @ApiUseTags('RaceAPI')
 export class RacesCtrl {
@@ -61,6 +74,21 @@ export class RacesCtrl {
                         from race r
                         join licence l on r."licenceId" = l.id
                         order by r.id desc`;
+        return await this.entityManager.query(query);
+    }
+
+    @Get('/nbRider')
+    @ApiOperation({
+        operationId: 'getNumberRider',
+        title: 'Rechercher le nombre de coureur par course ',
+        description: 'description',
+    })
+    @ApiResponse({status: 200, type: RaceNbRider, isArray: true})
+    public async getNumberRider(): Promise<RaceNbRider[]> {
+        const query = `select count(r.*), r."raceCode", c.name, c."eventDate", c.fede
+                        from race r
+                        join competition c on r."competitionId" = c.id
+                        group by r."competitionId", r."raceCode", c.name, c."eventDate", c.fede`;
         return await this.entityManager.query(query);
     }
 
