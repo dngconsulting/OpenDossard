@@ -1,6 +1,6 @@
 import React, {useContext, useRef, useState} from 'react';
 
-import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from '@material-ui/core';
+import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, makeStyles} from '@material-ui/core';
 import 'primereact/resources/themes/nova-light/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
@@ -10,13 +10,22 @@ import Button from '@material-ui/core/Button';
 import {CompetitionLayout} from './CompetitionLayout';
 import {NotificationContext} from '../components/CadSnackbar';
 import {DataTable} from 'primereact/datatable';
-import {Column} from 'primereact/column';
+import {Column, ColumnProps} from 'primereact/column';
 import {CreationForm} from './engagement/EngagementCreation';
 import {ContextMenu} from 'primereact/contextmenu';
 import {Reorganizer} from "./engagement/ReorganizeRaces";
 import Box from "@material-ui/core/Box";
 import {RaceRow} from "../sdk";
+import {ArrowUpward, Delete} from "@material-ui/icons";
 
+const style = makeStyles( theme => ({
+    surclassed: {
+        zoom: '79%',
+            display: 'inline-block',
+            position: 'absolute',
+            marginLeft: 10
+    }
+}))
 
 const ConfirmDialog = (props: any) => {
     return (
@@ -50,6 +59,13 @@ const filterByRace = (rows : RaceRow[] , race : string) : RaceRow[] => {
     return rows.filter((coureur) => coureur.raceCode === race)
 }
 
+const surclassed = ({catev, raceCode}: RaceRow) => {
+    return raceCode.split('/').indexOf(catev) >= 0 ? false : true
+}
+
+const FILTERABLE = {filter: true, sortable: true, filterMatchMode: 'contains'}
+const SHORT = {style: {width: 120, textAlign: 'center'}}
+
 const EngagementPage = ({match}: { match: any }) => {
     const competitionId = match.params.id;
     const dg = useRef(null);
@@ -70,59 +86,79 @@ const EngagementPage = ({match}: { match: any }) => {
         });
         closeDialog();
     };
+    const classes = style({});
+
     return <CompetitionLayout competitionId={competitionId}>
         {
-            ({competition,currentRace, rows, fetchRows, fetchCompetition}) => (
-                <Box position="relative">
-                    <Box top={-38} right={10} position="absolute">
-                        <Reorganizer competition={competition} rows={rows} onSuccess={() => {
-                            fetchRows()
-                            fetchCompetition()
-                        }}/>
+            ({competition,currentRace, rows, fetchRows, fetchCompetition}) => {
+
+                const deleteAction = (row: RaceRow) => <Delete onClick={() => {
+                    selectRow(row)
+                    openDialog(true)
+                }}/>
+
+                const columns: ColumnProps[] = [
+                    {field: 'riderNumber', header: 'Dossard', ...FILTERABLE, ...SHORT},
+                    {field: 'name', header: 'Coureur', ...FILTERABLE},
+                    {field: 'gender', header: 'H/F', ...FILTERABLE, ...SHORT},
+                    {field: 'club', header: 'Club', ...FILTERABLE},
+                    {
+                        field: 'catev', header: 'Catégorie', ...FILTERABLE, ...SHORT,
+                        body: (row: RaceRow) => <span>
+                            {row.catev}
+                            {surclassed(row) && <span title="surclassé" className={classes.surclassed}><ArrowUpward /></span>}
+                        </span>
+                    },
+                    {
+                        style: {width: 40, textAlign: 'center', paddingLeft: 0, paddingRight: 0, cursor: 'pointer'},
+                        body: deleteAction
+                    },
+                ]
+
+                return (
+                    <Box position="relative">
+                        <Box top={-38} right={10} position="absolute">
+                            <Reorganizer competition={competition} rows={rows} onSuccess={() => {
+                                fetchRows()
+                                fetchCompetition()
+                            }}/>
+                        </Box>
+                        <Grid container={true}>
+                            <ConfirmDialog name={selectedRow ? selectedRow.name : null} open={open}
+                                           handleClose={closeDialog}
+                                           handleOk={() => handleOk(fetchRows)}/>
+                            <CreationForm competition={competition}
+                                          race={currentRace}
+                                          onSuccess={fetchRows}
+                            />
+                        </Grid>
+                        <ContextMenu style={{width: '220px'}} model={[
+                            {
+                                label: 'Détail du coureur',
+                                icon: 'pi pi-fw pi-search',
+                                command: (event) => {
+                                    setNotification({
+                                        message: `TODO Aller sur le détail du coureur `,
+                                        type: 'info',
+                                        open: true
+                                    });
+                                }
+                            },
+                            {
+                                label: 'Désengager ce coureur',
+                                icon: 'pi pi-fw pi-times',
+                                command: async (event) => {
+                                    openDialog(true);
+                                }
+                            }
+                        ]} ref={contextMenu}/>
+                        <DataTable ref={dg} value={filterByRace(rows, currentRace)}
+                                   emptyMessage="Aucun enregistrement dans la table">
+                            {columns.map((column, i) => <Column key={i} {...column}/>)}
+                        </DataTable>
                     </Box>
-                    <Grid container={true}>
-                        <ConfirmDialog name={selectedRow ? selectedRow.name : null} open={open}
-                                       handleClose={closeDialog}
-                                       handleOk={() => handleOk(fetchRows)}/>
-                        <CreationForm competition={competition}
-                                      race={currentRace}
-                                      onSuccess={fetchRows}
-                        />
-                    </Grid>
-                    <ContextMenu style={{width:'220px'}} model={[
-                        {
-                            label: 'Détail du coureur',
-                            icon: 'pi pi-fw pi-search',
-                            command: (event) => {
-                                setNotification({
-                                    message: `TODO Aller sur le détail du coureur `,
-                                    type: 'info',
-                                    open: true
-                                });
-                            }
-                        },
-                        {
-                            label: 'Désengager ce coureur',
-                            icon: 'pi pi-fw pi-times',
-                            command: async (event) => {
-                                openDialog(true);
-                            }
-                        }
-                    ]} ref={contextMenu}/>
-                    <DataTable ref={dg} value={filterByRace(rows, currentRace)} selectionMode="single"
-                               emptyMessage="Aucun enregistrement dans la table"
-                               onContextMenu={e => contextMenu.current.show(e.originalEvent)}
-                               contextMenuSelection={selectedRow}
-                               onContextMenuSelectionChange={e => selectRow(e.value)}
-                    >
-                        <Column field="riderNumber" header="Dossard" filter={true} sortable={true} filterMatchMode='contains'/>
-                        <Column field="name" header="Coureur" filter={true} sortable={true} filterMatchMode='contains'/>
-                        <Column field="gender" header="H/F" filter={true} sortable={true} filterMatchMode='contains'/>
-                        <Column field="club" header="Club" filter={true} sortable={true} filterMatchMode='contains'/>
-                        <Column field="catev" header="Catégorie" filter={true} sortable={true} filterMatchMode='contains'/>
-                    </DataTable>
-                </Box>
-            )
+                );
+            }
         }
     </CompetitionLayout>;
 
