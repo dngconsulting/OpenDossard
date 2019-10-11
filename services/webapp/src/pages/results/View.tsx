@@ -4,7 +4,11 @@ import {Column} from 'primereact/column';
 import {CompetitionLayout} from '../CompetitionLayout';
 import _ from 'lodash';
 import {filterByRace} from '../../util/services';
+import {RaceRow} from '../../sdk';
 
+const filterOnlyRanked = (rows : RaceRow[]) : RaceRow[] => {
+    return rows.filter(item => item.rankingScratch !=null)
+}
 const ViewResultsPage = ({match}: { match: any }) => {
     const competitionId = match.params.id;
 
@@ -14,7 +18,7 @@ const ViewResultsPage = ({match}: { match: any }) => {
 
                 return (
                     <Fragment>
-                        <DataTable value={filterByRace(_.orderBy(rows, ['rankingScratch'], ['asc']),currentRace)}
+                        <DataTable value={filterOnlyRanked(filterByRace(_.orderBy(rows, ['rankingScratch'], ['asc']),currentRace))}
                                    columnResizeMode="expand" >
                             <Column field="rankingScratch" header="Clt" filter={true}
                                     filterMatchMode='contains' style={{width: '5%'}}/>
