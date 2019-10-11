@@ -1,6 +1,6 @@
 import React, {useContext, useRef, useState} from 'react';
 
-import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from '@material-ui/core';
+import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, makeStyles} from '@material-ui/core';
 import 'primereact/resources/themes/nova-light/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
@@ -16,8 +16,16 @@ import {ContextMenu} from 'primereact/contextmenu';
 import {Reorganizer} from "./engagement/ReorganizeRaces";
 import Box from "@material-ui/core/Box";
 import {RaceRow} from "../sdk";
-import {Delete} from "@material-ui/icons";
+import {ArrowUpward, Delete} from "@material-ui/icons";
 
+const style = makeStyles( theme => ({
+    surclassed: {
+        zoom: '79%',
+            display: 'inline-block',
+            position: 'absolute',
+            marginLeft: 10
+    }
+}))
 
 const ConfirmDialog = (props: any) => {
     return (
@@ -51,6 +59,10 @@ const filterByRace = (rows : RaceRow[] , race : string) : RaceRow[] => {
     return rows.filter((coureur) => coureur.raceCode === race)
 }
 
+const surclassed = ({catev, raceCode}: RaceRow) => {
+    return raceCode.split('/').indexOf(catev) >= 0 ? false : true
+}
+
 const FILTERABLE = {filter: true, sortable: true, filterMatchMode: 'contains'}
 const SHORT = {style: {width: 120, textAlign: 'center'}}
 
@@ -74,6 +86,8 @@ const EngagementPage = ({match}: { match: any }) => {
         });
         closeDialog();
     };
+    const classes = style({});
+
     return <CompetitionLayout competitionId={competitionId}>
         {
             ({competition,currentRace, rows, fetchRows, fetchCompetition}) => {
@@ -88,7 +102,13 @@ const EngagementPage = ({match}: { match: any }) => {
                     {field: 'name', header: 'Coureur', ...FILTERABLE},
                     {field: 'gender', header: 'H/F', ...FILTERABLE, ...SHORT},
                     {field: 'club', header: 'Club', ...FILTERABLE},
-                    {field: 'catev', header: 'Catégorie', ...FILTERABLE, ...SHORT},
+                    {
+                        field: 'catev', header: 'Catégorie', ...FILTERABLE, ...SHORT,
+                        body: (row: RaceRow) => <span>
+                            {row.catev}
+                            {surclassed(row) && <span title="surclassé" className={classes.surclassed}><ArrowUpward /></span>}
+                        </span>
+                    },
                     {
                         style: {width: 40, textAlign: 'center', paddingLeft: 0, paddingRight: 0, cursor: 'pointer'},
                         body: deleteAction
