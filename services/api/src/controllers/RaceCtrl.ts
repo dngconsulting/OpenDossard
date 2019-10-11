@@ -72,17 +72,18 @@ export class RacesCtrl {
 
     @Get('/:id')
     @ApiOperation({
-        operationId: 'getAllRaces',
+        operationId: 'getCompetitionRaces',
         title: 'Rechercher toutes les courses ',
         description: 'description',
     })
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
-    public async getAllRaces(@Param('id') competitionId: number): Promise<RaceRow[]> {
-        Logger.debug('getAllRaces for competition ' + competitionId);
-        const query = `select r.*, concat(l.name,' ',l."firstName") as name, l."licenceNumber", l.club, l.gender, l.catea, l.fede
+    public async getCompetitionRaces(@Param('id') competitionId: number): Promise<RaceRow[]> {
+
+        const query = `select r.*, concat(l.name,' ',l."firstName") as name, l."licenceNumber", l.club, l.gender
                         from race r
                         join licence l on r."licenceId" = l.id
-                        where r."competitionId" = $1 order by r.id desc `;
+                        where r."competitionId" = $1
+                        order by r.id desc`;
         return await this.entityManager.query(query, [competitionId]);
     }
 

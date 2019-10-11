@@ -1371,10 +1371,10 @@ export const RaceAPIApiFetchParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAllRaces(id: number, options: any = {}): FetchArgs {
+        getCompetitionRaces(id: number, options: any = {}): FetchArgs {
             // verify required parameter 'id' is not null or undefined
             if (id === null || id === undefined) {
-                throw new RequiredError('id','Required parameter id was null or undefined when calling getAllRaces.');
+                throw new RequiredError('id','Required parameter id was null or undefined when calling getCompetitionRaces.');
             }
             const localVarPath = `/api/races/{id}`
                 .replace(`{${"id"}}`, encodeURIComponent(String(id)));
@@ -1479,8 +1479,8 @@ export const RaceAPIApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAllRaces(id: number, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<RaceRow>> {
-            const localVarFetchArgs = RaceAPIApiFetchParamCreator(configuration).getAllRaces(id, options);
+        getCompetitionRaces(id: number, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<RaceRow>> {
+            const localVarFetchArgs = RaceAPIApiFetchParamCreator(configuration).getCompetitionRaces(id, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -1546,8 +1546,8 @@ export const RaceAPIApiFactory = function (configuration?: Configuration, fetch?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAllRaces(id: number, options?: any) {
-            return RaceAPIApiFp(configuration).getAllRaces(id, options)(fetch, basePath);
+        getCompetitionRaces(id: number, options?: any) {
+            return RaceAPIApiFp(configuration).getCompetitionRaces(id, options)(fetch, basePath);
         },
         /**
          * 
@@ -1601,8 +1601,8 @@ export class RaceAPIApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof RaceAPIApi
      */
-    public getAllRaces(id: number, options?: any) {
-        return RaceAPIApiFp(this.configuration).getAllRaces(id, options)(this.fetch, this.basePath);
+    public getCompetitionRaces(id: number, options?: any) {
+        return RaceAPIApiFp(this.configuration).getCompetitionRaces(id, options)(this.fetch, this.basePath);
     }
 
     /**
