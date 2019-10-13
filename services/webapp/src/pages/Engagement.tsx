@@ -1,6 +1,13 @@
 import React, {useContext, useRef, useState} from 'react';
 
-import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, makeStyles} from '@material-ui/core';
+import {
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    makeStyles
+} from '@material-ui/core';
 import 'primereact/resources/themes/nova-light/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
@@ -12,11 +19,10 @@ import {NotificationContext} from '../components/CadSnackbar';
 import {DataTable} from 'primereact/datatable';
 import {Column, ColumnProps} from 'primereact/column';
 import {CreationForm} from './engagement/EngagementCreation';
-import {ContextMenu} from 'primereact/contextmenu';
-import {Reorganizer} from "./engagement/ReorganizeRaces";
-import Box from "@material-ui/core/Box";
-import {RaceRow} from "../sdk";
-import {ArrowUpward, Delete} from "@material-ui/icons";
+import {Reorganizer} from './engagement/ReorganizeRaces';
+import Box from '@material-ui/core/Box';
+import {RaceRow} from '../sdk';
+import {ArrowUpward, Delete} from '@material-ui/icons';
 
 const style = makeStyles( theme => ({
     surclassed: {
@@ -64,18 +70,18 @@ const surclassed = ({catev, raceCode}: RaceRow) => {
 }
 
 const FILTERABLE = {filter: true, sortable: true, filterMatchMode: 'contains'}
-const SHORT = {style: {width: 120, textAlign: 'center'}}
-
+const SHORT = {style: {width: 120, textAlign: 'center', padding : 0}, bodyClassName:'nopadding'}
 const EngagementPage = ({match}: { match: any }) => {
     const competitionId = match.params.id;
     const dg = useRef(null);
     const [, setNotification] = useContext(NotificationContext);
-    const contextMenu = useRef(null);
     const [selectedRow, selectRow] = useState();
     const [open, openDialog] = React.useState(false);
     const closeDialog = () => {
         openDialog(false);
     };
+
+
     const handleOk = async (fetchRows: any) => {
         await apiRaces._delete(selectedRow.id);
         fetchRows();
@@ -92,16 +98,16 @@ const EngagementPage = ({match}: { match: any }) => {
         {
             ({competition,currentRace, rows, fetchRows, fetchCompetition}) => {
 
-                const deleteAction = (row: RaceRow) => <Delete onClick={() => {
+                const deleteAction = (row: RaceRow) => <Delete fontSize={'small'} onClick={() => {
                     selectRow(row)
                     openDialog(true)
                 }}/>
 
                 const columns: ColumnProps[] = [
                     {field: 'riderNumber', header: 'Dossard', ...FILTERABLE, ...SHORT},
-                    {field: 'name', header: 'Coureur', ...FILTERABLE},
+                    {field: 'name', header: 'Coureur', ...FILTERABLE, bodyClassName:'nopadding'},
                     {field: 'gender', header: 'H/F', ...FILTERABLE, ...SHORT},
-                    {field: 'club', header: 'Club', ...FILTERABLE},
+                    {field: 'club', header: 'Club', ...FILTERABLE, bodyClassName:'nopadding'},
                     {
                         field: 'catev', header: 'Catégorie', ...FILTERABLE, ...SHORT,
                         body: (row: RaceRow) => <span>
@@ -111,12 +117,13 @@ const EngagementPage = ({match}: { match: any }) => {
                     },
                     {
                         style: {width: 40, textAlign: 'center', paddingLeft: 0, paddingRight: 0, cursor: 'pointer'},
+                        bodyClassName:'nopadding',
                         body: deleteAction
                     },
                 ]
 
                 return (
-                    <Box position="relative">
+                    <Box position="relative" padding={0}>
                         <Box top={-38} right={10} position="absolute">
                             <Reorganizer competition={competition} rows={rows} onSuccess={() => {
                                 fetchRows()
@@ -132,34 +139,17 @@ const EngagementPage = ({match}: { match: any }) => {
                                           onSuccess={fetchRows}
                             />
                         </Grid>
-                        <ContextMenu style={{width: '220px'}} model={[
-                            {
-                                label: 'Détail du coureur',
-                                icon: 'pi pi-fw pi-search',
-                                command: (event) => {
-                                    setNotification({
-                                        message: `TODO Aller sur le détail du coureur `,
-                                        type: 'info',
-                                        open: true
-                                    });
-                                }
-                            },
-                            {
-                                label: 'Désengager ce coureur',
-                                icon: 'pi pi-fw pi-times',
-                                command: async (event) => {
-                                    openDialog(true);
-                                }
-                            }
-                        ]} ref={contextMenu}/>
+
                         <DataTable ref={dg} value={filterByRace(rows, currentRace)}
-                                   emptyMessage="Aucun enregistrement dans la table">
+                                   emptyMessage="Aucun enregistrement dans la table" responsive={true} header="Liste des coureurs engagés" >
                             {columns.map((column, i) => <Column key={i} {...column}/>)}
+
                         </DataTable>
                     </Box>
                 );
             }
         }
+
     </CompetitionLayout>;
 
 };

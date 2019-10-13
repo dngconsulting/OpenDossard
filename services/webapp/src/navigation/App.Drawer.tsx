@@ -32,6 +32,7 @@ import StatsPage from '../pages/Stats';
 import {User} from '../sdk';
 import Engagement from '../pages/Engagement';
 import {cadtheme} from '../App';
+import {red} from '@material-ui/core/colors';
 
 const classNames = require('classnames');
 
@@ -88,7 +89,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
                     <List style={{padding:'0px'}}>
                       <ListItem  style={{color:'white',padding:'4px 0px 0px 5px'}}>
                         <ListItemAvatar style={{padding:0}}>
-                          <Avatar>
+                          <Avatar style={{backgroundColor:red[500]}}>
                             <AccountCircleIcon htmlColor={'white'}/>
                           </Avatar>
                         </ListItemAvatar>
