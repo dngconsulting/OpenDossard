@@ -16,7 +16,7 @@ import {withRouter} from 'react-router-dom';
 interface ICompetitionChooserProps {
     classes?: any;
     history: {
-        push(url: string): void;
+        push(url: any): void;
         location: any
     };
 }
@@ -46,16 +46,21 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         setData(await apiCompetitions.getAllCompetitions());
     };
     useEffect(() => {
-        fetchCompetitions();
+        if (data.length === 0) {
+            fetchCompetitions();
+        }
     }, []);
 
-    const isResultLink = () : boolean => {
-        return props.history.location.state && props.history.location.state.goto === 'results'
-    }
+    const isResultLink = (): boolean => {
+        return props.history.location.state && props.history.location.state.goto === 'results';
+    };
 
-    const goToPage = (event: any, competitionid: number,resultsPage? : string) => {
+    const goToPage = (event: any, competitionid: number, resultsPage?: string) => {
         if (props.history.location.state && props.history.location.state.goto) {
-            props.history.push('/competition/' + competitionid + '/' + (resultsPage?resultsPage : props.history.location.state.goto));
+            props.history.push({
+                pathname: ('/competition/' + competitionid + '/' + (resultsPage ? resultsPage : props.history.location.state.goto)),
+                state : props.history.location.state
+            });
         }
     };
 
@@ -72,11 +77,12 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                 <Table className={classes.table}>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Nom l'épreuve</TableCell>
-                            <TableCell align="right">Date</TableCell>
-                            <TableCell align="right">Lieu</TableCell>
-                            <TableCell align="right">Catégories</TableCell>
-                            <TableCell align="right">Fédération</TableCell>
+                            <TableCell style={{fontSize: 15}} variant="head">Nom
+                                l'épreuve</TableCell>
+                            <TableCell variant="head" align="right">Date</TableCell>
+                            <TableCell variant="head" align="right">Lieu</TableCell>
+                            <TableCell variant="head" align="right">Catégories</TableCell>
+                            <TableCell variant="head" align="right">Fédération</TableCell>
                             {isResultLink() && <TableCell/>}
                         </TableRow>
                     </TableHead>
@@ -84,7 +90,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
 
                         {data.map(row => (
                             <TableRow hover={true} key={row.name}
-                                      onClick={(event: any) => goToPage(event, row.id,isResultLink()? 'results/view':null)}>
+                                      onClick={(event: any) => goToPage(event, row.id, isResultLink() ? 'results/view' : null)}>
                                 <TableCell component="th" scope="row">
                                     {row.name}
                                 </TableCell>
@@ -95,19 +101,19 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                                 <TableCell align="right">{row.fede}</TableCell>
 
                                 {isResultLink() && <TableCell align="right">
-                                    <Button variant={'contained'}
-                                            onClick={(event: any) => goToPage(event, row.id,'results/create')}
-                                            color="secondary"
-                                            style={{marginRight: '10px'}}
-                                    >
-                                        Saisir Résultats
-                                    </Button>
-                                    <Button variant={'contained'}
-                                            onClick={(event: any) => goToPage(event, row.id,'results/view')}
-                                            color="primary"
-                                    >
-                                        Visualiser Résultats
-                                    </Button>
+                                  <Button variant={'contained'}
+                                          onClick={(event: any) => goToPage(event, row.id, 'results/create')}
+                                          color="secondary"
+                                          style={{marginRight: '10px'}}
+                                  >
+                                    Saisir Résultats
+                                  </Button>
+                                  <Button variant={'contained'}
+                                          onClick={(event: any) => goToPage(event, row.id, 'results/view')}
+                                          color="primary"
+                                  >
+                                    Visualiser Résultats
+                                  </Button>
                                 </TableCell>}
                             </TableRow>
                         ))}

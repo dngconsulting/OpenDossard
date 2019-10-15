@@ -15,7 +15,7 @@ import * as querystring from 'querystring';
 import {Redirect} from 'react-router';
 import {passportCtrl} from '../../util/api';
 import {User} from '../../sdk';
-import logohorizontal from '../../assets/logos/logohorizontal.png'
+import logohorizontal from '../../assets/logos/logohorizontal.png';
 
 interface ILoginProps {
     login?: (data: any) => void;
@@ -52,7 +52,10 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
 
     private handleLogin = async () => {
         try {
-            const user = await passportCtrl.login({email:this.state.email,password:this.state.password});
+            const user = await passportCtrl.login({
+                email: this.state.email,
+                password: this.state.password
+            });
             console.log('User = ' + JSON.stringify(user));
             this.props.login(user);
         } catch (err) {
@@ -113,14 +116,11 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        height : '100px'
+                        height: '100px'
                     }}>
-                        <Button variant="text" className={classes.button}>
-                            Annuler
-                        </Button>
                         <Button
                             onClick={this.handleLogin}
-                            variant="text"
+                            variant="contained"
                             color="primary"
                             className={classes.button}>
                             Valider

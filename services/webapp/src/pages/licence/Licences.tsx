@@ -3,6 +3,7 @@ import MaterialTable, {Query, QueryResult} from 'material-table';
 import {AppText as T} from '../../util/text';
 import {apiLicences} from '../../util/api';
 import {Licence, Search} from '../../sdk';
+import {cadtheme} from '../../theme/theme';
 
 interface ILicencesProps {
     items: any[];
@@ -36,14 +37,14 @@ const LicencesPage = (props: ILicencesProps)=> {
             <MaterialTable
                 title={T.LICENCES.TITLE}
                 columns={[
-                    {title: 'Numéro licence', field: 'licenceNumber'},
+                    {title: 'Licence', field: 'licenceNumber'},
                     {title: 'Nom', field: 'name'},
                     {title: 'Prénom', field: 'firstName'},
                     {title: 'Genre', field: 'gender'},
                     {title: 'Dept', field: 'dept'},
                     {title: 'Age', field: 'birthYear'},
                     {title: 'Caté Age', field: 'catea'},
-                    {title: 'Caté Valeur', field: 'catev'},
+                    {title: 'Caté V.', field: 'catev'},
                 ]}
                 data={fetchLicences}
                 options={{
@@ -53,7 +54,12 @@ const LicencesPage = (props: ILicencesProps)=> {
                     actionsColumnIndex: -1,
                     pageSize: 10,
                     pageSizeOptions: [5, 10, 20],
-                    search: false
+                    search: false,
+                    headerStyle: {
+                        backgroundColor: cadtheme.palette.primary.light,
+                        color: '#FFF',
+                        fontSize:15
+                    }
                 }}
                 editable={{
                     onRowUpdate: (newData, oldData) =>
