@@ -112,7 +112,7 @@ const LicencesPage = (props: ILicencesProps) => {
                     fede: res.fede.toLowerCase(),
                     dept: res.dept,
                     club: res.club,
-                    catea: res.catea.indexOf('F')>-1?res.catea.replace('F','').toLowerCase():res.catea,
+                    catea: res.catea.indexOf('F')>-1?res.catea.replace('F','').toLowerCase():res.catea.toLowerCase(),
                     catev: res.catev
                 });
                 setDisableCateV(res.fede === '');
