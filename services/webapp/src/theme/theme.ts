@@ -49,6 +49,7 @@ export const cadtheme = createMuiTheme({
             root: {
                 padding: 10,
                 fontSize:15,
+                zIndex:2000,
             },
             body: {
                 color: 'black',

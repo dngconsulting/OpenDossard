@@ -104,7 +104,7 @@ export const CreationForm = (
                 </Typography>
             </Grid>
             <Grid item={true} style={{zIndex: 20}}>
-                <AutocompleteInput style={{width: '450px'}} selection={form.licence} onChangeSelection={onRiderChange}/>
+                <AutocompleteInput style={{width: '500px'}} selection={form.licence} onChangeSelection={onRiderChange}/>
             </Grid>
             <Grid item={true}>
                 <TextField
