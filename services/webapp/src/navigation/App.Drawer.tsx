@@ -16,7 +16,8 @@ import {
     ListItemAvatar,
     ListItemIcon,
     ListItemText,
-    Theme, Tooltip,
+    Theme,
+    Tooltip, Typography,
     withStyles
 } from '@material-ui/core';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
@@ -29,7 +30,9 @@ import LicencesPage from '../pages/licence/Licences';
 import ResultatsPage from '../pages/Resultats';
 import StatsPage from '../pages/Stats';
 import {User} from '../sdk';
-import Engagement from "../pages/Engagement";
+import Engagement from '../pages/Engagement';
+import {cadtheme} from '../App';
+import {red} from '@material-ui/core/colors';
 
 const classNames = require('classnames');
 
@@ -44,20 +47,23 @@ interface IAppDrawer {
 class AppDrawer extends React.Component<IAppDrawer, {}> {
     public routes = [
         {path: '/', title: 'Tableau de bord', icon: () => <DashboardIcon/>},
+        {path: '/licences', component: LicencesPage, title: 'Licences', icon: () => <PeopleIcon/>},
         {
             path: '/competitionchooser',
+            state: {goto : 'engagements'},
             component: Engagement,
             title: 'Engagements',
             icon: () => <AssignmentIcon/>
         },
-        {path: '/licences', component: LicencesPage, title: 'Licences', icon: () => <PeopleIcon/>},
         {
-            path: '/results',
+            path: '/competitionchooser',
             component: ResultatsPage,
             title: 'Résultats',
+            state: {goto : 'results'},
             icon: () => <FormatListNumberedIcon/>
         },
-        {path: '/stats', component: StatsPage, title: 'Statistiques', icon: () => <ShowChartIcon/>},
+        {
+            path: '/stats', component: StatsPage, title: 'Statistiques', icon: () => <ShowChartIcon/>},
         {
             path: '/account',
             component: AccountPage,
@@ -77,36 +83,42 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
                 }}
                 open={utility.drawerOpen}
             >
-                {utility.drawerOpen && <Box display="flex" p={1} bgcolor="background.paper">
-                  <Box p={1} flexGrow={1} bgcolor="grey.300">
-                    <List>
-                      <ListItem>
-                        <ListItemAvatar>
-                          <Avatar>
-                            <AccountCircleIcon/>
+                {utility.drawerOpen && <Box display="flex" bgcolor="background.paper" boxShadow={3}>
+
+                  <Box  flexGrow={1} bgcolor={cadtheme.palette.secondary.dark}>
+                    <List style={{padding:'0px'}}>
+                      <ListItem  style={{color:'white',padding:'4px 0px 0px 5px'}}>
+                        <ListItemAvatar style={{padding:0}}>
+                          <Avatar style={{backgroundColor:red[500]}}>
+                            <AccountCircleIcon htmlColor={'white'}/>
                           </Avatar>
                         </ListItemAvatar>
-                        <ListItemText primary={(authentication && authentication.firstName ? authentication.firstName: "") + " " + (authentication && authentication.lastName ? authentication.lastName: "")} secondary={authentication.email}/>
+                        <ListItemText color={'#FFFFFF'}
+                          primary={<Typography style={{ fontSize:20, color: '#FFFFFF' }}>{(authentication && authentication.firstName ? authentication.firstName : '') + ' ' + (authentication && authentication.lastName ? authentication.lastName : '')} </Typography>}
+                                      secondary={<Typography style={{ fontSize:13, color: '#FFFFFF' }}>{authentication.email}</Typography>}/>
                       </ListItem>
                     </List>
                   </Box>
-                  <Box p={1} bgcolor="grey.300">
+                  <Box bgcolor={cadtheme.palette.secondary.dark} >
                     <IconButton onClick={() => this.props.handleDrawer(true)}>
-                        {!utility.drawerOpen ? <ChevronRightIcon/> : <ChevronLeftIcon/>}
+                        {!utility.drawerOpen ? <ChevronRightIcon htmlColor={'#FFFFFF'}/> : <ChevronLeftIcon htmlColor={'#FFFFFF'}/>}
                     </IconButton>
                   </Box>
                 </Box>
                 }
                 {!utility.drawerOpen && <div className={classes.toolbar}>
                   <IconButton onClick={() => this.props.handleDrawer(utility.drawerOpen)}>
-                      {theme.direction === 'rtl' ? <ChevronRightIcon/> : <ChevronLeftIcon/>}
+                      {theme.direction === 'rtl' ? <ChevronRightIcon htmlColor={'#FFFFFF'}/> : <ChevronLeftIcon htmlColor={'#FFFFFF'}/>}
                   </IconButton>
                 </div>}
                 <Divider/>
                 {this.routes.map((route, index) => {
                     return (
                         <NavLink key={index} exact={true} activeClassName={classes.current}
-                                 className={classes.link} to={route.path}>
+                                 className={classes.link} to={{
+                            pathname: route.path,
+                            state : route.state,
+                        }}>
                             <Tooltip title={route.title}>
                                 <ListItem button={true}>
                                     <ListItemIcon>

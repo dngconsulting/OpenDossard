@@ -1,244 +1,157 @@
-import * as React from 'react';
-import {useEffect, useState} from 'react';
+import React, {useContext, useRef, useState} from 'react';
 
-import {createStyles, Theme} from '@material-ui/core';
-import MaterialTable, {Column} from "material-table";
+import {
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    makeStyles
+} from '@material-ui/core';
+import 'primereact/resources/themes/nova-light/theme.css';
+import 'primereact/resources/primereact.min.css';
+import 'primeicons/primeicons.css';
+import {apiRaces} from '../util/api';
+import Grid from '@material-ui/core/Grid';
+import Button from '@material-ui/core/Button';
+import {CompetitionLayout} from './CompetitionLayout';
+import {NotificationContext} from '../components/CadSnackbar';
+import {DataTable} from 'primereact/datatable';
+import {Column, ColumnProps} from 'primereact/column';
+import {CreationForm} from './engagement/EngagementCreation';
+import {Reorganizer} from './engagement/ReorganizeRaces';
+import Box from '@material-ui/core/Box';
+import {RaceRow} from '../sdk';
+import {ArrowUpward, Delete} from '@material-ui/icons';
 
-import {apiRaces} from "../util/api";
-import {RaceCreate, RaceRow} from "../sdk";
-import Card from "@material-ui/core/Card";
-import TextField from "@material-ui/core/TextField";
-import Typography from "@material-ui/core/Typography";
-import Grid from "@material-ui/core/Grid";
-import Button from "@material-ui/core/Button";
-import makeStyles from "@material-ui/core/styles/makeStyles";
-import {CadSnackBar, EMPTY_NOTIF} from "../components/CadSnackbar";
-import AutocompleteInput from "../components/AutocompleteInput";
-
-const create = async (newRace: RaceCreate) => {
-    await apiRaces.create(newRace);
-}
-
-const update = async (newData: RaceRow) => {
-    await apiRaces.update({
-        id: newData.id,
-        riderNumber: newData.riderNumber,
-        raceCode: newData.raceCode
-    });
-}
-
-const COLUMNS: Array<Column<RaceRow>> = [
-    { title: "Licence", field: "licenceNumber", type: "numeric", headerStyle: { textAlign: "center" },
-        cellStyle: { textAlign: "center"}
-    },
-    { title: "Nom", field: "name", editable: "never" },
-    { title: "Prénom", field: "firstName", editable: "never" },
-    { title: "Année", field: "birthYear", editable: "never" },
-    { title: "Club", field: "club", editable: "never" },
-    { title: "Dossard", field: "riderNumber", type: "numeric", headerStyle: { textAlign: "center" },
-        cellStyle: { textAlign: "center"},
-        defaultSort: "asc"
-    },
-    { title: "Course", field: "raceCode", editable: "always"},
-];
-
-const EngagementPage = ({match}: {match: any}) => {
-
-    const competitionId = match.params.id;
-
-    const [races, setRaces] = useState<RaceRow[]>([])
-    const [notification, setNotification] = useState(EMPTY_NOTIF);
-    const [columns, setColumns] = useState(COLUMNS);
-
-    const fetchData = async ()  => {
-        const data = await apiRaces.getAllRaces();
-        setRaces( data );
+const style = makeStyles( theme => ({
+    surclassed: {
+        zoom: '79%',
+            display: 'inline-block',
+            position: 'absolute',
+            marginLeft: 10
     }
+}))
 
-    useEffect( () => {
-        fetchData()
-    }, ['loading'])
+const ConfirmDialog = (props: any) => {
+    return (
+        <div>
+            <Dialog
+                open={props.open}
+                onClose={props.handleClose}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">{'Désengager un coureur'}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        Êtes-vous sûr de vouloir désengager le coureur {props.name} ?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={props.handleClose} color="primary">
+                        Annuler
+                    </Button>
+                    <Button onClick={props.handleOk} color="primary" autoFocus={true}>
+                        Confirmer
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </div>
+    );
+};
 
-    const raceStats = races.reduce( (acc: IRaceStat, item) => (
-        {   ...acc,
-            [item.raceCode]: acc[item.raceCode] ? acc[item.raceCode]+1 : 1 }
-    ), {});
+const filterByRace = (rows : RaceRow[] , race : string) : RaceRow[] => {
+    return rows.filter((coureur) => coureur.raceCode === race)
+}
 
-    const onRaceSelect = (raceCode: string) => {
-        const newColumns = columns.map(column => {
-            column.defaultFilter = raceCode
+const surclassed = ({catev, raceCode}: RaceRow) => {
+    return raceCode.split('/').indexOf(catev) >= 0 ? false : true
+}
 
-            return column.field === 'raceCode' ? {
-                ...column,
-                tableData: {
-                    // @ts-ignore
-                    ...column.tableData,
-                    filterValue: raceCode
-                }
-            } : column
-        });
-        console.log(newColumns)
-        setColumns( newColumns )
+const FILTERABLE = {filter: true, sortable: true, filterMatchMode: 'contains'}
+const SHORT = {style: {width: 120, textAlign: 'center', padding : 0}, bodyClassName:'nopadding'}
+const EngagementPage = ({match}: { match: any }) => {
+    const competitionId = match.params.id;
+    const dg = useRef(null);
+    const [, setNotification] = useContext(NotificationContext);
+    const [selectedRow, selectRow] = useState();
+    const [open, openDialog] = React.useState(false);
+    const closeDialog = () => {
+        openDialog(false);
     };
 
-    return <div>
-        <AutocompleteInput/>
-        <Grid container={true}>
-            <CreationForm competitionId={competitionId}
-                          onSuccess={(race) => {
-                              fetchData();
-                              setNotification({
-                                  message: `Le coureur ${race.licenceNumber} a bien été enregistré sous le dossard ${race.riderNumber}`,
-                                  open: true,
-                                  type: 'success'
-                              })
-                          }}
-                          onError={(message) => {
-                              setNotification({
-                                  message,
-                                  open: true,
-                                  type: 'error'
-                              })
-                          }}
-            />
-            <RaceStat stats={raceStats} onRaceSelect={onRaceSelect}/>
-        </Grid>
-        <MaterialTable
-            title={`Engagement ${competitionId}`}
-            columns={columns}
-            data={races}
-            options={{
-                filtering: true,
-                actionsColumnIndex: -1,
-                pageSize: 500,
-                pageSizeOptions: [],
-                grouping: true,
-            }}
-            editable={{
-                onRowUpdate: async (newData, oldData) => {
-                    await update(newData)
-                    fetchData()
-                    setNotification({
-                        message: `L'inscription de ${oldData.name} ${oldData.firstName} a été modifiée`,
-                        type: 'success',
-                        open: true
-                    });
-                },
-                onRowDelete: async (oldData) => {
-                    await apiRaces._delete(`${oldData.id}`);
-                    fetchData();
-                    setNotification({
-                        message: `Le coureur ${oldData.name} ${oldData.firstName} a été supprimé de la compétition`,
-                        type: 'info',
-                        open: true
-                    });
-                }
-            }}
-            localization={{
-                grouping: {
-                    groupedBy: 'Regroupement par :',
-                    placeholder: 'Glisser ici la colonne a regrouper'
-                },
-                body: {
-                    editRow: {
-                        deleteText : 'Etes vous sur de vouloir désinscrire ce coureur ?'
-                    }
-                }
-            }}
-        />
-        <CadSnackBar notification={notification} onClose={() => setNotification(EMPTY_NOTIF)}/>
-    </div>
 
-}
+    const handleOk = async (fetchRows: any) => {
+        await apiRaces._delete(selectedRow.id);
+        fetchRows();
+        setNotification({
+            message: `Le coureur ${selectedRow.id} a été supprimé de la compétition`,
+            type: 'info',
+            open: true
+        });
+        closeDialog();
+    };
+    const classes = style({});
 
-const useStyles = makeStyles((theme: Theme) =>
-    createStyles({
-        field: {
-            marginLeft: 10,
-            marginRight: 10
-        },
-    }),
-);
-
-const CreationForm = (
-    {competitionId, onSuccess, onError}:
+    return <CompetitionLayout competitionId={competitionId}>
         {
-            competitionId: number,
-            onSuccess: (race: RaceCreate) => void,
-            onError: (message: string) => void
+            ({competition,currentRace, rows, fetchRows, fetchCompetition}) => {
+
+                const deleteAction = (row: RaceRow) => <Delete fontSize={'small'} onClick={() => {
+                    selectRow(row)
+                    openDialog(true)
+                }}/>
+
+                const columns: ColumnProps[] = [
+                    {field: 'riderNumber', header: 'Dossard', ...FILTERABLE, ...SHORT},
+                    {field: 'name', header: 'Coureur', ...FILTERABLE, bodyClassName:'nopadding'},
+                    {field: 'gender', header: 'H/F', ...FILTERABLE, ...SHORT},
+                    {field: 'club', header: 'Club', ...FILTERABLE, bodyClassName:'nopadding'},
+                    {
+                        field: 'catev', header: 'Catégorie', ...FILTERABLE, ...SHORT,
+                        body: (row: RaceRow) => <span>
+                            {row.catev}
+                            {surclassed(row) && <span title="surclassé" className={classes.surclassed}><ArrowUpward /></span>}
+                        </span>
+                    },
+                    {
+                        style: {width: 40, textAlign: 'center', paddingLeft: 0, paddingRight: 0, cursor: 'pointer'},
+                        bodyClassName:'nopadding',
+                        body: deleteAction
+                    },
+                ]
+
+                return (
+                    <Box position="relative" padding={0}>
+                        <Box top={-38} right={10} position="absolute">
+                            <Reorganizer competition={competition} rows={rows} onSuccess={() => {
+                                fetchRows()
+                                fetchCompetition()
+                            }}/>
+                        </Box>
+                        <Grid container={true}>
+                            <ConfirmDialog name={selectedRow ? selectedRow.name : null} open={open}
+                                           handleClose={closeDialog}
+                                           handleOk={() => handleOk(fetchRows)}/>
+                            <CreationForm competition={competition}
+                                          race={currentRace}
+                                          onSuccess={fetchRows}
+                            />
+                        </Grid>
+
+                        <DataTable ref={dg} value={filterByRace(rows, currentRace)}
+                                   emptyMessage="Aucun enregistrement dans la table" responsive={true} header="Liste des coureurs engagés" >
+                            {columns.map((column, i) => <Column key={i} {...column}/>)}
+
+                        </DataTable>
+                    </Box>
+                );
+            }
         }
-) => {
 
-    const EMPTY_FORM = {licenceNumber: '', riderNumber: '', raceCode: ''};
-    const [newRace, setValues] = useState(EMPTY_FORM);
+    </CompetitionLayout>;
 
-    const classes = useStyles({});
-
-    return <Card style={{margin: 20, padding: 20}}>
-        <Typography variant="h6" gutterBottom={true}>
-            Nouveau coureur :
-        </Typography>
-        <Grid container={true} spacing={3} alignItems={"baseline"}>
-            <TextField
-                label="Numéro de licence"
-                value={newRace.licenceNumber}
-                className={classes.field}
-                onChange={e => setValues({...newRace, licenceNumber: e.target.value})}
-                margin="normal"
-            />
-            <TextField
-                label="Numéro de dossard"
-                value={newRace.riderNumber}
-                className={classes.field}
-                onChange={e => setValues({...newRace, riderNumber: e.target.value})}
-                margin="normal"
-            />
-            <TextField
-                label="Course"
-                value={newRace.raceCode}
-                className={classes.field}
-                onChange={e => setValues({...newRace, raceCode: e.target.value})}
-                margin="normal"
-            />
-            <Button
-                variant="contained"
-                color="primary"
-                onClick={ async () => {
-                    try {
-                        const dto = {
-                            ...newRace,
-                            riderNumber: parseInt(newRace.riderNumber),
-                            competitionId
-                        }
-                        await create(dto);
-                        onSuccess(dto)
-                        setValues(EMPTY_FORM);
-                    } catch (e) {
-                        const {message} = await e.json();
-                        onError(message);
-                    }
-                }}
-            >
-                OK
-            </Button>
-        </Grid>
-    </Card>
-}
-
-interface IRaceStat {[s: string]: number}
-
-const RaceStat = ({stats, onRaceSelect} : {stats: IRaceStat, onRaceSelect: (code: string)=>void}) => {
-
-    return <Card style={{margin: 20, padding: 20}}>
-        <Typography variant="h6" gutterBottom={true}>Inscrits :</Typography>
-        <table><tbody>
-        {
-            Object.keys(stats).sort().map( raceCode => <tr key={raceCode} style={{cursor: 'pointer'}}  onClick={()=>onRaceSelect(raceCode)}>
-                <td>Course <b>{raceCode}</b></td><td> : <b>{stats[raceCode]}</b> inscrits</td>
-            </tr>)
-        }
-        </tbody></table>
-    </Card>
-}
+};
 
 export default EngagementPage;

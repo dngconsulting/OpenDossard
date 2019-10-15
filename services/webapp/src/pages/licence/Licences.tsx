@@ -48,6 +48,8 @@ const LicencesPage = (props: ILicencesProps)=> {
                 data={fetchLicences}
                 options={{
                     filtering: true,
+                    toolbar: true,
+                    padding: "dense",
                     actionsColumnIndex: -1,
                     pageSize: 10,
                     pageSizeOptions: [5, 10, 20],

@@ -46,7 +46,7 @@ export class Competition {
     @ManyToOne((type) => Club)
     @JoinColumn()
     @ApiModelProperty()
-    public clubId: Club;
+    public club: Club;
     /**
      * Le nom de l'épreuve
      */
@@ -89,6 +89,14 @@ export class Competition {
     @Column('simple-json')
     @ApiModelPropertyOptional()
     public pricing: { name: string, price: number };
+
+    /**
+     * Liste des courses ['1/2/3','4/5']
+     */
+    @Column({nullable: true})
+    @Column('simple-array')
+    @ApiModelPropertyOptional()
+    public races: string[];
 
     @Column({
         type: 'enum',

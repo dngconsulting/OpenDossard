@@ -84,6 +84,30 @@ export class RequiredError extends Error {
  * @interface Club
  */
 export interface Club {
+    /**
+     * 
+     * @type {number}
+     * @memberof Club
+     */
+    id: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof Club
+     */
+    shortName: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Club
+     */
+    dept: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Club
+     */
+    longName: string;
 }
 
 /**
@@ -141,7 +165,7 @@ export interface Competition {
      * @type {Club}
      * @memberof Competition
      */
-    clubId: Club;
+    club: Club;
     /**
      * 
      * @type {string}
@@ -180,6 +204,12 @@ export interface Competition {
     pricing?: any;
     /**
      * 
+     * @type {Array<string>}
+     * @memberof Competition
+     */
+    races?: Array<string>;
+    /**
+     * 
      * @type {string}
      * @memberof Competition
      */
@@ -190,6 +220,26 @@ export interface Competition {
      * @memberof Competition
      */
     competitionType?: string;
+}
+
+/**
+ * 
+ * @export
+ * @interface CompetitionReorganize
+ */
+export interface CompetitionReorganize {
+    /**
+     * 
+     * @type {number}
+     * @memberof CompetitionReorganize
+     */
+    competitionId?: number;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof CompetitionReorganize
+     */
+    races?: Array<string>;
 }
 
 /**
@@ -326,10 +376,10 @@ export interface RaceCreate {
     competitionId?: number;
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof RaceCreate
      */
-    licenceNumber?: string;
+    licenceId?: number;
     /**
      * 
      * @type {number}
@@ -342,6 +392,12 @@ export interface RaceCreate {
      * @memberof RaceCreate
      */
     raceCode?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceCreate
+     */
+    catev?: string;
 }
 
 /**
@@ -370,18 +426,6 @@ export interface RaceRow {
     riderNumber?: number;
     /**
      * 
-     * @type {number}
-     * @memberof RaceRow
-     */
-    numberMin?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof RaceRow
-     */
-    numberMax?: number;
-    /**
-     * 
      * @type {boolean}
      * @memberof RaceRow
      */
@@ -403,51 +447,37 @@ export interface RaceRow {
      * @type {string}
      * @memberof RaceRow
      */
-    firstName?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof RaceRow
-     */
     club?: string;
     /**
      * 
      * @type {string}
      * @memberof RaceRow
      */
-    birthYear?: string;
-}
-
-/**
- * 
- * @export
- * @interface RaceUpdate
- */
-export interface RaceUpdate {
-    /**
-     * 
-     * @type {number}
-     * @memberof RaceUpdate
-     */
-    id?: number;
+    catev?: string;
     /**
      * 
      * @type {string}
-     * @memberof RaceUpdate
+     * @memberof RaceRow
      */
-    licenceNumber?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof RaceUpdate
-     */
-    riderNumber?: number;
+    catea?: string;
     /**
      * 
      * @type {string}
-     * @memberof RaceUpdate
+     * @memberof RaceRow
      */
-    raceCode?: string;
+    fede?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceRow
+     */
+    gender?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof RaceRow
+     */
+    rankingScratch?: number;
 }
 
 /**
@@ -648,7 +678,7 @@ export const CompetitionAPIApiFetchParamCreator = function (configuration?: Conf
             if (id === null || id === undefined) {
                 throw new RequiredError('id','Required parameter id was null or undefined when calling get.');
             }
-            const localVarPath = `/api/epreuves/{id}`
+            const localVarPath = `/api/competition/{id}`
                 .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
@@ -672,7 +702,7 @@ export const CompetitionAPIApiFetchParamCreator = function (configuration?: Conf
          * @throws {RequiredError}
          */
         getAllCompetitions(options: any = {}): FetchArgs {
-            const localVarPath = `/api/epreuves`;
+            const localVarPath = `/api/competition`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
             const localVarHeaderParameter = {} as any;
@@ -682,6 +712,38 @@ export const CompetitionAPIApiFetchParamCreator = function (configuration?: Conf
             // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
             delete localVarUrlObj.search;
             localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Réorganisation des courses
+         * @param {CompetitionReorganize} competitionReorganize 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        reorganize(competitionReorganize: CompetitionReorganize, options: any = {}): FetchArgs {
+            // verify required parameter 'competitionReorganize' is not null or undefined
+            if (competitionReorganize === null || competitionReorganize === undefined) {
+                throw new RequiredError('competitionReorganize','Required parameter competitionReorganize was null or undefined when calling reorganize.');
+            }
+            const localVarPath = `/api/competition/reorganize`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+            const needsSerialization = (<any>"CompetitionReorganize" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(competitionReorganize || {}) : (competitionReorganize || "");
 
             return {
                 url: url.format(localVarUrlObj),
@@ -734,6 +796,25 @@ export const CompetitionAPIApiFp = function(configuration?: Configuration) {
                 });
             };
         },
+        /**
+         * 
+         * @summary Réorganisation des courses
+         * @param {CompetitionReorganize} competitionReorganize 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        reorganize(competitionReorganize: CompetitionReorganize, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = CompetitionAPIApiFetchParamCreator(configuration).reorganize(competitionReorganize, options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response;
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
     }
 };
 
@@ -761,6 +842,16 @@ export const CompetitionAPIApiFactory = function (configuration?: Configuration,
          */
         getAllCompetitions(options?: any) {
             return CompetitionAPIApiFp(configuration).getAllCompetitions(options)(fetch, basePath);
+        },
+        /**
+         * 
+         * @summary Réorganisation des courses
+         * @param {CompetitionReorganize} competitionReorganize 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        reorganize(competitionReorganize: CompetitionReorganize, options?: any) {
+            return CompetitionAPIApiFp(configuration).reorganize(competitionReorganize, options)(fetch, basePath);
         },
     };
 };
@@ -793,6 +884,18 @@ export class CompetitionAPIApi extends BaseAPI {
      */
     public getAllCompetitions(options?: any) {
         return CompetitionAPIApiFp(this.configuration).getAllCompetitions(options)(this.fetch, this.basePath);
+    }
+
+    /**
+     * 
+     * @summary Réorganisation des courses
+     * @param {CompetitionReorganize} competitionReorganize 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CompetitionAPIApi
+     */
+    public reorganize(competitionReorganize: CompetitionReorganize, options?: any) {
+        return CompetitionAPIApiFp(this.configuration).reorganize(competitionReorganize, options)(this.fetch, this.basePath);
     }
 
 }
@@ -1466,11 +1569,17 @@ export const RaceAPIApiFetchParamCreator = function (configuration?: Configurati
         /**
          * description
          * @summary Rechercher toutes les courses 
+         * @param {number} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAllRaces(options: any = {}): FetchArgs {
-            const localVarPath = `/api/races`;
+        getCompetitionRaces(id: number, options: any = {}): FetchArgs {
+            // verify required parameter 'id' is not null or undefined
+            if (id === null || id === undefined) {
+                throw new RequiredError('id','Required parameter id was null or undefined when calling getCompetitionRaces.');
+            }
+            const localVarPath = `/api/races/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
             const localVarHeaderParameter = {} as any;
@@ -1487,18 +1596,18 @@ export const RaceAPIApiFetchParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * description
-         * @summary Mets à jour une course existante
-         * @param {RaceUpdate} raceUpdate 
+         * 
+         * @summary Met à jour le classement du coureur 
+         * @param {RaceRow} raceRow 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        update(raceUpdate: RaceUpdate, options: any = {}): FetchArgs {
-            // verify required parameter 'raceUpdate' is not null or undefined
-            if (raceUpdate === null || raceUpdate === undefined) {
-                throw new RequiredError('raceUpdate','Required parameter raceUpdate was null or undefined when calling update.');
+        update(raceRow: RaceRow, options: any = {}): FetchArgs {
+            // verify required parameter 'raceRow' is not null or undefined
+            if (raceRow === null || raceRow === undefined) {
+                throw new RequiredError('raceRow','Required parameter raceRow was null or undefined when calling update.');
             }
-            const localVarPath = `/api/races`;
+            const localVarPath = `/api/races/update`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'PUT' }, options);
             const localVarHeaderParameter = {} as any;
@@ -1510,8 +1619,8 @@ export const RaceAPIApiFetchParamCreator = function (configuration?: Configurati
             // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
             delete localVarUrlObj.search;
             localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-            const needsSerialization = (<any>"RaceUpdate" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
-            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(raceUpdate || {}) : (raceUpdate || "");
+            const needsSerialization = (<any>"RaceRow" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(raceRow || {}) : (raceRow || "");
 
             return {
                 url: url.format(localVarUrlObj),
@@ -1568,11 +1677,12 @@ export const RaceAPIApiFp = function(configuration?: Configuration) {
         /**
          * description
          * @summary Rechercher toutes les courses 
+         * @param {number} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAllRaces(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<RaceRow>> {
-            const localVarFetchArgs = RaceAPIApiFetchParamCreator(configuration).getAllRaces(options);
+        getCompetitionRaces(id: number, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<RaceRow>> {
+            const localVarFetchArgs = RaceAPIApiFetchParamCreator(configuration).getCompetitionRaces(id, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -1584,14 +1694,14 @@ export const RaceAPIApiFp = function(configuration?: Configuration) {
             };
         },
         /**
-         * description
-         * @summary Mets à jour une course existante
-         * @param {RaceUpdate} raceUpdate 
+         * 
+         * @summary Met à jour le classement du coureur 
+         * @param {RaceRow} raceRow 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        update(raceUpdate: RaceUpdate, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = RaceAPIApiFetchParamCreator(configuration).update(raceUpdate, options);
+        update(raceRow: RaceRow, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = RaceAPIApiFetchParamCreator(configuration).update(raceRow, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -1634,21 +1744,22 @@ export const RaceAPIApiFactory = function (configuration?: Configuration, fetch?
         /**
          * description
          * @summary Rechercher toutes les courses 
+         * @param {number} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAllRaces(options?: any) {
-            return RaceAPIApiFp(configuration).getAllRaces(options)(fetch, basePath);
+        getCompetitionRaces(id: number, options?: any) {
+            return RaceAPIApiFp(configuration).getCompetitionRaces(id, options)(fetch, basePath);
         },
         /**
-         * description
-         * @summary Mets à jour une course existante
-         * @param {RaceUpdate} raceUpdate 
+         * 
+         * @summary Met à jour le classement du coureur 
+         * @param {RaceRow} raceRow 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        update(raceUpdate: RaceUpdate, options?: any) {
-            return RaceAPIApiFp(configuration).update(raceUpdate, options)(fetch, basePath);
+        update(raceRow: RaceRow, options?: any) {
+            return RaceAPIApiFp(configuration).update(raceRow, options)(fetch, basePath);
         },
     };
 };
@@ -1687,24 +1798,25 @@ export class RaceAPIApi extends BaseAPI {
     /**
      * description
      * @summary Rechercher toutes les courses 
+     * @param {number} id 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof RaceAPIApi
      */
-    public getAllRaces(options?: any) {
-        return RaceAPIApiFp(this.configuration).getAllRaces(options)(this.fetch, this.basePath);
+    public getCompetitionRaces(id: number, options?: any) {
+        return RaceAPIApiFp(this.configuration).getCompetitionRaces(id, options)(this.fetch, this.basePath);
     }
 
     /**
-     * description
-     * @summary Mets à jour une course existante
-     * @param {RaceUpdate} raceUpdate 
+     * 
+     * @summary Met à jour le classement du coureur 
+     * @param {RaceRow} raceRow 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof RaceAPIApi
      */
-    public update(raceUpdate: RaceUpdate, options?: any) {
-        return RaceAPIApiFp(this.configuration).update(raceUpdate, options)(this.fetch, this.basePath);
+    public update(raceRow: RaceRow, options?: any) {
+        return RaceAPIApiFp(this.configuration).update(raceRow, options)(this.fetch, this.basePath);
     }
 
 }

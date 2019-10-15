@@ -6,6 +6,10 @@ import {ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
 import {Filter, LicencesPage, Search} from './SharedModels';
 import {Federation} from '../entity/Federation';
 
+/**
+ * Licence Controler is in charge of handling rider licences
+ * Mainly Crud operations & pagination
+ */
 @Controller('/api/licences')
 @ApiUseTags('LicenceAPI')
 export class LicencesCtrl {

@@ -30,7 +30,6 @@ export const cadtheme = createMuiTheme({
             dark: '#004f04',
             contrastText: '#fff'
         },
-
     },
 });
 
