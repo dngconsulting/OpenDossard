@@ -12,7 +12,7 @@ const filterLicences = async (inputValue: string) => {
             ...i,
 
             label:
-                <div style={{lineHeight: "normal", position:"relative", width: '350px'}}>
+                <div style={{lineHeight: "normal", position:"relative", width: '400px'}}>
                     <div style={{fontSize: "medium"}}>{i.name} {i.firstName} {i.licenceNumber && `${i.licenceNumber}`}</div>
                     <span style={{fontSize: "small"}}>{i.club}</span>
                     <div style={{position: "absolute", right:0, bottom:0}}>{i.catev} {i.catea} {i.fede}</div>
