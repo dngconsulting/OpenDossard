@@ -2,32 +2,9 @@ import {Licence} from '../entity/Licence';
 import {EntityManager, Repository} from 'typeorm';
 import {Body, Controller, Delete, Get, Param, Post, Put} from '@nestjs/common';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
-import {ApiModelPropertyOptional, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
+import {ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
 import {Filter, LicencesPage, Search} from './SharedModels';
 import {Federation} from '../entity/Federation';
-
-export class LicenceCreate {
-    @ApiModelPropertyOptional()
-    public licenceNumber: string;
-    @ApiModelPropertyOptional()
-    public name: string;
-    @ApiModelPropertyOptional()
-    public firstName: string;
-    @ApiModelPropertyOptional()
-    public gender: string;
-    @ApiModelPropertyOptional()
-    public club: string;
-    @ApiModelPropertyOptional()
-    public dept: string;
-    @ApiModelPropertyOptional()
-    public birthYear: string;
-    @ApiModelPropertyOptional()
-    public catea: string;
-    @ApiModelPropertyOptional()
-    public catev: string;
-    @ApiModelPropertyOptional()
-    public fede: string;
-}
 
 @Controller('/api/licences')
 @ApiUseTags('LicenceAPI')
@@ -114,7 +91,7 @@ export class LicencesCtrl {
         operationId: 'create',
         title: 'Cree une nouvelle licence',
     })
-    public async create(@Body() licence: LicenceCreate): Promise<void> {
+    public async create(@Body() licence: Licence): Promise<void> {
         const newLicence = new Licence();
         newLicence.licenceNumber = licence.licenceNumber;
         newLicence.name = licence.name;
@@ -145,7 +122,9 @@ export class LicencesCtrl {
         toUpdate.firstName = licence.firstName;
         toUpdate.gender = licence.gender;
         toUpdate.dept = licence.dept;
-        toUpdate.catea = licence.catea;
+        toUpdate.catea = licence.catea ?
+            licence.gender.toUpperCase() === 'F' ? 'F' + licence.catea.toUpperCase() : licence.catea.toUpperCase()
+            : '';
         toUpdate.catev = licence.catev;
         await this.entityManager.save(toUpdate);
     }

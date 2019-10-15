@@ -8,7 +8,7 @@ import {MenuProps} from 'react-select/src/components/Menu';
 import {ValueType} from 'react-select/src/types';
 import {apiClubs} from '../../util/api';
 
-interface IOptionType {
+export interface IOptionType {
     label: string;
     value: number;
 }
@@ -80,7 +80,7 @@ const components = {
     Menu
 };
 
-export default function ClubSelect({onSelect} : {onSelect : (value:string)=>void}) {
+export default function ClubSelect({onSelect, chosenClub} : {onSelect : (value:string)=>void, chosenClub : IOptionType}) {
     // @ts-ignore
     const classes = useStyles();
     const theme = useTheme();
@@ -96,6 +96,10 @@ export default function ClubSelect({onSelect} : {onSelect : (value:string)=>void
             label:option.longName
         })))).catch(err=>console.log(err));
     },[]);
+
+    useEffect(()=>{
+        setSelectedClub(chosenClub);
+    },[chosenClub]);
 
     const handleChangeSingle = (value: ValueType<IOptionType>) => {
         setSelectedClub(value);

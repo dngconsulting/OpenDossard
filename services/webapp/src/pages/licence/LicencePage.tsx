@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useEffect} from 'react';
 
 import {withStyles} from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
@@ -16,11 +17,9 @@ import FormControl from '@material-ui/core/FormControl';
 import Button from '@material-ui/core/Button';
 
 import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
-import ClubSelect from './ClubSelect';
-import {Licence,LicenceCreate} from '../../sdk';
+import ClubSelect, {IOptionType} from './ClubSelect';
+import {Licence} from '../../sdk';
 import {apiLicences} from '../../util/api';
-
-import {useEffect} from 'react';
 
 interface ILicencesProps {
     items: any[];
@@ -86,7 +85,8 @@ const federations = {
 
 const LicencesPage = (props: ILicencesProps) => {
 
-    const [newLicence, setValues] = React.useState<LicenceCreate>({
+    const [newLicence, setValues] = React.useState<Licence>({
+        id:null,
         name:'',
         firstName: '',
         licenceNumber: '',
@@ -104,6 +104,7 @@ const LicencesPage = (props: ILicencesProps) => {
         if(!isNaN(parseInt(id))){
             apiLicences.get(id).then((res:Licence) =>{
                 setValues({...newLicence,
+                    id:res.id,
                     name:res.name,
                     firstName:res.firstName,
                     licenceNumber: res.licenceNumber,
@@ -152,13 +153,15 @@ const LicencesPage = (props: ILicencesProps) => {
         setValues({...newLicence, club: value});
     };
 
-    const createLicence = ()=>{
+    const createLicence = (id: number) => {
         newLicence.name && newLicence.firstName ?
-        apiLicences.create(newLicence).then(()=>props.history.goBack()) :
+            (id ? apiLicences.update(newLicence).then(() => props.history.goBack()) :
+                    apiLicences.create(newLicence).then(() => props.history.goBack())
+            ) :
             setValidation({
                 name: !newLicence.name,
                 firstName: !newLicence.firstName
-            })
+            });
     };
 
     // @ts-ignore
@@ -264,7 +267,7 @@ const LicencesPage = (props: ILicencesProps) => {
                 </Grid>
                 <Grid item={true} xs={12}>
                     <Grid item={true} xs={10}>
-                        <ClubSelect onSelect={onSelectClub}/>
+                        <ClubSelect onSelect={onSelectClub} chosenClub={{value:null,label:newLicence.club} as IOptionType}/>
                     </Grid>
                 </Grid>
                 <Grid item={true} xs={6}>
@@ -306,7 +309,7 @@ const LicencesPage = (props: ILicencesProps) => {
                 </Grid>
                 <Grid item={true} xs={6}>
                     <Button variant="contained" color="primary" className={classes.button} onClick={()=>
-                    createLicence()}>
+                    createLicence(newLicence.id)}>
                         Sauvegarder
                     </Button>
                 </Grid>
