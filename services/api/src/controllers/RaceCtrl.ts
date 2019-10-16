@@ -91,10 +91,10 @@ export class RacesCtrl {
     })
     @ApiResponse({status: 200, type: RaceNbRider, isArray: true})
     public async getNumberRider(): Promise<RaceNbRider[]> {
-        const query = `select count(r.*), r."raceCode", c.name, c."eventDate", c.fede
+        const query = `select count(r.*), c.name, r."raceCode", c."eventDate", c.fede
                         from race r
                         join competition c on r."competitionId" = c.id
-                        group by r."competitionId", r."raceCode", c.name, c."eventDate", c.fede`;
+                        group by r."competitionId", c.name, r."raceCode", c."eventDate", c.fede`;
         return await this.entityManager.query(query);
     }
 

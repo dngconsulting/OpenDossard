@@ -32,8 +32,6 @@ const getNbRiderPerRace = async () => {
     return raceNbRiders;
 }
 
-
-
 const StatsPage = (props: IStatsPageProps) => {
 
     const [selectValue, setSelectValue] = useState<string>('column')
@@ -61,7 +59,7 @@ const StatsPage = (props: IStatsPageProps) => {
                 const tabTemp : Array<{type: any, data : number[], name: string}> = [{type: '', data: [], name: ''}];
 
                 array.forEach( x => {
-                    if(tabTemp.length === 1 ){
+                    if(tabTemp.length === 1 && tabTemp[tabTemp.length-1].name === ''){
                         tabTemp[tabTemp.length-1].type = options.series[0].type;
                         tabTemp[tabTemp.length-1].data.push(+x.count);
                         tabTemp[tabTemp.length-1].name = x.name;
@@ -85,9 +83,6 @@ const StatsPage = (props: IStatsPageProps) => {
                 console.error(error)
             });
     }, []);
-
-
-
 
 
     const handleChange = (event: React.ChangeEvent<{ name?: string; value: unknown }>) => {
@@ -114,7 +109,6 @@ const StatsPage = (props: IStatsPageProps) => {
                 </Grid>
 
                 <Grid item={true} xs={5}>
-                        {/*<InputLabel htmlFor="Diagramme">Diagramme</InputLabel>*/}
                         <Select
                             value={selectValue}
                             onChange={handleChange}
@@ -128,12 +122,7 @@ const StatsPage = (props: IStatsPageProps) => {
                         </Select>
                 </Grid>
 
-
-
-
             </Grid>
-
-
 
             <AutocompleteInput style={{width: '450px'}}/>
 
