@@ -282,7 +282,8 @@ const LicencesPage = (props: ILicencesProps) => {
                             }}
                         >{
                             catea.map((value: ICategory, index: number) => <MenuItem key={index}
-                                                                                     value={value.value}>{value.label}</MenuItem>)
+                                                                                     value={value.value}>{ newLicence.gender === 'F' ?
+                                value.label + ' (F' + value.value.toUpperCase() + ')' : value.label + ' (' + value.value.toUpperCase() + ')'}</MenuItem>)
                         }
                         </Select>
                     </FormControl>
