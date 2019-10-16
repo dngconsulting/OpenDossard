@@ -47,7 +47,6 @@ const useStyles = makeStyles((theme: Theme) =>
 const catev = [
     {label: 'Non Licencié', value: 'nl'},
     {label: 'Cadet', value: 'cadet'},
-    {label: 'Féminin', value: 'f'},
     {label: 'Minimes', value: 'm'},
     {label: '1', value: '1'},
     {label: '2', value: '2'},
@@ -70,7 +69,7 @@ const federations = {
     },
     ufolep: {
         name: {label: 'UFOLEP', value: 'ufolep'},
-        catev: [...catev, {label: 'GS', value: 'gs'}]
+        catev: [...catev, {label: 'GSa', value: 'gsa'},{label: 'GSb', value: 'gsb'},{label: 'Jeune', value: 'j'}]
     },
     ffc: {
         name: {label: 'FFC', value: 'ffc'},
@@ -117,10 +116,12 @@ const LicencesPage = (props: ILicencesProps) => {
                     catev: res.catev
                 });
                 setDisableCateV(res.fede === '');
+                setDisableCateA(res.fede === 'ufolep');
         })
         }
     },[]);
     const [disableCateV, setDisableCateV] = React.useState(true);
+    const [disableCateA, setDisableCateA] = React.useState(true);
 
     const [validation, setValidation] = React.useState({
         name:false,
@@ -134,6 +135,13 @@ const LicencesPage = (props: ILicencesProps) => {
                 [event.target.name as string]: event.target.value,
                 catev: ''
             }))
+        }else if(event.target.name ==='fede' && event.target.value === 'ufolep'){
+            setValues(oldValues => ({
+                ...oldValues,
+                [event.target.name as string]: event.target.value,
+                catea: ''
+            }))
+
         }else{
             setValues(oldValues => ({
                 ...oldValues,
@@ -188,7 +196,8 @@ const LicencesPage = (props: ILicencesProps) => {
                             value={newLicence.fede}
                             onChange={e=> {
                                 handleChange(e);
-                                setDisableCateV(e.target.value==='NL');
+                                setDisableCateV(e.target.value==='');
+                                setDisableCateA(e.target.value==='ufolep')
                                 }
                             }
                             inputProps={{
@@ -271,7 +280,7 @@ const LicencesPage = (props: ILicencesProps) => {
                     </Grid>
                 </Grid>
                 <Grid item={true} xs={6}>
-                    <FormControl className={classes.formControl}>
+                    <FormControl className={classes.formControl} disabled={disableCateA}>
                         <InputLabel htmlFor="catea">Catégorie Age</InputLabel>
                         <Select
                             value={newLicence.catea}
