@@ -57,6 +57,7 @@ const StatsPage = (props: IStatsPageProps) => {
         getNbRiderPerRace()
             .then(array => {
 
+                console.log(array);
                 const tabTemp : Array<{type: any, data : number[], name: string}> = [{type: '', data: [], name: ''}];
 
                 array.forEach( x => {
@@ -79,6 +80,9 @@ const StatsPage = (props: IStatsPageProps) => {
                     ...oldValues,
                     series: tabTemp
                 }))
+            })
+            .catch(error => {
+                console.error(error)
             });
     }, []);
 

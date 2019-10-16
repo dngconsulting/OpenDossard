@@ -66,6 +66,7 @@ create table race
 			primary key,
 	"raceCode" varchar not null,
 	"riderNumber" integer,
+    catev varchar,
 	"rankingScratch" integer,
 	"numberMin" integer,
 	"numberMax" integer,

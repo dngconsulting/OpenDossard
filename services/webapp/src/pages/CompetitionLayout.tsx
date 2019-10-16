@@ -1,4 +1,4 @@
-import {RaceRow} from "../sdk";
+import {Competition, RaceRow} from "../sdk";
 import RaceTabs, {IRaceStat} from "../components/RaceTabs";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import {createStyles, Theme} from "@material-ui/core";
@@ -7,21 +7,6 @@ import {apiCompetitions, apiRaces} from "../util/api";
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import moment from "moment";
-
-interface ICompetition {
-    name?: string,
-    eventDate?: Date,
-    observations?: string,
-    races?: string[],
-    club: {
-        longName: string
-    }
-}
-
-const EMPTY_COMPETITION: ICompetition = {
-    races: ['1/2/3', '4/5'],
-    club: { longName: '' }
-};
 
 const computeTabs = (rows: RaceRow[], races: string[]):IRaceStat => {
 
@@ -48,17 +33,19 @@ const pageStyles = makeStyles((theme: Theme) =>
 interface ILayoutChildren {
     currentRace: string,
     rows: RaceRow[],
-    fetchRows: () => Promise<void>
+    fetchRows: () => Promise<void>,
+    fetchCompetition: () => Promise<void>,
+    competition: Competition
 }
 
 export const CompetitionLayout = ({competitionId, children}: {competitionId: number, children: (props: ILayoutChildren) => ReactNode}) => {
     const [rows, setRows] = useState<RaceRow[]>([])
-    const [competition, setCompetition] = useState(EMPTY_COMPETITION);
+    const [competition, setCompetition] = useState<Competition>(null);
     const [currentRace, setCurrentRace] = useState(null);
-    const tabs = computeTabs(rows, competition.races);
+    const tabs = computeTabs(rows, competition ? competition.races : ['1/2/3','4/5']);
 
     const fetchRows = async () => {
-        setRows( await apiRaces.getAllRaces() );
+        setRows( await apiRaces.getCompetitionRaces(competitionId) );
     }
 
     const fetchCompetition = async () => {
@@ -77,30 +64,32 @@ export const CompetitionLayout = ({competitionId, children}: {competitionId: num
     return <div className={classes.container}>
         <CompetitionCard competition={competition} />
         <RaceTabs tabs={tabs} value={currentRace} onChange={race => setCurrentRace(race)}/>
-        { children({currentRace, rows, fetchRows}) }
+        { children({competition, currentRace, rows, fetchRows, fetchCompetition}) }
     </div>
 }
 
-const CompetitionCard = ({competition}: { competition: ICompetition }) => {
+const CompetitionCard = ({competition}: { competition: Competition }) => {
+    const c : Partial<Competition> = competition ? competition : {}
+    const club = c.club ? c.club.longName : ''
     return <Grid container={true} style={{padding: 5}}>
         <Grid item={true} xs={2}>
             <Typography variant="subtitle1" color="textSecondary" component="span">
-                {moment(competition.eventDate).format('DD/MM/YYYY')}
+                {moment(c.eventDate).format('DD/MM/YYYY')}
             </Typography>
         </Grid>
         <Grid item={true} xs={8}>
             <Typography component="h2" variant="h5" align="center">
-                {competition.name}
+                {c.name}
             </Typography>
         </Grid>
         <Grid item={true} xs={2}>
             <Typography variant="subtitle1" color="textSecondary" align="right">
-                {competition.club.longName}
+                {club}
             </Typography>
         </Grid>
         <Grid item={true} xs={12}>
             <Typography variant="subtitle1" paragraph={true} align="center" style={{marginBottom: 0}}>
-                {competition.observations}
+                {c.observations}
             </Typography>
         </Grid>
     </Grid>
