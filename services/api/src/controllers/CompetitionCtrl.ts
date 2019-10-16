@@ -38,7 +38,7 @@ export class CompetitionCtrl {
         status: 200,
         type: Competition,
         isArray: false,
-        description: 'Renvoie une épreuve'
+        description: 'Renvoie une épreuve',
     })
     public async get(@Param('id') id: string): Promise<Competition> {
 
@@ -60,7 +60,7 @@ export class CompetitionCtrl {
         status: 200,
         type: Competition,
         isArray: true,
-        description: 'Liste des épreuves totales'
+        description: 'Liste des épreuves totales',
     })
     @Get()
     public async getAllCompetitions(): Promise<Competition[]> {
