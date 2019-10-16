@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useState} from 'react';
 import MaterialTable, {Query, QueryResult} from 'material-table';
 import {AppText as T} from '../../util/text';
 import {apiLicences} from '../../util/api';
@@ -7,7 +8,7 @@ import {cadtheme} from '../../theme/theme';
 import {Paper} from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import AutocompleteInput from '../../components/AutocompleteInput';
-import {useState} from 'react';
+import {filterLicences} from '../common/filters';
 
 interface ILicencesProps {
     items: any[];
@@ -42,12 +43,12 @@ const LicencesPage = (props: ILicencesProps) => {
 
     const onRiderChange = (licence: Licence) => {
        console.log("Licence= " + JSON.stringify(licence) + " selectedRider " + JSON.stringify(selectedRider));
-    }
+    };
 
     return (
         <Paper style={{padding:'5px', height:'100%'}}>
             <Grid item={true} style={{zIndex: 9999}}>
-                <AutocompleteInput style={{width: '500px'}} selection={selectRider} onChangeSelection={onRiderChange}/>
+                <AutocompleteInput style={{width: '500px'}} selection={selectRider} onChangeSelection={onRiderChange} placeholder={"Coureur (nom, numéro de licence...)"} feedDataAndRenderer={filterLicences}/>
             </Grid>
             <MaterialTable
                 title={T.LICENCES.TITLE}
@@ -77,6 +78,7 @@ const LicencesPage = (props: ILicencesProps) => {
                         backgroundColor: cadtheme.palette.primary.light,
                         color: '#FFF',
                         fontSize: 15,
+                        zIndex: 'auto'
                     }
                 }}
                 editable={{

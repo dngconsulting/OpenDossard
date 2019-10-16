@@ -1,14 +1,15 @@
-import {default as React, useContext, useState} from "react";
-import {Competition, Licence, RaceCreate} from "../../sdk";
-import Grid from "@material-ui/core/Grid";
-import Typography from "@material-ui/core/Typography";
-import AutocompleteInput from "../../components/AutocompleteInput";
-import TextField from "@material-ui/core/TextField";
-import Button from "@material-ui/core/Button";
-import makeStyles from "@material-ui/core/styles/makeStyles";
-import {createStyles, Theme} from "@material-ui/core";
-import {apiLicences, apiRaces} from "../../util/api";
-import {NotificationContext} from "../../components/CadSnackbar";
+import {default as React, useContext, useState} from 'react';
+import {Competition, Licence, RaceCreate} from '../../sdk';
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
+import AutocompleteInput from '../../components/AutocompleteInput';
+import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button';
+import makeStyles from '@material-ui/core/styles/makeStyles';
+import {createStyles, Theme} from '@material-ui/core';
+import {apiRaces} from '../../util/api';
+import {NotificationContext} from '../../components/CadSnackbar';
+import {filterLicences} from '../common/filters';
 
 const create = async (newRace: RaceCreate) => {
     await apiRaces.create(newRace);
@@ -39,25 +40,6 @@ interface IForm {
 }
 
 const EMPTY_FORM:IForm = {licence: null, riderNumber: '', catev: ''}
-
-const filterLicences = async (inputValue: string) => {
-    const licences: Licence[] = await apiLicences.getLicencesLike(inputValue.toUpperCase());
-    const strings = licences.slice(0, 9).map((i: any) => {
-        return {
-            ...i,
-
-            label:
-                <div style={{lineHeight: "normal", position:"relative", width: '350px'}}>
-                    <div style={{fontSize: "medium"}}>{i.name} {i.firstName} {i.licenceNumber && `${i.licenceNumber}`}</div>
-                    <span style={{fontSize: "small"}}>{i.club}</span>
-                    <div style={{position: "absolute", right:0, bottom:0}}>{i.catev} {i.catea} {i.fede}</div>
-                </div>
-        };
-    });
-
-    return strings;
-};
-
 
 export const CreationForm = (
     {competition, race, onSuccess}:
