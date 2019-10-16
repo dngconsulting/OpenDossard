@@ -3,6 +3,11 @@ import MaterialTable, {Query, QueryResult} from 'material-table';
 import {AppText as T} from '../../util/text';
 import {apiLicences} from '../../util/api';
 import {Licence, Search} from '../../sdk';
+import {cadtheme} from '../../theme/theme';
+import {Paper} from '@material-ui/core';
+import Grid from '@material-ui/core/Grid';
+import AutocompleteInput from '../../components/AutocompleteInput';
+import {useState} from 'react';
 
 interface ILicencesProps {
     items: any[];
@@ -10,69 +15,90 @@ interface ILicencesProps {
     history: any;
 }
 
-const fetchLicences = async (query: Query<Licence>) : Promise<QueryResult<Licence>> => {
+const fetchLicences = async (query: Query<Licence>): Promise<QueryResult<Licence>> => {
     const res = await apiLicences.getPageSizeLicencesForPage(
         prepareFilter(query));
     return {data: res.data, page: res.page, totalCount: res.totalCount};
 };
 
-const prepareFilter = (query: Query<Licence>) : Search =>{
-    const filters:any = [];
-    if(query.filters.length>0){
-        query.filters.forEach((col: any)=>{
-            filters.push({name: col.column.field, value: col.value})
-        })
+const prepareFilter = (query: Query<Licence>): Search => {
+    const filters: any = [];
+    if (query.filters.length > 0) {
+        query.filters.forEach((col: any) => {
+            filters.push({name: col.column.field, value: col.value});
+        });
     }
-    return {currentPage:query.page,
-        pageSize:query.pageSize,
-        orderBy:query.orderBy?query.orderBy.field:undefined,
-        orderDirection:query.orderDirection?query.orderDirection.toUpperCase():'ASC',
-        filters}
+    return {
+        currentPage: query.page,
+        pageSize: query.pageSize,
+        orderBy: query.orderBy ? query.orderBy.field : undefined,
+        orderDirection: query.orderDirection ? query.orderDirection.toUpperCase() : 'ASC',
+        filters
+    };
 };
 
-const LicencesPage = (props: ILicencesProps)=> {
+const LicencesPage = (props: ILicencesProps) => {
+    const [selectedRider, selectRider] = useState(null);
 
-        return (
+    const onRiderChange = (licence: Licence) => {
+       console.log("Licence= " + JSON.stringify(licence) + " selectedRider " + JSON.stringify(selectedRider));
+    }
+
+    return (
+        <Paper style={{padding:'5px', height:'100%'}}>
+            <Grid item={true} style={{zIndex: 9999}}>
+                <AutocompleteInput style={{width: '500px'}} selection={selectRider} onChangeSelection={onRiderChange}/>
+            </Grid>
             <MaterialTable
                 title={T.LICENCES.TITLE}
                 columns={[
-                    {title: 'Numéro licence', field: 'licenceNumber'},
-                    {title: 'Nom', field: 'name'},
-                    {title: 'Prénom', field: 'firstName'},
-                    {title: 'Genre', field: 'gender'},
-                    {title: 'Dept', field: 'dept'},
-                    {title: 'Age', field: 'birthYear'},
-                    {title: 'Caté Age', field: 'catea'},
-                    {title: 'Caté Valeur', field: 'catev'},
+                    {title: 'Licence', field: 'licenceNumber',cellStyle:{width:50}},
+                    {title: 'CatéV.', field: 'catev',cellStyle:{width:50}},
+                    {title: 'CatéA', field: 'catea',cellStyle:{width:50}},
+                    {title: 'Nom', field: 'name',cellStyle:{width:200}},
+                    {title: 'Prénom', field: 'firstName',cellStyle:{width:200}},
+                    {title: 'Club', field: 'club',cellStyle:{width:400}},
+                    {title: 'Genre', field: 'gender',cellStyle:{width:50}},
+                    {title: 'Dept', field: 'dept',cellStyle:{width:50}},
+                    {title: 'Age', field: 'birthYear',cellStyle:{width:100}},
+                    {title: 'Fédé', field: 'fede',cellStyle:{width:50}},
+
                 ]}
                 data={fetchLicences}
                 options={{
                     filtering: true,
+                    toolbar: true,
+                    padding: 'dense',
                     actionsColumnIndex: -1,
                     pageSize: 10,
                     pageSizeOptions: [5, 10, 20],
-                    search: false
+                    search: false,
+                    headerStyle: {
+                        backgroundColor: cadtheme.palette.primary.light,
+                        color: '#FFF',
+                        fontSize: 15,
+                    }
                 }}
                 editable={{
                     onRowUpdate: (newData, oldData) =>
                         new Promise((resolve, reject) => {
                             apiLicences.update({
                                 id: oldData.id,
-                                licenceNumber : newData.licenceNumber,
-                                birthYear : newData.birthYear,
-                                name : newData.name,
-                                firstName : newData.firstName,
-                                gender : newData.gender,
-                                dept : newData.dept,
-                                catea : newData.catea,
-                                catev : newData.catev,
-                                club : oldData.club,
-                                fede : oldData.fede
-                            }).then(()=>resolve());
+                                licenceNumber: newData.licenceNumber,
+                                birthYear: newData.birthYear,
+                                name: newData.name,
+                                firstName: newData.firstName,
+                                gender: newData.gender,
+                                dept: newData.dept,
+                                catea: newData.catea,
+                                catev: newData.catev,
+                                club: oldData.club,
+                                fede: oldData.fede
+                            }).then(() => resolve());
                         }),
                     onRowDelete: oldData =>
                         new Promise((resolve, reject) => {
-                            apiLicences._delete(`${oldData.id}`).then(()=>resolve());
+                            apiLicences._delete(`${oldData.id}`).then(() => resolve());
                         }),
                 }}
                 actions={[
@@ -113,8 +139,9 @@ const LicencesPage = (props: ILicencesProps)=> {
                     }
                 }}
             />
-        )
-            ;
+        </Paper>
+    )
+        ;
 };
 
 export default LicencesPage;
