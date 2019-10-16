@@ -16,17 +16,6 @@ interface IStatsPageProps {
     classes: any;
 }
 
-// const useStyles = makeStyles((theme: Theme) =>
-//     createStyles({
-//         formControl: {
-//             minWidth: 167,
-//         },
-//         button: {
-//             margin: theme.spacing(1),
-//         }
-//     }),
-// );
-
 const getNbRiderPerRace = async () => {
     const raceNbRiders : RaceNbRider[] = await apiRaces.getNumberRider();
     return raceNbRiders;
@@ -91,7 +80,6 @@ const StatsPage = (props: IStatsPageProps) => {
                 ...serie,
                 type: event.target.value
         }));
-        console.log(options)
         setOptions(oldValues => ({
             ...oldValues,
             series: map
