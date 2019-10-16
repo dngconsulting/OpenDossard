@@ -13,7 +13,7 @@ import {
     Logger,
     Param,
     Post,
-    Put
+    Put,
 } from '@nestjs/common';
 import {InjectEntityManager} from '@nestjs/typeorm';
 
@@ -57,6 +57,19 @@ export class RaceCreate {
     public catev: string;
 }
 
+export class RaceNbRider {
+    @ApiModelPropertyOptional()
+    public count: number;
+    @ApiModelPropertyOptional()
+    public raceCode: string;
+    @ApiModelPropertyOptional()
+    public name: string;
+    @ApiModelPropertyOptional({ type: 'string', format: 'date-time'})
+    public date: Date;
+    @ApiModelPropertyOptional()
+    public fede: string;
+}
+
 /***
  * Races Controller manages races inside Competitions
  * Races a generally organized by categories
@@ -68,6 +81,21 @@ export class RacesCtrl {
         @InjectEntityManager()
         private readonly entityManager: EntityManager,
     ) {
+    }
+
+    @Get('/nbRider')
+    @ApiOperation({
+        operationId: 'getNumberRider',
+        title: 'Rechercher le nombre de coureur par course ',
+        description: 'description',
+    })
+    @ApiResponse({status: 200, type: RaceNbRider, isArray: true})
+    public async getNumberRider(): Promise<RaceNbRider[]> {
+        const query = `select count(r.*), c.name, r."raceCode", c."eventDate", c.fede
+                        from race r
+                        join competition c on r."competitionId" = c.id
+                        group by r."competitionId", c.name, r."raceCode", c."eventDate", c.fede`;
+        return await this.entityManager.query(query);
     }
 
     @Get('/:id')
@@ -163,7 +191,7 @@ export class RacesCtrl {
         if (!requestedRankedRider) {
             throw(new BadRequestException('Impossible de classer ce coureur, ' + JSON.stringify(requestedRankedRider) + ' il n\'existe pas'));
         }
-        console.log('Rank for ' + JSON.stringify(requestedRankedRider))
+        console.log('Rank for ' + JSON.stringify(requestedRankedRider));
         // Check if this rider has already a rank
         if (requestedRankedRider.rankingScratch != null) {
             throw(new BadRequestException('Impossible de classer ce coureur, ' + JSON.stringify(requestedRankedRider) + ' il existe déjà dans le classement'));

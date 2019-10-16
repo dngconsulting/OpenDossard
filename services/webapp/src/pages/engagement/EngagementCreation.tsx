@@ -7,7 +7,7 @@ import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import {createStyles, Theme} from "@material-ui/core";
-import {apiRaces} from "../../util/api";
+import {apiLicences, apiRaces} from "../../util/api";
 import {NotificationContext} from "../../components/CadSnackbar";
 
 const create = async (newRace: RaceCreate) => {
@@ -39,6 +39,25 @@ interface IForm {
 }
 
 const EMPTY_FORM:IForm = {licence: null, riderNumber: '', catev: ''}
+
+const filterLicences = async (inputValue: string) => {
+    const licences: Licence[] = await apiLicences.getLicencesLike(inputValue.toUpperCase());
+    const strings = licences.slice(0, 9).map((i: any) => {
+        return {
+            ...i,
+
+            label:
+                <div style={{lineHeight: "normal", position:"relative", width: '350px'}}>
+                    <div style={{fontSize: "medium"}}>{i.name} {i.firstName} {i.licenceNumber && `${i.licenceNumber}`}</div>
+                    <span style={{fontSize: "small"}}>{i.club}</span>
+                    <div style={{position: "absolute", right:0, bottom:0}}>{i.catev} {i.catea} {i.fede}</div>
+                </div>
+        };
+    });
+
+    return strings;
+};
+
 
 export const CreationForm = (
     {competition, race, onSuccess}:
@@ -104,7 +123,7 @@ export const CreationForm = (
                 </Typography>
             </Grid>
             <Grid item={true} style={{zIndex: 20}}>
-                <AutocompleteInput style={{width: '500px'}} selection={form.licence} onChangeSelection={onRiderChange}/>
+                <AutocompleteInput style={{width: '450px'}} selection={form.licence} onChangeSelection={onRiderChange} placeholder="Coureur (nom, numéro de licence...)" feedDataAndRenderer={filterLicences}/>
             </Grid>
             <Grid item={true}>
                 <TextField
