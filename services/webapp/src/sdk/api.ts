@@ -550,6 +550,12 @@ export interface Search {
     orderBy?: string;
     /**
      * 
+     * @type {string}
+     * @memberof Search
+     */
+    search?: string;
+    /**
+     * 
      * @type {Array<Filter>}
      * @memberof Search
      */

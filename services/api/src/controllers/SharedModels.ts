@@ -26,6 +26,8 @@ export class Search {
     orderDirection?: 'ASC' | 'DESC';
     @ApiModelPropertyOptional()
     orderBy?: string;
+    @ApiModelPropertyOptional()
+    search: string;
     @ApiModelPropertyOptional({type: Filter, isArray: true})
     filters?: Filter[];
 }

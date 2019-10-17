@@ -1,14 +1,10 @@
 import * as React from 'react';
-import {useState} from 'react';
 import MaterialTable, {Query, QueryResult} from 'material-table';
 import {AppText as T} from '../../util/text';
 import {apiLicences} from '../../util/api';
 import {Licence, Search} from '../../sdk';
 import {cadtheme} from '../../theme/theme';
 import {Paper} from '@material-ui/core';
-import Grid from '@material-ui/core/Grid';
-import AutocompleteInput from '../../components/AutocompleteInput';
-import {filterLicences} from '../common/filters';
 
 interface ILicencesProps {
     items: any[];
@@ -34,22 +30,14 @@ const prepareFilter = (query: Query<Licence>): Search => {
         pageSize: query.pageSize,
         orderBy: query.orderBy ? query.orderBy.field : undefined,
         orderDirection: query.orderDirection ? query.orderDirection.toUpperCase() : 'ASC',
+        search:query.search,
         filters
     };
 };
 
 const LicencesPage = (props: ILicencesProps) => {
-    const [selectedRider, selectRider] = useState(null);
-
-    const onRiderChange = (licence: Licence) => {
-       console.log("Licence= " + JSON.stringify(licence) + " selectedRider " + JSON.stringify(selectedRider));
-    };
-
     return (
         <Paper style={{padding:'5px', height:'100%'}}>
-            <Grid item={true} style={{zIndex: 9999}}>
-                <AutocompleteInput style={{width: '500px'}} selection={selectRider} onChangeSelection={onRiderChange} placeholder={"Coureur (nom, numéro de licence...)"} feedDataAndRenderer={filterLicences}/>
-            </Grid>
             <MaterialTable
                 title={T.LICENCES.TITLE}
                 columns={[
@@ -73,7 +61,7 @@ const LicencesPage = (props: ILicencesProps) => {
                     actionsColumnIndex: -1,
                     pageSize: 10,
                     pageSizeOptions: [5, 10, 20],
-                    search: false,
+                    search: true,
                     headerStyle: {
                         backgroundColor: cadtheme.palette.primary.light,
                         color: '#FFF',

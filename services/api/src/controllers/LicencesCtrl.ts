@@ -65,11 +65,20 @@ export class LicencesCtrl {
     @ApiResponse({status: 200, type: LicencesPage})
     public async getPageSizeLicencesForPage(@Body() search: Search): Promise<LicencesPage> {
         const qb = this.repository.createQueryBuilder();
-        search.filters.forEach((filter: Filter) => {
-            qb.andWhere(`"${filter.name}"` + ' ilike :' + filter.name, {[filter.name]: '%' + filter.value + '%'});
-        });
-        if (typeof search.orderBy !== 'undefined') {
-            qb.orderBy(`"${search.orderBy}"`, search.orderDirection);
+        if (search.search === '') {
+            search.filters.forEach((filter: Filter) => {
+                qb.andWhere(`"${filter.name}"` + ' ilike :' + filter.name, {[filter.name]: '%' + filter.value + '%'});
+            });
+            if (typeof search.orderBy !== 'undefined') {
+                qb.orderBy(`"${search.orderBy}"`, search.orderDirection);
+            }
+        } else {
+            qb.orWhere( '"licenceNumber" ilike :value' , {value: '%' + search.search + '%'} );
+            qb.orWhere(' name ilike :name', {name : '%' + search.search + '%'});
+            qb.orWhere( '"firstName" ilike :firstName', {firstName : '%' + search.search + '%'});
+            qb.orWhere( ' club ilike :club', {club : '%' + search.search + '%'});
+            qb.orWhere( ' "birthYear" ilike :birthYear', {birthYear : '%' + search.search + '%'});
+            qb.orWhere( ' dept ilike :dept', {dept : '%' + search.search + '%'});
         }
         const res = await
             qb
