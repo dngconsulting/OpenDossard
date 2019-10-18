@@ -76,7 +76,8 @@ create table race
 			references competition,
 	"licenceId" integer
 		constraint "FK_093f17c2dd6b28ea95b06329f07"
-			references licence
+			references licence,
+			"comment" varchar
 );
 
 alter table race owner to dossarduser;

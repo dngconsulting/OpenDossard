@@ -516,6 +516,12 @@ export interface RaceRow {
      * @memberof RaceRow
      */
     rankingScratch?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceRow
+     */
+    comment?: string;
 }
 
 /**
@@ -1612,7 +1618,7 @@ export const RaceAPIApiFetchParamCreator = function (configuration?: Configurati
         },
         /**
          * description
-         * @summary Rechercher toutes les courses 
+         * @summary Rechercher tous les coureurs d une course 
          * @param {number} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1743,7 +1749,7 @@ export const RaceAPIApiFp = function(configuration?: Configuration) {
         },
         /**
          * description
-         * @summary Rechercher toutes les courses 
+         * @summary Rechercher tous les coureurs d une course 
          * @param {number} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1828,7 +1834,7 @@ export const RaceAPIApiFactory = function (configuration?: Configuration, fetch?
         },
         /**
          * description
-         * @summary Rechercher toutes les courses 
+         * @summary Rechercher tous les coureurs d une course 
          * @param {number} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1891,7 +1897,7 @@ export class RaceAPIApi extends BaseAPI {
 
     /**
      * description
-     * @summary Rechercher toutes les courses 
+     * @summary Rechercher tous les coureurs d une course 
      * @param {number} id 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}

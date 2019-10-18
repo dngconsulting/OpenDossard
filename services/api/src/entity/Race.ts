@@ -36,4 +36,6 @@ export class Race {
     @Column({nullable: true})
     public surclassed: boolean;
 
+    @Column({nullable : true})
+    public comment: string;
 }

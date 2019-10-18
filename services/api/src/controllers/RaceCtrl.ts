@@ -42,6 +42,9 @@ export class RaceRow {
     public gender: string;
     @ApiModelPropertyOptional()
     public rankingScratch: number;
+    @ApiModelPropertyOptional()
+    public comment: string;
+
 }
 
 export class RaceCreate {
@@ -101,7 +104,7 @@ export class RacesCtrl {
     @Get('/:id')
     @ApiOperation({
         operationId: 'getCompetitionRaces',
-        title: 'Rechercher toutes les courses ',
+        title: 'Rechercher tous les coureurs participants à une course ',
         description: 'description',
     })
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
@@ -210,13 +213,15 @@ export class RacesCtrl {
             if (existRankRider.rankingScratch === raceRow.rankingScratch) {
                 Logger.debug('Existing rider will be removed from ranking ' + JSON.stringify(existRankRider));
                 existRankRider.rankingScratch = null;
+                existRankRider.comment = null;
                 await this.entityManager.save(existRankRider);
             } else {
                 Logger.warn('Impossible to rank this rider please remove before ' + JSON.stringify(existRankRider));
-                throw(new BadRequestException('Désengager le coureur ' + existRankRider.id + ' avant de classer ce coureur'));
+                throw(new BadRequestException('Déclasser le coureur ' + existRankRider.id + ' avant de classer ce coureur'));
             }
         }
         requestedRankedRider.rankingScratch = raceRow.rankingScratch;
+        requestedRankedRider.comment = raceRow.comment;
         await this.entityManager.save(requestedRankedRider);
     }
 
