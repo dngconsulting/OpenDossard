@@ -25,7 +25,7 @@ const ViewResultsPage = ({match}: { match: any }) => {
                 return (
                     <Fragment>
                         <DataTable value={filterOnlyRanked(filterByRace(_.orderBy(rows, ['rankingScratch'], ['asc']),currentRace))}
-                                   columnResizeMode="expand" >
+                                   columnResizeMode="expand" emptyMessage="Aucun résultat n'a encore été saisi pour cette épreuve">
                             <Column field="classement" header="Clt" filter={true}
                                     filterMatchMode='contains' style={{width: '5%'}}/>
                             <Column field="riderNumber" header="Doss." filter={true}

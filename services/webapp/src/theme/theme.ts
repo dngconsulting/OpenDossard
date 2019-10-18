@@ -24,16 +24,21 @@ export const cadtheme = createMuiTheme({
         MuiButton: {
             containedPrimary: {
                 color: '#fff',
+                fontSize: 13,
             },
             containedSecondary: {
-                color: '#fff'
+                color: '#fff',
+                fontSize: 13
             },
             textPrimary: {
-                color: '#fff'
+                color: '#fff',
+                fontSize: 13
             },
             textSecondary: {
-                color : '#fff'
-            }
+                color : '#fff',
+                fontSize: 13
+            },
+
         },
         MuiTableRow: {
             root: {

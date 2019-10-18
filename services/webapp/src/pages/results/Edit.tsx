@@ -123,6 +123,7 @@ const EditResultsPage = ({match}: { match: any }) => {
                 return (
                     <Fragment>
                         <DataTable value={transformedRows} resizableColumns={true}
+                                   emptyMessage="Aucun coureur n'a été engagé sur cette épreuve"
                                    onRowReorder={(e) => {
                                        console.log('On reorder column ' + JSON.stringify(e.value));
                                    }}
