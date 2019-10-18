@@ -113,6 +113,38 @@ export interface Club {
 /**
  * 
  * @export
+ * @interface ClubRow
+ */
+export interface ClubRow {
+    /**
+     * 
+     * @type {number}
+     * @memberof ClubRow
+     */
+    id?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ClubRow
+     */
+    longName?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ClubRow
+     */
+    dept?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ClubRow
+     */
+    shortName?: string;
+}
+
+/**
+ * 
+ * @export
  * @interface Competition
  */
 export interface Competition {
@@ -518,6 +550,12 @@ export interface Search {
     orderBy?: string;
     /**
      * 
+     * @type {string}
+     * @memberof Search
+     */
+    search?: string;
+    /**
+     * 
      * @type {Array<Filter>}
      * @memberof Search
      */
@@ -568,6 +606,103 @@ export interface User {
     phone?: string;
 }
 
+
+/**
+ * ClubAPIApi - fetch parameter creator
+ * @export
+ */
+export const ClubAPIApiFetchParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * description
+         * @summary Rechercher tous les clubs
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAllClubs(options: any = {}): FetchArgs {
+            const localVarPath = `/api/clubs`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * ClubAPIApi - functional programming interface
+ * @export
+ */
+export const ClubAPIApiFp = function(configuration?: Configuration) {
+    return {
+        /**
+         * description
+         * @summary Rechercher tous les clubs
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAllClubs(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<ClubRow>> {
+            const localVarFetchArgs = ClubAPIApiFetchParamCreator(configuration).getAllClubs(options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response.json();
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+    }
+};
+
+/**
+ * ClubAPIApi - factory interface
+ * @export
+ */
+export const ClubAPIApiFactory = function (configuration?: Configuration, fetch?: FetchAPI, basePath?: string) {
+    return {
+        /**
+         * description
+         * @summary Rechercher tous les clubs
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAllClubs(options?: any) {
+            return ClubAPIApiFp(configuration).getAllClubs(options)(fetch, basePath);
+        },
+    };
+};
+
+/**
+ * ClubAPIApi - object-oriented interface
+ * @export
+ * @class ClubAPIApi
+ * @extends {BaseAPI}
+ */
+export class ClubAPIApi extends BaseAPI {
+    /**
+     * description
+     * @summary Rechercher tous les clubs
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ClubAPIApi
+     */
+    public getAllClubs(options?: any) {
+        return ClubAPIApiFp(this.configuration).getAllClubs(options)(this.fetch, this.basePath);
+    }
+
+}
 
 /**
  * CompetitionAPIApi - fetch parameter creator
@@ -845,6 +980,38 @@ export const LicenceAPIApiFetchParamCreator = function (configuration?: Configur
             };
         },
         /**
+         * 
+         * @summary Cree une nouvelle licence
+         * @param {Licence} licence 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        create(licence: Licence, options: any = {}): FetchArgs {
+            // verify required parameter 'licence' is not null or undefined
+            if (licence === null || licence === undefined) {
+                throw new RequiredError('licence','Required parameter licence was null or undefined when calling create.');
+            }
+            const localVarPath = `/api/licences`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+            const needsSerialization = (<any>"Licence" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(licence || {}) : (licence || "");
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * description
          * @summary Rechercher une licence par ID 
          * @param {string} id 
@@ -1050,18 +1217,37 @@ export const LicenceAPIApiFp = function(configuration?: Configuration) {
             };
         },
         /**
+         * 
+         * @summary Cree une nouvelle licence
+         * @param {Licence} licence 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        create(licence: Licence, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = LicenceAPIApiFetchParamCreator(configuration).create(licence, options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response;
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+        /**
          * description
          * @summary Rechercher une licence par ID 
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        get(id: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+        get(id: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Licence> {
             const localVarFetchArgs = LicenceAPIApiFetchParamCreator(configuration).get(id, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
-                        return response;
+                        return response.json();
                     } else {
                         throw response;
                     }
@@ -1182,6 +1368,16 @@ export const LicenceAPIApiFactory = function (configuration?: Configuration, fet
             return LicenceAPIApiFp(configuration)._delete(id, options)(fetch, basePath);
         },
         /**
+         * 
+         * @summary Cree une nouvelle licence
+         * @param {Licence} licence 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        create(licence: Licence, options?: any) {
+            return LicenceAPIApiFp(configuration).create(licence, options)(fetch, basePath);
+        },
+        /**
          * description
          * @summary Rechercher une licence par ID 
          * @param {string} id 
@@ -1260,6 +1456,18 @@ export class LicenceAPIApi extends BaseAPI {
      */
     public _delete(id: string, options?: any) {
         return LicenceAPIApiFp(this.configuration)._delete(id, options)(this.fetch, this.basePath);
+    }
+
+    /**
+     * 
+     * @summary Cree une nouvelle licence
+     * @param {Licence} licence 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof LicenceAPIApi
+     */
+    public create(licence: Licence, options?: any) {
+        return LicenceAPIApiFp(this.configuration).create(licence, options)(this.fetch, this.basePath);
     }
 
     /**

@@ -5,9 +5,6 @@ import {apiLicences} from '../../util/api';
 import {Licence, Search} from '../../sdk';
 import {cadtheme} from '../../theme/theme';
 import {Paper} from '@material-ui/core';
-import Grid from '@material-ui/core/Grid';
-import AutocompleteInput from '../../components/AutocompleteInput';
-import {useState} from 'react';
 
 interface ILicencesProps {
     items: any[];
@@ -33,22 +30,14 @@ const prepareFilter = (query: Query<Licence>): Search => {
         pageSize: query.pageSize,
         orderBy: query.orderBy ? query.orderBy.field : undefined,
         orderDirection: query.orderDirection ? query.orderDirection.toUpperCase() : 'ASC',
+        search:query.search,
         filters
     };
 };
 
 const LicencesPage = (props: ILicencesProps) => {
-    const [selectedRider, selectRider] = useState(null);
-
-    const onRiderChange = (licence: Licence) => {
-       console.log("Licence= " + JSON.stringify(licence) + " selectedRider " + JSON.stringify(selectedRider));
-    }
-
     return (
         <Paper style={{padding:'5px', height:'100%'}}>
-            <Grid item={true} style={{zIndex: 9999}}>
-                <AutocompleteInput style={{width: '500px'}} selection={selectRider} onChangeSelection={onRiderChange}/>
-            </Grid>
             <MaterialTable
                 title={T.LICENCES.TITLE}
                 columns={[
@@ -72,30 +61,15 @@ const LicencesPage = (props: ILicencesProps) => {
                     actionsColumnIndex: -1,
                     pageSize: 10,
                     pageSizeOptions: [5, 10, 20],
-                    search: false,
+                    search: true,
                     headerStyle: {
                         backgroundColor: cadtheme.palette.primary.light,
                         color: '#FFF',
                         fontSize: 15,
+                        zIndex: 'auto'
                     }
                 }}
                 editable={{
-                    onRowUpdate: (newData, oldData) =>
-                        new Promise((resolve, reject) => {
-                            apiLicences.update({
-                                id: oldData.id,
-                                licenceNumber: newData.licenceNumber,
-                                birthYear: newData.birthYear,
-                                name: newData.name,
-                                firstName: newData.firstName,
-                                gender: newData.gender,
-                                dept: newData.dept,
-                                catea: newData.catea,
-                                catev: newData.catev,
-                                club: oldData.club,
-                                fede: oldData.fede
-                            }).then(() => resolve());
-                        }),
                     onRowDelete: oldData =>
                         new Promise((resolve, reject) => {
                             apiLicences._delete(`${oldData.id}`).then(() => resolve());
@@ -106,8 +80,15 @@ const LicencesPage = (props: ILicencesProps) => {
                         icon: 'add',
                         tooltip: T.LICENCES.ADD_NEW_LICENCE,
                         isFreeAction: true,
-                        onClick: (event) => {
-                            props.history.push('/new_licence');
+                        onClick: () => {
+                            props.history.push('/licence/new');
+                        }
+                    },
+                    {
+                        icon: 'edit',
+                        tooltip: T.LICENCES.EDIT_TOOL_TIP,
+                        onClick: (event, rowData:any)=> {
+                            props.history.push('/licence/'+rowData.id);
                         }
                     }
                 ]}
