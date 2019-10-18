@@ -7,7 +7,13 @@ import {filterByRace} from '../../util/services';
 import {RaceRow} from '../../sdk';
 
 const filterOnlyRanked = (rows : RaceRow[]) : RaceRow[] => {
-    return rows.filter(item => item.rankingScratch !=null)
+    return rows.filter(item => item.rankingScratch !=null || item.comment!=null).map((item: any, index: number) => {
+            return {
+                classement: item.comment!=null?item.comment:item.rankingScratch,
+                ...item
+            };
+        }
+    );
 }
 const ViewResultsPage = ({match}: { match: any }) => {
     const competitionId = match.params.id;
@@ -20,7 +26,7 @@ const ViewResultsPage = ({match}: { match: any }) => {
                     <Fragment>
                         <DataTable value={filterOnlyRanked(filterByRace(_.orderBy(rows, ['rankingScratch'], ['asc']),currentRace))}
                                    columnResizeMode="expand" >
-                            <Column field="rankingScratch" header="Clt" filter={true}
+                            <Column field="classement" header="Clt" filter={true}
                                     filterMatchMode='contains' style={{width: '5%'}}/>
                             <Column field="riderNumber" header="Doss." filter={true}
                                     style={{width: '5%'}}

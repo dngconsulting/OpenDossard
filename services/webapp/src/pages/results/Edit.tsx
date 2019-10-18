@@ -120,12 +120,11 @@ const EditResultsPage = ({match}: { match: any }) => {
         {
             ({competition, currentRace, rows, fetchRows}) => {
                 const transformedRows = transformRows(filterByRace(rows, currentRace));
-
                 return (
                     <Fragment>
                         <DataTable value={transformedRows} resizableColumns={true}
                                    onRowReorder={(e) => {
-                                       console.log('On reorder column');
+                                       console.log('On reorder column ' + JSON.stringify(e.value));
                                    }}
                                    columnResizeMode="expand" editMode={'cell'}>
                             <Column rowReorder={true} style={{width: '3em'}}/>

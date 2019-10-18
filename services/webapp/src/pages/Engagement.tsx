@@ -141,7 +141,7 @@ const EngagementPage = ({match}: { match: any }) => {
                         </Grid>
 
                         <DataTable ref={dg} value={filterByRace(rows, currentRace)}
-                                   emptyMessage="Aucun enregistrement dans la table" responsive={true} header="Liste des coureurs engagés" >
+                                   emptyMessage="Aucun coureur encore engagé sur cette épreuve" responsive={true} header="Liste des coureurs engagés" >
                             {columns.map((column, i) => <Column key={i} {...column}/>)}
 
                         </DataTable>
