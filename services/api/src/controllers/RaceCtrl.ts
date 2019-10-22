@@ -3,7 +3,13 @@ import {EntityManager} from 'typeorm';
 import {Race} from '../entity/Race';
 import {Licence} from '../entity/Licence';
 import {Competition} from '../entity/Competition';
-import {ApiModelPropertyOptional, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
+import {
+    ApiModelProperty,
+    ApiModelPropertyOptional,
+    ApiOperation,
+    ApiResponse,
+    ApiUseTags,
+} from '@nestjs/swagger';
 import {
     BadRequestException,
     Body,
@@ -16,6 +22,8 @@ import {
     Put,
 } from '@nestjs/common';
 import {InjectEntityManager} from '@nestjs/typeorm';
+
+import * as _ from 'lodash';
 
 export class RaceRow {
     @ApiModelPropertyOptional()
@@ -44,7 +52,8 @@ export class RaceRow {
     public rankingScratch: number;
     @ApiModelPropertyOptional()
     public comment: string;
-
+    @ApiModelProperty()
+    public competitionId: number;
 }
 
 export class RaceCreate {
@@ -67,7 +76,7 @@ export class RaceNbRider {
     public raceCode: string;
     @ApiModelPropertyOptional()
     public name: string;
-    @ApiModelPropertyOptional({ type: 'string', format: 'date-time'})
+    @ApiModelPropertyOptional({type: 'string', format: 'date-time'})
     public date: Date;
     @ApiModelPropertyOptional()
     public fede: string;
@@ -179,6 +188,44 @@ export class RacesCtrl {
         await this.entityManager.save(newRace);
     }
 
+    @Put('/removeRanking')
+    @ApiOperation({
+        title: 'Supprime un coureur du classement',
+        operationId: 'removeRanking',
+    })
+    public async removeRanking(@Body() raceRow: RaceRow): Promise<void> {
+        Logger.debug('RemoveRanking with raceRow=' + JSON.stringify(raceRow));
+        const racerowToUpdate = await this.entityManager.findOne<Race>(Race, {
+            id: raceRow.id,
+        });
+        if (!racerowToUpdate) {
+            return;
+        }
+        // If he is ABD/DSQ, remove the comment, otherwise remove the rank
+        if (racerowToUpdate.comment) {
+            racerowToUpdate.comment = null;
+        } else {
+            racerowToUpdate.rankingScratch = null;
+        }
+        await this.entityManager.save(racerowToUpdate);
+
+        // Reorder ranking
+        const races = await this.entityManager.find(Race, {
+            raceCode: raceRow.raceCode,
+            competition: {id: raceRow.competitionId},
+        });
+
+        _.orderBy(races, ['rankingScratch'], ['asc']).map(async (item: Race, index: number) => {
+            const contigusRanking = index + 1;
+            if (item.rankingScratch && item.rankingScratch !== contigusRanking) {
+                item.rankingScratch = contigusRanking;
+                Logger.debug('Update Ranking for ' + JSON.stringify(item) + ' with ' + contigusRanking);
+                await this.entityManager.save(item);
+            }
+            return item;
+        });
+    }
+
     @Put('/update')
     @ApiOperation({
         title: 'Met à jour le classement du coureur ',
@@ -186,22 +233,25 @@ export class RacesCtrl {
     })
     public async updateRanking(@Body() raceRow: RaceRow)
         : Promise<void> {
+        Logger.debug('Update Rank for rider ' + JSON.stringify(raceRow));
         // Lets find first the corresponding Race row rider
-        const requestedRankedRider = await this.entityManager.findOne(Race, {
+        const requestedRankedRider = await this.entityManager.findOne<Race>(Race, {
             riderNumber: raceRow.riderNumber,
             raceCode: raceRow.raceCode,
+            competition: {id: raceRow.competitionId},
         });
         if (!requestedRankedRider) {
             throw(new BadRequestException('Impossible de classer ce coureur, ' + JSON.stringify(requestedRankedRider) + ' il n\'existe pas'));
         }
-        console.log('Rank for ' + JSON.stringify(requestedRankedRider));
-        // Check if this rider has already a rank
-        if (requestedRankedRider.rankingScratch != null) {
+
+        // Check if this rider has already a rank or is ABD
+        if (requestedRankedRider.rankingScratch || requestedRankedRider.comment) {
             throw(new BadRequestException('Impossible de classer ce coureur, ' + JSON.stringify(requestedRankedRider) + ' il existe déjà dans le classement'));
         }
         // Check if there is existing rider with this rank in this race with the same dossard
         const existRankRider = await this.entityManager.findOne(Race, {
             rankingScratch: raceRow.rankingScratch,
+            competition: {id: raceRow.competitionId},
             raceCode: raceRow.raceCode,
         });
         // If a rider already exist, it depends on the existing ranking
@@ -209,14 +259,15 @@ export class RacesCtrl {
         // if the ranking is another one, raise a message and ask the user to remove manually the existing
         // rider
         if (existRankRider) {
-            Logger.debug('A rider exist with this rank ' + JSON.stringify(existRankRider));
+            Logger.debug('A rider exist with this rank ' + JSON.stringify(existRankRider.rankingScratch)
+                + ' New Rank to update =' + raceRow.rankingScratch);
             if (existRankRider.rankingScratch === raceRow.rankingScratch) {
                 Logger.debug('Existing rider will be removed from ranking ' + JSON.stringify(existRankRider));
                 existRankRider.rankingScratch = null;
                 existRankRider.comment = null;
                 await this.entityManager.save(existRankRider);
             } else {
-                Logger.warn('Impossible to rank this rider please remove before ' + JSON.stringify(existRankRider));
+                Logger.debug('Impossible to rank this rider please remove before ' + JSON.stringify(existRankRider));
                 throw(new BadRequestException('Déclasser le coureur ' + existRankRider.id + ' avant de classer ce coureur'));
             }
         }

@@ -8,6 +8,7 @@ import _ from 'lodash';
 import {NotificationContext} from '../../components/CadSnackbar';
 import {apiRaces} from '../../util/api';
 import {filterByRace} from '../../util/services';
+import {Delete} from '@material-ui/icons';
 
 const previousRowEmpty = (index: number, transformedRows: any) => {
     return ((index > 0) && (transformedRows[index - 1].riderNumber === undefined));
@@ -23,7 +24,9 @@ const EditResultsPage = ({match}: { match: any }) => {
     });
 
     const transformRows = (rows: RaceRow[]) => {
-        const sortedByRanking = _.orderBy(rows, ['rankingScratch'], ['asc']);
+        const sortedByRankingWithoutABD = _.remove(_.orderBy(rows, ['rankingScratch'], ['asc']), (item) => item.comment == null);
+        const sortedByRanking = _.union(sortedByRankingWithoutABD, rows.filter(item => item.comment != null));
+        console.log('ROWS =' + JSON.stringify(sortedByRanking));
         return sortedByRanking.map((item: any, index: number) => {
                 let classementToDisplay = '';
                 if (item.comment != null) {
@@ -65,18 +68,20 @@ const EditResultsPage = ({match}: { match: any }) => {
                     await apiRaces.update({
                         riderNumber: parseInt(currentDossard),
                         raceCode: currentRace,
-                        comment: currentNotRankedStatus.status
+                        competitionId: parseInt(competitionId),
+                        comment: currentNotRankedStatus.status,
                     });
                 } else {
                     await apiRaces.update({
                         riderNumber: parseInt(currentDossard),
+                        competitionId: parseInt(competitionId),
                         raceCode: currentRace,
-                        rankingScratch: currentRanking
+                        rankingScratch: parseInt(currentRanking)
                     });
                 }
-                fetchRows();
+                const lrows = await fetchRows();
                 setNotification({
-                    message: `Le coureur ${currentDossard} vient d'etre classé ${currentRanking} `,
+                    message: `Le coureur ${lrows.find((item: any) => item.riderNumber === parseInt(currentDossard)).name} vient d'etre classé ${currentRanking} `,
                     type: 'info',
                     open: true
                 });
@@ -88,6 +93,11 @@ const EditResultsPage = ({match}: { match: any }) => {
 
         return true;
     };
+
+    const deleteAction = (row : RaceRow,fetchRows : any) => row.riderNumber && <Delete fontSize={'small'} onClick={ async () => {
+        await apiRaces.removeRanking(row);
+        await fetchRows()
+    }}/>;
 
     const notRankedEditor = (transformedRows: any, allprops: any) => {
         console.log('classement ' + transformedRows[allprops.rowIndex].classement);
@@ -110,11 +120,6 @@ const EditResultsPage = ({match}: { match: any }) => {
             </select>
         );
     };
-
-    /*const notRankedValidator = () => {
-
-    }*/
-
 
     return <CompetitionLayout competitionId={competitionId}>
         {
@@ -153,6 +158,8 @@ const EditResultsPage = ({match}: { match: any }) => {
                                     filterMatchMode='contains' style={{width: '5%'}}/>
                             <Column field="fede" header="Fédé." filter={true}
                                     filterMatchMode='contains' style={{width: '5%'}}/>
+                            <Column style={{width: '5%'}}  body={(raceRow:RaceRow) => deleteAction(raceRow,fetchRows)}/>
+
                         </DataTable>
                     </Fragment>
                 );

@@ -35,7 +35,7 @@ const pageStyles = makeStyles((theme: Theme) =>
 interface ILayoutChildren {
     currentRace: string,
     rows: RaceRow[],
-    fetchRows: () => Promise<void>,
+    fetchRows: () => Promise<any>,
     fetchCompetition: () => Promise<void>,
     competition: Competition
 }
@@ -47,7 +47,9 @@ export const CompetitionLayout = ({competitionId, children}: { competitionId: nu
     const tabs = computeTabs(rows, competition ? competition.races : ['1/2/3', '4/5']);
 
     const fetchRows = async () => {
-        setRows(await apiRaces.getCompetitionRaces(competitionId));
+        const lrows = await apiRaces.getCompetitionRaces(competitionId)
+        setRows(lrows);
+        return lrows
     };
 
     const fetchCompetition = async () => {

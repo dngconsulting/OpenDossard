@@ -56,6 +56,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
     };
 
     const goToPage = (event: any, competitionid: number, resultsPage?: string) => {
+        console.log("Goto Page " +  JSON.stringify(props.history.location))
         if (props.history.location.state && props.history.location.state.goto) {
             props.history.push({
                 pathname: ('/competition/' + competitionid + '/' + (resultsPage ? resultsPage : props.history.location.state.goto)),
@@ -89,7 +90,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                     <TableBody>
 
                         {data.map(row => (
-                            <TableRow hover={true} key={row.name}
+                            <TableRow hover={true} key={row.id}
                                       onClick={(event: any) => !isResultLink() && goToPage(event, row.id, null)}>
                                 <TableCell component="th" scope="row">
                                     {row.name}
