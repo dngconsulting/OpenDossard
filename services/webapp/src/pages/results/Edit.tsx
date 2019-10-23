@@ -9,6 +9,7 @@ import {NotificationContext} from '../../components/CadSnackbar';
 import {apiRaces} from '../../util/api';
 import {filterByRace} from '../../util/services';
 import {Delete} from '@material-ui/icons';
+import EmojiEventsIcon from '@material-ui/icons/EmojiEvents';
 
 const previousRowEmpty = (index: number, transformedRows: any) => {
     return ((index > 0) && (transformedRows[index - 1].riderNumber === undefined));
@@ -132,8 +133,41 @@ const EditResultsPage = ({match}: { match: any }) => {
                 <option value="">{transformedRows[allprops.rowIndex].classement}</option>
                 <option value="DSQ">DSQ</option>
                 <option value="ABD">ABD</option>
+                <option value="NC">NC</option>
             </select>
         );
+    };
+
+    const rankOfCate = (rowdata: RaceRow, transformedRows: any): number => {
+        return (transformedRows
+            .filter((v: RaceRow) => parseInt(v.catev) === parseInt(rowdata.catev))
+            .findIndex((item: RaceRow, index: number) => item.id === rowdata.id)) + 1;
+    };
+
+
+    const highlightWinners = (rowdata: RaceRow, column: any, transformedRows: any) => {
+        if (rowdata.rankingScratch === 1) {
+            return (<span>
+                <EmojiEventsIcon style={{verticalAlign: 'middle', color: '#efd807'}}
+                                 fontSize={'small'}/><span
+                style={{fontWeight: 'bolder'}}>{rowdata.name}</span>
+            </span>);
+        }
+        if (rowdata.rankingScratch === 2) {
+            return (<span>
+                <EmojiEventsIcon style={{verticalAlign: 'middle', color: '#D7D7D7'}}
+                                 fontSize={'small'}/><span
+                style={{fontWeight: 'bold'}}>{rowdata.name}</span>
+            </span>);
+        }
+        if (rowdata.rankingScratch === 3) {
+            return (<span>
+                <EmojiEventsIcon style={{verticalAlign: 'middle', color: '#6A3805'}}
+                                 fontSize={'small'}/><span
+                style={{fontWeight: 'bold'}}>{rowdata.name}</span>
+            </span>);
+        }
+        return (<span>{rowdata.name} {rankOfCate(rowdata, transformedRows)}</span>);
     };
 
     return <CompetitionLayout competitionId={competitionId}>
@@ -142,7 +176,7 @@ const EditResultsPage = ({match}: { match: any }) => {
                 const transformedRows = transformRows(filterByRace(rows, currentRace));
                 return (
                     <Fragment>
-                        <DataTable value={transformedRows} resizableColumns={true}
+                        <DataTable responsive={true} value={transformedRows} resizableColumns={true}
                                    emptyMessage="Aucun coureur n'a été engagé sur cette épreuve"
                                    onRowReorder={async (e) => {
                                        try {
@@ -154,6 +188,7 @@ const EditResultsPage = ({match}: { match: any }) => {
                                        }
                                    }}
                                    loading={loading}
+
                                    columnResizeMode="expand" editMode={'cell'}>
                             <Column rowReorder={true} style={{width: '3em'}}/>
                             <Column field="classement" header="Clt" filter={true}
@@ -168,7 +203,9 @@ const EditResultsPage = ({match}: { match: any }) => {
                                         return true;
                                     }}
                                     filterMatchMode='contains'/>
-                            <Column field="name" header="Nom" filter={true}
+                            <Column field="name" header="Nom"
+                                    body={(rowdata: RaceRow, column: any) => highlightWinners(rowdata, column, transformedRows)}
+                                    filter={true}
                                     filterMatchMode='contains'/>
                             <Column field="club" header="Club" filter={true}
                                     filterMatchMode='contains'/>
