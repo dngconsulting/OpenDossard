@@ -4,6 +4,7 @@ import {Race} from '../entity/Race';
 import {Licence} from '../entity/Licence';
 import {Competition} from '../entity/Competition';
 import {
+    ApiImplicitBody,
     ApiModelProperty,
     ApiModelPropertyOptional,
     ApiOperation,
@@ -188,6 +189,26 @@ export class RacesCtrl {
         await this.entityManager.save(newRace);
     }
 
+    @Put('/reorderRank')
+    @ApiOperation({
+        title: 'Réordonne le classement',
+        operationId: 'reorderRanking',
+    })
+    @ApiImplicitBody({name: 'body', type: [RaceRow]})
+    public async reorderRanking(@Body() racesrows: RaceRow[]): Promise<void> {
+        // Lets remove non ranked riders and DSQ/ABD
+        const rows = _.remove(racesrows, item => item.id && !item.comment);
+        for (let index = 1; index <= rows.length; index++) {
+            const item = rows[index - 1];
+            const raceRowToSave: Race = await this.entityManager.findOne(Race, {id: item.id});
+            if (raceRowToSave.rankingScratch !== index && !raceRowToSave.comment) {
+                raceRowToSave.rankingScratch = index;
+                Logger.debug('Update Ranking of rider number ' + raceRowToSave.riderNumber + ' with rank ' + (index));
+                await this.entityManager.save(raceRowToSave);
+            }
+        }
+    }
+
     @Put('/removeRanking')
     @ApiOperation({
         title: 'Supprime un coureur du classement',
@@ -205,25 +226,26 @@ export class RacesCtrl {
         if (racerowToUpdate.comment) {
             racerowToUpdate.comment = null;
         } else {
+            Logger.debug('Remove Ranking for rider number ' + racerowToUpdate.riderNumber);
             racerowToUpdate.rankingScratch = null;
         }
         await this.entityManager.save(racerowToUpdate);
 
-        // Reorder ranking
+        // Retrieve all ranks for this race ...
         const races = await this.entityManager.find(Race, {
             raceCode: raceRow.raceCode,
             competition: {id: raceRow.competitionId},
         });
-
-        _.orderBy(races, ['rankingScratch'], ['asc']).map(async (item: Race, index: number) => {
-            const contigusRanking = index + 1;
-            if (item.rankingScratch && item.rankingScratch !== contigusRanking) {
-                item.rankingScratch = contigusRanking;
-                Logger.debug('Update Ranking for ' + JSON.stringify(item) + ' with ' + contigusRanking);
+        const existingRankedRaces = _.orderBy(races, ['rankingScratch'], ['asc']);
+        // ... And  reorder them because of potential "holes" after deleting
+        for (let index = 1; index <= existingRankedRaces.length; index++) {
+            const item = existingRankedRaces[index - 1];
+            if (item.rankingScratch && item.rankingScratch !== index && !item.comment) {
+                item.rankingScratch = index;
+                Logger.debug('Update Ranking of rider number ' + item.riderNumber + ' with rank ' + (index));
                 await this.entityManager.save(item);
             }
-            return item;
-        });
+        }
     }
 
     @Put('/update')
@@ -241,34 +263,31 @@ export class RacesCtrl {
             competition: {id: raceRow.competitionId},
         });
         if (!requestedRankedRider) {
-            throw(new BadRequestException('Impossible de classer ce coureur, ' + JSON.stringify(requestedRankedRider) + ' il n\'existe pas'));
+            Logger.warn('Impossible de classer ce coureur, ' + JSON.stringify(requestedRankedRider) + ' il n\'existe pas');
+            throw(new BadRequestException('Impossible de classer ce coureur, il n\'existe pas en base de données'));
         }
 
         // Check if this rider has already a rank or is ABD
         if (requestedRankedRider.rankingScratch || requestedRankedRider.comment) {
-            throw(new BadRequestException('Impossible de classer ce coureur, ' + JSON.stringify(requestedRankedRider) + ' il existe déjà dans le classement'));
+            Logger.warn('Impossible de classer ce coureur, ' + JSON.stringify(requestedRankedRider) + ' il existe déjà dans le classement');
+            throw(new BadRequestException('Impossible de classer le coureur au dossard ' + requestedRankedRider.riderNumber + ' il existe déjà dans le classement'));
         }
         // Check if there is existing rider with this rank in this race with the same dossard
-        const existRankRider = await this.entityManager.findOne(Race, {
+        const rankRiderToChange = await this.entityManager.findOne(Race, {
             rankingScratch: raceRow.rankingScratch,
-            competition: {id: raceRow.competitionId},
             raceCode: raceRow.raceCode,
+            competition: {id: raceRow.competitionId},
         });
         // If a rider already exist, it depends on the existing ranking
-        // if the ranking is the one we want to change, its and edit, no problem, we remove the existing
-        // if the ranking is another one, raise a message and ask the user to remove manually the existing
-        // rider
-        if (existRankRider) {
-            Logger.debug('A rider exist with this rank ' + JSON.stringify(existRankRider.rankingScratch)
+        // if the ranking is the one we want to change, its and edit, no problem, we remove him
+        if (rankRiderToChange) {
+            Logger.debug('A rider exist with this rank ' + JSON.stringify(rankRiderToChange.rankingScratch)
                 + ' New Rank to update =' + raceRow.rankingScratch);
-            if (existRankRider.rankingScratch === raceRow.rankingScratch) {
-                Logger.debug('Existing rider will be removed from ranking ' + JSON.stringify(existRankRider));
-                existRankRider.rankingScratch = null;
-                existRankRider.comment = null;
-                await this.entityManager.save(existRankRider);
-            } else {
-                Logger.debug('Impossible to rank this rider please remove before ' + JSON.stringify(existRankRider));
-                throw(new BadRequestException('Déclasser le coureur ' + existRankRider.id + ' avant de classer ce coureur'));
+            if (rankRiderToChange.rankingScratch === raceRow.rankingScratch) {
+                Logger.debug('Existing rider will be removed from ranking ' + JSON.stringify(rankRiderToChange));
+                rankRiderToChange.rankingScratch = null;
+                rankRiderToChange.comment = null;
+                await this.entityManager.save(rankRiderToChange);
             }
         }
         requestedRankedRider.rankingScratch = raceRow.rankingScratch;

@@ -22,11 +22,11 @@ const EditResultsPage = ({match}: { match: any }) => {
         status: '',
         rowindex: 0
     });
+    const [loading, setLoading] = useState(false);
 
     const transformRows = (rows: RaceRow[]) => {
         const sortedByRankingWithoutABD = _.remove(_.orderBy(rows, ['rankingScratch'], ['asc']), (item) => item.comment == null);
         const sortedByRanking = _.union(sortedByRankingWithoutABD, rows.filter(item => item.comment != null));
-        console.log('ROWS =' + JSON.stringify(sortedByRanking));
         return sortedByRanking.map((item: any, index: number) => {
                 let classementToDisplay = '';
                 if (item.comment != null) {
@@ -64,27 +64,41 @@ const EditResultsPage = ({match}: { match: any }) => {
         try {
             if (rows.filter(item => item.riderNumber === parseInt(currentDossard) && item.rankingScratch !== currentRanking).length > 0) {
                 console.log('Updating Dossard ' + currentDossard + ' with ranking ' + currentRanking);
-                if (currentNotRankedStatus.status !== '') {
-                    await apiRaces.update({
-                        riderNumber: parseInt(currentDossard),
-                        raceCode: currentRace,
-                        competitionId: parseInt(competitionId),
-                        comment: currentNotRankedStatus.status,
+                try {
+                    setLoading(true);
+                    if (currentNotRankedStatus.status !== '') {
+
+                        await apiRaces.update({
+                            riderNumber: parseInt(currentDossard),
+                            raceCode: currentRace,
+                            competitionId: parseInt(competitionId),
+                            comment: currentNotRankedStatus.status,
+                        });
+                    } else {
+                        await apiRaces.update({
+                            riderNumber: parseInt(currentDossard),
+                            competitionId: parseInt(competitionId),
+                            raceCode: currentRace,
+                            rankingScratch: parseInt(currentRanking)
+                        });
+                    }
+                    const lrows = await fetchRows();
+                    setNotification({
+                        message: `Le coureur ${lrows.find((item: any) => item.riderNumber === parseInt(currentDossard)).name} vient d'etre classé ${currentRanking} `,
+                        type: 'info',
+                        open: true
                     });
-                } else {
-                    await apiRaces.update({
-                        riderNumber: parseInt(currentDossard),
-                        competitionId: parseInt(competitionId),
-                        raceCode: currentRace,
-                        rankingScratch: parseInt(currentRanking)
+                } catch (response) {
+                    const jsonError = await response.json();
+                    setNotification({
+                        message: `La mise à jour a échouée ${jsonError.message ? jsonError.message : ''}`,
+                        type: 'error',
+                        open: true
                     });
+                } finally {
+                    setLoading(false);
                 }
-                const lrows = await fetchRows();
-                setNotification({
-                    message: `Le coureur ${lrows.find((item: any) => item.riderNumber === parseInt(currentDossard)).name} vient d'etre classé ${currentRanking} `,
-                    type: 'info',
-                    open: true
-                });
+
             }
         } finally {
             setCurrentDossard('');
@@ -94,10 +108,11 @@ const EditResultsPage = ({match}: { match: any }) => {
         return true;
     };
 
-    const deleteAction = (row : RaceRow,fetchRows : any) => row.riderNumber && <Delete fontSize={'small'} onClick={ async () => {
-        await apiRaces.removeRanking(row);
-        await fetchRows()
-    }}/>;
+    const deleteAction = (row: RaceRow, fetchRows: any) => row.riderNumber &&
+      <Delete fontSize={'small'} onClick={async () => {
+          await apiRaces.removeRanking(row);
+          await fetchRows();
+      }}/>;
 
     const notRankedEditor = (transformedRows: any, allprops: any) => {
         console.log('classement ' + transformedRows[allprops.rowIndex].classement);
@@ -129,9 +144,16 @@ const EditResultsPage = ({match}: { match: any }) => {
                     <Fragment>
                         <DataTable value={transformedRows} resizableColumns={true}
                                    emptyMessage="Aucun coureur n'a été engagé sur cette épreuve"
-                                   onRowReorder={(e) => {
-                                       console.log('On reorder column ' + JSON.stringify(e.value));
+                                   onRowReorder={async (e) => {
+                                       try {
+                                           setLoading(true);
+                                           await apiRaces.reorderRanking(e.value);
+                                           await fetchRows();
+                                       } finally {
+                                           setLoading(false);
+                                       }
                                    }}
+                                   loading={loading}
                                    columnResizeMode="expand" editMode={'cell'}>
                             <Column rowReorder={true} style={{width: '3em'}}/>
                             <Column field="classement" header="Clt" filter={true}
@@ -158,7 +180,8 @@ const EditResultsPage = ({match}: { match: any }) => {
                                     filterMatchMode='contains' style={{width: '5%'}}/>
                             <Column field="fede" header="Fédé." filter={true}
                                     filterMatchMode='contains' style={{width: '5%'}}/>
-                            <Column style={{width: '5%'}}  body={(raceRow:RaceRow) => deleteAction(raceRow,fetchRows)}/>
+                            <Column style={{width: '5%'}}
+                                    body={(raceRow: RaceRow) => deleteAction(raceRow, fetchRows)}/>
 
                         </DataTable>
                     </Fragment>

@@ -1708,6 +1708,38 @@ export const RaceAPIApiFetchParamCreator = function (configuration?: Configurati
         },
         /**
          * 
+         * @summary Réordonne le classement
+         * @param {Array<RaceRow>} raceRows 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        reorderRanking(raceRows: Array<RaceRow>, options: any = {}): FetchArgs {
+            // verify required parameter 'raceRows' is not null or undefined
+            if (raceRows === null || raceRows === undefined) {
+                throw new RequiredError('raceRows','Required parameter raceRows was null or undefined when calling reorderRanking.');
+            }
+            const localVarPath = `/api/races/reorderRank`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'PUT' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+            const needsSerialization = (<any>"Array&lt;RaceRow&gt;" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(raceRows || {}) : (raceRows || "");
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @summary Met à jour le classement du coureur 
          * @param {RaceRow} raceRow 
          * @param {*} [options] Override http request option.
@@ -1843,6 +1875,25 @@ export const RaceAPIApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @summary Réordonne le classement
+         * @param {Array<RaceRow>} raceRows 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        reorderRanking(raceRows: Array<RaceRow>, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = RaceAPIApiFetchParamCreator(configuration).reorderRanking(raceRows, options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response;
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+        /**
+         * 
          * @summary Met à jour le classement du coureur 
          * @param {RaceRow} raceRow 
          * @param {*} [options] Override http request option.
@@ -1917,6 +1968,16 @@ export const RaceAPIApiFactory = function (configuration?: Configuration, fetch?
          */
         removeRanking(raceRow: RaceRow, options?: any) {
             return RaceAPIApiFp(configuration).removeRanking(raceRow, options)(fetch, basePath);
+        },
+        /**
+         * 
+         * @summary Réordonne le classement
+         * @param {Array<RaceRow>} raceRows 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        reorderRanking(raceRows: Array<RaceRow>, options?: any) {
+            return RaceAPIApiFp(configuration).reorderRanking(raceRows, options)(fetch, basePath);
         },
         /**
          * 
@@ -1995,6 +2056,18 @@ export class RaceAPIApi extends BaseAPI {
      */
     public removeRanking(raceRow: RaceRow, options?: any) {
         return RaceAPIApiFp(this.configuration).removeRanking(raceRow, options)(this.fetch, this.basePath);
+    }
+
+    /**
+     * 
+     * @summary Réordonne le classement
+     * @param {Array<RaceRow>} raceRows 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RaceAPIApi
+     */
+    public reorderRanking(raceRows: Array<RaceRow>, options?: any) {
+        return RaceAPIApiFp(this.configuration).reorderRanking(raceRows, options)(this.fetch, this.basePath);
     }
 
     /**
