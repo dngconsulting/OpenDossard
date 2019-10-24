@@ -49,10 +49,10 @@ const ConfirmDialog = (props: any) => {
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={props.handleClose} color="primary">
+                    <Button onClick={props.handleClose} variant={'contained'} color="primary">
                         Annuler
                     </Button>
-                    <Button onClick={props.handleOk} color="primary" autoFocus={true}>
+                    <Button onClick={props.handleOk} variant={'contained'} color="primary" autoFocus={true}>
                         Confirmer
                     </Button>
                 </DialogActions>
@@ -70,7 +70,7 @@ const surclassed = ({catev, raceCode}: RaceRow) => {
 }
 
 const FILTERABLE = {filter: true, sortable: true, filterMatchMode: 'contains'}
-const SHORT = {style: {width: 120, textAlign: 'center', padding : 0}, bodyClassName:'nopadding'}
+const SHORT = {style: {width: 120, textAlign: 'center', padding : 5}, bodyClassName:'nopadding'}
 const EngagementPage = ({match}: { match: any }) => {
     const competitionId = match.params.id;
     const dg = useRef(null);
@@ -116,7 +116,7 @@ const EngagementPage = ({match}: { match: any }) => {
                         </span>
                     },
                     {
-                        style: {width: 40, textAlign: 'center', paddingLeft: 0, paddingRight: 0, cursor: 'pointer'},
+                        style: {width: 40, textAlign: 'center', paddingLeft: 5, paddingRight: 5, cursor: 'pointer'},
                         bodyClassName:'nopadding',
                         body: deleteAction
                     },

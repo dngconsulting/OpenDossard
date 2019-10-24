@@ -25,10 +25,12 @@ export const cadtheme = createMuiTheme({
             containedPrimary: {
                 color: '#fff',
                 fontSize: 13,
+                backgroundColor: palette.primary.main
             },
             containedSecondary: {
                 color: '#fff',
-                fontSize: 13
+                fontSize: 13,
+                backgroundColor : palette.secondary.main
             },
             textPrimary: {
                 color: '#fff',

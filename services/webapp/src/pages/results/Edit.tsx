@@ -138,36 +138,36 @@ const EditResultsPage = ({match}: { match: any }) => {
         );
     };
 
-    const rankOfCate = (rowdata: RaceRow, transformedRows: any): number => {
-        return (transformedRows
+    const displayRank = (rowdata: any, transformedRows: any) => {
+        return rowdata.classement + ((rankOfCate(rowdata,transformedRows) !== '') ? (' (' + rankOfCate(rowdata,transformedRows) + ')') : '');
+    }
+
+    const rankOfCate = (rowdata: any, transformedRows: any): any => {
+        const r = (transformedRows
             .filter((v: RaceRow) => parseInt(v.catev) === parseInt(rowdata.catev))
             .findIndex((item: RaceRow, index: number) => item.id === rowdata.id)) + 1;
+        return (r === 0) ? '': r;
     };
 
+    const getMedalColorForRank = (ranking: number, rankingScratch: number): string => {
+        return (ranking <= 3 || rankingScratch <= 3) ? ['#efd807', '#D7D7D7', '#6A3805'][Math.min(rankingScratch, ranking) - 1] : '#fff';
+    };
 
     const highlightWinners = (rowdata: RaceRow, column: any, transformedRows: any) => {
-        if (rowdata.rankingScratch === 1) {
-            return (<span>
-                <EmojiEventsIcon style={{verticalAlign: 'middle', color: '#efd807'}}
-                                 fontSize={'small'}/><span
-                style={{fontWeight: 'bolder'}}>{rowdata.name}</span>
+        if (rowdata.rankingScratch) {
+            const lrankOfCate: number = rankOfCate(rowdata, transformedRows);
+            if (lrankOfCate <= 3 || rowdata.rankingScratch <= 3) {
+                return (<span>
+                <EmojiEventsIcon style={{
+                    verticalAlign: 'middle',
+                    color: getMedalColorForRank(lrankOfCate, rowdata.rankingScratch)
+                }}
+                                 fontSize={'small'}/>
+                                 <span style={{fontWeight: 'bold'}}>{rowdata.name}</span>
             </span>);
+            }
         }
-        if (rowdata.rankingScratch === 2) {
-            return (<span>
-                <EmojiEventsIcon style={{verticalAlign: 'middle', color: '#D7D7D7'}}
-                                 fontSize={'small'}/><span
-                style={{fontWeight: 'bold'}}>{rowdata.name}</span>
-            </span>);
-        }
-        if (rowdata.rankingScratch === 3) {
-            return (<span>
-                <EmojiEventsIcon style={{verticalAlign: 'middle', color: '#6A3805'}}
-                                 fontSize={'small'}/><span
-                style={{fontWeight: 'bold'}}>{rowdata.name}</span>
-            </span>);
-        }
-        return (<span>{rowdata.name} {rankOfCate(rowdata, transformedRows)}</span>);
+        return (<span>{rowdata.name}</span>);
     };
 
     return <CompetitionLayout competitionId={competitionId}>
@@ -177,7 +177,7 @@ const EditResultsPage = ({match}: { match: any }) => {
                 return (
                     <Fragment>
                         <DataTable responsive={true} value={transformedRows} resizableColumns={true}
-                                   emptyMessage="Aucun coureur n'a été engagé sur cette épreuve"
+                                   emptyMessage="Aucune donnée ne correspond à la recherche"
                                    onRowReorder={async (e) => {
                                        try {
                                            setLoading(true);
@@ -191,9 +191,10 @@ const EditResultsPage = ({match}: { match: any }) => {
 
                                    columnResizeMode="expand" editMode={'cell'}>
                             <Column rowReorder={true} style={{width: '3em'}}/>
-                            <Column field="classement" header="Clt" filter={true}
+                            <Column field="classement" header="Clt."
                                     editor={(allprops) => notRankedEditor(transformedRows, allprops)}
                                     filterMatchMode='contains'
+                                    body={(rowdata: RaceRow, column: any) => displayRank(rowdata, transformedRows)}
                                     style={{overflow: 'visible', width: '60px'}}/>
                             <Column field="riderNumber" header="Doss." filter={true}
                                     style={{width: '5%'}}
