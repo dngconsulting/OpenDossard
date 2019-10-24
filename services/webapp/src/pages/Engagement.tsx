@@ -104,10 +104,16 @@ const EngagementPage = ({match}: { match: any }) => {
                 }}/>
 
                 const columns: ColumnProps[] = [
+                    {
+                        style: {width: 40, textAlign: 'center', paddingLeft: 5, paddingRight: 5, cursor: 'pointer'},
+                        bodyClassName:'nopadding',
+                        body: deleteAction
+                    },
                     {field: 'riderNumber', header: 'Dossard', ...FILTERABLE, ...SHORT},
                     {field: 'name', header: 'Coureur', ...FILTERABLE, bodyClassName:'nopadding'},
-                    {field: 'gender', header: 'H/F', ...FILTERABLE, ...SHORT},
-                    {field: 'club', header: 'Club', ...FILTERABLE, bodyClassName:'nopadding'},
+
+
+                    {field: 'club', header: 'Club', ...FILTERABLE, bodyClassName:'nopadding', style: {width: 400}},
                     {
                         field: 'catev', header: 'Catégorie', ...FILTERABLE, ...SHORT,
                         body: (row: RaceRow) => <span>
@@ -115,11 +121,10 @@ const EngagementPage = ({match}: { match: any }) => {
                             {surclassed(row) && <span title="surclassé" className={classes.surclassed}><ArrowUpward /></span>}
                         </span>
                     },
-                    {
-                        style: {width: 40, textAlign: 'center', paddingLeft: 5, paddingRight: 5, cursor: 'pointer'},
-                        bodyClassName:'nopadding',
-                        body: deleteAction
-                    },
+                    {field: 'gender', header: 'H/F', ...FILTERABLE, ...SHORT},
+                    {field: 'catea', header: 'Caté A.', ...FILTERABLE, ...SHORT},
+                    {field: 'birthYear', header: 'Année', ...FILTERABLE, ...SHORT},
+                    {field: 'fede', header: 'Fédé.', ...FILTERABLE, ...SHORT},
                 ]
 
                 return (
@@ -141,7 +146,7 @@ const EngagementPage = ({match}: { match: any }) => {
                         </Grid>
 
                         <DataTable ref={dg} value={filterByRace(rows, currentRace)}
-                                   emptyMessage="Aucun coureur encore engagé sur cette épreuve" responsive={true} >
+                                   emptyMessage="Aucun coureur encore engagé sur cette épreuve ou aucun coureur ne correspond à votre filtre de recherche" responsive={true} >
                             {columns.map((column, i) => <Column key={i} {...column}/>)}
 
                         </DataTable>

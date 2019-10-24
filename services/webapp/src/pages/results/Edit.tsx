@@ -10,13 +10,14 @@ import {apiRaces} from '../../util/api';
 import {filterByRace} from '../../util/services';
 import {Delete} from '@material-ui/icons';
 import EmojiEventsIcon from '@material-ui/icons/EmojiEvents';
+import {withRouter} from 'react-router';
 
 const previousRowEmpty = (index: number, transformedRows: any) => {
     return ((index > 0) && (transformedRows[index - 1].riderNumber === undefined));
 };
 
-const EditResultsPage = ({match}: { match: any }) => {
-    const competitionId = match.params.id;
+const EditResultsPage = (gprops : any) => {
+    const competitionId = gprops.match.params.id;
     const [, setNotification] = useContext(NotificationContext);
     const [currentDossard, setCurrentDossard] = useState('');
     const [currentNotRankedStatus, setCurrentNotRankedStatus] = useState({
@@ -139,7 +140,7 @@ const EditResultsPage = ({match}: { match: any }) => {
     };
 
     const displayRank = (rowdata: any, transformedRows: any) => {
-        return rowdata.classement + ((rankOfCate(rowdata,transformedRows) !== '') ? (' (' + rankOfCate(rowdata,transformedRows) + ')') : '');
+        return rowdata.classement + ((rankOfCate(rowdata,transformedRows) !== '' && !isNaN(rowdata.classement)) ? (' (' + rankOfCate(rowdata,transformedRows) + ')') : '');
     }
 
     const rankOfCate = (rowdata: any, transformedRows: any): any => {
@@ -174,54 +175,83 @@ const EditResultsPage = ({match}: { match: any }) => {
         {
             ({competition, currentRace, rows, fetchRows}) => {
                 const transformedRows = transformRows(filterByRace(rows, currentRace));
+                const EditResults = (props : any) => <DataTable responsive={true} value={transformedRows}
+                                                     emptyMessage="Aucune donnée ne correspond à la recherche"
+                                                     onRowReorder={async (e) => {
+                                                         try {
+                                                             setLoading(true);
+                                                             await apiRaces.reorderRanking(e.value);
+                                                             await fetchRows();
+                                                         } finally {
+                                                             setLoading(false);
+                                                         }
+                                                     }}
+                                                     loading={loading}
+                                                     columnResizeMode="expand" editMode={'cell'}>
+                    <Column rowReorder={true} style={{width: '3em'}}/>
+                    <Column field="classement" header="Clt."
+                            editor={(allprops) => notRankedEditor(transformedRows, allprops)}
+                            filterMatchMode='contains'
+                            body={(rowdata: RaceRow, column: any) => displayRank(rowdata, transformedRows)}
+                            style={{overflow: 'visible', width: '60px'}}/>
+                    <Column field="riderNumber" header="Doss." filter={true}
+                            style={{width: '5%'}}
+                            editor={(allprops) => dossardEditor(allprops, rows, transformedRows, currentRace, fetchRows)}
+                            editorValidator={(allprops) => {
+                                dossardValidator(allprops, fetchRows, currentRace, transformedRows, rows);
+                                return true;
+                            }}
+                            filterMatchMode='contains'/>
+                    <Column field="name" header="Nom"
+                            body={(rowdata: RaceRow, column: any) => highlightWinners(rowdata, column, transformedRows)}
+                            filter={true}
+                            filterMatchMode='contains'/>
+                    <Column field="club" header="Club" filter={true}
+                            filterMatchMode='contains'/>
+                    <Column field="catev" header="Caté." filter={true}
+                            filterMatchMode='contains' style={{width: '5%',textAlign: 'center'}}/>
+                    <Column field="catea" header="Age" filter={true}
+                            filterMatchMode='contains' style={{width: '5%',textAlign: 'center'}}/>
+                    <Column field="gender" header="Genre" filter={true}
+                            filterMatchMode='contains' style={{width: '5%',textAlign: 'center'}}/>
+                    <Column field="fede" header="Fédé." filter={true}
+                            filterMatchMode='contains' style={{width: '5%',textAlign: 'center'}}/>
+                    <Column style={{width: '5%'}}
+                            body={(raceRow: RaceRow) => deleteAction(raceRow, fetchRows)}/>
+
+                </DataTable>
+
+                const ViewResults = (props : any) => <DataTable responsive={true} value={transformedRows} resizableColumns={true}
+                                                     emptyMessage="Aucune donnée ne correspond à la recherche"
+                                                     loading={loading}
+                                                     columnResizeMode="expand" >
+                    <Column field="classement" header="Clt."
+                            filterMatchMode='contains'
+                            body={(rowdata: RaceRow, column: any) => displayRank(rowdata, transformedRows)}
+                            style={{overflow: 'visible', width: '60px'}}/>
+                    <Column field="riderNumber" header="Doss." filter={true}
+                            style={{width: '5%'}}
+                            filterMatchMode='contains'/>
+                    <Column field="name" header="Nom"
+                            body={(rowdata: RaceRow, column: any) => highlightWinners(rowdata, column, transformedRows)}
+                            filter={true}
+                            filterMatchMode='contains'/>
+                    <Column field="club" header="Club" filter={true}
+                            filterMatchMode='contains'/>
+                    <Column field="catev" header="Caté." filter={true}
+                            filterMatchMode='contains' style={{width: '5%',textAlign: 'center'}}/>
+                    <Column field="catea" header="Age" filter={true}
+                            filterMatchMode='contains' style={{width: '5%',textAlign: 'center'}}/>
+                    <Column field="gender" header="Genre" filter={true}
+                            filterMatchMode='contains' style={{width: '5%',textAlign: 'center'}}/>
+                    <Column field="fede" header="Fédé." filter={true}
+                            filterMatchMode='contains' style={{width: '5%',textAlign: 'center'}}/>
+                </DataTable>
+
                 return (
                     <Fragment>
-                        <DataTable responsive={true} value={transformedRows} resizableColumns={true}
-                                   emptyMessage="Aucune donnée ne correspond à la recherche"
-                                   onRowReorder={async (e) => {
-                                       try {
-                                           setLoading(true);
-                                           await apiRaces.reorderRanking(e.value);
-                                           await fetchRows();
-                                       } finally {
-                                           setLoading(false);
-                                       }
-                                   }}
-                                   loading={loading}
-
-                                   columnResizeMode="expand" editMode={'cell'}>
-                            <Column rowReorder={true} style={{width: '3em'}}/>
-                            <Column field="classement" header="Clt."
-                                    editor={(allprops) => notRankedEditor(transformedRows, allprops)}
-                                    filterMatchMode='contains'
-                                    body={(rowdata: RaceRow, column: any) => displayRank(rowdata, transformedRows)}
-                                    style={{overflow: 'visible', width: '60px'}}/>
-                            <Column field="riderNumber" header="Doss." filter={true}
-                                    style={{width: '5%'}}
-                                    editor={(allprops) => dossardEditor(allprops, rows, transformedRows, currentRace, fetchRows)}
-                                    editorValidator={(allprops) => {
-                                        dossardValidator(allprops, fetchRows, currentRace, transformedRows, rows);
-                                        return true;
-                                    }}
-                                    filterMatchMode='contains'/>
-                            <Column field="name" header="Nom"
-                                    body={(rowdata: RaceRow, column: any) => highlightWinners(rowdata, column, transformedRows)}
-                                    filter={true}
-                                    filterMatchMode='contains'/>
-                            <Column field="club" header="Club" filter={true}
-                                    filterMatchMode='contains'/>
-                            <Column field="catev" header="Caté." filter={true}
-                                    filterMatchMode='contains' style={{width: '5%'}}/>
-                            <Column field="catea" header="Age" filter={true}
-                                    filterMatchMode='contains' style={{width: '5%'}}/>
-                            <Column field="gender" header="Genre" filter={true}
-                                    filterMatchMode='contains' style={{width: '5%'}}/>
-                            <Column field="fede" header="Fédé." filter={true}
-                                    filterMatchMode='contains' style={{width: '5%'}}/>
-                            <Column style={{width: '5%'}}
-                                    body={(raceRow: RaceRow) => deleteAction(raceRow, fetchRows)}/>
-
-                        </DataTable>
+                        {console.log(JSON.stringify(gprops.location))}
+                        {gprops.history.location.search === '?view' ? <ViewResults/> : <EditResults/> }
                     </Fragment>
                 );
             }
@@ -229,5 +259,5 @@ const EditResultsPage = ({match}: { match: any }) => {
     </CompetitionLayout>;
 };
 
-export default EditResultsPage;
+export default withRouter(EditResultsPage);
 

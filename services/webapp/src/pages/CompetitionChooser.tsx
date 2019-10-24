@@ -25,7 +25,9 @@ const useStyles = makeStyles((theme: Theme) =>
     createStyles({
         root: {
             width: '100%',
+            height: '100%',
             overflowX: 'auto',
+            padding: '5px'
         },
         table: {
             minWidth: 650,

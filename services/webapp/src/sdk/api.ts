@@ -458,6 +458,12 @@ export interface RaceRow {
     raceCode?: string;
     /**
      * 
+     * @type {string}
+     * @memberof RaceRow
+     */
+    birthYear?: string;
+    /**
+     * 
      * @type {number}
      * @memberof RaceRow
      */
@@ -1709,14 +1715,14 @@ export const RaceAPIApiFetchParamCreator = function (configuration?: Configurati
         /**
          * 
          * @summary Réordonne le classement
-         * @param {Array<RaceRow>} raceRows 
+         * @param {Array<RaceRow>} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        reorderRanking(raceRows: Array<RaceRow>, options: any = {}): FetchArgs {
-            // verify required parameter 'raceRows' is not null or undefined
-            if (raceRows === null || raceRows === undefined) {
-                throw new RequiredError('raceRows','Required parameter raceRows was null or undefined when calling reorderRanking.');
+        reorderRanking(body: Array<RaceRow>, options: any = {}): FetchArgs {
+            // verify required parameter 'body' is not null or undefined
+            if (body === null || body === undefined) {
+                throw new RequiredError('body','Required parameter body was null or undefined when calling reorderRanking.');
             }
             const localVarPath = `/api/races/reorderRank`;
             const localVarUrlObj = url.parse(localVarPath, true);
@@ -1731,7 +1737,7 @@ export const RaceAPIApiFetchParamCreator = function (configuration?: Configurati
             delete localVarUrlObj.search;
             localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
             const needsSerialization = (<any>"Array&lt;RaceRow&gt;" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
-            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(raceRows || {}) : (raceRows || "");
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(body || {}) : (body || "");
 
             return {
                 url: url.format(localVarUrlObj),
@@ -1876,12 +1882,12 @@ export const RaceAPIApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @summary Réordonne le classement
-         * @param {Array<RaceRow>} raceRows 
+         * @param {Array<RaceRow>} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        reorderRanking(raceRows: Array<RaceRow>, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = RaceAPIApiFetchParamCreator(configuration).reorderRanking(raceRows, options);
+        reorderRanking(body: Array<RaceRow>, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = RaceAPIApiFetchParamCreator(configuration).reorderRanking(body, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -1972,12 +1978,12 @@ export const RaceAPIApiFactory = function (configuration?: Configuration, fetch?
         /**
          * 
          * @summary Réordonne le classement
-         * @param {Array<RaceRow>} raceRows 
+         * @param {Array<RaceRow>} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        reorderRanking(raceRows: Array<RaceRow>, options?: any) {
-            return RaceAPIApiFp(configuration).reorderRanking(raceRows, options)(fetch, basePath);
+        reorderRanking(body: Array<RaceRow>, options?: any) {
+            return RaceAPIApiFp(configuration).reorderRanking(body, options)(fetch, basePath);
         },
         /**
          * 
@@ -2061,13 +2067,13 @@ export class RaceAPIApi extends BaseAPI {
     /**
      * 
      * @summary Réordonne le classement
-     * @param {Array<RaceRow>} raceRows 
+     * @param {Array<RaceRow>} body 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof RaceAPIApi
      */
-    public reorderRanking(raceRows: Array<RaceRow>, options?: any) {
-        return RaceAPIApiFp(this.configuration).reorderRanking(raceRows, options)(this.fetch, this.basePath);
+    public reorderRanking(body: Array<RaceRow>, options?: any) {
+        return RaceAPIApiFp(this.configuration).reorderRanking(body, options)(this.fetch, this.basePath);
     }
 
     /**

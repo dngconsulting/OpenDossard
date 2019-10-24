@@ -1,15 +1,14 @@
-import * as React from "react";
-import {ReactElement} from "react";
-import {Route} from "react-router";
-import {isAuthenticated} from "../state/ReduxState";
-import LicencesPage from "../pages/licence/Licences";
+import * as React from 'react';
+import {ReactElement} from 'react';
+import {Route} from 'react-router';
+import {isAuthenticated} from '../state/ReduxState';
+import LicencesPage from '../pages/licence/Licences';
 import LicencePage from '../pages/licence/LicencePage';
-import CompetitionChooser from "../pages/CompetitionChooser";
-import StatsPage from "../pages/Stats";
-import EngagementPage from "../pages/Engagement";
+import CompetitionChooser from '../pages/CompetitionChooser';
+import StatsPage from '../pages/Stats';
+import EngagementPage from '../pages/Engagement';
 import HomePage from '../pages/Home';
 import EditResultsPage from '../pages/results/Edit';
-import ViewResultsPage from '../pages/results/View';
 
 export default ( {renderAccount} : {renderAccount: () => ReactElement} ) => (
     <React.Fragment>
@@ -21,6 +20,6 @@ export default ( {renderAccount} : {renderAccount: () => ReactElement} ) => (
         <Route path='/account' title="Mon compte" render={renderAccount}/>
         <Route path='/competition/:id/engagements' title="Engagement des coureurs" component={isAuthenticated(EngagementPage)}/>
         <Route path='/competition/:id/results/create' title="Editer les résultats" component={isAuthenticated(EditResultsPage)}/>
-        <Route path='/competition/:id/results/view' title="Visualiser les résultats" component={isAuthenticated(ViewResultsPage)}/>
+        <Route path='/competition/:id/results/view' title="Visualiser les résultats" component={isAuthenticated(EditResultsPage)}/>
     </React.Fragment>
 )

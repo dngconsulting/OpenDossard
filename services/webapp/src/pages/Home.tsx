@@ -38,6 +38,7 @@ const styles = (theme: Theme) => ({
     root: {
         flexGrow: 1,
         marginBottom: 24,
+        padding : '5px'
     },
     paper: {
         padding: theme.spacing(2),

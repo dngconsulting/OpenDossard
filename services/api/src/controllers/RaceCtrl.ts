@@ -32,6 +32,8 @@ export class RaceRow {
     @ApiModelPropertyOptional()
     public raceCode: string;
     @ApiModelPropertyOptional()
+    public birthYear: string;
+    @ApiModelPropertyOptional()
     public riderNumber: number;
     @ApiModelPropertyOptional()
     public surclassed: boolean;
@@ -120,7 +122,7 @@ export class RacesCtrl {
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
     public async getCompetitionRaces(@Param('id') competitionId: number): Promise<RaceRow[]> {
 
-        const query = `select r.*, concat(l.name,' ',l."firstName") as name, l."licenceNumber", l.club, l.gender
+        const query = `select r.*, concat(l.name,' ',l."firstName") as name, l."licenceNumber", l.club, l.gender, l.fede, l."birthYear", l.catea
                         from race r
                         join licence l on r."licenceId" = l.id
                         where r."competitionId" = $1
@@ -195,7 +197,7 @@ export class RacesCtrl {
         operationId: 'reorderRanking',
     })
     @ApiImplicitBody({name: 'body', type: [RaceRow]})
-    public async reorderRanking(@Body() racesrows: RaceRow[]): Promise<void> {
+    public async reorderRanking(@Body('body') racesrows: RaceRow[]): Promise<void> {
         // Lets remove non ranked riders and DSQ/ABD
         const rows = _.remove(racesrows, item => item.id && !item.comment);
         for (let index = 1; index <= rows.length; index++) {
