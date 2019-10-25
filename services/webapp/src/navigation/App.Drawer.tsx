@@ -26,12 +26,8 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import {Utility} from '../state/Utility';
 import {NavLink} from 'react-router-dom';
 import {styles} from './styles';
-import {AccountPage} from '../pages/account/Account';
-import LicencesPage from '../pages/licence/Licences';
-import ResultatsPage from '../pages/Resultats';
 import StatsPage from '../pages/Stats';
 import {User} from '../sdk';
-import Engagement from '../pages/Engagement';
 import {red} from '@material-ui/core/colors';
 import {cadtheme} from '../theme/theme';
 
@@ -48,33 +44,35 @@ interface IAppDrawer {
 class AppDrawer extends React.Component<IAppDrawer, {}> {
     public routes = [
         {
+            key : '1',
             path: '/',
             state: {title: 'Tableau de bord'},
             title: 'Tableau de bord',
             icon: () => <DashboardIcon/>
         },
         {
+            key : '2',
             path: '/licences',
-            component: LicencesPage,
             state: {title: 'Gestion des licences'},
             title: 'Licences',
             icon: () => <PeopleIcon/>
         },
         {
-            path: '/competitionchooser',
+            key : '3',
+            path: '/competitionchooser/engagement',
             state: {title: 'Gestion des Engagements', goto: 'engagements'},
-            component: Engagement,
             title: 'Engagements',
             icon: () => <AssignmentIcon/>
         },
         {
-            path: '/competitionchooser',
-            component: ResultatsPage,
+            key : '4',
+            path: '/competitionchooser/results',
             title: 'Résultats',
             state: {title: 'Résultats', goto: 'results'},
             icon: () => <FormatListNumberedIcon/>
         },
         {
+            key : '5',
             path: '/stats',
             component: StatsPage,
             state: {title: 'Statistiques et graphiques'},
@@ -82,9 +80,9 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
             icon: () => <ShowChartIcon/>
         },
         {
+            key : '6',
             path: '/account',
             state: {title: 'Profile'},
-            component: AccountPage,
             title: 'Profile',
             icon: () => <AccountCircleIcon/>
         }

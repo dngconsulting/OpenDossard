@@ -15,7 +15,7 @@ export default ( {renderAccount} : {renderAccount: () => ReactElement} ) => (
         <Route path='/' exact={true} title="Page d'accueil" component={isAuthenticated(HomePage)}/>
         <Route path='/licences' title="Les licences" component={isAuthenticated(LicencesPage)}/>
         <Route path='/licence/:id' component={isAuthenticated(LicencePage)}/>
-        <Route path='/competitionchooser' title="Sélection d'une épreuve" component={isAuthenticated(CompetitionChooser)}/>
+        <Route path='/competitionchooser/:goto' title="Sélection d'une épreuve" component={isAuthenticated(CompetitionChooser)}/>
         <Route path='/stats' title="Statistiques et reporting" component={isAuthenticated(StatsPage)}/>
         <Route path='/account' title="Mon compte" render={renderAccount}/>
         <Route path='/competition/:id/engagements' title="Engagement des coureurs" component={isAuthenticated(EngagementPage)}/>

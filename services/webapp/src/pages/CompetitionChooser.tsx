@@ -1,21 +1,21 @@
 import React, {useEffect, useState} from 'react';
 import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import cadtheme from '../App';
 import {apiCompetitions} from '../util/api';
 import {Competition} from '../sdk';
-import {toMMDDYYYY} from '../util/date';
 import {withRouter} from 'react-router-dom';
-import {Radio} from '@material-ui/core';
+import {Radio, Tooltip} from '@material-ui/core';
+import {DataTable} from 'primereact/datatable';
+import {Column} from 'primereact/column';
+import {toMMDDYYYY} from '../util/date';
+import FormatListNumberedIcon from '@material-ui/icons/FormatListNumbered';
+import VisibilityIcon from '@material-ui/icons/Visibility';
+import moment from 'moment';
 
 interface ICompetitionChooserProps {
     classes?: any;
+    match: any;
     history: {
         push(url: any): void;
         location: any
@@ -43,35 +43,62 @@ const useStyles = makeStyles((theme: Theme) =>
     }),
 );
 const CompetitionChooser = (props: ICompetitionChooserProps) => {
+    const gotoPage = props.match.params.goto;
     const [data, setData] = useState<Competition[]>([]);
-    const [selectedEpreuves,setSelectedEpreuves] = useState(null)
+    const [filteredData, setFilteredData] = useState<Competition[]>([]);
+    const [selectPastOrFuture, setSelectPastOrFuture] = useState('all');
+
     const classes = useStyles(cadtheme);
     const fetchCompetitions = async () => {
-        setData(await apiCompetitions.getAllCompetitions());
+        const results = await apiCompetitions.getAllCompetitions();
+        setData(results);
+        setFilteredData(results);
     };
     useEffect(() => {
-        if (data.length === 0) {
-            fetchCompetitions();
+        const initData = async () => {
+            if (data.length === 0) {
+                await fetchCompetitions();
+            }
         }
+        initData();
     }, []);
 
     const isResultLink = (): boolean => {
-        return props.history.location.state && props.history.location.state.goto === 'results';
+        return gotoPage === 'results';
     };
 
-    const goToPage = (event: any, competitionid: number, resultsPage?: string) => {
-        console.log("Goto Page " +  JSON.stringify(props.history.location))
-        if (props.history.location.state && props.history.location.state.goto) {
-            props.history.push({
-                pathname: ('/competition/' + competitionid + '/' + (resultsPage ? resultsPage : props.history.location.state.goto)),
-                state : props.history.location.state
-            });
+    const goToPage = (competitionid: number, resultsPage?: string) => {
+        props.history.push('/competition/' + competitionid + '/' + (resultsPage? resultsPage:'engagements'));
+    };
+
+    const displayDate = (row: Competition) => {
+        return toMMDDYYYY(row.eventDate);
+    };
+
+    const resultsAction = (row: Competition) =>
+        [<Tooltip key='1' title='Editer les résultats'><FormatListNumberedIcon
+            onClick={(event: any) => goToPage(row.id, 'results/edit')}
+            color="primary" style={{marginRight:'10px'}}/></Tooltip>,
+            <Tooltip key='2' title='Visualiser les résultats'><VisibilityIcon
+                onClick={(event: any) => goToPage(row.id, 'results/view')}
+                color="primary" /></Tooltip>];
+
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        console.log("Handle change " + event.target.value);
+        setSelectPastOrFuture(event.target.value);
+        if (event.target.value === 'all') {
+            setFilteredData(data) ;
+        } else {
+            setFilteredData(data.filter((comp: Competition) => event.target.value === 'past' ? moment(comp.eventDate).isBefore(moment()) : moment(comp.eventDate).isAfter(moment())))
         }
     };
 
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSelectedEpreuves(event.target.value);
+    const setSelectedCompetition = (selectedCompetition: Competition) => {
+        if (!isResultLink()) {
+            goToPage(selectedCompetition.id);
+        }
     };
+
     if (data && data.length === 0) {
         return (<Paper>
             <div className={classes.nocomp}>Aucune épreuve renseignée en base de données correspond
@@ -82,65 +109,45 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         return (
             <Paper className={classes.root}>
                 <Radio
-                    checked={selectedEpreuves === 'past'}
+                    checked={selectPastOrFuture === 'past'}
                     onChange={handleChange}
                     value="past"
                     name="radio-button-demo"
                 />Epreuves passées
                 <Radio
-                    checked={selectedEpreuves === 'future'}
+                    checked={selectPastOrFuture === 'future'}
                     onChange={handleChange}
                     value="future"
                     name="radio-button-demo"
                 />Epreuves à venir
+                <Radio
+                    checked={selectPastOrFuture === 'all'}
+                    onChange={handleChange}
+                    value="all"
+                    name="radio-button-demo"
+                />Toutes les épreuves
                 <div className={classes.titre}>Veuillez sélectionner une épreuve :</div>
-                <Table className={classes.table}>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell style={{fontSize: 15}} variant="head">Nom
-                                l'épreuve</TableCell>
-                            <TableCell variant="head" align="right">Date</TableCell>
-                            <TableCell variant="head" align="right">Lieu</TableCell>
-                            <TableCell variant="head" align="right">Club</TableCell>
-                            <TableCell variant="head" align="right">Catégories</TableCell>
-                            <TableCell variant="head" align="right">Fédération</TableCell>
-                            {isResultLink() && <TableCell/>}
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
 
-                        {data.map(row => (
-                            <TableRow hover={true} key={row.id}
-                                      onClick={(event: any) => !isResultLink() && goToPage(event, row.id, null)}>
-                                <TableCell component="th" scope="row">
-                                    {row.name}
-                                </TableCell>
-                                <TableCell
-                                    align="right">{toMMDDYYYY(row.eventDate)}</TableCell>
-                                <TableCell align="right">{row.zipCode}</TableCell>
-                                <TableCell align="right">{row.club.longName}</TableCell>
-                                <TableCell align="right">{row.categories}</TableCell>
-                                <TableCell align="right">{row.fede}</TableCell>
+                <DataTable responsive={true}
+                           autoLayout={true}
+                           value={filteredData}
+                           emptyMessage="Aucune donnée ne correspond à la recherche"
+                           selectionMode="single"
+                           onSelectionChange={e => setSelectedCompetition(e.value)}
+                >
+                    {isResultLink() && <Column header='Résultats' body={resultsAction}
+                                               style={{minWidth: '5%', textAlign: 'center'}}/>}
+                    <Column field='eventDate' header='Date' body={displayDate}
+                            style={{minWidth: '2%', textAlign: 'center'}}/>
+                    <Column field='zipCode' header='Lieu'
+                            style={{minWidth: '2%', textAlign: 'center'}}/>
+                    <Column field='club.longName' header='Club'
+                            style={{minWidth: '5%', textAlign: 'center'}}/>
+                    <Column field='categories' header='Catégories'/>
+                    <Column field='fede' header='Fédération'
+                            style={{minWidth: '5%', textAlign: 'center'}}/>
+                </DataTable>
 
-                                {isResultLink() && <TableCell align="right">
-                                  <Button variant={'contained'}
-                                          onClick={(event: any) => goToPage(event, row.id, 'results/edit')}
-                                          color="secondary"
-                                          style={{marginRight: '10px'}}
-                                  >
-                                    Saisir Résultats
-                                  </Button>
-                                  <Button variant={'contained'}
-                                          onClick={(event: any) => goToPage(event, row.id, 'results/view')}
-                                          color="primary"
-                                  >
-                                    Visualiser Résultats
-                                  </Button>
-                                </TableCell>}
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
             </Paper>)
             ;
     }

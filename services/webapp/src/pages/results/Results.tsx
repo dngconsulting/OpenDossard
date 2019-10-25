@@ -159,47 +159,51 @@ const EditResultsPage = (gprops: any) => {
     const getMedalColorForRank = (ranking: number | string, rankingScratch: number): string => {
         return (ranking <= 3 || rankingScratch <= 3) ? ['#efd807', '#D7D7D7', '#6A3805'][Math.min(rankingScratch, ranking as number) - 1] : '#fff';
     };
-    const getPodiumTitle = (rankCate : number,rankScratch : number) => {
-        let title = ''
+    const getPodiumTitle = (rankCate: number, rankScratch: number) => {
+        let title = '';
         switch (rankScratch) {
-            case 1: title += 'Vainqueur au scratch '; break;
-            case 2: title += '2ème au scratch '; break;
-            case 3: title += '3ème au scratch '; break;
+            case 1:
+                title += 'Vainqueur au scratch ';
+                break;
+            case 2:
+                title += '2ème au scratch ';
+                break;
+            case 3:
+                title += '3ème au scratch ';
+                break;
         }
         switch (rankCate) {
-            case 1: title += 'Vainqueur dans sa catégorie '; break;
-            case 2: title += '2ème dans sa catégorie '; break;
-            case 3: title += '3ème dans sa catégorie '; break;
+            case 1:
+                title += 'Vainqueur dans sa catégorie ';
+                break;
+            case 2:
+                title += '2ème dans sa catégorie ';
+                break;
+            case 3:
+                title += '3ème dans sa catégorie ';
+                break;
         }
-        return title
-    }
+        return title;
+    };
 
     const AddWinnersIcons = (props: any) => {
         if (props.rowdata.rankingScratch) {
             const lrankOfCate: string | number = rankOfCate(props.rowdata, props.transformedRows);
             if (lrankOfCate <= 3 || props.rowdata.rankingScratch <= 3) {
                 return (
-                    <Tooltip title={getPodiumTitle(lrankOfCate as number,props.rowdata.rankingScratch)}>
-                    <EmojiEventsIcon style={{
-                        verticalAlign: 'middle',
-                        color: getMedalColorForRank(lrankOfCate, props.rowdata.rankingScratch)
-                    }}
-                                     fontSize={'small'}/></Tooltip>
+                    <Tooltip
+                        title={getPodiumTitle(lrankOfCate as number, props.rowdata.rankingScratch)}>
+                        <EmojiEventsIcon style={{
+                            verticalAlign: 'middle',
+                            color: getMedalColorForRank(lrankOfCate, props.rowdata.rankingScratch)
+                        }}
+                                         fontSize={'small'}/></Tooltip>
                 );
             }
         }
         return null;
     };
 
-    const displayName = (rowdata: RaceRow, column: any, transformedRows: any) => {
-        return (<span>
-            <AddWinnersIcons rowdata={rowdata}
-                             transformedRows={transformedRows}/>
-            {rowdata.sprintchallenge && <Tooltip title='Vainqueur du challenge du meilleur sprinter'><EmojiPeopleIcon style={{
-                verticalAlign: 'middle'
-            }}/></Tooltip>}{rowdata.name}
-        </span>);
-    };
 
     return <CompetitionLayout competitionId={competitionId}>
         {
@@ -217,15 +221,31 @@ const EditResultsPage = (gprops: any) => {
                 const getTitleChallengeButton = (row: RaceRow) => {
                     return row.sprintchallenge ? 'Enlever ce vainqueur du challenge' : 'Ajouter comme vainqueur du challenge';
                 };
-                const reorder = async (e : any) => {
-                        try {
-                            setLoading(true);
-                            await apiRaces.reorderRanking(e.value);
-                            await fetchRows();
-                        } finally {
-                            setLoading(false);
-                        }
-                }
+                const reorder = async (e: any) => {
+                    try {
+                        setLoading(true);
+                        await apiRaces.reorderRanking(e.value);
+                        await fetchRows();
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+                const displayName = (rowdata: RaceRow, column: any) => {
+                    return (
+                        <span>
+            <AddWinnersIcons
+                rowdata={rowdata}
+                transformedRows={transformedRows}/>
+                            {rowdata.sprintchallenge &&
+                            <Tooltip
+                              title='Vainqueur du challenge du meilleur sprinter'>
+                              <EmojiPeopleIcon
+                                style={{
+                                    verticalAlign: 'middle'
+                                }}/></Tooltip>}{rowdata.name}
+        </span>);
+                };
+
                 const flagchallenge = (row: RaceRow) => row.riderNumber &&
                     [<Tooltip key={1}
                               title={getTitleChallengeButton(row)}><EmojiPeopleIcon
@@ -238,11 +258,12 @@ const EditResultsPage = (gprops: any) => {
                         <DataTable responsive={true}
                                    value={transformedRows}
                                    emptyMessage="Aucune donnée ne correspond à la recherche"
-                                   {...(isEdit? {onRowReorder: reorder} : undefined)}
+                                   {...(isEdit ? {onRowReorder: reorder} : undefined)}
                                    loading={loading}
                                    columnResizeMode='expand'
                                    editMode={'cell'}>
-                            <Column  {...(isEdit? {rowReorder: true} : false)} style={{width: '3em'}}/>
+                            <Column  {...(isEdit ? {rowReorder: true} : false)}
+                                     style={{width: '3em'}}/>
                             <Column field="classement" header="Clt."
                                     editor={(allprops) => notRankedEditor(transformedRows, allprops)}
                                     filterMatchMode='contains'
@@ -257,7 +278,7 @@ const EditResultsPage = (gprops: any) => {
                                     }}
                                     filterMatchMode='contains'/>
                             <Column field='name' header='Nom'
-                                    body={(rowdata: RaceRow, column: any) => displayName(rowdata, column, transformedRows)}
+                                    body={(rowdata: RaceRow, column: any) => displayName(rowdata, column)}
                                     filter={true}
                                     filterMatchMode='contains'/>
                             <Column field='club' header='Club' filter={true}
@@ -274,11 +295,13 @@ const EditResultsPage = (gprops: any) => {
                             <Column field="fede" header="Fédé." filter={true}
                                     filterMatchMode='contains'
                                     style={{width: '5%', textAlign: 'center'}}/>
-                            { isEdit && <Column style={{width: '5%', textAlign: 'center'}} body={(raceRow: RaceRow) => flagchallenge(raceRow)}/>}
-                            { isEdit && <Column style={{width: '5%', textAlign: 'center'}} body={(raceRow: RaceRow) => deleteAction(raceRow, fetchRows)}/>}
+                            {isEdit && <Column style={{width: '5%', textAlign: 'center'}}
+                                               body={(raceRow: RaceRow) => flagchallenge(raceRow)}/>}
+                            {isEdit && <Column style={{width: '5%', textAlign: 'center'}}
+                                               body={(raceRow: RaceRow) => deleteAction(raceRow, fetchRows)}/>}
                         </DataTable>
                     </Fragment>
-                )
+                );
             }
         }
     </CompetitionLayout>;
