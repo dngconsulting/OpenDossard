@@ -142,7 +142,6 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                     </TableBody>
                 </Table>
             </Paper>)
-
             ;
     }
 };

@@ -50,7 +50,6 @@ const EditResultsPage = (gprops: any) => {
     };
 
     const dossardEditor = (allprops: any, rows: RaceRow[], transformedRows: any, currentRace: string, fetchRows: any) => {
-
         return <InputText
             value={currentDossard}
             keyfilter="pint" type="text" style={{height: '1.5em'}} onChange={async (e: any) => {
@@ -126,7 +125,6 @@ const EditResultsPage = (gprops: any) => {
 
 
     const notRankedEditor = (transformedRows: any, allprops: any) => {
-        console.log('classement ' + transformedRows[allprops.rowIndex].classement);
         if (transformedRows[allprops.rowIndex].riderNumber) {
             return (<div> {transformedRows[allprops.rowIndex].classement}</div>);
         }
@@ -203,12 +201,10 @@ const EditResultsPage = (gprops: any) => {
         </span>);
     };
 
-
     return <CompetitionLayout competitionId={competitionId}>
         {
             ({competition, currentRace, rows, fetchRows}) => {
                 const transformedRows = transformRows(filterByRace(rows, currentRace));
-                console.log('render');
                 const callFlagChallenge = async (row: RaceRow) => {
                     try {
                         setLoading(true);
