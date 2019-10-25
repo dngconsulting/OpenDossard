@@ -534,6 +534,12 @@ export interface RaceRow {
      * @memberof RaceRow
      */
     competitionId: number;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof RaceRow
+     */
+    sprintchallenge?: boolean;
 }
 
 /**
@@ -1629,6 +1635,38 @@ export const RaceAPIApiFetchParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * 
+         * @summary Classe le vainqueur du challenge
+         * @param {RaceRow} raceRow 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        flagChallenge(raceRow: RaceRow, options: any = {}): FetchArgs {
+            // verify required parameter 'raceRow' is not null or undefined
+            if (raceRow === null || raceRow === undefined) {
+                throw new RequiredError('raceRow','Required parameter raceRow was null or undefined when calling flagChallenge.');
+            }
+            const localVarPath = `/api/races/flagChallenge`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'PUT' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+            const needsSerialization = (<any>"RaceRow" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(raceRow || {}) : (raceRow || "");
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * description
          * @summary Rechercher tous les coureurs participants à une course 
          * @param {number} id 
@@ -1824,6 +1862,25 @@ export const RaceAPIApiFp = function(configuration?: Configuration) {
             };
         },
         /**
+         * 
+         * @summary Classe le vainqueur du challenge
+         * @param {RaceRow} raceRow 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        flagChallenge(raceRow: RaceRow, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = RaceAPIApiFetchParamCreator(configuration).flagChallenge(raceRow, options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response;
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+        /**
          * description
          * @summary Rechercher tous les coureurs participants à une course 
          * @param {number} id 
@@ -1947,6 +2004,16 @@ export const RaceAPIApiFactory = function (configuration?: Configuration, fetch?
             return RaceAPIApiFp(configuration).create(raceCreate, options)(fetch, basePath);
         },
         /**
+         * 
+         * @summary Classe le vainqueur du challenge
+         * @param {RaceRow} raceRow 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        flagChallenge(raceRow: RaceRow, options?: any) {
+            return RaceAPIApiFp(configuration).flagChallenge(raceRow, options)(fetch, basePath);
+        },
+        /**
          * description
          * @summary Rechercher tous les coureurs participants à une course 
          * @param {number} id 
@@ -2027,6 +2094,18 @@ export class RaceAPIApi extends BaseAPI {
      */
     public create(raceCreate: RaceCreate, options?: any) {
         return RaceAPIApiFp(this.configuration).create(raceCreate, options)(this.fetch, this.basePath);
+    }
+
+    /**
+     * 
+     * @summary Classe le vainqueur du challenge
+     * @param {RaceRow} raceRow 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RaceAPIApi
+     */
+    public flagChallenge(raceRow: RaceRow, options?: any) {
+        return RaceAPIApiFp(this.configuration).flagChallenge(raceRow, options)(this.fetch, this.basePath);
     }
 
     /**

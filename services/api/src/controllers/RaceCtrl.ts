@@ -57,6 +57,8 @@ export class RaceRow {
     public comment: string;
     @ApiModelProperty()
     public competitionId: number;
+    @ApiModelPropertyOptional()
+    public sprintchallenge: boolean;
 }
 
 export class RaceCreate {
@@ -191,13 +193,26 @@ export class RacesCtrl {
         await this.entityManager.save(newRace);
     }
 
+    @Put('/flagChallenge')
+    @ApiOperation({
+        title: 'Classe le vainqueur du challenge',
+        operationId: 'flagChallenge',
+    })
+    public async flagChallenge(@Body() raceRow: RaceRow): Promise<void> {
+        const racerowToUpdate = await this.entityManager.findOne<Race>(Race, {
+            id: raceRow.id,
+        });
+        racerowToUpdate.sprintchallenge = !racerowToUpdate.sprintchallenge;
+        await this.entityManager.save(racerowToUpdate);
+    }
+
     @Put('/reorderRank')
     @ApiOperation({
         title: 'Réordonne le classement',
         operationId: 'reorderRanking',
     })
     @ApiImplicitBody({name: 'body', type: [RaceRow]})
-    public async reorderRanking(@Body('body') racesrows: RaceRow[]): Promise<void> {
+    public async reorderRanking(@Body() racesrows: RaceRow[]): Promise<void> {
         // Lets remove non ranked riders and DSQ/ABD
         const rows = _.remove(racesrows, item => item.id && !item.comment);
         for (let index = 1; index <= rows.length; index++) {

@@ -8,7 +8,7 @@ import CompetitionChooser from '../pages/CompetitionChooser';
 import StatsPage from '../pages/Stats';
 import EngagementPage from '../pages/Engagement';
 import HomePage from '../pages/Home';
-import EditResultsPage from '../pages/results/Edit';
+import EditResultsPage from '../pages/results/Results';
 
 export default ( {renderAccount} : {renderAccount: () => ReactElement} ) => (
     <React.Fragment>
@@ -19,7 +19,6 @@ export default ( {renderAccount} : {renderAccount: () => ReactElement} ) => (
         <Route path='/stats' title="Statistiques et reporting" component={isAuthenticated(StatsPage)}/>
         <Route path='/account' title="Mon compte" render={renderAccount}/>
         <Route path='/competition/:id/engagements' title="Engagement des coureurs" component={isAuthenticated(EngagementPage)}/>
-        <Route path='/competition/:id/results/create' title="Editer les résultats" component={isAuthenticated(EditResultsPage)}/>
-        <Route path='/competition/:id/results/view' title="Visualiser les résultats" component={isAuthenticated(EditResultsPage)}/>
+        <Route path='/competition/:id/results/:mode' title="Editer les résultats" component={isAuthenticated(EditResultsPage)}/>
     </React.Fragment>
 )

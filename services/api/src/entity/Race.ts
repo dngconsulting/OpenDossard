@@ -39,4 +39,7 @@ export class Race {
     @Column({nullable: true})
     public comment: string;
 
+    @Column({nullable: true})
+    public sprintchallenge: boolean;
+
 }

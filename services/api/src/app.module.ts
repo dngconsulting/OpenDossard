@@ -17,6 +17,7 @@ import config from './config';
         database: config.db.database,
         entities: [Licence, Club, Competition, Race],
         synchronize: true,
+        logging: true,
     }), Apiv2Module],
 
 })

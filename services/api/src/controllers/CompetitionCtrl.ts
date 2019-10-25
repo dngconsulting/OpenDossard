@@ -1,4 +1,4 @@
-import {BadRequestException, Body, Controller, Get, Param, Post} from '@nestjs/common';
+import {BadRequestException, Body, Controller, Get, Param, Post, Logger} from '@nestjs/common';
 import {ApiModelPropertyOptional, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
 import {EntityManager, Repository} from 'typeorm';
@@ -64,7 +64,7 @@ export class CompetitionCtrl {
     })
     @Get()
     public async getAllCompetitions(): Promise<Competition[]> {
-        return this.repository.find();
+        return await this.repository.find({relations: ['club']});
     }
 
     @Post('/reorganize')

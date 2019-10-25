@@ -12,6 +12,7 @@ import {apiCompetitions} from '../util/api';
 import {Competition} from '../sdk';
 import {toMMDDYYYY} from '../util/date';
 import {withRouter} from 'react-router-dom';
+import {Radio} from '@material-ui/core';
 
 interface ICompetitionChooserProps {
     classes?: any;
@@ -43,6 +44,7 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 const CompetitionChooser = (props: ICompetitionChooserProps) => {
     const [data, setData] = useState<Competition[]>([]);
+    const [selectedEpreuves,setSelectedEpreuves] = useState(null)
     const classes = useStyles(cadtheme);
     const fetchCompetitions = async () => {
         setData(await apiCompetitions.getAllCompetitions());
@@ -67,6 +69,9 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         }
     };
 
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSelectedEpreuves(event.target.value);
+    };
     if (data && data.length === 0) {
         return (<Paper>
             <div className={classes.nocomp}>Aucune épreuve renseignée en base de données correspond
@@ -76,6 +81,18 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
     } else {
         return (
             <Paper className={classes.root}>
+                <Radio
+                    checked={selectedEpreuves === 'past'}
+                    onChange={handleChange}
+                    value="past"
+                    name="radio-button-demo"
+                />Epreuves passées
+                <Radio
+                    checked={selectedEpreuves === 'future'}
+                    onChange={handleChange}
+                    value="future"
+                    name="radio-button-demo"
+                />Epreuves à venir
                 <div className={classes.titre}>Veuillez sélectionner une épreuve :</div>
                 <Table className={classes.table}>
                     <TableHead>
@@ -84,6 +101,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                                 l'épreuve</TableCell>
                             <TableCell variant="head" align="right">Date</TableCell>
                             <TableCell variant="head" align="right">Lieu</TableCell>
+                            <TableCell variant="head" align="right">Club</TableCell>
                             <TableCell variant="head" align="right">Catégories</TableCell>
                             <TableCell variant="head" align="right">Fédération</TableCell>
                             {isResultLink() && <TableCell/>}
@@ -100,12 +118,13 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                                 <TableCell
                                     align="right">{toMMDDYYYY(row.eventDate)}</TableCell>
                                 <TableCell align="right">{row.zipCode}</TableCell>
+                                <TableCell align="right">{row.club.longName}</TableCell>
                                 <TableCell align="right">{row.categories}</TableCell>
                                 <TableCell align="right">{row.fede}</TableCell>
 
                                 {isResultLink() && <TableCell align="right">
                                   <Button variant={'contained'}
-                                          onClick={(event: any) => goToPage(event, row.id, 'results/create')}
+                                          onClick={(event: any) => goToPage(event, row.id, 'results/edit')}
                                           color="secondary"
                                           style={{marginRight: '10px'}}
                                   >

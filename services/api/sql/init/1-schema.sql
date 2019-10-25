@@ -71,9 +71,11 @@ create table race
 	"numberMin" integer,
 	"numberMax" integer,
 	surclassed boolean,
+	sprintchallenge boolean,
 	"competitionId" integer
 		constraint "FK_c2f200c86d364f440af1feda535"
 			references competition,
+
 	"licenceId" integer
 		constraint "FK_093f17c2dd6b28ea95b06329f07"
 			references licence,
