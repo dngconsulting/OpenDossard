@@ -5,6 +5,7 @@ import {apiLicences} from '../../util/api';
 import {Licence, Search} from '../../sdk';
 import {cadtheme} from '../../theme/theme';
 import {Paper} from '@material-ui/core';
+import AwesomeDebouncePromise from 'awesome-debounce-promise';
 
 interface ILicencesProps {
     items: any[];
@@ -12,9 +13,10 @@ interface ILicencesProps {
     history: any;
 }
 
+const getPageSizeLicencesForPageDebounced = AwesomeDebouncePromise((p) => apiLicences.getPageSizeLicencesForPage(p),500)
+
 const fetchLicences = async (query: Query<Licence>): Promise<QueryResult<Licence>> => {
-    const res = await apiLicences.getPageSizeLicencesForPage(
-        prepareFilter(query));
+    const res = await getPageSizeLicencesForPageDebounced(prepareFilter(query));
     return {data: res.data, page: res.page, totalCount: res.totalCount};
 };
 

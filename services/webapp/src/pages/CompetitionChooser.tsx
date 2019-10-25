@@ -147,7 +147,6 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                     <Column field='fede' header='Fédération'
                             style={{minWidth: '5%', textAlign: 'center'}}/>
                 </DataTable>
-
             </Paper>)
             ;
     }

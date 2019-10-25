@@ -1,4 +1,4 @@
-import {BadRequestException, Body, Controller, Get, Param, Post, Logger} from '@nestjs/common';
+import {BadRequestException, Body, Controller, Get, Param, Post} from '@nestjs/common';
 import {ApiModelPropertyOptional, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
 import {EntityManager, Repository} from 'typeorm';
@@ -41,8 +41,13 @@ export class CompetitionCtrl {
         description: 'Renvoie une épreuve',
     })
     public async get(@Param('id') id: string): Promise<Competition> {
-
-        const r = await this.repository.find({where: {id}, relations: ['club']});
+        const r = await this.repository.find({
+            order: {
+                eventDate: 'ASC',
+            },
+            where: {id},
+            relations: ['club'],
+        });
 
         if (r.length !== 1) {
             throw new BadRequestException(`Competition ${id} not found`);

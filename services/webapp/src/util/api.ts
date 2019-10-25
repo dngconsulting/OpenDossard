@@ -7,10 +7,10 @@ import {
     SecurityApi
 } from '../sdk';
 
-const config = new Configuration({basePath :window.location.origin});
+export const apiconfig = new Configuration({basePath :window.location.origin});
 
-export const passportCtrl = new SecurityApi(config)
-export const apiLicences = new LicenceAPIApi(config)
-export const apiRaces = new RaceAPIApi(config)
-export const apiCompetitions = new CompetitionAPIApi(config)
-export const apiClubs = new ClubAPIApi(config)
+export const passportCtrl = new SecurityApi(apiconfig,apiconfig.basePath)
+export const apiLicences = new LicenceAPIApi(apiconfig,apiconfig.basePath)
+export const apiRaces = new RaceAPIApi(apiconfig,apiconfig.basePath)
+export const apiCompetitions = new CompetitionAPIApi(apiconfig,apiconfig.basePath)
+export const apiClubs = new ClubAPIApi(apiconfig,apiconfig.basePath)

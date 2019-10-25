@@ -250,7 +250,7 @@ const EditResultsPage = (gprops: any) => {
                     [<Tooltip key={1}
                               title={getTitleChallengeButton(row)}><EmojiPeopleIcon
                         onClick={(e) => callFlagChallenge(row)}/></Tooltip>, row.sprintchallenge &&
-                    <Tooltip title={getTitleChallengeButton(row)}><Delete
+                    <Tooltip key={2} title={getTitleChallengeButton(row)}><Delete
                       onClick={(e) => callFlagChallenge(row)} key={2}
                       style={{height: 15, width: 15}}/></Tooltip>];
                 return (
