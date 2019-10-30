@@ -1,4 +1,4 @@
-import {Column, Entity, PrimaryGeneratedColumn} from 'typeorm';
+import {Column, Entity, PrimaryGeneratedColumn, Index} from 'typeorm';
 import {Federation} from './Federation';
 import {ApiModelProperty} from '@nestjs/swagger';
 
@@ -10,14 +10,17 @@ export class Licence {
 
     @ApiModelProperty()
     @Column({ nullable: true })
+    @Index()
     licenceNumber: string;
 
     @ApiModelProperty()
     @Column({ nullable: true })
+    @Index()
     name: string;
 
     @ApiModelProperty()
     @Column({ nullable: true })
+    @Index()
     firstName: string;
 
     @ApiModelProperty()

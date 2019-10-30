@@ -13,7 +13,7 @@ import {filterLicences} from '../common/filters';
 
 const create = async (newRace: RaceCreate) => {
     await apiRaces.create(newRace);
-}
+};
 
 const formStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -33,13 +33,14 @@ interface IForm {
     licence: null | {
         id: number,
         name: string,
-        firstName: string
+        firstName: string,
+        catev: string
     },
     riderNumber: string
     catev: string
 }
 
-const EMPTY_FORM:IForm = {licence: null, riderNumber: '', catev: ''}
+const EMPTY_FORM: IForm = {licence: null, riderNumber: '', catev: ''};
 
 export const CreationForm = (
     {competition, race, onSuccess}:
@@ -51,15 +52,24 @@ export const CreationForm = (
 ) => {
 
     const [form, setForm] = useState<IForm>(EMPTY_FORM);
-    const [ ,setNotification] = useContext(NotificationContext);
+    const [, setNotification] = useContext(NotificationContext);
 
-    const onError = (message:string) => setNotification({
+    const onError = (message: string) => setNotification({
         message,
         open: true,
         type: 'error'
-    })
+    });
 
     const submit = async () => {
+        // TODO : Les catégories de valeur doivent etre référencées dans une table avec la fédé
+        if (isNaN(parseInt(form.catev))) {
+            setNotification({
+                message: `La catégorie de valeur doit être un chiffre de 1 à 5 `,
+                open: true,
+                type: 'error'
+            });
+        return;
+        }
         try {
             const dto: RaceCreate = {
                 licenceId: form.licence && form.licence.id,
@@ -67,21 +77,21 @@ export const CreationForm = (
                 riderNumber: parseInt(form.riderNumber),
                 catev: form.catev,
                 competitionId: competition.id
-            }
+            };
             await create(dto);
             setNotification({
                 message: `Le coureur ${form.licence.name} ${form.licence.firstName} a bien été enregistré sous le dossard ${form.riderNumber}`,
                 open: true,
                 type: 'success'
-            })
-            onSuccess(form)
+            });
+            onSuccess(form);
             setForm(EMPTY_FORM);
         } catch (e) {
-            if ( e.json ) {
+            if (e.json) {
                 const {message} = (await e.json());
-                onError(message)
+                onError(message);
             } else {
-                console.log(e)
+                console.log(e);
                 onError('Une erreur est survenue');
             }
         }
@@ -92,53 +102,60 @@ export const CreationForm = (
             ...form,
             licence,
             riderNumber: '',
-            catev: competition && licence && (competition.fede === licence.fede) ? licence.catev : ''
-        })
-    }
+            catev: (competition && licence && (competition.fede === licence.fede)) ? licence.catev : ''
+        });
+    };
 
     const classes = formStyles({});
 
+    const catecolor = (form.licence && form.catev !== form.licence.catev) ? 'red' : '#000';
     return <Grid container={true} alignItems="flex-end" className={classes.form}>
-            <Grid item={true}>
-                <Typography variant="h5" style={{marginRight: 20}}>
-                    Nouveau Coureur :
-                </Typography>
-            </Grid>
-            <Grid item={true} style={{zIndex: 20}}>
-                <AutocompleteInput style={{width: '450px'}} selection={form.licence} onChangeSelection={onRiderChange} placeholder="Coureur (nom, numéro de licence...)" feedDataAndRenderer={filterLicences}/>
-            </Grid>
-            <Grid item={true}>
-                <TextField
-                    label="Numéro de dossard"
-                    value={form.riderNumber}
-                    className={classes.field}
-                    onChange={e => setForm({...form, riderNumber: e.target.value})}
-                    inputProps={{
-                        onKeyPress: e => e.key === 'Enter' && submit(),
-                        style: {textAlign: 'center'}
-                    }}
-                />
-            </Grid>
-            <Grid item={true} xs={1}>
-                <TextField
-                    label="Catégorie"
-                    value={form.catev}
-                    className={classes.field}
-                    onChange={e => setForm({...form, catev: e.target.value})}
-                    inputProps={{
-                        onKeyPress: e => e.key === 'Enter' && submit(),
-                        style: {textAlign: 'center'}
-                    }}
-                />
-            </Grid>
-            <Grid item={true}>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={submit}
-                >
-                    Ajouter
-                </Button>
-            </Grid>
+        <Grid item={true}>
+            <Typography variant="h5" style={{marginRight: 20}}>
+                Nouveau Coureur :
+            </Typography>
         </Grid>
-}
+        <Grid item={true} style={{zIndex: 20}}>
+            <AutocompleteInput style={{width: '500px'}} selection={form.licence}
+                               onChangeSelection={onRiderChange}
+                               placeholder="Coureur (nom, numéro de licence...)"
+                               feedDataAndRenderer={filterLicences}/>
+        </Grid>
+        <Grid item={true}>
+            <TextField
+                label="Numéro de dossard"
+                value={form.riderNumber}
+                className={classes.field}
+                onChange={e => setForm({...form, riderNumber: e.target.value})}
+                inputProps={{
+                    onKeyPress: e => e.key === 'Enter' && submit(),
+                    style: {textAlign: 'center'}
+                }}
+            />
+        </Grid>
+
+        <Grid item={true} xs={1}>
+            <TextField
+                label="Catégorie"
+                value={form.catev}
+                className={classes.field}
+                onChange={e => {
+                    setForm({...form, catev: e.target.value});
+                }}
+                inputProps={{
+                    onKeyPress: e => e.key === 'Enter' && submit(),
+                    style: {textAlign: 'center', color: catecolor}
+                }}
+            />
+        </Grid>
+        <Grid item={true}>
+            <Button
+                variant="contained"
+                color="primary"
+                onClick={submit}
+            >
+                Ajouter
+            </Button>
+        </Grid>
+    </Grid>;
+};

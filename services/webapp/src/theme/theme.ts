@@ -21,6 +21,23 @@ export const cadtheme = createMuiTheme({
         MuiDrawer: {
 
         },
+        MuiTab: {
+            root: {
+                "&:hover": {
+                    backgroundColor: palette.secondary.light,
+                    color: '#000'
+                },
+                selected: {
+                    backgroundColor: palette.secondary.light,
+                    color: '#000',
+                    "&:hover": {
+                        backgroundColor: palette.secondary.light,
+                        color: '#000'
+                    }
+                }
+            },
+
+        },
         MuiButton: {
             containedPrimary: {
                 color: '#fff',

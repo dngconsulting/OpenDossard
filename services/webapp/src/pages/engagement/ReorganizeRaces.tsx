@@ -176,10 +176,10 @@ export const Reorganizer = ({competition, rows, onSuccess} : {competition: Compe
                 }
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => setOpen(false)} color="primary">
+                <Button onClick={() => setOpen(false)} variant='contained' color="primary">
                     Annuler
                 </Button>
-                <Button onClick={() => save()} color="primary" disabled={errors.length > 0}>
+                <Button onClick={() => save()} variant='contained' color="primary" disabled={errors.length > 0}>
                     Réorganiser
                 </Button>
             </DialogActions>
@@ -225,6 +225,7 @@ const Categories = ({byCate} : {byCate: Array<{catev:string, participants: numbe
 
     return <Box className={classes.categories}>
         <table>
+            <tbody>
             <tr>
                 <th>Catégories : </th>
                 { byCate.map( stat => <td key={stat.catev}>{stat.catev}</td>) }
@@ -233,6 +234,7 @@ const Categories = ({byCate} : {byCate: Array<{catev:string, participants: numbe
                 <th>Inscrits : </th>
                 { byCate.map( stat => <td key={stat.catev}>{stat.participants}</td>) }
             </tr>
+            </tbody>
         </table>
         <span>Répartition des coureurs par catégories</span>
     </Box>

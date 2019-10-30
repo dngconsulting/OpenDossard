@@ -1,4 +1,4 @@
-import {Column, Entity, PrimaryGeneratedColumn} from 'typeorm';
+import {Column, Entity, Index, PrimaryGeneratedColumn} from 'typeorm';
 import {ApiModelProperty} from '@nestjs/swagger';
 
 @Entity()
@@ -8,6 +8,7 @@ export class Club {
     public id: number;
     @ApiModelProperty()
     @Column({nullable: true})
+    @Index()
     shortName: string;
     @ApiModelProperty()
     @Column({nullable: true})

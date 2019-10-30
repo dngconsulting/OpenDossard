@@ -17,15 +17,25 @@ const useStyles = makeStyles((theme: Theme) =>
     createStyles({
         tabs: {
             minHeight: 0,
+            color : 'black',
             '& button': {
+                marginRight:5,
+                color: 'white',
+                fontSize:'20px',
+                fontWeight : 'bolder',
                 minHeight: 0,
                 paddingBottom: 3,
                 paddingTop: 13,
+                paddingLeft:5,
+                paddingRight:5,
                 borderTopLeftRadius: 6,
                 borderTopRightRadius: 6,
                 backgroundColor: theme.palette.grey[300],
                 '&[aria-selected="true"]': {
-                    backgroundColor: theme.palette.common.white,
+                    backgroundColor: theme.palette.secondary.light,
+                    color: 'white',
+                    fontSize:'20px',
+                    fontWeight : 'bolder'
                 }
             }
         },
@@ -44,7 +54,8 @@ const RaceTabs = ({tabs, value, onChange}: IRaceTabs) => {
                             centered={true}
                             TabIndicatorProps={{style: {height: 0}}} >
             {
-                Object.keys(tabs).sort().map(code => (
+
+                Object.keys(tabs).sort().map((code,index) => (
                         <Tab key={code}
                              value={code}
                              label={

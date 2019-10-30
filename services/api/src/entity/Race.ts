@@ -1,4 +1,4 @@
-import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from 'typeorm';
+import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Index} from 'typeorm';
 import {Competition} from './Competition';
 import {Licence} from './Licence';
 
@@ -16,6 +16,7 @@ export class Race {
     public licence: Licence;
 
     @Column({nullable: true})
+    @Index()
     public raceCode: string;
 
     @Column({nullable: true})

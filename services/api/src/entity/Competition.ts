@@ -1,4 +1,4 @@
-import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from 'typeorm';
+import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Index} from 'typeorm';
 import {Federation} from './Federation';
 import {Club} from './Club';
 import {ApiModelProperty, ApiModelPropertyOptional} from '@nestjs/swagger';
@@ -39,6 +39,7 @@ export class Competition {
      */
     @Column({nullable: false})
     @ApiModelProperty({ type: 'string', format: 'date-time'})
+    @Index()
     public eventDate: Date;
     /**
      * La référence du club organisateur

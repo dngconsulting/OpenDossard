@@ -124,7 +124,7 @@ export class RacesCtrl {
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
     public async getCompetitionRaces(@Param('id') competitionId: number): Promise<RaceRow[]> {
 
-        const query = `select r.*, concat(l.name,' ',l."firstName") as name, l."licenceNumber", l.club, l.gender, l.fede, l."birthYear", l.catea
+        const query = `select r.*, concat(l.name,' ',l."firstName") as name, l."licenceNumber", l.club, l.gender, l.fede, l.birthday, l.catea
                         from race r
                         join licence l on r."licenceId" = l.id
                         where r."competitionId" = $1

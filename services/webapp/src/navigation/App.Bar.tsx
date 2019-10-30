@@ -141,7 +141,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
                             <MenuIcon/>
                         </IconButton>
                         <Typography className={classes.fillSpace} color="inherit" noWrap={true}>
-                            Click & Dossard {this.props.history.location.state && this.props.history.location.state.title && " - " + this.props.history.location.state.title}
+                            Open Dossard {this.props.history.location.state && this.props.history.location.state.title && " - " + this.props.history.location.state.title}
                         </Typography>
                         <div>
                             <IconButton
