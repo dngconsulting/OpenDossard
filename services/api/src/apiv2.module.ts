@@ -17,6 +17,7 @@ import {APP_INTERCEPTOR} from '@nestjs/core';
 import {RlogInterceptor} from './interceptors/rlog.interceptor';
 import {CompetitionCtrl} from './controllers/CompetitionCtrl';
 import {ClubCtrl} from './controllers/ClubCtrl';
+import {User} from './entity/User';
 
 const RLog: FactoryProvider = {
     provide: APP_INTERCEPTOR,
@@ -28,7 +29,7 @@ const RLog: FactoryProvider = {
 };
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Licence, Club, Competition, Race]), PassportModule],
+    imports: [TypeOrmModule.forFeature([Licence, Club, Competition, Race,User]), PassportModule],
     providers: [AppService, UsersService, AuthService, LocalStrategy, RLog],
     exports: [UsersService],
     controllers: [LicencesCtrl, PassportCtrl, RacesCtrl, CompetitionCtrl, ClubCtrl],

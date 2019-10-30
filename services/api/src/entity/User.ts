@@ -1,20 +1,32 @@
 /**
  * Application users
- * TODO : not an entity/table yet, users are located in users.json
  */
 import {ApiModelProperty, ApiModelPropertyOptional} from '@nestjs/swagger';
+import {Column, Entity, PrimaryGeneratedColumn} from 'typeorm';
 
+@Entity()
 export class User {
-    @ApiModelPropertyOptional()
-    id?: string;
-    @ApiModelPropertyOptional()
-    firstName: string;
-    @ApiModelPropertyOptional()
-    lastName: string;
-    @ApiModelPropertyOptional()
-    password: string;
     @ApiModelProperty()
-    email: string;
+    @PrimaryGeneratedColumn()
+    public id: number;
+
     @ApiModelPropertyOptional()
-    phone?: string;
+    @Column({nullable: true})
+    public firstName: string;
+
+    @Column({nullable: true})
+    @ApiModelPropertyOptional()
+    public lastName: string;
+
+    @Column({nullable: true})
+    @ApiModelPropertyOptional()
+    public password: string;
+
+    @Column({nullable: false})
+    @ApiModelProperty()
+    public email: string;
+
+    @Column({nullable: true})
+    @ApiModelPropertyOptional()
+    public phone?: string;
 }
