@@ -70,12 +70,12 @@
     "webpack": "^4.40.2"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts-ts test --env=jsdom",
+    "start": "node node_modules/react-scripts/bin/react-scripts start",
+    "build": "node node_modules/react-scripts/bin/react-scripts build",
+    "test": "node node_modules/react-scripts/bin/react-scripts-ts test --env=jsdom",
     "postinstall": "npm run build",
     "deploy": "node server.js",
-    "eject": "react-scripts-ts eject",
+    "eject": "node node_modules/react-scripts/bin/react-scripts-ts eject",
     "tslint:check": "tslint --project .",
     "tslint:fix": "tslint --fix --project ."
   },
