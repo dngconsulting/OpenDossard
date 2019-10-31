@@ -139,6 +139,8 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                                                style={{minWidth: '5%', textAlign: 'center'}}/>}
                     <Column field='eventDate' header='Date' body={displayDate}
                             style={{minWidth: '2%', textAlign: 'center'}}/>
+                    <Column field='name' header="Nom de l'épreuve"
+                            style={{minWidth: '2%', textAlign: 'center'}}/>
                     <Column field='zipCode' header='Lieu'
                             style={{minWidth: '2%', textAlign: 'center'}}/>
                     <Column field='club.longName' header='Club'
