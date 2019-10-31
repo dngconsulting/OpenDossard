@@ -25,6 +25,7 @@ import AppDrawer from './App.Drawer';
 import NotificationIcon from '@material-ui/icons/Notifications';
 import AppRoutes from "./AppRoutes";
 import {CadSnackBar} from "../components/CadSnackbar";
+import logo from '../assets/logos/logo_transparent.png';
 
 const classNames = require('classnames');
 
@@ -33,6 +34,7 @@ const classNames = require('classnames');
 interface IAppProps extends IApplicationProps {
     classes: any;
     theme?: any;
+    title:any;
 }
 
 interface IState {
@@ -140,8 +142,9 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
                         >
                             <MenuIcon/>
                         </IconButton>
+                        <img src={logo} width={30} height={30}/>
                         <Typography className={classes.fillSpace} color="inherit" noWrap={true}>
-                            Open Dossard {this.props.history.location.state && this.props.history.location.state.title && " - " + this.props.history.location.state.title}
+                            {this.props.history.location.state && this.props.history.location.state.title ? this.props.history.location.state.title:"Open Dossard "}
                         </Typography>
                         <div>
                             <IconButton

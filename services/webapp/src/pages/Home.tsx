@@ -1,5 +1,6 @@
 import * as React from 'react';
-import {Grid, Theme, withStyles} from '@material-ui/core';
+import {Theme, withStyles} from '@material-ui/core';
+
 
 interface IDashboardProps {
     fetchUsers: (context?: any) => void;
@@ -23,12 +24,44 @@ class HomePage extends React.Component<IDashboardProps, IPageState> {
     };
 
     public render(): JSX.Element {
-        const { classes } = this.props;
+        const {classes} = this.props;
         return (
             <div className={classes.root}>
-                <Grid container={true}>
-                    Home page content
-                </Grid>
+                L'application Open Dossard est destinée à gérer l'engagement et
+                l'édition des résultats d'une course cycliste.
+                Elle est éditée par la société <a href='http://www.dng-consulting.com'
+                                                  style={{marginRight: 2, marginLeft: 2}}>DNG
+                Consulting </a> qui en assure le support.
+                <p><strong>Open Dossard</strong> est une plateforme digitale permettant de stocker
+                    et partager les informations li&eacute;es aux courses cyclistes des
+                    f&eacute;d&eacute;rations FSGT et UFOLEP :</p>
+                <ol>
+                    <li>A destination des commissaires&nbsp;
+                        <ul>
+                            <li>Gestion des engagements avec recherche automatique des
+                                licences&nbsp;</li>
+                            <li>Gestion des r&eacute;sultats par cat&eacute;gorie de valeur ou
+                                cat&eacute;gorie d'age
+                            </li>
+                            <li>Edition de rapports statistiques (fr&eacute;quentation,
+                                palmar&egrave;s des coureurs, ...)
+                            </li>
+                        </ul>
+                    </li>
+                    <li>A destination des coureurs&nbsp;
+                        <ul>
+                            <li>Affichage des r&eacute;sultats en ligne aussit&ocirc;t le classement
+                                r&eacute;alis&eacute;</li>
+                            <li>Classement automatique par cat&eacute;gories de valeur et d'age</li>
+                            <li>Statistiques d'un coureur (palmar&egrave;s, assiduit&eacute;, ...)
+                            </li>
+                        </ul>
+                    </li>
+                </ol>
+                <p>Notre volont&eacute; est de permettre aux diff&eacute;rents acteurs des
+                    f&eacute;d&eacute;rations (commissaires mais aussi coureurs)
+                    d'acc&eacute;der &agrave; un seul endroit &agrave; toutes les informations d'une
+                    course.&nbsp;</p>
             </div>
         );
     }
@@ -38,7 +71,7 @@ const styles = (theme: Theme) => ({
     root: {
         flexGrow: 1,
         marginBottom: 24,
-        padding : '5px'
+        padding: '15px'
     },
     paper: {
         padding: theme.spacing(2),
@@ -59,7 +92,7 @@ const styles = (theme: Theme) => ({
     },
     tileText: {
         fontSize: 20,
-        color: theme.palette.grey["400"],
+        color: theme.palette.grey['400'],
     },
     sectionTitle: {
         paddingLeft: theme.spacing(2),

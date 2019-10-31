@@ -71,8 +71,8 @@ const surclassed = ({catev, raceCode}: RaceRow) => {
 
 const FILTERABLE = {filter: true, sortable: true, filterMatchMode: 'contains'}
 const SHORT = {style: {width: 120, textAlign: 'center', padding : 5}, bodyClassName:'nopadding'}
-const EngagementPage = ({match}: { match: any }) => {
-    const competitionId = match.params.id;
+const EngagementPage = (props:any) => {
+    const competitionId = props.match.params.id;
     const dg = useRef(null);
     const [, setNotification] = useContext(NotificationContext);
     const [selectedRow, selectRow] = useState();
@@ -93,7 +93,6 @@ const EngagementPage = ({match}: { match: any }) => {
         closeDialog();
     };
     const classes = style({});
-
     return <CompetitionLayout competitionId={competitionId}>
         {
             ({competition,currentRace, rows, fetchRows, fetchCompetition}) => {

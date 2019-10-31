@@ -12,13 +12,13 @@ import EditResultsPage from '../pages/results/Results';
 
 export default ( {renderAccount} : {renderAccount: () => ReactElement} ) => (
     <React.Fragment>
-        <Route path='/' exact={true} title="Page d'accueil" component={isAuthenticated(HomePage)}/>
-        <Route path='/licences' title="Les licences" component={isAuthenticated(LicencesPage)}/>
-        <Route path='/licence/:id' component={isAuthenticated(LicencePage)}/>
-        <Route path='/competitionchooser/:goto' title="Sélection d'une épreuve" component={isAuthenticated(CompetitionChooser)}/>
-        <Route path='/stats' title="Statistiques et reporting" component={isAuthenticated(StatsPage)}/>
-        <Route path='/account' title="Mon compte" render={renderAccount}/>
-        <Route path='/competition/:id/engagements' title="Engagement des coureurs" component={isAuthenticated(EngagementPage)}/>
-        <Route path='/competition/:id/results/:mode' title="Editer les résultats" component={isAuthenticated(EditResultsPage)}/>
+        <Route path='/' exact={true} title="Page d'accueil" component={isAuthenticated(HomePage)} />
+        <Route path='/licences' title="Les licences" component={isAuthenticated(LicencesPage)} />
+        <Route path='/licence/:id' component={isAuthenticated(LicencePage)} />
+        <Route title="Sélection d'une épreuve" path='/competitionchooser/:goto' component={isAuthenticated(CompetitionChooser)} />
+        <Route title="Statistiques et reporting" path='/stats' component={isAuthenticated(StatsPage)}/>
+        <Route title="Mon compte" path='/account' render={renderAccount} />
+        <Route title="Engagement des coureurs" path='/competition/:id/engagements' component={isAuthenticated(EngagementPage)} />
+        <Route path='/competition/:id/results/:mode' title="Editer les résultats" component={isAuthenticated(EditResultsPage)} />
     </React.Fragment>
 )

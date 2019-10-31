@@ -15,7 +15,8 @@ import * as querystring from 'querystring';
 import {Redirect} from 'react-router';
 import {passportCtrl} from '../../util/api';
 import {User} from '../../sdk';
-import logohorizontal from '../../assets/logos/logohorizontal.png';
+import logohorizontal from '../../assets/logos/logo_banner.png';
+import {cadtheme} from '../../theme/theme';
 
 interface ILoginProps {
     login?: (data: any) => void;
@@ -56,7 +57,6 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
                 email: this.state.email,
                 password: this.state.password
             });
-            console.log('User = ' + JSON.stringify(user));
             this.props.login(user);
         } catch (err) {
             this.setState({error: true});
@@ -73,15 +73,19 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
 
         return (
             <div className={classes.container}>
-                <Paper className={classes.paper}>
+                <Paper style={{ width: '30%',
+                    minWidth:'281px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignContent: 'center'}}>
                     <div style={{
                         display: 'flex',
+                        backgroundColor: cadtheme.palette.primary.main,
                         alignItems: 'center',
                         justifyContent: 'center',
-                    }}><img src={logohorizontal} width='225' height='60'/></div>
+                    }}><img src={logohorizontal} width='281' height='122'/></div>
                     <FormControl required={true} fullWidth={true} className={classes.field}>
-                        <InputLabel error={this.state.error} htmlFor="email">Email
-                            Address</InputLabel>
+                        <InputLabel error={this.state.error} style={{padding:10}} htmlFor="email">Adresse mail ou identifiant</InputLabel>
                         <Input
                             value={this.state.email}
                             error={this.state.error}
@@ -94,8 +98,8 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
                         />
                     </FormControl>
                     <FormControl required={true} fullWidth={true} className={classes.field}>
-                        <InputLabel error={this.state.error}
-                                    htmlFor="password">Password</InputLabel>
+                        <InputLabel error={this.state.error} style={{padding:10}}
+                                    htmlFor="password">Mot de passe</InputLabel>
                         <Input
                             value={this.state.password}
                             error={this.state.error}
@@ -135,34 +139,21 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
 const styles = (theme: Theme) => ({
     container: {
         display: 'flex',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        minWidth:281
     },
-    paper: theme.mixins.gutters({
-        paddingTop: 16,
-        paddingBottom: 16,
-        marginTop: theme.spacing(3),
-        width: '30%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignContent: 'center',
-        [theme.breakpoints.down('md')]: {
-            width: '100%',
-        },
-    }),
+    formControl: {
+      padding : 10
+    },
     field: {
-        marginTop: theme.spacing(3)
+        padding: theme.spacing(3)
     },
     actions: theme.mixins.gutters({
-        paddingTop: 16,
-        paddingBottom: 16,
-        marginTop: theme.spacing(3),
         display: 'flex',
         flexDirection: 'row',
         alignContent: 'center'
     }),
-    button: {
-        marginRight: theme.spacing(1)
-    },
+
 });
 
 export default withStyles(styles, {withTheme: true})(LoginPage as any) as any;

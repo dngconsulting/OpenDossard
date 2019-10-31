@@ -27,11 +27,8 @@ const useStyles = makeStyles((theme: Theme) =>
         root: {
             width: '100%',
             height: '100%',
-            overflowX: 'auto',
             padding: '5px'
-        },
-        table: {
-            minWidth: 650,
+
         },
         titre: {
             padding: '10px',
@@ -68,7 +65,10 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
     };
 
     const goToPage = (competitionid: number, resultsPage?: string) => {
-        props.history.push('/competition/' + competitionid + '/' + (resultsPage? resultsPage:'engagements'));
+        props.history.push({
+            pathname: '/competition/' + competitionid + '/' + (resultsPage? resultsPage:'engagements'),
+            state: { title: (resultsPage? 'Résultats' : 'Engagements') }
+        })
     };
 
     const displayDate = (row: Competition) => {
