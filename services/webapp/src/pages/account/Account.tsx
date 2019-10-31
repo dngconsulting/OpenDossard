@@ -1,7 +1,7 @@
 import * as React from 'react';
 import LoginPage from './Login';
 import {Route, Switch} from 'react-router';
-import {ProfilePage} from './Profile';
+import ProfilePage from './Profile';
 import {isAuthenticated} from '../../state/ReduxState';
 import {User} from '../../sdk';
 

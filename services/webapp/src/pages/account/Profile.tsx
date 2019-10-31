@@ -1,8 +1,25 @@
 import * as React from 'react';
-import {Typography} from '@material-ui/core';
+import {IApplicationProps} from '../../actions/App.Actions';
+import {ReduxState} from '../../state/ReduxState';
+import {connect} from 'react-redux';
 
-export class ProfilePage extends React.Component<{}, {}> {
+class ProfilePage extends React.Component<IApplicationProps, {}> {
+
     public render(): JSX.Element {
-        return (<Typography noWrap={false}>{"Profile Page"}</Typography>)
+        const {authentication} = this.props;
+        return (
+            <div style={{padding:10}}><b>Information de l'utilisateur connecté : <br/></b>
+                Nom : {authentication.lastName} <br/>
+                Prénom : {authentication.firstName} <br/>
+                Email : {authentication.email} <br/>
+                Téléphone : {authentication.phone} <br/>
+            </div>
+        );
     }
 }
+
+const mapStateToProps = (state: ReduxState) => ({
+    authentication: state.authentication,
+});
+
+export default connect(mapStateToProps, {})(ProfilePage);

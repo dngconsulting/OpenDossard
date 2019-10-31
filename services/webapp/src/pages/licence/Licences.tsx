@@ -65,7 +65,7 @@ const LicencesPage = (props: ILicencesProps) => {
                     pageSizeOptions: [5, 10, 20],
                     search: true,
                     headerStyle: {
-                        backgroundColor: cadtheme.palette.primary.light,
+                        backgroundColor: cadtheme.palette.primary.main,
                         color: '#FFF',
                         fontSize: 15,
                         zIndex: 'auto'
