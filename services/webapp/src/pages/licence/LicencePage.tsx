@@ -20,6 +20,7 @@ import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
 import ClubSelect, {IOptionType} from './ClubSelect';
 import {Licence} from '../../sdk';
 import {apiLicences} from '../../util/api';
+import {CATEA, FEDERATIONS} from '../common/shared-entities';
 
 interface ILicencesProps {
     items: any[];
@@ -43,44 +44,6 @@ const useStyles = makeStyles((theme: Theme) =>
         }
     }),
 );
-
-const catev = [
-    {label: 'Non Licencié', value: 'nl'},
-    {label: 'Cadet', value: 'cadet'},
-    {label: 'Minimes', value: 'm'},
-    {label: '1', value: '1'},
-    {label: '2', value: '2'},
-    {label: '3', value: '3'}];
-
-const catea = [
-    {label: 'Jeune', value: 'j'},
-    {label: 'Senior', value: 's'},
-    {label: 'Vétéran', value: 'v'},
-    {label: 'Super Vétéran', value: 'sv'},
-    {label: 'Ancien', value: 'a'},
-    {label: 'Cadet', value: 'c'},
-    {label: 'Minimes', value: 'm'},
-    {label: 'Espoir', value: 'e'}];
-
-const federations = {
-    fsgt: {
-        name: {label: 'FSGT', value: 'fsgt'},
-        catev: [...catev, {label: '4', value: '4'}, {label: '5', value: '5'}]
-    },
-    ufolep: {
-        name: {label: 'UFOLEP', value: 'ufolep'},
-        catev: [...catev, {label: 'GSa', value: 'gsa'},{label: 'GSb', value: 'gsb'},{label: 'Jeune', value: 'j'}]
-    },
-    ffc: {
-        name: {label: 'FFC', value: 'ffc'},
-        catev
-    },
-    nl:{
-        name:{label: 'Non Licencié', value: 'nl'},
-        catev: [...catev, {label: '4', value: '4'}, {label: '5', value: '5'}]
-    }
-};
-
 
 const LicencesPage = (props: ILicencesProps) => {
 
@@ -205,8 +168,8 @@ const LicencesPage = (props: ILicencesProps) => {
                                 id: 'fede',
                             }}
                         >
-                            {Object.keys(federations).map((key, index) => <MenuItem key={index}
-                                                                                    value={federations[key].name.value}>{federations[key].name.label}</MenuItem>)}
+                            {Object.keys(FEDERATIONS).map((key, index) => <MenuItem key={index}
+                                                                                    value={FEDERATIONS[key].name.value}>{FEDERATIONS[key].name.label}</MenuItem>)}
                         </Select>
                     </FormControl>
                 </Grid>
@@ -290,7 +253,7 @@ const LicencesPage = (props: ILicencesProps) => {
                                 id: 'catea',
                             }}
                         >{
-                            catea.map((value: ICategory, index: number) => <MenuItem key={index}
+                            CATEA.map((value: ICategory, index: number) => <MenuItem key={index}
                                                                                      value={value.value}>{ newLicence.gender === 'F' ?
                                 value.label + ' (F' + value.value.toUpperCase() + ')' : value.label + ' (' + value.value.toUpperCase() + ')'}</MenuItem>)
                         }
@@ -310,7 +273,7 @@ const LicencesPage = (props: ILicencesProps) => {
                         > {
 
                             newLicence.fede &&
-                            federations[newLicence.fede].catev.map((value: ICategory, index: number) =>
+                            FEDERATIONS[newLicence.fede].catev.map((value: ICategory, index: number) =>
                                 <MenuItem key={index} value={value.value}>{value.label}</MenuItem>)
 
                         }

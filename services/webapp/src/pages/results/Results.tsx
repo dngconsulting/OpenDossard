@@ -151,7 +151,7 @@ const EditResultsPage = (gprops: any) => {
 
     const rankOfCate = (rowdata: any, transformedRows: any): string | number => {
         const r = (transformedRows
-            .filter((v: RaceRow) => parseInt(v.catev) === parseInt(rowdata.catev))
+            .filter((v: RaceRow) => v.catev === rowdata.catev)
             .findIndex((item: RaceRow, index: number) => item.id === rowdata.id)) + 1;
         return (r === 0) ? '' : r;
     };

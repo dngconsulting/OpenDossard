@@ -70,7 +70,7 @@ const surclassed = ({catev, raceCode}: RaceRow) => {
 }
 
 const FILTERABLE = {filter: true, sortable: true, filterMatchMode: 'contains'}
-const SHORT = {style: {width: 120, textAlign: 'center', padding : 5}, bodyClassName:'nopadding'}
+const SHORT = {style: {width:70, textAlign: 'center', padding : 5}, bodyClassName:'nopadding'}
 const EngagementPage = (props:any) => {
     const competitionId = props.match.params.id;
     const dg = useRef(null);
@@ -110,11 +110,9 @@ const EngagementPage = (props:any) => {
                     },
                     {field: 'riderNumber', header: 'Dossard', ...FILTERABLE, ...SHORT},
                     {field: 'name', header: 'Coureur', ...FILTERABLE, bodyClassName:'nopadding'},
-
-
-                    {field: 'club', header: 'Club', ...FILTERABLE, bodyClassName:'nopadding', style: {width: 400}},
+                    {field: 'club', header: 'Club', ...FILTERABLE, bodyClassName:'nopadding'},
                     {
-                        field: 'catev', header: 'Catégorie', ...FILTERABLE, ...SHORT,
+                        field: 'catev', header: 'Caté. V.', ...FILTERABLE, ...SHORT,
                         body: (row: RaceRow) => <span>
                             {row.catev}
                             {surclassed(row) && <span title="surclassé" className={classes.surclassed}><ArrowUpward /></span>}

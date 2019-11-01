@@ -6,10 +6,13 @@ import AutocompleteInput from '../../components/AutocompleteInput';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import makeStyles from '@material-ui/core/styles/makeStyles';
-import {createStyles, Theme} from '@material-ui/core';
+import {createStyles, FormHelperText, Theme} from '@material-ui/core';
 import {apiRaces} from '../../util/api';
 import {NotificationContext} from '../../components/CadSnackbar';
 import {filterLicences} from '../common/filters';
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
+import {FEDERATIONS} from '../common/shared-entities';
 
 const create = async (newRace: RaceCreate) => {
     await apiRaces.create(newRace);
@@ -28,6 +31,11 @@ const formStyles = makeStyles((theme: Theme) =>
         }
     }),
 );
+
+interface ICategory {
+    label: string;
+    value: string;
+}
 
 interface IForm {
     licence: null | {
@@ -61,15 +69,7 @@ export const CreationForm = (
     });
 
     const submit = async () => {
-        // TODO : Les catégories de valeur doivent etre référencées dans une table avec la fédé
-        if (isNaN(parseInt(form.catev))) {
-            setNotification({
-                message: `La catégorie de valeur doit être un chiffre de 1 à 5 `,
-                open: true,
-                type: 'error'
-            });
-        return;
-        }
+
         try {
             const dto: RaceCreate = {
                 licenceId: form.licence && form.licence.id,
@@ -116,7 +116,7 @@ export const CreationForm = (
             </Typography>
         </Grid>
         <Grid item={true} style={{zIndex: 20}}>
-            <AutocompleteInput style={{width: '500px'}} selection={form.licence}
+            <AutocompleteInput style={{width: '550px'}} selection={form.licence}
                                onChangeSelection={onRiderChange}
                                placeholder="Coureur (nom, numéro de licence...)"
                                feedDataAndRenderer={filterLicences}/>
@@ -132,30 +132,28 @@ export const CreationForm = (
                     style: {textAlign: 'center'}
                 }}
             />
+
         </Grid>
 
-        <Grid item={true} xs={1}>
-            <TextField
-                label="Catégorie"
-                value={form.catev}
-                className={classes.field}
-                onChange={e => {
-                    setForm({...form, catev: e.target.value});
-                }}
-                inputProps={{
-                    onKeyPress: e => e.key === 'Enter' && submit(),
-                    style: {textAlign: 'center', color: catecolor}
-                }}
-            />
-        </Grid>
-        <Grid item={true}>
+
+        <div>
+            <FormHelperText>Catégorie</FormHelperText>
+            <Select value={form.catev as string} style={{color: catecolor, minWidth: '100px'}}
+                    onChange={e => {
+                        setForm({...form, catev: e.target.value as string});
+                    }}>
+                {FEDERATIONS.fsgt.catev.map((value: ICategory, index: number) =>
+                    <MenuItem key={index} value={value.value}>{value.label}</MenuItem>)}
+            </Select>
             <Button
                 variant="contained"
                 color="primary"
+                style={{marginLeft:10}}
                 onClick={submit}
             >
                 Ajouter
             </Button>
-        </Grid>
+        </div>
+
     </Grid>;
 };

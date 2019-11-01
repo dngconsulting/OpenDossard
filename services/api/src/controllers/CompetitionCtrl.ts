@@ -68,7 +68,9 @@ export class CompetitionCtrl {
     })
     @Get()
     public async getAllCompetitions(): Promise<Competition[]> {
-        return await this.repository.find({relations: ['club']});
+        return await this.repository.find({ order: {
+                eventDate: 'ASC',
+            }, relations: ['club']});
     }
 
     @Post('/reorganize')
