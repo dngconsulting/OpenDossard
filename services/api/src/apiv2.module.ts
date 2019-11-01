@@ -29,7 +29,7 @@ const RLog: FactoryProvider = {
 };
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Licence, Club, Competition, Race,User]), PassportModule],
+    imports: [TypeOrmModule.forFeature([Licence, Club, Competition, Race, User]), PassportModule],
     providers: [AppService, UsersService, AuthService, LocalStrategy, RLog],
     exports: [UsersService],
     controllers: [LicencesCtrl, PassportCtrl, RacesCtrl, CompetitionCtrl, ClubCtrl],

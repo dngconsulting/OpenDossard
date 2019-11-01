@@ -29,8 +29,8 @@ export class LicencesCtrl {
     })
     @ApiResponse({status: 200, type: Licence, isArray: true, description: 'Liste des licences'})
     public async getLicencesLike(@Param('param') param: string): Promise<Licence> {
-        const filterParam = param + '%';
-        const query: string = 'select l.* from licence l where UPPER(l.name) like $1 or UPPER(l."firstName") like $1 or UPPER(l."licenceNumber") like $1 fetch first 10 rows only';
+        const filterParam = '%' + param.replace(/\s+/g, '') + '%';
+        const query: string = `select l.* from licence l where REPLACE(CONCAT(UPPER(l.name),UPPER(unaccent(l."firstName")),UPPER(CAST(l.fede AS VARCHAR)),UPPER(l."licenceNumber")),' ', '') like $1 OR REPLACE(CONCAT(UPPER(unaccent(l."firstName")),UPPER(l.name),UPPER(CAST(l.fede AS VARCHAR)),UPPER(l."licenceNumber")),' ','') like $1 fetch first 20 rows only`;
         return await this.entityManager.query(query, [filterParam]);
     }
 
@@ -73,12 +73,12 @@ export class LicencesCtrl {
                 qb.orderBy(`"${search.orderBy}"`, search.orderDirection);
             }
         } else {
-            qb.orWhere( '"licenceNumber" ilike :value' , {value: '%' + search.search + '%'} );
-            qb.orWhere(' name ilike :name', {name : '%' + search.search + '%'});
-            qb.orWhere( '"firstName" ilike :firstName', {firstName : '%' + search.search + '%'});
-            qb.orWhere( ' club ilike :club', {club : '%' + search.search + '%'});
-            qb.orWhere( ' "birthYear" ilike :birthYear', {birthYear : '%' + search.search + '%'});
-            qb.orWhere( ' dept ilike :dept', {dept : '%' + search.search + '%'});
+            qb.orWhere('"licenceNumber" ilike :value', {value: '%' + search.search + '%'});
+            qb.orWhere(' name ilike :name', {name: '%' + search.search + '%'});
+            qb.orWhere('"firstName" ilike :firstName', {firstName: '%' + search.search + '%'});
+            qb.orWhere(' club ilike :club', {club: '%' + search.search + '%'});
+            qb.orWhere(' "birthYear" ilike :birthYear', {birthYear: '%' + search.search + '%'});
+            qb.orWhere(' dept ilike :dept', {dept: '%' + search.search + '%'});
         }
         const res = await
             qb

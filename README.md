@@ -1,8 +1,8 @@
-ClickAndDossard repository is composed by :
+Open Dossard repository is composed by :
 - services API
 - Front React Application
 
-### Quick start
+### Quick start in Dev mode
 
 ```
 ./cad.sh install        # install dependencies
@@ -11,9 +11,9 @@ ClickAndDossard repository is composed by :
 ```
 
 - Webapp : http://localhost:3000
-- Backend api : http://localhost:8080/api-docs
+- Backend api : http://localhost:8080/api
 
-### logs
+### Logs
 
 ```
 ./cad.sh log api

@@ -6,15 +6,15 @@ import {Logger} from '@nestjs/common';
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {logger: ['error', 'warn', 'debug']});
     const options = new DocumentBuilder()
-        .setTitle('Click And Dossard API V2')
-        .setDescription('Documentation de l\'API Click And Dossard API description')
+        .setTitle('Open Dossard')
+        .setDescription('Documentation de l\'API Open Dossard')
         .setVersion('2.0')
         .build();
     const document = SwaggerModule.createDocument(app, options);
     SwaggerModule.setup('api', app, document);
 
     Logger.debug(`┌────────────────────────────────────────────────────────────┐`);
-    Logger.debug(`│    Starting Click & Dossard with NestJS Framework          │`);
+    Logger.debug(`│    Starting Open Dossard powered by NestJS Framework       │`);
     Logger.debug(`└────────────────────────────────────────────────────────────┘`);
 
     await app.listen(9090);
