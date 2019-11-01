@@ -24,8 +24,8 @@ install() {
 }
 
 # usage :
-#       cad installci                  # install all
-#       cad installci api|webapp       # install api or webapp only
+#       od installci                  # install all
+#       od installci api|webapp       # install api or webapp only
 installci() {
     if [ -z "$1" ]
     then

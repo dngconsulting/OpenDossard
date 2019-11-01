@@ -5,9 +5,9 @@ Open Dossard V 0.1  is structured with :
 ### Quick start in Dev mode
 
 ```
-./cad.sh install        # install dependencies
-./cad.sh start          # start all services
-./cad.sh stop           # stop all services
+./od.sh install        # install dependencies
+./od.sh start          # start all services
+./od.sh stop           # stop all services
 ```
 
 - Webapp : http://localhost:3000
@@ -16,8 +16,8 @@ Open Dossard V 0.1  is structured with :
 ### Logs
 
 ```
-./cad.sh log api
-./cad.sh log webapp
+./od.sh log api
+./od.sh log webapp
 ```
 
 
