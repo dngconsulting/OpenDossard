@@ -7,8 +7,8 @@ Open Dossard codebase uses [Typeorm](http://typeorm.io/) with a Postgres databas
 
 ### Docker 
 
-Db schema is installed automatically thru Docker Compose and od.sh
-Init data is located in sql/init folder
+- Db schema is installed automatically thru Docker Compose and `od.sh`
+- Init data is located in `sql/init` folder
 
 ----------
 
