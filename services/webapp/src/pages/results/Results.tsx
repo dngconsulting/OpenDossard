@@ -124,31 +124,6 @@ const EditResultsPage = (gprops: any) => {
         }}/></Tooltip>;
 
 
-    const notRankedEditor = (transformedRows: any, allprops: any) => {
-        if (transformedRows[allprops.rowIndex].riderNumber) {
-            return (<div> {transformedRows[allprops.rowIndex].classement}</div>);
-        }
-        return (
-            <select
-                value={currentNotRankedStatus.status === '' ? transformedRows[allprops.rowIndex].classement : currentNotRankedStatus.status}
-                onChange={(e: any) => {
-                    setCurrentNotRankedStatus({
-                        status: e.target.value,
-                        rowindex: allprops.rowIndex
-                    });
-                }}>
-                <option value="">{transformedRows[allprops.rowIndex].classement}</option>
-                <option value="DSQ">DSQ</option>
-                <option value="ABD">ABD</option>
-                <option value="NC">NC</option>
-            </select>
-        );
-    };
-
-    const displayRank = (rowdata: any, transformedRows: any) => {
-        return rowdata.classement + ((rankOfCate(rowdata, transformedRows) !== '' && !isNaN(rowdata.classement)) ? (' (' + rankOfCate(rowdata, transformedRows) + ')') : '');
-    };
-
     const rankOfCate = (rowdata: any, transformedRows: any): string | number => {
         const r = (transformedRows
             .filter((v: RaceRow) => v.catev === rowdata.catev)
@@ -218,9 +193,36 @@ const EditResultsPage = (gprops: any) => {
                         setLoading(false);
                     }
                 };
+
+                const displayRank = (rowdata: any) => {
+                    return rowdata.classement + ((rankOfCate(rowdata, transformedRows) !== '' && !isNaN(rowdata.classement)) ? (' (' + rankOfCate(rowdata, transformedRows) + ')') : '');
+                };
                 const getTitleChallengeButton = (row: RaceRow) => {
                     return row.sprintchallenge ? 'Enlever ce vainqueur du challenge' : 'Ajouter comme vainqueur du challenge';
                 };
+
+                const notRankedEditor = (allprops: any) => {
+                    if (transformedRows[allprops.rowIndex].riderNumber) {
+                        return (<div>{displayRank(transformedRows[allprops.rowIndex])}</div>);
+                    }
+                    return (
+                        <select
+                            value={currentNotRankedStatus.status === '' ? transformedRows[allprops.rowIndex].classement : currentNotRankedStatus.status}
+                            onChange={(e: any) => {
+                                setCurrentNotRankedStatus({
+                                    status: e.target.value,
+                                    rowindex: allprops.rowIndex
+                                });
+                            }}>
+                            <option
+                                value="">{transformedRows[allprops.rowIndex].classement}</option>
+                            <option value="DSQ">DSQ</option>
+                            <option value="ABD">ABD</option>
+                            <option value="NC">NC</option>
+                        </select>
+                    );
+                };
+
                 const reorder = async (e: any) => {
                     try {
                         setLoading(true);
@@ -233,17 +235,19 @@ const EditResultsPage = (gprops: any) => {
                 const displayName = (rowdata: RaceRow, column: any) => {
                     return (
                         <span>
-            <AddWinnersIcons
-                rowdata={rowdata}
-                transformedRows={transformedRows}/>
-                            {rowdata.sprintchallenge &&
-                            <Tooltip
-                              title='Vainqueur du challenge du meilleur sprinter'>
-                              <EmojiPeopleIcon
-                                style={{
-                                    verticalAlign: 'middle'
-                                }}/></Tooltip>}{rowdata.name}
-        </span>);
+                            <AddWinnersIcons
+                                rowdata={rowdata}
+                                transformedRows={transformedRows}/>
+                                     {rowdata.sprintchallenge &&
+                                    <Tooltip
+                                         title='Vainqueur du challenge du meilleur sprinter'>
+                                      <EmojiPeopleIcon
+                                                style={{
+                                                verticalAlign: 'middle'
+                                        }}/>
+                                    </Tooltip>}{rowdata.name}
+                        </span>
+                    );
                 };
 
                 const flagchallenge = (row: RaceRow) => row.riderNumber &&
@@ -261,19 +265,26 @@ const EditResultsPage = (gprops: any) => {
                                    {...(isEdit ? {onRowReorder: reorder} : undefined)}
                                    loading={loading}
                                    columnResizeMode='expand'
-                                   editMode={'cell'}>
-                            <Column  {...(isEdit ? {rowReorder: true} : false)}
-                                     style={{width: '3em'}}/>
+                                   {...(isEdit ? {editMode: 'cell'} : undefined)}
+                        >
+                            {isEdit && <Column rowReorder={true}
+                                               style={{width: '3em'}}/>}
                             <Column field="classement" header="Clt."
-                                    editor={(allprops) => notRankedEditor(transformedRows, allprops)}
+                                    {...(isEdit ? {editor: (allprops) => isEdit && notRankedEditor(allprops)} : undefined)}
                                     filterMatchMode='contains'
-                                    body={(rowdata: RaceRow, column: any) => displayRank(rowdata, transformedRows)}
+                                    body={(rowdata: RaceRow, column: any) => displayRank(rowdata)}
                                     style={{overflow: 'visible', width: '60px'}}/>
                             <Column field='riderNumber' header='Doss.' filter={true}
                                     style={{width: '5%'}}
-                                    editor={(allprops) => dossardEditor(allprops, rows, transformedRows, currentRace, fetchRows)}
+                                    {...(isEdit ? {
+                                        editor: (allprops) => {
+                                            return dossardEditor(allprops, rows, transformedRows, currentRace, fetchRows);
+                                        }
+                                    } : undefined)}
                                     editorValidator={(allprops) => {
-                                        dossardValidator(allprops, fetchRows, currentRace, transformedRows, rows);
+                                        if (isEdit) {
+                                            dossardValidator(allprops, fetchRows, currentRace, transformedRows, rows);
+                                        }
                                         return true;
                                     }}
                                     filterMatchMode='contains'/>

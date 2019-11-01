@@ -6,7 +6,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
-import {Badge, Menu, MenuItem} from '@material-ui/core';
+import {Menu, MenuItem} from '@material-ui/core';
 import {withRouter} from 'react-router-dom';
 import Hidden from '@material-ui/core/Hidden';
 import {styles} from './styles';
@@ -22,9 +22,8 @@ import SpinnerDialog from '../spinner/Spinner';
 import {AccountPage} from '../pages/account/Account';
 import AccountCircle from '@material-ui/icons/Mail';
 import AppDrawer from './App.Drawer';
-import NotificationIcon from '@material-ui/icons/Notifications';
-import AppRoutes from "./AppRoutes";
-import {CadSnackBar} from "../components/CadSnackbar";
+import AppRoutes from './AppRoutes';
+import {CadSnackBar} from '../components/CadSnackbar';
 import logo from '../assets/logos/logo_transparent.png';
 
 const classNames = require('classnames');
@@ -52,10 +51,6 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
     public componentWillMount() {
 
     }
-
-    private handleNotificationMenu = (event: any) => {
-        this.setState({notificationEl: event.currentTarget});
-    };
 
     private handleMenu = (event: any) => {
         this.setState({anchorEl: event.currentTarget});
@@ -148,16 +143,6 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
                         </Typography>
                         <div>
                             <IconButton
-                                aria-haspopup="true"
-                                color="inherit"
-                                onClick={this.handleNotificationMenu}
-                            >
-                                <Badge badgeContent={2} color="secondary">
-                                    <NotificationIcon/>
-                                </Badge>
-                            </IconButton>
-
-                            <IconButton
                                 aria-owns={open ? 'menu-appbar' : null}
                                 aria-haspopup="true"
                                 onClick={this.handleMenu}
@@ -181,7 +166,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
                             >
                                 <MenuItem
                                     onClick={this.handleMenuClose.bind(this, '/account')}>{this.props.authentication.email}</MenuItem>
-                                <MenuItem onClick={this.handleLogout}>Logout</MenuItem>
+                                <MenuItem onClick={this.handleLogout}>Déconnecter</MenuItem>
                             </Menu>
                         </div>
                     </Toolbar>
