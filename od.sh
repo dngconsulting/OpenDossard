@@ -1,6 +1,7 @@
 #!/bin/sh
 
 goprod() {
+    git pull
     docker-compose -f docker-compose.prod.yml down
     docker-compose -f docker-compose.prod.yml up --build -d
 }
