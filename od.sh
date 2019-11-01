@@ -1,5 +1,10 @@
 #!/bin/sh
 
+goprod() {
+    docker-compose -f docker-compose.prod.yml down
+    docker-compose -f docker-compose.prod.yml up --build -d
+}
+
 start() {
     docker-compose up -d
 }
