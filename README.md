@@ -25,7 +25,7 @@ Open Dossard V 0.1  is structured with :
 
 Database can be initialised with
 ```
-./cad.sh installdb
+./od.sh installdb
 ```
 
 IntelliJ Settings
