@@ -318,17 +318,17 @@ const LicencesPage = (props: ILicencesProps) => {
                     </FormControl>
                 </Grid>
                 <Grid item={true} xs={6}>
-                    <Button variant="contained" color="primary" className={classes.button} onClick={()=>
-                    createLicence(newLicence.id)}>
-                        Sauvegarder
-                    </Button>
-                </Grid>
-                <Grid item={true} xs={6}>
                     <Button variant="contained" color="secondary" className={classes.button}
                             onClick={() => {
                                 props.history.goBack();
                             }}>
                         Retour
+                    </Button>
+                </Grid>
+                <Grid item={true} xs={6}>
+                    <Button variant="contained" color="primary" className={classes.button} onClick={()=>
+                        createLicence(newLicence.id)}>
+                        Sauvegarder
                     </Button>
                 </Grid>
             </Grid>

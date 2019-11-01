@@ -4,7 +4,7 @@ import {AppText as T} from '../../util/text';
 import {apiLicences} from '../../util/api';
 import {Licence, Search} from '../../sdk';
 import {cadtheme} from '../../theme/theme';
-import {Paper} from '@material-ui/core';
+import {Button, Paper} from '@material-ui/core';
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 
 interface ILicencesProps {
@@ -51,8 +51,8 @@ const LicencesPage = (props: ILicencesProps) => {
                     {title: 'Club', field: 'club',cellStyle:{width:400}},
                     {title: 'Genre', field: 'gender',cellStyle:{width:50}},
                     {title: 'Dept', field: 'dept',cellStyle:{width:50}},
-                    {title: 'Age', field: 'birthYear',cellStyle:{width:100}},
-                    {title: 'Fédé', field: 'fede',cellStyle:{width:50}},
+                    {title: 'Année', field: 'birthYear',cellStyle:{width:100}},
+                    {title: 'Fédé', field: 'fede',cellStyle:{width:50},filtering:false},
 
                 ]}
                 data={fetchLicences}
@@ -79,7 +79,8 @@ const LicencesPage = (props: ILicencesProps) => {
                 }}
                 actions={[
                     {
-                        icon: 'add',
+                        icon: () => <Button variant={'contained'} color={'primary'}>Ajouter une licence</Button>,
+
                         tooltip: T.LICENCES.ADD_NEW_LICENCE,
                         isFreeAction: true,
                         onClick: () => {

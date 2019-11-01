@@ -1,5 +1,5 @@
-Open Dossard repository is composed by :
-- services API
+Open Dossard V 0.1  is structured with :
+- Services API
 - Front React Application
 
 ### Quick start in Dev mode

@@ -25,8 +25,7 @@ export class CompetitionCtrl {
         private readonly repository: Repository<Competition>,
         @InjectEntityManager()
         private readonly entityManager: EntityManager,
-    ) {
-    }
+    ) {}
 
     @Get(':id')
     @ApiOperation({
