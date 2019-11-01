@@ -89,11 +89,11 @@ const StatsPage = (props: IStatsPageProps) => {
 
     return (
 
-        <div>
+        <div style={{padding:10}}>
 
             <Grid container={true} spacing={3}>
                 <Grid item={true} xs={12}>
-                    <Typography noWrap={false}>Statistique</Typography>
+                    <Typography noWrap={false}>Graphiques et statistiques</Typography>
                 </Grid>
 
                 <Grid item={true} xs={5}>
