@@ -76,7 +76,7 @@ const federations = {
         catev
     },
     nl:{
-        name:{label: 'Non Lincencié', value: 'nl'},
+        name:{label: 'Non Licencié', value: 'nl'},
         catev: [...catev, {label: '4', value: '4'}, {label: '5', value: '5'}]
     }
 };
