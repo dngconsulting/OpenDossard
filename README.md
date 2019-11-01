@@ -1,3 +1,4 @@
+# ![Logo](services/webapp/src/assets/logos/logo_300.png)
 Open Dossard V 0.1  is structured with :
 - Services API
 - Front React Application
