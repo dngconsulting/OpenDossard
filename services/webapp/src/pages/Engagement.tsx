@@ -69,7 +69,7 @@ const surclassed = ({catev, raceCode}: RaceRow) => {
     return raceCode.split('/').indexOf(catev) >= 0 ? false : true
 }
 
-const FILTERABLE = {filter: true, sortable: true, filterMatchMode: 'contains'}
+const FILTERABLE = {filter: true, filterMatchMode: 'contains'}
 const SHORT = {style: {width:70, textAlign: 'center', padding : 5}, bodyClassName:'nopadding'}
 const EngagementPage = (props:any) => {
     const competitionId = props.match.params.id;

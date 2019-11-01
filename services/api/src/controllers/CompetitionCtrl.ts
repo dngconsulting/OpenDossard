@@ -1,4 +1,4 @@
-import {BadRequestException, Body, Controller, Get, Param, Post,} from '@nestjs/common';
+import {BadRequestException, Body, Controller, Get, Logger, Param, Post,} from '@nestjs/common';
 import {ApiModelPropertyOptional, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
 import {EntityManager, Repository} from 'typeorm';
@@ -25,7 +25,8 @@ export class CompetitionCtrl {
         private readonly repository: Repository<Competition>,
         @InjectEntityManager()
         private readonly entityManager: EntityManager,
-    ) {}
+    ) {
+    }
 
     @Get(':id')
     @ApiOperation({
@@ -68,9 +69,11 @@ export class CompetitionCtrl {
     })
     @Get()
     public async getAllCompetitions(): Promise<Competition[]> {
-        return await this.repository.find({ order: {
+        return await this.repository.find({
+            order: {
                 eventDate: 'ASC',
-            }, relations: ['club']});
+            }, relations: ['club']
+        });
     }
 
     @Post('/reorganize')
@@ -80,25 +83,27 @@ export class CompetitionCtrl {
     })
     @ApiResponse({status: 200, isArray: false})
     public async reorganize(@Body() dto: CompetitionReorganize): Promise<void> {
-
+        const start = (new Date()).getTime();
         const competition = await this.repository.findOne(dto.competitionId);
-
         if (!competition) {
             throw new BadRequestException(`Competition ${dto.competitionId} not found`);
         }
-
         dto.races = dto.races.filter(race => race.trim().length);
 
-        const rows = await this.entityManager.find(Race, {where: {competitionId: dto.competitionId}});
+        const rows = await this.entityManager.find<Race>(Race, {competition: {id: dto.competitionId}});
+        Logger.debug('Rows to update found = ' + JSON.stringify(rows));
+        let end = (new Date()).getTime();
+        Logger.debug('Perf After finding races rows and current competition ' + (end - start) + 'ms');
         dto.races.map(race => race.split('/'));
 
         rows.forEach(row => {
-            const raceCode = dto.races
+            row.raceCode = dto.races
                 .filter(race => race.split('/').indexOf(row.catev) >= 0)[0];
-            row.raceCode = raceCode;
+            Logger.debug('Saving Row ' + JSON.stringify(row));
             this.entityManager.save(row);
         });
-
+        end = (new Date()).getTime();
+        Logger.debug('Perf After saving all races rows ' + (end - start) + 'ms');
         competition.races = dto.races;
         await this.entityManager.save(competition);
     }
