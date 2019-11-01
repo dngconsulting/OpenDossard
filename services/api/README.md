@@ -19,12 +19,12 @@ Open Dossard codebase uses [Typeorm](http://typeorm.io/) with a Postgres databas
 
 ----------
 
-# Authentication
+## Authentication
  
 This applications uses Passport to handle authentication with a basic Http Session cookie.  
 
 ----------
  
-# Swagger API docs
+## Swagger API docs
 
 This example repo uses the NestJS swagger module for API documentation. [NestJS Swagger](https://github.com/nestjs/swagger) - [www.swagger.io](https://swagger.io/)        
