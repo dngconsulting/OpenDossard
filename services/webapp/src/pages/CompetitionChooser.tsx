@@ -138,16 +138,16 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                     {isResultLink() && <Column header='Résultats' body={resultsAction}
                                                style={{minWidth: '5%', textAlign: 'center'}}/>}
                     <Column field='eventDate' header='Date' body={displayDate}
-                            style={{minWidth: '2%', textAlign: 'center'}}/>
+                            style={{minWidth: '2%'}}/>
                     <Column field='name' header="Nom de l'épreuve"
-                            style={{minWidth: '2%', textAlign: 'center'}}/>
+                            style={{minWidth: '2%'}}/>
                     <Column field='zipCode' header='Lieu'
-                            style={{minWidth: '2%', textAlign: 'center'}}/>
+                            style={{minWidth: '2%'}}/>
                     <Column field='club.longName' header='Club'
-                            style={{minWidth: '5%', textAlign: 'center'}}/>
+                            style={{minWidth: '5%'}}/>
                     <Column field='categories' header='Catégories'/>
                     <Column field='fede' header='Fédération'
-                            style={{minWidth: '5%', textAlign: 'center'}}/>
+                            style={{minWidth: '5%'}}/>
                 </DataTable>
             </Paper>)
             ;
