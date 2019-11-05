@@ -93,6 +93,10 @@ export const styles = (theme: Theme) => ({
         overflowX: 'hidden'
     },
     fillSpace: {
+        fontFamily: 'martel',
+        paddingLeft:10,
+        paddingTop:5,
+        fontWeight: 900,
         flex: '1 1 auto'
     }
 });

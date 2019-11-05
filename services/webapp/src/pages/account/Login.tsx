@@ -15,7 +15,7 @@ import * as querystring from 'querystring';
 import {Redirect} from 'react-router';
 import {passportCtrl} from '../../util/api';
 import {User} from '../../sdk';
-import logohorizontal from '../../assets/logos/logo.png';
+import logohorizontal from '../../assets/logos/logoblanc.svg';
 import {cadtheme} from '../../theme/theme';
 
 interface ILoginProps {
@@ -73,8 +73,8 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
 
         return (
             <div className={classes.container}>
-                <Paper style={{ width: '30%',
-                    minWidth:'281px',
+                <Paper style={{ width: '40%',
+                    minWidth:'300px',
                     display: 'flex',
                     flexDirection: 'column',
                     alignContent: 'center'}}>
@@ -82,10 +82,11 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
                         display: 'flex',
                         backgroundColor: cadtheme.palette.primary.main,
                         alignItems: 'center',
+                        padding:'10px',
                         justifyContent: 'center',
-                    }}><img src={logohorizontal} width='281' height='122'/></div>
+                    }}><img src={logohorizontal} width='171' height='92'/></div>
                     <FormControl required={true} fullWidth={true} className={classes.field}>
-                        <InputLabel error={this.state.error} style={{padding:10}} htmlFor="email">Adresse mail ou identifiant</InputLabel>
+                        <InputLabel error={this.state.error} style={{padding:10}} htmlFor="email">Adresse mail ou identifiant Open Dossard</InputLabel>
                         <Input
                             value={this.state.email}
                             error={this.state.error}

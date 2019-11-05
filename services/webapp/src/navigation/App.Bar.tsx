@@ -16,7 +16,6 @@ import {ReduxState} from '../state/ReduxState';
 import {connect} from 'react-redux';
 import * as _ from 'lodash';
 import {bindActionCreators, Dispatch} from 'redux';
-import {Alert} from '../state/Alert';
 import {AlertDialog} from '../alert/Alert';
 import SpinnerDialog from '../spinner/Spinner';
 import {AccountPage} from '../pages/account/Account';
@@ -24,7 +23,7 @@ import AccountCircle from '@material-ui/icons/Mail';
 import AppDrawer from './App.Drawer';
 import AppRoutes from './AppRoutes';
 import {CadSnackBar} from '../components/CadSnackbar';
-import logo from '../assets/logos/logo_transparent.png';
+import logo from '../assets/logos/logoblanc.svg';
 
 const classNames = require('classnames');
 
@@ -80,17 +79,6 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
         }
     };
 
-    public showPopup = () => {
-        this.props.showPopup(new Alert({
-            title: 'Testing title',
-            message: 'This is a very long message, expect alert to be very wide'
-        }));
-    };
-
-    public showSpinner = () => {
-        this.props.showSpinner('I am loading here please...');
-    };
-
     private renderAlert(): JSX.Element {
         if (this.props.utility.alert) {
             return (
@@ -137,7 +125,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
                         >
                             <MenuIcon/>
                         </IconButton>
-                        <img src={logo} width={30} height={30}/>
+                        <img src={logo} width={50} height={30}/>
                         <Typography className={classes.fillSpace} color="inherit" noWrap={true}>
                             {this.props.history.location.state && this.props.history.location.state.title ? this.props.history.location.state.title:"Open Dossard "}
                         </Typography>
