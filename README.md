@@ -1,4 +1,4 @@
-<img align="left" width="447" height="107" src="website/assets/images/logocolor.svg">
+<img width="447" height="107" src="website/assets/images/logocolor.svg">
 Open Dossard V0.1 est une application à destination d'organisateurs d'évènement sportifs.
 Elle est constituée d'une API et d'un front en ReactJS.
 
