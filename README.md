@@ -1,5 +1,5 @@
 <img width="447" height="107" src="website/assets/images/logocolor.svg">
-Open Dossard V0.1 est une application à destination d'organisateurs d'évènement sportifs.
+Open Dossard est une application à destination d'organisateurs d'évènement sportifs.
 Elle est constituée d'une API et d'un front en ReactJS.
 
 ### Installation en mode développement 
@@ -28,7 +28,7 @@ Il est possible de configurer la base de données manuellement ou automatiquemen
 ./od.sh installdb
 ```
 
-### Other resources
+### Autre ressources
 
 - [TS Lint configuration](documentation/tslint.md)
 
