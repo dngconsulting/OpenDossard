@@ -1,7 +1,8 @@
-<img align="left" width="100" height="100" src="services/webapp/src/assets/logos/logo_150.png">
-Open Dossard V 0.1  is structured with Services API & Front React Application
+<img align="left" width="100" height="100" src="website/assets/images/logocolor.svg">
+Open Dossard V0.1 est une application à destination d'organisateurs d'évènement sportifs.
+Elle est constituée d'une API et d'un front en ReactJS.
 
-### Quick start in Dev mode
+### Installation en mode développement 
 
 ```
 ./od.sh install        # install dependencies
@@ -9,28 +10,23 @@ Open Dossard V 0.1  is structured with Services API & Front React Application
 ./od.sh stop           # stop all services
 ```
 
-- Webapp : http://localhost:3000
-- Backend api : http://localhost:8080/api
+- Pour accéder à la Webapp : http://localhost:3000
+- Pour accéder à l'API du Backend : http://localhost:8080/api
 
-### Logs
+### Afficher les logs applicatif
 
 ```
 ./od.sh log api
 ./od.sh log webapp
 ```
 
+### Base de données Postgres 
 
-### Postgres Database : 
-
-Database can be initialised with
+Les fichiers d'initialisation de la base (schéma + chargement initial des données) sont situés dans le répertoire `services/api/sql/init`
+Il est possible de configurer la base de données manuellement ou automatiquement via :
 ```
 ./od.sh installdb
 ```
-
-IntelliJ Settings
-
-![IntelliJ DB Settings](documentation/img/intellij-dbsettings.png)
-
 
 ### Other resources
 

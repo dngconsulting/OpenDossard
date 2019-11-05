@@ -21,6 +21,13 @@ export const cadtheme = createMuiTheme({
         MuiDrawer: {
 
         },
+        MuiTabs: {
+            root: {
+                borderBottomStyle: 'solid',
+                borderBottomWidth: '1px',
+                borderBottomColor: palette.secondary.dark
+            }
+        },
         MuiTab: {
             root: {
                 "&:hover": {
@@ -105,7 +112,7 @@ export const cadtheme = createMuiTheme({
     },
     typography: {
         fontFamily: [
-            'Roboto', 'Helvetica', 'Arial'
+            'Hind Siliguri', 'Helvetica', 'Arial'
         ].join(','),
         fontSize: 15,
         fontWeightLight: 300,

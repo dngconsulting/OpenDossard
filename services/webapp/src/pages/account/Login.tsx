@@ -15,7 +15,7 @@ import * as querystring from 'querystring';
 import {Redirect} from 'react-router';
 import {passportCtrl} from '../../util/api';
 import {User} from '../../sdk';
-import logohorizontal from '../../assets/logos/logo_banner.png';
+import logohorizontal from '../../assets/logos/logo.png';
 import {cadtheme} from '../../theme/theme';
 
 interface ILoginProps {

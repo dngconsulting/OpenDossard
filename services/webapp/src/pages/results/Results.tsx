@@ -13,6 +13,7 @@ import EmojiPeopleIcon from '@material-ui/icons/EmojiPeople';
 import {Tooltip} from '@material-ui/core';
 import {Column} from 'primereact/column';
 import {withRouter} from 'react-router';
+import podium from '../../assets/images/podium.png'
 
 const previousRowEmpty = (index: number, transformedRows: any) => {
     return ((index > 0) && (transformedRows[index - 1].riderNumber === undefined));
@@ -179,7 +180,6 @@ const EditResultsPage = (gprops: any) => {
         return null;
     };
 
-
     return <CompetitionLayout competitionId={competitionId}>
         {
             ({competition, currentRace, rows, fetchRows}) => {
@@ -195,7 +195,7 @@ const EditResultsPage = (gprops: any) => {
                 };
 
                 const displayRank = (rowdata: any) => {
-                    return rowdata.classement + ((rankOfCate(rowdata, transformedRows) !== '' && !isNaN(rowdata.classement)) ? (' (' + rankOfCate(rowdata, transformedRows) + ')') : '');
+                    return rowdata.classement + ((rankOfCate(rowdata, transformedRows) !== '' && !isNaN(rowdata.classement) && rowdata.riderNumber)  ? (' (' + rankOfCate(rowdata, transformedRows) + ')') : '');
                 };
                 const getTitleChallengeButton = (row: RaceRow) => {
                     return row.sprintchallenge ? 'Enlever ce vainqueur du challenge' : 'Ajouter comme vainqueur du challenge';
@@ -257,8 +257,17 @@ const EditResultsPage = (gprops: any) => {
                     <Tooltip key={2} title={getTitleChallengeButton(row)}><Delete
                       onClick={(e) => callFlagChallenge(row)} key={2}
                       style={{height: 15, width: 15}}/></Tooltip>];
+
                 return (
                     <Fragment>
+                        {!isEdit &&  rows.length >= 3 &&
+                        <div style={{position:'relative',textAlign: 'center',width:'100%'}}>
+                          <img src={podium} height={1024*0.30} width={1924*0.30}/>
+                          <div style={{position:'absolute',left:'32%',top:225,width:140}}>{transformedRows[1].name}</div>
+                          <div style={{position:'absolute',left:'47%',top:160,width:100}}>{transformedRows[0].name}</div>
+                          <div style={{position:'absolute',left:'55%',top:225,width:110}}>{transformedRows[2].name}</div>
+                        </div>}
+
                         <DataTable responsive={true}
                                    value={transformedRows}
                                    emptyMessage="Aucune donnée ne correspond à la recherche"
