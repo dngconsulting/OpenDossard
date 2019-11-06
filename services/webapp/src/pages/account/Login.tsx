@@ -74,7 +74,7 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
         return (
             <div className={classes.container}>
                 <Paper style={{maxWidth:'400px',
-                    width:'40%',
+                    width:'90%',
                     display: 'flex',
                     flexDirection: 'column',
                     alignContent: 'center'}}>
