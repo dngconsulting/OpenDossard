@@ -19,6 +19,18 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@nest-middlewares/compression": "^6.0.0",
+    "@nest-middlewares/connect-rid": "^6.0.0",
+    "@nest-middlewares/connect-timeout": "^6.0.0",
+    "@nest-middlewares/cookie-parser": "^6.0.0",
+    "@nest-middlewares/errorhandler": "^6.0.0",
+    "@nest-middlewares/express-bearer-token": "^6.0.0",
+    "@nest-middlewares/helmet": "^6.0.0",
+    "@nest-middlewares/passport": "^6.0.0",
+    "@nest-middlewares/response-time": "^6.0.0",
+    "@nest-middlewares/serve-favicon": "^6.0.1",
+    "@nest-middlewares/serve-static": "^6.0.0",
+    "@nest-middlewares/vhost": "^6.0.0",
     "@nestjs/common": "^6.7.2",
     "@nestjs/core": "^6.7.2",
     "@nestjs/passport": "^6.1.0",
