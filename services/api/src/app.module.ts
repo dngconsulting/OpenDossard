@@ -9,9 +9,13 @@ import config from './config';
 import {ServeStaticMiddleware} from '@nest-middlewares/serve-static';
 import {join} from 'path';
 import {User} from './entity/User';
+import {ServeStaticModule} from '@nestjs/serve-static';
 
 @Module({
     imports: [
+        ServeStaticModule.forRoot({
+            rootPath: join(__dirname, '../..', 'client/build'),
+        }),
         TypeOrmModule.forRoot({
             type: 'postgres',
             host: config.db.host,
@@ -26,8 +30,4 @@ import {User} from './entity/User';
 
 })
 export class AppModule {
-    configure(consumer: MiddlewareConsumer) {
-        ServeStaticMiddleware.configure(join(__dirname, '../..', 'client/build'));
-        consumer.apply(ServeStaticMiddleware).forRoutes('*');
-    }
 }

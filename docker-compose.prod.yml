@@ -9,8 +9,8 @@ services:
       - postgres:/var/lib/postgresql/data:rw
     ports:
       - "5432:5432"
-  dossard_api_web:
-    container_name: dossard_api_web
+  api_webapp:
+    container_name: api_webapp
     working_dir: "/app/server/"
     build: .
     command: "npm run start:prod"
@@ -22,8 +22,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 80
-
-  dossard_website:
+  website:
     image: nginx:1.17.5-alpine
     container_name: website
     restart: always

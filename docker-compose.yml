@@ -36,5 +36,15 @@ services:
     command: "npm start"
     ports:
       - "3000:3000"
+
+  website:
+    image: nginx:latest
+    container_name: website
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./website/:/var/www/html
+      - ./config/nginx.conf:/etc/nginx/nginx.conf
 volumes:
   postgres:

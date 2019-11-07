@@ -1,9 +1,19 @@
-import {BadRequestException, Body, Controller, Get, Logger, Param, Post,} from '@nestjs/common';
+import {
+    BadRequestException,
+    Body,
+    Controller,
+    Get,
+    Logger,
+    Param,
+    Post,
+    UseGuards,
+} from '@nestjs/common';
 import {ApiModelPropertyOptional, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
 import {EntityManager, Repository} from 'typeorm';
 import {Competition} from '../entity/Competition';
 import {Race} from '../entity/Race';
+import {AuthGuard} from '@nestjs/passport';
 
 export class CompetitionReorganize {
     @ApiModelPropertyOptional()
@@ -56,6 +66,7 @@ export class CompetitionCtrl {
         return r[0];
     }
 
+    @UseGuards(AuthGuard('local'))
     @ApiOperation({
         operationId: 'getAllCompetitions',
         title: 'Rechercher Toutes les compétitions ',
