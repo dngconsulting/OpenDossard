@@ -33,6 +33,20 @@ const config = convict({
             format: String,
         },
     },
+    app: {
+        jwtSecret: {
+            default: 'jwtSecret',
+            doc: 'Secret JWT',
+            env: 'JWT_SECRET',
+            format: String,
+        },
+        env: {
+            default: 'dev',
+            doc: 'environment',
+            env: 'ENV',
+            format: String,
+        },
+    },
 });
 
 export interface IConfig {
@@ -42,6 +56,10 @@ export interface IConfig {
         username: string;
         password: string;
         database: string;
+    };
+    app: {
+        jwtSecret: string;
+        env: string;
     };
 }
 

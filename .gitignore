@@ -1,6 +1,7 @@
 
 *.iml
 config/prod.env
+prod.env
 var
 
 .idea/

@@ -1,8 +1,9 @@
 import {EntityManager, Repository} from 'typeorm';
-import {Controller, Get} from '@nestjs/common';
+import {Controller, Get, UseGuards} from '@nestjs/common';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
 import {ApiModelPropertyOptional, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
 import {Club} from '../entity/Club';
+import {AuthGuard} from '@nestjs/passport';
 
 export class ClubRow {
     @ApiModelPropertyOptional()
@@ -17,6 +18,7 @@ export class ClubRow {
 
 @Controller('/api/clubs')
 @ApiUseTags('ClubAPI')
+@UseGuards(AuthGuard('jwt'))
 export class ClubCtrl {
     constructor(
         @InjectRepository(Club)

@@ -1,4 +1,4 @@
-import {MiddlewareConsumer, Module} from '@nestjs/common';
+import {Module} from '@nestjs/common';
 import {TypeOrmModule} from '@nestjs/typeorm';
 import {Licence} from './entity/Licence';
 import {Competition} from './entity/Competition';
@@ -6,7 +6,6 @@ import {Club} from './entity/Club';
 import {Race} from './entity/Race';
 import {Apiv2Module} from './apiv2.module';
 import config from './config';
-import {ServeStaticMiddleware} from '@nest-middlewares/serve-static';
 import {join} from 'path';
 import {User} from './entity/User';
 import {ServeStaticModule} from '@nestjs/serve-static';

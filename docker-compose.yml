@@ -4,13 +4,10 @@ services:
   dossarddb:
     container_name: dossarddb
     image: postgres:9.6-alpine
-    env_file:
-      - ./config/dev.env
     volumes:
       - postgres:/var/lib/postgresql/data:rw
     ports:
       - "5432:5432"
-
   api:
     container_name: api
     image: node:10.12.0-alpine
@@ -22,29 +19,16 @@ services:
     command: "npm run start:dev"
     ports:
       - "9090:9090"
-
   webapp:
     environment:
       - CHOKIDAR_USEPOLLING=true
     container_name: webapp
     image: node:10.12.0-alpine
     working_dir: "/app"
-    env_file:
-      - ./config/dev.env
     volumes:
       - ./services/webapp:/app:delegated
     command: "npm start"
     ports:
       - "3000:3000"
-
-  website:
-    image: nginx:latest
-    container_name: website
-    restart: always
-    ports:
-      - "80:80"
-    volumes:
-      - ./website/:/var/www/html
-      - ./config/nginx.conf:/etc/nginx/nginx.conf
 volumes:
   postgres:

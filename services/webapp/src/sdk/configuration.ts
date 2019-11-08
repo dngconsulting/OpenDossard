@@ -1,7 +1,7 @@
 // tslint:disable
 /**
- * Click And Dossard API V2
- * Documentation de l'API Click And Dossard API description
+ * Open Dossard
+ * Documentation de l'API Open Dossard
  *
  * OpenAPI spec version: 2.0
  * 

@@ -18,19 +18,25 @@ import {RlogInterceptor} from './interceptors/rlog.interceptor';
 import {CompetitionCtrl} from './controllers/CompetitionCtrl';
 import {ClubCtrl} from './controllers/ClubCtrl';
 import {User} from './entity/User';
+import {JwtModule} from '@nestjs/jwt';
+import {jwtConstants} from './util/constants';
+import {JwtStrategy} from './services/jwt.strategy';
 
 const RLog: FactoryProvider = {
     provide: APP_INTERCEPTOR,
     scope: Scope.REQUEST,
     inject: [AppService],
     useFactory: (appService: AppService) => {
-        return new RlogInterceptor('foo');
+        return new RlogInterceptor('custom');
     },
 };
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Licence, Club, Competition, Race, User]), PassportModule],
-    providers: [AppService, UsersService, AuthService, LocalStrategy, RLog],
+    imports: [TypeOrmModule.forFeature([Licence, Club, Competition, Race, User]), PassportModule, JwtModule.register({
+        secret: jwtConstants.secret,
+        signOptions: { expiresIn: '60s' },
+    })],
+    providers: [AppService, UsersService, AuthService, LocalStrategy, JwtStrategy, RLog],
     exports: [UsersService],
     controllers: [LicencesCtrl, PassportCtrl, RacesCtrl, CompetitionCtrl, ClubCtrl],
 })

@@ -20,11 +20,12 @@ import {
     Logger,
     Param,
     Post,
-    Put,
+    Put, UseGuards,
 } from '@nestjs/common';
 import {InjectEntityManager} from '@nestjs/typeorm';
 
 import * as _ from 'lodash';
+import {AuthGuard} from '@nestjs/passport';
 
 export class RaceRow {
     @ApiModelPropertyOptional()
@@ -93,6 +94,7 @@ export class RaceNbRider {
  */
 @Controller('/api/races')
 @ApiUseTags('RaceAPI')
+@UseGuards(AuthGuard('jwt'))
 export class RacesCtrl {
     constructor(
         @InjectEntityManager()
@@ -213,7 +215,7 @@ export class RacesCtrl {
         operationId: 'reorderRanking',
     })
     @ApiImplicitBody({name: 'body', type: [RaceRow]})
-    public async reorderRanking(@Body() racesrows: RaceRow[]): Promise<void> {
+    public async reorderRanking(@Body('body') racesrows: RaceRow[]): Promise<void> {
         // Lets remove non ranked riders and DSQ/ABD
         const rows = _.remove(racesrows, item => item.id && !item.comment);
         for (let index = 1; index <= rows.length; index++) {

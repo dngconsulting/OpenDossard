@@ -29,6 +29,7 @@ export class CompetitionReorganize {
  */
 @Controller('/api/competition')
 @ApiUseTags('CompetitionAPI')
+@UseGuards(AuthGuard('jwt'))
 export class CompetitionCtrl {
     constructor(
         @InjectRepository(Competition)
@@ -66,7 +67,6 @@ export class CompetitionCtrl {
         return r[0];
     }
 
-    @UseGuards(AuthGuard('local'))
     @ApiOperation({
         operationId: 'getAllCompetitions',
         title: 'Rechercher Toutes les compétitions ',
@@ -83,7 +83,7 @@ export class CompetitionCtrl {
         return await this.repository.find({
             order: {
                 eventDate: 'ASC',
-            }, relations: ['club']
+            }, relations: ['club'],
         });
     }
 
