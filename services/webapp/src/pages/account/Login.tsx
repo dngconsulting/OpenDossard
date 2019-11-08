@@ -13,7 +13,7 @@ import {
 import Paper from '@material-ui/core/Paper';
 import * as querystring from 'querystring';
 import {Redirect} from 'react-router';
-import {passportCtrl} from '../../util/api';
+import {passportCtrl, setBearerToken} from '../../util/api';
 import {User} from '../../sdk';
 import logohorizontal from '../../assets/logos/logoblanc.svg';
 import {cadtheme} from '../../theme/theme';
@@ -53,10 +53,12 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
 
     private handleLogin = async () => {
         try {
-            const user = await passportCtrl.login({
+
+            const user : User = await passportCtrl.login({
                 email: this.state.email,
                 password: this.state.password
             });
+            setBearerToken(user.accessToken);
             this.props.login(user);
         } catch (err) {
             this.setState({error: true});

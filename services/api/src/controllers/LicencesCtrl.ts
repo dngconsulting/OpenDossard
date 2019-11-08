@@ -1,10 +1,11 @@
 import {Licence} from '../entity/Licence';
 import {EntityManager, Repository} from 'typeorm';
-import {Body, Controller, Delete, Get, Param, Post, Put} from '@nestjs/common';
+import {Body, Controller, Delete, Get, Param, Post, Put, UseGuards} from '@nestjs/common';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
 import {ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
 import {Filter, LicencesPage, Search} from './SharedModels';
 import {Federation} from '../entity/Federation';
+import {AuthGuard} from '@nestjs/passport';
 
 /**
  * Licence Controler is in charge of handling rider licences
@@ -12,6 +13,7 @@ import {Federation} from '../entity/Federation';
  */
 @Controller('/api/licences')
 @ApiUseTags('LicenceAPI')
+@UseGuards(AuthGuard('jwt'))
 export class LicencesCtrl {
     constructor(
         @InjectRepository(Licence)

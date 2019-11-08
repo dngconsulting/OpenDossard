@@ -3,10 +3,12 @@
  */
 import {ApiModelProperty, ApiModelPropertyOptional} from '@nestjs/swagger';
 import {Column, Entity, PrimaryGeneratedColumn} from 'typeorm';
+import {Exclude} from 'class-transformer';
 
 @Entity()
 export class User {
-    @ApiModelProperty()
+    @Exclude()
+    @ApiModelPropertyOptional()
     @PrimaryGeneratedColumn()
     public id: number;
 
@@ -29,4 +31,7 @@ export class User {
     @Column({nullable: true})
     @ApiModelPropertyOptional()
     public phone?: string;
+
+    @ApiModelPropertyOptional()
+    public accessToken?: string;
 }

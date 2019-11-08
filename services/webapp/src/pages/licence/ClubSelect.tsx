@@ -91,7 +91,7 @@ export default function ClubSelect({onSelect, chosenClub} : {onSelect : (value:s
         return await apiClubs.getAllClubs();
     };
     useEffect(()=>{
-        fetchData().then(res => setClubs(res.map(option => ({
+        fetchData().then(res => setClubs(res.map((option: { id: any; longName: any; }) => ({
             value: option.id,
             label:option.longName
         })))).catch(err=>console.log(err));
