@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Post, Request, UseGuards} from '@nestjs/common';
+import {Body, Controller, Get, Logger, Post, Request, UseGuards} from '@nestjs/common';
 import {AuthGuard} from '@nestjs/passport';
 import {ApiConsumes, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
 import {AuthService} from '../services/auth.service';
@@ -15,8 +15,8 @@ export class PassportCtrl {
     @ApiResponse({status: 200, type: User})
     @UseGuards(AuthGuard('local'))
     @Post('login')
-    async login(@Body() user: User, @Request() req) {
-        const token: {access_token: string} = await this.authService.login(req);
+    async login(@Body() user: User, @Request() req): Promise<User> {
+        const token: {access_token: string} = await this.authService.login(req.user);
         return {accessToken: token.access_token, ...req.user};
     }
 
@@ -26,6 +26,7 @@ export class PassportCtrl {
         description: 'identifiant courant'
     })
     @ApiResponse({status: 200, type: User})
+    @ApiConsumes('application/json')
     @UseGuards(AuthGuard('jwt'))
     @Get('me')
     me(@Request() req): User {

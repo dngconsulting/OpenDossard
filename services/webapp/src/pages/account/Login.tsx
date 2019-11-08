@@ -53,7 +53,6 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
 
     private handleLogin = async () => {
         try {
-
             const user : User = await passportCtrl.login({
                 email: this.state.email,
                 password: this.state.password

@@ -12,9 +12,6 @@ import {ServeStaticModule} from '@nestjs/serve-static';
 
 @Module({
     imports: [
-        ServeStaticModule.forRoot({
-            rootPath: join(__dirname, '../..', 'client/build'),
-        }),
         TypeOrmModule.forRoot({
             type: 'postgres',
             host: config.db.host,

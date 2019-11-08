@@ -32,9 +32,9 @@ const RLog: FactoryProvider = {
 };
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Licence, Club, Competition, Race, User]), PassportModule, JwtModule.register({
+    imports: [TypeOrmModule.forFeature([Licence, Club, Competition, Race, User]), PassportModule.register({defaultStrategy: 'jwt'}), JwtModule.register({
         secret: jwtConstants.secret,
-        signOptions: { expiresIn: '60s' },
+        signOptions: {expiresIn: '60s'},
     })],
     providers: [AppService, UsersService, AuthService, LocalStrategy, JwtStrategy, RLog],
     exports: [UsersService],
