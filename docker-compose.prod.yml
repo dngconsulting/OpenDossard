@@ -3,8 +3,6 @@ services:
   dossarddb:
     container_name: dossarddb
     image: postgres:9.6-alpine
-    env_file:
-      - config/prod-sample.env
     volumes:
       - postgres:/var/lib/postgresql/data:rw
     ports:
@@ -18,7 +16,7 @@ services:
       - "9090:9090"
     restart: always
     env_file:
-      - config/prod-sample.env
+      - ./config/prod.env
     environment:
       NODE_ENV: production
       PORT: 80
