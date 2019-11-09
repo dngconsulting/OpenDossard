@@ -94,7 +94,8 @@ export const styles = (theme: Theme) => ({
     },
     fillSpace: {
         fontFamily: 'martel',
-        paddingLeft:10,
+        fontSize: '20px',
+        paddingLeft:0,
         paddingTop:5,
         fontWeight: 900,
         flex: '1 1 auto'
