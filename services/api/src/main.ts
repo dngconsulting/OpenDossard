@@ -8,7 +8,7 @@ import {join} from 'path';
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule, {logger: ['error', 'warn', 'debug']});
-    if (config.app.env === 'DEV') {
+    if (config.app.env !== 'DEV') {
         app.useStaticAssets(join(__dirname, '../..', 'client/build'), {index: 'index.html'});
     }
     const options = new DocumentBuilder()
