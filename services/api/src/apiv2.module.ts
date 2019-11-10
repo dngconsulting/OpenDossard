@@ -21,6 +21,7 @@ import {User} from './entity/User';
 import {JwtModule} from '@nestjs/jwt';
 import {jwtConstants} from './util/constants';
 import {JwtStrategy} from './services/jwt.strategy';
+import config from './config';
 
 const RLog: FactoryProvider = {
     provide: APP_INTERCEPTOR,
@@ -34,7 +35,7 @@ const RLog: FactoryProvider = {
 @Module({
     imports: [TypeOrmModule.forFeature([Licence, Club, Competition, Race, User]), PassportModule.register({defaultStrategy: 'jwt'}), JwtModule.register({
         secret: jwtConstants.secret,
-        signOptions: {expiresIn: '60s'},
+        signOptions: {expiresIn: config.app.jwtExpires + 's'},
     })],
     providers: [AppService, UsersService, AuthService, LocalStrategy, JwtStrategy, RLog],
     exports: [UsersService],

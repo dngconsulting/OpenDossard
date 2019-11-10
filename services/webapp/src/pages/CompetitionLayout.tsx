@@ -60,9 +60,11 @@ export const CompetitionLayout = ({competitionId, children}: { competitionId: nu
         setCompetition(c);
     };
 
-    useEffect(() => {
-        fetchCompetition();
-        fetchRows();
+    useEffect(() => { const f = async () => {
+        await fetchCompetition();
+        await fetchRows();
+    }
+        f()
     }, ['loading']);
 
     const classes = pageStyles({});

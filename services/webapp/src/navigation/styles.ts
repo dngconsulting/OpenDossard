@@ -95,7 +95,7 @@ export const styles = (theme: Theme) => ({
     fillSpace: {
         fontFamily: 'martel',
         fontSize: '20px',
-        paddingLeft:0,
+        paddingLeft:5,
         paddingTop:5,
         fontWeight: 900,
         flex: '1 1 auto'

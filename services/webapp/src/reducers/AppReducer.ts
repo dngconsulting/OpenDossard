@@ -4,11 +4,6 @@ import {AppState} from '../state/AppState';
 const initialState: AppState = {}
 export const AppReducer = (state: AppState = initialState, action: IAppAction): AppState => {
     switch (action.type) {
-        case ActionType.TEST:
-            return {
-                ...state,
-                ...action.payload
-            };
         case ActionType.LISTE_COUREURS:
             return {
                 ...state,

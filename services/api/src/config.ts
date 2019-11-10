@@ -40,6 +40,12 @@ const config = convict({
             env: 'JWT_SECRET',
             format: String,
         },
+        jwtExpires: {
+            default: '1200',
+            doc: 'Toke Expiration time',
+            env: 'JWT_EXPIRE_SECONDS',
+            format: String,
+        },
         env: {
             default: 'dev',
             doc: 'environment',
@@ -59,6 +65,7 @@ export interface IConfig {
     };
     app: {
         jwtSecret: string;
+        jwtExpires: string;
         env: string;
     };
 }

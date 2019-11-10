@@ -44,7 +44,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
     const [data, setData] = useState<Competition[]>([]);
     const [filteredData, setFilteredData] = useState<Competition[]>([]);
     const [selectPastOrFuture, setSelectPastOrFuture] = useState('all');
-
+    const [loading, setLoading] = useState(false);
     const classes = useStyles(cadtheme);
     const fetchCompetitions = async () => {
         const results = await apiCompetitions.getAllCompetitions();
@@ -54,7 +54,13 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
     useEffect(() => {
         const initData = async () => {
             if (data.length === 0) {
-                await fetchCompetitions();
+                try {
+                    setLoading(true);
+                    await fetchCompetitions();
+                } finally {
+                    setLoading(false);
+                }
+
             }
         }
         initData();
@@ -84,7 +90,6 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                 color="primary" /></Tooltip>];
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        console.log("Handle change " + event.target.value);
         setSelectPastOrFuture(event.target.value);
         if (event.target.value === 'all') {
             setFilteredData(data) ;
@@ -99,13 +104,6 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         }
     };
 
-    if (data && data.length === 0) {
-        return (<Paper>
-            <div className={classes.nocomp}>Aucune épreuve renseignée en base de données correspond
-                aux critères recherchés
-            </div>
-        </Paper>);
-    } else {
         return (
             <Paper className={classes.root}>
                 <Radio
@@ -129,6 +127,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                 <div className={classes.titre}>Veuillez sélectionner une épreuve :</div>
 
                 <DataTable responsive={true}
+                           loading={loading}
                            autoLayout={true}
                            value={filteredData}
                            emptyMessage="Aucune donnée ne correspond à la recherche"
@@ -151,7 +150,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                 </DataTable>
             </Paper>)
             ;
-    }
+
 };
 
 
