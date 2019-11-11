@@ -28,7 +28,7 @@ import {NavLink} from 'react-router-dom';
 import {styles} from './styles';
 import StatsPage from '../pages/Stats';
 import {User} from '../sdk';
-import {red} from '@material-ui/core/colors';
+import {grey} from '@material-ui/core/colors';
 import {cadtheme} from '../theme/theme';
 
 const classNames = require('classnames');
@@ -106,7 +106,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
                         <List style={{padding: '0px'}}>
                           <ListItem style={{color: 'white', padding: '4px 0px 0px 5px'}}>
                             <ListItemAvatar style={{padding: 0}}>
-                              <Avatar style={{backgroundColor: red[500]}}>
+                              <Avatar style={{backgroundColor: grey[500]}}>
                                 <AccountCircleIcon htmlColor={'white'}/>
                               </Avatar>
                             </ListItemAvatar>

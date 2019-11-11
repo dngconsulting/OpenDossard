@@ -63,13 +63,20 @@ export const CreationForm = (
     const [, setNotification] = useContext(NotificationContext);
 
     const onError = (message: string) => setNotification({
-        message,
+        message: (!message)?'une erreur technique est survenue':message,
         open: true,
         type: 'error'
     });
 
     const submit = async () => {
-
+        if (!form.riderNumber || !form.catev || !form.licence) {
+            setNotification({
+                message: `Merci de saisir au moins un numéro de dossard et une catégorie `,
+                open: true,
+                type: 'error'
+            });
+            return;
+        }
         try {
             const dto: RaceCreate = {
                 licenceId: form.licence && form.licence.id,
@@ -123,9 +130,10 @@ export const CreationForm = (
         </Grid>
         <Grid item={true}>
             <TextField
-                label="Numéro de dossard"
+                label="Dossard"
                 value={form.riderNumber}
                 className={classes.field}
+                style={{width:'100px'}}
                 onChange={e => setForm({...form, riderNumber: e.target.value})}
                 inputProps={{
                     onKeyPress: e => e.key === 'Enter' && submit(),

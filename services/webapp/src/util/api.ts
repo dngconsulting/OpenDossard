@@ -37,8 +37,7 @@ const enhance = (obj: any) => {
                     return result;
                 } catch (rep)   {
                     if (rep) {
-                        const r = await rep.json()
-                        if (r && r.statusCode === 401) {
+                        if (rep.status === 401) {
                             console.log('token expired, redirecting login page ...')
                             // static store access, probably better to inject dispatch via connect()
                             store.dispatch(logout())
