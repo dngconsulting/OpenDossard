@@ -1,0 +1,16 @@
+# For Open Dossard, we have used the famous and free SSL CA => Lets Encrypt (https://letsencrypt.org/fr/)
+# Here is the method we use to install SSL on opendossard.com and app.opendossard.com
+# All those commands should be executed only the *first time* you install the production server
+# First lets download the incredible genialissime acme.sh (we don't use directly certbot)
+curl https://get.acme.sh | sh
+# Lets encrypt works with a challenge process, so its important to make our domain available the first time
+# We use the most easy way, the one that consist in hosting a standalone web server temporary thanks to acme
+# Be sure that no server is running on your port 80
+acme.sh --issue --standalone -d opendossard.com -d www.opendossard.com -d app.opendossard.com
+# The certificate is generated in our /root/.acme directory, lets install it
+acme.sh --nginx --install-cert -d opendossard.com --key-file <OpenDossardHome>/config/ssl/key.pem --fullchain-file <OpenDossardHome>/config/ssl/cert.pem
+# If you don't generate Diffie Hellman (DH.pem) key, the web server will generate one in background
+# But that's better to do it offline
+openssl dhparam -out dhparams.pem 2048
+# Thats all, you should get an A+ on sslabs with this config
+
