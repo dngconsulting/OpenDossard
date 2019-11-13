@@ -13,6 +13,7 @@ async function bootstrap() {
     }
     const options = new DocumentBuilder()
         .setTitle('Open Dossard')
+        .setSchemes('https', 'http')
         .setDescription('Documentation de l\'API Open Dossard')
         .setVersion('2.0')
         .addBearerAuth()
