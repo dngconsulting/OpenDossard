@@ -13,6 +13,17 @@ Elle est constituée d'une API et d'un front en ReactJS.
 - Pour accéder à la Webapp : http://localhost:3000
 - Pour accéder à l'API du Backend : http://localhost:8080/api
 
+### Installation en mode production 
+
+```
+./od.sh goprod        # raise a git pull followed by docker-compose down and up 
+```
+
+Attention à bien suivre les étapes d'installation des certificats SSL 
+
+- Une fois les certificats installés : https://app.opendossard.com/ pour l'application
+- API : https://app.opendossard.com/api
+
 ### Afficher les logs applicatif
 
 ```
