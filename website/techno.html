@@ -13,14 +13,15 @@
 
     <link href="./assets/favicon.ico" rel="icon">
 
-    <link href="" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-fork-ribbon-css/0.2.3/gh-fork-ribbon.min.css" />
 
     <title>Open Dossard - Technos</title>
 
     <link href="css/main.css" rel="stylesheet">
 </head>
 
-<body> <!-- Add your content of header -->
+<body>
+<a class="github-fork-ribbon left-top" href="https://github.com/dngconsulting/OpenDossard" data-ribbon="Code source GitHub" title="Lisez le code source et devenez contributeur">Code source GitHub</a>
 <header>
     <nav class="navbar navbar-default active">
         <div class="container">
@@ -60,7 +61,7 @@
                     de rediriger les requêtes vers les sous-domaines app.opendossard.com et www.opendossard.com, le tout en HTTPS. <br/>La particularité
                     de cette architecture est de faire servir par Express (et on Nginx) les pages statiques également. Nous avons souhaité pour des
                     raisons de simplicité créer une forte proximité entre le Front React et le Back NodeJS.
-                <div style="text-align: center"><img style="max-width: 100%; max-height: 100%"  src="assets/images/appli/archi.png"/></div>
+                <div class='section-container-spacer' style="text-align: center"><img style="width: 50%; height: 50%" src="assets/images/appli/archi.png" class="img-responsive reveal-content" data-action="zoom"/></div>
                 </p>
             </div>
 
@@ -73,7 +74,7 @@
                 de l'API. L'association de TypeScript et de Swagger permet de générer un SDK totalement typé utilisant l'outil d'appels XHR Fetch.
                 En cas de modification d'une méthode quelconque de l'API (paramètres, type, ...), swagger-codegen se charge de mettre à jour le code client pour refléter la modification.<br/><br/>
                     Pour faire un parallèle avec un monde qui vous est (peut-être) plus familier, NestJS est l'équivalent de Spring Framework en Java.</p>
-                <div style="text-align: center"><img style="max-width: 100%; max-height: 100%"  src="assets/images/appli/archilog.png"/></div>
+                <div style="text-align: center"><img style="width: 50%; height: 50%"  src="assets/images/appli/archilog.png" class="img-responsive reveal-content" data-action="zoom"/></div>
                 <h2 class="template-title-example">Un seul et même langage Front & Back</h2>
                 <p>TypeScript est le langage adopté côté ReactJS, c'est aussi celui du Backend. De nombreuses bibliothèques peuvent être partagées et la maintenance du code s'en trouve facilité.
                 A titre d'exemple, MomentJS qui réalise la conversion et le formatage des dates est utilisé des deux côtés de la même façon. Des règles TsLint homogénéisent la manière de coder.
@@ -85,7 +86,7 @@
                 <h2 class="template-title-example">Open API avec Swagger </h2>
                 <p>NestJS s'appuie sur un connecteur Swagger et des méta-données que le développeur fournit lors du codage. L'API Open Dossard est entièrement typée
                 et la documentation complète est générée par Swagger à l'adresse suivante : <a href="https://app.opendossard.com/api">https://app.opendossard.com/api</a></p>
-                <div style="text-align: center"><img style="width: 50%; height: 50%"  src="assets/images/appli/api.png"/></div>
+                <div style="text-align: center"><img style="width: 50%; height: 50%"  src="assets/images/appli/api.png" class="img-responsive reveal-content" data-action="zoom"/></div>
                 <h2 class="template-title-example">Sécurité avec JWT </h2>
                 <p>NestJS propose un plugin permettant de s'interfacer avec l'outil Passeport, assez populaire dans le monde JS. La sécurité d'Open Dossard s'appuie entièrement l'intégartion
                     de Passeport avec le mode d'authentfication via jeton JWT. Ce mécanisme est totalement transparent côté frontend grâce à la génération du SDK.
