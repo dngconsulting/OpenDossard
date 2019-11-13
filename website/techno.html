@@ -15,7 +15,7 @@
 
     <link href="" rel="stylesheet">
 
-    <title>Open Dossard</title>
+    <title>Open Dossard - Technos</title>
 
     <link href="css/main.css" rel="stylesheet">
 </head>
@@ -55,59 +55,41 @@
 
             <div class="template-example">
                 <h1>L'architecture</h1>
-                <p>This is bold and this is semi bold and <b>this is extra bold</b>. This is italic
-                    and this is extra light and this is light
-                    and this is regular. Lorem ipsum dolor sit amet, consectetur adipisicing elit,
-                    sed do eiusmod
-                    tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-                    quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-                    consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-                    cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-                    proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                <p>Open Dossard est développé en technologie JavaScript typé, que ce soit côté client et côté serveur. Le backend est constitué
+                    d'un serveur NodeJS tournant sur la pile <a href="https://expressjs.com/">ExpressJS</a>, le tout orchestré par <a href="https://nestjs.com/">NestJS</a>. Un frontal classique Nginx s'occupe
+                    de rediriger les requêtes vers les sous-domaines app.opendossard.com et www.opendossard.com, le tout en HTTPS. <br/>La particularité
+                    de cette architecture est de faire servir par Express (et on Nginx) les pages statiques également. Nous avons souhaité pour des
+                    raisons de simplicité créer une forte proximité entre le Front React et le Back NodeJS.
+                <div style="text-align: center"><img style="max-width: 100%; max-height: 100%"  src="assets/images/appli/archi.png"/></div>
                 </p>
             </div>
 
             <div class="template-example">
-                <h2 class="template-title-example">Headings</h2>
-
-                <table class="table table-bordered">
-                    <tr>
-                        <td><h1>H1: Heading 1</h1></td>
-                    </tr>
-                    <tr>
-                        <td><h2>H2: Heading 2</h2></td>
-                    </tr>
-                    <tr>
-                        <td><h3>H3: Heading 3</h3></td>
-                    </tr>
-                    <tr>
-                        <td><h4>H4: Heading 4</h4></td>
-                    </tr>
-                </table>
+                <h2 class="template-title-example">NestJS, un framework dit "Progressif"</h2>
+                <p>Côté backend OpenDossard utilise un Framework dit "Progressif", NestJS. Tout comme son concurrent <a href="https://tsed.io/">Ts.ED</a>, la particularité de NestJS
+                est de proposer des briques logicielles semblables à ce qu'on
+                pourrait retrouver dans le monde des microservices Java (ou le monde .NET) avec une API typée utilisant Swagger. <br/><br/>Le typage intervient à tous les niveaux applicatifs.
+                Côté serveur la base de données utilise un outil de mapping objet/relationnel : TypeORM. <br/>Les entités représentant le domaine fonctionnel sont envoyés au client React par le biais
+                de l'API. L'association de TypeScript et de Swagger permet de générer un SDK totalement typé utilisant l'outil d'appels XHR Fetch.
+                En cas de modification d'une méthode quelconque de l'API (paramètres, type, ...), swagger-codegen se charge de mettre à jour le code client pour refléter la modification.<br/><br/>
+                    Pour faire un parallèle avec un monde qui vous est (peut-être) plus familier, NestJS est l'équivalent de Spring Framework en Java.</p>
+                <div style="text-align: center"><img style="max-width: 100%; max-height: 100%"  src="assets/images/appli/archilog.png"/></div>
+                <h2 class="template-title-example">Un seul et même langage Front & Back</h2>
+                <p>TypeScript est le langage adopté côté ReactJS, c'est aussi celui du Backend. De nombreuses bibliothèques peuvent être partagées et la maintenance du code s'en trouve facilité.
+                A titre d'exemple, MomentJS qui réalise la conversion et le formatage des dates est utilisé des deux côtés de la même façon. Des règles TsLint homogénéisent la manière de coder.
+                    TypeScript est surtout la garantie qu'un compilateur passera sur notre code avant toute exécution.
+                </p>
             </div>
 
             <div class="template-example">
-                <h2 class="template-title-example">List</h2>
-                <div class="row">
-                    <div class="col-md-6">
-                        <h3 class="template-title-example">Ordered</h3>
-                        <ul>
-                            <li>Consectetur adipiscing elit</li>
-                            <li>Integer molestie lorem at massa</li>
-                            <li>Facilisis in pretium nisl aliquet</li>
-                            <li>Nulla volutpat aliquam velit</li>
-                        </ul>
-                    </div>
-                    <div class="col-md-6">
-                        <h3 class="template-title-example">Number</h3>
-                        <ol>
-                            <li>Consectetur adipiscing elit</li>
-                            <li>Integer molestie lorem at massa</li>
-                            <li>Facilisis in pretium nisl aliquet</li>
-                            <li>Nulla volutpat aliquam velit</li>
-                        </ol>
-                    </div>
-                </div>
+                <h2 class="template-title-example">Open API avec Swagger </h2>
+                <p>NestJS s'appuie sur un connecteur Swagger et des méta-données que le développeur fournit lors du codage. L'API Open Dossard est entièrement typée
+                et la documentation complète est générée par Swagger à l'adresse suivante : <a href="https://app.opendossard.com/api">https://app.opendossard.com/api</a></p>
+                <div style="text-align: center"><img style="width: 50%; height: 50%"  src="assets/images/appli/api.png"/></div>
+                <h2 class="template-title-example">Sécurité avec JWT </h2>
+                <p>NestJS propose un plugin permettant de s'interfacer avec l'outil Passeport, assez populaire dans le monde JS. La sécurité d'Open Dossard s'appuie entièrement l'intégartion
+                    de Passeport avec le mode d'authentfication via jeton JWT. Ce mécanisme est totalement transparent côté frontend grâce à la génération du SDK.
+                    Le simple fait d'appeler la fonction api.service() réalise la propagation du jeton via les entêtes HTTP si l'utilisateur est déjà authentifié.
             </div>
         </div>
     </div>
