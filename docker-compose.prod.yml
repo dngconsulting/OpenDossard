@@ -12,8 +12,8 @@ services:
     working_dir: "/app/server/"
     build: .
     command: "npm run start:prod"
-    ports:
-      - "9090:9090"
+    expose:
+      - "9090"
     restart: always
     env_file:
       - ./config/prod.env
@@ -26,6 +26,7 @@ services:
     restart: always
     ports:
       - "443:443"
+      - "80:80"
     volumes:
       - ./website/:/var/www/html
       - ./config/nginx.conf:/etc/nginx/nginx.conf
