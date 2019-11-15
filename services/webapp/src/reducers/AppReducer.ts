@@ -1,8 +1,8 @@
 import {ActionType, IAppAction} from '../actions/Helpers';
-import {AppState} from '../state/AppState';
+import {IAppState} from '../state/IAppState';
 
-const initialState: AppState = {}
-export const AppReducer = (state: AppState = initialState, action: IAppAction): AppState => {
+const initialState: IAppState = {}
+export const AppReducer = (state: IAppState = initialState, action: IAppAction): IAppState => {
     switch (action.type) {
         case ActionType.LISTE_COUREURS:
             return {

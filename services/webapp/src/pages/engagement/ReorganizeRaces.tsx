@@ -1,16 +1,16 @@
-import {Dialog, DialogActions, DialogContent, DialogTitle} from "@material-ui/core";
-import Button from "@material-ui/core/Button";
-import React, {useContext, useEffect, useState} from "react";
-import TextField from "@material-ui/core/TextField";
-import {Competition, RaceRow} from "../../sdk";
-import makeStyles from "@material-ui/core/styles/makeStyles";
-import Fab from "@material-ui/core/Fab";
-import {Add, Delete, ThreeSixty} from "@material-ui/icons";
-import Typography from "@material-ui/core/Typography";
-import Box from "@material-ui/core/Box";
-import Badge from "@material-ui/core/Badge/Badge";
-import {apiCompetitions} from "../../util/api";
-import {NotificationContext} from "../../components/CadSnackbar";
+import {Dialog, DialogActions, DialogContent, DialogTitle} from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import React, {useContext, useEffect, useState} from 'react';
+import TextField from '@material-ui/core/TextField';
+import {Competition, RaceRow} from '../../sdk';
+import makeStyles from '@material-ui/core/styles/makeStyles';
+import Fab from '@material-ui/core/Fab';
+import {Add, Delete, ThreeSixty} from '@material-ui/icons';
+import Typography from '@material-ui/core/Typography';
+import Box from '@material-ui/core/Box';
+import Badge from '@material-ui/core/Badge/Badge';
+import {apiCompetitions} from '../../util/api';
+import {NotificationContext} from '../../components/CadSnackbar';
 
 const styles = makeStyles(theme => ({
     button: {
@@ -72,50 +72,50 @@ const styles = makeStyles(theme => ({
         color: theme.palette.error.main,
         alignSelf: 'center'
     }
-}))
+}));
 
-const computeByRace = (rows: RaceRow[], categories: string[]) : number => {
-    return rows.filter( row => categories.indexOf(''+row.catev) >= 0 ).length
-}
+const computeByRace = (rows: RaceRow[], categories: string[]): number => {
+    return rows.filter(row => categories.indexOf('' + row.catev) >= 0).length;
+};
 
 const computeByCate = (rows: RaceRow[]) => {
-    const catemap = rows.reduce( (acc: {[catev:string]: number}, row) => {
+    const catemap = rows.reduce((acc: { [catev: string]: number }, row) => {
         return {
             ...acc,
             [row.catev]: acc[row.catev] ? acc[row.catev] + 1 : 1
-        }
+        };
     }, {});
-    return Object.keys(catemap).map( catev => ({
+    return Object.keys(catemap).map(catev => ({
         catev,
         participants: catemap[catev]
-    }) );
-}
+    }));
+};
 
 const computeErrors = (races: string[], categories: string[]) => {
 
-    const messages = races.filter( race => ! /^\d+(\/\d+)*\/?$/.test(race))
-        .filter( race => race.length !== 0 )
-        .map(input => `Saisie incorrecte "${input}"`)
-    if ( messages.length ) {
-        return messages
+    const messages = races.filter(race => !/^\d+(\/\d+)*\/?$/.test(race))
+        .filter(race => race.length !== 0)
+        .map(input => `Saisie incorrecte "${input}"`);
+    if (messages.length) {
+        return messages;
     }
 
-    const flatCategories = races.map( race => race.split('/') ).reduce( (acc, cate) => ([...acc, ...cate]), [])
-    const uniqueCategories = Array.from(new Set(flatCategories))
-    const remaining = categories.filter( c => uniqueCategories.indexOf(c) < 0 )
+    const flatCategories = races.map(race => race.split('/')).reduce((acc, cate) => ([...acc, ...cate]), []);
+    const uniqueCategories = Array.from(new Set(flatCategories));
+    const remaining = categories.filter(c => uniqueCategories.indexOf(c) < 0);
 
-    if ( remaining.length ) {
-        return [`Les inscrits en catégories ${remaining.join(',')} n'ont pas été pris en charge`]
+    if (remaining.length) {
+        return [`Les inscrits en catégories ${remaining.join(',')} n'ont pas été pris en charge`];
     }
 
-    if ( flatCategories.length !== uniqueCategories.length ) {
-        return [`Certaines catégories sont renseignées en double`]
+    if (flatCategories.length !== uniqueCategories.length) {
+        return [`Certaines catégories sont renseignées en double`];
     }
 
-    return []
-}
+    return [];
+};
 
-export const Reorganizer = ({competition, rows, onSuccess} : {competition: Competition, rows: RaceRow[], onSuccess: () => void}) => {
+export const Reorganizer = ({competition, rows, onSuccess}: { competition: Competition, rows: RaceRow[], onSuccess: () => void }) => {
 
     const [races, setRaces] = useState([]);
     const [open, setOpen] = useState(false);
@@ -123,38 +123,38 @@ export const Reorganizer = ({competition, rows, onSuccess} : {competition: Compe
 
     const classes = styles({});
 
-    useEffect( () => {
-        setRaces(competition ? competition.races  : ['1/2'])
-    }, [open])
+    useEffect(() => {
+        setRaces(competition ? competition.races : ['1/2']);
+    }, [open]);
 
     const save = async () => {
         try {
             await apiCompetitions.reorganize({
                 competitionId: competition.id,
                 races
-            })
+            });
             setNotification({
                 message: `La compétition a été réorganisée avec succès`,
                 type: 'info',
                 open: true
             });
-            setOpen(false)
-            onSuccess()
-        } catch(e) {
+            setOpen(false);
+            onSuccess();
+        } catch (e) {
             setNotification({
                 message: `Une erreur s'est produite`,
                 type: 'error',
                 open: true
             });
         }
-    }
+    };
 
     const byCate = computeByCate(rows);
-    const errors = computeErrors(races, byCate.map( c => c.catev));
+    const errors = computeErrors(races, byCate.map(c => c.catev));
 
     return <div>
         <Button className={classes.button}
-                onClick={() => setOpen(true)}><ThreeSixty /> Réorganiser les courses</Button>
+                onClick={() => setOpen(true)}><ThreeSixty/> Réorganiser les courses</Button>
         <Dialog
             open={open}
             onClose={() => setOpen(false)}
@@ -164,7 +164,8 @@ export const Reorganizer = ({competition, rows, onSuccess} : {competition: Compe
             <DialogTitle id="alert-dialog-title">Réorganiser les courses</DialogTitle>
             <DialogContent className={classes.dialogContent}>
                 <Typography variant="body2">
-                    Ici, vous pouvez revoir les catégories de chaque courses, ajouter ou supprimer des courses...
+                    Ici, vous pouvez revoir les catégories de chaque courses, ajouter ou supprimer
+                    des courses...
                 </Typography>
                 <Box display="flex">
                     <Races races={races} setRaces={setRaces} rows={rows}/>
@@ -172,22 +173,24 @@ export const Reorganizer = ({competition, rows, onSuccess} : {competition: Compe
                 </Box>
                 {
                     errors.length === 0 ? <br/> :
-                    errors.map( (error,i) => <span key={i} className={classes.errors}>{error}</span>)
+                        errors.map((error, i) => <span key={i}
+                                                       className={classes.errors}>{error}</span>)
                 }
             </DialogContent>
             <DialogActions>
                 <Button onClick={() => setOpen(false)} variant='contained' color="primary">
                     Annuler
                 </Button>
-                <Button onClick={() => save()} variant='contained' color="primary" disabled={errors.length > 0}>
+                <Button onClick={() => save()} variant='contained' color="primary"
+                        disabled={errors.length > 0}>
                     Réorganiser
                 </Button>
             </DialogActions>
         </Dialog>
-    </div>
-}
+    </div>;
+};
 
-const Races = ({races, setRaces, rows} : {races: string[], setRaces: (races:string[]) => void, rows: RaceRow[]}) => {
+const Races = ({races, setRaces, rows}: { races: string[], setRaces: (races: string[]) => void, rows: RaceRow[] }) => {
 
     const classes = styles({});
 
@@ -199,27 +202,28 @@ const Races = ({races, setRaces, rows} : {races: string[], setRaces: (races:stri
                        className={classes.badges}
                        color="secondary">
                     <TextField data-cp="field" value={raceCode} onChange={e => {
-                        const newOne = [...races]
-                        newOne[i] = e.target.value
-                        setRaces(newOne)
+                        const newOne = [...races];
+                        newOne[i] = e.target.value;
+                        setRaces(newOne);
                     }}/>
                 </Badge>
-                {   races.length > 1 &&
-                <Fab color="primary" data-cp="icon" onClick={() => setRaces(races.filter((item,j) => i !== j))}>
-                  <Delete />
+                {races.length > 1 &&
+                <Fab color="primary" data-cp="icon"
+                     onClick={() => setRaces(races.filter((item, j) => i !== j))}>
+                  <Delete/>
                 </Fab>
                 }
-                <Fab style={{visibility: i === (races.length-1) ? 'visible' : 'hidden'}}
+                <Fab style={{visibility: i === (races.length - 1) ? 'visible' : 'hidden'}}
                      color="primary"
                      data-cp="icon"
                      onClick={() => setRaces([...races, ''])}>
-                    <Add />
+                    <Add/>
                 </Fab>
             </Box>))
-    }</Box>
-}
+    }</Box>;
+};
 
-const Categories = ({byCate} : {byCate: Array<{catev:string, participants: number}>}) => {
+const Categories = ({byCate}: { byCate: Array<{ catev: string, participants: number }> }) => {
 
     const classes = styles({});
 
@@ -227,16 +231,16 @@ const Categories = ({byCate} : {byCate: Array<{catev:string, participants: numbe
         <table>
             <tbody>
             <tr>
-                <th>Catégories : </th>
-                { byCate.map( stat => <td key={stat.catev}>{stat.catev}</td>) }
+                <th>Catégories :</th>
+                {byCate.map(stat => <td key={stat.catev}>{stat.catev}</td>)}
             </tr>
             <tr>
-                <th>Inscrits : </th>
-                { byCate.map( stat => <td key={stat.catev}>{stat.participants}</td>) }
+                <th>Inscrits :</th>
+                {byCate.map(stat => <td key={stat.catev}>{stat.participants}</td>)}
             </tr>
             </tbody>
         </table>
         <span>Répartition des coureurs par catégories</span>
-    </Box>
-}
+    </Box>;
+};
 

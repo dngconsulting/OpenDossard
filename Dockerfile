@@ -1,3 +1,4 @@
+# NOTE : We are grouping here client & server in the same container
 # Setup and build the client
 FROM node:10.12.0-alpine as client
 

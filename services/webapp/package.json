@@ -52,7 +52,6 @@
     "start": "node node_modules/react-scripts/bin/react-scripts start",
     "build": "node node_modules/react-scripts/bin/react-scripts build",
     "test": "node node_modules/react-scripts/bin/react-scripts-ts test --env=jsdom",
-    "postinstall": "npm run build",
     "deploy": "node server.js",
     "eject": "node node_modules/react-scripts/bin/react-scripts-ts eject",
     "tslint:check": "tslint --project .",

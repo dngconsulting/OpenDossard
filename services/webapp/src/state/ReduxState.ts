@@ -1,12 +1,12 @@
 import {connectedRouterRedirect} from 'redux-auth-wrapper/history4/redirect';
 import {Utility} from './Utility';
-import {AppState} from './AppState';
+import {IAppState} from './IAppState';
 import {User} from '../sdk';
 
 export interface IReduxState {
     utility?: Utility;
     authentication?: User;
-    app : AppState;
+    app : IAppState;
 }
 
 export class ReduxState implements IReduxState {
@@ -16,7 +16,7 @@ export class ReduxState implements IReduxState {
 
     public utility: Utility;
     public authentication: User;
-    public app : AppState;
+    public app : IAppState;
 }
 
 export const isAuthenticated = connectedRouterRedirect({

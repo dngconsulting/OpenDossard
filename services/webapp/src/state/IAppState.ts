@@ -1,6 +1,6 @@
 import {Licence} from '../sdk';
 
-export interface AppState {
+export interface IAppState {
     test?: string;
     licences? : Licence[];
 }

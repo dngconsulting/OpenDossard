@@ -3,13 +3,16 @@
   "linterOptions": {
     "exclude": [
       "config/**/*.js",
-      "node_modules/**/*.ts"
+      "node_modules/**/*.ts",
+      "sdk/**/*.js"
     ]
   },
   "rules": {
     "ordered-imports": false,
     "member-ordering": false,
     "object-literal-sort-keys": false,
+    "no-reference-import": false,
+    "no-reference": false,
     "no-var-requires": false,
     "no-console": false,
     "jsx-no-lambda": false,

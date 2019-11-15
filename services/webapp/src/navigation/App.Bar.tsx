@@ -32,7 +32,7 @@ const classNames = require('classnames');
 interface IAppProps extends IApplicationProps {
     classes: any;
     theme?: any;
-    title:any;
+    title: any;
 }
 
 interface IState {
@@ -46,10 +46,6 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
         anchorEl: null,
         notificationEl: null
     };
-
-    public componentWillMount() {
-
-    }
 
     private handleMenu = (event: any) => {
         this.setState({anchorEl: event.currentTarget});
@@ -127,7 +123,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
                         </IconButton>
                         <img src={logo} width={84} height={44}/>
                         <Typography className={classes.fillSpace} color="inherit" noWrap={true}>
-                            {this.props.history.location.state && this.props.history.location.state.title ? this.props.history.location.state.title:"ossard "}
+                            {this.props.history.location.state && this.props.history.location.state.title ? this.props.history.location.state.title : 'ossard '}
                         </Typography>
                         <div>
                             <IconButton
