@@ -5,9 +5,11 @@ import {Logger} from '@nestjs/common';
 import config from './config';
 import {NestExpressApplication} from '@nestjs/platform-express';
 import {join} from 'path';
+import {NotFoundExceptionFilter} from './exception/NotFoundExceptionFilter';
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule, {logger: ['error', 'warn', 'debug']});
+    app.useGlobalFilters(new NotFoundExceptionFilter());
     if (config.app.env !== 'DEV') {
         app.useStaticAssets(join(__dirname, '../..', 'client/build'), {index: 'index.html'});
     }
