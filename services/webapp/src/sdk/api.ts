@@ -17,7 +17,7 @@ import * as url from "url";
 import * as portableFetch from "portable-fetch";
 import { Configuration } from "./configuration";
 
-const BASE_PATH = "http://localhost".replace(/\/+$/, "");
+const BASE_PATH = "https://localhost".replace(/\/+$/, "");
 
 /**
  *
@@ -638,6 +638,176 @@ export interface User {
 
 
 /**
+ * AuthAPIApi - fetch parameter creator
+ * @export
+ */
+export const AuthAPIApiFetchParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * description
+         * @summary Login utilisateur
+         * @param {User} user 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        login(user: User, options: any = {}): FetchArgs {
+            // verify required parameter 'user' is not null or undefined
+            if (user === null || user === undefined) {
+                throw new RequiredError('user','Required parameter user was null or undefined when calling login.');
+            }
+            const localVarPath = `/api/auth/login`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+            const needsSerialization = (<any>"User" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(user || {}) : (user || "");
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * identifiant courant
+         * @summary identifiant courant
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        me(options: any = {}): FetchArgs {
+            const localVarPath = `/api/auth/me`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * AuthAPIApi - functional programming interface
+ * @export
+ */
+export const AuthAPIApiFp = function(configuration?: Configuration) {
+    return {
+        /**
+         * description
+         * @summary Login utilisateur
+         * @param {User} user 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        login(user: User, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<User> {
+            const localVarFetchArgs = AuthAPIApiFetchParamCreator(configuration).login(user, options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response.json();
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+        /**
+         * identifiant courant
+         * @summary identifiant courant
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        me(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<User> {
+            const localVarFetchArgs = AuthAPIApiFetchParamCreator(configuration).me(options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response.json();
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+    }
+};
+
+/**
+ * AuthAPIApi - factory interface
+ * @export
+ */
+export const AuthAPIApiFactory = function (configuration?: Configuration, fetch?: FetchAPI, basePath?: string) {
+    return {
+        /**
+         * description
+         * @summary Login utilisateur
+         * @param {User} user 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        login(user: User, options?: any) {
+            return AuthAPIApiFp(configuration).login(user, options)(fetch, basePath);
+        },
+        /**
+         * identifiant courant
+         * @summary identifiant courant
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        me(options?: any) {
+            return AuthAPIApiFp(configuration).me(options)(fetch, basePath);
+        },
+    };
+};
+
+/**
+ * AuthAPIApi - object-oriented interface
+ * @export
+ * @class AuthAPIApi
+ * @extends {BaseAPI}
+ */
+export class AuthAPIApi extends BaseAPI {
+    /**
+     * description
+     * @summary Login utilisateur
+     * @param {User} user 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthAPIApi
+     */
+    public login(user: User, options?: any) {
+        return AuthAPIApiFp(this.configuration).login(user, options)(this.fetch, this.basePath);
+    }
+
+    /**
+     * identifiant courant
+     * @summary identifiant courant
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthAPIApi
+     */
+    public me(options?: any) {
+        return AuthAPIApiFp(this.configuration).me(options)(this.fetch, this.basePath);
+    }
+
+}
+
+/**
  * ClubAPIApi - fetch parameter creator
  * @export
  */
@@ -982,7 +1152,7 @@ export const LicenceAPIApiFetchParamCreator = function (configuration?: Configur
     return {
         /**
          * 
-         * @summary delete licence
+         * @summary Supprime une licence
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1105,7 +1275,7 @@ export const LicenceAPIApiFetchParamCreator = function (configuration?: Configur
             if (param === null || param === undefined) {
                 throw new RequiredError('param','Required parameter param was null or undefined when calling getLicencesLike.');
             }
-            const localVarPath = `/api/licences/getLicencesLike/{param}`
+            const localVarPath = `/api/licences/search/{param}`
                 .replace(`{${"param"}}`, encodeURIComponent(String(param)));
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
@@ -1134,7 +1304,7 @@ export const LicenceAPIApiFetchParamCreator = function (configuration?: Configur
             if (search === null || search === undefined) {
                 throw new RequiredError('search','Required parameter search was null or undefined when calling getPageSizeLicencesForPage.');
             }
-            const localVarPath = `/api/licences/search`;
+            const localVarPath = `/api/licences/filter`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
             const localVarHeaderParameter = {} as any;
@@ -1155,40 +1325,8 @@ export const LicenceAPIApiFetchParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * description
-         * @summary Modifie une licence existante 
-         * @param {Licence} licence 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        save(licence: Licence, options: any = {}): FetchArgs {
-            // verify required parameter 'licence' is not null or undefined
-            if (licence === null || licence === undefined) {
-                throw new RequiredError('licence','Required parameter licence was null or undefined when calling save.');
-            }
-            const localVarPath = `/api/licences`;
-            const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'PUT' }, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-            const needsSerialization = (<any>"Licence" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
-            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(licence || {}) : (licence || "");
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * 
-         * @summary update une licence existante
+         * @summary Met à jour une licence existante
          * @param {Licence} licence 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1198,7 +1336,7 @@ export const LicenceAPIApiFetchParamCreator = function (configuration?: Configur
             if (licence === null || licence === undefined) {
                 throw new RequiredError('licence','Required parameter licence was null or undefined when calling update.');
             }
-            const localVarPath = `/api/licences/update`;
+            const localVarPath = `/api/licences`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'PUT' }, options);
             const localVarHeaderParameter = {} as any;
@@ -1229,7 +1367,7 @@ export const LicenceAPIApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
-         * @summary delete licence
+         * @summary Supprime une licence
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1341,27 +1479,8 @@ export const LicenceAPIApiFp = function(configuration?: Configuration) {
             };
         },
         /**
-         * description
-         * @summary Modifie une licence existante 
-         * @param {Licence} licence 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        save(licence: Licence, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = LicenceAPIApiFetchParamCreator(configuration).save(licence, options);
-            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
-                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
-                    if (response.status >= 200 && response.status < 300) {
-                        return response;
-                    } else {
-                        throw response;
-                    }
-                });
-            };
-        },
-        /**
          * 
-         * @summary update une licence existante
+         * @summary Met à jour une licence existante
          * @param {Licence} licence 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1389,7 +1508,7 @@ export const LicenceAPIApiFactory = function (configuration?: Configuration, fet
     return {
         /**
          * 
-         * @summary delete licence
+         * @summary Supprime une licence
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1447,18 +1566,8 @@ export const LicenceAPIApiFactory = function (configuration?: Configuration, fet
             return LicenceAPIApiFp(configuration).getPageSizeLicencesForPage(search, options)(fetch, basePath);
         },
         /**
-         * description
-         * @summary Modifie une licence existante 
-         * @param {Licence} licence 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        save(licence: Licence, options?: any) {
-            return LicenceAPIApiFp(configuration).save(licence, options)(fetch, basePath);
-        },
-        /**
          * 
-         * @summary update une licence existante
+         * @summary Met à jour une licence existante
          * @param {Licence} licence 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1478,7 +1587,7 @@ export const LicenceAPIApiFactory = function (configuration?: Configuration, fet
 export class LicenceAPIApi extends BaseAPI {
     /**
      * 
-     * @summary delete licence
+     * @summary Supprime une licence
      * @param {string} id 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1548,20 +1657,8 @@ export class LicenceAPIApi extends BaseAPI {
     }
 
     /**
-     * description
-     * @summary Modifie une licence existante 
-     * @param {Licence} licence 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof LicenceAPIApi
-     */
-    public save(licence: Licence, options?: any) {
-        return LicenceAPIApiFp(this.configuration).save(licence, options)(this.fetch, this.basePath);
-    }
-
-    /**
      * 
-     * @summary update une licence existante
+     * @summary Met à jour une licence existante
      * @param {Licence} licence 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2171,176 +2268,6 @@ export class RaceAPIApi extends BaseAPI {
      */
     public update(raceRow: RaceRow, options?: any) {
         return RaceAPIApiFp(this.configuration).update(raceRow, options)(this.fetch, this.basePath);
-    }
-
-}
-
-/**
- * SecurityApi - fetch parameter creator
- * @export
- */
-export const SecurityApiFetchParamCreator = function (configuration?: Configuration) {
-    return {
-        /**
-         * description
-         * @summary Login utilisateur
-         * @param {User} user 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        login(user: User, options: any = {}): FetchArgs {
-            // verify required parameter 'user' is not null or undefined
-            if (user === null || user === undefined) {
-                throw new RequiredError('user','Required parameter user was null or undefined when calling login.');
-            }
-            const localVarPath = `/api/security/login`;
-            const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-            const needsSerialization = (<any>"User" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
-            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(user || {}) : (user || "");
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * identifiant courant
-         * @summary identifiant courant
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        me(options: any = {}): FetchArgs {
-            const localVarPath = `/api/security/me`;
-            const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    }
-};
-
-/**
- * SecurityApi - functional programming interface
- * @export
- */
-export const SecurityApiFp = function(configuration?: Configuration) {
-    return {
-        /**
-         * description
-         * @summary Login utilisateur
-         * @param {User} user 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        login(user: User, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<User> {
-            const localVarFetchArgs = SecurityApiFetchParamCreator(configuration).login(user, options);
-            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
-                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
-                    if (response.status >= 200 && response.status < 300) {
-                        return response.json();
-                    } else {
-                        throw response;
-                    }
-                });
-            };
-        },
-        /**
-         * identifiant courant
-         * @summary identifiant courant
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        me(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<User> {
-            const localVarFetchArgs = SecurityApiFetchParamCreator(configuration).me(options);
-            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
-                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
-                    if (response.status >= 200 && response.status < 300) {
-                        return response.json();
-                    } else {
-                        throw response;
-                    }
-                });
-            };
-        },
-    }
-};
-
-/**
- * SecurityApi - factory interface
- * @export
- */
-export const SecurityApiFactory = function (configuration?: Configuration, fetch?: FetchAPI, basePath?: string) {
-    return {
-        /**
-         * description
-         * @summary Login utilisateur
-         * @param {User} user 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        login(user: User, options?: any) {
-            return SecurityApiFp(configuration).login(user, options)(fetch, basePath);
-        },
-        /**
-         * identifiant courant
-         * @summary identifiant courant
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        me(options?: any) {
-            return SecurityApiFp(configuration).me(options)(fetch, basePath);
-        },
-    };
-};
-
-/**
- * SecurityApi - object-oriented interface
- * @export
- * @class SecurityApi
- * @extends {BaseAPI}
- */
-export class SecurityApi extends BaseAPI {
-    /**
-     * description
-     * @summary Login utilisateur
-     * @param {User} user 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof SecurityApi
-     */
-    public login(user: User, options?: any) {
-        return SecurityApiFp(this.configuration).login(user, options)(this.fetch, this.basePath);
-    }
-
-    /**
-     * identifiant courant
-     * @summary identifiant courant
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof SecurityApi
-     */
-    public me(options?: any) {
-        return SecurityApiFp(this.configuration).me(options)(this.fetch, this.basePath);
     }
 
 }

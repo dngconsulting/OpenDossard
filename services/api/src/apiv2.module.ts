@@ -10,7 +10,7 @@ import {UsersService} from './services/users.service';
 import {AuthService} from './services/auth.service';
 import {LocalStrategy} from './services/local.strategy';
 import {PassportModule} from '@nestjs/passport';
-import {PassportCtrl} from './controllers/PassportCtrl';
+import {AuthenticationCtrl} from './controllers/AuthenticationCtrl';
 import {RacesCtrl} from './controllers/RaceCtrl';
 import {FactoryProvider} from '@nestjs/common/interfaces';
 import {APP_INTERCEPTOR} from '@nestjs/core';
@@ -39,7 +39,7 @@ const RLog: FactoryProvider = {
     })],
     providers: [AppService, UsersService, AuthService, LocalStrategy, JwtStrategy, RLog],
     exports: [UsersService],
-    controllers: [LicencesCtrl, PassportCtrl, RacesCtrl, CompetitionCtrl, ClubCtrl],
+    controllers: [LicencesCtrl, AuthenticationCtrl, RacesCtrl, CompetitionCtrl, ClubCtrl],
 })
 export class Apiv2Module {
 }

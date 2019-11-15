@@ -23,7 +23,7 @@ export class LicencesCtrl {
     ) {
     }
 
-    @Get('/getLicencesLike/:param')
+    @Get('/search/:param')
     @ApiOperation({
         operationId: 'getLicencesLike',
         title: 'Rechercher des licences en fonction, du nom, prénom ou numéro de licence ',
@@ -63,7 +63,7 @@ export class LicencesCtrl {
         title: 'Rechercher par page les licences ',
         description: 'currentPage, pageSize, orderDirection, orderBy et Filters',
     })
-    @Post('/search')
+    @Post('/filter')
     @ApiResponse({status: 200, type: LicencesPage})
     public async getPageSizeLicencesForPage(@Body() search: Search): Promise<LicencesPage> {
         const qb = this.repository.createQueryBuilder();
@@ -90,17 +90,6 @@ export class LicencesCtrl {
         return {data: res[0], page: search.currentPage, totalCount: res[1]};
     }
 
-    @Put('/')
-    @ApiOperation({
-        operationId: 'save',
-        title: 'Modifie une licence existante ',
-        description: 'description',
-    })
-    public async save(@Body() licence: Licence)
-        : Promise<Licence> {
-        return this.entityManager.save(licence);
-    }
-
     @Post()
     @ApiOperation({
         operationId: 'create',
@@ -123,9 +112,9 @@ export class LicencesCtrl {
         await this.entityManager.save(newLicence);
     }
 
-    @Put('/update')
+    @Put()
     @ApiOperation({
-        title: 'update une licence existante',
+        title: 'Met à jour une licence existante',
         operationId: 'update',
     })
     public async update(@Body() licence: Licence)
@@ -146,7 +135,7 @@ export class LicencesCtrl {
 
     @Delete('/:id')
     @ApiOperation({
-        title: 'delete licence',
+        title: 'Supprime une licence',
         operationId: 'delete',
     })
     public async delete(@Param('id') id: string)

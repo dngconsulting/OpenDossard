@@ -4,7 +4,7 @@ import {
     Configuration,
     LicenceAPIApi,
     RaceAPIApi,
-    SecurityApi
+    AuthAPIApi
 } from '../sdk';
 import {store} from '../store/Store';
 import {logout} from '../actions/App.Actions';
@@ -55,7 +55,7 @@ const enhance = (obj: any) => {
 export const setBearerToken = (token: string) => {
     bearerToken = token;
 };
-export const passportCtrl = enhance(new SecurityApi(apiconfig, apiconfig.basePath));
+export const passportCtrl = enhance(new AuthAPIApi(apiconfig, apiconfig.basePath));
 export const apiLicences = enhance(new LicenceAPIApi(apiconfig, apiconfig.basePath));
 export const apiRaces = enhance(new RaceAPIApi(apiconfig, apiconfig.basePath));
 export const apiCompetitions = enhance(new CompetitionAPIApi(apiconfig, apiconfig.basePath));

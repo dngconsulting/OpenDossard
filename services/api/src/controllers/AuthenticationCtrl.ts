@@ -4,9 +4,9 @@ import {ApiConsumes, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagge
 import {AuthService} from '../services/auth.service';
 import {User} from '../entity/User';
 
-@Controller('/api/security')
-@ApiUseTags('Security')
-export class PassportCtrl {
+@Controller('/api/auth')
+@ApiUseTags('AuthAPI')
+export class AuthenticationCtrl {
     constructor(private readonly authService: AuthService) {
     }
 

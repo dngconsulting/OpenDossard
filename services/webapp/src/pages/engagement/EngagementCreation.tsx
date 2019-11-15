@@ -71,7 +71,7 @@ export const CreationForm = (
     const submit = async () => {
         if (!form.riderNumber || !form.catev || !form.licence) {
             setNotification({
-                message: `Merci de saisir au moins un numéro de dossard et une catégorie `,
+                message: `Merci de saisir un coureur, un numéro de dossard et une catégorie `,
                 open: true,
                 type: 'error'
             });

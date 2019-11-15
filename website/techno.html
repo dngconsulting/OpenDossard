@@ -68,13 +68,13 @@
             <div class="template-example">
                 <h2 class="template-title-example">NestJS, un framework dit "Progressif"</h2>
                 <p>Côté backend OpenDossard utilise un Framework dit "Progressif", NestJS. Tout comme son concurrent <a href="https://tsed.io/">Ts.ED</a>, la particularité de NestJS
-                est de proposer des briques logicielles semblables à ce qu'on
+                est de proposer des briques logicielles semblables à ce qu'on <img align="right" src="assets/images/appli/archilog.png" class="img-responsive reveal-content" data-action="zoom"/>
                 pourrait retrouver dans le monde des microservices Java (ou le monde .NET) avec une API typée utilisant Swagger. <br/><br/>Le typage intervient à tous les niveaux applicatifs.
                 Côté serveur la base de données utilise un outil de mapping objet/relationnel : TypeORM. <br/>Les entités représentant le domaine fonctionnel sont envoyés au client React par le biais
                 de l'API. L'association de TypeScript et de Swagger permet de générer un SDK totalement typé utilisant l'outil d'appels XHR Fetch.
                 En cas de modification d'une méthode quelconque de l'API (paramètres, type, ...), swagger-codegen se charge de mettre à jour le code client pour refléter la modification.<br/><br/>
                     Pour faire un parallèle avec un monde qui vous est (peut-être) plus familier, NestJS est l'équivalent de Spring Framework en Java.</p>
-                <div style="text-align: center"><img style="width: 50%; height: 50%"  src="assets/images/appli/archilog.png" class="img-responsive reveal-content" data-action="zoom"/></div>
+
                 <h2 class="template-title-example">Un seul et même langage Front & Back</h2>
                 <p>TypeScript est le langage adopté côté ReactJS, c'est aussi celui du Backend. De nombreuses bibliothèques peuvent être partagées et la maintenance du code s'en trouve facilité.
                 A titre d'exemple, MomentJS qui réalise la conversion et le formatage des dates est utilisé des deux côtés de la même façon. Des règles TsLint homogénéisent la manière de coder.
