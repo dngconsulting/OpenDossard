@@ -13,7 +13,6 @@ import { AuthService } from './auth.service';
     }
 
     async validate(username: string, password: string): Promise<any> {
-        Logger.debug('LocalStrategy.validate ' + username + ' ' + password);
         const user = await this.authService.validateUser(username, password);
         if (!user) {
             throw new UnauthorizedException();
