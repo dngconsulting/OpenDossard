@@ -1,6 +1,6 @@
 import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Index} from 'typeorm';
-import {Federation} from './Federation';
-import {Club} from './Club';
+import {FederationEntity} from './federation.entity';
+import {ClubEntity} from './club.entity';
 import {ApiModelProperty, ApiModelPropertyOptional} from '@nestjs/swagger';
 
 /**
@@ -28,8 +28,8 @@ export enum CompetitionType {
  * Entité représentant une fichier épreuve.
  * Une épreuve contient ensuite une ou plusieurs courses
  */
-@Entity()
-export class Competition {
+@Entity({name: 'competition'})
+export class CompetitionEntity {
 
     @PrimaryGeneratedColumn()
     @ApiModelProperty()
@@ -44,10 +44,10 @@ export class Competition {
     /**
      * La référence du club organisateur
      */
-    @ManyToOne((type) => Club)
+    @ManyToOne((type) => ClubEntity)
     @JoinColumn()
     @ApiModelProperty()
-    public club: Club;
+    public club: ClubEntity;
     /**
      * Le nom de l'épreuve
      */
@@ -101,12 +101,12 @@ export class Competition {
 
     @Column({
         type: 'enum',
-        enum: Federation,
+        enum: FederationEntity,
         nullable: true,
-        default: Federation.NL,
+        default: FederationEntity.NL,
     })
     @ApiModelProperty()
-    fede: Federation;
+    fede: FederationEntity;
 
     @Column({
         type: 'enum',

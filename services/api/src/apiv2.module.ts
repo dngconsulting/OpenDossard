@@ -1,23 +1,22 @@
 import {Module, Scope} from '@nestjs/common';
 import {TypeOrmModule} from '@nestjs/typeorm';
-import {Licence} from './entity/Licence';
-import {Competition} from './entity/Competition';
-import {Club} from './entity/Club';
-import {Race} from './entity/Race';
-import {LicencesCtrl} from './controllers/LicencesCtrl';
-import {AppService} from './services/app.service';
+import {LicenceEntity} from './entity/licence.entity';
+import {CompetitionEntity} from './entity/competition.entity';
+import {ClubEntity} from './entity/club.entity';
+import {RaceEntity} from './entity/race.entity';
+import {LicenceController} from './controllers/licence.controller';
 import {UsersService} from './services/users.service';
 import {AuthService} from './services/auth.service';
 import {LocalStrategy} from './services/local.strategy';
 import {PassportModule} from '@nestjs/passport';
-import {AuthenticationCtrl} from './controllers/AuthenticationCtrl';
-import {RacesCtrl} from './controllers/RaceCtrl';
+import {AuthenticationController} from './controllers/authentication.controller';
+import {RacesCtrl} from './controllers/race.controller';
 import {FactoryProvider} from '@nestjs/common/interfaces';
 import {APP_INTERCEPTOR} from '@nestjs/core';
 import {RlogInterceptor} from './interceptors/rlog.interceptor';
-import {CompetitionCtrl} from './controllers/CompetitionCtrl';
-import {ClubCtrl} from './controllers/ClubCtrl';
-import {User} from './entity/User';
+import {CompetitionController} from './controllers/competition.controller';
+import {ClubController} from './controllers/club.controller';
+import {UserEntity} from './entity/user.entity';
 import {JwtModule} from '@nestjs/jwt';
 import {jwtConstants} from './util/constants';
 import {JwtStrategy} from './services/jwt.strategy';
@@ -26,20 +25,19 @@ import config from './config';
 const RLog: FactoryProvider = {
     provide: APP_INTERCEPTOR,
     scope: Scope.REQUEST,
-    inject: [AppService],
-    useFactory: (appService: AppService) => {
+    useFactory: () => {
         return new RlogInterceptor('custom');
     },
 };
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Licence, Club, Competition, Race, User]), PassportModule.register({defaultStrategy: 'jwt'}), JwtModule.register({
+    imports: [TypeOrmModule.forFeature([LicenceEntity, ClubEntity, CompetitionEntity, RaceEntity, UserEntity]), PassportModule.register({defaultStrategy: 'jwt'}), JwtModule.register({
         secret: jwtConstants.secret,
         signOptions: {expiresIn: config.app.jwtExpires + 's'},
     })],
-    providers: [AppService, UsersService, AuthService, LocalStrategy, JwtStrategy, RLog],
+    providers: [UsersService, AuthService, LocalStrategy, JwtStrategy, RLog],
     exports: [UsersService],
-    controllers: [LicencesCtrl, AuthenticationCtrl, RacesCtrl, CompetitionCtrl, ClubCtrl],
+    controllers: [LicenceController, AuthenticationController, RacesCtrl, CompetitionController, ClubController],
 })
 export class Apiv2Module {
 }

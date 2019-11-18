@@ -1,19 +1,19 @@
 import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Index} from 'typeorm';
-import {Competition} from './Competition';
-import {Licence} from './Licence';
+import {CompetitionEntity} from './competition.entity';
+import {LicenceEntity} from './licence.entity';
 
-@Entity()
-export class Race {
+@Entity({name: 'race'})
+export class RaceEntity {
     @PrimaryGeneratedColumn()
     public id: number;
 
-    @ManyToOne((type) => Competition)
+    @ManyToOne((type) => CompetitionEntity)
     @JoinColumn()
-    public competition: Competition;
+    public competition: CompetitionEntity;
 
-    @ManyToOne((type) => Licence)
+    @ManyToOne((type) => LicenceEntity)
     @JoinColumn()
-    public licence: Licence;
+    public licence: LicenceEntity;
 
     @Column({nullable: true})
     @Index()

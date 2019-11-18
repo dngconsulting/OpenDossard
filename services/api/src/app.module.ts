@@ -1,14 +1,12 @@
 import {Module} from '@nestjs/common';
 import {TypeOrmModule} from '@nestjs/typeorm';
-import {Licence} from './entity/Licence';
-import {Competition} from './entity/Competition';
-import {Club} from './entity/Club';
-import {Race} from './entity/Race';
+import {LicenceEntity} from './entity/licence.entity';
+import {CompetitionEntity} from './entity/competition.entity';
+import {ClubEntity} from './entity/club.entity';
+import {RaceEntity} from './entity/race.entity';
 import {Apiv2Module} from './apiv2.module';
 import config from './config';
-import {join} from 'path';
-import {User} from './entity/User';
-import {ServeStaticModule} from '@nestjs/serve-static';
+import {UserEntity} from './entity/user.entity';
 
 @Module({
     imports: [
@@ -19,7 +17,7 @@ import {ServeStaticModule} from '@nestjs/serve-static';
             username: config.db.username,
             password: config.db.password,
             database: config.db.database,
-            entities: [Licence, Club, Competition, Race, User],
+            entities: [LicenceEntity, ClubEntity, CompetitionEntity, RaceEntity, UserEntity],
             synchronize: true,
             logging: true,
         }), Apiv2Module],

@@ -9,7 +9,8 @@ export class RlogInterceptor implements NestInterceptor {
 
     /**
      * Cet intercepteur est mis à titre indicatif, n'hésitez pas à le modifier
-     * pour y rajouter des infos supplémentaires
+     * pour y rajouter des infos supplémentaires.
+     * Il est aussi possible de passer par le concept de Middleware
      * @param context
      * @param next
      */
@@ -17,7 +18,7 @@ export class RlogInterceptor implements NestInterceptor {
         Logger.log('--------------------------------------------------------');
         Logger.log(context.switchToHttp().getRequest().method + ' ' +
             context.switchToHttp().getRequest().url);
-        Logger.log('Request Body ' + JSON.stringify(context.switchToHttp().getRequest().body));
+        Logger.log('Request Body  ' + JSON.stringify(context.switchToHttp().getRequest().body));
         Logger.log('Request Headers ' + JSON.stringify(context.switchToHttp().getRequest().headers));
         Logger.log('Response ' + JSON.stringify(context.switchToHttp().getResponse().statusCode));
         return next.handle();

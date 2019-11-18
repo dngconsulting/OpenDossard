@@ -11,8 +11,8 @@ import {
 import {ApiModelPropertyOptional, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
 import {EntityManager, Repository} from 'typeorm';
-import {Competition} from '../entity/Competition';
-import {Race} from '../entity/Race';
+import {CompetitionEntity} from '../entity/competition.entity';
+import {RaceEntity} from '../entity/race.entity';
 import {AuthGuard} from '@nestjs/passport';
 
 export class CompetitionReorganize {
@@ -30,10 +30,10 @@ export class CompetitionReorganize {
 @Controller('/api/competition')
 @ApiUseTags('CompetitionAPI')
 @UseGuards(AuthGuard('jwt'))
-export class CompetitionCtrl {
+export class CompetitionController {
     constructor(
-        @InjectRepository(Competition)
-        private readonly repository: Repository<Competition>,
+        @InjectRepository(CompetitionEntity)
+        private readonly repository: Repository<CompetitionEntity>,
         @InjectEntityManager()
         private readonly entityManager: EntityManager,
     ) {
@@ -42,16 +42,16 @@ export class CompetitionCtrl {
     @Get(':id')
     @ApiOperation({
         operationId: 'get',
-        title: 'Recherche d\'une épreuve par ID ',
+        title: 'Recherche d\'une épreuve par ID',
         description: 'description',
     })
     @ApiResponse({
         status: 200,
-        type: Competition,
+        type: CompetitionEntity,
         isArray: false,
         description: 'Renvoie une épreuve',
     })
-    public async get(@Param('id') id: string): Promise<Competition> {
+    public async get(@Param('id') id: string): Promise<CompetitionEntity> {
         const r = await this.repository.find({
             order: {
                 eventDate: 'ASC',
@@ -74,12 +74,12 @@ export class CompetitionCtrl {
     })
     @ApiResponse({
         status: 200,
-        type: Competition,
+        type: CompetitionEntity,
         isArray: true,
         description: 'Liste des épreuves totales',
     })
     @Get()
-    public async getAllCompetitions(): Promise<Competition[]> {
+    public async getAllCompetitions(): Promise<CompetitionEntity[]> {
         return await this.repository.find({
             order: {
                 eventDate: 'ASC',
@@ -101,7 +101,7 @@ export class CompetitionCtrl {
         }
         dto.races = dto.races.filter(race => race.trim().length);
 
-        const rows = await this.entityManager.find<Race>(Race, {competition: {id: dto.competitionId}});
+        const rows = await this.entityManager.find<RaceEntity>(RaceEntity, {competition: {id: dto.competitionId}});
         Logger.debug('Rows to update found = ' + JSON.stringify(rows));
         let end = (new Date()).getTime();
         Logger.debug('Perf After finding races rows and current competition ' + (end - start) + 'ms');

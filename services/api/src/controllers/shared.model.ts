@@ -1,5 +1,5 @@
 import {ApiModelPropertyOptional} from '@nestjs/swagger';
-import {Licence} from '../entity/Licence';
+import {LicenceEntity} from '../entity/licence.entity';
 
 export class Filter {
     @ApiModelPropertyOptional()
@@ -9,8 +9,8 @@ export class Filter {
 }
 
 export class LicencesPage {
-    @ApiModelPropertyOptional({type: Licence, isArray: true})
-    data: Licence[];
+    @ApiModelPropertyOptional({type: LicenceEntity, isArray: true})
+    data: LicenceEntity[];
     @ApiModelPropertyOptional()
     page: number;
     @ApiModelPropertyOptional()

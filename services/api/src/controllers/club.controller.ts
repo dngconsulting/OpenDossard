@@ -2,7 +2,7 @@ import {EntityManager, Repository} from 'typeorm';
 import {Controller, Get, UseGuards} from '@nestjs/common';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
 import {ApiModelPropertyOptional, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
-import {Club} from '../entity/Club';
+import {ClubEntity} from '../entity/club.entity';
 import {AuthGuard} from '@nestjs/passport';
 
 export class ClubRow {
@@ -19,10 +19,10 @@ export class ClubRow {
 @Controller('/api/clubs')
 @ApiUseTags('ClubAPI')
 @UseGuards(AuthGuard('jwt'))
-export class ClubCtrl {
+export class ClubController {
     constructor(
-        @InjectRepository(Club)
-        private readonly repository: Repository<Club>,
+        @InjectRepository(ClubEntity)
+        private readonly repository: Repository<ClubEntity>,
         @InjectEntityManager()
         private readonly entityManager: EntityManager,
     ) {

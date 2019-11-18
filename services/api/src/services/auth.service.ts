@@ -1,7 +1,8 @@
-import {Injectable} from '@nestjs/common';
+import {Injectable, Logger} from '@nestjs/common';
 import {UsersService} from './users.service';
 import {JwtService} from '@nestjs/jwt';
-import {User} from '../entity/User';
+import {UserEntity} from '../entity/user.entity';
+const bcrypt = require('bcryptjs');
 
 @Injectable()
 export class AuthService {
@@ -10,15 +11,18 @@ export class AuthService {
     }
 
     async validateUser(username: string, pass: string): Promise<any> {
+        Logger.debug('Check user ' + username + ' pass=' + pass);
         const user = await this.usersService.findOne(username);
-        if (user && user.password === pass) {
+        Logger.debug('user found ? ' + JSON.stringify(user));
+        const passok = bcrypt.compareSync(pass, user.password)
+        if (passok) {
             const {password, ...result} = user;
             return result;
         }
         return null;
     }
 
-    async login(user: User) {
+    async login(user: UserEntity) {
         // We put here the fields we want to encode in JWT
         const payload = {
             email: user.email,

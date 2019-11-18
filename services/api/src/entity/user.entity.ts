@@ -5,8 +5,8 @@ import {ApiModelProperty, ApiModelPropertyOptional} from '@nestjs/swagger';
 import {Column, Entity, PrimaryGeneratedColumn} from 'typeorm';
 import {Exclude} from 'class-transformer';
 
-@Entity()
-export class User {
+@Entity({name: 'user'})
+export class UserEntity {
     @Exclude()
     @ApiModelPropertyOptional()
     @PrimaryGeneratedColumn()

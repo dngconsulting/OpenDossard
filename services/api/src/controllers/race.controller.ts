@@ -1,8 +1,8 @@
 import {EntityManager} from 'typeorm';
 
-import {Race} from '../entity/Race';
-import {Licence} from '../entity/Licence';
-import {Competition} from '../entity/Competition';
+import {RaceEntity} from '../entity/race.entity';
+import {LicenceEntity} from '../entity/licence.entity';
+import {CompetitionEntity} from '../entity/competition.entity';
 import {
     ApiImplicitBody,
     ApiModelProperty,
@@ -155,13 +155,13 @@ export class RacesCtrl {
             throw(new BadRequestException('Veuillez renseigner la catégorie dans laquelle le coureur participe'));
         }
 
-        const licence = await this.entityManager.findOne(Licence, race.licenceId);
+        const licence = await this.entityManager.findOne(LicenceEntity, race.licenceId);
 
         if (!licence) {
             throw(new BadRequestException('Licence inconnue'));
         }
 
-        const numberConflict = await this.entityManager.createQueryBuilder(Race, 'race')
+        const numberConflict = await this.entityManager.createQueryBuilder(RaceEntity, 'race')
             .where('race."competitionId" = :cid and race."riderNumber" = :riderNumber and race."raceCode"= :raceCode', {
                 cid: race.competitionId,
                 riderNumber: race.riderNumber,
@@ -173,7 +173,7 @@ export class RacesCtrl {
             throw(new BadRequestException(`Le numéro de dossard ${race.riderNumber} est déjà pris`));
         }
 
-        const licenceConflict = await this.entityManager.createQueryBuilder(Race, 'race')
+        const licenceConflict = await this.entityManager.createQueryBuilder(RaceEntity, 'race')
             .where('race."competitionId" = :cid and race."licenceId" = :licenceId', {
                 cid: race.competitionId,
                 licenceId: licence.id,
@@ -184,9 +184,9 @@ export class RacesCtrl {
             throw(new BadRequestException(`Ce licencié est déjà inscrit sur cette épreuve`));
         }
 
-        const competition = await this.entityManager.findOne(Competition, race.competitionId);
+        const competition = await this.entityManager.findOne(CompetitionEntity, race.competitionId);
 
-        const newRace = new Race();
+        const newRace = new RaceEntity();
         newRace.raceCode = race.raceCode;
         newRace.riderNumber = race.riderNumber;
         newRace.licence = licence;
@@ -202,7 +202,7 @@ export class RacesCtrl {
         operationId: 'flagChallenge',
     })
     public async flagChallenge(@Body() raceRow: RaceRow): Promise<void> {
-        const racerowToUpdate = await this.entityManager.findOne<Race>(Race, {
+        const racerowToUpdate = await this.entityManager.findOne<RaceEntity>(RaceEntity, {
             id: raceRow.id,
         });
         racerowToUpdate.sprintchallenge = !racerowToUpdate.sprintchallenge;
@@ -220,7 +220,7 @@ export class RacesCtrl {
         const rows = _.remove(racesrows, item => item.id && !item.comment);
         for (let index = 1; index <= rows.length; index++) {
             const item = rows[index - 1];
-            const raceRowToSave: Race = await this.entityManager.findOne(Race, {id: item.id});
+            const raceRowToSave: RaceEntity = await this.entityManager.findOne(RaceEntity, {id: item.id});
             if (raceRowToSave.rankingScratch !== index && !raceRowToSave.comment) {
                 raceRowToSave.rankingScratch = index;
                 Logger.debug('Update Ranking of rider number ' + raceRowToSave.riderNumber + ' with rank ' + (index));
@@ -236,7 +236,7 @@ export class RacesCtrl {
     })
     public async removeRanking(@Body() raceRow: RaceRow): Promise<void> {
         Logger.debug('RemoveRanking with raceRow=' + JSON.stringify(raceRow));
-        const racerowToUpdate = await this.entityManager.findOne<Race>(Race, {
+        const racerowToUpdate = await this.entityManager.findOne<RaceEntity>(RaceEntity, {
             id: raceRow.id,
         });
         if (!racerowToUpdate) {
@@ -252,7 +252,7 @@ export class RacesCtrl {
         await this.entityManager.save(racerowToUpdate);
 
         // Retrieve all ranks for this race ...
-        const races = await this.entityManager.find(Race, {
+        const races = await this.entityManager.find(RaceEntity, {
             raceCode: raceRow.raceCode,
             competition: {id: raceRow.competitionId},
         });
@@ -277,7 +277,7 @@ export class RacesCtrl {
         : Promise<void> {
         Logger.debug('Update Rank for rider ' + JSON.stringify(raceRow));
         // Lets find first the corresponding Race row rider
-        const requestedRankedRider = await this.entityManager.findOne<Race>(Race, {
+        const requestedRankedRider = await this.entityManager.findOne<RaceEntity>(RaceEntity, {
             riderNumber: raceRow.riderNumber,
             raceCode: raceRow.raceCode,
             competition: {id: raceRow.competitionId},
@@ -293,7 +293,7 @@ export class RacesCtrl {
             throw(new BadRequestException('Impossible de classer le coureur au dossard ' + requestedRankedRider.riderNumber + ' il existe déjà dans le classement'));
         }
         // Check if there is existing rider with this rank in this race with the same dossard
-        const rankRiderToChange = await this.entityManager.findOne(Race, {
+        const rankRiderToChange = await this.entityManager.findOne(RaceEntity, {
             rankingScratch: raceRow.rankingScratch,
             raceCode: raceRow.raceCode,
             competition: {id: raceRow.competitionId},
@@ -323,6 +323,6 @@ export class RacesCtrl {
     public async delete(@Param('id') id: string)
         : Promise<void> {
 
-        this.entityManager.delete(Race, id);
+        this.entityManager.delete(RaceEntity, id);
     }
 }

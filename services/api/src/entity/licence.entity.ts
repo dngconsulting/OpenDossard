@@ -1,9 +1,9 @@
 import {Column, Entity, PrimaryGeneratedColumn, Index} from 'typeorm';
-import {Federation} from './Federation';
+import {FederationEntity} from './federation.entity';
 import {ApiModelProperty} from '@nestjs/swagger';
 
-@Entity()
-export class Licence {
+@Entity({name: 'licence'})
+export class LicenceEntity {
     @ApiModelProperty()
     @PrimaryGeneratedColumn()
     public id: number;
@@ -50,9 +50,10 @@ export class Licence {
     @ApiModelProperty()
     @Column({
         type: 'enum',
-        enum: Federation,
+        name: 'fede',
+        enum: FederationEntity,
         nullable: true,
-        default: Federation.NL,
+        default: FederationEntity.NL,
     })
-    fede: Federation;
+    fede: FederationEntity;
 }

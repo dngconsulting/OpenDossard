@@ -1,10 +1,10 @@
-import {Licence} from '../entity/Licence';
+import {LicenceEntity} from '../entity/licence.entity';
 import {EntityManager, Repository} from 'typeorm';
 import {Body, Controller, Delete, Get, Param, Post, Put, UseGuards} from '@nestjs/common';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
 import {ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
-import {Filter, LicencesPage, Search} from './SharedModels';
-import {Federation} from '../entity/Federation';
+import {Filter, LicencesPage, Search} from './shared.model';
+import {FederationEntity} from '../entity/federation.entity';
 import {AuthGuard} from '@nestjs/passport';
 
 /**
@@ -14,10 +14,10 @@ import {AuthGuard} from '@nestjs/passport';
 @Controller('/api/licences')
 @ApiUseTags('LicenceAPI')
 @UseGuards(AuthGuard('jwt'))
-export class LicencesCtrl {
+export class LicenceController {
     constructor(
-        @InjectRepository(Licence)
-        private readonly repository: Repository<Licence>,
+        @InjectRepository(LicenceEntity)
+        private readonly repository: Repository<LicenceEntity>,
         @InjectEntityManager()
         private readonly entityManager: EntityManager,
     ) {
@@ -29,8 +29,8 @@ export class LicencesCtrl {
         title: 'Rechercher des licences en fonction, du nom, prénom ou numéro de licence ',
         description: 'description',
     })
-    @ApiResponse({status: 200, type: Licence, isArray: true, description: 'Liste des licences'})
-    public async getLicencesLike(@Param('param') param: string): Promise<Licence> {
+    @ApiResponse({status: 200, type: LicenceEntity, isArray: true, description: 'Liste des licences'})
+    public async getLicencesLike(@Param('param') param: string): Promise<LicenceEntity> {
         const filterParam = '%' + param.replace(/\s+/g, '') + '%';
         const query: string = `select l.* from licence l where REPLACE(CONCAT(UPPER(l.name),UPPER(unaccent(l."firstName")),UPPER(CAST(l.fede AS VARCHAR)),UPPER(l."licenceNumber")),' ', '') like $1 OR REPLACE(CONCAT(UPPER(unaccent(l."firstName")),UPPER(l.name),UPPER(CAST(l.fede AS VARCHAR)),UPPER(l."licenceNumber")),' ','') like $1 fetch first 20 rows only`;
         return await this.entityManager.query(query, [filterParam]);
@@ -42,8 +42,8 @@ export class LicencesCtrl {
         title: 'Rechercher une licence par ID ',
         description: 'description',
     })
-    @ApiResponse({status: 200, type: Licence, isArray: false, description: 'Renvoie une licence'})
-    public async get(@Param('id') id: string): Promise<Licence> {
+    @ApiResponse({status: 200, type: LicenceEntity, isArray: false, description: 'Renvoie une licence'})
+    public async get(@Param('id') id: string): Promise<LicenceEntity> {
         return await this.repository.createQueryBuilder().where('id = :id', {id}).getOne();
     }
 
@@ -52,9 +52,9 @@ export class LicencesCtrl {
         title: 'Rechercher toutes les licences ',
         description: 'description',
     })
-    @ApiResponse({status: 200, type: Licence, isArray: true, description: 'Liste des licences'})
+    @ApiResponse({status: 200, type: LicenceEntity, isArray: true, description: 'Liste des licences'})
     @Get()
-    public async getAllLicences(): Promise<Licence[]> {
+    public async getAllLicences(): Promise<LicenceEntity[]> {
         return this.repository.find();
     }
 
@@ -95,8 +95,8 @@ export class LicencesCtrl {
         operationId: 'create',
         title: 'Cree une nouvelle licence',
     })
-    public async create(@Body() licence: Licence): Promise<void> {
-        const newLicence = new Licence();
+    public async create(@Body() licence: LicenceEntity): Promise<void> {
+        const newLicence = new LicenceEntity();
         newLicence.licenceNumber = licence.licenceNumber;
         newLicence.name = licence.name;
         newLicence.firstName = licence.firstName;
@@ -108,7 +108,7 @@ export class LicencesCtrl {
             licence.gender.toUpperCase() === 'F' ? 'F' + licence.catea.toUpperCase() : licence.catea.toUpperCase()
             : '';
         newLicence.catev = licence.catev.toUpperCase();
-        newLicence.fede = Federation[licence.fede.toUpperCase()];
+        newLicence.fede = FederationEntity[licence.fede.toUpperCase()];
         await this.entityManager.save(newLicence);
     }
 
@@ -117,9 +117,9 @@ export class LicencesCtrl {
         title: 'Met à jour une licence existante',
         operationId: 'update',
     })
-    public async update(@Body() licence: Licence)
+    public async update(@Body() licence: LicenceEntity)
         : Promise<void> {
-        const toUpdate = await this.entityManager.findOne(Licence, licence.id);
+        const toUpdate = await this.entityManager.findOne(LicenceEntity, licence.id);
         toUpdate.licenceNumber = licence.licenceNumber;
         toUpdate.birthYear = licence.birthYear;
         toUpdate.name = licence.name;
@@ -140,6 +140,6 @@ export class LicencesCtrl {
     })
     public async delete(@Param('id') id: string)
         : Promise<void> {
-        await this.entityManager.delete(Licence, id);
+        await this.entityManager.delete(LicenceEntity, id);
     }
 }
