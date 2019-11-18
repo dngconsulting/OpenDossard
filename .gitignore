@@ -7,3 +7,4 @@ var
 .idea/
 .idea/*
 
+/services/api/src/coverage/
