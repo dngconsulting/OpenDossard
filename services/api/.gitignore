@@ -13,7 +13,7 @@
 **/dist/
 **/src/**/*.js
 **/src/**/*.js.map
-coverage/
+**/src/coverage/
 
 # Misc
 **/node_modules/
