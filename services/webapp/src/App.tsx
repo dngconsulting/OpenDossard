@@ -9,7 +9,7 @@ import {cadtheme} from './theme/theme';
 
 class App extends React.Component {
     public componentDidMount(): void {
-    console.log("App Starting...")
+    console.log("Open Dossard Starting...")
     }
 
     public render() {
