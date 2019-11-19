@@ -11,7 +11,7 @@ Elle est constituée d'une API et d'un front en ReactJS. Voici une courte <a hre
 ```
 
 - Pour accéder à la Webapp : http://localhost:3000
-- Pour accéder à l'API du Backend : http://localhost:8080/api
+- Pour accéder à l'API du Backend : http://localhost:9090/api
 
 ### Installation en mode production 
 
