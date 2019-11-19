@@ -23,7 +23,7 @@ export class AuthenticationController {
     @ApiOperation({
         operationId: 'me',
         title: 'identifiant courant',
-        description: 'identifiant courant'
+        description: 'Renvoie l\'identifiant courant',
     })
     @ApiResponse({status: 200, type: UserEntity})
     @ApiConsumes('application/json')

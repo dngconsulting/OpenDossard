@@ -26,8 +26,8 @@ export class LicenceController {
     @Get('/search/:param')
     @ApiOperation({
         operationId: 'getLicencesLike',
-        title: 'Rechercher des licences en fonction, du nom, prénom ou numéro de licence ',
-        description: 'description',
+        title: 'Recherche des licences',
+        description: 'Rechercher des licences en fonction, du nom, prénom ou numéro de licence ',
     })
     @ApiResponse({status: 200, type: LicenceEntity, isArray: true, description: 'Liste des licences'})
     public async getLicencesLike(@Param('param') param: string): Promise<LicenceEntity> {
@@ -40,7 +40,7 @@ export class LicenceController {
     @ApiOperation({
         operationId: 'get',
         title: 'Rechercher une licence par ID ',
-        description: 'description',
+        description: 'Recherche une licence par son identifiant',
     })
     @ApiResponse({status: 200, type: LicenceEntity, isArray: false, description: 'Renvoie une licence'})
     public async get(@Param('id') id: string): Promise<LicenceEntity> {
@@ -50,7 +50,7 @@ export class LicenceController {
     @ApiOperation({
         operationId: 'getAllLicences',
         title: 'Rechercher toutes les licences ',
-        description: 'description',
+        description: 'Renvoie toutes les licences',
     })
     @ApiResponse({status: 200, type: LicenceEntity, isArray: true, description: 'Liste des licences'})
     @Get()
@@ -61,7 +61,7 @@ export class LicenceController {
     @ApiOperation({
         operationId: 'getPageSizeLicencesForPage',
         title: 'Rechercher par page les licences ',
-        description: 'currentPage, pageSize, orderDirection, orderBy et Filters',
+        description: 'Recherche paginée utilisant currentPage, pageSize, orderDirection, orderBy et Filters',
     })
     @Post('/filter')
     @ApiResponse({status: 200, type: LicencesPage})
@@ -124,7 +124,7 @@ export class LicenceController {
         toUpdate.birthYear = licence.birthYear;
         toUpdate.name = licence.name;
         toUpdate.firstName = licence.firstName;
-        toUpdate.gender = licence.gender;
+        toUpdate.gender = licence.gender.toUpperCase();
         toUpdate.dept = licence.dept;
         toUpdate.catea = licence.catea ?
             licence.gender.toUpperCase() === 'F' ? 'F' + licence.catea.toUpperCase() : licence.catea.toUpperCase()

@@ -24,8 +24,7 @@ export class CompetitionReorganize {
 
 /**
  * Competition Controller handles all competitions operation ('Epreuve' in french)
- * The Reorganization method is where races are reorganized by categories
- *
+ * The Reorganization method is when races are reorganized by categories
  */
 @Controller('/api/competition')
 @ApiUseTags('CompetitionAPI')
@@ -43,7 +42,7 @@ export class CompetitionController {
     @ApiOperation({
         operationId: 'get',
         title: 'Recherche d\'une épreuve par ID',
-        description: 'description',
+        description: 'Recherche une épreuve par son identifiant',
     })
     @ApiResponse({
         status: 200,
@@ -70,7 +69,7 @@ export class CompetitionController {
     @ApiOperation({
         operationId: 'getAllCompetitions',
         title: 'Rechercher Toutes les compétitions ',
-        description: 'description',
+        description: 'Recherche toutes les compétitions disponibles',
     })
     @ApiResponse({
         status: 200,

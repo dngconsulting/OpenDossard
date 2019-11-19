@@ -8,7 +8,7 @@ import {AppModule} from '../app.module';
 import {FederationEntity} from '../entity/federation.entity';
 
 /**
- * Les tests unitaires des controlleurs
+ * Un exemple de test unitaire des controlleurs
  */
 describe('LicencesController', () => {
     let licencesCtrl: LicenceController;

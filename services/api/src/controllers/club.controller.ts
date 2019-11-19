@@ -31,7 +31,7 @@ export class ClubController {
     @ApiOperation({
         operationId: 'getAllClubs',
         title: 'Rechercher tous les clubs',
-        description: 'description',
+        description: 'Renvoie la liste de tous les clubs sportifs',
     })
     @ApiResponse({status: 200, type: ClubRow, isArray: true, description: 'Liste des clubs'})
     @Get()

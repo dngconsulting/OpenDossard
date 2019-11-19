@@ -106,7 +106,6 @@ export class RacesCtrl {
     @ApiOperation({
         operationId: 'getNumberRider',
         title: 'Rechercher le nombre de coureur par course ',
-        description: 'description',
     })
     @ApiResponse({status: 200, type: RaceNbRider, isArray: true})
     public async getNumberRider(): Promise<RaceNbRider[]> {
@@ -121,7 +120,6 @@ export class RacesCtrl {
     @ApiOperation({
         operationId: 'getCompetitionRaces',
         title: 'Rechercher tous les coureurs participants à une course ',
-        description: 'description',
     })
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
     public async getCompetitionRaces(@Param('id') competitionId: number): Promise<RaceRow[]> {
@@ -138,7 +136,6 @@ export class RacesCtrl {
     @ApiOperation({
         operationId: 'create',
         title: 'Cree une nouvelle course ',
-        description: 'description',
     })
     public async create(@Body() race: RaceCreate)
         : Promise<void> {
@@ -317,12 +314,11 @@ export class RacesCtrl {
 
     @Delete('/:id')
     @ApiOperation({
-        title: 'delete race',
+        title: 'Supprime une course',
         operationId: 'delete',
     })
     public async delete(@Param('id') id: string)
         : Promise<void> {
-
         this.entityManager.delete(RaceEntity, id);
     }
 }

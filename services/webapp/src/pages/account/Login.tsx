@@ -85,7 +85,7 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
                         alignItems: 'center',
                         padding:'10px',
                         justifyContent: 'center',
-                    }}><img src={logohorizontal} width='171' height='92'/></div>
+                    }}><img src={logohorizontal} width='171' height='92' alt='logo'/></div>
                     <FormControl required={true} fullWidth={true} className={classes.field}>
                         <InputLabel error={this.state.error} style={{padding:10}} htmlFor="email">Adresse mail ou identifiant Open Dossard</InputLabel>
                         <Input
