@@ -1,6 +1,6 @@
 <img width="50%" height="50%" src="website/assets/images/logocolor.svg">
 Open Dossard est une application à destination d'organisateurs d'évènement sportifs.
-Elle est constituée d'une API et d'un front en ReactJS.
+Elle est constituée d'une API et d'un front en ReactJS. Voici une courte <a href="./website/assets/appdemo.gif">démonstration</a> des fonctionnalités de l'outil.
 
 ### Installation en mode développement 
 
