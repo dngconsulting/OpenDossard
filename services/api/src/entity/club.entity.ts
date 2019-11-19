@@ -9,11 +9,11 @@ export class ClubEntity {
     @ApiModelProperty()
     @Column({nullable: true})
     @Index()
-    shortName: string;
+    public shortName: string;
     @ApiModelProperty()
     @Column({nullable: true})
-    dept: string;
+    public dept: string;
     @ApiModelProperty()
     @Column({nullable: false})
-    longName: string;
+    public longName: string;
 }
