@@ -18,7 +18,7 @@ import Button from '@material-ui/core/Button';
 
 import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
 import ClubSelect, {IOptionType} from './ClubSelect';
-import {Licence} from '../../sdk';
+import {LicenceEntity as Licence} from '../../sdk';
 import {apiLicences} from '../../util/api';
 import {CATEA, FEDERATIONS} from '../common/shared-entities';
 
@@ -58,7 +58,7 @@ const LicencesPage = (props: ILicencesProps) => {
         dept: '',
         club: '',
         catea: '',
-        catev: ''
+        catev: '',
     });
 
     useEffect(()=>{

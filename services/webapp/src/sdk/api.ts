@@ -81,31 +81,31 @@ export class RequiredError extends Error {
 /**
  * 
  * @export
- * @interface Club
+ * @interface ClubEntity
  */
-export interface Club {
+export interface ClubEntity {
     /**
      * 
      * @type {number}
-     * @memberof Club
+     * @memberof ClubEntity
      */
     id: number;
     /**
      * 
      * @type {string}
-     * @memberof Club
+     * @memberof ClubEntity
      */
     shortName: string;
     /**
      * 
      * @type {string}
-     * @memberof Club
+     * @memberof ClubEntity
      */
     dept: string;
     /**
      * 
      * @type {string}
-     * @memberof Club
+     * @memberof ClubEntity
      */
     longName: string;
 }
@@ -145,79 +145,79 @@ export interface ClubRow {
 /**
  * 
  * @export
- * @interface Competition
+ * @interface CompetitionEntity
  */
-export interface Competition {
+export interface CompetitionEntity {
     /**
      * 
      * @type {number}
-     * @memberof Competition
+     * @memberof CompetitionEntity
      */
     id: number;
     /**
      * 
      * @type {Date}
-     * @memberof Competition
+     * @memberof CompetitionEntity
      */
     eventDate: Date;
     /**
      * 
-     * @type {Club}
-     * @memberof Competition
+     * @type {ClubEntity}
+     * @memberof CompetitionEntity
      */
-    club: Club;
+    club: ClubEntity;
     /**
      * 
      * @type {string}
-     * @memberof Competition
+     * @memberof CompetitionEntity
      */
     name: string;
     /**
      * 
      * @type {string}
-     * @memberof Competition
+     * @memberof CompetitionEntity
      */
     zipCode: string;
     /**
      * 
      * @type {string}
-     * @memberof Competition
+     * @memberof CompetitionEntity
      */
     info?: string;
     /**
      * 
      * @type {Array<string>}
-     * @memberof Competition
+     * @memberof CompetitionEntity
      */
     categories: Array<string>;
     /**
      * 
      * @type {string}
-     * @memberof Competition
+     * @memberof CompetitionEntity
      */
     observations?: string;
     /**
      * 
      * @type {any}
-     * @memberof Competition
+     * @memberof CompetitionEntity
      */
     pricing?: any;
     /**
      * 
      * @type {Array<string>}
-     * @memberof Competition
+     * @memberof CompetitionEntity
      */
     races?: Array<string>;
     /**
      * 
      * @type {string}
-     * @memberof Competition
+     * @memberof CompetitionEntity
      */
     fede: string;
     /**
      * 
      * @type {string}
-     * @memberof Competition
+     * @memberof CompetitionEntity
      */
     competitionType?: string;
 }
@@ -265,73 +265,73 @@ export interface Filter {
 /**
  * 
  * @export
- * @interface Licence
+ * @interface LicenceEntity
  */
-export interface Licence {
+export interface LicenceEntity {
     /**
      * 
      * @type {number}
-     * @memberof Licence
+     * @memberof LicenceEntity
      */
     id: number;
     /**
      * 
      * @type {string}
-     * @memberof Licence
+     * @memberof LicenceEntity
      */
     licenceNumber: string;
     /**
      * 
      * @type {string}
-     * @memberof Licence
+     * @memberof LicenceEntity
      */
     name: string;
     /**
      * 
      * @type {string}
-     * @memberof Licence
+     * @memberof LicenceEntity
      */
     firstName: string;
     /**
      * 
      * @type {string}
-     * @memberof Licence
+     * @memberof LicenceEntity
      */
     gender: string;
     /**
      * 
      * @type {string}
-     * @memberof Licence
+     * @memberof LicenceEntity
      */
     club: string;
     /**
      * 
      * @type {string}
-     * @memberof Licence
+     * @memberof LicenceEntity
      */
     dept: string;
     /**
      * 
      * @type {string}
-     * @memberof Licence
+     * @memberof LicenceEntity
      */
     birthYear: string;
     /**
      * 
      * @type {string}
-     * @memberof Licence
+     * @memberof LicenceEntity
      */
     catea: string;
     /**
      * 
      * @type {string}
-     * @memberof Licence
+     * @memberof LicenceEntity
      */
     catev: string;
     /**
      * 
      * @type {string}
-     * @memberof Licence
+     * @memberof LicenceEntity
      */
     fede: string;
 }
@@ -344,10 +344,10 @@ export interface Licence {
 export interface LicencesPage {
     /**
      * 
-     * @type {Array<Licence>}
+     * @type {Array<LicenceEntity>}
      * @memberof LicencesPage
      */
-    data?: Array<Licence>;
+    data?: Array<LicenceEntity>;
     /**
      * 
      * @type {number}
@@ -589,49 +589,49 @@ export interface Search {
 /**
  * 
  * @export
- * @interface User
+ * @interface UserEntity
  */
-export interface User {
+export interface UserEntity {
     /**
      * 
      * @type {number}
-     * @memberof User
+     * @memberof UserEntity
      */
     id?: number;
     /**
      * 
      * @type {string}
-     * @memberof User
+     * @memberof UserEntity
      */
     firstName?: string;
     /**
      * 
      * @type {string}
-     * @memberof User
+     * @memberof UserEntity
      */
     lastName?: string;
     /**
      * 
      * @type {string}
-     * @memberof User
+     * @memberof UserEntity
      */
     password?: string;
     /**
      * 
      * @type {string}
-     * @memberof User
+     * @memberof UserEntity
      */
     email: string;
     /**
      * 
      * @type {string}
-     * @memberof User
+     * @memberof UserEntity
      */
     phone?: string;
     /**
      * 
      * @type {string}
-     * @memberof User
+     * @memberof UserEntity
      */
     accessToken?: string;
 }
@@ -646,14 +646,14 @@ export const AuthAPIApiFetchParamCreator = function (configuration?: Configurati
         /**
          * description
          * @summary Login utilisateur
-         * @param {User} user 
+         * @param {UserEntity} userEntity 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        login(user: User, options: any = {}): FetchArgs {
-            // verify required parameter 'user' is not null or undefined
-            if (user === null || user === undefined) {
-                throw new RequiredError('user','Required parameter user was null or undefined when calling login.');
+        login(userEntity: UserEntity, options: any = {}): FetchArgs {
+            // verify required parameter 'userEntity' is not null or undefined
+            if (userEntity === null || userEntity === undefined) {
+                throw new RequiredError('userEntity','Required parameter userEntity was null or undefined when calling login.');
             }
             const localVarPath = `/api/auth/login`;
             const localVarUrlObj = url.parse(localVarPath, true);
@@ -667,8 +667,8 @@ export const AuthAPIApiFetchParamCreator = function (configuration?: Configurati
             // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
             delete localVarUrlObj.search;
             localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-            const needsSerialization = (<any>"User" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
-            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(user || {}) : (user || "");
+            const needsSerialization = (<any>"UserEntity" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(userEntity || {}) : (userEntity || "");
 
             return {
                 url: url.format(localVarUrlObj),
@@ -676,7 +676,7 @@ export const AuthAPIApiFetchParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * identifiant courant
+         * Renvoie l'identifiant courant
          * @summary identifiant courant
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -710,12 +710,12 @@ export const AuthAPIApiFp = function(configuration?: Configuration) {
         /**
          * description
          * @summary Login utilisateur
-         * @param {User} user 
+         * @param {UserEntity} userEntity 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        login(user: User, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<User> {
-            const localVarFetchArgs = AuthAPIApiFetchParamCreator(configuration).login(user, options);
+        login(userEntity: UserEntity, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<UserEntity> {
+            const localVarFetchArgs = AuthAPIApiFetchParamCreator(configuration).login(userEntity, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -727,12 +727,12 @@ export const AuthAPIApiFp = function(configuration?: Configuration) {
             };
         },
         /**
-         * identifiant courant
+         * Renvoie l'identifiant courant
          * @summary identifiant courant
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        me(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<User> {
+        me(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<UserEntity> {
             const localVarFetchArgs = AuthAPIApiFetchParamCreator(configuration).me(options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
@@ -756,15 +756,15 @@ export const AuthAPIApiFactory = function (configuration?: Configuration, fetch?
         /**
          * description
          * @summary Login utilisateur
-         * @param {User} user 
+         * @param {UserEntity} userEntity 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        login(user: User, options?: any) {
-            return AuthAPIApiFp(configuration).login(user, options)(fetch, basePath);
+        login(userEntity: UserEntity, options?: any) {
+            return AuthAPIApiFp(configuration).login(userEntity, options)(fetch, basePath);
         },
         /**
-         * identifiant courant
+         * Renvoie l'identifiant courant
          * @summary identifiant courant
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -785,17 +785,17 @@ export class AuthAPIApi extends BaseAPI {
     /**
      * description
      * @summary Login utilisateur
-     * @param {User} user 
+     * @param {UserEntity} userEntity 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AuthAPIApi
      */
-    public login(user: User, options?: any) {
-        return AuthAPIApiFp(this.configuration).login(user, options)(this.fetch, this.basePath);
+    public login(userEntity: UserEntity, options?: any) {
+        return AuthAPIApiFp(this.configuration).login(userEntity, options)(this.fetch, this.basePath);
     }
 
     /**
-     * identifiant courant
+     * Renvoie l'identifiant courant
      * @summary identifiant courant
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -814,7 +814,7 @@ export class AuthAPIApi extends BaseAPI {
 export const ClubAPIApiFetchParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * description
+         * Renvoie la liste de tous les clubs sportifs
          * @summary Rechercher tous les clubs
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -846,7 +846,7 @@ export const ClubAPIApiFetchParamCreator = function (configuration?: Configurati
 export const ClubAPIApiFp = function(configuration?: Configuration) {
     return {
         /**
-         * description
+         * Renvoie la liste de tous les clubs sportifs
          * @summary Rechercher tous les clubs
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -873,7 +873,7 @@ export const ClubAPIApiFp = function(configuration?: Configuration) {
 export const ClubAPIApiFactory = function (configuration?: Configuration, fetch?: FetchAPI, basePath?: string) {
     return {
         /**
-         * description
+         * Renvoie la liste de tous les clubs sportifs
          * @summary Rechercher tous les clubs
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -892,7 +892,7 @@ export const ClubAPIApiFactory = function (configuration?: Configuration, fetch?
  */
 export class ClubAPIApi extends BaseAPI {
     /**
-     * description
+     * Renvoie la liste de tous les clubs sportifs
      * @summary Rechercher tous les clubs
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -911,8 +911,8 @@ export class ClubAPIApi extends BaseAPI {
 export const CompetitionAPIApiFetchParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * description
-         * @summary Recherche d'une épreuve par ID 
+         * Recherche une épreuve par son identifiant
+         * @summary Recherche d'une épreuve par ID
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -940,7 +940,7 @@ export const CompetitionAPIApiFetchParamCreator = function (configuration?: Conf
             };
         },
         /**
-         * description
+         * Recherche toutes les compétitions disponibles
          * @summary Rechercher Toutes les compétitions 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1004,13 +1004,13 @@ export const CompetitionAPIApiFetchParamCreator = function (configuration?: Conf
 export const CompetitionAPIApiFp = function(configuration?: Configuration) {
     return {
         /**
-         * description
-         * @summary Recherche d'une épreuve par ID 
+         * Recherche une épreuve par son identifiant
+         * @summary Recherche d'une épreuve par ID
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        get(id: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Competition> {
+        get(id: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<CompetitionEntity> {
             const localVarFetchArgs = CompetitionAPIApiFetchParamCreator(configuration).get(id, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
@@ -1023,12 +1023,12 @@ export const CompetitionAPIApiFp = function(configuration?: Configuration) {
             };
         },
         /**
-         * description
+         * Recherche toutes les compétitions disponibles
          * @summary Rechercher Toutes les compétitions 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAllCompetitions(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<Competition>> {
+        getAllCompetitions(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<CompetitionEntity>> {
             const localVarFetchArgs = CompetitionAPIApiFetchParamCreator(configuration).getAllCompetitions(options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
@@ -1069,8 +1069,8 @@ export const CompetitionAPIApiFp = function(configuration?: Configuration) {
 export const CompetitionAPIApiFactory = function (configuration?: Configuration, fetch?: FetchAPI, basePath?: string) {
     return {
         /**
-         * description
-         * @summary Recherche d'une épreuve par ID 
+         * Recherche une épreuve par son identifiant
+         * @summary Recherche d'une épreuve par ID
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1079,7 +1079,7 @@ export const CompetitionAPIApiFactory = function (configuration?: Configuration,
             return CompetitionAPIApiFp(configuration).get(id, options)(fetch, basePath);
         },
         /**
-         * description
+         * Recherche toutes les compétitions disponibles
          * @summary Rechercher Toutes les compétitions 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1108,8 +1108,8 @@ export const CompetitionAPIApiFactory = function (configuration?: Configuration,
  */
 export class CompetitionAPIApi extends BaseAPI {
     /**
-     * description
-     * @summary Recherche d'une épreuve par ID 
+     * Recherche une épreuve par son identifiant
+     * @summary Recherche d'une épreuve par ID
      * @param {string} id 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1120,7 +1120,7 @@ export class CompetitionAPIApi extends BaseAPI {
     }
 
     /**
-     * description
+     * Recherche toutes les compétitions disponibles
      * @summary Rechercher Toutes les compétitions 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1182,14 +1182,14 @@ export const LicenceAPIApiFetchParamCreator = function (configuration?: Configur
         /**
          * 
          * @summary Cree une nouvelle licence
-         * @param {Licence} licence 
+         * @param {LicenceEntity} licenceEntity 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        create(licence: Licence, options: any = {}): FetchArgs {
-            // verify required parameter 'licence' is not null or undefined
-            if (licence === null || licence === undefined) {
-                throw new RequiredError('licence','Required parameter licence was null or undefined when calling create.');
+        create(licenceEntity: LicenceEntity, options: any = {}): FetchArgs {
+            // verify required parameter 'licenceEntity' is not null or undefined
+            if (licenceEntity === null || licenceEntity === undefined) {
+                throw new RequiredError('licenceEntity','Required parameter licenceEntity was null or undefined when calling create.');
             }
             const localVarPath = `/api/licences`;
             const localVarUrlObj = url.parse(localVarPath, true);
@@ -1203,8 +1203,8 @@ export const LicenceAPIApiFetchParamCreator = function (configuration?: Configur
             // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
             delete localVarUrlObj.search;
             localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-            const needsSerialization = (<any>"Licence" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
-            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(licence || {}) : (licence || "");
+            const needsSerialization = (<any>"LicenceEntity" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(licenceEntity || {}) : (licenceEntity || "");
 
             return {
                 url: url.format(localVarUrlObj),
@@ -1212,7 +1212,7 @@ export const LicenceAPIApiFetchParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * description
+         * Recherche une licence par son identifiant
          * @summary Rechercher une licence par ID 
          * @param {string} id 
          * @param {*} [options] Override http request option.
@@ -1241,7 +1241,7 @@ export const LicenceAPIApiFetchParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * description
+         * Renvoie toutes les licences
          * @summary Rechercher toutes les licences 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1264,8 +1264,8 @@ export const LicenceAPIApiFetchParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * description
-         * @summary Rechercher des licences en fonction, du nom, prénom ou numéro de licence 
+         * Rechercher des licences en fonction, du nom, prénom ou numéro de licence 
+         * @summary Recherche des licences
          * @param {string} param 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1293,7 +1293,7 @@ export const LicenceAPIApiFetchParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * currentPage, pageSize, orderDirection, orderBy et Filters
+         * Recherche paginée utilisant currentPage, pageSize, orderDirection, orderBy et Filters
          * @summary Rechercher par page les licences 
          * @param {Search} search 
          * @param {*} [options] Override http request option.
@@ -1327,14 +1327,14 @@ export const LicenceAPIApiFetchParamCreator = function (configuration?: Configur
         /**
          * 
          * @summary Met à jour une licence existante
-         * @param {Licence} licence 
+         * @param {LicenceEntity} licenceEntity 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        update(licence: Licence, options: any = {}): FetchArgs {
-            // verify required parameter 'licence' is not null or undefined
-            if (licence === null || licence === undefined) {
-                throw new RequiredError('licence','Required parameter licence was null or undefined when calling update.');
+        update(licenceEntity: LicenceEntity, options: any = {}): FetchArgs {
+            // verify required parameter 'licenceEntity' is not null or undefined
+            if (licenceEntity === null || licenceEntity === undefined) {
+                throw new RequiredError('licenceEntity','Required parameter licenceEntity was null or undefined when calling update.');
             }
             const localVarPath = `/api/licences`;
             const localVarUrlObj = url.parse(localVarPath, true);
@@ -1348,8 +1348,8 @@ export const LicenceAPIApiFetchParamCreator = function (configuration?: Configur
             // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
             delete localVarUrlObj.search;
             localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-            const needsSerialization = (<any>"Licence" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
-            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(licence || {}) : (licence || "");
+            const needsSerialization = (<any>"LicenceEntity" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
+            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(licenceEntity || {}) : (licenceEntity || "");
 
             return {
                 url: url.format(localVarUrlObj),
@@ -1387,12 +1387,12 @@ export const LicenceAPIApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @summary Cree une nouvelle licence
-         * @param {Licence} licence 
+         * @param {LicenceEntity} licenceEntity 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        create(licence: Licence, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = LicenceAPIApiFetchParamCreator(configuration).create(licence, options);
+        create(licenceEntity: LicenceEntity, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = LicenceAPIApiFetchParamCreator(configuration).create(licenceEntity, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -1404,13 +1404,13 @@ export const LicenceAPIApiFp = function(configuration?: Configuration) {
             };
         },
         /**
-         * description
+         * Recherche une licence par son identifiant
          * @summary Rechercher une licence par ID 
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        get(id: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Licence> {
+        get(id: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<LicenceEntity> {
             const localVarFetchArgs = LicenceAPIApiFetchParamCreator(configuration).get(id, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
@@ -1423,12 +1423,12 @@ export const LicenceAPIApiFp = function(configuration?: Configuration) {
             };
         },
         /**
-         * description
+         * Renvoie toutes les licences
          * @summary Rechercher toutes les licences 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAllLicences(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<Licence>> {
+        getAllLicences(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<LicenceEntity>> {
             const localVarFetchArgs = LicenceAPIApiFetchParamCreator(configuration).getAllLicences(options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
@@ -1441,13 +1441,13 @@ export const LicenceAPIApiFp = function(configuration?: Configuration) {
             };
         },
         /**
-         * description
-         * @summary Rechercher des licences en fonction, du nom, prénom ou numéro de licence 
+         * Rechercher des licences en fonction, du nom, prénom ou numéro de licence 
+         * @summary Recherche des licences
          * @param {string} param 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getLicencesLike(param: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<Licence>> {
+        getLicencesLike(param: string, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<LicenceEntity>> {
             const localVarFetchArgs = LicenceAPIApiFetchParamCreator(configuration).getLicencesLike(param, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
@@ -1460,7 +1460,7 @@ export const LicenceAPIApiFp = function(configuration?: Configuration) {
             };
         },
         /**
-         * currentPage, pageSize, orderDirection, orderBy et Filters
+         * Recherche paginée utilisant currentPage, pageSize, orderDirection, orderBy et Filters
          * @summary Rechercher par page les licences 
          * @param {Search} search 
          * @param {*} [options] Override http request option.
@@ -1481,12 +1481,12 @@ export const LicenceAPIApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @summary Met à jour une licence existante
-         * @param {Licence} licence 
+         * @param {LicenceEntity} licenceEntity 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        update(licence: Licence, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
-            const localVarFetchArgs = LicenceAPIApiFetchParamCreator(configuration).update(licence, options);
+        update(licenceEntity: LicenceEntity, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Response> {
+            const localVarFetchArgs = LicenceAPIApiFetchParamCreator(configuration).update(licenceEntity, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -1519,15 +1519,15 @@ export const LicenceAPIApiFactory = function (configuration?: Configuration, fet
         /**
          * 
          * @summary Cree une nouvelle licence
-         * @param {Licence} licence 
+         * @param {LicenceEntity} licenceEntity 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        create(licence: Licence, options?: any) {
-            return LicenceAPIApiFp(configuration).create(licence, options)(fetch, basePath);
+        create(licenceEntity: LicenceEntity, options?: any) {
+            return LicenceAPIApiFp(configuration).create(licenceEntity, options)(fetch, basePath);
         },
         /**
-         * description
+         * Recherche une licence par son identifiant
          * @summary Rechercher une licence par ID 
          * @param {string} id 
          * @param {*} [options] Override http request option.
@@ -1537,7 +1537,7 @@ export const LicenceAPIApiFactory = function (configuration?: Configuration, fet
             return LicenceAPIApiFp(configuration).get(id, options)(fetch, basePath);
         },
         /**
-         * description
+         * Renvoie toutes les licences
          * @summary Rechercher toutes les licences 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1546,8 +1546,8 @@ export const LicenceAPIApiFactory = function (configuration?: Configuration, fet
             return LicenceAPIApiFp(configuration).getAllLicences(options)(fetch, basePath);
         },
         /**
-         * description
-         * @summary Rechercher des licences en fonction, du nom, prénom ou numéro de licence 
+         * Rechercher des licences en fonction, du nom, prénom ou numéro de licence 
+         * @summary Recherche des licences
          * @param {string} param 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1556,7 +1556,7 @@ export const LicenceAPIApiFactory = function (configuration?: Configuration, fet
             return LicenceAPIApiFp(configuration).getLicencesLike(param, options)(fetch, basePath);
         },
         /**
-         * currentPage, pageSize, orderDirection, orderBy et Filters
+         * Recherche paginée utilisant currentPage, pageSize, orderDirection, orderBy et Filters
          * @summary Rechercher par page les licences 
          * @param {Search} search 
          * @param {*} [options] Override http request option.
@@ -1568,12 +1568,12 @@ export const LicenceAPIApiFactory = function (configuration?: Configuration, fet
         /**
          * 
          * @summary Met à jour une licence existante
-         * @param {Licence} licence 
+         * @param {LicenceEntity} licenceEntity 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        update(licence: Licence, options?: any) {
-            return LicenceAPIApiFp(configuration).update(licence, options)(fetch, basePath);
+        update(licenceEntity: LicenceEntity, options?: any) {
+            return LicenceAPIApiFp(configuration).update(licenceEntity, options)(fetch, basePath);
         },
     };
 };
@@ -1600,17 +1600,17 @@ export class LicenceAPIApi extends BaseAPI {
     /**
      * 
      * @summary Cree une nouvelle licence
-     * @param {Licence} licence 
+     * @param {LicenceEntity} licenceEntity 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof LicenceAPIApi
      */
-    public create(licence: Licence, options?: any) {
-        return LicenceAPIApiFp(this.configuration).create(licence, options)(this.fetch, this.basePath);
+    public create(licenceEntity: LicenceEntity, options?: any) {
+        return LicenceAPIApiFp(this.configuration).create(licenceEntity, options)(this.fetch, this.basePath);
     }
 
     /**
-     * description
+     * Recherche une licence par son identifiant
      * @summary Rechercher une licence par ID 
      * @param {string} id 
      * @param {*} [options] Override http request option.
@@ -1622,7 +1622,7 @@ export class LicenceAPIApi extends BaseAPI {
     }
 
     /**
-     * description
+     * Renvoie toutes les licences
      * @summary Rechercher toutes les licences 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1633,8 +1633,8 @@ export class LicenceAPIApi extends BaseAPI {
     }
 
     /**
-     * description
-     * @summary Rechercher des licences en fonction, du nom, prénom ou numéro de licence 
+     * Rechercher des licences en fonction, du nom, prénom ou numéro de licence 
+     * @summary Recherche des licences
      * @param {string} param 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1645,7 +1645,7 @@ export class LicenceAPIApi extends BaseAPI {
     }
 
     /**
-     * currentPage, pageSize, orderDirection, orderBy et Filters
+     * Recherche paginée utilisant currentPage, pageSize, orderDirection, orderBy et Filters
      * @summary Rechercher par page les licences 
      * @param {Search} search 
      * @param {*} [options] Override http request option.
@@ -1659,13 +1659,13 @@ export class LicenceAPIApi extends BaseAPI {
     /**
      * 
      * @summary Met à jour une licence existante
-     * @param {Licence} licence 
+     * @param {LicenceEntity} licenceEntity 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof LicenceAPIApi
      */
-    public update(licence: Licence, options?: any) {
-        return LicenceAPIApiFp(this.configuration).update(licence, options)(this.fetch, this.basePath);
+    public update(licenceEntity: LicenceEntity, options?: any) {
+        return LicenceAPIApiFp(this.configuration).update(licenceEntity, options)(this.fetch, this.basePath);
     }
 
 }
@@ -1678,7 +1678,7 @@ export const RaceAPIApiFetchParamCreator = function (configuration?: Configurati
     return {
         /**
          * 
-         * @summary delete race
+         * @summary Supprime une course
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1706,7 +1706,7 @@ export const RaceAPIApiFetchParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * description
+         * 
          * @summary Cree une nouvelle course 
          * @param {RaceCreate} raceCreate 
          * @param {*} [options] Override http request option.
@@ -1770,7 +1770,7 @@ export const RaceAPIApiFetchParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * description
+         * 
          * @summary Rechercher tous les coureurs participants à une course 
          * @param {number} id 
          * @param {*} [options] Override http request option.
@@ -1799,7 +1799,7 @@ export const RaceAPIApiFetchParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * description
+         * 
          * @summary Rechercher le nombre de coureur par course 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1928,7 +1928,7 @@ export const RaceAPIApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
-         * @summary delete race
+         * @summary Supprime une course
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1946,7 +1946,7 @@ export const RaceAPIApiFp = function(configuration?: Configuration) {
             };
         },
         /**
-         * description
+         * 
          * @summary Cree une nouvelle course 
          * @param {RaceCreate} raceCreate 
          * @param {*} [options] Override http request option.
@@ -1984,7 +1984,7 @@ export const RaceAPIApiFp = function(configuration?: Configuration) {
             };
         },
         /**
-         * description
+         * 
          * @summary Rechercher tous les coureurs participants à une course 
          * @param {number} id 
          * @param {*} [options] Override http request option.
@@ -2003,7 +2003,7 @@ export const RaceAPIApiFp = function(configuration?: Configuration) {
             };
         },
         /**
-         * description
+         * 
          * @summary Rechercher le nombre de coureur par course 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2088,7 +2088,7 @@ export const RaceAPIApiFactory = function (configuration?: Configuration, fetch?
     return {
         /**
          * 
-         * @summary delete race
+         * @summary Supprime une course
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2097,7 +2097,7 @@ export const RaceAPIApiFactory = function (configuration?: Configuration, fetch?
             return RaceAPIApiFp(configuration)._delete(id, options)(fetch, basePath);
         },
         /**
-         * description
+         * 
          * @summary Cree une nouvelle course 
          * @param {RaceCreate} raceCreate 
          * @param {*} [options] Override http request option.
@@ -2117,7 +2117,7 @@ export const RaceAPIApiFactory = function (configuration?: Configuration, fetch?
             return RaceAPIApiFp(configuration).flagChallenge(raceRow, options)(fetch, basePath);
         },
         /**
-         * description
+         * 
          * @summary Rechercher tous les coureurs participants à une course 
          * @param {number} id 
          * @param {*} [options] Override http request option.
@@ -2127,7 +2127,7 @@ export const RaceAPIApiFactory = function (configuration?: Configuration, fetch?
             return RaceAPIApiFp(configuration).getCompetitionRaces(id, options)(fetch, basePath);
         },
         /**
-         * description
+         * 
          * @summary Rechercher le nombre de coureur par course 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2177,7 +2177,7 @@ export const RaceAPIApiFactory = function (configuration?: Configuration, fetch?
 export class RaceAPIApi extends BaseAPI {
     /**
      * 
-     * @summary delete race
+     * @summary Supprime une course
      * @param {string} id 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2188,7 +2188,7 @@ export class RaceAPIApi extends BaseAPI {
     }
 
     /**
-     * description
+     * 
      * @summary Cree une nouvelle course 
      * @param {RaceCreate} raceCreate 
      * @param {*} [options] Override http request option.
@@ -2212,7 +2212,7 @@ export class RaceAPIApi extends BaseAPI {
     }
 
     /**
-     * description
+     * 
      * @summary Rechercher tous les coureurs participants à une course 
      * @param {number} id 
      * @param {*} [options] Override http request option.
@@ -2224,7 +2224,7 @@ export class RaceAPIApi extends BaseAPI {
     }
 
     /**
-     * description
+     * 
      * @summary Rechercher le nombre de coureur par course 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}

@@ -1,4 +1,4 @@
-import {Licence} from '../sdk';
+import {LicenceEntity as Licence} from '../sdk';
 
 export interface IAppState {
     test?: string;

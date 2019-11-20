@@ -3,7 +3,7 @@ import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import cadtheme from '../App';
 import {apiCompetitions} from '../util/api';
-import {Competition} from '../sdk';
+import {CompetitionEntity as Competition} from '../sdk';
 import {withRouter} from 'react-router-dom';
 import {Radio, Tooltip} from '@material-ui/core';
 import {DataTable} from 'primereact/datatable';

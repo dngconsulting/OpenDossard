@@ -1,5 +1,5 @@
 import {ActionType, IAppAction} from './../actions/Helpers';
-import {User} from '../sdk';
+import {UserEntity as User} from '../sdk';
 
 export const AuthenticationReducer = (state: User = null, action: IAppAction): User => {
     switch (action.type) {

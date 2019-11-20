@@ -1,3 +1,4 @@
+// TODO: all those entities can be shared between front & back
 export const CATEV = [
     {label: 'Non Licencié', value: 'NL'},
     {label: 'Cadet', value: 'C'},

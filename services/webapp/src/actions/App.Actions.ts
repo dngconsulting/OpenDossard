@@ -3,7 +3,7 @@ import {match} from 'react-router';
 import {Utility} from '../state/Utility';
 import {Alert} from '../state/Alert';
 import {Spinner} from '../state/Spinner';
-import {User} from '../sdk';
+import {UserEntity as User} from '../sdk';
 
 export interface IApplicationProps {
     openDrawer: () => IAppAction;

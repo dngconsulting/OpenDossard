@@ -2,7 +2,7 @@ import {Dialog, DialogActions, DialogContent, DialogTitle} from '@material-ui/co
 import Button from '@material-ui/core/Button';
 import React, {useContext, useEffect, useState} from 'react';
 import TextField from '@material-ui/core/TextField';
-import {Competition, RaceRow} from '../../sdk';
+import {CompetitionEntity as Competition, RaceRow} from '../../sdk';
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import Fab from '@material-ui/core/Fab';
 import {Add, Delete, ThreeSixty} from '@material-ui/icons';

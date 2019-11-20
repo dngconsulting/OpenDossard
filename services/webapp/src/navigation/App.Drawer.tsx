@@ -27,7 +27,7 @@ import {Utility} from '../state/Utility';
 import {NavLink} from 'react-router-dom';
 import {styles} from './styles';
 import StatsPage from '../pages/Stats';
-import {User} from '../sdk';
+import {UserEntity as User} from '../sdk';
 import {grey} from '@material-ui/core/colors';
 import {cadtheme} from '../theme/theme';
 

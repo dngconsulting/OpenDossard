@@ -1,4 +1,4 @@
-import {Competition, RaceRow} from '../sdk';
+import {CompetitionEntity as Competition, RaceRow} from '../sdk';
 import RaceTabs, {IRaceStat} from '../components/RaceTabs';
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import {createStyles, Theme} from '@material-ui/core';

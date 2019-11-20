@@ -2,7 +2,7 @@ import * as React from 'react';
 import MaterialTable, {Query, QueryResult} from 'material-table';
 import {AppText as T} from '../../util/text';
 import {apiLicences} from '../../util/api';
-import {Licence, Search} from '../../sdk';
+import {LicenceEntity as Licence, Search} from '../../sdk';
 import {cadtheme} from '../../theme/theme';
 import {Button, Paper} from '@material-ui/core';
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
@@ -53,7 +53,6 @@ const LicencesPage = (props: ILicencesProps) => {
                     {title: 'Dept', field: 'dept',cellStyle:{width:50}},
                     {title: 'Année', field: 'birthYear',cellStyle:{width:100}},
                     {title: 'Fédé', field: 'fede',cellStyle:{width:50},filtering:false},
-
                 ]}
                 data={fetchLicences}
                 options={{

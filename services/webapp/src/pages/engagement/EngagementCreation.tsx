@@ -1,5 +1,5 @@
 import {default as React, useContext, useState} from 'react';
-import {Competition, Licence, RaceCreate} from '../../sdk';
+import {CompetitionEntity as Competition, LicenceEntity as Licence, RaceCreate} from '../../sdk';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import AutocompleteInput from '../../components/AutocompleteInput';

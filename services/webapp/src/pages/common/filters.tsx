@@ -1,4 +1,4 @@
-import {Licence} from '../../sdk';
+import {LicenceEntity as Licence} from '../../sdk';
 import {apiLicences} from '../../util/api';
 import * as React from 'react';
 
