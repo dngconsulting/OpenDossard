@@ -89,7 +89,8 @@ export class LicenceController {
                 .getManyAndCount();
         return {data: res[0], page: search.currentPage, totalCount: res[1]};
     }
-
+    // TODO : It is also possible to use @Transaction decorator here
+    // See https://typeorm.io/#/transactions
     @Post()
     @ApiOperation({
         operationId: 'create',
