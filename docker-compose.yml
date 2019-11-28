@@ -16,9 +16,10 @@ services:
       - ./config/dev.env
     volumes:
       - ./services/api:/app:delegated
-    command: "npm run start:dev"
+    command: "npm run start:debug"
     ports:
       - "9090:9090"
+      - "9229:9229"
   webapp:
     environment:
       - CHOKIDAR_USEPOLLING=true
