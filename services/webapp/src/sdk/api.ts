@@ -536,6 +536,18 @@ export interface RaceRow {
     competitionId: number;
     /**
      * 
+     * @type {string}
+     * @memberof RaceRow
+     */
+    competitionName?: string;
+    /**
+     * 
+     * @type {Date}
+     * @memberof RaceRow
+     */
+    competitionDate?: Date;
+    /**
+     * 
      * @type {boolean}
      * @memberof RaceRow
      */
@@ -1771,6 +1783,29 @@ export const RaceAPIApiFetchParamCreator = function (configuration?: Configurati
         },
         /**
          * 
+         * @summary Rechercher toutes les participation dans les courses de tous les temps 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAllRaces(options: any = {}): FetchArgs {
+            const localVarPath = `/api/races`;
+            const localVarUrlObj = url.parse(localVarPath, true);
+            const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
+            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
+            delete localVarUrlObj.search;
+            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
+
+            return {
+                url: url.format(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @summary Rechercher tous les coureurs participants à une course 
          * @param {number} id 
          * @param {*} [options] Override http request option.
@@ -1985,6 +2020,24 @@ export const RaceAPIApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @summary Rechercher toutes les participation dans les courses de tous les temps 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAllRaces(options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<Array<RaceRow>> {
+            const localVarFetchArgs = RaceAPIApiFetchParamCreator(configuration).getAllRaces(options);
+            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
+                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
+                    if (response.status >= 200 && response.status < 300) {
+                        return response.json();
+                    } else {
+                        throw response;
+                    }
+                });
+            };
+        },
+        /**
+         * 
          * @summary Rechercher tous les coureurs participants à une course 
          * @param {number} id 
          * @param {*} [options] Override http request option.
@@ -2118,6 +2171,15 @@ export const RaceAPIApiFactory = function (configuration?: Configuration, fetch?
         },
         /**
          * 
+         * @summary Rechercher toutes les participation dans les courses de tous les temps 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAllRaces(options?: any) {
+            return RaceAPIApiFp(configuration).getAllRaces(options)(fetch, basePath);
+        },
+        /**
+         * 
          * @summary Rechercher tous les coureurs participants à une course 
          * @param {number} id 
          * @param {*} [options] Override http request option.
@@ -2209,6 +2271,17 @@ export class RaceAPIApi extends BaseAPI {
      */
     public flagChallenge(raceRow: RaceRow, options?: any) {
         return RaceAPIApiFp(this.configuration).flagChallenge(raceRow, options)(this.fetch, this.basePath);
+    }
+
+    /**
+     * 
+     * @summary Rechercher toutes les participation dans les courses de tous les temps 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof RaceAPIApi
+     */
+    public getAllRaces(options?: any) {
+        return RaceAPIApiFp(this.configuration).getAllRaces(options)(this.fetch, this.basePath);
     }
 
     /**

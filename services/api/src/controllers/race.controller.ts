@@ -20,7 +20,8 @@ import {
     Logger,
     Param,
     Post,
-    Put, UseGuards,
+    Put,
+    UseGuards,
 } from '@nestjs/common';
 import {InjectEntityManager} from '@nestjs/typeorm';
 
@@ -58,6 +59,10 @@ export class RaceRow {
     public comment: string;
     @ApiModelProperty()
     public competitionId: number;
+    @ApiModelPropertyOptional()
+    public competitionName: string;
+    @ApiModelPropertyOptional({ type: 'string', format: 'date-time'})
+    public competitionDate: Date;
     @ApiModelPropertyOptional()
     public sprintchallenge: boolean;
 }
@@ -110,9 +115,33 @@ export class RacesCtrl {
     @ApiResponse({status: 200, type: RaceNbRider, isArray: true})
     public async getNumberRider(): Promise<RaceNbRider[]> {
         const query = `select count(r.*), c.name, r."raceCode", c."eventDate", c.fede
-                        from race r
-                        join competition c on r."competitionId" = c.id
-                        group by r."competitionId", c.name, r."raceCode", c."eventDate", c.fede`;
+                       from race r
+                                join competition c on r."competitionId" = c.id
+                       group by r."competitionId", c.name, r."raceCode", c."eventDate", c.fede`;
+        return await this.entityManager.query(query);
+    }
+
+    @Get()
+    @ApiOperation({
+        operationId: 'getAllRaces',
+        title: 'Rechercher toutes les participation dans les courses de tous les temps ',
+    })
+    @ApiResponse({status: 200, type: RaceRow, isArray: true})
+    public async getAllRaces(): Promise<RaceRow[]> {
+        const query = `select r.*,
+                              concat(l.name, ' ', l."firstName") as name,
+                              l."licenceNumber",
+                              l.club,
+                              l.gender,
+                              l.fede,
+                              l."birthYear",
+                              l.catea,
+                              c.name,
+                              c."eventDate"
+                       from race r
+                                join licence l on r."licenceId" = l.id
+                                join competition c on r."competitionId" = c.id
+                       order by r.id desc`;
         return await this.entityManager.query(query);
     }
 
@@ -124,11 +153,18 @@ export class RacesCtrl {
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
     public async getCompetitionRaces(@Param('id') competitionId: number): Promise<RaceRow[]> {
 
-        const query = `select r.*, concat(l.name,' ',l."firstName") as name, l."licenceNumber", l.club, l.gender, l.fede, l."birthYear", l.catea
-                        from race r
-                        join licence l on r."licenceId" = l.id
-                        where r."competitionId" = $1
-                        order by r.id desc`;
+        const query = `select r.*,
+                              concat(l.name, ' ', l."firstName") as name,
+                              l."licenceNumber",
+                              l.club,
+                              l.gender,
+                              l.fede,
+                              l."birthYear",
+                              l.catea
+                       from race r
+                                join licence l on r."licenceId" = l.id
+                       where r."competitionId" = $1
+                       order by r.id desc`;
         return await this.entityManager.query(query, [competitionId]);
     }
 

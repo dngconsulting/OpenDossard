@@ -1,123 +1,71 @@
 import * as React from 'react';
+import {useEffect, useState} from 'react';
 
 import {Typography} from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
-import HighchartsTest from "./HighchartsTest";
-import * as Highcharts from "highcharts";
-import {useEffect, useState} from "react";
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
-import AutocompleteInput from "../components/AutocompleteInput";
-import {apiRaces} from "../util/api";
-import {RaceNbRider} from "../sdk";
+import {apiRaces} from '../util/api';
+import {RaceRow} from '../sdk';
+import _ from 'lodash';
+import * as Highcharts from 'highcharts';
+import HighchartsReact from 'highcharts-react-official';
 
 interface IStatsPageProps {
     items: any[];
     classes: any;
 }
 
-const getNbRiderPerRace = async () => {
-    const raceNbRiders : RaceNbRider[] = await apiRaces.getNumberRider();
-    return raceNbRiders;
-}
-
 const StatsPage = (props: IStatsPageProps) => {
-
-    const [selectValue, setSelectValue] = useState<string>('column')
-    const [options, setOptions] = useState<Highcharts.Options>({
-        title: {
-            text: 'Nombre de participants par course'
-        },
-        series: [{
-            type: 'column',
-            data: [],
-            name: 'test1'
-        }, {
-            type: 'column',
-            name: 'test2',
-            data: []
-        }]
-    });
+    const [optionNbRidersChart, setOptionNbRidersChart] = useState<Highcharts.Options>();
+    const nbRidersByCourseChart = (rows: RaceRow[]) => {
+        const options : Highcharts.Options = {
+            title: {
+                text: 'Nombre de coureurs par course',
+            },
+            xAxis: {
+                categories: ['Course A', 'Course B', 'Course C'],
+            },
+            series: [{
+                type: 'column',
+                name: 'Nombre de coureurs'
+            }]
+        }
+        const nbRidersByCourse = _.groupBy(rows, (item: RaceRow) => item.competitionId);
+        console.log(JSON.stringify(nbRidersByCourse))
+        // @ts-ignore
+        options.series[0].data = Object.keys(nbRidersByCourse).map(item => nbRidersByCourse[item].length);
+        // @ts-ignore
+        options.xAxis.categories = Object.keys(nbRidersByCourse).map(item => nbRidersByCourse[item][0].name)
+        setOptionNbRidersChart(options)
+    };
 
     useEffect(() => {
-
-        getNbRiderPerRace()
-            .then(array => {
-
-                console.log(array);
-                const tabTemp : Array<{type: any, data : number[], name: string}> = [{type: '', data: [], name: ''}];
-
-                array.forEach( x => {
-                    if(tabTemp.length === 1 && tabTemp[tabTemp.length-1].name === ''){
-                        tabTemp[tabTemp.length-1].type = options.series[0].type;
-                        tabTemp[tabTemp.length-1].data.push(+x.count);
-                        tabTemp[tabTemp.length-1].name = x.name;
-                    } else if(x.name !== tabTemp[tabTemp.length-1].name) {
-                        tabTemp.push({
-                            type: options.series[0].type,
-                            data: [+x.count],
-                            name: x.name
-                        })
-                    } else {
-                        tabTemp[tabTemp.length-1].data.push(+x.count);
-                    }
-                });
-
-                setOptions(oldValues => ({
-                    ...oldValues,
-                    series: tabTemp
-                }))
-            })
-            .catch(error => {
-                console.error(error)
-            });
-    }, []);
-
-
-    const handleChange = (event: React.ChangeEvent<{ name?: string; value: unknown }>) => {
-
-        const map: any = options.series.map(serie => ({
-                ...serie,
-                type: event.target.value
-        }));
-        setOptions(oldValues => ({
-            ...oldValues,
-            series: map
-        }));
-        setSelectValue(event.target.value as string);
-    }
+            const getAllRaces = async () => {
+                const rows = await apiRaces.getAllRaces();
+                nbRidersByCourseChart(rows);
+            };
+            getAllRaces();
+        }
+        , []);
 
     return (
 
-        <div style={{padding:10}}>
+        <div style={{padding: 10}}>
 
             <Grid container={true} spacing={3}>
                 <Grid item={true} xs={12}>
                     <Typography noWrap={false}>Graphiques et statistiques</Typography>
                 </Grid>
-
-                <Grid item={true} xs={5}>
-                        <Select
-                            value={selectValue}
-                            onChange={handleChange}
-                            inputProps={{
-                                name: 'Diagramme',
-                                id: 'diagramme',
-                            }}
-                        >
-                            <MenuItem value={'line'}>Diagramme ligne</MenuItem>
-                            <MenuItem value={'column'}>Diagramme bâton</MenuItem>
-                        </Select>
-                </Grid>
-
             </Grid>
 
-            <AutocompleteInput style={{width: '450px'}}/>
-
-            <HighchartsTest options={options}/>
+            <div>
+                <HighchartsReact
+                    highcharts={Highcharts}
+                    options={optionNbRidersChart}
+                />
+            </div>
         </div>
     );
 
-}
+};
 
 export default StatsPage;
