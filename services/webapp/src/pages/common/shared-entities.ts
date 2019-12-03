@@ -12,6 +12,7 @@ export const CATEA : Array<{label:string,value:string}> = [
     {label: 'Jeune', value: 'j'},
     {label: 'Espoir', value: 'e'},
     {label: 'Féminine minime', value: 'fm'},
+    {label: 'Féminine vétéran', value: 'fv'},
     {label: 'Féminine sénior', value: 'fs'},
     {label: 'Féminine jeune', value: 'fj'},
     {label: 'Féminine cadet', value: 'fc'},
