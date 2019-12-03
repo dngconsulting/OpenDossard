@@ -27,7 +27,6 @@ const StatsPage = (props: IStatsPageProps) => {
             }]
         }
         const nbRidersByCourse = _.groupBy(rows, (item: RaceRow) => item.competitionId);
-        console.log(JSON.stringify(nbRidersByCourse))
         // @ts-ignore
         options.series[0].data = Object.keys(nbRidersByCourse).map(item => nbRidersByCourse[item].length);
         // @ts-ignore
