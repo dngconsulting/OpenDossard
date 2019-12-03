@@ -491,6 +491,12 @@ export interface RaceRow {
      * @type {string}
      * @memberof RaceRow
      */
+    riderName?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceRow
+     */
     club?: string;
     /**
      * 

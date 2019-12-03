@@ -1,8 +1,5 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
-
-import {Typography} from '@material-ui/core';
-import Grid from '@material-ui/core/Grid';
 import {apiRaces} from '../util/api';
 import {RaceRow} from '../sdk';
 import _ from 'lodash';
@@ -22,7 +19,7 @@ const StatsPage = (props: IStatsPageProps) => {
                 text: 'Nombre de coureurs par course',
             },
             xAxis: {
-                categories: ['Course A', 'Course B', 'Course C'],
+                categories: [],
             },
             series: [{
                 type: 'column',
@@ -50,13 +47,6 @@ const StatsPage = (props: IStatsPageProps) => {
     return (
 
         <div style={{padding: 10}}>
-
-            <Grid container={true} spacing={3}>
-                <Grid item={true} xs={12}>
-                    <Typography noWrap={false}>Graphiques et statistiques</Typography>
-                </Grid>
-            </Grid>
-
             <div>
                 <HighchartsReact
                     highcharts={Highcharts}

@@ -8,15 +8,23 @@ export const CATEV = [
     {label: '2', value: '2'},
     {label: '3', value: '3'}];
 
-export const CATEA = [
+export const CATEA : Array<{label:string,value:string}> = [
     {label: 'Jeune', value: 'j'},
-    {label: 'Senior', value: 's'},
+    {label: 'Espoir', value: 'e'},
+    {label: 'Féminine minime', value: 'fm'},
+    {label: 'Féminine sénior', value: 'fs'},
+    {label: 'Féminine jeune', value: 'fj'},
+    {label: 'Féminine cadet', value: 'fc'},
+    {label: 'Féminine super vétéran', value: 'fsv'},
+    {label: 'Féminine espoir', value: 'fe'},
+    {label: 'Sénior', value: 's'},
     {label: 'Vétéran', value: 'v'},
     {label: 'Super Vétéran', value: 'sv'},
     {label: 'Ancien', value: 'a'},
     {label: 'Cadet', value: 'c'},
     {label: 'Minimes', value: 'm'},
-    {label: 'Espoir', value: 'e'}];
+    {label: 'Espoir', value: 'e'},
+    {label: 'NC', value: 'nc'}];
 
 export const FEDERATIONS = {
     fsgt: {

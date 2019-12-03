@@ -44,6 +44,8 @@ export class RaceRow {
     @ApiModelPropertyOptional()
     public name: string;
     @ApiModelPropertyOptional()
+    public riderName: string;
+    @ApiModelPropertyOptional()
     public club: string;
     @ApiModelPropertyOptional()
     public catev: string;
@@ -129,7 +131,7 @@ export class RacesCtrl {
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
     public async getAllRaces(): Promise<RaceRow[]> {
         const query = `select r.*,
-                              concat(l.name, ' ', l."firstName") as name,
+                              concat(l.name, ' ', l."firstName") as "riderName",
                               l."licenceNumber",
                               l.club,
                               l.gender,

@@ -1,80 +1,182 @@
 import * as React from 'react';
-import {Theme, withStyles} from '@material-ui/core';
-
+import {useEffect, useState} from 'react';
+import {Grid, Paper, Theme, withStyles} from '@material-ui/core';
+import * as Highcharts from 'highcharts';
+import {RaceRow} from '../sdk';
+import _ from 'lodash';
+import {apiRaces} from '../util/api';
+import HighchartsReact from 'highcharts-react-official';
+import {CATEA} from '../pages/common/shared-entities'
 
 interface IDashboardProps {
-    fetchUsers: (context?: any) => void;
-    users: any;
-    materialChartData: any[];
     classes?: any;
-    theme?: any;
-    children?: any;
 }
 
-interface IPageState {
-    usersTablePage?: number;
-    usersTableRowsPerPage: number;
+const cateLabelFrom = (cate : string) => {
+    const catea = CATEA.filter(item=> item.value.toUpperCase()===cate.toUpperCase())[0]
+    return catea===undefined?cate:catea.label
 }
+const HomePage = (props: IDashboardProps) => {
+    const {classes} = props;
+    const [optionNbRidersChartClub, setOptionNbRidersChartClub] = useState<Highcharts.Options>();
+    const [optionNbRidersChartRiders, setOptionNbRidersChartRiders] = useState<Highcharts.Options>();
+    const [optionNbLicencesChartRiders, setOptionNbLicencesChartRiders] = useState<Highcharts.Options>();
+    const [optionParCateA, setOptionParCateA] = useState<Highcharts.Options>();
 
-class HomePage extends React.Component<IDashboardProps, IPageState> {
-
-    public state: IPageState = {
-        usersTablePage: 0,
-        usersTableRowsPerPage: 5
+    const fillRiderByCateaChart = (rows: RaceRow[]) => {
+        const options: Highcharts.Options = {
+            title: {
+                text: 'Répartition par catégorie d\'age',
+            },
+            xAxis: {
+                categories: [],
+            },
+            series: [{
+                type: 'pie',
+                name: 'Taux',
+            }]
+        };
+        const groupByNbRidersByCatea = _.groupBy(rows, (item: RaceRow) => item.catea);
+        const cateaNb = Object.keys(groupByNbRidersByCatea).map(item => {
+            return {
+                name: cateLabelFrom(groupByNbRidersByCatea[item][0].catea),
+                y: groupByNbRidersByCatea[item].length
+            };
+        });
+        // @ts-ignore
+        options.series[0].data = cateaNb;
+        // @ts-ignore
+        setOptionParCateA(options);
     };
 
-    public render(): JSX.Element {
-        const {classes} = this.props;
-        return (
-            <div className={classes.root}>
-                L'application Open Dossard est destinée à gérer l'engagement et
-                l'édition des résultats d'une course cycliste.
-                Elle est éditée par la société <a href='http://www.dng-consulting.com'
-                                                  style={{marginRight: 2, marginLeft: 2}}>DNG
-                Consulting </a> qui en assure le support.
-                <p><strong>Open Dossard</strong> est une plateforme digitale permettant de stocker
-                    et partager les informations li&eacute;es aux courses cyclistes des
-                    f&eacute;d&eacute;rations FSGT et UFOLEP :</p>
-                <ol>
-                    <li>A destination des commissaires&nbsp;
-                        <ul>
-                            <li>Gestion des engagements avec recherche automatique des
-                                licences&nbsp;</li>
-                            <li>Gestion des r&eacute;sultats par cat&eacute;gorie de valeur ou
-                                cat&eacute;gorie d'age
-                            </li>
-                            <li>Edition de rapports statistiques (fr&eacute;quentation,
-                                palmar&egrave;s des coureurs, ...)
-                            </li>
-                        </ul>
-                    </li>
-                    <li>A destination des coureurs&nbsp;
-                        <ul>
-                            <li>Affichage des r&eacute;sultats en ligne aussit&ocirc;t le classement
-                                r&eacute;alis&eacute;</li>
-                            <li>Classement automatique par cat&eacute;gories de valeur et d'age</li>
-                            <li>Statistiques d'un coureur (palmar&egrave;s, assiduit&eacute;, ...)
-                            </li>
-                        </ul>
-                    </li>
-                </ol>
-                <p>Notre volont&eacute; est de permettre aux diff&eacute;rents acteurs des
-                    f&eacute;d&eacute;rations (commissaires mais aussi coureurs)
-                    d'acc&eacute;der &agrave; un seul endroit &agrave; toutes les informations d'une
-                    course.&nbsp;</p>
-            </div>
-        );
-    }
-}
+    const fillRiderParticipationChart = (rows: RaceRow[]) => {
+        const options: Highcharts.Options = {
+            title: {
+                text: 'Nombre de coureurs par course',
+            },
+            xAxis: {
+                categories: [],
+            },
+            yAxis: {
+                title: {
+                    text: 'nb coureurs'
+                }
+            },
+            series: [{
+                type: 'column',
+                name: 'Nombre de coureurs'
+            }]
+        };
+        const nbRidersByCourse = _.groupBy(rows, (item: RaceRow) => item.competitionId);
+        // @ts-ignore
+        options.series[0].data = Object.keys(nbRidersByCourse).map(item => nbRidersByCourse[item].length);
+        // @ts-ignore
+        options.xAxis.categories = Object.keys(nbRidersByCourse).map(item => nbRidersByCourse[item][0].name);
+        setOptionNbRidersChartRiders(options);
+    };
+    const fillRiderOnlyParticipationChart = (rows: RaceRow[]) => {
+        const options: Highcharts.Options = {
+            title: {
+                text: 'Coureurs les plus assidus',
+            },
+            xAxis: {
+                categories: [],
+                max:19
+            },
+            yAxis: {
+                title: {
+                    text: 'nb participations'
+                }
+            },
+            series: [{
+                type: 'column',
+                name: 'Participations'
+            }]
+        };
+        const groupByLicenceNumber = _.groupBy(rows, (item: RaceRow) => item.licenceNumber);
+        const licenceAndNbPart = Object.keys(groupByLicenceNumber).map(item => {
+            return {
+                riderName: groupByLicenceNumber[item][0].riderName,
+                nb: groupByLicenceNumber[item].length
+            };
+        });
+        const licenceAndNbOrdered = _.orderBy(licenceAndNbPart, ['nb'], ['desc']);
+        // @ts-ignore
+        options.series[0].data = licenceAndNbOrdered.map(item => item.nb);
+        // @ts-ignore
+        options.xAxis.categories = licenceAndNbOrdered.map(item => item.riderName);
+        setOptionNbLicencesChartRiders(options);
+    };
+
+    const fillClubParticipationChart = (rows: RaceRow[]) => {
+        const options: Highcharts.Options = {
+            title: {
+                text: 'Participation des clubs',
+            },
+            xAxis: {
+                categories: [],
+                max:10
+            },
+            yAxis: {
+                title: {
+                    text: 'nb de coureurs'
+                }
+            },
+            series: [{
+                type: 'column',
+                name: 'Nombre de coureurs'
+            }]
+        };
+        const riders = _.groupBy(rows, (item: RaceRow) => item.club);
+        const clubAndNb = Object.keys(riders).map(item => {
+            return {club: riders[item][0].club, nb: riders[item].length};
+        });
+        const clubAndNbOrdered = _.orderBy(clubAndNb, ['nb'], ['desc']);
+        // @ts-ignore
+        options.series[0].data = clubAndNbOrdered.map(item => item.nb);
+        // @ts-ignore
+        options.xAxis.categories = clubAndNbOrdered.map(item => item.club);
+        setOptionNbRidersChartClub(options);
+    };
+    useEffect(() => {
+            const getAllRaces = async () => {
+                const rows = await apiRaces.getAllRaces();
+                fillRiderParticipationChart(rows);
+                fillClubParticipationChart(rows);
+                fillRiderOnlyParticipationChart(rows);
+                fillRiderByCateaChart(rows);
+            };
+            getAllRaces();
+        }
+        , []);
+
+
+    return (
+        <div className={classes.root}>
+            <Grid container={true}> {
+                [optionNbRidersChartRiders, optionNbRidersChartClub, optionNbLicencesChartRiders, optionParCateA].map((item, index) =>
+                    <Grid key={index} style={{padding: 5}} item={true} xs={12} md={6}>
+                        <Paper className={classes.paper}>
+                            <HighchartsReact
+                                highcharts={Highcharts}
+                                options={item}
+                            />
+                        </Paper>
+                    </Grid>
+                )
+            }
+            </Grid>
+        </div>
+    );
+
+};
 
 const styles = (theme: Theme) => ({
     root: {
         flexGrow: 1,
         marginBottom: 24,
-        padding: '15px'
     },
     paper: {
-        padding: theme.spacing(2),
         textAlign: 'center',
         color: theme.palette.text.secondary,
     },
@@ -96,10 +198,6 @@ const styles = (theme: Theme) => ({
     },
     sectionTitle: {
         paddingLeft: theme.spacing(2),
-    },
-    users: {
-        marginBottom: 24,
-        overflowX: 'scroll'
     },
     chart: {
         width: '100%'
