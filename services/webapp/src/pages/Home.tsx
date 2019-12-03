@@ -154,7 +154,7 @@ const HomePage = (props: IDashboardProps) => {
     return (
         <div className={classes.root}>
             <Grid container={true}> {
-                [optionNbRidersChartRiders, optionNbRidersChartClub, optionNbLicencesChartRiders, optionParCateA].map((item, index) =>
+                [optionNbRidersChartRiders, optionNbRidersChartClub, optionParCateA, optionNbLicencesChartRiders].map((item, index) =>
                     <Grid key={index} style={{padding: 5}} item={true} xs={12} md={6}>
                         <Paper className={classes.paper}>
                             <HighchartsReact
