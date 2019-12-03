@@ -93,7 +93,7 @@ const HomePage = (props: IDashboardProps) => {
                 name: 'Participations'
             }]
         };
-        const groupByLicenceNumber = _.groupBy(rows, (item: RaceRow) => item.licenceNumber);
+        const groupByLicenceNumber = _.groupBy(rows, (item: RaceRow) => item.riderName);
         const licenceAndNbPart = Object.keys(groupByLicenceNumber).map(item => {
             return {
                 riderName: groupByLicenceNumber[item][0].riderName,
