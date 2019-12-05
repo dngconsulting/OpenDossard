@@ -17,9 +17,9 @@ COPY --from=client /app/client/build/ ./client/build/
 
 WORKDIR /app/server/
 COPY services/api/package*.json ./
-RUN npm install -g @nestjs/cli
 RUN npm install -qy
 COPY services/api/ ./
+RUN npm install -g @nestjs/cli
 RUN nest build
 ENV PORT 9090
 EXPOSE 9090
