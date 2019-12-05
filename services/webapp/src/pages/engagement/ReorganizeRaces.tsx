@@ -130,8 +130,10 @@ export const Reorganizer = ({competition, rows, onSuccess}: { competition: Compe
     const save = async () => {
         try {
             await apiCompetitions.reorganize({
-                competitionId: competition.id,
-                races
+                competitionReorganize: {
+                    competitionId: competition.id,
+                    races
+                }
             });
             setNotification({
                 message: `La compétition a été réorganisée avec succès`,

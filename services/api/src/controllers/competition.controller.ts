@@ -8,26 +8,22 @@ import {
     Post,
     UseGuards,
 } from '@nestjs/common';
-import {ApiModelPropertyOptional, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
+import {ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
 import {EntityManager, Repository} from 'typeorm';
 import {CompetitionEntity} from '../entity/competition.entity';
 import {RaceEntity} from '../entity/race.entity';
 import {AuthGuard} from '@nestjs/passport';
+import {CompetitionReorganize} from '../dto/model.dto';
 
-export class CompetitionReorganize {
-    @ApiModelPropertyOptional()
-    public competitionId: number;
-    @ApiModelPropertyOptional()
-    public races: string[];
-}
+
 
 /**
  * Competition Controller handles all competitions operation ('Epreuve' in french)
  * The Reorganization method is when races are reorganized by categories
  */
 @Controller('/api/competition')
-@ApiUseTags('CompetitionAPI')
+@ApiTags('CompetitionAPI')
 @UseGuards(AuthGuard('jwt'))
 export class CompetitionController {
     constructor(
@@ -40,8 +36,8 @@ export class CompetitionController {
 
     @Get(':id')
     @ApiOperation({
-        operationId: 'get',
-        title: 'Recherche d\'une épreuve par ID',
+        operationId: 'getCompetition',
+        summary: 'Recherche d\'une épreuve par ID',
         description: 'Recherche une épreuve par son identifiant',
     })
     @ApiResponse({
@@ -68,7 +64,7 @@ export class CompetitionController {
 
     @ApiOperation({
         operationId: 'getAllCompetitions',
-        title: 'Rechercher Toutes les compétitions ',
+        summary: 'Rechercher Toutes les compétitions ',
         description: 'Recherche toutes les compétitions disponibles',
     })
     @ApiResponse({
@@ -89,7 +85,7 @@ export class CompetitionController {
     @Post('/reorganize')
     @ApiOperation({
         operationId: 'reorganize',
-        title: 'Réorganisation des courses',
+        summary: 'Réorganisation des courses',
     })
     @ApiResponse({status: 200, isArray: false})
     public async reorganize(@Body() dto: CompetitionReorganize): Promise<void> {
