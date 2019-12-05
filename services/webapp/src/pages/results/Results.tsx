@@ -71,18 +71,22 @@ const EditResultsPage = (gprops: any) => {
                 try {
                     setLoading(true);
                     if (currentNotRankedStatus.status !== '') {
-                        await apiRaces.update({
-                            riderNumber: parseInt(currentDossard),
-                            raceCode: currentRace,
-                            competitionId: parseInt(competitionId),
-                            comment: currentNotRankedStatus.status,
+                        await apiRaces.updateRanking({
+                            raceRow: {
+                                riderNumber: parseInt(currentDossard),
+                                raceCode: currentRace,
+                                competitionId: parseInt(competitionId),
+                                comment: currentNotRankedStatus.status,
+                            }
                         });
                     } else {
-                        await apiRaces.update({
-                            riderNumber: parseInt(currentDossard),
-                            competitionId: parseInt(competitionId),
-                            raceCode: currentRace,
-                            rankingScratch: parseInt(currentRanking)
+                        await apiRaces.updateRanking({
+                            raceRow: {
+                                riderNumber: parseInt(currentDossard),
+                                competitionId: parseInt(competitionId),
+                                raceCode: currentRace,
+                                rankingScratch: parseInt(currentRanking)
+                            }
                         });
                     }
                     const lrows = await fetchRows();
@@ -116,7 +120,7 @@ const EditResultsPage = (gprops: any) => {
         <Delete fontSize={'small'} onClick={async () => {
             try {
                 setLoading(true);
-                await apiRaces.removeRanking(row);
+                await apiRaces.removeRanking({raceRow:row});
                 await fetchRows();
             } finally {
                 setLoading(false);
@@ -186,7 +190,7 @@ const EditResultsPage = (gprops: any) => {
                 const callFlagChallenge = async (row: RaceRow) => {
                     try {
                         setLoading(true);
-                        await apiRaces.flagChallenge(row);
+                        await apiRaces.flagChallenge({raceRow:row});
                         await fetchRows();
                     } finally {
                         setLoading(false);
@@ -194,7 +198,7 @@ const EditResultsPage = (gprops: any) => {
                 };
 
                 const displayRank = (rowdata: any) => {
-                    return rowdata.classement + ((rankOfCate(rowdata, transformedRows) !== '' && !isNaN(rowdata.classement) && rowdata.riderNumber)  ? (' (' + rankOfCate(rowdata, transformedRows) + ')') : '');
+                    return rowdata.classement + ((rankOfCate(rowdata, transformedRows) !== '' && !isNaN(rowdata.classement) && rowdata.riderNumber) ? (' (' + rankOfCate(rowdata, transformedRows) + ')') : '');
                 };
                 const getTitleChallengeButton = (row: RaceRow) => {
                     return row.sprintchallenge ? 'Enlever ce vainqueur du challenge' : 'Ajouter comme vainqueur du challenge';
@@ -237,14 +241,14 @@ const EditResultsPage = (gprops: any) => {
                             <AddWinnersIcons
                                 rowdata={rowdata}
                                 transformedRows={transformedRows}/>
-                                     {rowdata.sprintchallenge &&
-                                    <Tooltip
-                                         title='Vainqueur du challenge du meilleur sprinter'>
-                                      <EmojiPeopleIcon
-                                                style={{
-                                                verticalAlign: 'middle'
-                                        }}/>
-                                    </Tooltip>}{rowdata.name}
+                            {rowdata.sprintchallenge &&
+                            <Tooltip
+                              title='Vainqueur du challenge du meilleur sprinter'>
+                              <EmojiPeopleIcon
+                                style={{
+                                    verticalAlign: 'middle'
+                                }}/>
+                            </Tooltip>}{rowdata.name}
                         </span>
                     );
                 };

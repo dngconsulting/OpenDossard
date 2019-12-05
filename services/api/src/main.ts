@@ -15,10 +15,11 @@ async function bootstrap() {
     }
     const options = new DocumentBuilder()
         .setTitle('Open Dossard')
-        .setSchemes('https', 'http')
+        .setContact('contact Open Dossard', 'http://app.opendossard.com/api', 'contact@opendossard.com')
         .setDescription('Documentation de l\'API Open Dossard')
-        .setVersion('2.0')
-        .addBearerAuth()
+        .setVersion('1.0')
+        .addBearerAuth({type: 'http', scheme: 'bearer', bearerFormat: 'JWT', in: 'header'}, 'bearerAuth')
+        .addSecurityRequirements('bearerAuth')
         .build();
     const document = SwaggerModule.createDocument(app, options);
     SwaggerModule.setup('api', app, document);

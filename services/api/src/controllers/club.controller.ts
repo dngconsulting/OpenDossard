@@ -1,23 +1,14 @@
 import {EntityManager, Repository} from 'typeorm';
 import {Controller, Get, UseGuards} from '@nestjs/common';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
-import {ApiModelPropertyOptional, ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
+import {ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
 import {ClubEntity} from '../entity/club.entity';
 import {AuthGuard} from '@nestjs/passport';
+import {ClubRow} from '../dto/model.dto';
 
-export class ClubRow {
-    @ApiModelPropertyOptional()
-    public id: number;
-    @ApiModelPropertyOptional()
-    public longName: string;
-    @ApiModelPropertyOptional()
-    public dept: string;
-    @ApiModelPropertyOptional()
-    public shortName: string;
-}
 
 @Controller('/api/clubs')
-@ApiUseTags('ClubAPI')
+@ApiTags('ClubAPI')
 @UseGuards(AuthGuard('jwt'))
 export class ClubController {
     constructor(
@@ -30,8 +21,8 @@ export class ClubController {
 
     @ApiOperation({
         operationId: 'getAllClubs',
-        title: 'Rechercher tous les clubs',
-        description: 'Renvoie la liste de tous les clubs sportifs',
+        summary: 'Rechercher tous les clubs',
+        description: 'Renvoie la liste de tous les clubs',
     })
     @ApiResponse({status: 200, type: ClubRow, isArray: true, description: 'Liste des clubs'})
     @Get()

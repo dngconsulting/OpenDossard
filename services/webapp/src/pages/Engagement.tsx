@@ -83,7 +83,7 @@ const EngagementPage = (props:any) => {
 
 
     const handleOk = async (fetchRows: any) => {
-        await apiRaces._delete(selectedRow.id);
+        await apiRaces.deleteRace({id:selectedRow.id});
         fetchRows();
         setNotification({
             message: `Le coureur ${selectedRow.id} a été supprimé de la compétition`,

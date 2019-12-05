@@ -1,5 +1,5 @@
 import {default as React, useContext, useState} from 'react';
-import {CompetitionEntity as Competition, LicenceEntity as Licence, RaceCreate} from '../../sdk';
+import {CompetitionEntity as Competition, LicenceEntity as Licence, RaceCreate} from '../../sdk/models';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import AutocompleteInput from '../../components/AutocompleteInput';
@@ -15,7 +15,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import {FEDERATIONS} from '../common/shared-entities';
 
 const create = async (newRace: RaceCreate) => {
-    await apiRaces.create(newRace);
+    await apiRaces.engage({raceCreate:newRace});
 };
 
 const formStyles = makeStyles((theme: Theme) =>
@@ -109,7 +109,7 @@ export const CreationForm = (
             ...form,
             licence,
             riderNumber: '',
-            catev: (competition && licence && (competition.fede === licence.fede)) ? licence.catev : ''
+            catev: (competition && licence && (competition.fede.toUpperCase() === licence.fede.toUpperCase())) ? licence.catev : ''
         });
     };
 

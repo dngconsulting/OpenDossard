@@ -7,6 +7,7 @@ import {ControlProps} from 'react-select/src/components/Control';
 import {MenuProps} from 'react-select/src/components/Menu';
 import {ValueType} from 'react-select/src/types';
 import {apiClubs} from '../../util/api';
+import {ClubRow} from '../../sdk/models';
 
 export interface IOptionType {
     label: string;
@@ -88,13 +89,14 @@ export default function ClubSelect({onSelect, chosenClub} : {onSelect : (value:s
     const [clubs, setClubs] = useState<IOptionType[]>([]);
 
     const fetchData = async ()  => {
-        return await apiClubs.getAllClubs();
-    };
-    useEffect(()=>{
-        fetchData().then(res => setClubs(res.map((option: { id: any; longName: any; }) => ({
+        const lclubs = await apiClubs.getAllClubs();
+        setClubs(lclubs.map((option: ClubRow) => ({
             value: option.id,
             label:option.longName
-        })))).catch(err=>console.log(err));
+        })));
+    };
+    useEffect(()=>{
+        fetchData();
     },[]);
 
     useEffect(()=>{

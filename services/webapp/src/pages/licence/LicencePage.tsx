@@ -18,7 +18,7 @@ import Button from '@material-ui/core/Button';
 
 import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
 import ClubSelect, {IOptionType} from './ClubSelect';
-import {LicenceEntity as Licence} from '../../sdk';
+import {LicenceEntity as Licence, LicenceEntityFedeEnum} from '../../sdk';
 import {apiLicences} from '../../util/api';
 import {CATEA, FEDERATIONS} from '../common/shared-entities';
 
@@ -53,7 +53,7 @@ const LicencesPage = (props: ILicencesProps) => {
         firstName: '',
         licenceNumber: '',
         gender:'H',
-        fede: '',
+        fede: LicenceEntityFedeEnum.NonLicenci,
         birthYear: '',
         dept: '',
         club: '',
@@ -72,14 +72,14 @@ const LicencesPage = (props: ILicencesProps) => {
                     licenceNumber: res.licenceNumber,
                     gender: res.gender,
                     birthYear: res.birthYear,
-                    fede: res.fede.toLowerCase(),
+                    fede: res.fede,
                     dept: res.dept,
                     club: res.club,
                     catea: res.catea.indexOf('F')>-1?res.catea.replace('F','').toLowerCase():res.catea.toLowerCase(),
                     catev: res.catev
                 });
-                setDisableCateV(res.fede === '');
-                setDisableCateA(res.fede === 'ufolep');
+                setDisableCateV(res.fede === undefined);
+                setDisableCateA(res.fede === LicenceEntityFedeEnum.UFOLEP);
         })
         }
     },[]);
@@ -126,8 +126,8 @@ const LicencesPage = (props: ILicencesProps) => {
 
     const createLicence = (id: number) => {
         newLicence.name && newLicence.firstName ?
-            (id ? apiLicences.update(newLicence).then(() => props.history.goBack()) :
-                    apiLicences.create(newLicence).then(() => props.history.goBack())
+            (id ? apiLicences.update({licenceEntity:newLicence}).then(() => props.history.goBack()) :
+                    apiLicences.create({licenceEntity:newLicence}).then(() => props.history.goBack())
             ) :
             setValidation({
                 name: !newLicence.name,

@@ -1,9 +1,9 @@
 import {LicenceEntity} from '../entity/licence.entity';
 import {EntityManager, Repository} from 'typeorm';
-import {Body, Controller, Delete, Get, Param, Post, Put, UseGuards} from '@nestjs/common';
+import {Body, Controller, Delete, Get, Logger, Param, Post, Put, UseGuards} from '@nestjs/common';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
-import {ApiOperation, ApiResponse, ApiUseTags} from '@nestjs/swagger';
-import {Filter, LicencesPage, Search} from './shared.model';
+import {ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
+import {Filter, LicencesPage, Search} from '../dto/model.dto';
 import {FederationEntity} from '../entity/federation.entity';
 import {AuthGuard} from '@nestjs/passport';
 
@@ -12,7 +12,7 @@ import {AuthGuard} from '@nestjs/passport';
  * Mainly Crud operations & pagination
  */
 @Controller('/api/licences')
-@ApiUseTags('LicenceAPI')
+@ApiTags('LicenceAPI')
 @UseGuards(AuthGuard('jwt'))
 export class LicenceController {
     constructor(
@@ -26,7 +26,7 @@ export class LicenceController {
     @Get('/search/:param')
     @ApiOperation({
         operationId: 'getLicencesLike',
-        title: 'Recherche des licences',
+        summary: 'Recherche des licences',
         description: 'Rechercher des licences en fonction, du nom, prénom ou numéro de licence ',
     })
     @ApiResponse({status: 200, type: LicenceEntity, isArray: true, description: 'Liste des licences'})
@@ -39,7 +39,7 @@ export class LicenceController {
     @Get(':id')
     @ApiOperation({
         operationId: 'get',
-        title: 'Rechercher une licence par ID ',
+        summary: 'Rechercher une licence par ID ',
         description: 'Recherche une licence par son identifiant',
     })
     @ApiResponse({status: 200, type: LicenceEntity, isArray: false, description: 'Renvoie une licence'})
@@ -49,7 +49,7 @@ export class LicenceController {
 
     @ApiOperation({
         operationId: 'getAllLicences',
-        title: 'Rechercher toutes les licences ',
+        summary: 'Rechercher toutes les licences ',
         description: 'Renvoie toutes les licences',
     })
     @ApiResponse({status: 200, type: LicenceEntity, isArray: true, description: 'Liste des licences'})
@@ -60,12 +60,13 @@ export class LicenceController {
 
     @ApiOperation({
         operationId: 'getPageSizeLicencesForPage',
-        title: 'Rechercher par page les licences ',
+        summary: 'Rechercher par page les licences ',
         description: 'Recherche paginée utilisant currentPage, pageSize, orderDirection, orderBy et Filters',
     })
     @Post('/filter')
     @ApiResponse({status: 200, type: LicencesPage})
     public async getPageSizeLicencesForPage(@Body() search: Search): Promise<LicencesPage> {
+        Logger.debug('Search=' + JSON.stringify(search))
         const qb = this.repository.createQueryBuilder();
         if (search.search === '') {
             search.filters.forEach((filter: Filter) => {
@@ -94,7 +95,7 @@ export class LicenceController {
     @Post()
     @ApiOperation({
         operationId: 'create',
-        title: 'Cree une nouvelle licence',
+        summary: 'Cree une nouvelle licence',
     })
     public async create(@Body() licence: LicenceEntity): Promise<void> {
         const newLicence = new LicenceEntity();
@@ -115,7 +116,7 @@ export class LicenceController {
 
     @Put()
     @ApiOperation({
-        title: 'Met à jour une licence existante',
+        summary: 'Met à jour une licence existante',
         operationId: 'update',
     })
     public async update(@Body() licence: LicenceEntity)
@@ -136,7 +137,7 @@ export class LicenceController {
 
     @Delete('/:id')
     @ApiOperation({
-        title: 'Supprime une licence',
+        summary: 'Supprime une licence',
         operationId: 'delete',
     })
     public async delete(@Param('id') id: string)

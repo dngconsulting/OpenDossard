@@ -22,4 +22,5 @@
  #        withInterfaces
  #            Setting this property to true will generate interfaces next to the default class implementations. (Default: false)
 
- java -jar swagger-codegen-cli-2.4.8.jar generate -i http://localhost:9090/api-json -l typescript-fetch -o ../src/sdk
+ # java -jar swagger-codegen-cli-2.4.8.jar generate -i http://localhost:9090/api-json -l typescript-fetch -o ../src/sdk
+ java -jar openapi-generator-cli-4.2.2.jar generate -i http://localhost:9090/api-json -g typescript-fetch --additional-properties=supportsES6=true,typescriptThreePlus=true -o ../src/sdk/
