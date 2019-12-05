@@ -3,7 +3,7 @@
 goprod() {
     git pull
     docker-compose -f docker-compose.prod.yml down
-    docker-compose -f docker-compose.prod.yml up --build --no-cache -d
+    docker-compose -f docker-compose.prod.yml up --build --force-recreate -d
 }
 
 start() {
