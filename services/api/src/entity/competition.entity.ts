@@ -1,7 +1,7 @@
-import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Index} from 'typeorm';
+import {Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from 'typeorm';
 import {FederationEntity} from './federation.entity';
 import {ClubEntity} from './club.entity';
-import {ApiModelProperty, ApiModelPropertyOptional} from '@nestjs/swagger';
+import {ApiProperty} from '@nestjs/swagger';
 
 /**
  * Cette énum représente les catégories gérées par une épreuve
@@ -32,13 +32,12 @@ export enum CompetitionType {
 export class CompetitionEntity {
 
     @PrimaryGeneratedColumn()
-    @ApiModelProperty()
     public id: number;
     /**
      * La eventDate de l'épreuve au format JS
      */
     @Column({nullable: false})
-    @ApiModelProperty({ type: 'string', format: 'date-time'})
+    @ApiProperty({ type: 'string', format: 'date-time'})
     @Index()
     public eventDate: Date;
     /**
@@ -46,32 +45,27 @@ export class CompetitionEntity {
      */
     @ManyToOne((type) => ClubEntity)
     @JoinColumn()
-    @ApiModelProperty()
     public club: ClubEntity;
     /**
      * Le nom de l'épreuve
      */
     @Column({nullable: true})
-    @ApiModelProperty()
     public name: string;
     /**
      * Le code postal correspondant à la commune
      */
     @Column({nullable: false})
-    @ApiModelProperty()
     public zipCode: string;
     /**
      * L'identifiant OpenRunner du circuit, plat/vallonné/montagneux
      */
     @Column({nullable: true})
-    @ApiModelPropertyOptional()
-    public info: string;
+    public info?: string;
     /**
      * La liste des catégories de valeurs concernées par l'épreuve
      * [PREMIERES, SECONDES, QUATRIEMES, CADETS, ...]
      */
     @Column('simple-array')
-    @ApiModelProperty()
     public categories: Category[];
 
     /**
@@ -79,8 +73,7 @@ export class CompetitionEntity {
      * Les tarifs et les conditions d'inscription
      */
     @Column({nullable: true})
-    @ApiModelPropertyOptional()
-    public observations: string;
+    public observations?: string;
 
     /**
      * Les différents tarifs au format JSON de la manière suivante :
@@ -88,16 +81,14 @@ export class CompetitionEntity {
      */
     @Column({nullable: true})
     @Column('simple-json')
-    @ApiModelPropertyOptional()
-    public pricing: { name: string, price: number };
+    public pricing?: { name: string, price: number };
 
     /**
      * Liste des courses ['1/2/3','4/5']
      */
     @Column({nullable: true})
     @Column('simple-array')
-    @ApiModelPropertyOptional()
-    public races: string[];
+    public races?: string[];
 
     @Column({
         type: 'enum',
@@ -105,7 +96,7 @@ export class CompetitionEntity {
         nullable: true,
         default: FederationEntity.NL,
     })
-    @ApiModelProperty()
+    @ApiProperty({ enum: FederationEntity})
     fede: FederationEntity;
 
     @Column({
@@ -114,6 +105,5 @@ export class CompetitionEntity {
         nullable: true,
         default: CompetitionType.ROUTE,
     })
-    @ApiModelPropertyOptional()
-    competitionType: CompetitionType;
+    competitionType?: CompetitionType;
 }

@@ -1,4 +1,4 @@
-import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Index} from 'typeorm';
+import {Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from 'typeorm';
 import {CompetitionEntity} from './competition.entity';
 import {LicenceEntity} from './licence.entity';
 

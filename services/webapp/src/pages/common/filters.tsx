@@ -3,7 +3,7 @@ import {apiLicences} from '../../util/api';
 import * as React from 'react';
 
 export const filterLicences = async (inputValue: string) => {
-    const licences: Licence[] = await apiLicences.getLicencesLike(inputValue.toUpperCase());
+    const licences: Licence[] = await apiLicences.getLicencesLike({param:inputValue.toUpperCase()});
     const strings = licences.map((i: any) => {
         return {
             ...i,

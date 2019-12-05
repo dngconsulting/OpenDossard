@@ -3,14 +3,7 @@ import {EntityManager} from 'typeorm';
 import {RaceEntity} from '../entity/race.entity';
 import {LicenceEntity} from '../entity/licence.entity';
 import {CompetitionEntity} from '../entity/competition.entity';
-import {
-    ApiImplicitBody,
-    ApiModelProperty,
-    ApiModelPropertyOptional,
-    ApiOperation,
-    ApiResponse,
-    ApiUseTags,
-} from '@nestjs/swagger';
+import {ApiBody, ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
 import {
     BadRequestException,
     Body,
@@ -27,80 +20,14 @@ import {InjectEntityManager} from '@nestjs/typeorm';
 
 import * as _ from 'lodash';
 import {AuthGuard} from '@nestjs/passport';
-
-export class RaceRow {
-    @ApiModelPropertyOptional()
-    public id: number;
-    @ApiModelPropertyOptional()
-    public raceCode: string;
-    @ApiModelPropertyOptional()
-    public birthYear: string;
-    @ApiModelPropertyOptional()
-    public riderNumber: number;
-    @ApiModelPropertyOptional()
-    public surclassed: boolean;
-    @ApiModelPropertyOptional()
-    public licenceNumber: string;
-    @ApiModelPropertyOptional()
-    public name: string;
-    @ApiModelPropertyOptional()
-    public riderName: string;
-    @ApiModelPropertyOptional()
-    public club: string;
-    @ApiModelPropertyOptional()
-    public catev: string;
-    @ApiModelPropertyOptional()
-    public catea: string;
-    @ApiModelPropertyOptional()
-    public fede: string;
-    @ApiModelPropertyOptional()
-    public gender: string;
-    @ApiModelPropertyOptional()
-    public rankingScratch: number;
-    @ApiModelPropertyOptional()
-    public comment: string;
-    @ApiModelProperty()
-    public competitionId: number;
-    @ApiModelPropertyOptional()
-    public competitionName: string;
-    @ApiModelPropertyOptional({ type: 'string', format: 'date-time'})
-    public competitionDate: Date;
-    @ApiModelPropertyOptional()
-    public sprintchallenge: boolean;
-}
-
-export class RaceCreate {
-    @ApiModelPropertyOptional()
-    public competitionId: number;
-    @ApiModelPropertyOptional()
-    public licenceId: number;
-    @ApiModelPropertyOptional()
-    public riderNumber: number;
-    @ApiModelPropertyOptional()
-    public raceCode: string;
-    @ApiModelPropertyOptional()
-    public catev: string;
-}
-
-export class RaceNbRider {
-    @ApiModelPropertyOptional()
-    public count: number;
-    @ApiModelPropertyOptional()
-    public raceCode: string;
-    @ApiModelPropertyOptional()
-    public name: string;
-    @ApiModelPropertyOptional({type: 'string', format: 'date-time'})
-    public date: Date;
-    @ApiModelPropertyOptional()
-    public fede: string;
-}
+import {RaceCreate, RaceNbRider, RaceRow} from '../dto/model.dto';
 
 /***
  * Races Controller manages races inside Competitions
- * Races a generally organized by categories
+ * Races a generally organized by category
  */
 @Controller('/api/races')
-@ApiUseTags('RaceAPI')
+@ApiTags('RaceAPI')
 @UseGuards(AuthGuard('jwt'))
 export class RacesCtrl {
     constructor(
@@ -112,7 +39,7 @@ export class RacesCtrl {
     @Get('/nbRider')
     @ApiOperation({
         operationId: 'getNumberRider',
-        title: 'Rechercher le nombre de coureur par course ',
+        summary: 'Rechercher le nombre de coureur par course ',
     })
     @ApiResponse({status: 200, type: RaceNbRider, isArray: true})
     public async getNumberRider(): Promise<RaceNbRider[]> {
@@ -126,7 +53,7 @@ export class RacesCtrl {
     @Get()
     @ApiOperation({
         operationId: 'getAllRaces',
-        title: 'Rechercher toutes les participation dans les courses de tous les temps ',
+        summary: 'Rechercher toutes les participation dans les courses de tous les temps ',
     })
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
     public async getAllRaces(): Promise<RaceRow[]> {
@@ -150,7 +77,7 @@ export class RacesCtrl {
     @Get('/:id')
     @ApiOperation({
         operationId: 'getCompetitionRaces',
-        title: 'Rechercher tous les coureurs participants à une course ',
+        summary: 'Rechercher tous les coureurs participants à une course ',
     })
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
     public async getCompetitionRaces(@Param('id') competitionId: number): Promise<RaceRow[]> {
@@ -172,8 +99,8 @@ export class RacesCtrl {
 
     @Post()
     @ApiOperation({
-        operationId: 'create',
-        title: 'Cree une nouvelle course ',
+        operationId: 'engage',
+        summary: 'Engage un nouveau coureur ',
     })
     public async create(@Body() race: RaceCreate)
         : Promise<void> {
@@ -233,7 +160,7 @@ export class RacesCtrl {
 
     @Put('/flagChallenge')
     @ApiOperation({
-        title: 'Classe le vainqueur du challenge',
+        summary: 'Classe le vainqueur du challenge',
         operationId: 'flagChallenge',
     })
     public async flagChallenge(@Body() raceRow: RaceRow): Promise<void> {
@@ -246,12 +173,13 @@ export class RacesCtrl {
 
     @Put('/reorderRank')
     @ApiOperation({
-        title: 'Réordonne le classement',
+        summary: 'Réordonne le classement',
         operationId: 'reorderRanking',
     })
-    @ApiImplicitBody({name: 'body', type: [RaceRow]})
-    public async reorderRanking(@Body('body') racesrows: RaceRow[]): Promise<void> {
+    @ApiBody({ type: [RaceRow] })
+    public async reorderRanking(@Body() racesrows: RaceRow[]): Promise<void> {
         // Lets remove non ranked riders and DSQ/ABD
+        Logger.debug('RaceRows request ' + racesrows);
         const rows = _.remove(racesrows, item => item.id && !item.comment);
         for (let index = 1; index <= rows.length; index++) {
             const item = rows[index - 1];
@@ -266,7 +194,7 @@ export class RacesCtrl {
 
     @Put('/removeRanking')
     @ApiOperation({
-        title: 'Supprime un coureur du classement',
+        summary: 'Supprime un coureur du classement',
         operationId: 'removeRanking',
     })
     public async removeRanking(@Body() raceRow: RaceRow): Promise<void> {
@@ -305,8 +233,8 @@ export class RacesCtrl {
 
     @Put('/update')
     @ApiOperation({
-        title: 'Met à jour le classement du coureur ',
-        operationId: 'update',
+        summary: 'Met à jour le classement du coureur ',
+        operationId: 'updateRanking',
     })
     public async updateRanking(@Body() raceRow: RaceRow)
         : Promise<void> {
@@ -352,8 +280,8 @@ export class RacesCtrl {
 
     @Delete('/:id')
     @ApiOperation({
-        title: 'Supprime une course',
-        operationId: 'delete',
+        summary: 'Supprime une course',
+        operationId: 'deleteRace',
     })
     public async delete(@Param('id') id: string)
         : Promise<void> {

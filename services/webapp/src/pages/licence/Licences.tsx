@@ -13,7 +13,7 @@ interface ILicencesProps {
     history: any;
 }
 
-const getPageSizeLicencesForPageDebounced = AwesomeDebouncePromise((p) => apiLicences.getPageSizeLicencesForPage(p),500)
+const getPageSizeLicencesForPageDebounced = AwesomeDebouncePromise((p) => apiLicences.getPageSizeLicencesForPage({search:p}),500)
 
 const fetchLicences = async (query: Query<Licence>): Promise<QueryResult<Licence>> => {
     const res = await getPageSizeLicencesForPageDebounced(prepareFilter(query));
@@ -73,7 +73,7 @@ const LicencesPage = (props: ILicencesProps) => {
                 editable={{
                     onRowDelete: oldData =>
                         new Promise((resolve, reject) => {
-                            apiLicences._delete(`${oldData.id}`).then(() => resolve());
+                            apiLicences._delete({id:`${oldData.id}`}).then(() => resolve());
                         }),
                 }}
                 actions={[

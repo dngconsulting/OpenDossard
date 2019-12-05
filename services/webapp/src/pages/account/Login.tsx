@@ -53,9 +53,12 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
 
     private handleLogin = async () => {
         try {
-            const user : User = await passportCtrl.login({
-                email: this.state.email,
-                password: this.state.password
+            const user: User = await passportCtrl.login({
+                userEntity: {
+                    id: -1,
+                    email: this.state.email,
+                    password: this.state.password
+                }
             });
             setBearerToken(user.accessToken);
             this.props.login(user);
@@ -74,20 +77,23 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
 
         return (
             <div className={classes.container}>
-                <Paper style={{maxWidth:'400px',
-                    width:'90%',
+                <Paper style={{
+                    maxWidth: '400px',
+                    width: '90%',
                     display: 'flex',
                     flexDirection: 'column',
-                    alignContent: 'center'}}>
+                    alignContent: 'center'
+                }}>
                     <div style={{
                         display: 'flex',
                         backgroundColor: cadtheme.palette.primary.main,
                         alignItems: 'center',
-                        padding:'10px',
+                        padding: '10px',
                         justifyContent: 'center',
                     }}><img src={logohorizontal} width='171' height='92' alt='logo'/></div>
                     <FormControl required={true} fullWidth={true} className={classes.field}>
-                        <InputLabel error={this.state.error} style={{padding:10}} htmlFor="email">Adresse mail ou identifiant Open Dossard</InputLabel>
+                        <InputLabel error={this.state.error} style={{padding: 10}} htmlFor="email">Adresse
+                            mail ou identifiant Open Dossard</InputLabel>
                         <Input
                             value={this.state.email}
                             error={this.state.error}
@@ -100,7 +106,7 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
                         />
                     </FormControl>
                     <FormControl required={true} fullWidth={true} className={classes.field}>
-                        <InputLabel error={this.state.error} style={{padding:10}}
+                        <InputLabel error={this.state.error} style={{padding: 10}}
                                     htmlFor="password">Mot de passe</InputLabel>
                         <Input
                             value={this.state.password}
@@ -142,10 +148,10 @@ const styles = (theme: Theme) => ({
     container: {
         display: 'flex',
         justifyContent: 'center',
-        minWidth:281
+        minWidth: 281
     },
     formControl: {
-      padding : 10
+        padding: 10
     },
     field: {
         padding: theme.spacing(3)

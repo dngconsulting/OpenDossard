@@ -1,63 +1,20 @@
-import {
-    ClubAPIApi,
-    CompetitionAPIApi,
-    Configuration,
-    LicenceAPIApi,
-    RaceAPIApi,
-    AuthAPIApi
-} from '../sdk';
-import {store} from '../store/Store';
-import {logout} from '../actions/App.Actions';
-
-export const apiconfig = new Configuration({basePath: window.location.origin});
-let bearerToken: string = null;
-/**
- * This dynamic proxy handler provides aptions customization to Fetch requests without
- * polluting all users code with api.request(userparam, [options])
- * specially interesting for bearer tokens
- * Note that we don't want to decorate all fetch calls, just our API calls
- * @param obj that we want to decorate
- */
-const enhance = (obj: any) => {
-    const handler = {
-        get: (target: any, key: any): any => {
-            const origMethod = target[key];
-            if (!origMethod) {
-                return;
-            }
-            return async (...args: any) => {
-                if (bearerToken) {
-                    args.push({headers: {'Authorization': 'Bearer ' + bearerToken}});
-                }
-                ;
-                // The endpoint API call api.service()
-                try {
-                    let result: any = null;
-                    result = await origMethod.apply(target, args);
-                    return result;
-                } catch (rep)   {
-                    if (rep) {
-                        if (rep.status === 401) {
-                            console.log('token expired, redirecting login page ...')
-                            // static store access, probably better to inject dispatch via connect()
-                            store.dispatch(logout())
-                        }
-                    }
-                    // In all cases it is necessary to propagate the exception
-                    throw rep;
-                }
-             };
-        }
-    };
-    return new Proxy(obj, handler);
-};
-
+import {AuthAPIApi, ClubAPIApi, CompetitionAPIApi, LicenceAPIApi, RaceAPIApi} from '../sdk/apis';
+// @ts-ignore
+import * as portableFetch from 'portable-fetch';
+import {Configuration} from '../sdk';
+export let apiconfig = new Configuration({fetchApi: portableFetch,basePath: window.location.origin});
+// TODO : code shall be optimized
 export const setBearerToken = (token: string) => {
-    bearerToken = token;
+    apiconfig = new Configuration({apiKey:token,accessToken:token,fetchApi: portableFetch,basePath: window.location.origin});
+    passportCtrl = new AuthAPIApi(apiconfig);
+    apiLicences = new LicenceAPIApi(apiconfig);
+    apiRaces = new RaceAPIApi(apiconfig);
+    apiCompetitions = new CompetitionAPIApi(apiconfig);
+    apiClubs = new ClubAPIApi(apiconfig);
 };
-export const passportCtrl = enhance(new AuthAPIApi(apiconfig, apiconfig.basePath));
-export const apiLicences = enhance(new LicenceAPIApi(apiconfig, apiconfig.basePath));
-export const apiRaces = enhance(new RaceAPIApi(apiconfig, apiconfig.basePath));
-export const apiCompetitions = enhance(new CompetitionAPIApi(apiconfig, apiconfig.basePath));
-export const apiClubs = enhance(new ClubAPIApi(apiconfig, apiconfig.basePath));
+export let passportCtrl = new AuthAPIApi(apiconfig);
+export let apiLicences = new LicenceAPIApi(apiconfig);
+export let apiRaces = new RaceAPIApi(apiconfig);
+export let apiCompetitions = new CompetitionAPIApi(apiconfig);
+export let apiClubs = new ClubAPIApi(apiconfig);
 
