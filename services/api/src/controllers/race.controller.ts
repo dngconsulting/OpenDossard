@@ -3,7 +3,7 @@ import {EntityManager} from 'typeorm';
 import {RaceEntity} from '../entity/race.entity';
 import {LicenceEntity} from '../entity/licence.entity';
 import {CompetitionEntity} from '../entity/competition.entity';
-import {ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
+import {ApiBody, ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
 import {
     BadRequestException,
     Body,
@@ -176,6 +176,7 @@ export class RacesCtrl {
         summary: 'Réordonne le classement',
         operationId: 'reorderRanking',
     })
+    @ApiBody({ type: [RaceRow] })
     public async reorderRanking(@Body() racesrows: RaceRow[]): Promise<void> {
         // Lets remove non ranked riders and DSQ/ABD
         Logger.debug('RaceRows request ' + racesrows);

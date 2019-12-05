@@ -47,7 +47,7 @@ export interface RemoveRankingRequest {
 }
 
 export interface ReorderRankingRequest {
-    requestBody: Array<string>;
+    raceRow: Array<RaceRow>;
 }
 
 export interface UpdateRankingRequest {
@@ -326,8 +326,8 @@ export class RaceAPIApi extends runtime.BaseAPI {
      * Réordonne le classement
      */
     async reorderRankingRaw(requestParameters: ReorderRankingRequest): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters.requestBody === null || requestParameters.requestBody === undefined) {
-            throw new runtime.RequiredError('requestBody','Required parameter requestParameters.requestBody was null or undefined when calling reorderRanking.');
+        if (requestParameters.raceRow === null || requestParameters.raceRow === undefined) {
+            throw new runtime.RequiredError('raceRow','Required parameter requestParameters.raceRow was null or undefined when calling reorderRanking.');
         }
 
         const queryParameters: runtime.HTTPQuery = {};
@@ -349,7 +349,7 @@ export class RaceAPIApi extends runtime.BaseAPI {
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
-            body: requestParameters.requestBody,
+            body: requestParameters.raceRow.map(RaceRowToJSON),
         });
 
         return new runtime.VoidApiResponse(response);

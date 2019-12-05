@@ -102,13 +102,13 @@ export interface RaceRow {
      * @type {number}
      * @memberof RaceRow
      */
-    rankingScratch?: number;
+    rankingScratch: number;
     /**
      * 
      * @type {string}
      * @memberof RaceRow
      */
-    comment?: string;
+    comment: string;
     /**
      * 
      * @type {number}
@@ -158,8 +158,8 @@ export function RaceRowFromJSONTyped(json: any, ignoreDiscriminator: boolean): R
         'catea': !exists(json, 'catea') ? undefined : json['catea'],
         'fede': !exists(json, 'fede') ? undefined : json['fede'],
         'gender': !exists(json, 'gender') ? undefined : json['gender'],
-        'rankingScratch': !exists(json, 'rankingScratch') ? undefined : json['rankingScratch'],
-        'comment': !exists(json, 'comment') ? undefined : json['comment'],
+        'rankingScratch': json['rankingScratch'],
+        'comment': json['comment'],
         'competitionId': json['competitionId'],
         'competitionName': !exists(json, 'competitionName') ? undefined : json['competitionName'],
         'competitionDate': !exists(json, 'competitionDate') ? undefined : (new Date(json['competitionDate'])),

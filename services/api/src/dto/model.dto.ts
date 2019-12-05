@@ -1,6 +1,6 @@
 import {LicenceEntity} from '../entity/licence.entity';
 import {IsInt, IsString} from 'class-validator';
-import {ApiProperty} from '@nestjs/swagger';
+import {ApiProperty, ApiPropertyOptional} from '@nestjs/swagger';
 
 export class ClubRow {
     @IsInt()
@@ -30,11 +30,11 @@ export class RaceRow {
     public catea?: string;
     public fede?: string;
     public gender?: string;
-    public rankingScratch?: number;
-    public comment?: string;
+    public rankingScratch: number;
+    public comment: string;
     public competitionId: number;
     public competitionName?: string;
-    @ApiProperty({ type: 'string', format: 'date-time'})
+    @ApiPropertyOptional({ type: 'string', format: 'date-time'})
     public competitionDate?: Date;
     public sprintchallenge?: boolean;
 }

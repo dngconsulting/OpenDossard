@@ -2,7 +2,7 @@ import React, {Fragment, useContext, useState} from 'react';
 import {DataTable} from 'primereact/datatable';
 import {InputText} from 'primereact/inputtext';
 import {CompetitionLayout} from '../CompetitionLayout';
-import {RaceRow} from '../../sdk';
+import {RaceRow} from '../../sdk/models';
 import _ from 'lodash';
 import {NotificationContext} from '../../components/CadSnackbar';
 import {apiRaces} from '../../util/api';
@@ -30,8 +30,8 @@ const EditResultsPage = (gprops: any) => {
     const [loading, setLoading] = useState(false);
 
     const transformRows = (rows: RaceRow[]) => {
-        const sortedByRankingWithoutABD = _.remove(_.orderBy(rows, ['rankingScratch'], ['asc']), (item) => item.comment == null);
-        const sortedByRanking = _.union(sortedByRankingWithoutABD, rows.filter(item => item.comment != null));
+        const sortedByRankingWithoutABD = _.remove(_.orderBy(rows, ['rankingScratch'], ['asc']), (item: RaceRow) => item.comment == null);
+        const sortedByRanking = _.union(sortedByRankingWithoutABD, rows.filter(item => item.comment !== null));
         return sortedByRanking.map((item: any, index: number) => {
                 let classementToDisplay = '';
                 if (item.comment != null) {
@@ -43,7 +43,7 @@ const EditResultsPage = (gprops: any) => {
                 }
                 return {
                     classement: classementToDisplay,
-                    ...(item.rankingScratch !== null || item.comment !== null ? {...item} : {})
+                    ...(item.rankingScratch !== null ? {...item} : {})
                 };
             }
         );
@@ -70,25 +70,19 @@ const EditResultsPage = (gprops: any) => {
                 console.log('Updating Dossard ' + currentDossard + ' with ranking ' + currentRanking);
                 try {
                     setLoading(true);
-                    if (currentNotRankedStatus.status !== '') {
-                        await apiRaces.updateRanking({
-                            raceRow: {
-                                riderNumber: parseInt(currentDossard),
-                                raceCode: currentRace,
-                                competitionId: parseInt(competitionId),
+
+                    await apiRaces.updateRanking({
+                        raceRow: {
+                            riderNumber: parseInt(currentDossard),
+                            raceCode: currentRace,
+                            competitionId: parseInt(competitionId),
+                            ...(currentNotRankedStatus.status !== '' ? {
                                 comment: currentNotRankedStatus.status,
-                            }
-                        });
-                    } else {
-                        await apiRaces.updateRanking({
-                            raceRow: {
-                                riderNumber: parseInt(currentDossard),
-                                competitionId: parseInt(competitionId),
-                                raceCode: currentRace,
-                                rankingScratch: parseInt(currentRanking)
-                            }
-                        });
-                    }
+                                rankingScratch: null
+                            } : {rankingScratch: parseInt(currentRanking), comment: null}),
+                        }
+                    });
+
                     const lrows = await fetchRows();
                     setNotification({
                         message: `Le coureur ${lrows.find((item: any) => item.riderNumber === parseInt(currentDossard)).name} vient d'etre classé ${currentRanking} `,
@@ -120,7 +114,7 @@ const EditResultsPage = (gprops: any) => {
         <Delete fontSize={'small'} onClick={async () => {
             try {
                 setLoading(true);
-                await apiRaces.removeRanking({raceRow:row});
+                await apiRaces.removeRanking({raceRow: row});
                 await fetchRows();
             } finally {
                 setLoading(false);
@@ -190,7 +184,7 @@ const EditResultsPage = (gprops: any) => {
                 const callFlagChallenge = async (row: RaceRow) => {
                     try {
                         setLoading(true);
-                        await apiRaces.flagChallenge({raceRow:row});
+                        await apiRaces.flagChallenge({raceRow: row});
                         await fetchRows();
                     } finally {
                         setLoading(false);
@@ -229,7 +223,7 @@ const EditResultsPage = (gprops: any) => {
                 const reorder = async (e: any) => {
                     try {
                         setLoading(true);
-                        await apiRaces.reorderRanking(e.value);
+                        await apiRaces.reorderRanking({raceRow:e.value});
                         await fetchRows();
                     } finally {
                         setLoading(false);
