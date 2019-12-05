@@ -25,7 +25,7 @@ async function bootstrap() {
             in: 'header',
         }, 'bearerAuth')
         .addSecurityRequirements('bearerAuth')
-        .addServer('https://app.opendossard.com/api')
+        .addServer('https://app.opendossard.com/')
         .build();
     const document = SwaggerModule.createDocument(app, options);
     SwaggerModule.setup('api', app, document);
