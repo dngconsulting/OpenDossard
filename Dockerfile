@@ -3,9 +3,9 @@
 FROM node:10.12.0-alpine as client
 
 WORKDIR /app/client/
-COPY services/webapp/package.json ./
+COPY services/webapp/package*.json ./
 RUN npm install -g react-scripts
-RUN npm install
+RUN npm ci
 COPY services/webapp/ ./
 RUN npm run build
 
@@ -17,9 +17,9 @@ COPY --from=client /app/client/build/ ./client/build/
 
 WORKDIR /app/server/
 COPY services/api/package*.json ./
-RUN npm install
+RUN npm ci
 COPY services/api/ ./
-RUN nest build
+RUN npm run build
 ENV PORT 9090
 EXPOSE 9090
 
