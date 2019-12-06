@@ -6,10 +6,12 @@ import config from './config';
 import {NestExpressApplication} from '@nestjs/platform-express';
 import {join} from 'path';
 import {NotFoundExceptionFilter} from './exception/NotFoundExceptionFilter';
+import * as compression from 'compression';
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule, {logger: ['error', 'warn', 'debug']});
     app.useGlobalFilters(new NotFoundExceptionFilter());
+    app.use(compression());
     if (config.app.env !== 'DEV') {
         app.useStaticAssets(join(__dirname, '../..', 'client/build'), {index: 'index.html'});
     }
