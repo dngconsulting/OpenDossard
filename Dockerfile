@@ -4,6 +4,7 @@ FROM node:10.12.0-alpine as client
 
 WORKDIR /app/client/
 COPY services/webapp/package*.json ./
+RUN rm -rf ./node_modules
 RUN npm install -g react-scripts
 RUN npm ci
 COPY services/webapp/ ./
@@ -17,6 +18,7 @@ COPY --from=client /app/client/build/ ./client/build/
 
 WORKDIR /app/server/
 COPY services/api/package*.json ./
+RUN rm -rf ./node_modules
 RUN npm ci
 COPY services/api/ ./
 RUN npm run build
