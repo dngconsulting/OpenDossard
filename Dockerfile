@@ -17,7 +17,6 @@ COPY --from=client /app/client/build/ ./client/build/
 
 WORKDIR /app/server/
 COPY services/api/package*.json ./
-RUN npm install -g @nestjs/cli
 RUN npm install
 COPY services/api/ ./
 RUN nest build
