@@ -5,7 +5,7 @@
   "author": "Open Dossard",
   "license": "MIT",
   "scripts": {
-    "prebuild": "npx rimraf dist",
+    "prebuild": "node ./node_modules/rimraf dist",
     "build": "node ./node_modules/@nestjs/cli/bin/nest.js build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node ./node_modules/@nestjs/cli/bin/nest.js start",
