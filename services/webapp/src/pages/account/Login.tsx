@@ -13,7 +13,7 @@ import {
 import Paper from '@material-ui/core/Paper';
 import * as querystring from 'querystring';
 import {Redirect} from 'react-router';
-import {passportCtrl, setBearerToken} from '../../util/api';
+import {loadSDK, passportCtrl} from '../../util/api';
 import {UserEntity as User} from '../../sdk';
 import logohorizontal from '../../assets/logos/logoblanc.svg';
 import {cadtheme} from '../../theme/theme';
@@ -60,7 +60,7 @@ class LoginPage extends React.Component<ILoginProps, ILoginState> {
                     password: this.state.password
                 }
             });
-            setBearerToken(user.accessToken);
+            loadSDK(user.accessToken);
             this.props.login(user);
         } catch (err) {
             this.setState({error: true});

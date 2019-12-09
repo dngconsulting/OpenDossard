@@ -6,10 +6,12 @@ import {Provider} from 'react-redux';
 import {store} from './store/Store';
 import {CssBaseline, MuiThemeProvider} from '@material-ui/core';
 import {cadtheme} from './theme/theme';
+import {loadSDK} from './util/api';
 
 class App extends React.Component {
     public componentDidMount(): void {
-    console.log("Open Dossard Starting...")
+        console.log('Open Dossard Starting...');
+        loadSDK();
     }
 
     public render() {
@@ -17,7 +19,7 @@ class App extends React.Component {
             <Provider store={store}>
                 <Router>
                     <MuiThemeProvider theme={cadtheme}>
-                        <CssBaseline />
+                        <CssBaseline/>
                         <AppNavBar/>
                     </MuiThemeProvider>
                 </Router>
