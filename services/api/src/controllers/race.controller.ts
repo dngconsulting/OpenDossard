@@ -28,7 +28,6 @@ import {RaceCreate, RaceNbRider, RaceRow} from '../dto/model.dto';
  */
 @Controller('/api/races')
 @ApiTags('RaceAPI')
-@UseGuards(AuthGuard('jwt'))
 export class RacesCtrl {
     constructor(
         @InjectEntityManager()
@@ -36,6 +35,7 @@ export class RacesCtrl {
     ) {
     }
 
+    @UseGuards(AuthGuard('jwt'))
     @Get('/nbRider')
     @ApiOperation({
         operationId: 'getNumberRider',
@@ -74,6 +74,7 @@ export class RacesCtrl {
         return await this.entityManager.query(query);
     }
 
+    @UseGuards(AuthGuard('jwt'))
     @Get('/:id')
     @ApiOperation({
         operationId: 'getCompetitionRaces',
@@ -97,6 +98,7 @@ export class RacesCtrl {
         return await this.entityManager.query(query, [competitionId]);
     }
 
+    @UseGuards(AuthGuard('jwt'))
     @Post()
     @ApiOperation({
         operationId: 'engage',
@@ -158,6 +160,7 @@ export class RacesCtrl {
         await this.entityManager.save(newRace);
     }
 
+    @UseGuards(AuthGuard('jwt'))
     @Put('/flagChallenge')
     @ApiOperation({
         summary: 'Classe le vainqueur du challenge',
@@ -171,6 +174,7 @@ export class RacesCtrl {
         await this.entityManager.save(racerowToUpdate);
     }
 
+    @UseGuards(AuthGuard('jwt'))
     @Put('/reorderRank')
     @ApiOperation({
         summary: 'Réordonne le classement',
@@ -192,6 +196,7 @@ export class RacesCtrl {
         }
     }
 
+    @UseGuards(AuthGuard('jwt'))
     @Put('/removeRanking')
     @ApiOperation({
         summary: 'Supprime un coureur du classement',
@@ -231,6 +236,7 @@ export class RacesCtrl {
         }
     }
 
+    @UseGuards(AuthGuard('jwt'))
     @Put('/update')
     @ApiOperation({
         summary: 'Met à jour le classement du coureur ',
@@ -278,6 +284,7 @@ export class RacesCtrl {
         await this.entityManager.save(requestedRankedRider);
     }
 
+    @UseGuards(AuthGuard('jwt'))
     @Delete('/:id')
     @ApiOperation({
         summary: 'Supprime une course',

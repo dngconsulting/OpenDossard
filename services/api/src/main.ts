@@ -26,10 +26,11 @@ async function bootstrap() {
             bearerFormat: 'JWT',
             in: 'header',
         }, 'bearerAuth')
-        .addSecurityRequirements('bearerAuth')
-        .addServer('https://app.opendossard.com/')
-        .build();
-    const document = SwaggerModule.createDocument(app, options);
+        .addSecurityRequirements('bearerAuth');
+    if (config.app.env !== 'DEV') {
+        options.addServer('https://app.opendossard.com/');
+    }
+    const document = SwaggerModule.createDocument(app, options.build());
     SwaggerModule.setup('api', app, document);
 
     Logger.debug(`┌────────────────────────────────────────────────────────────┐`);
