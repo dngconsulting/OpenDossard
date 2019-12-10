@@ -24,7 +24,6 @@ import {CompetitionReorganize} from '../dto/model.dto';
  */
 @Controller('/api/competition')
 @ApiTags('CompetitionAPI')
-@UseGuards(AuthGuard('jwt'))
 export class CompetitionController {
     constructor(
         @InjectRepository(CompetitionEntity)
@@ -82,6 +81,7 @@ export class CompetitionController {
         });
     }
 
+    @UseGuards(AuthGuard('jwt'))
     @Post('/reorganize')
     @ApiOperation({
         operationId: 'reorganize',
