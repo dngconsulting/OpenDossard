@@ -103,7 +103,7 @@ export interface CompetitionEntity {
      * @type {Array<string>}
      * @memberof CompetitionEntity
      */
-    competitionInfo?: Array<string>;
+    competitionInfo: Array<string>;
     /**
      * 
      * @type {string}
@@ -146,7 +146,7 @@ export function CompetitionEntityFromJSONTyped(json: any, ignoreDiscriminator: b
         'races': !exists(json, 'races') ? undefined : json['races'],
         'fede': json['fede'],
         'competitionType': !exists(json, 'competitionType') ? undefined : json['competitionType'],
-        'competitionInfo': !exists(json, 'competitionInfo') ? undefined : json['competitionInfo'],
+        'competitionInfo': json['competitionInfo'],
         'lieuDossard': !exists(json, 'lieuDossard') ? undefined : json['lieuDossard'],
         'lieuDossardGPS': json['lieuDossardGPS'],
         'longueurCircuit': json['longueurCircuit'],

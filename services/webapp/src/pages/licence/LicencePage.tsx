@@ -137,7 +137,6 @@ const LicencesPage = (props: ILicencesProps) => {
 
     // @ts-ignore
     const classes = useStyles();
-    console.log('[RENDER] New Licence ' + JSON.stringify(newLicence));
     return (
         <Container maxWidth="sm">
             <Grid container={true} spacing={3}>

@@ -72,7 +72,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
 
     const goToPage = (competitionid: number, resultsPage?: string) => {
         props.history.push({
-            pathname: '/competition/' + competitionid + '/' + (resultsPage? resultsPage:'engagements'),
+            pathname: '/competition/' + competitionid + '/' + (resultsPage? resultsPage:gotoPage),
             state: { title: (resultsPage? 'Résultats' : 'Engagements') }
         })
     };

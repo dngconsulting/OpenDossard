@@ -1,5 +1,10 @@
-import {default as React, useContext, useState} from 'react';
-import {CompetitionEntity as Competition, LicenceEntity as Licence, RaceCreate} from '../../sdk/models';
+import {default as React, useContext, useEffect, useState} from 'react';
+import {
+    CompetitionEntity as Competition,
+    LicenceEntity as Licence,
+    RaceCreate,
+    RaceRow
+} from '../../sdk/models';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import AutocompleteInput from '../../components/AutocompleteInput';
@@ -49,19 +54,24 @@ interface IForm {
 }
 
 const EMPTY_FORM: IForm = {licence: null, riderNumber: '', catev: ''};
-
 export const CreationForm = (
-    {competition, race, onSuccess}:
+    {competition, race, onSuccess,rows, saisieResultat}:
         {
             competition: Competition,
             race: string,
             onSuccess: (race: IForm) => void,
+            rows: RaceRow[]
+            saisieResultat:boolean
         }
 ) => {
 
     const [form, setForm] = useState<IForm>(EMPTY_FORM);
     const [, setNotification] = useContext(NotificationContext);
+    const [ranking,setRanking] = useState(0);
 
+    useEffect(() => {
+        setRanking(rows.length+1)
+    })
     const onError = (message: string) => setNotification({
         message: (!message)?'une erreur technique est survenue':message,
         open: true,
@@ -81,11 +91,13 @@ export const CreationForm = (
             const dto: RaceCreate = {
                 licenceId: form.licence && form.licence.id,
                 raceCode: race,
-                riderNumber: parseInt(form.riderNumber),
+                ...(saisieResultat ? {riderNumber:ranking}:{riderNumber: parseInt(form.riderNumber)}),
                 catev: form.catev,
-                competitionId: competition.id
+                competitionId: competition.id,
+                ...(saisieResultat ? {rankingScratch:ranking}:null)
             };
             await create(dto);
+            setRanking(ranking+1)
             setNotification({
                 message: `Le coureur ${form.licence.name} ${form.licence.firstName} a bien été enregistré sous le dossard ${form.riderNumber}`,
                 open: true,
@@ -107,8 +119,8 @@ export const CreationForm = (
     const onRiderChange = (licence: Licence) => {
         setForm({
             ...form,
+            ...(saisieResultat?{riderNumber:ranking.toString()}:{riderNumber:''}),
             licence,
-            riderNumber: '',
             catev: (competition && licence && (competition.fede.toUpperCase() === licence.fede.toUpperCase())) ? licence.catev : ''
         });
     };
@@ -131,7 +143,8 @@ export const CreationForm = (
         <Grid item={true}>
             <TextField
                 label="Dossard"
-                value={form.riderNumber}
+                value={saisieResultat?ranking:form.riderNumber}
+                disabled={saisieResultat}
                 className={classes.field}
                 style={{width:'100px'}}
                 onChange={e => setForm({...form, riderNumber: e.target.value})}

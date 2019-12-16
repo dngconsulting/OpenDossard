@@ -46,6 +46,7 @@ export class RaceCreate {
     public riderNumber?: number;
     public raceCode?: string;
     public catev?: string;
+    public rankingScratch?: number;
 }
 
 export class RaceNbRider {

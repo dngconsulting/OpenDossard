@@ -24,14 +24,14 @@ import Box from '@material-ui/core/Box';
 import {RaceRow} from '../sdk';
 import {ArrowUpward, Delete} from '@material-ui/icons';
 
-const style = makeStyles( theme => ({
+const style = makeStyles(theme => ({
     surclassed: {
         zoom: '79%',
-            display: 'inline-block',
-            position: 'absolute',
-            marginLeft: 10
+        display: 'inline-block',
+        position: 'absolute',
+        marginLeft: 10
     }
-}))
+}));
 
 const ConfirmDialog = (props: any) => {
     return (
@@ -52,7 +52,8 @@ const ConfirmDialog = (props: any) => {
                     <Button onClick={props.handleClose} variant={'contained'} color="primary">
                         Annuler
                     </Button>
-                    <Button onClick={props.handleOk} variant={'contained'} color="primary" autoFocus={true}>
+                    <Button onClick={props.handleOk} variant={'contained'} color="primary"
+                            autoFocus={true}>
                         Confirmer
                     </Button>
                 </DialogActions>
@@ -61,18 +62,19 @@ const ConfirmDialog = (props: any) => {
     );
 };
 
-const filterByRace = (rows : RaceRow[] , race : string) : RaceRow[] => {
-    return rows.filter((coureur) => coureur.raceCode === race)
-}
+const filterByRace = (rows: RaceRow[], race: string): RaceRow[] => {
+    return rows.filter((coureur) => coureur.raceCode === race);
+};
 
 const surclassed = ({catev, raceCode}: RaceRow) => {
-    return raceCode.split('/').indexOf(catev) >= 0 ? false : true
-}
+    return raceCode.split('/').indexOf(catev) >= 0 ? false : true;
+};
 
-const FILTERABLE = {filter: true, filterMatchMode: 'contains'}
-const SHORT = {style: {width:70, textAlign: 'center', padding : 5}, bodyClassName:'nopadding'}
-const EngagementPage = (props:any) => {
+const FILTERABLE = {filter: true, filterMatchMode: 'contains'};
+const SHORT = {style: {width: 70, textAlign: 'center', padding: 5}, bodyClassName: 'nopadding'};
+const EngagementPage = (props: any) => {
     const competitionId = props.match.params.id;
+    const saisieResultat = props.match.url.includes('engagementresultats');
     const dg = useRef(null);
     const [, setNotification] = useContext(NotificationContext);
     const [selectedRow, selectRow] = useState();
@@ -81,9 +83,8 @@ const EngagementPage = (props:any) => {
         openDialog(false);
     };
 
-
     const handleOk = async (fetchRows: any) => {
-        await apiRaces.deleteRace({id:selectedRow.id});
+        await apiRaces.deleteRace({id: selectedRow.id});
         fetchRows();
         setNotification({
             message: `Le coureur ${selectedRow.id} a été supprimé de la compétition`,
@@ -95,41 +96,65 @@ const EngagementPage = (props:any) => {
     const classes = style({});
     return <CompetitionLayout competitionId={competitionId}>
         {
-            ({competition,currentRace, rows, fetchRows, fetchCompetition}) => {
+            ({competition, currentRace, rows, fetchRows, fetchCompetition}) => {
 
-                const deleteAction = (row: RaceRow) => <Delete fontSize={'small'} onClick={() => {
-                    selectRow(row)
-                    openDialog(true)
-                }}/>
+                const deleteAction = (row: RaceRow, column: any) => {
+                    if (saisieResultat) {
+                        if (column.rowIndex + 1 === rows.length) {
+                            return (<Delete fontSize={'small'} onClick={() => {
+                                selectRow(row);
+                                openDialog(true);
+                            }}/>);
+                        } else {
+                            return null
+                        }
+                    } else {
+                        return (<Delete fontSize={'small'} onClick={() => {
+                            selectRow(row);
+                            openDialog(true);
+                        }}/>)
+                    }
+                };
 
                 const columns: ColumnProps[] = [
                     {
-                        style: {width: 40, textAlign: 'center', paddingLeft: 5, paddingRight: 5, cursor: 'pointer'},
-                        bodyClassName:'nopadding',
+                        style: {
+                            width: 40,
+                            textAlign: 'center',
+                            paddingLeft: 5,
+                            paddingRight: 5,
+                            cursor: 'pointer'
+                        },
+                        bodyClassName: 'nopadding',
                         body: deleteAction
                     },
+                    ...(saisieResultat ? [{
+                        header:'Clt',
+                        body: (rowdata: RaceRow, column: any) => column.rowIndex + 1, ...SHORT
+                    }]:[]),
                     {field: 'riderNumber', header: 'Dossard', ...FILTERABLE, ...SHORT},
-                    {field: 'name', header: 'Coureur', ...FILTERABLE, bodyClassName:'nopadding'},
-                    {field: 'club', header: 'Club', ...FILTERABLE, bodyClassName:'nopadding'},
+                    {field: 'name', header: 'Coureur', ...FILTERABLE, bodyClassName: 'nopadding'},
+                    {field: 'club', header: 'Club', ...FILTERABLE, bodyClassName: 'nopadding'},
                     {
                         field: 'catev', header: 'Caté. V.', ...FILTERABLE, ...SHORT,
                         body: (row: RaceRow) => <span>
                             {row.catev}
-                            {surclassed(row) && <span title="surclassé" className={classes.surclassed}><ArrowUpward /></span>}
+                            {surclassed(row) && <span title="surclassé"
+                                                      className={classes.surclassed}><ArrowUpward/></span>}
                         </span>
                     },
                     {field: 'gender', header: 'H/F', ...FILTERABLE, ...SHORT},
                     {field: 'catea', header: 'Caté A.', ...FILTERABLE, ...SHORT},
                     {field: 'birthYear', header: 'Année', ...FILTERABLE, ...SHORT},
                     {field: 'fede', header: 'Fédé.', ...FILTERABLE, ...SHORT},
-                ]
+                ];
 
                 return (
                     <Box position="relative" padding={0}>
                         <Box top={-38} right={10} position="absolute">
                             <Reorganizer competition={competition} rows={rows} onSuccess={() => {
-                                fetchRows()
-                                fetchCompetition()
+                                fetchRows();
+                                fetchCompetition();
                             }}/>
                         </Box>
                         <Grid container={true}>
@@ -139,12 +164,15 @@ const EngagementPage = (props:any) => {
                             <CreationForm competition={competition}
                                           race={currentRace}
                                           onSuccess={fetchRows}
+                                          saisieResultat={saisieResultat}
+                                          rows={rows}
                             />
                         </Grid>
 
-                        <DataTable ref={dg} value={filterByRace(rows, currentRace)}
-                                   emptyMessage="Aucun coureur encore engagé sur cette épreuve ou aucun coureur ne correspond à votre filtre de recherche" responsive={true} >
-                            {columns.map((column, i) => <Column key={i} {...column}/>)}
+                        <DataTable ref={dg} value={saisieResultat?filterByRace(rows, currentRace).reverse():filterByRace(rows, currentRace)}
+                                   emptyMessage="Aucun coureur encore engagé sur cette épreuve ou aucun coureur ne correspond à votre filtre de recherche"
+                                   responsive={true}>
+                            {columns.map((column, i) => <Column key={i + 1} {...column}/>)}
 
                         </DataTable>
                     </Box>

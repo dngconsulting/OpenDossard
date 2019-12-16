@@ -156,6 +156,7 @@ export class RacesCtrl {
         newRace.licence = licence;
         newRace.competition = competition;
         newRace.catev = race.catev;
+        if (race.rankingScratch) { newRace.rankingScratch = race.rankingScratch; }
 
         await this.entityManager.save(newRace);
     }
