@@ -76,7 +76,7 @@ export class CompetitionController {
     public async getAllCompetitions(): Promise<CompetitionEntity[]> {
         return await this.repository.find({
             order: {
-                eventDate: 'ASC',
+                eventDate: 'DESC',
             }, relations: ['club'],
         });
     }

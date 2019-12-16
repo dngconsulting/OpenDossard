@@ -271,11 +271,9 @@ const LicencesPage = (props: ILicencesProps) => {
                                 id: 'catev',
                             }}
                         > {
-
                             newLicence.fede &&
                             FEDERATIONS[newLicence.fede.toString()].catev.map((value: ICategory, index: number) =>
                                 <MenuItem key={index} value={value.value}>{value.label}</MenuItem>)
-
                         }
                         </Select>
                     </FormControl>

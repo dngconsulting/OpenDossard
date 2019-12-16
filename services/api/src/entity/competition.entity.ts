@@ -92,9 +92,10 @@ export class CompetitionEntity {
 
     @Column({
         type: 'enum',
+        name: 'fede',
         enum: FederationEntity,
         nullable: true,
-        default: FederationEntity.NL,
+        default: FederationEntity.FSGT,
     })
     @ApiProperty({enum: FederationEntity})
     fede: FederationEntity;
