@@ -28,19 +28,19 @@ export const CATEA : Array<{label:string,value:string}> = [
     {label: 'NC', value: 'nc'}];
 
 export const FEDERATIONS = {
-    fsgt: {
-        name: {label: 'FSGT', value: 'fsgt'},
+    FSGT: {
+        name: {label: 'FSGT', value: 'FSGT'},
         catev: [...CATEV, {label: '4', value: '4'}, {label: '5', value: '5'}]
     },
-    ufolep: {
-        name: {label: 'UFOLEP', value: 'ufolep'},
+    UFOLEP: {
+        name: {label: 'UFOLEP', value: 'UFOLEP'},
         catev: [...CATEV, {label: 'GSa', value: 'GSA'},{label: 'GSb', value: 'GSB'},{label: 'Jeune', value: 'J'}]
     },
-    ffc: {
-        name: {label: 'FFC', value: 'ffc'},
+    FFC: {
+        name: {label: 'FFC', value: 'FFC'},
         CATEV
     },
-    nl:{
+    NL:{
         name:{label: 'Non Licencié', value: 'NL'},
         catev: [...CATEV, {label: '4', value: '4'}, {label: '5', value: '5'}]
     }

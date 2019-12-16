@@ -53,7 +53,7 @@ const LicencesPage = (props: ILicencesProps) => {
         firstName: '',
         licenceNumber: '',
         gender:'H',
-        fede: LicenceEntityFedeEnum.NonLicenci,
+        fede: LicenceEntityFedeEnum.NL,
         birthYear: '',
         dept: '',
         club: '',
@@ -64,7 +64,7 @@ const LicencesPage = (props: ILicencesProps) => {
     useEffect(()=>{
         const id = props.match.params.id;
         if(!isNaN(parseInt(id))){
-            apiLicences.get(id).then((res:Licence) =>{
+            apiLicences.get({id}).then((res:Licence) =>{
                 setValues({...newLicence,
                     id:res.id,
                     name:res.name,
@@ -98,7 +98,7 @@ const LicencesPage = (props: ILicencesProps) => {
                 [event.target.name as string]: event.target.value,
                 catev: ''
             }))
-        }else if(event.target.name ==='fede' && event.target.value === 'ufolep'){
+        }else if(event.target.name ==='fede' && event.target.value === 'UFOLEP'){
             setValues(oldValues => ({
                 ...oldValues,
                 [event.target.name as string]: event.target.value,
@@ -137,7 +137,7 @@ const LicencesPage = (props: ILicencesProps) => {
 
     // @ts-ignore
     const classes = useStyles();
-
+    console.log('[RENDER] New Licence ' + JSON.stringify(newLicence));
     return (
         <Container maxWidth="sm">
             <Grid container={true} spacing={3}>
@@ -160,7 +160,7 @@ const LicencesPage = (props: ILicencesProps) => {
                             onChange={e=> {
                                 handleChange(e);
                                 setDisableCateV(e.target.value==='');
-                                setDisableCateA(e.target.value==='ufolep')
+                                setDisableCateA(e.target.value==='UFOLEP');
                                 }
                             }
                             inputProps={{
@@ -273,7 +273,7 @@ const LicencesPage = (props: ILicencesProps) => {
                         > {
 
                             newLicence.fede &&
-                            FEDERATIONS[newLicence.fede].catev.map((value: ICategory, index: number) =>
+                            FEDERATIONS[newLicence.fede.toString()].catev.map((value: ICategory, index: number) =>
                                 <MenuItem key={index} value={value.value}>{value.label}</MenuItem>)
 
                         }

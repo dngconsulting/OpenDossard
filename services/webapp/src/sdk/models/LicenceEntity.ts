@@ -142,7 +142,7 @@ export enum LicenceEntityFedeEnum {
     FSGT = 'FSGT',
     UFOLEP = 'UFOLEP',
     FFC = 'FFC',
-    NonLicenci = 'Non Licencié'
+    NL = 'NL'
 }
 
 

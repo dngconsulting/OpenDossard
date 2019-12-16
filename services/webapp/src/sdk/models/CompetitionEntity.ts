@@ -76,10 +76,10 @@ export interface CompetitionEntity {
     observations?: string;
     /**
      * 
-     * @type {object}
+     * @type {Array<string>}
      * @memberof CompetitionEntity
      */
-    pricing?: object;
+    pricing?: Array<string>;
     /**
      * 
      * @type {Array<string>}
@@ -98,6 +98,30 @@ export interface CompetitionEntity {
      * @memberof CompetitionEntity
      */
     competitionType?: CompetitionEntityCompetitionTypeEnum;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof CompetitionEntity
+     */
+    competitionInfo?: Array<string>;
+    /**
+     * 
+     * @type {string}
+     * @memberof CompetitionEntity
+     */
+    lieuDossard?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CompetitionEntity
+     */
+    lieuDossardGPS: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CompetitionEntity
+     */
+    longueurCircuit: string;
 }
 
 export function CompetitionEntityFromJSON(json: any): CompetitionEntity {
@@ -122,6 +146,10 @@ export function CompetitionEntityFromJSONTyped(json: any, ignoreDiscriminator: b
         'races': !exists(json, 'races') ? undefined : json['races'],
         'fede': json['fede'],
         'competitionType': !exists(json, 'competitionType') ? undefined : json['competitionType'],
+        'competitionInfo': !exists(json, 'competitionInfo') ? undefined : json['competitionInfo'],
+        'lieuDossard': !exists(json, 'lieuDossard') ? undefined : json['lieuDossard'],
+        'lieuDossardGPS': json['lieuDossardGPS'],
+        'longueurCircuit': json['longueurCircuit'],
     };
 }
 
@@ -146,6 +174,10 @@ export function CompetitionEntityToJSON(value?: CompetitionEntity | null): any {
         'races': value.races,
         'fede': value.fede,
         'competitionType': value.competitionType,
+        'competitionInfo': value.competitionInfo,
+        'lieuDossard': value.lieuDossard,
+        'lieuDossardGPS': value.lieuDossardGPS,
+        'longueurCircuit': value.longueurCircuit,
     };
 }
 
@@ -171,7 +203,7 @@ export enum CompetitionEntityFedeEnum {
     FSGT = 'FSGT',
     UFOLEP = 'UFOLEP',
     FFC = 'FFC',
-    NonLicenci = 'Non Licencié'
+    NL = 'NL'
 }
 /**
 * @export

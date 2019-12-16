@@ -37,7 +37,7 @@ export class CompetitionEntity {
      * La eventDate de l'épreuve au format JS
      */
     @Column({nullable: false})
-    @ApiProperty({ type: 'string', format: 'date-time'})
+    @ApiProperty({type: 'string', format: 'date-time'})
     @Index()
     public eventDate: Date;
     /**
@@ -81,7 +81,7 @@ export class CompetitionEntity {
      */
     @Column({nullable: true})
     @Column('simple-json')
-    public pricing?: { name: string, price: number };
+    public pricing?: Array<{ name: string, tarif: number }>;
 
     /**
      * Liste des courses ['1/2/3','4/5']
@@ -96,7 +96,7 @@ export class CompetitionEntity {
         nullable: true,
         default: FederationEntity.NL,
     })
-    @ApiProperty({ enum: FederationEntity})
+    @ApiProperty({enum: FederationEntity})
     fede: FederationEntity;
 
     @Column({
@@ -106,4 +106,18 @@ export class CompetitionEntity {
         default: CompetitionType.ROUTE,
     })
     competitionType?: CompetitionType;
+
+    @Column({type: 'simple-json', nullable: true})
+    competitionInfo?: Array<{ catev: string, horaireDossard?: string, horaireDepart?: string,
+                              nbTours?: number, totalKms?: number, recompense?: string }>;
+
+    @Column({nullable: true})
+    lieuDossard?: string;
+
+    @Column({nullable: true})
+    lieuDossardGPS: string;
+
+    @Column({nullable: true})
+    longueurCircuit: string;
+
 }

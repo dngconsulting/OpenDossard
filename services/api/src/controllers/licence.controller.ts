@@ -110,7 +110,7 @@ export class LicenceController {
             licence.gender.toUpperCase() === 'F' ? 'F' + licence.catea.toUpperCase() : licence.catea.toUpperCase()
             : '';
         newLicence.catev = licence.catev.toUpperCase();
-        newLicence.fede = FederationEntity[licence.fede.toUpperCase()];
+        newLicence.fede = licence.fede;
         await this.entityManager.save(newLicence);
     }
 
