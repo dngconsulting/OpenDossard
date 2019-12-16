@@ -79,8 +79,7 @@ export class CompetitionEntity {
      * Les différents tarifs au format JSON de la manière suivante :
      *  {'Non Licenciés' : 10, 'FSGT' : 7, 'UFOLEP' : 9}
      */
-    @Column({nullable: true})
-    @Column('simple-json')
+    @Column({type: 'json', nullable: true})
     public pricing?: Array<{ name: string, tarif: number }>;
 
     /**
@@ -108,9 +107,12 @@ export class CompetitionEntity {
     })
     competitionType?: CompetitionType;
 
-    @Column({type: 'simple-json', nullable: true})
-    competitionInfo?: Array<{ catev: string, horaireDossard?: string, horaireDepart?: string,
-                              nbTours?: number, totalKms?: number, recompense?: string }>;
+    @Column({type: 'json', nullable: true})
+    @ApiProperty()
+    competitionInfo?: Array<{
+        catev: string, horaireDossard?: string, horaireDepart?: string,
+        nbTours?: number, totalKms?: number, recompense?: string
+    }>;
 
     @Column({nullable: true})
     lieuDossard?: string;
