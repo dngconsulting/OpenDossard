@@ -1,5 +1,3 @@
-CREATE DATABASE dossarddb WITH OWNER dossarduser;
-
 create type competition_competitiontype_enum as enum ('CX', 'ROUTE', 'VTT');
 
 alter type competition_competitiontype_enum owner to dossarduser;
@@ -141,50 +139,4 @@ create table "user"
 
 alter table "user"
     owner to dossarduser;
-
-create table fakenames
-(
-    id        integer not null,
-    givenname text,
-    surname   text
-);
-
-alter table fakenames
-    owner to dossarduser;
-
-create or replace function unaccent(regdictionary, text)
-    stable
-    strict
-    parallel safe
-    language c
-as -- missing source code
-;
-
-alter function unaccent(regdictionary, text) owner to dossarduser;
-
-create or replace function unaccent(text)
-    stable
-    strict
-    parallel safe
-    language c
-as -- missing source code
-;
-
-alter function unaccent(text) owner to dossarduser;
-
-create or replace function unaccent_init(internal)
-    parallel safe
-    language c
-as -- missing source code
-;
-
-alter function unaccent_init(internal) owner to dossarduser;
-
-create or replace function unaccent_lexize(internal, internal, internal, internal)
-    parallel safe
-    language c
-as -- missing source code
-;
-
-alter function unaccent_lexize(internal, internal, internal, internal) owner to dossarduser;
-
+create extension if not exists unaccent;
