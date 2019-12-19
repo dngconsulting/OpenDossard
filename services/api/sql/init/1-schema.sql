@@ -1,3 +1,5 @@
+CREATE DATABASE dossarddb WITH OWNER dossarduser;
+
 create type competition_competitiontype_enum as enum ('CX', 'ROUTE', 'VTT');
 
 alter type competition_competitiontype_enum owner to dossarduser;
