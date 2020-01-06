@@ -2,6 +2,8 @@ import {Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn} fr
 import {FederationEntity} from './federation.entity';
 import {ClubEntity} from './club.entity';
 import {ApiProperty} from '@nestjs/swagger';
+import {CompetitionInfo} from "./competition-info";
+import {PricingInfo} from "./pricing-info";
 
 /**
  * Cette énum représente les catégories gérées par une épreuve
@@ -80,7 +82,7 @@ export class CompetitionEntity {
      *  {'Non Licenciés' : 10, 'FSGT' : 7, 'UFOLEP' : 9}
      */
     @Column({type: 'json', nullable: true})
-    public pricing?: Array<{ name: string, tarif: number }>;
+    public pricing?: Array<PricingInfo>;
 
     /**
      * Liste des courses ['1/2/3','4/5']
@@ -108,11 +110,7 @@ export class CompetitionEntity {
     competitionType?: CompetitionType;
 
     @Column({type: 'json', nullable: true})
-    @ApiProperty()
-    competitionInfo?: Array<{
-        catev: string, horaireDossard?: string, horaireDepart?: string,
-        nbTours?: number, totalKms?: number, recompense?: string
-    }>;
+    competitionInfo?: Array<CompetitionInfo>;
 
     @Column({nullable: true})
     lieuDossard?: string;
@@ -122,5 +120,20 @@ export class CompetitionEntity {
 
     @Column({nullable: true})
     longueurCircuit: string;
+
+    @Column({nullable: true})
+    siteweb: string;
+
+    @Column({nullable: true})
+    facebook: string;
+
+    @Column({nullable: true})
+    contactEmail: string;
+
+    @Column({nullable: true})
+    contactPhone: string;
+
+    @Column({nullable: true})
+    contactName: string;
 
 }

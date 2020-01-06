@@ -18,6 +18,14 @@ import {
     ClubEntityFromJSON,
     ClubEntityFromJSONTyped,
     ClubEntityToJSON,
+    CompetitionInfo,
+    CompetitionInfoFromJSON,
+    CompetitionInfoFromJSONTyped,
+    CompetitionInfoToJSON,
+    PricingInfo,
+    PricingInfoFromJSON,
+    PricingInfoFromJSONTyped,
+    PricingInfoToJSON,
 } from './';
 
 /**
@@ -76,10 +84,10 @@ export interface CompetitionEntity {
     observations?: string;
     /**
      * 
-     * @type {Array<string>}
+     * @type {Array<PricingInfo>}
      * @memberof CompetitionEntity
      */
-    pricing?: Array<string>;
+    pricing?: Array<PricingInfo>;
     /**
      * 
      * @type {Array<string>}
@@ -100,10 +108,10 @@ export interface CompetitionEntity {
     competitionType?: CompetitionEntityCompetitionTypeEnum;
     /**
      * 
-     * @type {Array<string>}
+     * @type {Array<CompetitionInfo>}
      * @memberof CompetitionEntity
      */
-    competitionInfo: Array<string>;
+    competitionInfo?: Array<CompetitionInfo>;
     /**
      * 
      * @type {string}
@@ -142,11 +150,11 @@ export function CompetitionEntityFromJSONTyped(json: any, ignoreDiscriminator: b
         'info': !exists(json, 'info') ? undefined : json['info'],
         'categories': json['categories'],
         'observations': !exists(json, 'observations') ? undefined : json['observations'],
-        'pricing': !exists(json, 'pricing') ? undefined : json['pricing'],
+        'pricing': !exists(json, 'pricing') ? undefined : ((json['pricing'] as Array<any>).map(PricingInfoFromJSON)),
         'races': !exists(json, 'races') ? undefined : json['races'],
         'fede': json['fede'],
         'competitionType': !exists(json, 'competitionType') ? undefined : json['competitionType'],
-        'competitionInfo': json['competitionInfo'],
+        'competitionInfo': !exists(json, 'competitionInfo') ? undefined : ((json['competitionInfo'] as Array<any>).map(CompetitionInfoFromJSON)),
         'lieuDossard': !exists(json, 'lieuDossard') ? undefined : json['lieuDossard'],
         'lieuDossardGPS': json['lieuDossardGPS'],
         'longueurCircuit': json['longueurCircuit'],
@@ -170,11 +178,11 @@ export function CompetitionEntityToJSON(value?: CompetitionEntity | null): any {
         'info': value.info,
         'categories': value.categories,
         'observations': value.observations,
-        'pricing': value.pricing,
+        'pricing': value.pricing === undefined ? undefined : ((value.pricing as Array<any>).map(PricingInfoToJSON)),
         'races': value.races,
         'fede': value.fede,
         'competitionType': value.competitionType,
-        'competitionInfo': value.competitionInfo,
+        'competitionInfo': value.competitionInfo === undefined ? undefined : ((value.competitionInfo as Array<any>).map(CompetitionInfoToJSON)),
         'lieuDossard': value.lieuDossard,
         'lieuDossardGPS': value.lieuDossardGPS,
         'longueurCircuit': value.longueurCircuit,
