@@ -80,3 +80,15 @@ export class Search {
     search?: string;
     filters?: Filter[];
 }
+
+export class CompetitionFilter {
+    competitionTypes?: Set<string>;
+    fedes?: Set<string>;
+    depts?: string[];
+    openedFilter?:boolean;
+    openedToOtherFede?: boolean;
+    openedNL?: boolean;
+    displayFuture: boolean;
+    displayPast: boolean;
+    displaySince?: number;
+}

@@ -136,4 +136,9 @@ export class CompetitionEntity {
     @Column({nullable: true})
     contactName: string;
 
+    @Column({nullable: true})
+    openedToOtherFede: boolean;
+
+    @Column({nullable: true})
+    openedNL: boolean;
 }

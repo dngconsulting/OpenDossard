@@ -1,22 +1,12 @@
-import {
-    BadRequestException,
-    Body,
-    Controller,
-    Get,
-    Logger,
-    Param,
-    Post,
-    UseGuards,
-} from '@nestjs/common';
+import {BadRequestException, Body, Controller, Get, Logger, Param, Post, UseGuards,} from '@nestjs/common';
 import {ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
-import {EntityManager, Repository} from 'typeorm';
+import {Any, Between, EntityManager, Repository} from 'typeorm';
 import {CompetitionEntity} from '../entity/competition.entity';
 import {RaceEntity} from '../entity/race.entity';
 import {AuthGuard} from '@nestjs/passport';
-import {CompetitionReorganize} from '../dto/model.dto';
-
-
+import {CompetitionFilter, CompetitionReorganize} from '../dto/model.dto';
+import * as moment from 'moment'
 
 /**
  * Competition Controller handles all competitions operation ('Epreuve' in french)
@@ -73,11 +63,33 @@ export class CompetitionController {
         description: 'Liste des épreuves totales',
     })
     @Get()
-    public async getAllCompetitions(): Promise<CompetitionEntity[]> {
+    public async getCompetitionsByFilter(competitionFilter : CompetitionFilter): Promise<CompetitionEntity[]> {
+        let futureEventDate,pastEventDate;
+        const competFilter = competitionFilter.competitionTypes ? {competitionType: Any(Array.from(competitionFilter.competitionTypes))}:null
+        const fedeFilter=  competitionFilter.fedes? {fede: Any(Array.from(competitionFilter.fedes))}:null
+        if (competitionFilter.displayPast && competitionFilter.displayPast===true) {
+            pastEventDate=moment(new Date()).subtract(competitionFilter.displaySince,'d').toDate()
+        } else {
+            pastEventDate=new Date()
+        }
+        if (competitionFilter.displayFuture && competitionFilter.displayFuture===true) {
+            futureEventDate=moment(new Date()).add(1,'y').toDate()
+        } else {
+            futureEventDate=new Date()
+        }
         return await this.repository.find({
+            where: {
+                ...(competFilter),
+                ...(fedeFilter),
+                ...(competitionFilter.openedToOtherFede?{openedToOtherFede:competitionFilter.openedToOtherFede}:null),
+                ...(competitionFilter.openedNL?{openedNL:competitionFilter.openedNL}:null),
+                eventDate:Between(pastEventDate,
+                    futureEventDate)
+            },
             order: {
                 eventDate: 'DESC',
-            }, relations: ['club'],
+            },
+            relations: ['club'],
         });
     }
 
