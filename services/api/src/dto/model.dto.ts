@@ -75,13 +75,20 @@ export class Search {
 }
 
 export class CompetitionFilter {
-    competitionTypes?: Set<string>;
-    fedes?: Set<string>;
-    depts?: string[];
+    competitionTypes?: string[];
+    fedes?: string[];
+    depts?: Departement[];
     openedFilter?:boolean;
     openedToOtherFede?: boolean;
     openedNL?: boolean;
     displayFuture: boolean;
     displayPast: boolean;
     displaySince?: number;
+}
+
+export interface Departement {
+    departmentCode : string,
+    departmentName: string,
+    regionCode: string,
+    regionName:string,
 }

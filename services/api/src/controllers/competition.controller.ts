@@ -5,7 +5,7 @@ import {Any, Between, EntityManager, Repository} from 'typeorm';
 import {CompetitionEntity} from '../entity/competition.entity';
 import {RaceEntity} from '../entity/race.entity';
 import {AuthGuard} from '@nestjs/passport';
-import {CompetitionFilter, CompetitionReorganize} from '../dto/model.dto';
+import {CompetitionFilter, CompetitionReorganize, Departement} from '../dto/model.dto';
 import * as moment from 'moment'
 import {TooMuchResults} from "../exception/TooMuchResults";
 const MAX_COMPETITION_TODISPLAY = 100;
@@ -66,6 +66,7 @@ export class CompetitionController {
     @Post()
     public async getCompetitionsByFilter(@Body() competitionFilter : CompetitionFilter): Promise<CompetitionEntity[]> {
         let futureEventDate,pastEventDate;
+        console.log('Filtre => ' + JSON.stringify(competitionFilter));
         const competFilter= competitionFilter.competitionTypes ? {competitionType: Any(Array.from(competitionFilter.competitionTypes))}:null
         const fedeFilter=  competitionFilter.fedes? {fede: Any(Array.from(competitionFilter.fedes))}:null
         if (competitionFilter.displayPast && competitionFilter.displayPast===true) {
@@ -89,7 +90,7 @@ export class CompetitionController {
                 ...(competitionFilter.openedToOtherFede?{openedToOtherFede:competitionFilter.openedToOtherFede}:null),
                 ...(competitionFilter.openedNL?{openedNL:competitionFilter.openedNL}:null),
                 eventDate:Between(pastEventDate,futureEventDate),
-                ...(competitionFilter.depts && competitionFilter.depts.length>0?{dept:Any(competitionFilter.depts)}:null)
+                ...(competitionFilter.depts && competitionFilter.depts.length>0?{dept:Any(competitionFilter.depts.map((dept:Departement)=>dept.departmentCode))}:null)
             },
             order: {
                 eventDate: 'DESC',
