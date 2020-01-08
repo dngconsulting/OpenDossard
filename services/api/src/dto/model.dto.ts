@@ -1,9 +1,7 @@
 import {LicenceEntity} from '../entity/licence.entity';
-import {IsInt, IsString} from 'class-validator';
 import {ApiProperty, ApiPropertyOptional} from '@nestjs/swagger';
 
 export class ClubRow {
-    @IsInt()
     public id?: number;
     public longName?: string;
     public dept?: string;
@@ -11,7 +9,6 @@ export class ClubRow {
 }
 
 export class CompetitionReorganize {
-    @IsInt()
     public competitionId?: number;
     public races?: string[];
 }
@@ -40,7 +37,6 @@ export class RaceRow {
 }
 
 export class RaceCreate {
-    @IsInt()
     public competitionId?: number;
     public licenceId?: number;
     public riderNumber?: number;
@@ -59,24 +55,39 @@ export class RaceNbRider {
 }
 
 export class Filter {
-    @IsString()
     name?: string;
     value?: string;
 }
 
 export class LicencesPage {
     data?: LicenceEntity[];
-    @IsInt()
     page?: number;
     totalCount?: number;
 }
 
 export class Search {
-    @IsInt()
     currentPage?: number;
     pageSize?: number;
     orderDirection?: 'ASC' | 'DESC';
     orderBy?: string;
     search?: string;
     filters?: Filter[];
+}
+
+export class CompetitionFilter {
+    competitionTypes?: string[];
+    fedes?: string[];
+    depts?: Departement[];
+    openedToOtherFede?: boolean;
+    openedNL?: boolean;
+    displayFuture: boolean;
+    displayPast: boolean;
+    displaySince?: number;
+}
+
+export class Departement {
+    departmentCode : string;
+    departmentName: string;
+    regionCode: string;
+    regionName:string;
 }

@@ -1,23 +1,14 @@
-import {
-    BadRequestException,
-    Body,
-    Controller,
-    Get,
-    Logger,
-    Param,
-    Post,
-    UseGuards,
-} from '@nestjs/common';
+import {BadRequestException, Body, Controller, Get, Logger, Param, Post, UseGuards,} from '@nestjs/common';
 import {ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
-import {EntityManager, Repository} from 'typeorm';
+import {Any, Between, EntityManager, Repository} from 'typeorm';
 import {CompetitionEntity} from '../entity/competition.entity';
 import {RaceEntity} from '../entity/race.entity';
 import {AuthGuard} from '@nestjs/passport';
-import {CompetitionReorganize} from '../dto/model.dto';
-
-
-
+import {CompetitionFilter, CompetitionReorganize, Departement} from '../dto/model.dto';
+import * as moment from 'moment'
+import {TooMuchResults} from "../exception/TooMuchResults";
+const MAX_COMPETITION_TODISPLAY = 100;
 /**
  * Competition Controller handles all competitions operation ('Epreuve' in french)
  * The Reorganization method is when races are reorganized by categories
@@ -62,23 +53,56 @@ export class CompetitionController {
     }
 
     @ApiOperation({
-        operationId: 'getAllCompetitions',
-        summary: 'Rechercher Toutes les compétitions ',
-        description: 'Recherche toutes les compétitions disponibles',
+        operationId: 'getCompetitionsByFilter',
+        summary: 'Rechercher Toutes les compétitions correspondant au filtre passé en paramètre',
+        description: 'Recherche toutes les compétitions disponibles dans le filtre',
     })
     @ApiResponse({
         status: 200,
         type: CompetitionEntity,
         isArray: true,
-        description: 'Liste des épreuves totales',
+        description: 'Rechercher Toutes les compétitions correspondant au filtre passé en paramètre',
     })
-    @Get()
-    public async getAllCompetitions(): Promise<CompetitionEntity[]> {
-        return await this.repository.find({
+    @Post()
+    public async getCompetitionsByFilter(@Body() competitionFilter : CompetitionFilter): Promise<CompetitionEntity[]> {
+        let futureEventDate,pastEventDate;
+        console.log('Filtre => ' + JSON.stringify(competitionFilter));
+        const competFilter= competitionFilter.competitionTypes ? {competitionType: Any(Array.from(competitionFilter.competitionTypes))}:null
+        const fedeFilter=  competitionFilter.fedes? {fede: Any(Array.from(competitionFilter.fedes))}:null
+        if (competitionFilter.displayPast && competitionFilter.displayPast===true) {
+            // If display since is not passed we set it by default to one year => 365 days
+            pastEventDate=moment(new Date()).subtract(competitionFilter.displaySince?competitionFilter.displaySince:365,'d').toDate()
+        } else {
+            // First minute of the current day
+            pastEventDate=moment(new Date()).startOf('day');
+        }
+        if (competitionFilter.displayFuture && competitionFilter.displayFuture===true) {
+            // Future is always set to 1 year, it has no sense to scope events planned in 2 or 3 years
+            futureEventDate=moment(new Date()).add(1,'y').toDate()
+        } else {
+            // Last minute of the current day
+            futureEventDate=moment(new Date()).endOf('day');
+        }
+        const result: CompetitionEntity[] = await this.repository.find({
+            where: {
+                ...(competFilter),
+                ...(fedeFilter),
+                ...(competitionFilter.openedToOtherFede?{openedToOtherFede:competitionFilter.openedToOtherFede}:null),
+                ...(competitionFilter.openedNL?{openedNL:competitionFilter.openedNL}:null),
+                eventDate:Between(pastEventDate,futureEventDate),
+                ...(competitionFilter.depts && competitionFilter.depts.length>0?{dept:Any(competitionFilter.depts.map((dept:Departement)=>dept.departmentCode))}:null)
+            },
             order: {
                 eventDate: 'DESC',
-            }, relations: ['club'],
+            },
+            relations: ['club'],
         });
+
+        if (result.length>MAX_COMPETITION_TODISPLAY) {
+            throw new TooMuchResults();
+        }
+
+        return result;
     }
 
     @UseGuards(AuthGuard('jwt'))
