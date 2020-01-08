@@ -73,7 +73,7 @@ describe('E2E_Licences', () => {
      * E2E Tests, we test here the end point controllers by hitting the DB
      */
 
-    /*describe('createLicence', () => {
+    describe('createLicence', () => {
         it('create a licence and check it is inserted', async () => {
             const inseredLicence: LicenceEntity = createLicence('roger', 'dupont', 'V', '4', 'H', 'My Great Club', '31', 'FSGT');
             await licencesCtrl.create(inseredLicence);
@@ -81,12 +81,12 @@ describe('E2E_Licences', () => {
             // @ts-ignore
             expect(allLicences[allLicences.length - 1].name).toBe('dupont');
         });
-    });*/
+    });
 
     describe('findByFilter', () => {
         it('competitions', async () => {
             let result=null;
-            /*const competitionFilterWithCompetitionTypes : CompetitionFilter = {
+            const competitionFilterWithCompetitionTypes : CompetitionFilter = {
                 competitionTypes: new Set<string>(['CX']),
                 fedes: new Set<string>(['UFOLEP','FSGT']),
                 depts: ['31','24'],
@@ -105,14 +105,17 @@ describe('E2E_Licences', () => {
                 displayPast: true,
             }
             result = await competitionsCtrl.getCompetitionsByFilter(competitionFilterWithFedes);
-            if (result) result.forEach((compet,index)=>expect(['FSGT','UFOLEP']).toContain(compet.fede))*/
+            if (result) result.forEach((compet,index)=>expect(['FSGT','UFOLEP']).toContain(compet.fede))
             const competitionFilterWithBooleansAndDates : CompetitionFilter = {
-                displayFuture: false,
-                displayPast: false,
-                displaySince:150
+                competitionTypes: new Set<string>(['CX','ROUTE']),
+                fedes: new Set<string>(['UFOLEP','FSGT']),
+                displayFuture: true,
+                displayPast: true,
+                displaySince:356,
+                depts: [],
             }
             result = await competitionsCtrl.getCompetitionsByFilter(competitionFilterWithBooleansAndDates);
-            if (result) result.forEach((compet,index)=>console.log('name ' + compet.name + ' ' + compet.eventDate))
+            if (result) expect(result.length).toBeGreaterThan(0)
 
         });
     });

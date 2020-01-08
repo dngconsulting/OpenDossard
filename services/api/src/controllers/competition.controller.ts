@@ -7,7 +7,8 @@ import {RaceEntity} from '../entity/race.entity';
 import {AuthGuard} from '@nestjs/passport';
 import {CompetitionFilter, CompetitionReorganize} from '../dto/model.dto';
 import * as moment from 'moment'
-
+import {TooMuchResults} from "../exception/TooMuchResults";
+const MAX_COMPETITION_TODISPLAY = 100;
 /**
  * Competition Controller handles all competitions operation ('Epreuve' in french)
  * The Reorganization method is when races are reorganized by categories
@@ -65,32 +66,42 @@ export class CompetitionController {
     @Get()
     public async getCompetitionsByFilter(competitionFilter : CompetitionFilter): Promise<CompetitionEntity[]> {
         let futureEventDate,pastEventDate;
-        const competFilter = competitionFilter.competitionTypes ? {competitionType: Any(Array.from(competitionFilter.competitionTypes))}:null
+        const competFilter= competitionFilter.competitionTypes ? {competitionType: Any(Array.from(competitionFilter.competitionTypes))}:null
         const fedeFilter=  competitionFilter.fedes? {fede: Any(Array.from(competitionFilter.fedes))}:null
         if (competitionFilter.displayPast && competitionFilter.displayPast===true) {
-            pastEventDate=moment(new Date()).subtract(competitionFilter.displaySince,'d').toDate()
+            // If display since is not passed we set it by default to one year => 365 days
+            pastEventDate=moment(new Date()).subtract(competitionFilter.displaySince?competitionFilter.displaySince:365,'d').toDate()
         } else {
-            pastEventDate=new Date()
+            // First minute of the current day
+            pastEventDate=moment(new Date()).startOf('day');
         }
         if (competitionFilter.displayFuture && competitionFilter.displayFuture===true) {
+            // Future is always set to 1 year, it has no sense to scope events planned in 2 or 3 years
             futureEventDate=moment(new Date()).add(1,'y').toDate()
         } else {
-            futureEventDate=new Date()
+            // Last minute of the current day
+            futureEventDate=moment(new Date()).endOf('day');
         }
-        return await this.repository.find({
+        const result: CompetitionEntity[] = await this.repository.find({
             where: {
                 ...(competFilter),
                 ...(fedeFilter),
                 ...(competitionFilter.openedToOtherFede?{openedToOtherFede:competitionFilter.openedToOtherFede}:null),
                 ...(competitionFilter.openedNL?{openedNL:competitionFilter.openedNL}:null),
-                eventDate:Between(pastEventDate,
-                    futureEventDate)
+                eventDate:Between(pastEventDate,futureEventDate),
+                ...(competitionFilter.depts && competitionFilter.depts.length>0?{dept:Any(competitionFilter.depts)}:null)
             },
             order: {
                 eventDate: 'DESC',
             },
             relations: ['club'],
         });
+
+        if (result.length>MAX_COMPETITION_TODISPLAY) {
+            throw new TooMuchResults();
+        }
+
+        return result;
     }
 
     @UseGuards(AuthGuard('jwt'))

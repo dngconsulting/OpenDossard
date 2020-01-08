@@ -141,4 +141,7 @@ export class CompetitionEntity {
 
     @Column({nullable: true})
     openedNL: boolean;
+
+    @Column({length: 2,nullable:true})
+    dept: string;
 }
