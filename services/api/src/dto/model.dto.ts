@@ -78,7 +78,6 @@ export class CompetitionFilter {
     competitionTypes?: string[];
     fedes?: string[];
     depts?: Departement[];
-    openedFilter?:boolean;
     openedToOtherFede?: boolean;
     openedNL?: boolean;
     displayFuture: boolean;
@@ -86,9 +85,9 @@ export class CompetitionFilter {
     displaySince?: number;
 }
 
-export interface Departement {
-    departmentCode : string,
-    departmentName: string,
-    regionCode: string,
-    regionName:string,
+export class Departement {
+    departmentCode : string;
+    departmentName: string;
+    regionCode: string;
+    regionName:string;
 }

@@ -119,29 +119,29 @@ export class CompetitionEntity {
     lieuDossardGPS: string;
 
     @Column({nullable: true})
-    longueurCircuit: string;
+    longueurCircuit?: string;
 
     @Column({nullable: true})
-    siteweb: string;
+    siteweb?: string;
 
     @Column({nullable: true})
-    facebook: string;
+    facebook?: string;
 
     @Column({nullable: true})
-    contactEmail: string;
+    contactEmail?: string;
 
     @Column({nullable: true})
-    contactPhone: string;
+    contactPhone?: string;
 
     @Column({nullable: true})
-    contactName: string;
+    contactName?: string;
 
     @Column({nullable: true})
-    openedToOtherFede: boolean;
+    openedToOtherFede?: boolean;
 
     @Column({nullable: true})
-    openedNL: boolean;
+    openedNL?: boolean;
 
     @Column({length: 2,nullable:true})
-    dept: string;
+    dept?: string;
 }
