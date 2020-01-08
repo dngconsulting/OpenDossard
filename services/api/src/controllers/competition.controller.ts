@@ -53,18 +53,18 @@ export class CompetitionController {
     }
 
     @ApiOperation({
-        operationId: 'getAllCompetitions',
-        summary: 'Rechercher Toutes les compétitions ',
-        description: 'Recherche toutes les compétitions disponibles',
+        operationId: 'getCompetitionsByFilter',
+        summary: 'Rechercher Toutes les compétitions correspondant au filtre passé en paramètre',
+        description: 'Recherche toutes les compétitions disponibles dans le filtre',
     })
     @ApiResponse({
         status: 200,
         type: CompetitionEntity,
         isArray: true,
-        description: 'Liste des épreuves totales',
+        description: 'Rechercher Toutes les compétitions correspondant au filtre passé en paramètre',
     })
-    @Get()
-    public async getCompetitionsByFilter(competitionFilter : CompetitionFilter): Promise<CompetitionEntity[]> {
+    @Post()
+    public async getCompetitionsByFilter(@Body() competitionFilter : CompetitionFilter): Promise<CompetitionEntity[]> {
         let futureEventDate,pastEventDate;
         const competFilter= competitionFilter.competitionTypes ? {competitionType: Any(Array.from(competitionFilter.competitionTypes))}:null
         const fedeFilter=  competitionFilter.fedes? {fede: Any(Array.from(competitionFilter.fedes))}:null
