@@ -47,7 +47,16 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
     const [loading, setLoading] = useState(false);
     const classes = useStyles(cadtheme);
     const fetchCompetitions = async () => {
-        const results = await apiCompetitions.getAllCompetitions();
+        const competitionFilter = {
+            competitionTypes: ['ROUTE','CX'],
+            fedes: ['FSGT','UFOLEP'],
+            displayFuture:true,
+            openedNL:false,
+            openedToOtherFede:false,
+            displayPast:true,
+            displaySince:365,
+        }
+        const results = await apiCompetitions.getCompetitionsByFilter({competitionFilter:competitionFilter});
         setData(results);
         setFilteredData(results);
     };

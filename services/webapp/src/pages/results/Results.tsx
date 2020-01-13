@@ -54,8 +54,7 @@ const EditResultsPage = (gprops: any) => {
             value={currentDossard}
             keyfilter="pint" type="text" style={{height: '1.5em'}} onChange={async (e: any) => {
             setCurrentDossard(e.target.value);
-        }
-        }/>;
+        }}/>;
     };
 
     const dossardValidator = async (allprops: any, fetchRows: any, currentRace: string, transformedRows: any, rows: RaceRow[]) => {

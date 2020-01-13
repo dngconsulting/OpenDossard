@@ -53,7 +53,7 @@ export class RacesCtrl {
     @Get()
     @ApiOperation({
         operationId: 'getAllRaces',
-        summary: 'Rechercher toutes les participation dans les courses de tous les temps ',
+        summary: 'Rechercher toutes les participations à toutes les courses ',
     })
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
     public async getAllRaces(): Promise<RaceRow[]> {

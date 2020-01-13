@@ -129,7 +129,55 @@ export interface CompetitionEntity {
      * @type {string}
      * @memberof CompetitionEntity
      */
-    longueurCircuit: string;
+    longueurCircuit?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CompetitionEntity
+     */
+    siteweb?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CompetitionEntity
+     */
+    facebook?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CompetitionEntity
+     */
+    contactEmail?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CompetitionEntity
+     */
+    contactPhone?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CompetitionEntity
+     */
+    contactName?: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CompetitionEntity
+     */
+    openedToOtherFede?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CompetitionEntity
+     */
+    openedNL?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof CompetitionEntity
+     */
+    dept?: string;
 }
 
 export function CompetitionEntityFromJSON(json: any): CompetitionEntity {
@@ -157,7 +205,15 @@ export function CompetitionEntityFromJSONTyped(json: any, ignoreDiscriminator: b
         'competitionInfo': !exists(json, 'competitionInfo') ? undefined : ((json['competitionInfo'] as Array<any>).map(CompetitionInfoFromJSON)),
         'lieuDossard': !exists(json, 'lieuDossard') ? undefined : json['lieuDossard'],
         'lieuDossardGPS': json['lieuDossardGPS'],
-        'longueurCircuit': json['longueurCircuit'],
+        'longueurCircuit': !exists(json, 'longueurCircuit') ? undefined : json['longueurCircuit'],
+        'siteweb': !exists(json, 'siteweb') ? undefined : json['siteweb'],
+        'facebook': !exists(json, 'facebook') ? undefined : json['facebook'],
+        'contactEmail': !exists(json, 'contactEmail') ? undefined : json['contactEmail'],
+        'contactPhone': !exists(json, 'contactPhone') ? undefined : json['contactPhone'],
+        'contactName': !exists(json, 'contactName') ? undefined : json['contactName'],
+        'openedToOtherFede': !exists(json, 'openedToOtherFede') ? undefined : json['openedToOtherFede'],
+        'openedNL': !exists(json, 'openedNL') ? undefined : json['openedNL'],
+        'dept': !exists(json, 'dept') ? undefined : json['dept'],
     };
 }
 
@@ -186,6 +242,14 @@ export function CompetitionEntityToJSON(value?: CompetitionEntity | null): any {
         'lieuDossard': value.lieuDossard,
         'lieuDossardGPS': value.lieuDossardGPS,
         'longueurCircuit': value.longueurCircuit,
+        'siteweb': value.siteweb,
+        'facebook': value.facebook,
+        'contactEmail': value.contactEmail,
+        'contactPhone': value.contactPhone,
+        'contactName': value.contactName,
+        'openedToOtherFede': value.openedToOtherFede,
+        'openedNL': value.openedNL,
+        'dept': value.dept,
     };
 }
 

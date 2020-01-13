@@ -18,6 +18,9 @@ import {
     CompetitionEntity,
     CompetitionEntityFromJSON,
     CompetitionEntityToJSON,
+    CompetitionFilter,
+    CompetitionFilterFromJSON,
+    CompetitionFilterToJSON,
     CompetitionReorganize,
     CompetitionReorganizeFromJSON,
     CompetitionReorganizeToJSON,
@@ -25,6 +28,10 @@ import {
 
 export interface GetCompetitionRequest {
     id: string;
+}
+
+export interface GetCompetitionsByFilterRequest {
+    competitionFilter: CompetitionFilter;
 }
 
 export interface ReorganizeRequest {
@@ -35,42 +42,6 @@ export interface ReorganizeRequest {
  * no description
  */
 export class CompetitionAPIApi extends runtime.BaseAPI {
-
-    /**
-     * Recherche toutes les compétitions disponibles
-     * Rechercher Toutes les compétitions 
-     */
-    async getAllCompetitionsRaw(): Promise<runtime.ApiResponse<Array<CompetitionEntity>>> {
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/api/competition`,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(CompetitionEntityFromJSON));
-    }
-
-    /**
-     * Recherche toutes les compétitions disponibles
-     * Rechercher Toutes les compétitions 
-     */
-    async getAllCompetitions(): Promise<Array<CompetitionEntity>> {
-        const response = await this.getAllCompetitionsRaw();
-        return await response.value();
-    }
 
     /**
      * Recherche une épreuve par son identifiant
@@ -109,6 +80,49 @@ export class CompetitionAPIApi extends runtime.BaseAPI {
      */
     async getCompetition(requestParameters: GetCompetitionRequest): Promise<CompetitionEntity> {
         const response = await this.getCompetitionRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Recherche toutes les compétitions disponibles dans le filtre
+     * Rechercher Toutes les compétitions correspondant au filtre passé en paramètre
+     */
+    async getCompetitionsByFilterRaw(requestParameters: GetCompetitionsByFilterRequest): Promise<runtime.ApiResponse<Array<CompetitionEntity>>> {
+        if (requestParameters.competitionFilter === null || requestParameters.competitionFilter === undefined) {
+            throw new runtime.RequiredError('competitionFilter','Required parameter requestParameters.competitionFilter was null or undefined when calling getCompetitionsByFilter.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/competition`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CompetitionFilterToJSON(requestParameters.competitionFilter),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(CompetitionEntityFromJSON));
+    }
+
+    /**
+     * Recherche toutes les compétitions disponibles dans le filtre
+     * Rechercher Toutes les compétitions correspondant au filtre passé en paramètre
+     */
+    async getCompetitionsByFilter(requestParameters: GetCompetitionsByFilterRequest): Promise<Array<CompetitionEntity>> {
+        const response = await this.getCompetitionsByFilterRaw(requestParameters);
         return await response.value();
     }
 
