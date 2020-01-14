@@ -20,6 +20,7 @@ export class RaceRow {
     public riderNumber?: number;
     public surclassed?: boolean;
     public licenceNumber?: string;
+    public licenceId?:string;
     public name?: string;
     public riderName?: string;
     public club?: string;
