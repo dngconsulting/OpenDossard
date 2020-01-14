@@ -177,7 +177,7 @@ export class RaceAPIApi extends runtime.BaseAPI {
     }
 
     /**
-     * Rechercher toutes les participation dans les courses de tous les temps 
+     * Rechercher toutes les participations à toutes les courses 
      */
     async getAllRacesRaw(): Promise<runtime.ApiResponse<Array<RaceRow>>> {
         const queryParameters: runtime.HTTPQuery = {};
@@ -203,7 +203,7 @@ export class RaceAPIApi extends runtime.BaseAPI {
     }
 
     /**
-     * Rechercher toutes les participation dans les courses de tous les temps 
+     * Rechercher toutes les participations à toutes les courses 
      */
     async getAllRaces(): Promise<Array<RaceRow>> {
         const response = await this.getAllRacesRaw();

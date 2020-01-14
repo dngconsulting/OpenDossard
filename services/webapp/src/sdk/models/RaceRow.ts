@@ -60,6 +60,12 @@ export interface RaceRow {
      * @type {string}
      * @memberof RaceRow
      */
+    licenceId?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceRow
+     */
     name?: string;
     /**
      * 
@@ -151,6 +157,7 @@ export function RaceRowFromJSONTyped(json: any, ignoreDiscriminator: boolean): R
         'riderNumber': !exists(json, 'riderNumber') ? undefined : json['riderNumber'],
         'surclassed': !exists(json, 'surclassed') ? undefined : json['surclassed'],
         'licenceNumber': !exists(json, 'licenceNumber') ? undefined : json['licenceNumber'],
+        'licenceId': !exists(json, 'licenceId') ? undefined : json['licenceId'],
         'name': !exists(json, 'name') ? undefined : json['name'],
         'riderName': !exists(json, 'riderName') ? undefined : json['riderName'],
         'club': !exists(json, 'club') ? undefined : json['club'],
@@ -182,6 +189,7 @@ export function RaceRowToJSON(value?: RaceRow | null): any {
         'riderNumber': value.riderNumber,
         'surclassed': value.surclassed,
         'licenceNumber': value.licenceNumber,
+        'licenceId': value.licenceId,
         'name': value.name,
         'riderName': value.riderName,
         'club': value.club,
