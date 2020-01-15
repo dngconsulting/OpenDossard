@@ -74,6 +74,32 @@ export class RacesCtrl {
         return await this.entityManager.query(query);
     }
 
+    @Get('palmares/:id')
+    @ApiOperation({
+        operationId: 'getPalmares',
+        summary: 'Rechercher le palmares d\'un coureur par son id coureur',
+    })
+    @ApiResponse({status: 200, type: RaceRow, isArray: true})
+    public async getPalmares(@Param('id') licenceId: number): Promise<RaceRow[]> {
+        const query = `select r.*,
+                              concat(l.name, ' ', l."firstName") as name,
+                              c.name,
+                              c."eventDate"  as "competitionDate",
+                              l."licenceNumber",
+                              l.club,
+                              l.gender,
+                              l.fede,
+                              l."birthYear",
+                              l.catea
+                       from race r
+                                join licence l on r."licenceId" = l.id
+                                join competition c on r."competitionId" = c.id
+                       where r."licenceId" = $1
+                       order by r.id desc`;
+        return await this.entityManager.query(query, [licenceId]);
+    }
+
+
     @UseGuards(AuthGuard('jwt'))
     @Get('/:id')
     @ApiOperation({
