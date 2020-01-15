@@ -82,7 +82,7 @@ export class RacesCtrl {
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
     public async getPalmares(@Param('id') licenceId: number): Promise<RaceRow[]> {
         const query = `select r.*,
-                              concat(l.name, ' ', l."firstName") as name,
+                              concat(l.name, ' ', l."firstName") as "riderName",
                               c.name,
                               c."eventDate"  as "competitionDate",
                               l."licenceNumber",
