@@ -15,6 +15,7 @@ const MAX_COMPETITION_TODISPLAY = 100;
  */
 @Controller('/api/competition')
 @ApiTags('CompetitionAPI')
+@UseGuards(AuthGuard('jwt'))
 export class CompetitionController {
     constructor(
         @InjectRepository(CompetitionEntity)
@@ -105,7 +106,6 @@ export class CompetitionController {
         return result;
     }
 
-    @UseGuards(AuthGuard('jwt'))
     @Post('/reorganize')
     @ApiOperation({
         operationId: 'reorganize',
