@@ -85,6 +85,7 @@ export class RacesCtrl {
                               concat(l.name, ' ', l."firstName") as "riderName",
                               c.name,
                               c."eventDate"  as "competitionDate",
+                              c."competitionType",
                               l."licenceNumber",
                               l.club,
                               l.gender,
