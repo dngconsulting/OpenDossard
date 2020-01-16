@@ -33,6 +33,7 @@ export class RaceRow {
     public competitionId: number;
     public competitionName?: string;
     public competitionType?:string;
+    public competitionRaces?:string[];
     @ApiPropertyOptional({ type: 'string', format: 'date-time'})
     public competitionDate?: Date;
     public sprintchallenge?: boolean;

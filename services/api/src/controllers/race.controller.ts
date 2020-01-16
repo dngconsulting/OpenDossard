@@ -86,6 +86,7 @@ export class RacesCtrl {
                               c.name,
                               c."eventDate"  as "competitionDate",
                               c."competitionType",
+                              c.races as "competitionRaces",
                               l."licenceNumber",
                               l.club,
                               l.gender,

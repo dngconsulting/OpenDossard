@@ -42,6 +42,10 @@ export interface GetCompetitionRacesRequest {
     id: number;
 }
 
+export interface GetPalmaresRequest {
+    id: number;
+}
+
 export interface RemoveRankingRequest {
     raceRow: RaceRow;
 }
@@ -279,6 +283,44 @@ export class RaceAPIApi extends runtime.BaseAPI {
      */
     async getNumberRider(): Promise<Array<RaceNbRider>> {
         const response = await this.getNumberRiderRaw();
+        return await response.value();
+    }
+
+    /**
+     * Rechercher le palmares d\'un coureur par son id coureur
+     */
+    async getPalmaresRaw(requestParameters: GetPalmaresRequest): Promise<runtime.ApiResponse<Array<RaceRow>>> {
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling getPalmares.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/races/palmares/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(RaceRowFromJSON));
+    }
+
+    /**
+     * Rechercher le palmares d\'un coureur par son id coureur
+     */
+    async getPalmares(requestParameters: GetPalmaresRequest): Promise<Array<RaceRow>> {
+        const response = await this.getPalmaresRaw(requestParameters);
         return await response.value();
     }
 

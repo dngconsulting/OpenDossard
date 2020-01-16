@@ -129,6 +129,18 @@ export interface RaceRow {
     competitionName?: string;
     /**
      * 
+     * @type {string}
+     * @memberof RaceRow
+     */
+    competitionType?: string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof RaceRow
+     */
+    competitionRaces?: Array<string>;
+    /**
+     * 
      * @type {Date}
      * @memberof RaceRow
      */
@@ -169,6 +181,8 @@ export function RaceRowFromJSONTyped(json: any, ignoreDiscriminator: boolean): R
         'comment': json['comment'],
         'competitionId': json['competitionId'],
         'competitionName': !exists(json, 'competitionName') ? undefined : json['competitionName'],
+        'competitionType': !exists(json, 'competitionType') ? undefined : json['competitionType'],
+        'competitionRaces': !exists(json, 'competitionRaces') ? undefined : json['competitionRaces'],
         'competitionDate': !exists(json, 'competitionDate') ? undefined : (new Date(json['competitionDate'])),
         'sprintchallenge': !exists(json, 'sprintchallenge') ? undefined : json['sprintchallenge'],
     };
@@ -201,6 +215,8 @@ export function RaceRowToJSON(value?: RaceRow | null): any {
         'comment': value.comment,
         'competitionId': value.competitionId,
         'competitionName': value.competitionName,
+        'competitionType': value.competitionType,
+        'competitionRaces': value.competitionRaces,
         'competitionDate': value.competitionDate === undefined ? undefined : (value.competitionDate.toISOString()),
         'sprintchallenge': value.sprintchallenge,
     };
