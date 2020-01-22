@@ -8,6 +8,8 @@ import {AuthGuard} from '@nestjs/passport';
 import {CompetitionFilter, CompetitionReorganize, Departement} from '../dto/model.dto';
 import * as moment from 'moment'
 import {TooMuchResults} from "../exception/TooMuchResults";
+import {ROLES, RolesGuard} from "../guards/roles.guard";
+import {Roles} from "../decorators/roles.decorator";
 const MAX_COMPETITION_TODISPLAY = 100;
 /**
  * Competition Controller handles all competitions operation ('Epreuve' in french)
@@ -15,7 +17,7 @@ const MAX_COMPETITION_TODISPLAY = 100;
  */
 @Controller('/api/competition')
 @ApiTags('CompetitionAPI')
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'),RolesGuard)
 export class CompetitionController {
     constructor(
         @InjectRepository(CompetitionEntity)
@@ -37,6 +39,7 @@ export class CompetitionController {
         isArray: false,
         description: 'Renvoie une épreuve',
     })
+    @Roles(ROLES.MOBILE,ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async get(@Param('id') id: string): Promise<CompetitionEntity> {
         const r = await this.repository.find({
             order: {
@@ -65,6 +68,7 @@ export class CompetitionController {
         description: 'Rechercher Toutes les compétitions correspondant au filtre passé en paramètre',
     })
     @Post()
+    @Roles(ROLES.MOBILE,ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async getCompetitionsByFilter(@Body() competitionFilter : CompetitionFilter): Promise<CompetitionEntity[]> {
         let futureEventDate,pastEventDate;
         console.log('Filtre => ' + JSON.stringify(competitionFilter));
@@ -112,6 +116,7 @@ export class CompetitionController {
         summary: 'Réorganisation des courses',
     })
     @ApiResponse({status: 200, isArray: false})
+    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async reorganize(@Body() dto: CompetitionReorganize): Promise<void> {
         const start = (new Date()).getTime();
         const competition = await this.repository.findOne(dto.competitionId);

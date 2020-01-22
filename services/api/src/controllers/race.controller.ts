@@ -21,6 +21,8 @@ import {InjectEntityManager} from '@nestjs/typeorm';
 import * as _ from 'lodash';
 import {AuthGuard} from '@nestjs/passport';
 import {RaceCreate, RaceNbRider, RaceRow} from '../dto/model.dto';
+import {ROLES, RolesGuard} from "../guards/roles.guard";
+import {Roles} from "../decorators/roles.decorator";
 
 /***
  * Races Controller manages races inside Competitions
@@ -28,7 +30,7 @@ import {RaceCreate, RaceNbRider, RaceRow} from '../dto/model.dto';
  */
 @Controller('/api/races')
 @ApiTags('RaceAPI')
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'),RolesGuard)
 export class RacesCtrl {
     constructor(
         @InjectEntityManager()
@@ -42,6 +44,7 @@ export class RacesCtrl {
         summary: 'Rechercher le nombre de coureur par course ',
     })
     @ApiResponse({status: 200, type: RaceNbRider, isArray: true})
+    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async getNumberRider(): Promise<RaceNbRider[]> {
         const query = `select count(r.*), c.name, r."raceCode", c."eventDate", c.fede
                        from race r
@@ -56,6 +59,7 @@ export class RacesCtrl {
         summary: 'Rechercher toutes les participations à toutes les courses ',
     })
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
+    @Roles(ROLES.MOBILE,ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async getAllRaces(): Promise<RaceRow[]> {
         const query = `select r.*,
                               concat(l.name, ' ', l."firstName") as "riderName",
@@ -108,6 +112,7 @@ export class RacesCtrl {
         summary: 'Rechercher tous les coureurs participants à une course ',
     })
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
+    @Roles(ROLES.MOBILE,ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async getCompetitionRaces(@Param('id') competitionId: number): Promise<RaceRow[]> {
 
         const query = `select r.*,
@@ -130,6 +135,7 @@ export class RacesCtrl {
         operationId: 'engage',
         summary: 'Engage un nouveau coureur ',
     })
+    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async create(@Body() race: RaceCreate)
         : Promise<void> {
 
@@ -192,6 +198,7 @@ export class RacesCtrl {
         summary: 'Classe le vainqueur du challenge',
         operationId: 'flagChallenge',
     })
+    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async flagChallenge(@Body() raceRow: RaceRow): Promise<void> {
         const racerowToUpdate = await this.entityManager.findOne<RaceEntity>(RaceEntity, {
             id: raceRow.id,
@@ -206,6 +213,7 @@ export class RacesCtrl {
         operationId: 'reorderRanking',
     })
     @ApiBody({ type: [RaceRow] })
+    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async reorderRanking(@Body() racesrows: RaceRow[]): Promise<void> {
         // Lets remove non ranked riders and DSQ/ABD
         Logger.debug('RaceRows request ' + racesrows);
@@ -226,6 +234,7 @@ export class RacesCtrl {
         summary: 'Supprime un coureur du classement',
         operationId: 'removeRanking',
     })
+    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async removeRanking(@Body() raceRow: RaceRow): Promise<void> {
         Logger.debug('RemoveRanking with raceRow=' + JSON.stringify(raceRow));
         const racerowToUpdate = await this.entityManager.findOne<RaceEntity>(RaceEntity, {
@@ -265,6 +274,7 @@ export class RacesCtrl {
         summary: 'Met à jour le classement du coureur ',
         operationId: 'updateRanking',
     })
+    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async updateRanking(@Body() raceRow: RaceRow)
         : Promise<void> {
         Logger.debug('Update Rank for rider ' + JSON.stringify(raceRow));
@@ -312,6 +322,7 @@ export class RacesCtrl {
         summary: 'Supprime une course',
         operationId: 'deleteRace',
     })
+    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async delete(@Param('id') id: string)
         : Promise<void> {
         this.entityManager.delete(RaceEntity, id);

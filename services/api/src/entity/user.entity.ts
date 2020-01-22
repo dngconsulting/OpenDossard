@@ -22,6 +22,9 @@ export class UserEntity {
     @Column({nullable: false})
     public email: string;
 
+    @Column({type:'simple-array',nullable: true})
+    public roles?: string[];
+
     @Column({nullable: true})
     public phone?: string;
 

@@ -4,8 +4,9 @@ import {Body, Controller, Delete, Get, Logger, Param, Post, Put, UseGuards} from
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
 import {ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
 import {Filter, LicencesPage, Search} from '../dto/model.dto';
-import {FederationEntity} from '../entity/federation.entity';
 import {AuthGuard} from '@nestjs/passport';
+import {ROLES, RolesGuard} from "../guards/roles.guard";
+import {Roles} from "../decorators/roles.decorator";
 
 /**
  * Licence Controler is in charge of handling rider licences
@@ -13,7 +14,7 @@ import {AuthGuard} from '@nestjs/passport';
  */
 @Controller('/api/licences')
 @ApiTags('LicenceAPI')
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'),RolesGuard)
 export class LicenceController {
     constructor(
         @InjectRepository(LicenceEntity)
@@ -30,6 +31,7 @@ export class LicenceController {
         description: 'Rechercher des licences en fonction, du nom, prénom ou numéro de licence ',
     })
     @ApiResponse({status: 200, type: LicenceEntity, isArray: true, description: 'Liste des licences'})
+    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async getLicencesLike(@Param('param') param: string): Promise<LicenceEntity> {
         const filterParam = '%' + param.replace(/\s+/g, '') + '%';
         const query: string = `select l.* from licence l where REPLACE(CONCAT(UPPER(l.name),UPPER(unaccent(l."firstName")),UPPER(CAST(l.fede AS VARCHAR)),UPPER(l."licenceNumber")),' ', '') like $1 OR REPLACE(CONCAT(UPPER(unaccent(l."firstName")),UPPER(l.name),UPPER(CAST(l.fede AS VARCHAR)),UPPER(l."licenceNumber")),' ','') like $1 fetch first 20 rows only`;
@@ -43,6 +45,7 @@ export class LicenceController {
         description: 'Recherche une licence par son identifiant',
     })
     @ApiResponse({status: 200, type: LicenceEntity, isArray: false, description: 'Renvoie une licence'})
+    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async get(@Param('id') id: string): Promise<LicenceEntity> {
         return await this.repository.createQueryBuilder().where('id = :id', {id}).getOne();
     }
@@ -54,6 +57,7 @@ export class LicenceController {
     })
     @ApiResponse({status: 200, type: LicenceEntity, isArray: true, description: 'Liste des licences'})
     @Get()
+    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async getAllLicences(): Promise<LicenceEntity[]> {
         return this.repository.find();
     }
@@ -65,6 +69,7 @@ export class LicenceController {
     })
     @Post('/filter')
     @ApiResponse({status: 200, type: LicencesPage})
+    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async getPageSizeLicencesForPage(@Body() search: Search): Promise<LicencesPage> {
         Logger.debug('Search=' + JSON.stringify(search))
         const qb = this.repository.createQueryBuilder();
@@ -98,6 +103,7 @@ export class LicenceController {
         operationId: 'create',
         summary: 'Cree une nouvelle licence',
     })
+    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async create(@Body() licence: LicenceEntity): Promise<void> {
         const newLicence = new LicenceEntity();
         newLicence.licenceNumber = licence.licenceNumber;
@@ -120,6 +126,7 @@ export class LicenceController {
         summary: 'Met à jour une licence existante',
         operationId: 'update',
     })
+    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async update(@Body() licence: LicenceEntity)
         : Promise<void> {
         const toUpdate = await this.entityManager.findOne(LicenceEntity, licence.id);
@@ -141,6 +148,7 @@ export class LicenceController {
         summary: 'Supprime une licence',
         operationId: 'delete',
     })
+    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async delete(@Param('id') id: string)
         : Promise<void> {
         await this.entityManager.delete(LicenceEntity, id);

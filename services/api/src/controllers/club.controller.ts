@@ -5,11 +5,12 @@ import {ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
 import {ClubEntity} from '../entity/club.entity';
 import {AuthGuard} from '@nestjs/passport';
 import {ClubRow} from '../dto/model.dto';
+import {RolesGuard} from "../guards/roles.guard";
 
 
 @Controller('/api/clubs')
 @ApiTags('ClubAPI')
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'),RolesGuard)
 export class ClubController {
     constructor(
         @InjectRepository(ClubEntity)

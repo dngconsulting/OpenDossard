@@ -24,6 +24,7 @@ import AppDrawer from './App.Drawer';
 import AppRoutes from './AppRoutes';
 import {CadSnackBar} from '../components/CadSnackbar';
 import logo from '../assets/logos/logoblanc.svg';
+import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 
 const classNames = require('classnames');
 
@@ -132,7 +133,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
                                 onClick={this.handleMenu}
                                 color="inherit"
                             >
-                                <AccountCircle/>
+                                <AccountCircleIcon htmlColor={'white'}/>
                             </IconButton>
                             <Menu
                                 id="menu-appbar"

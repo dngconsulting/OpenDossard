@@ -119,12 +119,12 @@ const HomePage = (props: IDashboardProps) => {
             },
             yAxis: {
                 title: {
-                    text: 'nb de coureurs'
+                    text: 'nb de participations'
                 }
             },
             series: [{
                 type: 'column',
-                name: 'Nombre de coureurs'
+                name: 'Nombre de participations par club'
             }]
         };
         const riders = _.groupBy(rows, (item: RaceRow) => item.club);
