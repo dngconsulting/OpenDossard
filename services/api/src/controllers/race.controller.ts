@@ -94,7 +94,7 @@ export class RacesCtrl {
                               l."licenceNumber",
                               l.club,
                               l.gender,
-                              l.fede,
+                              c.fede,
                               l."birthYear",
                               l.catea
                        from race r
