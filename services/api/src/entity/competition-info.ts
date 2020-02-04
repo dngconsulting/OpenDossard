@@ -8,9 +8,9 @@ export class CompetitionInfo {
     @ApiProperty()
     horaireDepart?: string;
     @ApiProperty()
-    info1?: number;
+    info1?: string;
     @ApiProperty()
-    info2?: number;
+    info2?: string;
     @ApiProperty()
     info3?: string;
 }
