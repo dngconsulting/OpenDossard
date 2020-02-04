@@ -2,15 +2,15 @@ import {ApiProperty} from "@nestjs/swagger";
 
 export class CompetitionInfo {
     @ApiProperty()
-    catev: string;
+    courses: string;
     @ApiProperty()
-    horaireDossard?: string;
+    horaireEngagement?: string;
     @ApiProperty()
     horaireDepart?: string;
     @ApiProperty()
-    nbTours?: number;
+    info1?: number;
     @ApiProperty()
-    totalKms?: number;
+    info2?: number;
     @ApiProperty()
-    recompense?: string;
+    info3?: string;
 }
