@@ -10,6 +10,7 @@ import * as moment from 'moment'
 import {TooMuchResults} from "../exception/TooMuchResults";
 import {ROLES, RolesGuard} from "../guards/roles.guard";
 import {Roles} from "../decorators/roles.decorator";
+import {FindManyOptions} from "typeorm/find-options/FindManyOptions";
 const MAX_COMPETITION_TODISPLAY = 100;
 /**
  * Competition Controller handles all competitions operation ('Epreuve' in french)
@@ -71,7 +72,7 @@ export class CompetitionController {
     @Roles(ROLES.MOBILE,ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async getCompetitionsByFilter(@Body() competitionFilter : CompetitionFilter): Promise<CompetitionEntity[]> {
         let futureEventDate,pastEventDate;
-        console.log('Filtre => ' + JSON.stringify(competitionFilter));
+        console.log('[CompetitionController] Filtre => ' + JSON.stringify(competitionFilter));
         const competFilter= competitionFilter.competitionTypes ? {competitionType: Any(Array.from(competitionFilter.competitionTypes))}:null
         const fedeFilter=  competitionFilter.fedes? {fede: Any(Array.from(competitionFilter.fedes))}:null
         if (competitionFilter.displayPast && competitionFilter.displayPast===true) {
@@ -88,7 +89,7 @@ export class CompetitionController {
             // Last minute of the current day
             futureEventDate=moment(new Date()).endOf('day');
         }
-        const result: CompetitionEntity[] = await this.repository.find({
+        const query : FindManyOptions<CompetitionEntity> = {
             where: {
                 ...(competFilter),
                 ...(fedeFilter),
@@ -101,7 +102,9 @@ export class CompetitionController {
                 eventDate: 'DESC',
             },
             relations: ['club'],
-        });
+        }
+        console.log('[CompetitionController] Query =' + query)
+        const result: CompetitionEntity[] = await this.repository.find(query);
 
         if (result.length>MAX_COMPETITION_TODISPLAY) {
             throw new TooMuchResults();

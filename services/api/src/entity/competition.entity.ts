@@ -103,8 +103,9 @@ export class CompetitionEntity {
 
     @Column({
         type: 'enum',
-        enum: CompetitionType,
+        name:'competitionType',
         nullable: true,
+        enum: CompetitionType,
         default: CompetitionType.ROUTE,
     })
     @ApiProperty({enum: CompetitionType})
