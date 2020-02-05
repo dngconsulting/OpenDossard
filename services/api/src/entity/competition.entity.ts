@@ -23,7 +23,7 @@ export enum CompetitionType {
     CX = 'CX',
     ROUTE = 'ROUTE',
     VTT = 'VTT',
-    AUTRE = '',
+    AUTRE = 'AUTRE',
 }
 
 /**
@@ -107,7 +107,8 @@ export class CompetitionEntity {
         nullable: true,
         default: CompetitionType.ROUTE,
     })
-    competitionType?: CompetitionType;
+    @ApiProperty({enum: CompetitionType})
+    competitionType: CompetitionType;
 
     @Column({type: 'json', nullable: true})
     competitionInfo?: Array<CompetitionInfo>;
