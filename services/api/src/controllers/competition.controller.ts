@@ -73,7 +73,7 @@ export class CompetitionController {
     public async getCompetitionsByFilter(@Body() competitionFilter : CompetitionFilter): Promise<CompetitionEntity[]> {
         let futureEventDate,pastEventDate;
         console.log('[CompetitionController] Filtre => ' + JSON.stringify(competitionFilter));
-        const competFilter= competitionFilter.competitionTypes ? {competitionType: Any(Array.from(competitionFilter.competitionTypes))}:null
+        const competFilter= competitionFilter.competitionTypes ? {competitiontype: Any(Array.from(competitionFilter.competitionTypes))}:null
         const fedeFilter=  competitionFilter.fedes? {fede: Any(Array.from(competitionFilter.fedes))}:null
         if (competitionFilter.displayPast && competitionFilter.displayPast===true) {
             // If display since is not passed we set it by default to one year => 365 days
