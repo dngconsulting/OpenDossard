@@ -103,7 +103,7 @@ export class CompetitionController {
             },
             relations: ['club'],
         }
-        console.log('[CompetitionController] Query =' + query)
+        console.log('[CompetitionController] Query =' + JSON.stringify(query))
         const result: CompetitionEntity[] = await this.repository.find(query);
 
         if (result.length>MAX_COMPETITION_TODISPLAY) {
