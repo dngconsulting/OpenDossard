@@ -103,7 +103,7 @@ export class CompetitionEntity {
 
     @Column({
         type: 'enum',
-        name:'competitionType',
+        name:'competitiontype',
         nullable: true,
         enum: CompetitionType,
         default: CompetitionType.ROUTE,
