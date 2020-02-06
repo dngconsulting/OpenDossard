@@ -1,4 +1,4 @@
-import {Module} from '@nestjs/common';
+import {Logger, Module} from '@nestjs/common';
 import {TypeOrmModule} from '@nestjs/typeorm';
 import {LicenceEntity} from './entity/licence.entity';
 import {CompetitionEntity} from './entity/competition.entity';
@@ -16,10 +16,12 @@ import {UserEntity} from './entity/user.entity';
             port: config.db.port,
             username: config.db.username,
             password: config.db.password,
+            maxQueryExecutionTime:5000,
             database: config.db.database,
             entities: [LicenceEntity, ClubEntity, CompetitionEntity, RaceEntity, UserEntity],
             synchronize: true,
             logging: true,
+            poolErrorHandler: (err:any) => {Logger.warn("Postgresql connection Pool error " + JSON.stringify(err))},
         }), Apiv2Module],
 
 })
