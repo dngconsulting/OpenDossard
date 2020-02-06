@@ -46,11 +46,7 @@ export class RacesCtrl {
     @ApiResponse({status: 200, type: RaceNbRider, isArray: true})
     @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async getNumberRider(): Promise<RaceNbRider[]> {
-        const query = `select count(r.*), c.name, r.race_code, c.event_date, c.fede
-                       from race r
-                                join competition c on r.competition_id = c.id
-                       group by r.competition_id, c.name, r.race_code, c.event_date, c.fede`;
-        return await this.entityManager.query(query);
+        return null;
     }
 
     @Get()
@@ -61,7 +57,17 @@ export class RacesCtrl {
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
     @Roles(ROLES.MOBILE,ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async getAllRaces(): Promise<RaceRow[]> {
-        const query = `select r.*,
+        const query = `select r.id,
+                              r.race_code as "raceCode",
+                              r.catev,                             
+                              r.rider_dossard as "riderNumber",
+                              r.ranking_scratch as "rankingScratch",
+                              r.number_min as "numberMin",
+                              r.number_max as "numberMax",
+                              r.licence_id as "licenceId",
+                              r.sprintchallenge,
+                              r.comment,
+                              r.competition_id as "competitionId",
                               concat(l.name, ' ', l.first_name) as "riderName",
                               l.licence_number,
                               l.club,
@@ -85,17 +91,27 @@ export class RacesCtrl {
     })
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
     public async getPalmares(@Param('id') licenceId: number): Promise<RaceRow[]> {
-        const query = `select r.*,
+        const query = `select r.id,
+                              r.race_code as "raceCode",
+                              r.catev,                             
+                              r.rider_dossard as "riderNumber",
+                              r.ranking_scratch as "rankingScratch",
+                              r.number_min as "numberMin",
+                              r.number_max as "numberMax",
+                              r.licence_id as "licenceId",
+                              r.sprintchallenge,
+                              r.comment,
+                              r.competition_id as "competitionId",
                               concat(l.name, ' ', l.first_name) as "riderName",
                               c.name,
                               c.event_date  as "competitionDate",
-                              c.competition_type,
+                              c.competition_type as "competitionType",
                               c.races as "competitionRaces",
-                              l.licence_number,
+                              l.licence_number as "licenceNumber",
                               l.club,
                               l.gender,
                               c.fede,
-                              l.birth_year,
+                              l.birth_year as "birthYear",
                               l.catea
                        from race r
                                 join licence l on r.licence_id = l.id
@@ -115,14 +131,25 @@ export class RacesCtrl {
     @Roles(ROLES.MOBILE,ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async getCompetitionRaces(@Param('id') competitionId: number): Promise<RaceRow[]> {
 
-        const query = `select r.*,
+        const query = `select r.id,
+                              r.race_code as "raceCode",
+                              r.catev,                             
+                              r.rider_dossard as "riderNumber",
+                              r.ranking_scratch as "rankingScratch",
+                              r.number_min as "numberMin",
+                              r.number_max as "numberMax",
+                              r.licence_id as "licenceId",
+                              r.sprintchallenge,
+                              r.comment,
+                              r.competition_id as "competitionId",
                               concat(l.name, ' ', l.first_name) as name,
-                              l.licence_number,
+                              l.licence_number as "licenceNumber",
+                              l.catea,
                               l.club,
                               l.gender,
                               l.fede,
-                              l.birth_year,
-                              l.catea
+                              l.birth_year as "birthYear",
+                             
                        from race r
                                 join licence l on r.licence_id = l.id
                        where r.competition_id = $1

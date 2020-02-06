@@ -7,6 +7,7 @@ import {Filter, LicencesPage, Search} from '../dto/model.dto';
 import {AuthGuard} from '@nestjs/passport';
 import {ROLES, RolesGuard} from "../guards/roles.guard";
 import {Roles} from "../decorators/roles.decorator";
+import {mappingLicenceFields} from "../util";
 
 /**
  * Licence Controler is in charge of handling rider licences
@@ -75,7 +76,7 @@ export class LicenceController {
         const qb = this.repository.createQueryBuilder();
         if (search.search === '') {
             search.filters.forEach((filter: Filter) => {
-                qb.andWhere(`"${filter.name}"` + ' ilike :' + filter.name, {[filter.name]: '%' + filter.value + '%'});
+                qb.andWhere(mappingLicenceFields[filter.name] + ' ilike :' + filter.name, {[filter.name]: '%' + filter.value + '%'});
             });
             if (typeof search.orderBy !== 'undefined') {
                 qb.orderBy(`"${search.orderBy}"`, search.orderDirection);
