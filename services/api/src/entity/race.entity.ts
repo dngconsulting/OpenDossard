@@ -15,23 +15,23 @@ export class RaceEntity {
     @JoinColumn()
     public licence: LicenceEntity;
 
-    @Column({nullable: true})
+    @Column({nullable: true,name:'race_code'})
     @Index()
     public raceCode: string;
 
     @Column({nullable: true})
     public catev: string;
 
-    @Column({nullable: true})
+    @Column({nullable: true,name:'rider_dossard'})
     public riderNumber: number;
 
-    @Column({nullable: true})
+    @Column({nullable: true,name:'ranking_scratch'})
     public rankingScratch: number;
 
-    @Column({nullable: true})
+    @Column({nullable: true,name:'number_min'})
     public numberMin: number;
 
-    @Column({nullable: true})
+    @Column({nullable: true,name:'number_max'})
     public numberMax: number;
 
     @Column({nullable: true})

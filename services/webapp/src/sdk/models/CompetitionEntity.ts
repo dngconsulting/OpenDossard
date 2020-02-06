@@ -105,7 +105,7 @@ export interface CompetitionEntity {
      * @type {string}
      * @memberof CompetitionEntity
      */
-    competitionType?: CompetitionEntityCompetitionTypeEnum;
+    competitionType: CompetitionEntityCompetitionTypeEnum;
     /**
      * 
      * @type {Array<CompetitionInfo>}
@@ -201,7 +201,7 @@ export function CompetitionEntityFromJSONTyped(json: any, ignoreDiscriminator: b
         'pricing': !exists(json, 'pricing') ? undefined : ((json['pricing'] as Array<any>).map(PricingInfoFromJSON)),
         'races': !exists(json, 'races') ? undefined : json['races'],
         'fede': json['fede'],
-        'competitionType': !exists(json, 'competitionType') ? undefined : json['competitionType'],
+        'competitionType': json['competitionType'],
         'competitionInfo': !exists(json, 'competitionInfo') ? undefined : ((json['competitionInfo'] as Array<any>).map(CompetitionInfoFromJSON)),
         'lieuDossard': !exists(json, 'lieuDossard') ? undefined : json['lieuDossard'],
         'lieuDossardGPS': json['lieuDossardGPS'],
@@ -275,6 +275,8 @@ export enum CompetitionEntityFedeEnum {
     FSGT = 'FSGT',
     UFOLEP = 'UFOLEP',
     FFC = 'FFC',
+    CYCLOS = 'CYCLOS',
+    FFVELO = 'FFVELO',
     NL = 'NL'
 }
 /**
@@ -285,7 +287,7 @@ export enum CompetitionEntityCompetitionTypeEnum {
     CX = 'CX',
     ROUTE = 'ROUTE',
     VTT = 'VTT',
-    Empty = ''
+    AUTRE = 'AUTRE'
 }
 
 

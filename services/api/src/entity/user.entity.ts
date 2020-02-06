@@ -10,10 +10,10 @@ export class UserEntity {
     @PrimaryGeneratedColumn()
     public id: number;
 
-    @Column({nullable: true})
+    @Column({nullable: true,name:'first_name'})
     public firstName?: string;
 
-    @Column({nullable: true})
+    @Column({nullable: true,name:'last_name'})
     public lastName?: string;
 
     @Column({nullable: true})

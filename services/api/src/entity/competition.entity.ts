@@ -38,7 +38,7 @@ export class CompetitionEntity {
     /**
      * La eventDate de l'épreuve au format JS
      */
-    @Column({nullable: false})
+    @Column({nullable: false,name:'event_date'})
     @ApiProperty({type: 'string', format: 'date-time'})
     @Index()
     public eventDate: Date;
@@ -56,7 +56,7 @@ export class CompetitionEntity {
     /**
      * Le code postal correspondant à la commune
      */
-    @Column({nullable: false})
+    @Column({nullable: false,name:'zip_code'})
     public zipCode: string;
     /**
      * L'identifiant OpenRunner du circuit, plat/vallonné/montagneux
@@ -103,7 +103,7 @@ export class CompetitionEntity {
 
     @Column({
         type: 'enum',
-        name:'competitiontype',
+        name:'competition_type',
         nullable: true,
         enum: CompetitionType,
         default: CompetitionType.ROUTE,
@@ -114,13 +114,13 @@ export class CompetitionEntity {
     @Column({type: 'json', nullable: true})
     competitionInfo?: Array<CompetitionInfo>;
 
-    @Column({nullable: true})
+    @Column({nullable: true,name:'lieu_dossard'})
     lieuDossard?: string;
 
-    @Column({nullable: true})
+    @Column({nullable: true,name:'lieu_dossard_gps'})
     lieuDossardGPS: string;
 
-    @Column({nullable: true})
+    @Column({nullable: true,name:'longueur_circuit'})
     longueurCircuit?: string;
 
     @Column({nullable: true})
@@ -129,19 +129,19 @@ export class CompetitionEntity {
     @Column({nullable: true})
     facebook?: string;
 
-    @Column({nullable: true})
+    @Column({nullable: true,name:'contact_email'})
     contactEmail?: string;
 
-    @Column({nullable: true})
+    @Column({nullable: true,name:'contact_phone'})
     contactPhone?: string;
 
-    @Column({nullable: true})
+    @Column({nullable: true,name:'contact_name'})
     contactName?: string;
 
-    @Column({nullable: true})
+    @Column({nullable: true,name:'opened_to_other_fede'})
     openedToOtherFede?: boolean;
 
-    @Column({nullable: true})
+    @Column({nullable: true,name:'opened_nl'})
     openedNL?: boolean;
 
     @Column({length: 2,nullable:true})

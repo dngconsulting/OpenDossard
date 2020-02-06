@@ -24,13 +24,13 @@ export interface CompetitionInfo {
      * @type {string}
      * @memberof CompetitionInfo
      */
-    catev: string;
+    course: string;
     /**
      * 
      * @type {string}
      * @memberof CompetitionInfo
      */
-    horaireDossard: string;
+    horaireEngagement: string;
     /**
      * 
      * @type {string}
@@ -39,22 +39,22 @@ export interface CompetitionInfo {
     horaireDepart: string;
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof CompetitionInfo
      */
-    nbTours: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof CompetitionInfo
-     */
-    totalKms: number;
+    info1: string;
     /**
      * 
      * @type {string}
      * @memberof CompetitionInfo
      */
-    recompense: string;
+    info2: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CompetitionInfo
+     */
+    info3: string;
 }
 
 export function CompetitionInfoFromJSON(json: any): CompetitionInfo {
@@ -67,12 +67,12 @@ export function CompetitionInfoFromJSONTyped(json: any, ignoreDiscriminator: boo
     }
     return {
         
-        'catev': json['catev'],
-        'horaireDossard': json['horaireDossard'],
+        'course': json['course'],
+        'horaireEngagement': json['horaireEngagement'],
         'horaireDepart': json['horaireDepart'],
-        'nbTours': json['nbTours'],
-        'totalKms': json['totalKms'],
-        'recompense': json['recompense'],
+        'info1': json['info1'],
+        'info2': json['info2'],
+        'info3': json['info3'],
     };
 }
 
@@ -85,12 +85,12 @@ export function CompetitionInfoToJSON(value?: CompetitionInfo | null): any {
     }
     return {
         
-        'catev': value.catev,
-        'horaireDossard': value.horaireDossard,
+        'course': value.course,
+        'horaireEngagement': value.horaireEngagement,
         'horaireDepart': value.horaireDepart,
-        'nbTours': value.nbTours,
-        'totalKms': value.totalKms,
-        'recompense': value.recompense,
+        'info1': value.info1,
+        'info2': value.info2,
+        'info3': value.info3,
     };
 }
 

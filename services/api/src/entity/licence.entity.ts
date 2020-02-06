@@ -7,7 +7,7 @@ export class LicenceEntity {
     @PrimaryGeneratedColumn()
     public id: number;
 
-    @Column({nullable: true})
+    @Column({nullable: true,name:'licence_number'})
     @Index()
     licenceNumber: string;
 
@@ -28,7 +28,7 @@ export class LicenceEntity {
     @Column({nullable: true})
     dept: string;
 
-    @Column({nullable: true})
+    @Column({nullable: true,name:'birthYear'})
     birthYear: string;
 
     @Column({nullable: true})

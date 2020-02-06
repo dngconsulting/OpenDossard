@@ -51,6 +51,12 @@ export interface UserEntity {
     email: string;
     /**
      * 
+     * @type {Array<string>}
+     * @memberof UserEntity
+     */
+    roles?: Array<string>;
+    /**
+     * 
      * @type {string}
      * @memberof UserEntity
      */
@@ -78,6 +84,7 @@ export function UserEntityFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'lastName': !exists(json, 'lastName') ? undefined : json['lastName'],
         'password': !exists(json, 'password') ? undefined : json['password'],
         'email': json['email'],
+        'roles': !exists(json, 'roles') ? undefined : json['roles'],
         'phone': !exists(json, 'phone') ? undefined : json['phone'],
         'accessToken': !exists(json, 'accessToken') ? undefined : json['accessToken'],
     };
@@ -97,6 +104,7 @@ export function UserEntityToJSON(value?: UserEntity | null): any {
         'lastName': value.lastName,
         'password': value.password,
         'email': value.email,
+        'roles': value.roles,
         'phone': value.phone,
         'accessToken': value.accessToken,
     };

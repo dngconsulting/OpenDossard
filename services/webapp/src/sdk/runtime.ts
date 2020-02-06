@@ -13,7 +13,7 @@
  */
 
 
-export const BASE_PATH = "http://localhost".replace(/\/+$/, "");
+export const BASE_PATH = "https://app.opendossard.com".replace(/\/+$/, "");
 
 const isBlob = (value: any) => typeof Blob !== 'undefined' && value instanceof Blob;
 
@@ -293,7 +293,6 @@ export class JSONApiResponse<T> {
 
 export class VoidApiResponse {
     constructor(public raw: Response) {}
-
     // @ts-ignore
     async value() {
         return undefined;
