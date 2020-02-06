@@ -148,8 +148,7 @@ export class RacesCtrl {
                               l.club,
                               l.gender,
                               l.fede,
-                              l.birth_year as "birthYear",
-                             
+                              l.birth_year as "birthYear"
                        from race r
                                 join licence l on r.licence_id = l.id
                        where r.competition_id = $1
