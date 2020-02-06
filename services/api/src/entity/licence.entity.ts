@@ -15,7 +15,7 @@ export class LicenceEntity {
     @Index()
     name: string;
 
-    @Column({nullable: true})
+    @Column({nullable: true,name:'first_name'})
     @Index()
     firstName: string;
 
