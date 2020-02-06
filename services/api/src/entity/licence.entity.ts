@@ -28,7 +28,7 @@ export class LicenceEntity {
     @Column({nullable: true})
     dept: string;
 
-    @Column({nullable: true,name:'birthYear'})
+    @Column({nullable: true,name:'birth_year'})
     birthYear: string;
 
     @Column({nullable: true})
