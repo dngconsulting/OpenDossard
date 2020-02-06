@@ -112,7 +112,7 @@ export class CompetitionEntity {
     competitionType: CompetitionType;
 
 
-    @Column({type: 'json', nullable: true,name:'competition_type'})
+    @Column({type: 'json', nullable: true,name:'competition_info'})
     competitionInfo?: Array<CompetitionInfo>;
 
     @Column({nullable: true,name:'lieu_dossard'})
