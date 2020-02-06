@@ -46,10 +46,10 @@ export class RacesCtrl {
     @ApiResponse({status: 200, type: RaceNbRider, isArray: true})
     @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async getNumberRider(): Promise<RaceNbRider[]> {
-        const query = `select count(r.*), c.name, r."raceCode", c."eventDate", c.fede
+        const query = `select count(r.*), c.name, r.race_code, c.event_date, c.fede
                        from race r
-                                join competition c on r."competitionId" = c.id
-                       group by r."competitionId", c.name, r."raceCode", c."eventDate", c.fede`;
+                                join competition c on r.competition_id = c.id
+                       group by r.competition_id, c.name, r.race_code, c.event_date, c.fede`;
         return await this.entityManager.query(query);
     }
 
@@ -62,18 +62,18 @@ export class RacesCtrl {
     @Roles(ROLES.MOBILE,ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async getAllRaces(): Promise<RaceRow[]> {
         const query = `select r.*,
-                              concat(l.name, ' ', l."firstName") as "riderName",
-                              l."licenceNumber",
+                              concat(l.name, ' ', l.first_name) as "riderName",
+                              l.licence_number,
                               l.club,
                               l.gender,
                               l.fede,
-                              l."birthYear",
+                              l.birth_year,
                               l.catea,
                               c.name,
-                              c."eventDate"
+                              c.event_date
                        from race r
-                                join licence l on r."licenceId" = l.id
-                                join competition c on r."competitionId" = c.id
+                                join licence l on r.licence_id = l.id
+                                join competition c on r.competition_id = c.id
                        order by r.id desc`;
         return await this.entityManager.query(query);
     }
@@ -86,21 +86,21 @@ export class RacesCtrl {
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
     public async getPalmares(@Param('id') licenceId: number): Promise<RaceRow[]> {
         const query = `select r.*,
-                              concat(l.name, ' ', l."firstName") as "riderName",
+                              concat(l.name, ' ', l.first_name) as "riderName",
                               c.name,
-                              c."eventDate"  as "competitionDate",
-                              c."competitionType",
+                              c.event_date  as "competitionDate",
+                              c.competition_type,
                               c.races as "competitionRaces",
-                              l."licenceNumber",
+                              l.licence_number,
                               l.club,
                               l.gender,
                               c.fede,
-                              l."birthYear",
+                              l.birth_year,
                               l.catea
                        from race r
-                                join licence l on r."licenceId" = l.id
-                                join competition c on r."competitionId" = c.id
-                       where r."licenceId" = $1
+                                join licence l on r.licence_id = l.id
+                                join competition c on r.competition_id = c.id
+                       where r.licence_id = $1
                        order by r.id desc`;
         return await this.entityManager.query(query, [licenceId]);
     }
@@ -116,16 +116,16 @@ export class RacesCtrl {
     public async getCompetitionRaces(@Param('id') competitionId: number): Promise<RaceRow[]> {
 
         const query = `select r.*,
-                              concat(l.name, ' ', l."firstName") as name,
-                              l."licenceNumber",
+                              concat(l.name, ' ', l.first_name) as name,
+                              l.licence_number,
                               l.club,
                               l.gender,
                               l.fede,
-                              l."birthYear",
+                              l.birth_year,
                               l.catea
                        from race r
-                                join licence l on r."licenceId" = l.id
-                       where r."competitionId" = $1
+                                join licence l on r.licence_id = l.id
+                       where r.competition_id = $1
                        order by r.id desc`;
         return await this.entityManager.query(query, [competitionId]);
     }
@@ -158,7 +158,7 @@ export class RacesCtrl {
         }
 
         const numberConflict = await this.entityManager.createQueryBuilder(RaceEntity, 'race')
-            .where('race."competitionId" = :cid and race."riderNumber" = :riderNumber and race."raceCode"= :raceCode', {
+            .where('race.competition_id = :cid and race.rider_number = :riderNumber and race.race_code= :raceCode', {
                 cid: race.competitionId,
                 riderNumber: race.riderNumber,
                 raceCode: race.raceCode,
@@ -170,7 +170,7 @@ export class RacesCtrl {
         }
 
         const licenceConflict = await this.entityManager.createQueryBuilder(RaceEntity, 'race')
-            .where('race."competitionId" = :cid and race."licenceId" = :licenceId', {
+            .where('race.competition_id = :cid and race.licence_id = :licenceId', {
                 cid: race.competitionId,
                 licenceId: licence.id,
             })
