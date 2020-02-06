@@ -7,10 +7,12 @@ export class RaceEntity {
     @PrimaryGeneratedColumn()
     public id: number;
 
+    @Column({name:'competition_id'})
     @ManyToOne((type) => CompetitionEntity)
     @JoinColumn()
     public competition: CompetitionEntity;
 
+    @Column({name:'licence_id'})
     @ManyToOne((type) => LicenceEntity)
     @JoinColumn()
     public licence: LicenceEntity;

@@ -45,6 +45,7 @@ export class CompetitionEntity {
     /**
      * La référence du club organisateur
      */
+    @Column({name:'club_id'})
     @ManyToOne((type) => ClubEntity)
     @JoinColumn()
     public club: ClubEntity;
@@ -111,7 +112,8 @@ export class CompetitionEntity {
     @ApiProperty({enum: CompetitionType})
     competitionType: CompetitionType;
 
-    @Column({type: 'json', nullable: true})
+
+    @Column({type: 'json', nullable: true,name:'competition_type'})
     competitionInfo?: Array<CompetitionInfo>;
 
     @Column({nullable: true,name:'lieu_dossard'})
