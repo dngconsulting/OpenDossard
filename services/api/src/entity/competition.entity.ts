@@ -45,9 +45,8 @@ export class CompetitionEntity {
     /**
      * La référence du club organisateur
      */
-    @Column({name:'club_id'})
     @ManyToOne((type) => ClubEntity)
-    @JoinColumn()
+    @JoinColumn({name:'club_id'})
     public club: ClubEntity;
     /**
      * Le nom de l'épreuve

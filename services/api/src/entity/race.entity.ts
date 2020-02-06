@@ -7,14 +7,12 @@ export class RaceEntity {
     @PrimaryGeneratedColumn()
     public id: number;
 
-    @Column({name:'competition_id'})
     @ManyToOne((type) => CompetitionEntity)
-    @JoinColumn()
+    @JoinColumn({name:'competition_id'})
     public competition: CompetitionEntity;
 
-    @Column({name:'licence_id'})
     @ManyToOne((type) => LicenceEntity)
-    @JoinColumn()
+    @JoinColumn({name:'licence_id'})
     public licence: LicenceEntity;
 
     @Column({nullable: true,name:'race_code'})
