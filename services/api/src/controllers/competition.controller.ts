@@ -11,7 +11,7 @@ import {TooMuchResults} from "../exception/TooMuchResults";
 import {ROLES, RolesGuard} from "../guards/roles.guard";
 import {Roles} from "../decorators/roles.decorator";
 import {FindManyOptions} from "typeorm/find-options/FindManyOptions";
-const MAX_COMPETITION_TODISPLAY = 100;
+const MAX_COMPETITION_TODISPLAY = 5000;
 /**
  * Competition Controller handles all competitions operation ('Epreuve' in french)
  * The Reorganization method is when races are reorganized by categories
