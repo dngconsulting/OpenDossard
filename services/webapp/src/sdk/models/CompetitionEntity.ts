@@ -178,6 +178,12 @@ export interface CompetitionEntity {
      * @memberof CompetitionEntity
      */
     dept?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CompetitionEntity
+     */
+    rankingUrl?: string;
 }
 
 export function CompetitionEntityFromJSON(json: any): CompetitionEntity {
@@ -214,6 +220,7 @@ export function CompetitionEntityFromJSONTyped(json: any, ignoreDiscriminator: b
         'openedToOtherFede': !exists(json, 'openedToOtherFede') ? undefined : json['openedToOtherFede'],
         'openedNL': !exists(json, 'openedNL') ? undefined : json['openedNL'],
         'dept': !exists(json, 'dept') ? undefined : json['dept'],
+        'rankingUrl': !exists(json, 'rankingUrl') ? undefined : json['rankingUrl'],
     };
 }
 
@@ -250,6 +257,7 @@ export function CompetitionEntityToJSON(value?: CompetitionEntity | null): any {
         'openedToOtherFede': value.openedToOtherFede,
         'openedNL': value.openedNL,
         'dept': value.dept,
+        'rankingUrl': value.rankingUrl,
     };
 }
 
