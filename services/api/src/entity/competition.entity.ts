@@ -147,4 +147,7 @@ export class CompetitionEntity {
 
     @Column({length: 2,nullable:true})
     dept?: string;
+
+    @Column({nullable:true})
+    rankingUrl?: string;
 }
