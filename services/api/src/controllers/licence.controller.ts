@@ -36,6 +36,7 @@ export class LicenceController {
     public async getLicencesLike(@Param('param') param: string): Promise<LicenceEntity> {
         const filterParam = '%' + param.replace(/\s+/g, '') + '%';
         const query: string = `select l.licence_number as "licenceNumber",
+                              l.id,
                               l.club,
                               l.gender,
                               l.name,
