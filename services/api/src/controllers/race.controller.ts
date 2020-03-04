@@ -184,7 +184,7 @@ export class RacesCtrl {
         }
 
         const numberConflict = await this.entityManager.createQueryBuilder(RaceEntity, 'race')
-            .where('race.competition_id = :cid and race.rider_number = :riderNumber and race.race_code= :raceCode', {
+            .where('race.competition_id = :cid and race.rider_dossard = :riderNumber and race.race_code= :raceCode', {
                 cid: race.competitionId,
                 riderNumber: race.riderNumber,
                 raceCode: race.raceCode,
