@@ -35,7 +35,16 @@ export class LicenceController {
     @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async getLicencesLike(@Param('param') param: string): Promise<LicenceEntity> {
         const filterParam = '%' + param.replace(/\s+/g, '') + '%';
-        const query: string = `select l.* from licence l where REPLACE(CONCAT(UPPER(l.name),UPPER(unaccent(l.first_name)),UPPER(CAST(l.fede AS VARCHAR)),UPPER(l.licence_number)),' ', '') like $1 OR REPLACE(CONCAT(UPPER(unaccent(l.first_name)),UPPER(l.name),UPPER(CAST(l.fede AS VARCHAR)),UPPER(l.licence_number)),' ','') like $1 fetch first 20 rows only`;
+        const query: string = `select l.licence_number as "licenceNumber",
+                              l.club,
+                              l.gender,
+                              l.name,
+                              l.dept,
+                              l.fede,
+                              l.first_name as "firstName",
+                              l.birth_year as "birthYear",
+                              l.catev,
+                              l.catea from licence l where REPLACE(CONCAT(UPPER(l.name),UPPER(unaccent(l.first_name)),UPPER(CAST(l.fede AS VARCHAR)),UPPER(l.licence_number)),' ', '') like $1 OR REPLACE(CONCAT(UPPER(unaccent(l.first_name)),UPPER(l.name),UPPER(CAST(l.fede AS VARCHAR)),UPPER(l.licence_number)),' ','') like $1 fetch first 20 rows only`;
         return await this.entityManager.query(query, [filterParam]);
     }
 
