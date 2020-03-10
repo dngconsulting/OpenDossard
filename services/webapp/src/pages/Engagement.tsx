@@ -21,7 +21,7 @@ import {Column, ColumnProps} from 'primereact/column';
 import {CreationForm} from './engagement/EngagementCreation';
 import {Reorganizer} from './engagement/ReorganizeRaces';
 import Box from '@material-ui/core/Box';
-import {RaceRow} from '../sdk';
+import {DeleteRaceRequest, RaceRow} from '../sdk';
 import {ArrowUpward, Delete} from '@material-ui/icons';
 
 const style = makeStyles(theme => ({
@@ -77,14 +77,14 @@ const EngagementPage = (props: any) => {
     const saisieResultat = props.match.url.includes('engagementresultats');
     const dg = useRef(null);
     const [, setNotification] = useContext(NotificationContext);
-    const [selectedRow, selectRow] = useState();
+    const [selectedRow, selectRow] = useState<RaceRow>();
     const [open, openDialog] = React.useState(false);
     const closeDialog = () => {
         openDialog(false);
     };
 
     const handleOk = async (fetchRows: any) => {
-        await apiRaces.deleteRace({id: selectedRow.id});
+            await apiRaces.deleteRace({id: String(selectedRow.id)});
         fetchRows();
         setNotification({
             message: `Le coureur ${selectedRow.id} a été supprimé de la compétition`,

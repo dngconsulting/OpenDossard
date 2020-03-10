@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "priprimevate": true,
   "dependencies": {
-    "@material-ui/core": "^4.4.2",
-    "@material-ui/icons": "^4.4.1",
+    "@material-ui/core": "^4.9.5",
+    "@material-ui/icons": "^4.9.1",
     "@types/immutable": "^3.8.7",
     "@types/lodash": "^4.14.138",
     "@types/moment": "^2.13.0",
@@ -37,8 +37,7 @@
     "react-select": "3.0.5",
     "redux": "^4.0.4",
     "redux-auth-wrapper": "^2.1.0",
-    "redux-thunk": "^2.3.0",
-    "serialize-javascript": "^3.0.0"
+    "redux-thunk": "^2.3.0"
   },
   "devDependencies": {
     "@types/jest": "^22.2.3",
