@@ -43,7 +43,7 @@ const EditResultsPage = (gprops: any) => {
                 }
                 return {
                     classement: classementToDisplay,
-                    ...(item.rankingScratch !== null ? {...item} : {})
+                    ...(item.rankingScratch !== null || item.comment !== null  ? {...item} : {})
                 };
             }
         );

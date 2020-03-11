@@ -68,7 +68,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
             key: '999',
             path: '/competitionchooser/engagementresultats',
             state: {title: 'Gestion des Engagements'},
-            title: 'Engagements ET saisie des résultats',
+            title: 'Saisie Rapide résultats',
             icon: () => <AssignmentIcon color={'error'}/>
         },
         {

@@ -41,7 +41,7 @@ const config = convict({
             format: String,
         },
         jwtExpires: {
-            default: '1200',
+            default: '360000',
             doc: 'Toke Expiration time',
             env: 'JWT_EXPIRE_SECONDS',
             format: String,

@@ -12,6 +12,7 @@ import {toMMDDYYYY} from '../util/date';
 import FormatListNumberedIcon from '@material-ui/icons/FormatListNumbered';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import moment from 'moment';
+import _ from 'lodash';
 
 interface ICompetitionChooserProps {
     classes?: any;
@@ -43,7 +44,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
     const gotoPage = props.match.params.goto;
     const [data, setData] = useState<Competition[]>([]);
     const [filteredData, setFilteredData] = useState<Competition[]>([]);
-    const [selectPastOrFuture, setSelectPastOrFuture] = useState('all');
+    const [selectPastOrFuture, setSelectPastOrFuture] = useState('future');
     const [loading, setLoading] = useState(false);
     const classes = useStyles(cadtheme);
     const fetchCompetitions = async () => {
@@ -58,7 +59,9 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         }
         const results = await apiCompetitions.getCompetitionsByFilter({competitionFilter:competitionFilter});
         setData(results);
-        setFilteredData(results);
+        setFilteredData(
+            _.orderBy(results.filter((comp: Competition) => moment(comp.eventDate).isAfter(moment())), ['eventDate'], ['asc'])
+        )
     };
     useEffect(() => {
         const initData = async () => {
@@ -103,7 +106,9 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         if (event.target.value === 'all') {
             setFilteredData(data) ;
         } else {
-            setFilteredData(data.filter((comp: Competition) => event.target.value === 'past' ? moment(comp.eventDate).isBefore(moment()) : moment(comp.eventDate).isAfter(moment())))
+            setFilteredData(
+                _.orderBy(data.filter((comp: Competition) => event.target.value === 'past' ? moment(comp.eventDate).isBefore(moment()) : moment(comp.eventDate).isAfter(moment())), ['eventDate'], ['asc'])
+                )
         }
     };
 

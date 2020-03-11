@@ -16,7 +16,7 @@ import {UserEntity} from './entity/user.entity';
             port: config.db.port,
             username: config.db.username,
             password: config.db.password,
-            maxQueryExecutionTime:5000,
+            maxQueryExecutionTime:10000,
             database: config.db.database,
             entities: [LicenceEntity, ClubEntity, CompetitionEntity, RaceEntity, UserEntity],
             synchronize: config.app.env === 'DEV'?true:false,
