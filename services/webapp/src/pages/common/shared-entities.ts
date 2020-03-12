@@ -38,7 +38,7 @@ export const FEDERATIONS = {
     },
     FFC: {
         name: {label: 'FFC', value: 'FFC'},
-        CATEV
+        catev : [...CATEV]
     },
     NL:{
         name:{label: 'Non Licencié', value: 'NL'},

@@ -52,7 +52,7 @@ const LicencesPage = (props: ILicencesProps) => {
                     {title: 'Genre', field: 'gender',cellStyle:{width:50}},
                     {title: 'Dept', field: 'dept',cellStyle:{width:50}},
                     {title: 'Année', field: 'birthYear',cellStyle:{width:100}},
-                    {title: 'Fédé', field: 'fede',cellStyle:{width:50},filtering:false},
+                    {title: 'Fédé', field: 'fede',cellStyle:{width:50}},
                 ]}
                 data={fetchLicences}
                 options={{

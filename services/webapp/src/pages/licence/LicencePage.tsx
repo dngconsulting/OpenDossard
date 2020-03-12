@@ -272,7 +272,7 @@ const LicencesPage = (props: ILicencesProps) => {
                         > {
                             newLicence.fede &&
                             FEDERATIONS[newLicence.fede.toString()].catev.map((value: ICategory, index: number) =>
-                                <MenuItem key={index} value={value.value}>{value.label}</MenuItem>)
+                                value.label != 'Non Licencié' && <MenuItem key={index} value={value.value}>{value.label}</MenuItem>)
                         }
                         </Select>
                     </FormControl>
