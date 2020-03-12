@@ -8,3 +8,5 @@ var
 .idea/*
 
 /services/api/src/coverage/
+/node_modules/
+/services/webapp/package-lock.json

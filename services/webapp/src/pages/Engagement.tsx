@@ -1,13 +1,6 @@
 import React, {useContext, useRef, useState} from 'react';
 
-import {
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    makeStyles
-} from '@material-ui/core';
+import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, makeStyles} from '@material-ui/core';
 import 'primereact/resources/themes/nova-light/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
@@ -21,8 +14,14 @@ import {Column, ColumnProps} from 'primereact/column';
 import {CreationForm} from './engagement/EngagementCreation';
 import {Reorganizer} from './engagement/ReorganizeRaces';
 import Box from '@material-ui/core/Box';
-import {DeleteRaceRequest, RaceRow} from '../sdk';
-import {ArrowUpward, Delete} from '@material-ui/icons';
+import {RaceRow} from '../sdk';
+import {Delete, Warning} from '@material-ui/icons';
+import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
+import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import Typography from '@material-ui/core/Typography';
+import ExpansionPanel from '@material-ui/core/ExpansionPanel';
+import * as jsPDF from 'jspdf'
 
 const style = makeStyles(theme => ({
     surclassed: {
@@ -94,6 +93,10 @@ const EngagementPage = (props: any) => {
         closeDialog();
     };
     const classes = style({});
+
+    const exportFile = async () => {
+        dg && dg.current && dg.current.exportCSV();
+    }
     return <CompetitionLayout competitionId={competitionId}>
         {
             ({competition, currentRace, rows, fetchRows, fetchCompetition}) => {
@@ -139,8 +142,8 @@ const EngagementPage = (props: any) => {
                         field: 'catev', header: 'Caté. V.', ...FILTERABLE, ...SHORT,
                         body: (row: RaceRow) => <span>
                             {row.catev}
-                            {surclassed(row) && <span title="surclassé"
-                                                      className={classes.surclassed}><ArrowUpward/></span>}
+                            {surclassed(row) && <span title="surclassé ou catégorie supérieure"
+                                                      className={classes.surclassed}><Warning/></span>}
                         </span>
                     },
                     {field: 'gender', header: 'H/F', ...FILTERABLE, ...SHORT},
@@ -148,7 +151,11 @@ const EngagementPage = (props: any) => {
                     {field: 'birthYear', header: 'Année', ...FILTERABLE, ...SHORT},
                     {field: 'fede', header: 'Fédé.', ...FILTERABLE, ...SHORT},
                 ];
-
+                const exportPDF = async () => {
+                    /*const doc = new jsPDF.default(0,0);
+                    doc.autoTable(columns, saisieResultat?filterByRace(rows, currentRace).reverse():filterByRace(rows, currentRace));
+                    doc.save('test.pdf');*/
+                }
                 return (
                     <Box position="relative" padding={0}>
                         <Box top={-38} right={10} position="absolute">
@@ -171,10 +178,42 @@ const EngagementPage = (props: any) => {
 
                         <DataTable ref={dg} value={saisieResultat?filterByRace(rows, currentRace).reverse():filterByRace(rows, currentRace)}
                                    emptyMessage="Aucun coureur encore engagé sur cette épreuve ou aucun coureur ne correspond à votre filtre de recherche"
-                                   responsive={true}>
+                                   responsive={true}
+                                   exportFilename={(competition&&competition.name) + '_CAT_' + currentRace}
+                        >
                             {columns.map((column, i) => <Column key={i + 1} {...column}/>)}
 
                         </DataTable>
+                        <ExpansionPanel>
+                            <ExpansionPanelSummary
+                                expandIcon={<ExpandMoreIcon />}
+                                aria-controls="panel1a-content"
+                                id="panel1a-header"
+                            >
+                                <Typography>Sauvegarde et Génération de fichiers PDF</Typography>
+                            </ExpansionPanelSummary>
+                            <ExpansionPanelDetails>
+                                <div style={{display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}}>
+                                    <Button
+                                        variant="contained"
+                                        style={{marginRight:'20px'}}
+                                        color="primary"
+                                        onClick={exportFile}
+                                    >
+                                        Lancer une Sauvegarde Excel
+                                    </Button>
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        onClick={exportPDF}
+                                    >
+                                        Générer un fichier PDF
+                                    </Button>
+                                </div>
+                            </ExpansionPanelDetails>
+                        </ExpansionPanel>
+
+
                     </Box>
                 );
             }

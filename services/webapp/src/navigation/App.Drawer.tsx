@@ -42,7 +42,7 @@ interface IAppDrawer {
 }
 
 class AppDrawer extends React.Component<IAppDrawer, {}> {
-    public routes = [
+    private getRoutes = (props : IAppDrawer) => [
         {
             key: '1',
             path: '/',
@@ -64,13 +64,13 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
             title: 'Engagements',
             icon: () => <AssignmentIcon/>
         },
-        {
+        ...(props && props.authentication && props.authentication.roles && props.authentication.roles.includes('ADMIN') ? [{
             key: '999',
             path: '/competitionchooser/engagementresultats',
             state: {title: 'Gestion des Engagements'},
             title: 'Saisie Rapide résultats',
             icon: () => <AssignmentIcon color={'error'}/>
-        },
+        }]:[]),
         {
             key: '4',
             path: '/competitionchooser/results',
@@ -125,7 +125,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
                                           secondary={<Typography style={{
                                               fontSize: 13,
                                               color: '#FFFFFF'
-                                          }}>{authentication.email}</Typography>}/>
+                                          }}>{authentication && authentication.email}</Typography>}/>
                           </ListItem>
                         </List>
                       </Box>
@@ -144,7 +144,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
                       </IconButton>
                     </div>}
                     <Divider/>
-                    {this.routes.map((route, index) => {
+                    {this.getRoutes(this.props).map((route, index) => {
                         return (
                             <NavLink key={index} exact={true} activeClassName={classes.current}
                                      className={classes.link} to={{

@@ -45,7 +45,7 @@ export class LicenceController {
                               l.first_name as "firstName",
                               l.birth_year as "birthYear",
                               l.catev,
-                              l.catea from licence l where REPLACE(CONCAT(UPPER(l.name),UPPER(unaccent(l.first_name)),UPPER(CAST(l.fede AS VARCHAR)),UPPER(l.licence_number)),' ', '') like $1 OR REPLACE(CONCAT(UPPER(unaccent(l.first_name)),UPPER(l.name),UPPER(CAST(l.fede AS VARCHAR)),UPPER(l.licence_number)),' ','') like $1 fetch first 20 rows only`;
+                              l.catea from licence l where REPLACE(CONCAT(UPPER(l.name),UPPER(unaccent(l.first_name)),UPPER(CAST(l.fede AS VARCHAR)),UPPER(l.licence_number)),' ', '') like $1 OR REPLACE(CONCAT(UPPER(unaccent(l.first_name)),UPPER(l.name),UPPER(CAST(l.fede AS VARCHAR)),UPPER(l.licence_number)),' ','') like $1 order by l.name fetch first 20 rows only`;
         return await this.entityManager.query(query, [filterParam]);
     }
 

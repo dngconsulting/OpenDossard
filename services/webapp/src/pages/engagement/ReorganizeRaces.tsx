@@ -93,7 +93,7 @@ const computeByCate = (rows: RaceRow[]) => {
 
 const computeErrors = (races: string[], categories: string[]) => {
 
-    const messages = races.filter(race => !/^\d+(\/\d+)*\/?$/.test(race))
+    const messages = races.filter(race => !/^[a-zA-Z0-9]/.test(race))
         .filter(race => race.length !== 0)
         .map(input => `Saisie incorrecte "${input}"`);
     if (messages.length) {
