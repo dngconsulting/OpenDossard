@@ -58,12 +58,13 @@ const EditResultsPage = (gprops: any) => {
     };
 
     const dossardValidator = async (allprops: any, fetchRows: any, currentRace: string, transformedRows: any, rows: RaceRow[]) => {
-        if (previousRowEmpty(allprops.rowIndex, transformedRows)) {
+        const currentRanking = transformedRows[allprops.rowIndex].classement;
+        if (!isNaN(currentRanking) && previousRowEmpty(allprops.rowIndex, transformedRows)) {
             setCurrentDossard('');
             setCurrentNotRankedStatus({status: '', rowindex: 0});
             return true;
         }
-        const currentRanking = transformedRows[allprops.rowIndex].classement;
+
         try {
             if (rows.filter(item => item.riderNumber === parseInt(currentDossard) && item.rankingScratch !== currentRanking).length > 0) {
                 console.log('Updating Dossard ' + currentDossard + ' with ranking ' + currentRanking);
@@ -256,6 +257,7 @@ const EditResultsPage = (gprops: any) => {
 
                 return (
                     <Fragment>
+                        <div>{isEdit?"Classement en édition":"Classement en visualisation"}</div>
                         <DataTable responsive={true}
                                    value={transformedRows}
                                    emptyMessage="Aucune donnée ne correspond à la recherche"

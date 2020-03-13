@@ -24,6 +24,7 @@
     "highcharts-react-official": "2.2.2",
     "immutable": "3.8.2",
     "jspdf": "^1.5.3",
+    "jspdf-autotable": "^3.2.13",
     "lodash": "4.17.15",
     "material-table": "1.50.0",
     "moment": "2.24.0",

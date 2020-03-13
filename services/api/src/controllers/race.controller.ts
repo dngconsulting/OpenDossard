@@ -320,22 +320,24 @@ export class RacesCtrl {
             Logger.warn('Impossible de classer ce coureur, ' + JSON.stringify(requestedRankedRider) + ' il existe déjà dans le classement');
             throw(new BadRequestException('Impossible de classer le coureur au dossard ' + requestedRankedRider.riderNumber + ' il existe déjà dans le classement'));
         }
-        // Check if there is existing rider with this rank in this race with the same dossard
-        const rankRiderToChange = await this.entityManager.findOne(RaceEntity, {
-            rankingScratch: raceRow.rankingScratch,
-            raceCode: raceRow.raceCode,
-            competition: {id: raceRow.competitionId},
-        });
-        // If a rider already exist, it depends on the existing ranking
-        // if the ranking is the one we want to change, its and edit, no problem, we remove him
-        if (rankRiderToChange) {
-            Logger.debug('A rider exist with this rank ' + JSON.stringify(rankRiderToChange.rankingScratch)
-                + ' New Rank to update =' + raceRow.rankingScratch);
-            if (rankRiderToChange.rankingScratch === raceRow.rankingScratch) {
-                Logger.debug('Existing rider will be removed from ranking ' + JSON.stringify(rankRiderToChange));
-                rankRiderToChange.rankingScratch = null;
-                rankRiderToChange.comment = null;
-                await this.entityManager.save(rankRiderToChange);
+        // Check if there is existing rider with this rank in this race with the same dossard only for real Ranked update
+        if (raceRow.rankingScratch) {
+            const rankRiderToChange = await this.entityManager.findOne(RaceEntity, {
+                rankingScratch: raceRow.rankingScratch,
+                raceCode: raceRow.raceCode,
+                competition: {id: raceRow.competitionId},
+            });
+            // If a rider already exist, it depends on the existing ranking
+            // if the ranking is the one we want to change, its and edit, no problem, we remove him
+            if (rankRiderToChange) {
+                Logger.debug('A rider exist with this rank ' + JSON.stringify(rankRiderToChange)
+                    + ' New Rank to update =' + raceRow.rankingScratch);
+                if (rankRiderToChange.rankingScratch === raceRow.rankingScratch) {
+                    Logger.debug('Existing rider will be removed from ranking ' + JSON.stringify(rankRiderToChange));
+                    rankRiderToChange.rankingScratch = null;
+                    rankRiderToChange.comment = null;
+                    await this.entityManager.save(rankRiderToChange);
+                }
             }
         }
         requestedRankedRider.rankingScratch = raceRow.rankingScratch;
