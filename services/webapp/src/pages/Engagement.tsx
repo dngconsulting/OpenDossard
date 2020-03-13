@@ -96,7 +96,7 @@ const EngagementPage = (props: any) => {
     };
     const classes = style({});
 
-    const exportFile = async () => {
+    const exportCSV = async () => {
         dg && dg.current && dg.current.exportCSV();
     }
     return <CompetitionLayout competitionId={competitionId}>
@@ -216,7 +216,7 @@ const EngagementPage = (props: any) => {
                         <DataTable ref={dg} value={saisieResultat?filterByRace(rows, currentRace).reverse():filterByRace(rows, currentRace)}
                                    emptyMessage="Aucun coureur encore engagé sur cette épreuve ou aucun coureur ne correspond à votre filtre de recherche"
                                    responsive={true}
-                                   exportFilename={(competition&&competition.name) + '_CAT_' + currentRace}
+                                   exportFilename={'Engagements_'+(competition&&competition.name) + '_CAT_' + currentRace}
                         >
                             {columns.map((column, i) => <Column key={i + 1} {...column}/>)}
 
@@ -235,7 +235,7 @@ const EngagementPage = (props: any) => {
                                         variant="contained"
                                         style={{marginRight:'20px'}}
                                         color="primary"
-                                        onClick={exportFile}
+                                        onClick={exportCSV}
                                     >
                                         Lancer une Sauvegarde Excel
                                     </Button>
