@@ -320,7 +320,7 @@ const EditResultsPage = (gprops: any) => {
                     doc.setTextColor("#424242")
                     doc.setFontStyle('bold')
 
-                    doc.fromHTML( "<b><div style='font-size:14px;color:#666666;font-family: \"Open Sans\", \"Helvetica Neue\", sans-serif;'>Organisation : </b>" + competition.club.longName + "<b>&nbsp; Nombre de coureurs :</b> " + transformedRows.length + "</div>", 15, finalY+5)
+                    doc.fromHTML( "<b><div style='font-size:14px;color:#666666;font-family: \"Open Sans\", \"Helvetica Neue\", sans-serif;'>Organisation : </b>" + competition.club.longName + "<b>&nbsp; Nombre de coureurs :</b> " + transformedRows.length + "</div>", 50, finalY+5)
                     doc.save('Classement_' + competition.name.replace(/\s/g, '') + '_cate_' + currentRace + '.pdf');
 
                 }
