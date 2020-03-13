@@ -249,8 +249,6 @@ const EngagementPage = (props: any) => {
                                 </div>
                             </ExpansionPanelDetails>
                         </ExpansionPanel>
-
-
                     </Box>
                 );
             }
