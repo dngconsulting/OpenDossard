@@ -4,9 +4,11 @@ FROM node:10.12.0-alpine as client
 
 WORKDIR /app/client/
 COPY services/webapp/package*.json ./
+RUN apk update && apk upgrade && \
+    apk add --no-cache bash git openssh
 RUN rm -rf ./node_modules
 RUN npm install -g react-scripts
-RUN npm ci
+RUN npm install
 COPY services/webapp/ ./
 RUN npm run build
 
@@ -19,7 +21,7 @@ COPY --from=client /app/client/build/ ./client/build/
 WORKDIR /app/server/
 COPY services/api/package*.json ./
 RUN rm -rf ./node_modules
-RUN npm ci
+RUN npm install
 COPY services/api/ ./
 RUN npm run build
 ENV PORT 9090
