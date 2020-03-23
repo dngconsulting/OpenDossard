@@ -274,21 +274,21 @@ const EditResultsPage = (gprops: any) => {
                     // @ts-ignore
                     doc.autoTable({head: [['Cl. (Cl.Caté)','Dossard', 'Nom et Prénom', 'Club','Genre','Caté.','Caté Age','']],body: rowstoDisplay,
                         didParseCell: function(data:any) {
-                        //console.log('data.column.datakey   data.column.dataKey=' +  data.column.dataKey + ' value=' + data.cell.raw )
                             if (data.row.section === 'body' && data.column.dataKey === 7) {
                                 if (data.cell.raw) data.cell.text = 'Challenge';
                             }
                             if (data.row.section === 'body' && data.column.dataKey === 5) {
-                                rankByCate['cate' + data.cell.raw] = (rankByCate['cate' + data.cell.raw] ? rankByCate['cate' + data.cell.raw] : 0) + 1;
-                                console.log('RankByCate = ' + rankByCate['cate' + data.cell.raw])
-                                if (rankByCate['cate' + data.cell.raw] === 1) {
-                                  colorize(data,[102, 140, 255])
-                                }
-                                if (rankByCate['cate' + data.cell.raw] === 2) {
-                                    colorize(data,[153, 179, 255])
-                                }
-                                if (rankByCate['cate' + data.cell.raw] === 3) {
-                                    colorize(data,[204, 217, 255])
+                                if (!isNaN(data.cell.raw)) {
+                                    rankByCate['cate' + data.cell.raw] = (rankByCate['cate' + data.cell.raw] ? rankByCate['cate' + data.cell.raw] : 0) + 1;
+                                    if (rankByCate['cate' + data.cell.raw] === 1) {
+                                        colorize(data, [102, 140, 255])
+                                    }
+                                    if (rankByCate['cate' + data.cell.raw] === 2) {
+                                        colorize(data, [153, 179, 255])
+                                    }
+                                    if (rankByCate['cate' + data.cell.raw] === 3) {
+                                        colorize(data, [204, 217, 255])
+                                    }
                                 }
                             }
                         },
@@ -320,7 +320,7 @@ const EditResultsPage = (gprops: any) => {
                     doc.setTextColor("#424242")
                     doc.setFontStyle('bold')
 
-                    doc.fromHTML( "<b><div style='font-size:14px;color:#666666;font-family: \"Open Sans\", \"Helvetica Neue\", sans-serif;'>Organisation : </b>" + competition.club.longName + "<b>&nbsp; Nombre de coureurs :</b> " + transformedRows.length + "</div>", 15, finalY+5)
+                    doc.fromHTML( "<b><div style='font-size:14px;color:#666666;font-family: \"Open Sans\", \"Helvetica Neue\", sans-serif;'>Organisation : </b>" + competition.club.longName + "<b>&nbsp; Nombre de coureurs :</b> " + transformedRows.length + "</div>", 50, finalY+5)
                     doc.save('Classement_' + competition.name.replace(/\s/g, '') + '_cate_' + currentRace + '.pdf');
 
                 }
