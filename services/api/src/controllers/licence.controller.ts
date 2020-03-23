@@ -85,11 +85,17 @@ export class LicenceController {
         Logger.debug('Search=' + JSON.stringify(search))
         const qb = this.repository.createQueryBuilder();
         if (search.search === '') {
-            search.filters.forEach((filter: Filter) => {
-                qb.andWhere(mappingLicenceFields[filter.name] + ' ilike :' + filter.name, {[filter.name]: '%' + filter.value + '%'});
-            });
-            if (typeof search.orderBy !== 'undefined') {
-                qb.orderBy(`"${search.orderBy}"`, search.orderDirection);
+            const fid : Filter[] = search.filters.filter((f:Filter)=>f.name==='id')
+            if (fid.length>0) {
+                qb.andWhere('id=:id' ,{id:fid.pop().value})
+            } else {
+                search.filters.forEach((filter: Filter) => {
+                    qb.andWhere(mappingLicenceFields[filter.name] + ' ilike :' + filter.name, {[filter.name]: '%' + filter.value + '%'});
+                });
+
+                if (typeof search.orderBy !== 'undefined') {
+                    qb.orderBy(`"${search.orderBy}"`, search.orderDirection);
+                }
             }
         } else {
             qb.orWhere('licence_number ilike :value', {value: '%' + search.search + '%'});
@@ -115,7 +121,7 @@ export class LicenceController {
         summary: 'Cree une nouvelle licence',
     })
     @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
-    public async create(@Body() licence: LicenceEntity): Promise<void> {
+    public async create(@Body() licence: LicenceEntity): Promise<LicenceEntity> {
         const newLicence = new LicenceEntity();
         newLicence.licenceNumber = licence.licenceNumber;
         newLicence.name = licence.name;
@@ -129,7 +135,8 @@ export class LicenceController {
             : '';
         newLicence.catev = licence.catev.toUpperCase();
         newLicence.fede = licence.fede;
-        await this.entityManager.save(newLicence);
+        const licenceInserted = await this.entityManager.save(newLicence);
+        return licenceInserted
     }
 
     @Put()
@@ -142,6 +149,8 @@ export class LicenceController {
         : Promise<void> {
         const toUpdate = await this.entityManager.findOne(LicenceEntity, licence.id);
         toUpdate.licenceNumber = licence.licenceNumber;
+        toUpdate.fede=licence.fede;
+        toUpdate.club=licence.club
         toUpdate.birthYear = licence.birthYear;
         toUpdate.name = licence.name;
         toUpdate.firstName = licence.firstName;

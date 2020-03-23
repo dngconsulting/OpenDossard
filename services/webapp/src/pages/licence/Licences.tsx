@@ -6,43 +6,63 @@ import {LicenceEntity as Licence, Search} from '../../sdk';
 import {cadtheme} from '../../theme/theme';
 import {Button, Paper} from '@material-ui/core';
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
+import {useEffect, useRef, useState} from "react";
 
 interface ILicencesProps {
     items: any[];
     classes: any;
     history: any;
+    location:any
 }
 
 const getPageSizeLicencesForPageDebounced = AwesomeDebouncePromise((p) => apiLicences.getPageSizeLicencesForPage({search:p}),500)
 
-const fetchLicences = async (query: Query<Licence>): Promise<QueryResult<Licence>> => {
-    const res = await getPageSizeLicencesForPageDebounced(prepareFilter(query));
-    return {data: res.data, page: res.page, totalCount: res.totalCount};
-};
 
-const prepareFilter = (query: Query<Licence>): Search => {
-    const filters: any = [];
-    if (query.filters.length > 0) {
-        query.filters.forEach((col: any) => {
-            filters.push({name: col.column.field, value: col.value});
-        });
-    }
-    return {
-        currentPage: query.page,
-        pageSize: query.pageSize,
-        orderBy: query.orderBy ? query.orderBy.field : undefined,
-        orderDirection: query.orderDirection ? query.orderDirection.toUpperCase() : 'ASC',
-        search:query.search,
-        filters
-    };
-};
 
 const LicencesPage = (props: ILicencesProps) => {
+    const [id,setId] = useState(null)
+    const [name,setName] = useState(null)
+    const tableRef = useRef()
+    useEffect(()=> {
+        const queryParams = new URLSearchParams(props.location.search)
+        if (queryParams.has('id')) {
+            setId(queryParams.get('id'))
+        };
+        return ()=>{setId(null)}
+    })
+
+    const fetchLicences = async (query: Query<Licence>): Promise<QueryResult<Licence>> => {
+        const res = await getPageSizeLicencesForPageDebounced(prepareFilter(query));
+        return {data: res.data, page: res.page, totalCount: res.totalCount};
+    };
+
+    const prepareFilter = (query: Query<Licence>): Search => {
+        const filters: any = [];
+        if (name) filters.push({name:'name',value:name});
+        if (id) {
+            filters.push({name:'id',value:id})
+        } else {
+            if (query.filters.length > 0) {
+                query.filters.forEach((col: any) => {
+                    filters.push({name: col.column.field, value: col.value});
+                });
+            }
+       }
+        return {
+            currentPage: query.page,
+            pageSize: query.pageSize,
+            orderBy: query.orderBy ? query.orderBy.field : undefined,
+            orderDirection: query.orderDirection ? query.orderDirection.toUpperCase() : 'ASC',
+            search:query.search,
+            filters
+        };
+    };
     return (
         <Paper style={{padding:'5px', height:'100%'}}>
             <MaterialTable
                 title={T.LICENCES.TITLE}
                 columns={[
+                    {title: 'ID', field: 'id',cellStyle:{width:50},filterPlaceholder: id},
                     {title: 'Licence', field: 'licenceNumber',cellStyle:{width:50}},
                     {title: 'CatéV.', field: 'catev',cellStyle:{width:50}},
                     {title: 'CatéA', field: 'catea',cellStyle:{width:50}},
@@ -54,6 +74,7 @@ const LicencesPage = (props: ILicencesProps) => {
                     {title: 'Année', field: 'birthYear',cellStyle:{width:100}},
                     {title: 'Fédé', field: 'fede',cellStyle:{width:50}},
                 ]}
+                ref={tableRef}
                 data={fetchLicences}
                 options={{
                     filtering: true,
@@ -79,11 +100,18 @@ const LicencesPage = (props: ILicencesProps) => {
                 actions={[
                     {
                         icon: () => <Button variant={'contained'} color={'primary'}>Ajouter une licence</Button>,
-
                         tooltip: T.LICENCES.ADD_NEW_LICENCE,
                         isFreeAction: true,
                         onClick: () => {
                             props.history.push('/licence/new');
+                        }
+                    },
+                    {
+                        icon: () => <Button variant={'contained'} color={'secondary'}>Tout Afficher</Button>,
+                        tooltip: "Afficher tous les enregistrements",
+                        isFreeAction: true,
+                        onClick: () => {
+                            props.history.push('/licences/');
                         }
                     },
                     {

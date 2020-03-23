@@ -1,6 +1,5 @@
 // TODO: all those entities can be shared between front & back
 export const CATEV = [
-    {label: 'Non Licencié', value: 'NL'},
     {label: 'Cadet', value: 'C'},
     {label: 'Minimes', value: 'M'},
     {label: 'Féminine', value: 'F'},
@@ -9,39 +8,44 @@ export const CATEV = [
     {label: '3', value: '3'}];
 
 export const CATEA : Array<{label:string,value:string}> = [
-    {label: 'Jeune', value: 'j'},
-    {label: 'Espoir', value: 'e'},
-    {label: 'Féminine minime', value: 'fm'},
-    {label: 'Féminine vétéran', value: 'fv'},
-    {label: 'Féminine sénior', value: 'fs'},
-    {label: 'Féminine jeune', value: 'fj'},
-    {label: 'Féminine cadet', value: 'fc'},
-    {label: 'Féminine super vétéran', value: 'fsv'},
-    {label: 'Féminine espoir', value: 'fe'},
-    {label: 'Sénior', value: 's'},
-    {label: 'Vétéran', value: 'v'},
-    {label: 'Super Vétéran', value: 'sv'},
-    {label: 'Ancien', value: 'a'},
-    {label: 'Cadet', value: 'c'},
-    {label: 'Minimes', value: 'm'},
-    {label: 'Espoir', value: 'e'},
-    {label: 'NC', value: 'nc'}];
+    {label: 'Jeune', value: 'J'},
+    {label: 'Féminine minime', value: 'FM'},
+    {label: 'Féminine vétéran', value: 'FV'},
+    {label: 'Féminine sénior', value: 'FS'},
+    {label: 'Féminine jeune', value: 'FJ'},
+    {label: 'Féminine cadet', value: 'FC'},
+    {label: 'Féminine super vétéran', value: 'FSV'},
+    {label: 'Féminine espoir', value: 'FE'},
+    {label: 'Sénior', value: 'S'},
+    {label: 'Vétéran', value: 'V'},
+    {label: 'Super Vétéran', value: 'SV'},
+    {label: 'Ancien', value: 'A'},
+    {label: 'Cadet', value: 'C'},
+    {label: 'Minimes', value: 'M'},
+    {label: 'Espoir', value: 'E'},
+    {label: 'NC', value: 'NC'}];
 
 export const FEDERATIONS = {
     FSGT: {
         name: {label: 'FSGT', value: 'FSGT'},
-        catev: [...CATEV, {label: '4', value: '4'}, {label: '5', value: '5'}]
+        catev: [...CATEV, {label: '4', value: '4'}, {label: '5', value: '5'}],
+        catea:CATEA
     },
     UFOLEP: {
         name: {label: 'UFOLEP', value: 'UFOLEP'},
-        catev: [...CATEV, {label: 'GSa', value: 'GSA'},{label: 'GSb', value: 'GSB'},{label: 'Jeune', value: 'J'}]
+        catev: [ {label: '1', value: '1'},
+            {label: '2', value: '2'},
+            {label: '3', value: '3'}, {label: 'GSa', value: 'GSA'},{label: 'GSb', value: 'GSB'},{label: 'Jeune', value: 'JEUNE'},{label: 'Féminine', value: 'FEM'}],
+        catea:[...CATEA,{label:'FNC', value:'FNC'},{label:'FFS', value:'FFS'}]
     },
     FFC: {
         name: {label: 'FFC', value: 'FFC'},
-        catev : [...CATEV]
+        catev : [...CATEV],
+        catea:CATEA
     },
     NL:{
         name:{label: 'Non Licencié', value: 'NL'},
-        catev: [...CATEV, {label: '4', value: '4'}, {label: '5', value: '5'}]
+        catev: [...CATEV, {label: '4', value: '4'}, {label: '5', value: '5'}],
+        catea:CATEA
     }
 };

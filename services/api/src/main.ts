@@ -1,6 +1,7 @@
 import {NestFactory} from '@nestjs/core';
 import {AppModule} from './app.module';
 import {DocumentBuilder, SwaggerModule} from '@nestjs/swagger';
+import * as swStats from 'swagger-stats';
 import {Logger} from '@nestjs/common';
 import config from './config';
 import {NestExpressApplication} from '@nestjs/platform-express';
@@ -12,6 +13,7 @@ async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule, {logger: ['error', 'warn', 'debug']});
     app.useGlobalFilters(new NotFoundExceptionFilter());
     app.use(compression());
+    app.use(swStats.getMiddleware());
     if (config.app.env !== 'DEV') {
         app.useStaticAssets(join(__dirname, '../..', 'client/build'), {index: 'index.html'});
     }

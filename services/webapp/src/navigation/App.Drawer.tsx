@@ -30,6 +30,7 @@ import StatsPage from '../pages/Stats';
 import {UserEntity as User} from '../sdk';
 import {grey} from '@material-ui/core/colors';
 import {cadtheme} from '../theme/theme';
+import {version} from '../../package.json';
 
 const classNames = require('classnames');
 
@@ -163,6 +164,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
                         );
                     })}
                     <Divider/>
+                    <div style={{marginTop:10,fontSize:'12px',width:'100%',textAlign:'center'}}>V {version}</div>
                 </Drawer>
         );
     }

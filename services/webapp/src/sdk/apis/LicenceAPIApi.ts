@@ -95,7 +95,7 @@ export class LicenceAPIApi extends runtime.BaseAPI {
     /**
      * Cree une nouvelle licence
      */
-    async createRaw(requestParameters: CreateRequest): Promise<runtime.ApiResponse<void>> {
+    async createRaw(requestParameters: CreateRequest): Promise<runtime.ApiResponse<LicenceEntity>> {
         if (requestParameters.licenceEntity === null || requestParameters.licenceEntity === undefined) {
             throw new runtime.RequiredError('licenceEntity','Required parameter requestParameters.licenceEntity was null or undefined when calling create.');
         }
@@ -122,14 +122,15 @@ export class LicenceAPIApi extends runtime.BaseAPI {
             body: LicenceEntityToJSON(requestParameters.licenceEntity),
         });
 
-        return new runtime.VoidApiResponse(response);
+        return new runtime.JSONApiResponse(response, (jsonValue) => LicenceEntityFromJSON(jsonValue));
     }
 
     /**
      * Cree une nouvelle licence
      */
-    async create(requestParameters: CreateRequest): Promise<void> {
-        await this.createRaw(requestParameters);
+    async create(requestParameters: CreateRequest): Promise<LicenceEntity> {
+        const response = await this.createRaw(requestParameters);
+        return await response.value();
     }
 
     /**
