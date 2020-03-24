@@ -34,7 +34,7 @@ export class LicenceController {
     @ApiResponse({status: 200, type: LicenceEntity, isArray: true, description: 'Liste des licences'})
     @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async getLicencesLike(@Param('param') param: string): Promise<LicenceEntity> {
-        const filterParam = '%' + param.replace(/\s+/g, '') + '%';
+        const filterParam = '%' + param.replace(/\s+/g, '').normalize("NFD").replace(/[\u0300-\u036f]/g, "") + '%';
         const query: string = `select l.licence_number as "licenceNumber",
                               l.id,
                               l.club,
@@ -45,7 +45,8 @@ export class LicenceController {
                               l.first_name as "firstName",
                               l.birth_year as "birthYear",
                               l.catev,
-                              l.catea from licence l where REPLACE(CONCAT(UPPER(l.name),UPPER(unaccent(l.first_name)),UPPER(CAST(l.fede AS VARCHAR)),UPPER(l.licence_number)),' ', '') like $1 OR REPLACE(CONCAT(UPPER(unaccent(l.first_name)),UPPER(l.name),UPPER(CAST(l.fede AS VARCHAR)),UPPER(l.licence_number)),' ','') like $1 order by l.name fetch first 20 rows only`;
+                              l.catea from licence l where CONCAT(UPPER(l.name),UPPER(unaccent(l.first_name)),UPPER(CAST(l.fede AS VARCHAR)),UPPER(l.licence_number)) like $1 
+                              order by (l.name,l.first_name) fetch first 20 rows only`;
         return await this.entityManager.query(query, [filterParam]);
     }
 

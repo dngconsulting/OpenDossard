@@ -137,7 +137,7 @@ export const CreationForm = (
         <Grid item={true} style={{zIndex: 20}}>
             <AutocompleteInput style={{width: '550px'}} selection={form.licence}
                                onChangeSelection={onRiderChange}
-                               placeholder="Coureur (nom, numéro de licence...)"
+                               placeholder="Nom Prénom Fede NuméroLicence"
                                feedDataAndRenderer={filterLicences}/>
         </Grid>
         <Grid item={true}>
