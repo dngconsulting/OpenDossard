@@ -16,7 +16,9 @@ export class ReduxState implements IReduxState {
 
     public utility: Utility;
     public authentication: User;
-    public app : IAppState;
+    public app : IAppState = {
+        showLoading:false
+    };
 }
 
 export const isAuthenticated = connectedRouterRedirect({

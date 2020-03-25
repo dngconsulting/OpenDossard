@@ -9,6 +9,8 @@ export let defaultApiconfig: ConfigurationParameters = {
     fetchApi: portableFetch,
     basePath: window.location.origin,
     middleware: [{
+        pre(context: RequestContext): any {
+        },
         post: async (context: ResponseContext): Promise<void> => {
             if (context.response.status === 401) {
                 console.log('token expired, redirecting login page ...')

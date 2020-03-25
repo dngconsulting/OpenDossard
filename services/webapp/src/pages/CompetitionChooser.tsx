@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import cadtheme from '../App';
@@ -13,6 +13,10 @@ import FormatListNumberedIcon from '@material-ui/icons/FormatListNumbered';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import moment from 'moment';
 import _ from 'lodash';
+import {NotificationContext} from "../components/CadSnackbar";
+import {ReduxState} from "../state/ReduxState";
+import {connect} from "react-redux";
+import {compose} from "redux";
 
 interface ICompetitionChooserProps {
     classes?: any;
@@ -41,27 +45,39 @@ const useStyles = makeStyles((theme: Theme) =>
     }),
 );
 const CompetitionChooser = (props: ICompetitionChooserProps) => {
+    const [, setNotification] = useContext(NotificationContext);
     const gotoPage = props.match.params.goto;
     const [data, setData] = useState<Competition[]>([]);
     const [filteredData, setFilteredData] = useState<Competition[]>([]);
     const [selectPastOrFuture, setSelectPastOrFuture] = useState('future');
     const [loading, setLoading] = useState(false);
     const classes = useStyles(cadtheme);
+    const competitionFilter = {
+        competitionTypes: ['ROUTE','CX'],
+        fedes: ['FSGT','UFOLEP'],
+        displayFuture:true,
+        openedNL:false,
+        openedToOtherFede:false,
+        displayPast:true,
+        displaySince:365,
+    }
     const fetchCompetitions = async () => {
-        const competitionFilter = {
-            competitionTypes: ['ROUTE','CX'],
-            fedes: ['FSGT','UFOLEP'],
-            displayFuture:true,
-            openedNL:false,
-            openedToOtherFede:false,
-            displayPast:true,
-            displaySince:365,
+        try {
+            const results = await apiCompetitions.getCompetitionsByFilter({competitionFilter: competitionFilter});
+            setData(results);
+            setFilteredData(
+                _.orderBy(results.filter((comp: Competition) => moment(comp.eventDate).isAfter(moment())), ['eventDate'], ['asc'])
+            )
         }
-        const results = await apiCompetitions.getCompetitionsByFilter({competitionFilter:competitionFilter});
-        setData(results);
-        setFilteredData(
-            _.orderBy(results.filter((comp: Competition) => moment(comp.eventDate).isAfter(moment())), ['eventDate'], ['asc'])
-        )
+        catch (ex) {
+            setNotification({
+                message: `Impossible de récupérer la liste des épreuves`,
+                open: true,
+                type: 'error'
+            });
+        }
+        finally {
+        }
     };
     useEffect(() => {
         const initData = async () => {
@@ -72,9 +88,9 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                 } finally {
                     setLoading(false);
                 }
-
             }
         }
+        console.log('Init data...')
         initData();
     }, []);
 
@@ -166,6 +182,5 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
             ;
 
 };
-
 
 export default withRouter(CompetitionChooser);

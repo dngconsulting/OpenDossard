@@ -1,10 +1,5 @@
 import {default as React, useContext, useEffect, useState} from 'react';
-import {
-    CompetitionEntity as Competition,
-    LicenceEntity as Licence,
-    RaceCreate,
-    RaceRow
-} from '../../sdk/models';
+import {CompetitionEntity as Competition, LicenceEntity as Licence, RaceCreate, RaceRow} from '../../sdk/models';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import AutocompleteInput from '../../components/AutocompleteInput';
@@ -18,9 +13,11 @@ import {filterLicences} from '../common/filters';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import {FEDERATIONS} from '../common/shared-entities';
+import {store} from "../../store/Store";
+import {setVar} from "../../actions/App.Actions";
 
 const create = async (newRace: RaceCreate) => {
-    await apiRaces.engage({raceCreate:newRace});
+    await apiRaces.engage({raceCreate: newRace});
 };
 
 const formStyles = makeStyles((theme: Theme) =>
@@ -55,29 +52,31 @@ interface IForm {
 
 const EMPTY_FORM: IForm = {licence: null, riderNumber: '', catev: ''};
 export const CreationForm = (
-    {competition, race, onSuccess,rows, saisieResultat}:
+    {competition, race, onSuccess, rows, saisieResultat}:
         {
             competition: Competition,
             race: string,
             onSuccess: (race: IForm) => void,
             rows: RaceRow[]
-            saisieResultat:boolean
+            saisieResultat: boolean
         }
 ) => {
 
     const [form, setForm] = useState<IForm>(EMPTY_FORM);
     const [, setNotification] = useContext(NotificationContext);
-    const [ranking,setRanking] = useState(0);
+    const [ranking, setRanking] = useState(0);
 
     useEffect(() => {
-        setRanking(rows.length+1)
+        setRanking(rows.length + 1)
     })
     const onError = (message: string) => setNotification({
-        message: (!message)?'une erreur technique est survenue':message,
+        message: (!message) ? 'une erreur technique est survenue' : message,
         open: true,
         type: 'error'
     });
-
+    const sleep = (ms: number) => {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
     const submit = async () => {
         if (!form.riderNumber || !form.catev || !form.licence) {
             setNotification({
@@ -91,13 +90,14 @@ export const CreationForm = (
             const dto: RaceCreate = {
                 licenceId: form.licence && form.licence.id,
                 raceCode: race,
-                ...(saisieResultat ? {riderNumber:ranking}:{riderNumber: parseInt(form.riderNumber)}),
+                ...(saisieResultat ? {riderNumber: ranking} : {riderNumber: parseInt(form.riderNumber)}),
                 catev: form.catev,
                 competitionId: competition.id,
-                ...(saisieResultat ? {rankingScratch:ranking}:null)
+                ...(saisieResultat ? {rankingScratch: ranking} : null)
             };
+            store.dispatch(setVar({showLoading: true}))
             await create(dto);
-            setRanking(ranking+1)
+            setRanking(ranking + 1)
             setNotification({
                 message: `Le coureur ${form.licence.name} ${form.licence.firstName} a bien été enregistré sous le dossard ${form.riderNumber}`,
                 open: true,
@@ -114,12 +114,15 @@ export const CreationForm = (
                 onError('Une erreur est survenue');
             }
         }
+        finally {
+            store.dispatch(setVar({showLoading: false}))
+        }
     };
 
     const onRiderChange = (licence: Licence) => {
         setForm({
             ...form,
-            ...(saisieResultat?{riderNumber:ranking.toString()}:{riderNumber:''}),
+            ...(saisieResultat ? {riderNumber: ranking.toString()} : {riderNumber: ''}),
             licence,
             catev: (competition && licence && (competition.fede.toUpperCase() === licence.fede.toUpperCase())) ? licence.catev : ''
         });
@@ -143,10 +146,10 @@ export const CreationForm = (
         <Grid item={true}>
             <TextField
                 label="Dossard"
-                value={saisieResultat?ranking:form.riderNumber}
+                value={saisieResultat ? ranking : form.riderNumber}
                 disabled={saisieResultat}
                 className={classes.field}
-                style={{width:'100px'}}
+                style={{width: '100px'}}
                 onChange={e => setForm({...form, riderNumber: e.target.value})}
                 inputProps={{
                     onKeyPress: e => e.key === 'Enter' && submit(),
@@ -169,7 +172,7 @@ export const CreationForm = (
             <Button
                 variant="contained"
                 color="primary"
-                style={{marginLeft:10}}
+                style={{marginLeft: 10}}
                 onClick={submit}
             >
                 Ajouter

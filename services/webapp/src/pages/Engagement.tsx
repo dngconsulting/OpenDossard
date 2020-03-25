@@ -23,6 +23,8 @@ import Typography from '@material-ui/core/Typography';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import jsPDF from "jspdf";
 import 'jspdf-autotable'
+import {store} from "../store/Store";
+import {setVar} from "../actions/App.Actions";
 
 
 const style = makeStyles(theme => ({
@@ -85,14 +87,27 @@ const EngagementPage = (props: any) => {
     };
 
     const handleOk = async (fetchRows: any) => {
+        closeDialog();
+        try {
+            store.dispatch(setVar({showLoading: true}))
             await apiRaces.deleteRace({id: String(selectedRow.id)});
-        fetchRows();
+            fetchRows();
+        } catch (ex) {
+            setNotification({
+                message: `Le coureur ${selectedRow.name} n'a pas pu être supprimé`,
+                type: 'error',
+                open: true
+            });
+            throw ex;
+        }
+        finally {
+            store.dispatch(setVar({showLoading: false}))
+        }
         setNotification({
-            message: `Le coureur ${selectedRow.id} a été supprimé de la compétition`,
+            message: `Le coureur ${selectedRow.name} a été supprimé de la compétition`,
             type: 'info',
             open: true
         });
-        closeDialog();
     };
     const classes = style({});
 

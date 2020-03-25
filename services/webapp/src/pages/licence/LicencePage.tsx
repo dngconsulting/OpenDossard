@@ -20,6 +20,8 @@ import {LicenceEntity as Licence, LicenceEntityFedeEnum} from '../../sdk';
 import {apiLicences} from '../../util/api';
 import {FEDERATIONS} from '../common/shared-entities';
 import {NotificationContext} from "../../components/CadSnackbar";
+import {store} from "../../store/Store";
+import {setVar} from "../../actions/App.Actions";
 
 interface ILicencesProps {
     items: any[];
@@ -122,7 +124,7 @@ const LicencesPage = (props: ILicencesProps) => {
         setNewLicence({...newLicence, club: value});
     };
 
-    const createLicence = (id: number) => {
+    const createLicence = async (id: number) => {
         if ((newLicence.catea==='') || (newLicence.catev==='') || (newLicence.name==='' || newLicence.firstName==='')) {
             setValidation({
                 name: !newLicence.name,
@@ -137,8 +139,27 @@ const LicencesPage = (props: ILicencesProps) => {
             });
             return;
         }
-        id ? apiLicences.update({licenceEntity:newLicence}).then(() => props.history.push({pathname:'/licences/',search:'id='+new String(newLicence.id)})) :
-            apiLicences.create({licenceEntity:newLicence}).then((l) => props.history.push({pathname:'/licences/',search:'id='+new String(l.id)}))
+        store.dispatch(setVar({showLoading: true}))
+        try {
+            id ? await apiLicences.update({licenceEntity: newLicence}).then(() => props.history.push({
+                    pathname: '/licences/',
+                    search: 'id=' + new String(newLicence.id)
+                })) :
+                await apiLicences.create({licenceEntity: newLicence}).then((l) => props.history.push({
+                    pathname: '/licences/',
+                    search: 'id=' + new String(l.id)
+                }))
+        }
+        catch (err) {
+            setNotification({
+                message: `Le coureur ${newLicence.firstName} ${newLicence.name} n'a pu être créé ou modifié`,
+                type: 'error',
+                open: true
+            });
+        }
+        finally {
+            store.dispatch(setVar({showLoading: false}))
+        }
     };
 
     // @ts-ignore

@@ -6,7 +6,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
-import {Menu, MenuItem} from '@material-ui/core';
+import {CircularProgress, Menu, MenuItem} from '@material-ui/core';
 import {withRouter} from 'react-router-dom';
 import Hidden from '@material-ui/core/Hidden';
 import {styles} from './styles';
@@ -19,7 +19,6 @@ import {bindActionCreators, Dispatch} from 'redux';
 import {AlertDialog} from '../alert/Alert';
 import SpinnerDialog from '../spinner/Spinner';
 import {AccountPage} from '../pages/account/Account';
-import AccountCircle from '@material-ui/icons/Mail';
 import AppDrawer from './App.Drawer';
 import AppRoutes from './AppRoutes';
 import {CadSnackBar} from '../components/CadSnackbar';
@@ -34,6 +33,7 @@ interface IAppProps extends IApplicationProps {
     classes: any;
     theme?: any;
     title: any;
+    showLoading:boolean;
 }
 
 interface IState {
@@ -182,9 +182,20 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
         );
     }
 
+    private renderLoader() {
+        if (this.props.showLoading) {
+            return (
+                <div style={{position:'fixed',display:'block',width:'100%',height:'100%',top:0,left:0,right:0,bottom:0,backgroundColor:'rgba(0,0,0,0.5)',zIndex:10000,cursor:'pointer'}}>
+                    <div style={{position:'absolute',top:'40%',left:'40%'}}>
+                        <CircularProgress color="primary" />
+                    </div>
+                </div>
+            );
+        }
+       return null;
+    }
     public render() {
         const {classes} = this.props;
-
         return (
             <div className={classes.root}>
                 {this.renderAppBar()}
@@ -196,6 +207,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
                         <AppRoutes renderAccount={this.renderAccount}/>
                         {this.renderAlert()}
                         {this.renderSpinner()}
+                        {this.renderLoader()}
                     </CadSnackBar>
                 </main>
             </div>
@@ -206,7 +218,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
 const mapStateToProps = (state: ReduxState) => ({
     utility: state.utility,
     authentication: state.authentication,
-
+    showLoading:state.app.showLoading,
 });
 
 const mapDispatchtoProps = (dispatch: Dispatch) =>

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useEffect, useRef, useState} from 'react';
 import MaterialTable, {Query, QueryResult} from 'material-table';
 import {AppText as T} from '../../util/text';
 import {apiLicences} from '../../util/api';
@@ -6,7 +7,10 @@ import {LicenceEntity as Licence, Search} from '../../sdk';
 import {cadtheme} from '../../theme/theme';
 import {Button, Paper} from '@material-ui/core';
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
-import {useEffect, useRef, useState} from "react";
+import {useContext} from "react";
+import {NotificationContext} from "../../components/CadSnackbar";
+import {store} from "../../store/Store";
+import {setVar} from "../../actions/App.Actions";
 
 interface ILicencesProps {
     items: any[];
@@ -22,6 +26,7 @@ const getPageSizeLicencesForPageDebounced = AwesomeDebouncePromise((p) => apiLic
 const LicencesPage = (props: ILicencesProps) => {
     const [id,setId] = useState(null)
     const [name,setName] = useState(null)
+    const [, setNotification] = useContext(NotificationContext);
     const tableRef = useRef()
     useEffect(()=> {
         const queryParams = new URLSearchParams(props.location.search)
@@ -59,6 +64,7 @@ const LicencesPage = (props: ILicencesProps) => {
     };
     return (
         <Paper style={{padding:'5px', height:'100%'}}>
+
             <MaterialTable
                 title={T.LICENCES.TITLE}
                 columns={[
@@ -92,10 +98,21 @@ const LicencesPage = (props: ILicencesProps) => {
                     }
                 }}
                 editable={{
-                    onRowDelete: oldData =>
-                        new Promise((resolve, reject) => {
-                            apiLicences._delete({id:`${oldData.id}`}).then(() => resolve());
-                        }),
+                    onRowDelete: async (oldData)  => {
+                        try {
+                            store.dispatch(setVar({showLoading: true}))
+                            await apiLicences._delete({id: `${oldData.id}`});
+                        } catch (ex) {
+                            setNotification({
+                                message: `Le coureur ${oldData.firstName} ${oldData.name} n'a pas été supprimé (pb réseau ou coureur déjà engagé sur une course)`,
+                                open: true,
+                                type: 'error'
+                            });
+                        }
+                        finally {
+                            store.dispatch(setVar({showLoading: false}))
+                        }
+                    }
                 }}
                 actions={[
                     {
