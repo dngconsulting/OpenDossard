@@ -95,7 +95,7 @@ export class LicenceController {
                 });
 
                 if (typeof search.orderBy !== 'undefined') {
-                    qb.orderBy(`"${search.orderBy}"`, search.orderDirection);
+                    qb.orderBy(`"${mappingLicenceFields[search.orderBy]}"`, search.orderDirection);
                 }
             }
         } else {
