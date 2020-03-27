@@ -1,6 +1,14 @@
 import React, {useContext, useRef, useState} from 'react';
 
-import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, makeStyles} from '@material-ui/core';
+import {
+    CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    makeStyles
+} from '@material-ui/core';
 import 'primereact/resources/themes/nova-light/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
@@ -23,9 +31,14 @@ import Typography from '@material-ui/core/Typography';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import jsPDF from "jspdf";
 import 'jspdf-autotable'
-import {store} from "../store/Store";
-import {setVar} from "../actions/App.Actions";
-
+import * as AppActionCreators from "../actions/App.Actions";
+import {withRouter} from "react-router-dom";
+import {connect} from "react-redux";
+import {withStyles} from "@material-ui/core/styles";
+import {styles} from "../navigation/styles";
+import {ReduxState} from "../state/ReduxState";
+import {bindActionCreators, Dispatch} from "redux";
+import * as _ from "lodash";
 
 const style = makeStyles(theme => ({
     surclassed: {
@@ -82,6 +95,7 @@ const EngagementPage = (props: any) => {
     const [, setNotification] = useContext(NotificationContext);
     const [selectedRow, selectRow] = useState<RaceRow>();
     const [open, openDialog] = React.useState(false);
+    const [showSablier,setShowSablier] = React.useState(false);
     const closeDialog = () => {
         openDialog(false);
     };
@@ -89,7 +103,7 @@ const EngagementPage = (props: any) => {
     const handleOk = async (fetchRows: any) => {
         closeDialog();
         try {
-            store.dispatch(setVar({showLoading: true}))
+            setShowSablier(true)
             await apiRaces.deleteRace({id: String(selectedRow.id)});
             fetchRows();
         } catch (ex) {
@@ -101,7 +115,7 @@ const EngagementPage = (props: any) => {
             throw ex;
         }
         finally {
-            store.dispatch(setVar({showLoading: false}))
+            setShowSablier(false)
         }
         setNotification({
             message: `Le coureur ${selectedRow.name} a été supprimé de la compétition`,
@@ -210,6 +224,11 @@ const EngagementPage = (props: any) => {
                 }
                 return (
                     <Box position="relative" padding={0}>
+                        {showSablier && <div style={{position:'fixed',display:'block',width:'100%',height:'100%',top:0,left:0,right:0,bottom:0,backgroundColor:'rgba(0,0,0,0.5)',zIndex:10000,cursor:'pointer'}}>
+                            <div style={{position:'absolute',top:'40%',left:'40%'}}>
+                                <CircularProgress color="primary" />
+                            </div>
+                        </div>}
                         <Box top={-38} right={10} position="absolute">
                             <Reorganizer competition={competition} rows={rows} onSuccess={() => {
                                 fetchRows();
@@ -272,5 +291,13 @@ const EngagementPage = (props: any) => {
     </CompetitionLayout>;
 
 };
+const mapStateToProps = (state: ReduxState) => ({
+    utility: state.utility,
+    authentication: state.authentication,
+    showLoading:state.app.showLoading,
+});
 
-export default EngagementPage;
+const mapDispatchtoProps = (dispatch: Dispatch) =>
+    bindActionCreators(_.assign({}, AppActionCreators), dispatch);
+
+export default withRouter(connect(mapStateToProps, mapDispatchtoProps)(withStyles(styles as any, {withTheme: true})(EngagementPage as any)) as any);

@@ -6,15 +6,13 @@ import AutocompleteInput from '../../components/AutocompleteInput';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import makeStyles from '@material-ui/core/styles/makeStyles';
-import {createStyles, FormHelperText, Theme} from '@material-ui/core';
+import {CircularProgress, createStyles, FormHelperText, Theme} from '@material-ui/core';
 import {apiRaces} from '../../util/api';
 import {NotificationContext} from '../../components/CadSnackbar';
 import {filterLicences} from '../common/filters';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import {FEDERATIONS} from '../common/shared-entities';
-import {store} from "../../store/Store";
-import {setVar} from "../../actions/App.Actions";
 
 const create = async (newRace: RaceCreate) => {
     await apiRaces.engage({raceCreate: newRace});
@@ -65,6 +63,7 @@ export const CreationForm = (
     const [form, setForm] = useState<IForm>(EMPTY_FORM);
     const [, setNotification] = useContext(NotificationContext);
     const [ranking, setRanking] = useState(0);
+    const [showSablier,setShowSablier] = React.useState(false);
 
     useEffect(() => {
         setRanking(rows.length + 1)
@@ -76,6 +75,15 @@ export const CreationForm = (
     });
     const sleep = (ms: number) => {
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    const refresh = async () => {
+        try {
+            setShowSablier(true)
+            onSuccess(form)
+        } finally {
+            setShowSablier(false)
+        }
     }
     const submit = async () => {
         if (!form.riderNumber || !form.catev || !form.licence) {
@@ -95,7 +103,7 @@ export const CreationForm = (
                 competitionId: competition.id,
                 ...(saisieResultat ? {rankingScratch: ranking} : null)
             };
-            store.dispatch(setVar({showLoading: true}))
+           setShowSablier(true)
             await create(dto);
             setRanking(ranking + 1)
             setNotification({
@@ -115,7 +123,7 @@ export const CreationForm = (
             }
         }
         finally {
-            store.dispatch(setVar({showLoading: false}))
+            setShowSablier(false)
         }
     };
 
@@ -132,6 +140,11 @@ export const CreationForm = (
 
     const catecolor = (form.licence && form.catev !== form.licence.catev) ? 'red' : '#000';
     return <Grid container={true} alignItems="flex-end" className={classes.form}>
+        {showSablier && <div style={{position:'fixed',display:'block',width:'100%',height:'100%',top:0,left:0,right:0,bottom:0,backgroundColor:'rgba(0,0,0,0.5)',zIndex:10000,cursor:'pointer'}}>
+          <div style={{position:'absolute',top:'40%',left:'40%'}}>
+            <CircularProgress color="primary" />
+          </div>
+        </div>}
         <Grid item={true}>
             <Typography variant="h5" style={{marginRight: 20}}>
                 Nouveau Coureur :
@@ -176,6 +189,14 @@ export const CreationForm = (
                 onClick={submit}
             >
                 Ajouter
+            </Button>
+            <Button
+                variant="contained"
+                color="secondary"
+                style={{marginLeft: 10}}
+                onClick={refresh}
+            >
+                Rafraichir
             </Button>
 
         </div>

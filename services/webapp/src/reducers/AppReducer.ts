@@ -1,7 +1,7 @@
 import {ActionType, IAppAction} from '../actions/Helpers';
 import {IAppState} from '../state/IAppState';
 
-const initialState: IAppState = {}
+const initialState: IAppState = { showLoading:false}
 export const AppReducer = (state: IAppState = initialState, action: IAppAction): IAppState => {
     switch (action.type) {
         case ActionType.LISTE_COUREURS:
