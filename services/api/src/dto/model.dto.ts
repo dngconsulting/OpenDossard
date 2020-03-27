@@ -26,6 +26,7 @@ export class RaceRow {
     public club?: string;
     public catev?: string;
     public catea?: string;
+    public dept?:string;
     public fede?: string;
     public gender?: string;
     public rankingScratch: number;

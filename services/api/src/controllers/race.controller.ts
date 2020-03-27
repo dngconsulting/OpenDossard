@@ -145,6 +145,7 @@ export class RacesCtrl {
                               concat(l.name, ' ', l.first_name) as name,
                               l.licence_number as "licenceNumber",
                               l.catea,
+                              l.dept,
                               l.club,
                               l.gender,
                               l.fede,

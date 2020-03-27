@@ -96,6 +96,12 @@ export interface RaceRow {
      * @type {string}
      * @memberof RaceRow
      */
+    dept?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceRow
+     */
     fede?: string;
     /**
      * 
@@ -175,6 +181,7 @@ export function RaceRowFromJSONTyped(json: any, ignoreDiscriminator: boolean): R
         'club': !exists(json, 'club') ? undefined : json['club'],
         'catev': !exists(json, 'catev') ? undefined : json['catev'],
         'catea': !exists(json, 'catea') ? undefined : json['catea'],
+        'dept': !exists(json, 'dept') ? undefined : json['dept'],
         'fede': !exists(json, 'fede') ? undefined : json['fede'],
         'gender': !exists(json, 'gender') ? undefined : json['gender'],
         'rankingScratch': json['rankingScratch'],
@@ -209,6 +216,7 @@ export function RaceRowToJSON(value?: RaceRow | null): any {
         'club': value.club,
         'catev': value.catev,
         'catea': value.catea,
+        'dept': value.dept,
         'fede': value.fede,
         'gender': value.gender,
         'rankingScratch': value.rankingScratch,
