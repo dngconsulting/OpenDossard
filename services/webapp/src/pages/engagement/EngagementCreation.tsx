@@ -1,4 +1,4 @@
-import {default as React, useContext, useEffect, useState} from 'react';
+import {default as React, useContext, useEffect, useRef, useState} from 'react';
 import {CompetitionEntity as Competition, LicenceEntity as Licence, RaceCreate, RaceRow} from '../../sdk/models';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
@@ -59,7 +59,7 @@ export const CreationForm = (
             saisieResultat: boolean
         }
 ) => {
-
+    const selectRef = useRef(null);
     const [form, setForm] = useState<IForm>(EMPTY_FORM);
     const [, setNotification] = useContext(NotificationContext);
     const [ranking, setRanking] = useState(0);
@@ -84,6 +84,7 @@ export const CreationForm = (
         } finally {
             setShowSablier(false)
         }
+        selectRef && selectRef.current && selectRef.current.focus();
     }
     const submit = async () => {
         if (!form.riderNumber || !form.catev || !form.licence) {
@@ -125,6 +126,7 @@ export const CreationForm = (
         finally {
             setShowSablier(false)
         }
+        selectRef && selectRef.current && selectRef.current.focus();
     };
 
     const onRiderChange = (licence: Licence) => {
@@ -151,7 +153,7 @@ export const CreationForm = (
             </Typography>
         </Grid>
         <Grid item={true} style={{zIndex: 20}}>
-            <AutocompleteInput  style={{width: '550px'}} selection={form.licence}
+            <AutocompleteInput selectBox={selectRef} style={{width: '550px'}} selection={form.licence}
                                onChangeSelection={onRiderChange}
                                placeholder="Nom Prénom Fede NuméroLicence"
                                feedDataAndRenderer={filterLicences}/>
