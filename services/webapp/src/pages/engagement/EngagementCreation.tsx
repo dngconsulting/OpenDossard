@@ -138,7 +138,7 @@ export const CreationForm = (
             </Typography>
         </Grid>
         <Grid item={true} style={{zIndex: 20}}>
-            <AutocompleteInput style={{width: '550px'}} selection={form.licence}
+            <AutocompleteInput  style={{width: '550px'}} selection={form.licence}
                                onChangeSelection={onRiderChange}
                                placeholder="Nom Prénom Fede NuméroLicence"
                                feedDataAndRenderer={filterLicences}/>

@@ -20,6 +20,9 @@ export default function AutocompleteInput({selection, onChangeSelection, style, 
     return (
         <div style={style}>
             <AsyncSelect
+                autoFocus={true}
+                noOptionsMessage={()=>'Veuillez saisir un coureur'}
+                loadingMessage={()=>'Chargement ...'}
                 value={selection}
                 onChange={onChangeSelection}
                 isClearable={true}
