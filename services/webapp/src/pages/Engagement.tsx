@@ -228,7 +228,7 @@ const EngagementPage = (props: any) => {
                     // @ts-ignore
                     var totalPagesExp = '{total_pages_count_string}'
                     // @ts-ignore
-                    doc.autoTable({head: [['Doss', 'Nom et Prénom', 'Club','Dpt','Sexe','Caté','Cat.2']],
+                    doc.autoTable({head: [['Doss', 'Nom et Prénom', 'Club','Dpt','Sexe','Cat.V','Cat.A']],
                         bodyStyles: {
                             minCellHeight:3,
                             cellHeight:3,
