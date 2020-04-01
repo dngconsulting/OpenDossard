@@ -134,6 +134,7 @@ const EngagementPage = (props: any) => {
     const exportCSV = async () => {
         dg && dg.current && dg.current.exportCSV();
     }
+
     return <CompetitionLayout competitionId={competitionId}>
         {
             ({competition, currentRace, rows, fetchRows, fetchCompetition}) => {
@@ -304,6 +305,30 @@ const EngagementPage = (props: any) => {
                     doc.putTotalPages(totalPagesExp)
                     doc.save('Engagement_' + competition.name.replace(/\s/g, '') + '_cate_' + currentRace + '.pdf');
                 }
+
+                const controleDossards = () => {
+                    const lrows = filterByRace(rows, currentRace);
+                    const groupByCatev = _.groupBy(lrows, (item: RaceRow) => item.catev);
+                    let shouldExit = false;
+                    Object.keys(groupByCatev).map(item => {
+                        const diffMaxMin = _.maxBy(groupByCatev[item], (c)=>c.riderNumber).riderNumber - _.minBy(groupByCatev[item], (c)=>c.riderNumber).riderNumber + 1;
+                        if (groupByCatev[item].length != diffMaxMin) {
+                            setNotification({
+                                message: `Attention la catégorie ${item} n'est pas continue`,
+                                type: 'error',
+                                open: true
+                            });
+                            shouldExit = true
+                            return;
+                        }
+                    });
+                    if (shouldExit) return;
+                    setNotification({
+                        message: `Controle des dossards OK`,
+                        type: 'success',
+                        open: true
+                    });
+                }
                 return (
                     <Box position="relative" padding={0}>
                         {showSablier && <div style={{position:'fixed',display:'block',width:'100%',height:'100%',top:0,left:0,right:0,bottom:0,backgroundColor:'rgba(0,0,0,0.5)',zIndex:10000,cursor:'pointer'}}>
@@ -343,10 +368,18 @@ const EngagementPage = (props: any) => {
                                 aria-controls="panel1a-content"
                                 id="panel1a-header"
                             >
-                                <Typography>Sauvegarde et Génération de fichiers PDF</Typography>
+                                <Typography>Contrôle et Éditions</Typography>
                             </ExpansionPanelSummary>
                             <ExpansionPanelDetails>
                                 <div style={{display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}}>
+                                    <Button
+                                        variant="contained"
+                                        style={{marginRight:'20px'}}
+                                        color="primary"
+                                        onClick={controleDossards}
+                                    >
+                                        Contrôle dossards
+                                    </Button>
                                     <Button
                                         variant="contained"
                                         style={{marginRight:'20px'}}

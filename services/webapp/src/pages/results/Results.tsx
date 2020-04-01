@@ -356,10 +356,10 @@ const EditResultsPage = (gprops: any) => {
                           <img src={demodnf}/>
                           </Fragment>
                         </AlertDialog>}
-                        <div style={{cursor:'pointer'}}>{isEdit?"Classement en édition":"Classement en visualisation"} -
-                            {modeDNFActivated ? <a onClick={(e)=>setModeDNFActivated(false)}> Arrêter saisie des abandons</a>:
-                                <a onClick={(e)=>setShowDNFDialog(true)}> Saisir les abandons</a>
-                              }
+                        <div style={{cursor:'pointer'}}>{isEdit?"Classement en édition":"Classement en visualisation"}
+                            {isEdit && (modeDNFActivated ? <a onClick={(e)=>setModeDNFActivated(false)}> - Arrêter saisie des abandons</a>:
+                                <a onClick={(e)=>setShowDNFDialog(true)}> - Saisir les abandons</a>
+                            )}
                         </div>
                         <DataTable ref={dg}
                                    responsive={true}
