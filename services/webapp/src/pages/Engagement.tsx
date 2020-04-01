@@ -6,7 +6,7 @@ import {
     DialogActions,
     DialogContent,
     DialogContentText,
-    DialogTitle,
+    DialogTitle, IconButton,
     makeStyles
 } from '@material-ui/core';
 import 'primereact/resources/themes/nova-light/theme.css';
@@ -41,6 +41,7 @@ import {bindActionCreators, Dispatch} from "redux";
 import * as _ from "lodash";
 import moment from 'moment'
 import 'moment/locale/fr'
+import SearchIcon from '@material-ui/icons/Search';
 moment.locale('fr')
 const style = makeStyles(theme => ({
     surclassed: {
@@ -88,8 +89,8 @@ const surclassed = ({catev, raceCode}: RaceRow) => {
     return raceCode.split('/').indexOf(catev) >= 0 ? false : true;
 };
 
-const FILTERABLE = {filter: true, filterMatchMode: 'contains'};
-const SHORT = {style: {width: 70, textAlign: 'center', padding: 5}, bodyClassName: 'nopadding'};
+
+const SHORT = {style: {width: 90, textAlign: 'center', padding: 5}, bodyClassName: 'nopadding'};
 const EngagementPage = (props: any) => {
     const competitionId = props.match.params.id;
     const saisieResultat = props.match.url.includes('engagementresultats');
@@ -98,6 +99,9 @@ const EngagementPage = (props: any) => {
     const [selectedRow, selectRow] = useState<RaceRow>();
     const [open, openDialog] = React.useState(false);
     const [showSablier,setShowSablier] = React.useState(false);
+    const [showFilters,setShowFilters] = React.useState(false);
+
+    const FILTERABLE = {filter: showFilters, filterMatchMode: 'contains'};
     const closeDialog = () => {
         openDialog(false);
     };
@@ -154,6 +158,9 @@ const EngagementPage = (props: any) => {
 
                 const columns: ColumnProps[] = [
                     {
+                        header:<IconButton style={{height:20,padding:0}} onClick={() => {setShowFilters((prevState => !prevState))}}>
+                            {<SearchIcon height={20} style={{padding:0}} htmlColor={'#333333'}/>}
+                        </IconButton>,
                         style: {
                             width: 50,
                             textAlign: 'center',
@@ -172,12 +179,12 @@ const EngagementPage = (props: any) => {
                         header:'Clt',
                         body: (rowdata: RaceRow, column: any) => column.rowIndex + 1, ...SHORT
                     }]:[]),
-                    {field: 'riderNumber', header: 'Dossard', ...FILTERABLE, ...SHORT, body:(row:RaceRow)=>_.padStart(row.riderNumber.toString(), 3, '0')},
+                    {field: 'riderNumber', header: 'Doss.', ...FILTERABLE, ...SHORT, body:(row:RaceRow)=>_.padStart(row.riderNumber.toString(), 3, '0'),sortable:true},
                     {field: 'name', header: 'Coureur', ...FILTERABLE, bodyClassName: 'nopadding'},
-                    {field: 'club', header: 'Club', ...FILTERABLE, bodyClassName: 'nopadding'},
-                    {field: 'dept', header: 'Dept', ...FILTERABLE,  style: {width: 50,textAlign: 'center'},bodyClassName: 'nopadding'},
+                    {field: 'club', header: 'Club', ...FILTERABLE, bodyClassName: 'nopadding',sortable:true},
+                    {field: 'dept', header: 'Dept', ...FILTERABLE,  style: {width: 90,textAlign: 'center'},bodyClassName: 'nopadding',sortable:true},
                     {
-                        field: 'catev', header: 'Caté. V.', ...FILTERABLE, ...SHORT,
+                        field: 'catev', header: 'Caté. V.', ...FILTERABLE, ...SHORT,sortable:true,
                         body: (row: RaceRow) => <span>
                             {row.catev}
                             {surclassed(row) && <span title="surclassé ou catégorie supérieure"
@@ -185,9 +192,9 @@ const EngagementPage = (props: any) => {
                         </span>
                     },
                     {field: 'gender', header: 'H/F', ...FILTERABLE, ...SHORT},
-                    {field: 'catea', header: 'Caté A.', ...FILTERABLE, ...SHORT},
+                    {field: 'catea', header: 'Caté. A.', ...FILTERABLE, ...SHORT,sortable:true},
                     {field: 'birthYear', header: 'Année', ...FILTERABLE, ...SHORT},
-                    {field: 'fede', header: 'Fédé.', ...FILTERABLE, ...SHORT},
+                    {field: 'fede', header: 'Fédé.', ...FILTERABLE, ...SHORT,sortable:true},
                 ];
                 const capitalizeFirstLetter = (s: string) => {
                     return s.charAt(0).toUpperCase() + s.slice(1);

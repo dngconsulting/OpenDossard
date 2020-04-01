@@ -58,11 +58,13 @@ export const cadtheme = createMuiTheme({
             },
             textPrimary: {
                 color: '#fff',
-                fontSize: 13
+                fontSize: 13,
+                backgroundColor : palette.primary.main
             },
             textSecondary: {
                 color : '#fff',
-                fontSize: 13
+                fontSize: 13,
+                backgroundColor : palette.secondary.main
             },
 
         },

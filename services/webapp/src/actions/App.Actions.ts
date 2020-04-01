@@ -51,7 +51,7 @@ export const closeDrawer = (): IAppAction => {
         type: ActionType.CLOSE_DRAWER
     };
 };
-
+// show popup
 export const showPopup = (data: Alert): IAppAction => {
     return {
         type: ActionType.OPEN_ALERT,

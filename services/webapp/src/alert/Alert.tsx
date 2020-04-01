@@ -30,17 +30,17 @@ export class AlertDialog extends React.Component<IAlertProps, {}> {
             >
                 <DialogTitle id="alert-dialog-title">{this.props.data.title}</DialogTitle>
                 <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                    { this.props.data.message }
-            </DialogContentText>
+                    { this.props.data.message && <DialogContentText id="alert-dialog-description">
+                        { this.props.data.message }
+                    </DialogContentText>}
+                    {this.props.children}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={this.handleClose} color="primary">
-                        Annuler
-            </Button>
-                    <Button onClick={this.handleClose} color="primary" autoFocus={true}>
-                        Confirmer
-            </Button>
+                    {this.props.data.buttons && this.props.data.buttons.map((item,index) =>
+                        <Button key={index} onClick={item.handler} variant={"contained"} color={index===0?"primary":"secondary"}>
+                            {item.label}
+                        </Button>
+                    )}
                 </DialogActions>
             </Dialog>
         );

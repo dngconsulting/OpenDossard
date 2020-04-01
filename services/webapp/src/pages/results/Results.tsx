@@ -10,7 +10,7 @@ import {filterByRace} from '../../util/services';
 import {Delete} from '@material-ui/icons';
 import EmojiEventsIcon from '@material-ui/icons/EmojiEvents';
 import EmojiPeopleIcon from '@material-ui/icons/EmojiPeople';
-import {Tooltip} from '@material-ui/core';
+import {Tooltip, withStyles} from '@material-ui/core';
 import {Column} from 'primereact/column';
 import {withRouter} from 'react-router';
 import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
@@ -20,6 +20,10 @@ import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
 import Button from "@material-ui/core/Button";
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import jsPDF from "jspdf";
+import demodnf from '../../assets/images/demodnf.gif';
+import {showPopup} from "../../actions/App.Actions";
+import {store} from "../../store/Store";
+import {AlertDialog} from "../../alert/Alert";
 
 const previousRowEmpty = (index: number, transformedRows: any) => {
     return ((index > 0) && (transformedRows[index - 1].riderNumber === undefined));
@@ -29,6 +33,8 @@ const EditResultsPage = (gprops: any) => {
     const competitionId = gprops.match.params.id;
     const isEdit = (gprops.match.params.mode === 'edit');
     const dg = useRef(null);
+    const [showDNFDialog,setShowDNFDialog] = useState(false)
+    const [modeDNFActivated,setModeDNFActivated] = useState(false)
     const [, setNotification] = useContext(NotificationContext);
     const [currentDossard, setCurrentDossard] = useState('');
     const [currentNotRankedStatus, setCurrentNotRankedStatus] = useState({
@@ -335,7 +341,26 @@ const EditResultsPage = (gprops: any) => {
 
                 return (
                     <Fragment>
-                        <div>{isEdit?"Classement en édition":"Classement en visualisation"}</div>
+                        {showDNFDialog && <AlertDialog
+                          data={{title:'Notification',buttons:[{label:'OK',handler:()=>{
+                                setShowDNFDialog(false);
+                                setModeDNFActivated(true)
+                            }}]}}
+                          handleClose={()=>{setShowDNFDialog(false)}}>
+                          <Fragment>
+                          <div>Vous allez passer en mode Saisie des abandons,
+                            il vous suffit de cliquer dans la colonne 'Classements' et de sélectionner les motifs d'abandon dans la liste proposée.
+                              Voir la démonstration ci-dessous.
+                          </div>
+                              <br/>
+                          <img src={demodnf}/>
+                          </Fragment>
+                        </AlertDialog>}
+                        <div style={{cursor:'pointer'}}>{isEdit?"Classement en édition":"Classement en visualisation"} -
+                            {modeDNFActivated ? <a onClick={(e)=>setModeDNFActivated(false)}> Arrêter saisie des abandons</a>:
+                                <a onClick={(e)=>setShowDNFDialog(true)}> Saisir les abandons</a>
+                              }
+                        </div>
                         <DataTable ref={dg}
                                    responsive={true}
                                    exportFilename={'Resultats_' + (competition&&competition.name) + '_CAT_' + currentRace}
@@ -349,7 +374,7 @@ const EditResultsPage = (gprops: any) => {
                             {isEdit && <Column rowReorder={true}
                                                style={{width: '3em'}}/>}
                             <Column field="classement" header="Clt."
-                                    {...(isEdit ? {editor: (allprops) => isEdit && notRankedEditor(allprops)} : undefined)}
+                                    {...(isEdit && modeDNFActivated ? {editor: (allprops) => isEdit && notRankedEditor(allprops)} : undefined)}
                                     filterMatchMode='contains'
                                     body={(rowdata: RaceRow, column: any) => displayRank(rowdata)}
                                     style={{overflow: 'visible', width: '60px'}}/>
@@ -424,6 +449,6 @@ const EditResultsPage = (gprops: any) => {
         }
     </CompetitionLayout>;
 };
+export default withStyles(null,{withTheme: true})( withRouter(EditResultsPage) as any) as any;
 
-export default withRouter(EditResultsPage);
 

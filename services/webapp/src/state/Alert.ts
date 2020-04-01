@@ -1,4 +1,4 @@
-import {Model} from './Helpers';
+import {ReactElement} from "react";
 
 interface IAlertButtonOptions {
     label: string;
@@ -7,22 +7,13 @@ interface IAlertButtonOptions {
 
 export interface IAlert {
     title?: string;
-    message: string;
+    message?: string;
     buttons?: IAlertButtonOptions[];
 }
 
-export const AlertModel = Model<IAlert>({
-    title: null,
-    message: null,
-    buttons: null
-});
 
-export class Alert extends AlertModel {
+export class Alert implements IAlert {
     public title: string;
-    public message: string;
+    public message?: string;
     public buttons: IAlertButtonOptions[];
-
-    constructor(data: IAlert) {
-        super(data);
-    }
 }
