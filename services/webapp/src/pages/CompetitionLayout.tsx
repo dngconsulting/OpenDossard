@@ -46,7 +46,7 @@ export const CompetitionLayout = ({competitionId, children}: { competitionId: nu
     const [rows, setRows] = useState<RaceRow[]>([]);
     const [competition, setCompetition] = useState<Competition>(null);
     const [currentRace, setCurrentRace] = useState(null);
-    const tabs = computeTabs(rows, competition ? competition.races : ['1/2/3', '4/5']);
+    const tabs = computeTabs(rows, competition ? competition.races : []);
 
     const fetchRows = async () => {
         const lrows = await apiRaces.getCompetitionRaces({id:competitionId});

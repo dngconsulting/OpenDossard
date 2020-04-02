@@ -71,9 +71,16 @@ const EditResultsPage = (gprops: any) => {
         }}/>;
     };
 
-    const dossardValidator = async (allprops: any, fetchRows: any, currentRace: string, transformedRows: any, rows: RaceRow[]) => {
+    const dossardValidator = async (allprops: any, fetchRows: any, currentRace: string, transformedRows: any, rows: RaceRow[]) : Promise<boolean> => {
         const currentRanking = transformedRows[allprops.rowIndex].classement;
         if (!isNaN(currentRanking) && previousRowEmpty(allprops.rowIndex, transformedRows)) {
+            if (currentDossard && currentDossard.trim().length>0) {
+                setNotification({
+                    message: 'Veuillez saisir le dossard ' + currentDossard + ' de manière consécutif aux autres',
+                    type: 'error',
+                    open: true
+                });
+            }
             setCurrentDossard('');
             setCurrentNotRankedStatus({status: '', rowindex: 0});
             return true;
@@ -114,6 +121,15 @@ const EditResultsPage = (gprops: any) => {
                     setLoading(false);
                 }
 
+            } else {
+                if (currentDossard && currentDossard.trim().length>0) {
+                    setNotification({
+                        message: "Le numéro de dossard " + currentDossard + " n'a pas été engagé ou est incorrect",
+                        type: 'error',
+                        open: true
+                    });
+                    return false;
+                }
             }
         } finally {
             setCurrentDossard('');
