@@ -1,11 +1,12 @@
 import {EntityManager, Repository} from 'typeorm';
-import {Controller, Get, UseGuards} from '@nestjs/common';
+import {Body, Controller, Get, Post, UseGuards} from '@nestjs/common';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
 import {ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
 import {ClubEntity} from '../entity/club.entity';
 import {AuthGuard} from '@nestjs/passport';
 import {ClubRow} from '../dto/model.dto';
-import {RolesGuard} from "../guards/roles.guard";
+import {ROLES, RolesGuard} from "../guards/roles.guard";
+import {Roles} from "../decorators/roles.decorator";
 
 
 @Controller('/api/clubs')
@@ -29,6 +30,16 @@ export class ClubController {
     @Get()
     public async getAllClubs(): Promise<ClubRow[]> {
         return this.repository.find();
+    }
+
+    @Post()
+    @ApiOperation({
+        operationId: 'createClub',
+        summary: 'Cree un nouveau club',
+    })
+    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
+    public async create(@Body() newClub: ClubEntity): Promise<ClubEntity> {
+        return this.repository.save(newClub)
     }
 
 }

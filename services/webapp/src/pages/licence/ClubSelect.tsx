@@ -1,5 +1,5 @@
 import React, {CSSProperties, HTMLAttributes, useEffect, useState} from 'react';
-import Select from 'react-select';
+import CreatableSelect from 'react-select/creatable';
 import {createStyles, makeStyles, Theme, useTheme} from '@material-ui/core/styles';
 import TextField, {BaseTextFieldProps} from '@material-ui/core/TextField';
 import Paper from '@material-ui/core/Paper';
@@ -81,19 +81,22 @@ const components = {
     Menu
 };
 
+
 export default function ClubSelect({onSelect, chosenClub} : {onSelect : (value:string)=>void, chosenClub : IOptionType}) {
     // @ts-ignore
     const classes = useStyles();
     const theme = useTheme();
     const [selectedClub, setSelectedClub] = React.useState<ValueType<IOptionType>>(null);
     const [clubs, setClubs] = useState<IOptionType[]>([]);
+    const [isLoading,setLoading] = useState<boolean>(false)
 
     const fetchData = async ()  => {
         const lclubs = await apiClubs.getAllClubs();
-        setClubs(lclubs.map((option: ClubRow) => ({
+        const loptionType = lclubs.map((option: ClubRow) => ({
             value: option.id,
             label:option.longName
-        })));
+        }))
+        setClubs(loptionType);
     };
     useEffect(()=>{
         fetchData();
@@ -106,9 +109,20 @@ export default function ClubSelect({onSelect, chosenClub} : {onSelect : (value:s
     const handleChangeSingle = (value: ValueType<IOptionType>) => {
         setSelectedClub(value);
         const selected = value as IOptionType;
-        onSelect(selected.label)
+        if (selected && selected.label)
+            onSelect(selected.label)
     };
-
+    const handleCreate = async (inputValue:string) => {
+        setLoading(true)
+        const newClub = await apiClubs.createClub({clubEntity:{id:0,shortName:null,dept:null,longName:inputValue}})
+        const newClubOption = {value:newClub.id,label:newClub.longName}
+        setClubs(prevState =>
+            prevState.concat([newClubOption])
+        )
+        setSelectedClub(newClubOption)
+        onSelect(inputValue)
+        setLoading(false)
+    }
     const selectStyles = {
         input: (base: CSSProperties) => ({
             ...base,
@@ -120,8 +134,13 @@ export default function ClubSelect({onSelect, chosenClub} : {onSelect : (value:s
     };
 
     return (
-                <Select
+                <CreatableSelect
+                    isClearable={true}
                     classes={classes}
+                    formatCreateLabel={(value:string)=>'Créer le club "' + value + '" ?'}
+                    isDisabled={isLoading}
+                    isLoading={isLoading}
+                    onCreateOption={handleCreate}
                     styles={selectStyles}
                     inputId="react-select-single"
                     TextFieldProps={{
@@ -131,8 +150,9 @@ export default function ClubSelect({onSelect, chosenClub} : {onSelect : (value:s
                             shrink: true,
                         },
                     }}
-                    placeholder="Rechercher un club"
+                    placeholder="Rechercher ou Créer un nouveau Club"
                     options={clubs}
+                    noOptionsMessage={()=>'Aucune valeur correspondante'}
                     components={components}
                     value={selectedClub}
                     onChange={handleChangeSingle}
