@@ -378,6 +378,8 @@ const EditResultsPage = (gprops: any) => {
                             )}
                         </div>
                         <DataTable ref={dg}
+                                   reorderableColumns
+                                   resizableColumns
                                    responsive={true}
                                    exportFilename={'Resultats_' + (competition&&competition.name) + '_CAT_' + currentRace}
                                    value={transformedRows}

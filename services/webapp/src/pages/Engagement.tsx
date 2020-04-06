@@ -357,6 +357,8 @@ const EngagementPage = (props: any) => {
                         <DataTable ref={dg} value={saisieResultat?filterByRace(rows, currentRace).reverse():filterByRace(rows, currentRace)}
                                    emptyMessage="Aucun coureur encore engagé sur cette épreuve ou aucun coureur ne correspond à votre filtre de recherche"
                                    responsive={true}
+                                   reorderableColumns
+                                   resizableColumns
                                    exportFilename={'Engagements_'+(competition&&competition.name) + '_CAT_' + currentRace}
                         >
                             {columns.map((column, i) => <Column key={i + 1} {...column}/>)}
