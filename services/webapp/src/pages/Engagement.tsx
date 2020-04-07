@@ -42,6 +42,7 @@ import * as _ from "lodash";
 import moment from 'moment'
 import 'moment/locale/fr'
 import SearchIcon from '@material-ui/icons/Search';
+import {addWrappedText, capitalizeFirstLetter} from "../util";
 moment.locale('fr')
 const style = makeStyles(theme => ({
     surclassed: {
@@ -197,27 +198,8 @@ const EngagementPage = (props: any) => {
                     {field: 'birthYear', header: 'Année', ...FILTERABLE, ...SHORT},
                     {field: 'fede', header: 'Fédé.', ...FILTERABLE, ...SHORT,sortable:true},
                 ];
-                const capitalizeFirstLetter = (s: string) => {
-                    return s.charAt(0).toUpperCase() + s.slice(1);
-                };
-                // @ts-ignore
-                function addWrappedText({text, textWidth, doc, fontSize = 10, fontType = 'normal', lineSpacing = 5, xPosition = 10, initialYPosition = 10, pageWrapInitialYPosition = 10}) {
-                    doc.setFontType(fontType);
-                    doc.setTextColor(70,70,70);
-                    doc.setFontSize(fontSize);
-                    var textLines = doc.splitTextToSize(text, textWidth); // Split the text into lines
-                    var pageHeight = doc.internal.pageSize.height;        // Get page height, we'll use this for auto-paging. TRANSLATE this line if using units other than `pt`
-                    var cursorY = initialYPosition;
 
-                    textLines.forEach((lineText:any) => {
-                        if (cursorY > pageHeight) { // Auto-paging
-                            doc.addPage();
-                            cursorY = pageWrapInitialYPosition;
-                        }
-                        doc.text(xPosition, cursorY, lineText);
-                        cursorY += lineSpacing;
-                    })
-                }
+
                 const exportPDF = async () => {
                     let rowstoDisplay : any[][] = [];
                     const lrows = filterByRace(rows, currentRace);
@@ -294,14 +276,6 @@ const EngagementPage = (props: any) => {
                     });
                     // @ts-ignore
                     let finalY = doc.lastAutoTable.finalY;
-                    /*addWrappedText({
-                        text: 'Résultats édités avec Open Dossard', // Put a really long string here
-                        textWidth: 190,
-                        fontSize:10,
-                        doc,
-                        initialYPosition: finalY + 10,
-                        pageWrapInitialYPosition: finalY + 10
-                    });*/
                     doc.putTotalPages(totalPagesExp)
                     doc.save('Engagement_' + competition.name.replace(/\s/g, '') + '_cate_' + currentRace + '.pdf');
                 }
