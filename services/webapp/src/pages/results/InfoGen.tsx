@@ -64,6 +64,7 @@ const InfoGen = (props: InfoGenProps) => {
                             <FormControl className={classes.formControl}>
                                 <TextField
                                     required={true}
+                                    value={currentCompetition?.speaker}
                                     id="speaker"
                                     label="Speaker"
                                     margin="normal"
@@ -72,6 +73,7 @@ const InfoGen = (props: InfoGenProps) => {
                             <FormControl className={classes.formControl}>
                                 <div style={{paddingTop:20}}>Commissaires :</div>
                                 <TextareaAutosize
+                                    value={currentCompetition?.commissaires}
                                     style={{width:355}}
                                     rowsMin={5}
                                     placeholder="Commissaire 1  Commissaire 2  Commissaire 3"
@@ -79,6 +81,7 @@ const InfoGen = (props: InfoGenProps) => {
                             </FormControl>
                             <FormControl className={classes.formControl}>
                                 <TextField
+                                    value={currentCompetition?.aboyeur}
                                     required={true}
                                     id="aboyeur"
                                     label="Aboyeur CX"
@@ -89,6 +92,7 @@ const InfoGen = (props: InfoGenProps) => {
                                 <div style={{paddingTop:20}}>Notes diverses :</div>
                                 <TextareaAutosize
                                     style={{width:355}}
+                                    value={currentCompetition?.feedback}
                                     rowsMin={5}
                                     placeholder="Incidents de courses/Notes"
                                 />

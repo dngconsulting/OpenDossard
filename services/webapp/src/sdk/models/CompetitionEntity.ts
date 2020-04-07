@@ -202,6 +202,12 @@ export interface CompetitionEntity {
      * @memberof CompetitionEntity
      */
     aboyeur?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CompetitionEntity
+     */
+    feedback?: string;
 }
 
 export function CompetitionEntityFromJSON(json: any): CompetitionEntity {
@@ -242,6 +248,7 @@ export function CompetitionEntityFromJSONTyped(json: any, ignoreDiscriminator: b
         'commissaires': !exists(json, 'commissaires') ? undefined : json['commissaires'],
         'speaker': !exists(json, 'speaker') ? undefined : json['speaker'],
         'aboyeur': !exists(json, 'aboyeur') ? undefined : json['aboyeur'],
+        'feedback': !exists(json, 'feedback') ? undefined : json['feedback'],
     };
 }
 
@@ -282,6 +289,7 @@ export function CompetitionEntityToJSON(value?: CompetitionEntity | null): any {
         'commissaires': value.commissaires,
         'speaker': value.speaker,
         'aboyeur': value.aboyeur,
+        'feedback': value.feedback,
     };
 }
 

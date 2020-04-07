@@ -160,4 +160,7 @@ export class CompetitionEntity {
     @Column({nullable:true})
     aboyeur?: string;
 
+    @Column({nullable:true})
+    feedback?: string;
+
 }

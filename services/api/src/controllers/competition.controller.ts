@@ -167,7 +167,7 @@ export class CompetitionController {
     public async saveInfoGen(@Body() competitionToSave: CompetitionEntity): Promise<CompetitionEntity> {
         const competition = await this.repository.findOne(competitionToSave.id);
         if (!competition) throw new NotFoundException("Epreuve " + competitionToSave.name + " Introuvable")
-        competition.observations = competitionToSave.observations;
+        competition.feedback = competitionToSave.feedback;
         if (competition.competitionType === CompetitionType.CX) {
             competition.aboyeur = competitionToSave.aboyeur
         }
