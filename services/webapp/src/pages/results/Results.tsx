@@ -376,7 +376,7 @@ const EditResultsPage = (gprops: any) => {
                     doc.setTextColor("#424242")
                     doc.setFontStyle('bold')
                     doc.fromHTML( "<div style='width:500px;font-size:14px;color:#666666;font-family: \"Open Sans\", \"Helvetica Neue\", sans-serif;'><b>Nombre de coureurs :</b> " + transformedRows.length +"</b><b> - ORGANISATEUR : </b>" + competition.club.longName +  " - <b>SPEAKER</b> : " + (competition.speaker?competition.speaker:'NC') + " - <b>REMARQUES</b> : " + (competition.feedback?competition.feedback:'NC') + " - <b>COMMISSAIRES</b> : " + (competition.commissaires?competition.commissaires:'NC') + "</div>",10,finalY+5,{
-                        'width': 200})
+                        'width': 190})
                     doc.save('Classement_' + competition.name.replace(/\s/g, '') + '_cate_' + currentRace + '.pdf');
 
                 }
