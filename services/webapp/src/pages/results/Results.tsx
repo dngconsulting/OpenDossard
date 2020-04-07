@@ -21,9 +21,8 @@ import Button from "@material-ui/core/Button";
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import jsPDF from "jspdf";
 import demodnf from '../../assets/images/demodnf.gif';
-import {showPopup} from "../../actions/App.Actions";
-import {store} from "../../store/Store";
 import {AlertDialog} from "../../alert/Alert";
+import InfoGen from "./InfoGen";
 
 const previousRowEmpty = (index: number, transformedRows: any) => {
     return ((index > 0) && (transformedRows[index - 1].riderNumber === undefined));
@@ -372,6 +371,7 @@ const EditResultsPage = (gprops: any) => {
                           <img src={demodnf}/>
                           </Fragment>
                         </AlertDialog>}
+                        <InfoGen open={true}/>
                         <div style={{cursor:'pointer'}}>{isEdit?"Classement en édition":"Classement en visualisation"}
                             {isEdit && (modeDNFActivated ? <a onClick={(e)=>setModeDNFActivated(false)}> - Arrêter saisie des abandons</a>:
                                 <a onClick={(e)=>setShowDNFDialog(true)}> - Saisir les abandons</a>

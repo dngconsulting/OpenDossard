@@ -358,6 +358,9 @@ const EngagementPage = (props: any) => {
                                    emptyMessage="Aucun coureur encore engagé sur cette épreuve ou aucun coureur ne correspond à votre filtre de recherche"
                                    responsive={true}
                                    reorderableColumns
+                                   onColReorder={e=> {
+                                       console.log("Col Reorder dragIndex=" + e.dragIndex,"dropIndex="+e.dropIndex + " columns=" + e.columns)
+                                   }}
                                    resizableColumns
                                    exportFilename={'Engagements_'+(competition&&competition.name) + '_CAT_' + currentRace}
                         >

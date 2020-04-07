@@ -1,8 +1,18 @@
-import {BadRequestException, Body, Controller, Get, Logger, Param, Post, UseGuards,} from '@nestjs/common';
+import {
+    BadRequestException,
+    Body,
+    Controller,
+    Get,
+    Logger,
+    NotFoundException,
+    Param,
+    Post,
+    UseGuards,
+} from '@nestjs/common';
 import {ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
 import {Any, Between, EntityManager, Repository} from 'typeorm';
-import {CompetitionEntity} from '../entity/competition.entity';
+import {CompetitionEntity, CompetitionType} from '../entity/competition.entity';
 import {RaceEntity} from '../entity/race.entity';
 import {AuthGuard} from '@nestjs/passport';
 import {CompetitionFilter, CompetitionReorganize, Departement} from '../dto/model.dto';
@@ -11,6 +21,7 @@ import {TooMuchResults} from "../exception/TooMuchResults";
 import {ROLES, RolesGuard} from "../guards/roles.guard";
 import {Roles} from "../decorators/roles.decorator";
 import {FindManyOptions} from "typeorm/find-options/FindManyOptions";
+
 const MAX_COMPETITION_TODISPLAY = 5000;
 /**
  * Competition Controller handles all competitions operation ('Epreuve' in french)
@@ -144,5 +155,24 @@ export class CompetitionController {
         Logger.debug('Perf After saving all races rows ' + (end - start) + 'ms');
         competition.races = dto.races;
         await this.entityManager.save(competition);
+    }
+
+    @Post('/saveInfoGen')
+    @ApiOperation({
+        operationId: 'saveInfoGen',
+        summary: 'Sauvegarde les informations générales d\'une épreuve (Speaker, Aboyeur, Commissaires,...)'
+    })
+    @ApiResponse({status: 200, isArray: false})
+    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
+    public async saveInfoGen(@Body() competitionToSave: CompetitionEntity): Promise<CompetitionEntity> {
+        const competition = await this.repository.findOne(competitionToSave.id);
+        if (!competition) throw new NotFoundException("Epreuve " + competitionToSave.name + " Introuvable")
+        competition.observations = competitionToSave.observations;
+        if (competition.competitionType === CompetitionType.CX) {
+            competition.aboyeur = competitionToSave.aboyeur
+        }
+        competition.commissaires = competitionToSave.commissaires;
+        competition.speaker = competitionToSave.speaker;
+        return await this.entityManager.save(competition)
     }
 }
