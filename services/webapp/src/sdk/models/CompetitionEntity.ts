@@ -184,6 +184,24 @@ export interface CompetitionEntity {
      * @memberof CompetitionEntity
      */
     rankingUrl?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CompetitionEntity
+     */
+    commissaires?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CompetitionEntity
+     */
+    speaker?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CompetitionEntity
+     */
+    aboyeur?: string;
 }
 
 export function CompetitionEntityFromJSON(json: any): CompetitionEntity {
@@ -221,6 +239,9 @@ export function CompetitionEntityFromJSONTyped(json: any, ignoreDiscriminator: b
         'openedNL': !exists(json, 'openedNL') ? undefined : json['openedNL'],
         'dept': !exists(json, 'dept') ? undefined : json['dept'],
         'rankingUrl': !exists(json, 'rankingUrl') ? undefined : json['rankingUrl'],
+        'commissaires': !exists(json, 'commissaires') ? undefined : json['commissaires'],
+        'speaker': !exists(json, 'speaker') ? undefined : json['speaker'],
+        'aboyeur': !exists(json, 'aboyeur') ? undefined : json['aboyeur'],
     };
 }
 
@@ -258,6 +279,9 @@ export function CompetitionEntityToJSON(value?: CompetitionEntity | null): any {
         'openedNL': value.openedNL,
         'dept': value.dept,
         'rankingUrl': value.rankingUrl,
+        'commissaires': value.commissaires,
+        'speaker': value.speaker,
+        'aboyeur': value.aboyeur,
     };
 }
 

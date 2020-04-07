@@ -38,6 +38,10 @@ export interface ReorganizeRequest {
     competitionReorganize: CompetitionReorganize;
 }
 
+export interface SaveInfoGenRequest {
+    competitionEntity: CompetitionEntity;
+}
+
 /**
  * no description
  */
@@ -164,6 +168,46 @@ export class CompetitionAPIApi extends runtime.BaseAPI {
      */
     async reorganize(requestParameters: ReorganizeRequest): Promise<void> {
         await this.reorganizeRaw(requestParameters);
+    }
+
+    /**
+     * Sauvegarde les informations générales d\'une épreuve (Speaker, Aboyeur, Commissaires,...)
+     */
+    async saveInfoGenRaw(requestParameters: SaveInfoGenRequest): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.competitionEntity === null || requestParameters.competitionEntity === undefined) {
+            throw new runtime.RequiredError('competitionEntity','Required parameter requestParameters.competitionEntity was null or undefined when calling saveInfoGen.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/competition/saveInfoGen`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CompetitionEntityToJSON(requestParameters.competitionEntity),
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Sauvegarde les informations générales d\'une épreuve (Speaker, Aboyeur, Commissaires,...)
+     */
+    async saveInfoGen(requestParameters: SaveInfoGenRequest): Promise<void> {
+        await this.saveInfoGenRaw(requestParameters);
     }
 
 }
