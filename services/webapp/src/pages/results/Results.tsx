@@ -375,7 +375,12 @@ const EditResultsPage = (gprops: any) => {
                     doc.setFontSize(10)
                     doc.setTextColor("#424242")
                     doc.setFontStyle('bold')
-                    doc.fromHTML( "<div style='width:500px;font-size:14px;color:#666666;font-family: \"Open Sans\", \"Helvetica Neue\", sans-serif;'><b>Nombre de coureurs :</b> " + transformedRows.length +"</b><b> - ORGANISATEUR : </b>" + competition.club.longName +  " - <b>SPEAKER</b> : " + (competition.speaker?competition.speaker:'NC') + " - <b>REMARQUES</b> : " + (competition.feedback?competition.feedback:'NC') + " - <b>COMMISSAIRES</b> : " + (competition.commissaires?competition.commissaires:'NC') + "</div>",10,finalY+5,{
+                    doc.fromHTML( "<div style='border-width:1px;width:300px;font-size:14px;color:\'#666666\';font-family: \"Open Sans\", \"Helvetica Neue\", sans-serif;'><b>NOMBRE DE COUREURS :</b> " + transformedRows.length + ' en catégorie(s) ' + competition.races +
+                        "<br><b>ORGANISATEUR : </b>" + competition.club.longName + "<br><b>COMMISSAIRES</b> : " +
+                        (competition.commissaires?competition.commissaires:'NC') + "<br><b>SPEAKER</b> : " + (competition.speaker?competition.speaker:'NC')
+                        + ((competition.competitionType === 'CX')?("<br><b>ABOYEUR</b> : " + (competition.aboyeur?competition.aboyeur:'NC')):'') +
+                        "<br><b>REMARQUES</b> : "
+                        + (competition.feedback?competition.feedback:'NC')  + "</div>",10,finalY+5,{
                         'width': 190})
                     doc.save('Classement_' + competition.name.replace(/\s/g, '') + '_cate_' + currentRace + '.pdf');
 
