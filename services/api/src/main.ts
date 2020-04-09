@@ -13,7 +13,18 @@ async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule, {logger: ['error', 'warn', 'debug']});
     app.useGlobalFilters(new NotFoundExceptionFilter());
     app.use(compression());
-    app.use(swStats.getMiddleware());
+    app.use(swStats.getMiddleware({
+        uriPath: '/stats',
+        durationBuckets: [10, 25, 50, 100, 200],
+        requestSizeBuckets: [10, 25, 50, 100, 200],
+        responseSizeBuckets: [10, 25, 50, 100, 200],
+        apdexThreshold: 100,
+        authentication: true,
+        sessionMaxAge: 20000,
+        onAuthenticate: function(req,username,password){
+            return((username===config.app.monitoringUser) && (password===config.app.monitoringPassword) );
+        }
+    }));
     if (config.app.env !== 'DEV') {
         app.useStaticAssets(join(__dirname, '../..', 'client/build'), {index: 'index.html'});
     }

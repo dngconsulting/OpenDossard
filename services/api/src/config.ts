@@ -52,6 +52,18 @@ const config = convict({
             env: 'ENV',
             format: String,
         },
+        monitoringPassword: {
+            default: '',
+            doc: 'Password for monitoring swagger stats',
+            env: 'MONITORING_PASSWORD',
+            format: String,
+        },
+        monitoringUser: {
+            default: '',
+            doc: 'User for monitoring swagger stats',
+            env: 'MONITORING_USER',
+            format: String,
+        },
     },
 });
 
@@ -67,6 +79,8 @@ export interface IConfig {
         jwtSecret: string;
         jwtExpires: string;
         env: string;
+        monitoringPassword:string;
+        monitoringUser:string;
     };
 }
 
