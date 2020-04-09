@@ -8,6 +8,9 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
 import Paper from '@material-ui/core/Paper';
+import {Link} from "react-router-dom";
+import AssignmentIcon from "@material-ui/icons/Assignment";
+import FormatListNumberedIcon from "@material-ui/icons/FormatListNumbered";
 
 const computeTabs = (rows: RaceRow[], races: string[]): IRaceStat => {
 
@@ -42,12 +45,11 @@ interface ILayoutChildren {
     competition: Competition,
 }
 
-export const CompetitionLayout = ({competitionId, children}: { competitionId: number, children: (props: ILayoutChildren) => ReactNode }) => {
+export const CompetitionLayout = ({competitionId, displayType, children}: {competitionId: number, displayType: 'results'| 'engagements',children: (props: ILayoutChildren) => ReactNode }) => {
     const [rows, setRows] = useState<RaceRow[]>([]);
     const [competition, setCompetition] = useState<Competition>(null);
     const [currentRace, setCurrentRace] = useState(null);
     const tabs = computeTabs(rows, competition ? competition.races : []);
-
     const fetchRows = async () => {
         const lrows = await apiRaces.getCompetitionRaces({id:competitionId});
         setRows(lrows);
@@ -72,19 +74,24 @@ export const CompetitionLayout = ({competitionId, children}: { competitionId: nu
     return (
         <Paper className={classes.container}>
             <div>
-                <CompetitionCard competition={competition}/>
+                <CompetitionCard displayType={displayType} competition={competition}/>
                 <RaceTabs tabs={tabs} value={currentRace} onChange={race => setCurrentRace(race)}/>
                 {children({competition, currentRace, rows, fetchRows, fetchCompetition})}
             </div>
         </Paper>);
 };
 
-const CompetitionCard = ({competition}: { competition: Competition }) => {
+const CompetitionCard = ({displayType,competition}: {displayType:'results'|'engagements',competition: Competition }) => {
     const c: Partial<Competition> = competition ? competition : {};
     const club = c.club ? c.club.longName : '';
+    const switchPage = displayType==='results'?'engagements':'résultats';
+    const titleCard = displayType==='results'?'Classements':'Engagements'
     return <Grid container={true} style={{padding: 10, width: '100%', justifyContent: 'center'}}>
         <Typography component="h2" variant="h5" align="center">
-            {c.name} organisé le {moment(c.eventDate).format('DD/MM/YYYY')} par {club}
+            {displayType==='results'?<FormatListNumberedIcon style={{verticalAlign:'text-top'}}/>:<AssignmentIcon style={{verticalAlign:'text-top'}}/>} {titleCard} {c.name}  <Typography component="h5">Organisé par {club} le {moment(c.eventDate).format('DD/MM/YYYY')} </Typography>
+            <div style={{fontSize:14}}>
+                <Link to={"/competition/" + competition?.id + "/" + (displayType==='results'?'engagement':'results') + "/edit"}>Accéder aux {switchPage}</Link>
+            </div>
         </Typography>
     </Grid>;
 };

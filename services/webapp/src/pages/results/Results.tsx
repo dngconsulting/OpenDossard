@@ -26,6 +26,7 @@ import {AlertDialog} from "../../alert/Alert";
 import InfoGen from "./InfoGen";
 import {capitalizeFirstLetter} from "../../util";
 import moment from "moment";
+import {Link} from "react-router-dom";
 
 const previousRowEmpty = (index: number, transformedRows: any) => {
     return ((index > 0) && (transformedRows[index - 1].riderNumber === undefined));
@@ -210,7 +211,7 @@ const EditResultsPage = (gprops: any) => {
         return null;
     };
 
-    return <CompetitionLayout competitionId={competitionId}>
+    return <CompetitionLayout displayType={'results'} competitionId={competitionId}>
         {
             ({competition, currentRace, rows, fetchRows,fetchCompetition}) => {
                 const transformedRows = transformRows(filterByRace(rows, currentRace));
@@ -375,7 +376,7 @@ const EditResultsPage = (gprops: any) => {
                     doc.setFontSize(10)
                     doc.setTextColor("#424242")
                     doc.setFontStyle('bold')
-                    doc.fromHTML( "<div style='border-width:1px;width:300px;font-size:14px;color:\'#666666\';font-family: \"Open Sans\", \"Helvetica Neue\", sans-serif;'><b>NOMBRE DE COUREURS :</b> " + transformedRows.length + ' en catégorie(s) ' + competition.races +
+                    doc.fromHTML( "<div style='border-width:1px;width:300px;font-size:14px;color:\'#666666\';font-family: \"Open Sans\", \"Helvetica Neue\", sans-serif;'><b>NOMBRE DE COUREURS :</b> " + transformedRows.length + ' en catégorie(s) ' + currentRace +
                         "<br><b>ORGANISATEUR : </b>" + competition.club.longName + "<br><b>COMMISSAIRES</b> : " +
                         (competition.commissaires?competition.commissaires:'NC') + "<br><b>SPEAKER</b> : " + (competition.speaker?competition.speaker:'NC')
                         + ((competition.competitionType === 'CX')?("<br><b>ABOYEUR</b> : " + (competition.aboyeur?competition.aboyeur:'NC')):'') +
@@ -425,7 +426,8 @@ const EditResultsPage = (gprops: any) => {
                         <InfoIcon style={{marginTop:0}} htmlColor='#333333'/>
                           <span style={{verticalAlign:'super',cursor:'pointer'}}><a onClick={()=>{setOpenInfoGen(true)}}>Informations épreuve</a></span>
                       </div>
-                        <div style={{cursor:'pointer'}}>{isEdit?"Classement en édition":"Classement en visualisation"}
+                        <div style={{marginTop:'-25px', cursor:'pointer'}}>
+                            <Link to={"/competition/" + competition?.id + "/results/" + (isEdit?'view':'edit')}>{isEdit?"Passer en visualisation":"Passer en edition"}</Link>
                             {isEdit && (modeDNFActivated ? <a onClick={(e)=>setModeDNFActivated(false)}> - Arrêter saisie des abandons</a>:
                                 <a onClick={(e)=>setShowDNFDialog(true)}> - Saisir les abandons</a>
                             )}

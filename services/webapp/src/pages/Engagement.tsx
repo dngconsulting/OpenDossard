@@ -136,7 +136,7 @@ const EngagementPage = (props: any) => {
         dg && dg.current && dg.current.exportCSV();
     }
 
-    return <CompetitionLayout competitionId={competitionId}>
+    return <CompetitionLayout competitionId={competitionId} displayType={'engagements'}>
         {
             ({competition, currentRace, rows, fetchRows, fetchCompetition}) => {
 
@@ -195,7 +195,7 @@ const EngagementPage = (props: any) => {
                     },
                     {field: 'gender', header: 'H/F', ...FILTERABLE, ...SHORT},
                     {field: 'catea', header: 'Caté. A.', ...FILTERABLE, ...SHORT,sortable:true},
-                    {field: 'birthYear', header: 'Année', ...FILTERABLE, ...SHORT},
+                    {field: 'birthYear', header: 'Année', ...FILTERABLE, ...SHORT,sortable:true},
                     {field: 'fede', header: 'Fédé.', ...FILTERABLE, ...SHORT,sortable:true},
                 ];
 
