@@ -35,6 +35,13 @@ interface ICategory {
     value: string;
 }
 
+interface IAgeCategory {
+    label: string;
+    value: string;
+    gender:string;
+}
+
+
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
         formControl: {
@@ -49,6 +56,8 @@ const useStyles = makeStyles((theme: Theme) =>
 const LicencesPage = (props: ILicencesProps) => {
     const [, setNotification] = useContext(NotificationContext);
     const [editMode,setEditMode] = useState<boolean>(false);
+    const [deptError,setDeptError] = useState<boolean>(false);
+    const [birthError,setBirthError] = useState<boolean>(false);
     const [newLicence, setNewLicence] = React.useState<Licence>({
         id:null,
         name:'',
@@ -92,7 +101,9 @@ const LicencesPage = (props: ILicencesProps) => {
         name:false,
         firstName:false,
         catea:false,
-        catev:false
+        catev:false,
+        dept:false,
+        birthYear:false
     });
 
     const handleFEDEChange = (event: React.ChangeEvent<{ name?: string; value: unknown }>) => {
@@ -114,8 +125,11 @@ const LicencesPage = (props: ILicencesProps) => {
     }
 
     const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+
         setNewLicence(oldValues => ({
             ...oldValues,
+            catea:'',
+            catev:'',
             gender: (event.target as HTMLInputElement).value
         }))
     };
@@ -125,12 +139,14 @@ const LicencesPage = (props: ILicencesProps) => {
     };
 
     const createLicence = async (id: number) => {
-        if ((newLicence.catea==='') || (newLicence.catev==='') || (newLicence.name==='' || newLicence.firstName==='')) {
+        if ((newLicence.catea==='') || (newLicence.catev==='') || (newLicence.name==='' || newLicence.firstName==='' || newLicence.dept==='')) {
             setValidation({
                 name: !newLicence.name,
                 firstName: !newLicence.firstName,
                 catea: !newLicence.catea,
-                catev: !newLicence.catev
+                catev: !newLicence.catev,
+                dept: !newLicence.dept,
+                birthYear: !newLicence.birthYear
             });
             setNotification({
                 message: `Une de ces informations est manquante (caté valeur, caté age, nom et prénom)`,
@@ -245,20 +261,44 @@ const LicencesPage = (props: ILicencesProps) => {
                 </Grid>
                 <Grid item={true} xs={6}>
                     <TextField
+                        error={birthError}
                         id="birthYear"
+                        type="number"
                         label="Année de la naissance"
                         margin="normal"
-                        value={newLicence.birthYear?newLicence.birthYear:''}
-                        onChange={e => setNewLicence({...newLicence, birthYear: e.target.value})}
+                        value={newLicence.birthYear}
+                        onBlur={e=>{
+                            if (parseInt(e.target.value) <1930 || parseInt(e.target.value) > 2020) {
+                                setNewLicence({...newLicence, birthYear: ''})
+                                setBirthError(true)
+                                return;
+                            }
+                            setBirthError(false)
+                        }}
+                        onChange={e => {
+                            setNewLicence({...newLicence, birthYear: e.target.value})}}
                     />
                 </Grid>
                 <Grid item={true} xs={6}>
                     <TextField
+                        error={deptError}
+                        style={{width:100}}
                         id="department"
                         label="Département"
+                        type="number"
                         margin="normal"
                         value={newLicence.dept}
-                        onChange={e => setNewLicence({...newLicence, dept: e.target.value})}
+                        onBlur={e=>{
+                            if (parseInt(e.target.value) <1 || parseInt(e.target.value) > 99) {
+                                setNewLicence({...newLicence, dept: ''})
+                                setDeptError(true)
+                                return;
+                            }
+                            setDeptError(false)
+                        }}
+                        onChange={e => {
+                            setNewLicence({...newLicence, dept: e.target.value})
+                        }}
                     />
                 </Grid>
                 <Grid item={true} xs={12}>
@@ -277,9 +317,10 @@ const LicencesPage = (props: ILicencesProps) => {
                                 id: 'catea',
                             }}
                         >{
-                            FEDERATIONS[newLicence.fede.toString()].catea.map((value: ICategory, index: number) => {
-                                return (<MenuItem key={index}
-                                                                                     value={value && value.value.toUpperCase()}>{(value && value.label) + ' (' + (value && value.value && value.value.toUpperCase()) + ')'}</MenuItem>)})
+                            FEDERATIONS[newLicence.fede.toString()].catea.map((item: IAgeCategory, index: number) => {
+                                if (item.gender===newLicence.gender) return (<MenuItem key={index} value={item && item.value.toUpperCase()}>{(item && item.label) + ' (' + (item && item.value && item.value.toUpperCase()) + ')'}</MenuItem>)
+                                return null;
+                            })
                         }
                         </Select>
                     </FormControl>
@@ -296,9 +337,9 @@ const LicencesPage = (props: ILicencesProps) => {
                             }}
                         > {
                             newLicence.fede &&
-                            FEDERATIONS[newLicence.fede.toString()].catev.map((value: ICategory, index: number) => {
-                                return (value && value.value) &&
-                                (<MenuItem key={index} value={value && value.value && value.value.toUpperCase()}>{value && value.label}</MenuItem>)
+                            FEDERATIONS[newLicence.fede.toString()].catev.map((item: ICategory, index: number) => {
+                                return (item && item.value) &&
+                                (<MenuItem key={index} value={item && item.value && item.value.toUpperCase()}>{item && item.label}</MenuItem>)
                             })
                         }
                         </Select>

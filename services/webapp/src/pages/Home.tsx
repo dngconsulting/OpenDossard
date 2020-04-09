@@ -6,14 +6,14 @@ import {RaceRow} from '../sdk';
 import _ from 'lodash';
 import {apiRaces} from '../util/api';
 import HighchartsReact from 'highcharts-react-official';
-import {CATEA} from '../pages/common/shared-entities'
+import {CATEA_FSGT,CATEA_UFOLEP} from '../pages/common/shared-entities'
 
 interface IDashboardProps {
     classes?: any;
 }
 
 const cateLabelFrom = (cate : string) => {
-    const catea = CATEA.filter(item=> item.value.toUpperCase()===cate.toUpperCase())[0]
+    const catea = CATEA_FSGT.concat(CATEA_UFOLEP).filter(item=> item.value.toUpperCase()===cate.toUpperCase())[0]
     return catea===undefined?cate:catea.label
 }
 const HomePage = (props: IDashboardProps) => {
