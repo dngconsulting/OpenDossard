@@ -342,44 +342,7 @@ const EngagementPage = (props: any) => {
                                    exportFilename={'Engagements_'+(competition&&competition.name) + '_CAT_' + currentRace}
                         >
                             {columns.map((column, i) => <Column key={i + 1} {...column}/>)}
-
                         </DataTable>
-                        <ExpansionPanel>
-                            <ExpansionPanelSummary
-                                expandIcon={<ExpandMoreIcon />}
-                                aria-controls="panel1a-content"
-                                id="panel1a-header"
-                            >
-                                <Typography>Contrôle et Éditions</Typography>
-                            </ExpansionPanelSummary>
-                            <ExpansionPanelDetails>
-                                <div style={{display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}}>
-                                    <Button
-                                        variant="contained"
-                                        style={{marginRight:'20px'}}
-                                        color="primary"
-                                        onClick={controleDossards}
-                                    >
-                                        Contrôle dossards
-                                    </Button>
-                                    <Button
-                                        variant="contained"
-                                        style={{marginRight:'20px'}}
-                                        color="primary"
-                                        onClick={exportCSV}
-                                    >
-                                        Lancer une Sauvegarde Excel
-                                    </Button>
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        onClick={exportPDF}
-                                    >
-                                        Générer un fichier PDF
-                                    </Button>
-                                </div>
-                            </ExpansionPanelDetails>
-                        </ExpansionPanel>
                     </Box>
                 );
             }
