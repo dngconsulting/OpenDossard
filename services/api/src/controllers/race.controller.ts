@@ -70,11 +70,11 @@ export class RacesCtrl {
                               r.competition_id as "competitionId",
                               concat(l.name, ' ', l.first_name) as "riderName",
                               l.licence_number,
-                              l.club,
+                              r.club,
                               l.gender,
                               l.fede,
                               l.birth_year,
-                              l.catea,
+                              r.catea,
                               c.name,
                               c.event_date
                        from race r
@@ -108,11 +108,11 @@ export class RacesCtrl {
                               c.competition_type as "competitionType",
                               c.races as "competitionRaces",
                               l.licence_number as "licenceNumber",
-                              l.club,
+                              r.club,
                               l.gender,
                               c.fede,
                               l.birth_year as "birthYear",
-                              l.catea
+                              r.catea
                        from race r
                                 join licence l on r.licence_id = l.id
                                 join competition c on r.competition_id = c.id
@@ -144,9 +144,9 @@ export class RacesCtrl {
                               r.competition_id as "competitionId",
                               concat(l.name, ' ', l.first_name) as name,
                               l.licence_number as "licenceNumber",
-                              l.catea,
+                              r.catea,
                               l.dept,
-                              l.club,
+                              r.club,
                               l.gender,
                               l.fede,
                               l.birth_year as "birthYear"
@@ -215,6 +215,8 @@ export class RacesCtrl {
         newRace.licence = licence;
         newRace.competition = competition;
         newRace.catev = race.catev;
+        newRace.catea = race.catea;
+        newRace.club = race.club;
         if (race.rankingScratch) { newRace.rankingScratch = race.rankingScratch; }
 
         await this.entityManager.save(newRace);

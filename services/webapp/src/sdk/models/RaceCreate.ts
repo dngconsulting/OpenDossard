@@ -51,6 +51,18 @@ export interface RaceCreate {
     catev?: string;
     /**
      * 
+     * @type {string}
+     * @memberof RaceCreate
+     */
+    catea?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RaceCreate
+     */
+    club?: string;
+    /**
+     * 
      * @type {number}
      * @memberof RaceCreate
      */
@@ -72,6 +84,8 @@ export function RaceCreateFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'riderNumber': !exists(json, 'riderNumber') ? undefined : json['riderNumber'],
         'raceCode': !exists(json, 'raceCode') ? undefined : json['raceCode'],
         'catev': !exists(json, 'catev') ? undefined : json['catev'],
+        'catea': !exists(json, 'catea') ? undefined : json['catea'],
+        'club': !exists(json, 'club') ? undefined : json['club'],
         'rankingScratch': !exists(json, 'rankingScratch') ? undefined : json['rankingScratch'],
     };
 }
@@ -90,6 +104,8 @@ export function RaceCreateToJSON(value?: RaceCreate | null): any {
         'riderNumber': value.riderNumber,
         'raceCode': value.raceCode,
         'catev': value.catev,
+        'catea': value.catea,
+        'club': value.club,
         'rankingScratch': value.rankingScratch,
     };
 }

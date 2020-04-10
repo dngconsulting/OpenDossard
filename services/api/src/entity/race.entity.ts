@@ -43,4 +43,10 @@ export class RaceEntity {
     @Column({nullable: true})
     public sprintchallenge: boolean;
 
+    @Column({nullable: true})
+    public catea: string;
+
+    @Column({nullable: true})
+    public club: string;
+
 }

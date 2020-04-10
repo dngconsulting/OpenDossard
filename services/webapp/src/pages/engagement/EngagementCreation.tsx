@@ -42,7 +42,9 @@ interface IForm {
         id: number,
         name: string,
         firstName: string,
-        catev: string
+        catev: string,
+        catea:string,
+        club:string,
     },
     riderNumber: string
     catev: string
@@ -101,6 +103,8 @@ export const CreationForm = (
                 raceCode: race,
                 ...(saisieResultat ? {riderNumber: ranking} : {riderNumber: parseInt(form.riderNumber)}),
                 catev: form.catev,
+                catea: form.licence.catea,
+                club:form.licence.club,
                 competitionId: competition.id,
                 ...(saisieResultat ? {rankingScratch: ranking} : null)
             };

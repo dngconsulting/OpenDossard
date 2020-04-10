@@ -46,6 +46,8 @@ export class RaceCreate {
     public riderNumber?: number;
     public raceCode?: string;
     public catev?: string;
+    public catea?: string;
+    public club?: string;
     public rankingScratch?: number;
 }
 
