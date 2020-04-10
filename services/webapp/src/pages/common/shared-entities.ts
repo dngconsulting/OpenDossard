@@ -1,11 +1,17 @@
 // TODO: all those entities can be shared between front & back
 export const CATEV = [
+    {label: 'Catégorie 1', value: '1'},
+    {label: 'Catégorie 2', value: '2'},
+    {label: 'Catégorie 3', value: '3'},
+    {label: 'Catégorie 4', value: '4'},
+    {label: 'Catégorie 5', value: '5'},
     {label: 'Cadet', value: 'C'},
-    {label: 'Minimes', value: 'M'},
-    {label: 'Féminine', value: 'F'},
-    {label: '1', value: '1'},
-    {label: '2', value: '2'},
-    {label: '3', value: '3'}];
+    {label: 'Minime', value: 'M'},
+    {label: 'Benjamin', value: 'B'},
+    {label: 'Pupille', value: 'PU'},
+    {label: 'Poussin', value: 'PO'},
+    {label: 'Moustic', value: 'MO'}
+    ];
 
 export const CATEA_FSGT : Array<{label:string,value:string,gender:string}> = [
     {label: 'Ancien', value: 'A', gender:'H'},
@@ -63,14 +69,14 @@ export const CATEA_UFOLEP : Array<{label:string,value:string,gender:string}> = [
 export const FEDERATIONS = {
     FSGT: {
         name: {label: 'FSGT', value: 'FSGT'},
-        catev: [...CATEV, {label: '4', value: '4'}, {label: '5', value: '5'}],
+        catev: [...CATEV],
         catea:CATEA_FSGT
     },
     UFOLEP: {
         name: {label: 'UFOLEP', value: 'UFOLEP'},
-        catev: [ {label: '1', value: '1'},
-            {label: '2', value: '2'},
-            {label: '3', value: '3'}, {label: 'GSa', value: 'GSA'},{label: 'GSb', value: 'GSB'},{label: 'Jeune', value: 'JEUNE'},{label: 'Féminine', value: 'FEM'}],
+        catev: [ {label: 'Catégorie 1', value: '1'},
+            {label: 'Catégorie 2', value: '2'},
+            {label: 'Catégorie 3', value: '3'}, {label: 'GSa', value: 'GSA'},{label: 'GSb', value: 'GSB'},{label: 'Jeune', value: 'JEUNE'},{label: 'Féminine', value: 'FEM'}],
         catea:[...CATEA_UFOLEP,{label:'FNC', value:'FNC'},{label:'FFS', value:'FFS'}]
     },
     FFC: {
@@ -80,7 +86,7 @@ export const FEDERATIONS = {
     },
     NL:{
         name:{label: 'Non Licencié', value: 'NL'},
-        catev: [...CATEV, {label: '4', value: '4'}, {label: '5', value: '5'}],
+        catev: [...CATEV],
         catea:CATEA_FSGT
     }
 };
