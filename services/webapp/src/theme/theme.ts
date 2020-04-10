@@ -1,4 +1,5 @@
-import {createMuiTheme} from '@material-ui/core';
+import {createMuiTheme, Theme} from '@material-ui/core';
+import {Shadows} from "@material-ui/core/styles/shadows";
 
 const palette = {
     primary: {
@@ -16,10 +17,10 @@ const palette = {
 }
 
 export const cadtheme = createMuiTheme({
+    shadows:Array<string>(25).fill('none') as Theme['shadows'],
     palette,
     overrides:{
         MuiDrawer: {
-
         },
         MuiTabs: {
             root: {

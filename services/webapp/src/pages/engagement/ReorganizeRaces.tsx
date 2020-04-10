@@ -11,6 +11,7 @@ import Box from '@material-ui/core/Box';
 import Badge from '@material-ui/core/Badge/Badge';
 import {apiCompetitions} from '../../util/api';
 import {NotificationContext} from '../../components/CadSnackbar';
+import {ActionButton} from "../../components/ActionButton";
 
 const styles = makeStyles(theme => ({
     button: {
@@ -155,8 +156,8 @@ export const Reorganizer = ({competition, rows, onSuccess}: { competition: Compe
     const errors = computeErrors(races, byCate.map(c => c.catev));
 
     return <div>
-        <Button className={classes.button}
-                onClick={() => setOpen(true)}><ThreeSixty/> Réorganiser les courses</Button>
+        <ActionButton
+                onClick={() => setOpen(true)}><ThreeSixty style={{color:"white"}}/><span style={{color:'white'}}>Réorganiser les courses</span> </ActionButton>
         <Dialog
             open={open}
             onClose={() => setOpen(false)}
@@ -233,11 +234,11 @@ const Categories = ({byCate}: { byCate: Array<{ catev: string, participants: num
         <table>
             <tbody>
             <tr>
-                <th>Catégories :</th>
+                <th>Caté.:</th>
                 {byCate.map(stat => <td key={stat.catev}>{stat.catev}</td>)}
             </tr>
             <tr>
-                <th>Inscrits :</th>
+                <th>Inscrits:</th>
                 {byCate.map(stat => <td key={stat.catev}>{stat.participants}</td>)}
             </tr>
             </tbody>

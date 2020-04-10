@@ -7,19 +7,12 @@ import _ from 'lodash';
 import {NotificationContext} from '../../components/CadSnackbar';
 import {apiRaces} from '../../util/api';
 import {filterByRace} from '../../util/services';
-import {Delete} from '@material-ui/icons';
+import {CloudDownload, Delete, PictureAsPdf,Edit,PageviewSharp} from '@material-ui/icons';
 import EmojiEventsIcon from '@material-ui/icons/EmojiEvents';
 import EmojiPeopleIcon from '@material-ui/icons/EmojiPeople';
 import {Tooltip, withStyles} from '@material-ui/core';
-import InfoIcon from "@material-ui/icons/Info";
 import {Column} from 'primereact/column';
 import {withRouter} from 'react-router';
-import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import Typography from "@material-ui/core/Typography";
-import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
-import Button from "@material-ui/core/Button";
-import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import jsPDF from "jspdf";
 import demodnf from '../../assets/images/demodnf.gif';
 import {AlertDialog} from "../../alert/Alert";
@@ -27,6 +20,7 @@ import InfoGen from "./InfoGen";
 import {capitalizeFirstLetter} from "../../util";
 import moment from "moment";
 import {Link} from "react-router-dom";
+import {ActionButton} from "../../components/ActionButton";
 
 const previousRowEmpty = (index: number, transformedRows: any) => {
     return ((index > 0) && (transformedRows[index - 1].riderNumber === undefined));
@@ -417,20 +411,19 @@ const EditResultsPage = (gprops: any) => {
                             await fetchCompetition()
                         }} open={true} competitionId={competition?.id}/>}
 
-                      <div style={{position: 'relative',
-                          top: '-40px',
-                          width: '100%',
-                          left: '-20px',
-                          zIndex: 9999,
-                          textAlign: 'right'}}>
-                        <InfoIcon style={{marginTop:0}} htmlColor='#333333'/>
-                          <span style={{verticalAlign:'super',cursor:'pointer'}}><a onClick={()=>{setOpenInfoGen(true)}}>Informations épreuve</a></span>
-                      </div>
-                        <div style={{marginTop:'-25px', cursor:'pointer'}}>
-                            <Link to={"/competition/" + competition?.id + "/results/" + (isEdit?'view':'edit')}>{isEdit?"Passer en visualisation":"Passer en edition"}</Link>
-                            {isEdit && (modeDNFActivated ? <a onClick={(e)=>setModeDNFActivated(false)}> - Arrêter saisie des abandons</a>:
-                                <a onClick={(e)=>setShowDNFDialog(true)}> - Saisir les abandons</a>
-                            )}
+                        <div style={{display:'flex',flexDirection:'row',backgroundColor:'#3333330d', cursor:'pointer', padding:'5px'}}>
+                            <ActionButton>{isEdit?<PageviewSharp style={{color:'white',verticalAlign:'middle'}}/>:<Edit style={{color:'white',verticalAlign:'middle'}}/>}
+                                <Link style={{color:'white'}} to={"/competition/" + competition?.id + "/results/" + (isEdit?'view':'edit')}>{isEdit?"Passer en visualisation":"Passer en edition"}</Link>
+                            </ActionButton>
+                            {isEdit && (modeDNFActivated ?<ActionButton>
+                                    <a style={{color:'white'}} onClick={(e)=>setModeDNFActivated(false)}>Arrêter saisie des abandons</a></ActionButton>:
+                              <ActionButton style={{fontSize:'12px',padding:'5px'}} variant="extended" color="secondary" size='small' aria-label="add">
+                                  <Edit style={{verticalAlign:'middle'}}/>
+                                  <a style={{color:'white'}} onClick={(e)=>setShowDNFDialog(true)}>Saisir les abandons</a>
+                            </ActionButton>)}
+                            {isEdit &&<ActionButton onClick={()=>{setOpenInfoGen(true)}}><span style={{color:'white'}}><Edit style={{verticalAlign:'middle'}}/>Informations épreuve</span></ActionButton>}
+                            <ActionButton onClick={()=>{exportPDF()}}><span style={{color:'white'}} ><PictureAsPdf style={{verticalAlign:'middle'}}/>Télécharger PDF</span></ActionButton>
+                            <ActionButton onClick={()=>{exportCSV()}}><span style={{color:'white'}} ><CloudDownload style={{verticalAlign:'middle'}}/>Télécharger CSV</span></ActionButton>
                         </div>
                         <DataTable ref={dg}
                                    reorderableColumns
@@ -488,34 +481,6 @@ const EditResultsPage = (gprops: any) => {
                             {isEdit && <Column style={{width: '5%', textAlign: 'center'}}
                                                body={(raceRow: RaceRow) => deleteAction(raceRow, fetchRows)}/>}
                         </DataTable>
-                        <ExpansionPanel>
-                            <ExpansionPanelSummary
-                                expandIcon={<ExpandMoreIcon />}
-                                aria-controls="panel1a-content"
-                                id="panel1a-header"
-                            >
-                                <Typography>Sauvegarde et Génération des fichiers au format PDF</Typography>
-                            </ExpansionPanelSummary>
-                            <ExpansionPanelDetails>
-                                <div style={{display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}}>
-                                    <Button
-                                        variant="contained"
-                                        style={{marginRight:'20px'}}
-                                        color="primary"
-                                        onClick={exportCSV}
-                                    >
-                                        Lancer une Sauvegarde Excel
-                                    </Button>
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        onClick={exportPDF}
-                                    >
-                                        Générer un fichier PDF
-                                    </Button>
-                                </div>
-                            </ExpansionPanelDetails>
-                        </ExpansionPanel>
                     </Fragment>
                 );
             }

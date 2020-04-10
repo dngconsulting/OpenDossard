@@ -131,9 +131,7 @@ export class LicenceController {
         newLicence.club = licence.club;
         newLicence.dept = licence.dept;
         newLicence.birthYear = licence.birthYear;
-        newLicence.catea = licence.catea ?
-            licence.gender.toUpperCase() === 'F' ? 'F' + licence.catea.toUpperCase() : licence.catea.toUpperCase()
-            : '';
+        newLicence.catea = licence.catea;
         newLicence.catev = licence.catev.toUpperCase();
         newLicence.fede = licence.fede;
         const licenceInserted = await this.entityManager.save(newLicence);
@@ -157,9 +155,7 @@ export class LicenceController {
         toUpdate.firstName = licence.firstName;
         toUpdate.gender = licence.gender.toUpperCase();
         toUpdate.dept = licence.dept;
-        toUpdate.catea = licence.catea ?
-            licence.gender.toUpperCase() === 'F' ? 'F' + licence.catea.toUpperCase() : licence.catea.toUpperCase()
-            : '';
+        toUpdate.catea = licence.catea;
         toUpdate.catev = licence.catev;
         await this.entityManager.save(toUpdate);
     }

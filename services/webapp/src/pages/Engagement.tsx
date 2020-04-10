@@ -23,7 +23,7 @@ import {CreationForm} from './engagement/EngagementCreation';
 import {Reorganizer} from './engagement/ReorganizeRaces';
 import Box from '@material-ui/core/Box';
 import {RaceRow} from '../sdk';
-import {Delete, Warning} from '@material-ui/icons';
+import {Delete, Warning,PictureAsPdf,CloudDownload} from '@material-ui/icons';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
@@ -32,7 +32,7 @@ import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import jsPDF from "jspdf";
 import 'jspdf-autotable'
 import * as AppActionCreators from "../actions/App.Actions";
-import {withRouter} from "react-router-dom";
+import {Link, withRouter} from "react-router-dom";
 import {connect} from "react-redux";
 import {withStyles} from "@material-ui/core/styles";
 import {styles} from "../navigation/styles";
@@ -43,6 +43,7 @@ import moment from 'moment'
 import 'moment/locale/fr'
 import SearchIcon from '@material-ui/icons/Search';
 import {addWrappedText, capitalizeFirstLetter} from "../util";
+import {ActionButton} from "../components/ActionButton";
 moment.locale('fr')
 const style = makeStyles(theme => ({
     surclassed: {
@@ -310,12 +311,14 @@ const EngagementPage = (props: any) => {
                                 <CircularProgress color="primary" />
                             </div>
                         </div>}
-                        <Box top={-38} right={10} position="absolute">
+                        <div style={{display:'flex',flexDirection:'row',backgroundColor:'#3333330d', cursor:'pointer', padding:'5px'}}>
+                            <ActionButton onClick={()=>{exportPDF()}}><span style={{color:'white'}} ><PictureAsPdf style={{verticalAlign:'middle'}}/>Télécharger PDF</span></ActionButton>
+                            <ActionButton onClick={()=>{exportCSV()}}><span style={{color:'white'}} ><CloudDownload style={{verticalAlign:'middle'}}/>Télécharger CSV</span></ActionButton>
                             <Reorganizer competition={competition} rows={rows} onSuccess={() => {
                                 fetchRows();
                                 fetchCompetition();
                             }}/>
-                        </Box>
+                        </div>
                         <Grid container={true}>
                             <ConfirmDialog name={selectedRow ? selectedRow.name : null} open={open}
                                            handleClose={closeDialog}
