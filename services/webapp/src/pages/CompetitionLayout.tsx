@@ -45,11 +45,12 @@ interface ILayoutChildren {
     competition: Competition,
 }
 
-export const CompetitionLayout = ({competitionId, displayType, children}: {competitionId: number, displayType: 'results'| 'engagements',children: (props: ILayoutChildren) => ReactNode }) => {
+export const CompetitionLayout = ({history,competitionId, displayType, children}: {history?:any,competitionId: number, displayType: 'results'| 'engagements',children: (props: ILayoutChildren) => ReactNode }) => {
     const [rows, setRows] = useState<RaceRow[]>([]);
     const [competition, setCompetition] = useState<Competition>(null);
     const [currentRace, setCurrentRace] = useState(null);
     const tabs = computeTabs(rows, competition ? competition.races : []);
+
     const fetchRows = async () => {
         const lrows = await apiRaces.getCompetitionRaces({id:competitionId});
         setRows(lrows);
@@ -65,17 +66,23 @@ export const CompetitionLayout = ({competitionId, displayType, children}: {compe
     useEffect(() => { const f = async () => {
         await fetchCompetition();
         await fetchRows();
+        if (history.location.hash) {
+            setCurrentRace(history.location.hash.substring(1));
+        }
     }
         f()
-    }, ['loading']);
+    }, ['Loading']);
 
     const classes = pageStyles({});
-
     return (
         <Paper className={classes.container}>
             <div>
                 <CompetitionCard displayType={displayType} competition={competition}/>
-                <RaceTabs tabs={tabs} value={currentRace} onChange={race => setCurrentRace(race)}/>
+                <RaceTabs selected={currentRace} tabs={tabs} value={currentRace} onChange={
+                    race => {
+                        history.push(history.location.pathname+'#' + race)
+                        setCurrentRace(race)}
+                }/>
                 {children({competition, currentRace, rows, fetchRows, fetchCompetition})}
             </div>
         </Paper>);

@@ -205,7 +205,7 @@ const EditResultsPage = (gprops: any) => {
         return null;
     };
 
-    return <CompetitionLayout displayType={'results'} competitionId={competitionId}>
+    return <CompetitionLayout history={gprops.history}  displayType={'results'} competitionId={competitionId}>
         {
             ({competition, currentRace, rows, fetchRows,fetchCompetition}) => {
                 const transformedRows = transformRows(filterByRace(rows, currentRace));

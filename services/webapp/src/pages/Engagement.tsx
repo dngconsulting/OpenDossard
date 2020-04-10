@@ -6,7 +6,8 @@ import {
     DialogActions,
     DialogContent,
     DialogContentText,
-    DialogTitle, IconButton,
+    DialogTitle,
+    IconButton,
     makeStyles
 } from '@material-ui/core';
 import 'primereact/resources/themes/nova-light/theme.css';
@@ -23,12 +24,7 @@ import {CreationForm} from './engagement/EngagementCreation';
 import {Reorganizer} from './engagement/ReorganizeRaces';
 import Box from '@material-ui/core/Box';
 import {RaceRow} from '../sdk';
-import {Delete, Warning,PictureAsPdf,CloudDownload} from '@material-ui/icons';
-import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
-import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import Typography from '@material-ui/core/Typography';
-import ExpansionPanel from '@material-ui/core/ExpansionPanel';
+import {CloudDownload, Delete, PictureAsPdf, Warning} from '@material-ui/icons';
 import jsPDF from "jspdf";
 import 'jspdf-autotable'
 import * as AppActionCreators from "../actions/App.Actions";
@@ -44,6 +40,7 @@ import 'moment/locale/fr'
 import SearchIcon from '@material-ui/icons/Search';
 import {addWrappedText, capitalizeFirstLetter} from "../util";
 import {ActionButton} from "../components/ActionButton";
+
 moment.locale('fr')
 const style = makeStyles(theme => ({
     surclassed: {
@@ -137,7 +134,7 @@ const EngagementPage = (props: any) => {
         dg && dg.current && dg.current.exportCSV();
     }
 
-    return <CompetitionLayout competitionId={competitionId} displayType={'engagements'}>
+    return <CompetitionLayout history={props.history} competitionId={competitionId} displayType={'engagements'}>
         {
             ({competition, currentRace, rows, fetchRows, fetchCompetition}) => {
 
@@ -183,7 +180,7 @@ const EngagementPage = (props: any) => {
                         body: (rowdata: RaceRow, column: any) => column.rowIndex + 1, ...SHORT
                     }]:[]),
                     {field: 'riderNumber', header: 'Doss.', ...FILTERABLE, ...SHORT, body:(row:RaceRow)=>_.padStart(row.riderNumber.toString(), 3, '0'),sortable:true},
-                    {field: 'name', header: 'Coureur', ...FILTERABLE, bodyClassName: 'nopadding'},
+                    {field: 'name', header: 'Coureur', ...FILTERABLE, bodyClassName: 'nopadding',body: (rowdata: RaceRow, column: any) => <Link to={"/licence/"+rowdata.licenceId+"#engagement"}>{rowdata.name}</Link>},
                     {field: 'club', header: 'Club', ...FILTERABLE, bodyClassName: 'nopadding',sortable:true},
                     {field: 'dept', header: 'Dept', ...FILTERABLE,  style: {width: 90,textAlign: 'center'},bodyClassName: 'nopadding',sortable:true},
                     {

@@ -8,7 +8,8 @@ import makeStyles from "@material-ui/core/styles/makeStyles";
 export interface IRaceStat {[code:string] : number}
 
 interface IRaceTabs {
-    tabs: IRaceStat
+    tabs: IRaceStat,
+    selected:string,
     value: string,
     onChange: (value:string) => void
 }
@@ -45,18 +46,18 @@ const useStyles = makeStyles((theme: Theme) =>
     }),
 );
 
-const RaceTabs = ({tabs, value, onChange}: IRaceTabs) => {
+const RaceTabs = ({tabs, value, onChange, selected}: IRaceTabs) => {
     const classes = useStyles({});
 
     return (
         <Tabs value={value || Object.keys(tabs)[0] } onChange={(e, v) => onChange(v)}
                             className={classes.tabs}
                             centered={true}
-                            TabIndicatorProps={{style: {height: 0}}} >
+                            TabIndicatorProps={{style: {height:0}}} >
             {
 
                 Object.keys(tabs).sort().map((code,index) => (
-                        <Tab key={code}
+                        <Tab selected={code===selected} key={code}
                              value={code}
                              label={
                             <Badge badgeContent={tabs[code]}

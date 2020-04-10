@@ -16,7 +16,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Button from '@material-ui/core/Button';
 import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
 import ClubSelect, {IOptionType} from './ClubSelect';
-import {LicenceEntity as Licence, LicenceEntityFedeEnum} from '../../sdk';
+import {LicenceEntity, LicenceEntity as Licence, LicenceEntityFedeEnum} from '../../sdk';
 import {apiLicences} from '../../util/api';
 import {FEDERATIONS} from '../common/shared-entities';
 import {NotificationContext} from "../../components/CadSnackbar";
@@ -156,15 +156,22 @@ const LicencesPage = (props: ILicencesProps) => {
             return;
         }
         store.dispatch(setVar({showLoading: true}))
+        let returnedLicence : LicenceEntity = newLicence ;
         try {
-            id ? await apiLicences.update({licenceEntity: newLicence}).then(() => props.history.push({
+            if (id) {
+                await apiLicences.update({licenceEntity: newLicence})
+            } else {
+                returnedLicence = await apiLicences.create({licenceEntity: newLicence});
+            }
+            if (props.history.location.hash && props.history.location.hash.length>0) {
+                props.history.goBack();
+            }
+            else {
+                props.history.push({
                     pathname: '/licences/',
-                    search: 'id=' + new String(newLicence.id)
-                })) :
-                await apiLicences.create({licenceEntity: newLicence}).then((l) => props.history.push({
-                    pathname: '/licences/',
-                    search: 'id=' + new String(l.id)
-                }))
+                    search: 'id=' + returnedLicence.id
+                })
+            }
         }
         catch (err) {
             setNotification({
