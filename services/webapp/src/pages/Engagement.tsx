@@ -308,13 +308,14 @@ const EngagementPage = (props: any) => {
                                 <CircularProgress color="primary" />
                             </div>
                         </div>}
-                        <div style={{display:'flex',flexDirection:'row',backgroundColor:'#3333330d', cursor:'pointer', padding:'5px'}}>
+                        <div style={{display:'flex',flexDirection:'row',backgroundColor:'#3333330d', padding:'5px'}}>
                             <ActionButton onClick={()=>{exportPDF()}}><span style={{color:'white'}} ><PictureAsPdf style={{verticalAlign:'middle'}}/>Télécharger PDF</span></ActionButton>
                             <ActionButton onClick={()=>{exportCSV()}}><span style={{color:'white'}} ><CloudDownload style={{verticalAlign:'middle'}}/>Télécharger CSV</span></ActionButton>
+                            { rows.filter((rr:RaceRow)=>(rr.rankingScratch!=null || rr.comment!=null)).length===0 &&
                             <Reorganizer competition={competition} rows={rows} onSuccess={() => {
                                 fetchRows();
                                 fetchCompetition();
-                            }}/>
+                            }}/>}
                         </div>
                         <Grid container={true}>
                             <ConfirmDialog name={selectedRow ? selectedRow.name : null} open={open}
