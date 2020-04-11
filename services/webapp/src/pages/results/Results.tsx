@@ -4,13 +4,14 @@ import {InputText} from 'primereact/inputtext';
 import {CompetitionLayout} from '../CompetitionLayout';
 import {RaceRow} from '../../sdk/models';
 import _ from 'lodash';
+import SearchIcon from '@material-ui/icons/Search';
 import {NotificationContext} from '../../components/CadSnackbar';
 import {apiRaces} from '../../util/api';
 import {filterByRace} from '../../util/services';
 import {CloudDownload, Delete, PictureAsPdf,Edit,PageviewSharp} from '@material-ui/icons';
 import EmojiEventsIcon from '@material-ui/icons/EmojiEvents';
 import EmojiPeopleIcon from '@material-ui/icons/EmojiPeople';
-import {Tooltip, withStyles} from '@material-ui/core';
+import {IconButton, Tooltip, withStyles} from '@material-ui/core';
 import {Column} from 'primereact/column';
 import {withRouter} from 'react-router';
 import jsPDF from "jspdf";
@@ -34,7 +35,8 @@ const EditResultsPage = (gprops: any) => {
     const [modeDNFActivated,setModeDNFActivated] = useState(false)
     const [, setNotification] = useContext(NotificationContext);
     const [currentDossard, setCurrentDossard] = useState('');
-    const [openInfoGen,setOpenInfoGen] = useState(false)
+    const [openInfoGen,setOpenInfoGen] = useState(false);
+    const [showFilters,setShowFilters] = React.useState(false);
     const [currentNotRankedStatus, setCurrentNotRankedStatus] = useState({
         status: '',
         rowindex: 0
@@ -437,14 +439,16 @@ const EditResultsPage = (gprops: any) => {
                                    columnResizeMode='expand'
                                    {...(isEdit ? {editMode: 'cell'} : undefined)}
                         >
-                            {isEdit && <Column rowReorder={true}
+                            {isEdit && <Column header={<IconButton style={{height:20,padding:0}} onClick={() => {setShowFilters((prevState => !prevState))}}>
+                                {<SearchIcon height={20} style={{padding:0}} htmlColor={'#333333'}/>}
+                            </IconButton>} rowReorder={true}
                                                style={{width: '3em'}}/>}
                             <Column field="classement" header="Clt."
                                     {...(isEdit && modeDNFActivated ? {editor: (allprops) => isEdit && notRankedEditor(allprops)} : undefined)}
                                     filterMatchMode='contains'
                                     body={(rowdata: RaceRow, column: any) => displayRank(rowdata)}
                                     style={{overflow: 'visible', width: '60px'}}/>
-                            <Column field='riderNumber' header='Doss.' filter={true}
+                            <Column field='riderNumber' header='Doss.' filter={showFilters}
                                     style={{width: '5%'}}
                                     {...(isEdit ? {
                                         editor: (allprops) => {
@@ -460,20 +464,20 @@ const EditResultsPage = (gprops: any) => {
                                     filterMatchMode='contains'/>
                             <Column field='name' header='Nom'
                                     body={(rowdata: RaceRow, column: any) => displayName(rowdata, column)}
-                                    filter={true}
+                                    filter={showFilters}
                                     filterMatchMode='contains'/>
-                            <Column field='club' header='Club' filter={true}
+                            <Column field='club' header='Club' filter={showFilters}
                                     filterMatchMode='contains'/>
-                            <Column field='catev' header='Caté.' filter={true}
+                            <Column field='catev' header='Caté.' filter={showFilters}
                                     filterMatchMode='contains'
                                     style={{width: '5%', textAlign: 'center'}}/>
-                            <Column field="catea" header="Age" filter={true}
+                            <Column field="catea" header="Age" filter={showFilters}
                                     filterMatchMode='contains'
                                     style={{width: '5%', textAlign: 'center'}}/>
-                            <Column field='gender' header='Genre' filter={true}
+                            <Column field='gender' header='Genre' filter={showFilters}
                                     filterMatchMode='contains'
                                     style={{width: '5%', textAlign: 'center'}}/>
-                            <Column field="fede" header="Fédé." filter={true}
+                            <Column field="fede" header="Fédé." filter={showFilters}
                                     filterMatchMode='contains'
                                     style={{width: '5%', textAlign: 'center'}}/>
                             {isEdit && <Column style={{width: '5%', textAlign: 'center'}}
