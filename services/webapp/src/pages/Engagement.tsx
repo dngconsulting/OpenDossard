@@ -179,7 +179,7 @@ const EngagementPage = (props: any) => {
                         header:'Clt',
                         body: (rowdata: RaceRow, column: any) => column.rowIndex + 1, ...SHORT
                     }]:[]),
-                    {field: 'riderNumber', header: 'Doss.', ...FILTERABLE, ...SHORT, body:(row:RaceRow)=>_.padStart(row.riderNumber.toString(), 3, '0'),sortable:true},
+                    {field: 'riderNumber', header: 'Dossard', ...FILTERABLE, ...SHORT, body:(row:RaceRow)=>_.padStart(row.riderNumber.toString(), 3, '0'),sortable:true},
                     {field: 'name', header: 'Coureur', ...FILTERABLE, bodyClassName: 'nopadding',body: (rowdata: RaceRow, column: any) => <Link to={"/licence/"+rowdata.licenceId+"#engagement"}>{rowdata.name}</Link>},
                     {field: 'club', header: 'Club', ...FILTERABLE, bodyClassName: 'nopadding',sortable:true},
                     {field: 'gender', header: 'H/F', ...FILTERABLE, ...SHORT},

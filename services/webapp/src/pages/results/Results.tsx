@@ -140,7 +140,7 @@ const EditResultsPage = (gprops: any) => {
     };
 
     const deleteAction = (row: RaceRow, fetchRows: any) => row.riderNumber &&
-      <Tooltip title='Supprimer ce coureur des résultats'>
+      <Tooltip title='Supprimer définitivement ce coureur du classement'>
         <Delete fontSize={'small'} onClick={async () => {
             try {
                 setLoading(true);
@@ -294,7 +294,7 @@ const EditResultsPage = (gprops: any) => {
                     // @ts-ignore
                     var totalPagesExp = '{total_pages_count_string}'
                     // @ts-ignore
-                    doc.autoTable({head: [['Cl.','Doss', 'Nom et Prénom', 'Club','','Caté.V','Caté.A','']],
+                    doc.autoTable({head: [['Cl.','Doss', 'Coureur', 'Club','H/F','Caté.V','Caté.A','']],
                         headStyles: {
                             fontSize: 8, fontStyle: 'normal', halign: 'left'
                         },
@@ -448,7 +448,7 @@ const EditResultsPage = (gprops: any) => {
                                     filterMatchMode='contains'
                                     body={(rowdata: RaceRow, column: any) => displayRank(rowdata)}
                                     style={{overflow: 'visible', width: '60px'}}/>
-                            <Column columnKey={'3'} field='riderNumber' header='Doss.' filter={showFilters}
+                            <Column columnKey={'3'} field='riderNumber' header='Dossard' filter={showFilters}
                                     style={{width: '5%'}}
                                     {...(isEdit ? {
                                         editor: (allprops) => {
@@ -462,19 +462,22 @@ const EditResultsPage = (gprops: any) => {
                                         return true;
                                     }}
                                     filterMatchMode='contains'/>
-                            <Column columnKey={'4'} field='name' header='Nom'
+                            <Column columnKey={'4'} field='name' header='Coureur'
                                     body={(rowdata: RaceRow, column: any) => displayName(rowdata, column)}
                                     filter={showFilters}
                                     filterMatchMode='contains'/>
                             <Column columnKey={'5'} field='club' header='Club' filter={showFilters}
                                     filterMatchMode='contains'/>
+                            <Column columnKey={'8'} field='gender' header='H/F' filter={showFilters}
+                                    filterMatchMode='contains'
+                                    style={{width: '5%', textAlign: 'center'}}/>
+                            <Column columnKey={'8'} field='dept' header='Dept' filter={showFilters}
+                                    filterMatchMode='contains'
+                                    style={{width: '5%', textAlign: 'center'}}/>
                             <Column columnKey={'6'} field='catev' header='Caté.V' filter={showFilters}
                                     filterMatchMode='contains'
                                     style={{width: '5%', textAlign: 'center'}}/>
                             <Column columnKey={'7'} field="catea" header="Caté.A" filter={showFilters}
-                                    filterMatchMode='contains'
-                                    style={{width: '5%', textAlign: 'center'}}/>
-                            <Column columnKey={'8'} field='gender' header='Genre' filter={showFilters}
                                     filterMatchMode='contains'
                                     style={{width: '5%', textAlign: 'center'}}/>
                             <Column columnKey={'9'} field="fede" header="Fédé." filter={showFilters}
