@@ -182,7 +182,10 @@ const EngagementPage = (props: any) => {
                     {field: 'riderNumber', header: 'Doss.', ...FILTERABLE, ...SHORT, body:(row:RaceRow)=>_.padStart(row.riderNumber.toString(), 3, '0'),sortable:true},
                     {field: 'name', header: 'Coureur', ...FILTERABLE, bodyClassName: 'nopadding',body: (rowdata: RaceRow, column: any) => <Link to={"/licence/"+rowdata.licenceId+"#engagement"}>{rowdata.name}</Link>},
                     {field: 'club', header: 'Club', ...FILTERABLE, bodyClassName: 'nopadding',sortable:true},
+                    {field: 'gender', header: 'H/F', ...FILTERABLE, ...SHORT},
                     {field: 'dept', header: 'Dept', ...FILTERABLE,  style: {width: 90,textAlign: 'center'},bodyClassName: 'nopadding',sortable:true},
+                    {field: 'birthYear', header: 'Année', ...FILTERABLE, ...SHORT,sortable:true},
+                    {field: 'catea', header: 'Caté. A.', ...FILTERABLE, ...SHORT,sortable:true},
                     {
                         field: 'catev', header: 'Caté. V.', ...FILTERABLE, ...SHORT,sortable:true,
                         body: (row: RaceRow) => <span>
@@ -191,9 +194,6 @@ const EngagementPage = (props: any) => {
                                                       className={classes.surclassed}><Warning/></span>}
                         </span>
                     },
-                    {field: 'gender', header: 'H/F', ...FILTERABLE, ...SHORT},
-                    {field: 'catea', header: 'Caté. A.', ...FILTERABLE, ...SHORT,sortable:true},
-                    {field: 'birthYear', header: 'Année', ...FILTERABLE, ...SHORT,sortable:true},
                     {field: 'fede', header: 'Fédé.', ...FILTERABLE, ...SHORT,sortable:true},
                 ];
 
@@ -332,6 +332,7 @@ const EngagementPage = (props: any) => {
                         <DataTable ref={dg} value={saisieResultat?filterByRace(rows, currentRace).reverse():filterByRace(rows, currentRace)}
                                    emptyMessage="Aucun coureur encore engagé sur cette épreuve ou aucun coureur ne correspond à votre filtre de recherche"
                                    responsive={true}
+                                   columnResizeMode='expand'
                                    reorderableColumns
                                    onColReorder={e=> {
                                        console.log("Col Reorder dragIndex=" + e.dragIndex,"dropIndex="+e.dropIndex + " columns=" + e.columns)
@@ -339,7 +340,7 @@ const EngagementPage = (props: any) => {
                                    resizableColumns
                                    exportFilename={'Engagements_'+(competition&&competition.name) + '_CAT_' + currentRace}
                         >
-                            {columns.map((column, i) => <Column key={i + 1} {...column}/>)}
+                            {columns.map((column, i) => <Column columnKey={(i++).toString()} {...column}/>)}
                         </DataTable>
                     </Box>
                 );

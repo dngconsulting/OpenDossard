@@ -439,16 +439,16 @@ const EditResultsPage = (gprops: any) => {
                                    columnResizeMode='expand'
                                    {...(isEdit ? {editMode: 'cell'} : undefined)}
                         >
-                            {isEdit && <Column header={<IconButton style={{height:20,padding:0}} onClick={() => {setShowFilters((prevState => !prevState))}}>
+                            {isEdit && <Column columnKey={'1'} header={<IconButton style={{height:20,padding:0}} onClick={() => {setShowFilters((prevState => !prevState))}}>
                                 {<SearchIcon height={20} style={{padding:0}} htmlColor={'#333333'}/>}
                             </IconButton>} rowReorder={true}
                                                style={{width: '3em'}}/>}
-                            <Column field="classement" header="Clt."
+                            <Column columnKey={'2'} field="classement" header="Clt."
                                     {...(isEdit && modeDNFActivated ? {editor: (allprops) => isEdit && notRankedEditor(allprops)} : undefined)}
                                     filterMatchMode='contains'
                                     body={(rowdata: RaceRow, column: any) => displayRank(rowdata)}
                                     style={{overflow: 'visible', width: '60px'}}/>
-                            <Column field='riderNumber' header='Doss.' filter={showFilters}
+                            <Column columnKey={'3'} field='riderNumber' header='Doss.' filter={showFilters}
                                     style={{width: '5%'}}
                                     {...(isEdit ? {
                                         editor: (allprops) => {
@@ -462,27 +462,27 @@ const EditResultsPage = (gprops: any) => {
                                         return true;
                                     }}
                                     filterMatchMode='contains'/>
-                            <Column field='name' header='Nom'
+                            <Column columnKey={'4'} field='name' header='Nom'
                                     body={(rowdata: RaceRow, column: any) => displayName(rowdata, column)}
                                     filter={showFilters}
                                     filterMatchMode='contains'/>
-                            <Column field='club' header='Club' filter={showFilters}
+                            <Column columnKey={'5'} field='club' header='Club' filter={showFilters}
                                     filterMatchMode='contains'/>
-                            <Column field='catev' header='Caté.' filter={showFilters}
+                            <Column columnKey={'6'} field='catev' header='Caté.V' filter={showFilters}
                                     filterMatchMode='contains'
                                     style={{width: '5%', textAlign: 'center'}}/>
-                            <Column field="catea" header="Age" filter={showFilters}
+                            <Column columnKey={'7'} field="catea" header="Caté.A" filter={showFilters}
                                     filterMatchMode='contains'
                                     style={{width: '5%', textAlign: 'center'}}/>
-                            <Column field='gender' header='Genre' filter={showFilters}
+                            <Column columnKey={'8'} field='gender' header='Genre' filter={showFilters}
                                     filterMatchMode='contains'
                                     style={{width: '5%', textAlign: 'center'}}/>
-                            <Column field="fede" header="Fédé." filter={showFilters}
+                            <Column columnKey={'9'} field="fede" header="Fédé." filter={showFilters}
                                     filterMatchMode='contains'
                                     style={{width: '5%', textAlign: 'center'}}/>
-                            {isEdit && <Column style={{width: '5%', textAlign: 'center'}}
+                            {isEdit && <Column columnKey={'10'} style={{width: '5%', textAlign: 'center'}}
                                                body={(raceRow: RaceRow) => flagchallenge(raceRow)}/>}
-                            {isEdit && <Column style={{width: '5%', textAlign: 'center'}}
+                            {isEdit && <Column columnKey={'11'} style={{width: '5%', textAlign: 'center'}}
                                                body={(raceRow: RaceRow) => deleteAction(raceRow, fetchRows)}/>}
                         </DataTable>
                     </Fragment>
