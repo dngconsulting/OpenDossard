@@ -468,19 +468,22 @@ const EditResultsPage = (gprops: any) => {
                                     filterMatchMode='contains'/>
                             <Column columnKey={'5'} field='club' header='Club' filter={showFilters}
                                     filterMatchMode='contains'/>
-                            <Column columnKey={'8'} field='gender' header='H/F' filter={showFilters}
+                            <Column columnKey={'6'} field='gender' header='H/F' filter={showFilters}
                                     filterMatchMode='contains'
                                     style={{width: '5%', textAlign: 'center'}}/>
-                            <Column columnKey={'8'} field='dept' header='Dept' filter={showFilters}
+                            <Column columnKey={'7'} field='dept' header='Dept' filter={showFilters}
                                     filterMatchMode='contains'
                                     style={{width: '5%', textAlign: 'center'}}/>
-                            <Column columnKey={'6'} field='catev' header='Caté.V' filter={showFilters}
+                            <Column columnKey={'8'} field='birthYear' header='Année' filter={showFilters}
                                     filterMatchMode='contains'
                                     style={{width: '5%', textAlign: 'center'}}/>
-                            <Column columnKey={'7'} field="catea" header="Caté.A" filter={showFilters}
+                            <Column columnKey={'9'} field='catev' header='Caté.V' filter={showFilters}
                                     filterMatchMode='contains'
                                     style={{width: '5%', textAlign: 'center'}}/>
-                            <Column columnKey={'9'} field="fede" header="Fédé." filter={showFilters}
+                            <Column columnKey={'10'} field="catea" header="Caté.A" filter={showFilters}
+                                    filterMatchMode='contains'
+                                    style={{width: '5%', textAlign: 'center'}}/>
+                            <Column columnKey={'11'} field="fede" header="Fédé." filter={showFilters}
                                     filterMatchMode='contains'
                                     style={{width: '5%', textAlign: 'center'}}/>
                             {isEdit && <Column columnKey={'10'} style={{width: '5%', textAlign: 'center'}}

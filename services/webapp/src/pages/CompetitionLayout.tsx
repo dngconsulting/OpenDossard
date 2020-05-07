@@ -91,7 +91,7 @@ export const CompetitionLayout = ({history,competitionId, displayType, children}
 const CompetitionCard = ({history,displayType,competition}: {history:any,displayType:'results'|'engagements',competition: Competition }) => {
     const c: Partial<Competition> = competition ? competition : {};
     const club = c.club ? c.club.longName : '';
-    const switchPage = displayType==='results'?'engagements':'résultats';
+    const switchPage = displayType==='results'?'engagements':'classements';
     const titleCard = displayType==='results'?'Classements':'Engagements'
     return <Grid container={true} style={{padding: 10, width: '100%', justifyContent: 'center'}}>
         <Typography component="h2" variant="h5" align="center">
