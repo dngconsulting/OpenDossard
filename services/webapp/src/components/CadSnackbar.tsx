@@ -7,7 +7,9 @@ import InfoIcon from "@material-ui/icons/Info";
 import SnackbarContent from "@material-ui/core/SnackbarContent";
 import {makeStyles} from "@material-ui/core/styles";
 import {amber, green} from '@material-ui/core/colors';
+import CloseIcon from '@material-ui/icons/Close';
 import clsx from "clsx";
+import {IconButton} from "@material-ui/core";
 
 const variantIcon = {
     success: ThumbUp,
@@ -40,6 +42,9 @@ const useStyles1 = makeStyles((theme) => ({
         display: 'flex',
         alignItems: 'center',
     },
+    close: {
+        padding: theme.spacing(0.5),
+    },
 }));
 
 interface INotification {
@@ -53,9 +58,9 @@ const EMPTY_NOTIF: INotification = {message: '', type: 'info', open: false}
 export const NotificationContext = React.createContext([]);
 
 export const CadSnackBar = ({children} : {children: ReactNode}) => {
-
+    const [snackPack, setSnackPack] = React.useState([]);
     const [notification, setNotification] = useState(EMPTY_NOTIF);
-
+    const [open, setOpen] = React.useState(false);
     const classes = useStyles1({});
     const Icon = variantIcon[notification.type];
 
@@ -69,14 +74,22 @@ export const CadSnackBar = ({children} : {children: ReactNode}) => {
     return <NotificationContext.Provider value={[notification, setNotification]}>
         <Snackbar open={notification.open}
                   anchorOrigin={{vertical: "top", horizontal: "right"}}
-                  autoHideDuration={6000}
+                  autoHideDuration={10000}
                   onClose={handleClose}>
             <SnackbarContent
                 className={clsx(classes[notification.type], notification.type)}
                 message={
-                    <span id="client-snackbar" className={classes.message}>
+                    <React.Fragment>
                         <Icon className={clsx(classes.icon, classes.iconVariant)}/> {notification.message}
-                    </span>
+                        <IconButton
+                            aria-label="close"
+                            color="inherit"
+                            className={classes.close}
+                            onClick={handleClose}
+                        >
+                            <CloseIcon />
+                        </IconButton>
+                    </React.Fragment>
                 }/>
         </Snackbar>
         {children}
