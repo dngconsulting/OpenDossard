@@ -13,6 +13,7 @@ const variantIcon = {
     success: ThumbUp,
     error: ErrorIcon,
     info: InfoIcon,
+    warning:InfoIcon,
 };
 
 const useStyles1 = makeStyles((theme) => ({
@@ -43,7 +44,7 @@ const useStyles1 = makeStyles((theme) => ({
 
 interface INotification {
     message: string;
-    type: "success"|"error"|"info";
+    type: "success"|"error"|"info"|"warning";
     open: boolean;
 }
 

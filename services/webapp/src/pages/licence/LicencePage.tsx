@@ -165,6 +165,12 @@ const LicencesPage = (props: ILicencesProps) => {
             }
             if (props.history.location.hash && props.history.location.hash.length>0) {
                 props.history.goBack();
+                setNotification({
+                    message: `Important : Vous venez de modifier les données du coureur ${newLicence.firstName} ${newLicence.name}. Vous devez le désengager `+
+                     `et le réengager afin que les données soient actualisées sur l'épreuve`,
+                    type: 'warning',
+                    open: true
+                });
             }
             else {
                 props.history.push({

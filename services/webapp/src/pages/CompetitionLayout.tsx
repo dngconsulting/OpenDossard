@@ -94,8 +94,8 @@ const CompetitionCard = ({history,displayType,competition}: {history:any,display
     const switchPage = displayType==='results'?'engagements':'classements';
     const titleCard = displayType==='results'?'Classements':'Engagements'
     return <Grid container={true} style={{padding: 10, width: '100%', justifyContent: 'center'}}>
-        <Typography component="h2" variant="h5" align="center">
-            {displayType==='results'?<FormatListNumberedIcon style={{verticalAlign:'text-top'}}/>:<AssignmentIcon style={{verticalAlign:'text-top'}}/>} {titleCard} {c.name}  <Typography component="h5">Organisé par {club} le {moment(c.eventDate).format('DD/MM/YYYY')} </Typography>
+        <Typography component="h5" variant="h5" align="center">
+            {displayType==='results'?<FormatListNumberedIcon style={{verticalAlign:'text-top'}}/>:<AssignmentIcon style={{verticalAlign:'text-top'}}/>} {titleCard} {c.name}  <Typography>Organisé par {club} le {moment(c.eventDate).format('DD/MM/YYYY')} </Typography>
             <div style={{fontSize:14}}>
                 <Link to={"/competition/" + competition?.id + "/" + (displayType==='results'?'engagement':'results') + "/edit"+history.location.hash}>Accéder aux {switchPage}</Link>
             </div>

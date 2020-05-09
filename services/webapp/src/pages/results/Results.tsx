@@ -152,13 +152,6 @@ const EditResultsPage = (gprops: any) => {
         }}/></Tooltip>;
 
 
-    const rankOfCate = (rowdata: any, transformedRows: any): string | number => {
-        const r = (transformedRows
-            .filter((v: RaceRow) => v.catev === rowdata.catev)
-            .findIndex((item: RaceRow, index: number) => item.id === rowdata.id)) + 1;
-        return (r === 0) ? '' : r;
-    };
-
     const getMedalColorForRank = (ranking: number | string, rankingScratch: number): string => {
         return (ranking <= 3 || rankingScratch <= 3) ? ['#efd807', '#D7D7D7', '#6A3805'][Math.min(rankingScratch, ranking as number) - 1] : '#fff';
     };
@@ -189,23 +182,6 @@ const EditResultsPage = (gprops: any) => {
         return title;
     };
 
-    const AddWinnersIcons = (props: any) => {
-        if (props.rowdata.rankingScratch) {
-            const lrankOfCate: string | number = rankOfCate(props.rowdata, props.transformedRows);
-            if (lrankOfCate <= 3 || props.rowdata.rankingScratch <= 3) {
-                return (
-                    <Tooltip
-                        title={getPodiumTitle(lrankOfCate as number, props.rowdata.rankingScratch)}>
-                        <EmojiEventsIcon style={{
-                            verticalAlign: 'middle',
-                            color: getMedalColorForRank(lrankOfCate, props.rowdata.rankingScratch)
-                        }}
-                                         fontSize={'small'}/></Tooltip>
-                );
-            }
-        }
-        return null;
-    };
 
     return <CompetitionLayout history={gprops.history}  displayType={'results'} competitionId={competitionId}>
         {
@@ -219,6 +195,42 @@ const EditResultsPage = (gprops: any) => {
                     } finally {
                         setLoading(false);
                     }
+                };
+
+                const rankOfCate = (rowdata: any, transformedRows: any): string | number => {
+                    let rankToReturn;
+                    // If the rider federation is not the hosting race fede, rank that differently
+                    // https://github.com/dngconsulting/OpenDossard/issues/91
+                    if (rowdata.fede !== competition.fede) {
+                        rankToReturn = (transformedRows
+                            .filter((v: RaceRow) => (v.fede != competition.fede))
+                            .findIndex((item: RaceRow) => item.id === rowdata.id)) + 1
+                    } else {
+                        rankToReturn = (transformedRows
+                            .filter((v: RaceRow) => (v.fede === competition.fede) && (v.catev === rowdata.catev))
+                            .findIndex((item: RaceRow) => item.id === rowdata.id)) + 1;
+                    }
+
+                    return (rankToReturn === 0) ? '' : rankToReturn;
+
+                };
+
+                const AddWinnersIcons = (props: any) => {
+                    if (props.rowdata.rankingScratch) {
+                        const lrankOfCate: string | number = rankOfCate(props.rowdata, props.transformedRows);
+                        if (lrankOfCate <= 3 || props.rowdata.rankingScratch <= 3) {
+                            return (
+                                <Tooltip
+                                    title={getPodiumTitle(lrankOfCate as number, props.rowdata.rankingScratch)}>
+                                    <EmojiEventsIcon style={{
+                                        verticalAlign: 'middle',
+                                        color: getMedalColorForRank(lrankOfCate, props.rowdata.rankingScratch)
+                                    }}
+                                                     fontSize={'small'}/></Tooltip>
+                            );
+                        }
+                    }
+                    return null;
                 };
 
                 const displayRank = (rowdata: any) => {
