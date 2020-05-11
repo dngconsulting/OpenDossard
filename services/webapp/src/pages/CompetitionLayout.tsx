@@ -77,7 +77,7 @@ export const CompetitionLayout = ({history,competitionId, displayType, children}
     return (
         <Paper className={classes.container}>
             <div>
-                <CompetitionCard history={history} displayType={displayType} competition={competition}/>
+                <CompetitionCard rows={rows} history={history} displayType={displayType} competition={competition}/>
                 <RaceTabs selected={currentRace} tabs={tabs} value={currentRace} onChange={
                     race => {
                         history.push(history.location.pathname+'#' + race)
@@ -88,16 +88,17 @@ export const CompetitionLayout = ({history,competitionId, displayType, children}
         </Paper>);
 };
 
-const CompetitionCard = ({history,displayType,competition}: {history:any,displayType:'results'|'engagements',competition: Competition }) => {
+const CompetitionCard = ({rows,history,displayType,competition}: {rows:RaceRow[],history:any,displayType:'results'|'engagements',competition: Competition }) => {
     const c: Partial<Competition> = competition ? competition : {};
     const club = c.club ? c.club.longName : '';
-    const switchPage = displayType==='results'?'engagements':'classements';
-    const titleCard = displayType==='results'?'Classements':'Engagements'
+    const existResults = rows.length>0
+    const titleCard = displayType==='results'?'Classements':'Engagements';
     return <Grid container={true} style={{padding: 10, width: '100%', justifyContent: 'center'}}>
         <Typography component="h5" variant="h5" align="center">
             {displayType==='results'?<FormatListNumberedIcon style={{verticalAlign:'text-top'}}/>:<AssignmentIcon style={{verticalAlign:'text-top'}}/>} {titleCard} {c.name}  <Typography>Organisé par {club} le {moment(c.eventDate).format('DD/MM/YYYY')} </Typography>
             <div style={{fontSize:14}}>
-                <Link to={"/competition/" + competition?.id + "/" + (displayType==='results'?'engagement':'results') + "/edit"+history.location.hash}>Accéder aux {switchPage}</Link>
+                {displayType==='results' && <Link to={"/competition/" + competition?.id + "/engagement/edit"+history.location.hash}>Accéder aux engagements</Link>}
+                {displayType==='engagements' && existResults && <Link to={"/competition/" + competition?.id + "/results/edit"+history.location.hash}>Accéder aux classements</Link>}
             </div>
         </Typography>
     </Grid>;

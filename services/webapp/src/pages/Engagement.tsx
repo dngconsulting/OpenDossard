@@ -38,7 +38,7 @@ import * as _ from "lodash";
 import moment from 'moment'
 import 'moment/locale/fr'
 import SearchIcon from '@material-ui/icons/Search';
-import {addWrappedText, capitalizeFirstLetter} from "../util";
+import {addWrappedText, capitalizeFirstLetter, displayDossard} from "../util";
 import {ActionButton} from "../components/ActionButton";
 
 moment.locale('fr')
@@ -179,8 +179,10 @@ const EngagementPage = (props: any) => {
                         header:'Clt',
                         body: (rowdata: RaceRow, column: any) => column.rowIndex + 1, ...SHORT
                     }]:[]),
-                    {field: 'riderNumber', header: 'Dossard', ...FILTERABLE, ...SHORT, body:(row:RaceRow)=>_.padStart(row.riderNumber.toString(), 3, '0'),sortable:true},
-                    {field: 'name', header: 'Coureur', ...FILTERABLE, bodyClassName: 'nopadding',body: (rowdata: RaceRow, column: any) => <Link to={"/licence/"+rowdata.licenceId+"#engagement"}>{rowdata.name}</Link>},
+                    {field: 'riderNumber', header: 'Dossard', ...FILTERABLE, ...SHORT, body:(row:RaceRow)=>displayDossard(row.riderNumber.toString()),sortable:true},
+                    {field: 'name', header: 'Coureur', ...FILTERABLE, bodyClassName: 'nopadding',body: (rowdata: RaceRow, column: any) =>
+                        (rowdata.comment==null && rowdata.rankingScratch == null)?<Link to={"/licence/"+rowdata.licenceId+"#engagement"}>{rowdata.name}</Link>:rowdata.name}
+                        ,
                     {field: 'club', header: 'Club', ...FILTERABLE, bodyClassName: 'nopadding',sortable:true},
                     {field: 'gender', header: 'H/F', ...FILTERABLE, ...SHORT},
                     {field: 'dept', header: 'Dept', ...FILTERABLE,  style: {width: 90,textAlign: 'center'},bodyClassName: 'nopadding',sortable:true},

@@ -60,9 +60,9 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
         },
         {
             key: '3',
-            path: '/competitionchooser/engagement',
-            state: {title: 'Gestion des Engagements'},
-            title: 'Engagements',
+            path: '/competitionchooser',
+            state: {title: 'Liste des épreuves'},
+            title: 'Liste des épreuves',
             icon: () => <AssignmentIcon/>
         },
         ...(props && props.authentication && props.authentication.roles && props.authentication.roles.includes('ADMIN') ? [{
@@ -72,13 +72,6 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
             title: 'Saisie Rapide résultats',
             icon: () => <AssignmentIcon color={'error'}/>
         }]:[]),
-        {
-            key: '4',
-            path: '/competitionchooser/results',
-            title: 'Résultats',
-            state: {title: 'Résultats'},
-            icon: () => <FormatListNumberedIcon/>
-        },
         {
             key: '5',
             path: '/stats',

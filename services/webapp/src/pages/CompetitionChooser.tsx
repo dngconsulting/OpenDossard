@@ -2,8 +2,8 @@ import React, {useContext, useEffect, useState} from 'react';
 import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import cadtheme from '../App';
-import {apiCompetitions} from '../util/api';
-import {CompetitionEntity as Competition} from '../sdk';
+import {apiCompetitions, apiRaces} from '../util/api';
+import {CompetitionEntity as Competition, RaceRow} from '../sdk';
 import {withRouter} from 'react-router-dom';
 import {Radio, Tooltip} from '@material-ui/core';
 import {DataTable} from 'primereact/datatable';
@@ -14,9 +14,6 @@ import VisibilityIcon from '@material-ui/icons/Visibility';
 import moment from 'moment';
 import _ from 'lodash';
 import {NotificationContext} from "../components/CadSnackbar";
-import {ReduxState} from "../state/ReduxState";
-import {connect} from "react-redux";
-import {compose} from "redux";
 
 interface ICompetitionChooserProps {
     classes?: any;
@@ -46,8 +43,8 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 const CompetitionChooser = (props: ICompetitionChooserProps) => {
     const [, setNotification] = useContext(NotificationContext);
-    const gotoPage = props.match.params.goto;
     const [data, setData] = useState<Competition[]>([]);
+    const [raceRows,setRaceRows] = useState<RaceRow[]>([]);
     const [filteredData, setFilteredData] = useState<Competition[]>([]);
     const [selectPastOrFuture, setSelectPastOrFuture] = useState('future');
     const [loading, setLoading] = useState(false);
@@ -79,28 +76,42 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         finally {
         }
     };
+    const fetchAllRaces = async () => {
+        try {
+           const results = await apiRaces.getAllRaces();
+           setRaceRows(results);
+        }
+        catch (ex) {
+            setNotification({
+                message: `Impossible de récupérer la liste des participations`,
+                open: true,
+                type: 'error'
+            });
+        }
+    }
+
     useEffect(() => {
         const initData = async () => {
             if (data.length === 0) {
                 try {
                     setLoading(true);
                     await fetchCompetitions();
+                    await fetchAllRaces();
                 } finally {
                     setLoading(false);
                 }
             }
         }
-        console.log('Init data...')
         initData();
     }, []);
 
-    const isResultLink = (): boolean => {
-        return gotoPage === 'results';
+    const shouldDisplayResult = (): boolean => {
+        return true;
     };
 
     const goToPage = (competitionid: number, resultsPage?: string) => {
         props.history.push({
-            pathname: '/competition/' + competitionid + '/' + (resultsPage? resultsPage:gotoPage),
+            pathname: '/competition/' + competitionid + '/' + (resultsPage? resultsPage:'engagement'),
             state: { title: (resultsPage? 'Résultats' : 'Engagements') }
         })
     };
@@ -109,13 +120,25 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         return toMMDDYYYY(row.eventDate);
     };
 
-    const resultsAction = (row: Competition) =>
-        [<Tooltip key='1' title='Editer les résultats'><FormatListNumberedIcon
-            onClick={(event: any) => goToPage(row.id, 'results/edit')}
-            color="primary" style={{marginRight:'10px'}}/></Tooltip>,
-            <Tooltip key='2' title='Visualiser les résultats'><VisibilityIcon
-                onClick={(event: any) => goToPage(row.id, 'results/view')}
-                color="primary" /></Tooltip>];
+    const displayEngagement = (competition: Competition) => {
+        const nbEngages = raceRows.filter(rr=>rr.competitionId===competition.id).length;
+        return (
+            nbEngages>0?<Tooltip key='2' title='Editer les engagements'>
+                <a href='#' onClick={(event: any) => goToPage(competition.id, 'engagement')}
+                   color="primary" style={{marginRight: '0px'}}>
+                    {nbEngages} Engagé(s)</a></Tooltip>:<span>Aucun engagé</span>
+        );
+    }
+
+    const displayClassement = (competition: Competition) => {
+        const nbClasses = raceRows.filter(rr=>rr.competitionId===competition.id && (rr.comment!=null || rr.rankingScratch!=null)).length;
+        return (
+            nbClasses>0?<Tooltip key='2' title='Editer/Visualiser les classements'>
+                <a href='#' onClick={(event: any) => goToPage(competition.id, 'results/edit')}
+                        color="primary" style={{marginRight: '0px'}}>
+                    {nbClasses} Classé(s)</a></Tooltip>:<span>Aucun classé</span>
+            );
+    }
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSelectPastOrFuture(event.target.value);
@@ -127,13 +150,6 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                 )
         }
     };
-
-    const setSelectedCompetition = (selectedCompetition: Competition) => {
-        if (!isResultLink()) {
-            goToPage(selectedCompetition.id);
-        }
-    };
-
         return (
             <Paper className={classes.root}>
                 <Radio
@@ -162,9 +178,10 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                            value={filteredData}
                            emptyMessage="Aucune donnée ne correspond à la recherche"
                            selectionMode="single"
-                           onSelectionChange={e => setSelectedCompetition(e.value)}
                 >
-                    {isResultLink() && <Column header='Résultats' body={resultsAction}
+                    <Column header='Engagements' body={displayEngagement}
+                            style={{minWidth: '2%',textAlign:'center'}}/>
+                    {shouldDisplayResult() && <Column header='Classements' body={displayClassement}
                                                style={{minWidth: '5%', textAlign: 'center'}}/>}
                     <Column field='eventDate' header='Date' body={displayDate}
                             style={{minWidth: '2%'}}/>
