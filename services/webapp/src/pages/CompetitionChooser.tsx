@@ -3,14 +3,12 @@ import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import cadtheme from '../App';
 import {apiCompetitions, apiRaces} from '../util/api';
-import {CompetitionEntity as Competition, RaceRow} from '../sdk';
-import {withRouter} from 'react-router-dom';
+import {CompetitionEntity, CompetitionEntity as Competition, RaceRow} from '../sdk';
+import {Link, NavLink, withRouter} from 'react-router-dom';
 import {Radio, Tooltip} from '@material-ui/core';
 import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
 import {toMMDDYYYY} from '../util/date';
-import FormatListNumberedIcon from '@material-ui/icons/FormatListNumbered';
-import VisibilityIcon from '@material-ui/icons/Visibility';
 import moment from 'moment';
 import _ from 'lodash';
 import {NotificationContext} from "../components/CadSnackbar";
@@ -43,10 +41,10 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 const CompetitionChooser = (props: ICompetitionChooserProps) => {
     const [, setNotification] = useContext(NotificationContext);
-    const [data, setData] = useState<Competition[]>([]);
+    const [data, setData] = useState<CompetitionEntity[]>([]);
     const [raceRows,setRaceRows] = useState<RaceRow[]>([]);
     const [filteredData, setFilteredData] = useState<Competition[]>([]);
-    const [selectPastOrFuture, setSelectPastOrFuture] = useState('future');
+    const [selectPastOrFuture, setSelectPastOrFuture] = useState(undefined);
     const [loading, setLoading] = useState(false);
     const classes = useStyles(cadtheme);
     const competitionFilter = {
@@ -62,9 +60,11 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         try {
             const results = await apiCompetitions.getCompetitionsByFilter({competitionFilter: competitionFilter});
             setData(results);
-            setFilteredData(
-                _.orderBy(results.filter((comp: Competition) => moment(comp.eventDate).isAfter(moment())), ['eventDate'], ['asc'])
-            )
+            const filter = props.history.location.hash && props.history.location.hash.substr(1);
+            if (filter) {
+                setSelectPastOrFuture(filter)
+                filterData(results, filter)
+            }
         }
         catch (ex) {
             setNotification({
@@ -72,8 +72,6 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                 open: true,
                 type: 'error'
             });
-        }
-        finally {
         }
     };
     const fetchAllRaces = async () => {
@@ -97,6 +95,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                     setLoading(true);
                     await fetchCompetitions();
                     await fetchAllRaces();
+
                 } finally {
                     setLoading(false);
                 }
@@ -104,10 +103,6 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         }
         initData();
     }, []);
-
-    const shouldDisplayResult = (): boolean => {
-        return true;
-    };
 
     const goToPage = (competitionid: number, resultsPage?: string) => {
         props.history.push({
@@ -139,37 +134,46 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                     {nbClasses} Classé(s)</a></Tooltip>:<span>Aucun classé</span>
             );
     }
-
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSelectPastOrFuture(event.target.value);
-        if (event.target.value === 'all') {
+    const filterData = (data:CompetitionEntity[],targetValue:string) => {
+        if (targetValue === 'all') {
             setFilteredData(data) ;
         } else {
             setFilteredData(
-                _.orderBy(data.filter((comp: Competition) => event.target.value === 'past' ? moment(comp.eventDate).isBefore(moment()) : moment(comp.eventDate).isAfter(moment())), ['eventDate'], ['asc'])
-                )
+                _.orderBy(data.filter((comp: Competition) => targetValue === 'past' ? moment(comp.eventDate).isBefore(moment()) : moment(comp.eventDate).isAfter(moment())), ['eventDate'], targetValue === 'past'?['desc']:['asc'])
+            )
         }
+    }
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const targetValue = event.target.value
+        setSelectPastOrFuture(targetValue);
+        filterData(data,targetValue)
     };
         return (
             <Paper className={classes.root}>
-                <Radio
-                    checked={selectPastOrFuture === 'past'}
-                    onChange={handleChange}
-                    value="past"
-                    name="radio-button-demo"
-                />Epreuves passées
-                <Radio
-                    checked={selectPastOrFuture === 'future'}
-                    onChange={handleChange}
-                    value="future"
-                    name="radio-button-demo"
-                />Epreuves à venir
-                <Radio
-                    checked={selectPastOrFuture === 'all'}
-                    onChange={handleChange}
-                    value="all"
-                    name="radio-button-demo"
-                />Toutes les épreuves
+                <Link to='/competitionchooser#past'>
+                    <Radio
+                        checked={selectPastOrFuture === 'past'}
+                        onChange={handleChange}
+                        value="past"
+                        name="radio-button-demo"
+                    />Epreuves passées
+                </Link>
+                <Link to='/competitionchooser#future'>
+                    <Radio
+                        checked={selectPastOrFuture === 'future'}
+                        onChange={handleChange}
+                        value="future"
+                        name="radio-button-demo"
+                    />Epreuves à venir
+                </Link>
+                <Link to='/competitionchooser#all'>
+                    <Radio
+                        checked={selectPastOrFuture === 'all'}
+                        onChange={handleChange}
+                        value="all"
+                        name="radio-button-demo"
+                    />Toutes les épreuves
+                </Link>
                 <div className={classes.titre}>Veuillez sélectionner une épreuve :</div>
 
                 <DataTable responsive={true}
@@ -181,8 +185,8 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                 >
                     <Column header='Engagements' body={displayEngagement}
                             style={{minWidth: '2%',textAlign:'center'}}/>
-                    {shouldDisplayResult() && <Column header='Classements' body={displayClassement}
-                                               style={{minWidth: '5%', textAlign: 'center'}}/>}
+                    <Column header='Classements' body={displayClassement}
+                                               style={{minWidth: '5%', textAlign: 'center'}}/>
                     <Column field='eventDate' header='Date' body={displayDate}
                             style={{minWidth: '2%'}}/>
                     <Column field='name' header="Nom de l'épreuve"

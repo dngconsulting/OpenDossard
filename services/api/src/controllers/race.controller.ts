@@ -197,9 +197,10 @@ export class RacesCtrl {
         }
 
         const licenceConflict = await this.entityManager.createQueryBuilder(RaceEntity, 'race')
-            .where('race.competition_id = :cid and race.licence_id = :licenceId', {
+            .where('race.competition_id = :cid and race.licence_id = :licenceId and race.race_code= :raceCode', {
                 cid: race.competitionId,
                 licenceId: licence.id,
+                raceCode:race.raceCode
             })
             .getOne();
 

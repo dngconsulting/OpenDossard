@@ -18,7 +18,7 @@ import jsPDF from "jspdf";
 import demodnf from '../../assets/images/demodnf.gif';
 import {AlertDialog} from "../../alert/Alert";
 import InfoGen from "./InfoGen";
-import {capitalizeFirstLetter} from "../../util";
+import {capitalizeFirstLetter, displayDossard} from "../../util";
 import moment from "moment";
 import {Link} from "react-router-dom";
 import {ActionButton} from "../../components/ActionButton";
@@ -236,6 +236,11 @@ const EditResultsPage = (gprops: any) => {
                 const displayRank = (rowdata: any) => {
                     return rowdata.classement + ((rankOfCate(rowdata, transformedRows) !== '' && !isNaN(rowdata.classement) && rowdata.riderNumber) ? (' (' + rankOfCate(rowdata, transformedRows) + ')') : '');
                 };
+
+                const displayRankOfCate = (rowdata:any) => {
+                    if (rowdata.comment!=null) return rowdata.classement
+                    return rankOfCate(rowdata, transformedRows)
+                }
                 const getTitleChallengeButton = (row: RaceRow) => {
                     return row.sprintchallenge ? 'Enlever ce vainqueur du challenge' : 'Ajouter comme vainqueur du challenge';
                 };
@@ -300,15 +305,15 @@ const EditResultsPage = (gprops: any) => {
                     const rankByCate : any = {}
                     let rowstoDisplay : any[][] = [];
                     transformedRows.forEach((r:RaceRow,index:number)=>{
-                        rowstoDisplay.push([displayRank(r),r.riderNumber,r.name,r.club,r.gender,r.catev,r.catea,r.sprintchallenge])
+                        rowstoDisplay.push([r.rankingScratch,displayRankOfCate(r),displayDossard(r.riderNumber.toString()),r.name,r.club,r.gender,r.catev,r.catea,r.fede])
                     })
                     let doc = new jsPDF("p","mm","a4");
                     // @ts-ignore
                     var totalPagesExp = '{total_pages_count_string}'
                     // @ts-ignore
-                    doc.autoTable({head: [['Cl.','Doss', 'Coureur', 'Club','H/F','Caté.V','Caté.A','']],
+                    doc.autoTable({head: [['Scrat.','Val.','Doss', 'Coureur', 'Club','H/F','Caté.V','Caté.A','Fédé']],
                         headStyles: {
-                            fontSize: 8, fontStyle: 'normal', halign: 'left'
+                            fontSize: 9, fontStyle: 'bold', halign: 'left',cellPadding:0.5,minCellHeight:8
                         },
                         bodyStyles: {
                             minCellHeight:3,
@@ -316,20 +321,22 @@ const EditResultsPage = (gprops: any) => {
                             cellPadding:0.5
                         },
                         columnStyles: {
-                            0: {margin:0,cellWidth: 15},
+                            0: {margin:0,cellWidth: 10},
                             1: {margin:0,cellWidth: 10},
-                            2: {margin:0,cellWidth: 50},
-                            3: {margin:0,cellWidth: 75},
-                            4: {margin:0,cellWidth: 10},
-                            5: {margin:0,cellWidth: 12},
-                            6: {margin:0,cellWidth: 15},
+                            2: {margin:0,cellWidth: 10},
+                            3: {margin:0,cellWidth: 50},
+                            4: {margin:0,cellWidth: 60},
+                            5: {margin:0,cellWidth: 10},
+                            6: {margin:0,cellWidth: 12},
+                            7: {margin:0,cellWidth: 12},
+                            8: {margin:0,cellWidth: 20},
                         },
 
                         body: rowstoDisplay,
                         didParseCell: function(data:any) {
-                            if (data.row.section === 'body' && data.column.dataKey === 7) {
+                            /*if (data.row.section === 'body' && data.column.dataKey === 7) {
                                 if (data.cell.raw) data.cell.text = 'C';
-                            }
+                            }*/
                             if (data.row.section === 'body' && data.column.dataKey === 5) {
                                 if (!isNaN(data.cell.raw)) {
                                     rankByCate['cate' + data.cell.raw] = (rankByCate['cate' + data.cell.raw] ? rankByCate['cate' + data.cell.raw] : 0) + 1;
@@ -368,7 +375,7 @@ const EditResultsPage = (gprops: any) => {
                             var pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight()
                             doc.text(str, data.settings.margin.left, pageHeight - 10)
                         },
-                        margin: { top: 30,left:10 },
+                        margin: { top: 30,left:5,right:5 },
                         styles: {
                             valign: 'middle',
                             halign: 'left',
@@ -460,8 +467,8 @@ const EditResultsPage = (gprops: any) => {
                                     filterMatchMode='contains'
                                     body={(rowdata: RaceRow, column: any) => displayRank(rowdata)}
                                     style={{overflow: 'visible', width: '60px'}}/>
-                            <Column columnKey={'3'} field='riderNumber' header='Dossard' filter={showFilters}
-                                    style={{width: '5%'}}
+                            <Column columnKey={'3'} field='riderNumber' body={(row:RaceRow)=>displayDossard(row.riderNumber.toString())} header='Dossard' filter={showFilters}
+                                    style={{width: '5%',textAlign:'center'}}
                                     {...(isEdit ? {
                                         editor: (allprops) => {
                                             return dossardEditor(allprops, rows, transformedRows, currentRace, fetchRows);
