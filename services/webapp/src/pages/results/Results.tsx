@@ -301,6 +301,11 @@ const EditResultsPage = (gprops: any) => {
                         data.row.cells[key].styles.fillColor = color
                     }
                 }
+                const getChallengeWinners = () => {
+                    const winners = transformedRows.filter((r:RaceRow)=>r.sprintchallenge).map((r:RaceRow)=>r.name);
+                    if (winners.length===0) return 'NC'
+                    return winners.join(',');
+                }
                 const exportPDF = async () => {
                     const rankByCate : any = {}
                     let rowstoDisplay : any[][] = [];
@@ -311,7 +316,7 @@ const EditResultsPage = (gprops: any) => {
                     // @ts-ignore
                     var totalPagesExp = '{total_pages_count_string}'
                     // @ts-ignore
-                    doc.autoTable({head: [['Scrat.','Val.','Doss', 'Coureur', 'Club','H/F','Caté.V','Caté.A','Fédé']],
+                    doc.autoTable({head: [['Scrat.','Cat.','Doss', 'Coureur', 'Club','H/F','Caté.V','Caté.A','Fédé']],
                         headStyles: {
                             fontSize: 9, fontStyle: 'bold', halign: 'left',cellPadding:0.5,minCellHeight:8
                         },
@@ -325,7 +330,7 @@ const EditResultsPage = (gprops: any) => {
                             1: {margin:0,cellWidth: 10},
                             2: {margin:0,cellWidth: 10},
                             3: {margin:0,cellWidth: 50},
-                            4: {margin:0,cellWidth: 60},
+                            4: {margin:0,cellWidth: 65},
                             5: {margin:0,cellWidth: 10},
                             6: {margin:0,cellWidth: 12},
                             7: {margin:0,cellWidth: 12},
@@ -396,7 +401,7 @@ const EditResultsPage = (gprops: any) => {
                         (competition.commissaires?competition.commissaires:'NC') + "<br><b>SPEAKER</b> : " + (competition.speaker?competition.speaker:'NC')
                         + ((competition.competitionType === 'CX')?("<br><b>ABOYEUR</b> : " + (competition.aboyeur?competition.aboyeur:'NC')):'') +
                         "<br><b>REMARQUES</b> : "
-                        + (competition.feedback?competition.feedback:'NC')  + "</div>",10,finalY+5,{
+                        + (competition.feedback?competition.feedback:'NC')  + "</div><br><b>Vainqueur(s) du challenge : </b>" + getChallengeWinners(),10,finalY+5,{
                         'width': 190})
                     doc.save('Classement_' + competition.name.replace(/\s/g, '') + '_cate_' + currentRace + '.pdf');
 

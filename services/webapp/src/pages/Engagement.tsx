@@ -207,18 +207,18 @@ const EngagementPage = (props: any) => {
                         if (index===0) {
                             rowstoDisplay.push(['',
                                 lrows.length + ' coureurs engagés',
-                                _.uniqBy(lrows, 'club').length + ' clubs représentés',
-                                _.uniqBy(lrows, 'dept').length,
-                                '',_.uniqBy(lrows, 'catev').length,
-                                _.uniqBy(lrows, 'catea').length])
+                                _.uniqBy(lrows, 'club').length + ' clubs représentés','',
+                                _.uniqBy(lrows, 'dept').length,'',
+                                _.uniqBy(lrows, 'catea').length,
+                                _.uniqBy(lrows, 'catev').length,_.uniqBy(lrows, 'fede').length])
                         }
-                        rowstoDisplay.push([_.padStart(r.riderNumber.toString(), 3, '0'),r.name,r.club,_.padStart(r.dept.toString(), 2, '0'),r.gender,r.catev,r.catea])
+                        rowstoDisplay.push([displayDossard(r.riderNumber.toString()),r.name,r.club,r.gender,_.padStart(r.dept.toString(), 2, '0'),r.birthYear,r.catea,r.catev,r.fede])
                     })
                     let doc = new jsPDF("p","mm","a4");
                     // @ts-ignore
                     var totalPagesExp = '{total_pages_count_string}'
                     // @ts-ignore
-                    doc.autoTable({head: [['Doss', 'Nom et Prénom', 'Club','Dpt','Sexe','Cat.V','Cat.A']],
+                    doc.autoTable({head: [['Doss', 'Coureur', 'Club','H/F','Dept','Année','Cat.A','Cat.V','Fédé.']],
                         bodyStyles: {
                             minCellHeight:3,
                             cellHeight:3,
@@ -227,11 +227,13 @@ const EngagementPage = (props: any) => {
                         columnStyles: {
                             0: {cellWidth: 10,fillColor:[253,238,115],halign: 'center',fontStyle:'bold'},
                             1: {cellWidth: 55},
-                            2: {cellWidth: 75},
+                            2: {cellWidth: 55},
                             3: {cellWidth: 10},
                             4: {cellWidth: 10},
-                            5: {cellWidth: 10},
+                            5: {cellWidth: 12},
                             6: {cellWidth: 10},
+                            7: {cellWidth: 10},
+                            8: {cellWidth: 12},
                         },body: rowstoDisplay,
                         didParseCell: function(data:any) {
                             if (data && data.row.index === 0) {
