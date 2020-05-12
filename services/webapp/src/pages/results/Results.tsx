@@ -467,7 +467,7 @@ const EditResultsPage = (gprops: any) => {
                                     filterMatchMode='contains'
                                     body={(rowdata: RaceRow, column: any) => displayRank(rowdata)}
                                     style={{overflow: 'visible', width: '60px'}}/>
-                            <Column columnKey={'3'} field='riderNumber' body={(row:RaceRow)=>displayDossard(row.riderNumber.toString())} header='Dossard' filter={showFilters}
+                            <Column columnKey={'3'} field='riderNumber' body={(row:RaceRow)=>row.riderNumber && displayDossard(row.riderNumber.toString())} header='Dossard' filter={showFilters}
                                     style={{width: '5%',textAlign:'center'}}
                                     {...(isEdit ? {
                                         editor: (allprops) => {
