@@ -9,6 +9,7 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
 import Button from "@material-ui/core/Button";
+import Switch from '@material-ui/core/Switch';
 import {CompetitionEntity, CompetitionEntityCompetitionTypeEnum} from "../../sdk/models";
 import {apiCompetitions} from "../../util/api";
 
@@ -156,6 +157,13 @@ const InfoGen = (props: InfoGenProps) => {
                                     rowsMin={5}
                                     placeholder="Incidents de courses/Notes"
                                 />
+                            </FormControl>
+                            <FormControl style={{display:'block'}} className={classes.formControl}>
+                                <Switch checked={!!currentCompetition?.resultsValidated}  onChange={(e) => {
+                                    setCurrentCompetition((prev)=>{
+                                        return {...currentCompetition, resultsValidated: !prev.resultsValidated}
+                                    })
+                                }} /> Valider les classements
                             </FormControl>
                         </Grid>
                     </Grid>

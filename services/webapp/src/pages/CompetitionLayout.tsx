@@ -2,7 +2,7 @@ import {CompetitionEntity as Competition, RaceRow} from '../sdk';
 import RaceTabs, {IRaceStat} from '../components/RaceTabs';
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import {createStyles, Theme} from '@material-ui/core';
-import {default as React, ReactNode, useEffect, useState} from 'react';
+import {default as React, ReactNode, useEffect, useLayoutEffect, useState} from 'react';
 import {apiCompetitions, apiRaces} from '../util/api';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
@@ -59,16 +59,17 @@ export const CompetitionLayout = ({history,competitionId, displayType, children}
 
     const fetchCompetition = async () => {
         const c = await apiCompetitions.getCompetition({id:`${competitionId}`});
-        setCurrentRace(c.races[0]);
+        if (history.location.hash) {
+            setCurrentRace(history.location.hash.substring(1));
+        } else {
+            setCurrentRace(c.races[0])
+        }
         setCompetition(c);
     };
 
-    useEffect(() => { const f = async () => {
+    useLayoutEffect(() => { const f = async () => {
         await fetchCompetition();
         await fetchRows();
-        if (history.location.hash) {
-            setCurrentRace(history.location.hash.substring(1));
-        }
     }
         f()
     }, ['Loading']);

@@ -173,6 +173,7 @@ export class CompetitionController {
         }
         competition.commissaires = competitionToSave.commissaires;
         competition.speaker = competitionToSave.speaker;
+        competitionToSave.resultsValidated!=null && (competition.resultsValidated = competitionToSave.resultsValidated);
         return await this.entityManager.save(competition)
     }
 }

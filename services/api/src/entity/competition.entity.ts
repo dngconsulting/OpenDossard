@@ -163,4 +163,7 @@ export class CompetitionEntity {
     @Column({nullable:true})
     feedback?: string;
 
+    @Column({nullable: true,name:'results_validated'})
+    resultsValidated?: boolean;
+
 }

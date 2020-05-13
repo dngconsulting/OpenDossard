@@ -208,6 +208,12 @@ export interface CompetitionEntity {
      * @memberof CompetitionEntity
      */
     feedback?: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CompetitionEntity
+     */
+    resultsValidated?: boolean;
 }
 
 export function CompetitionEntityFromJSON(json: any): CompetitionEntity {
@@ -249,6 +255,7 @@ export function CompetitionEntityFromJSONTyped(json: any, ignoreDiscriminator: b
         'speaker': !exists(json, 'speaker') ? undefined : json['speaker'],
         'aboyeur': !exists(json, 'aboyeur') ? undefined : json['aboyeur'],
         'feedback': !exists(json, 'feedback') ? undefined : json['feedback'],
+        'resultsValidated': !exists(json, 'resultsValidated') ? undefined : json['resultsValidated'],
     };
 }
 
@@ -290,6 +297,7 @@ export function CompetitionEntityToJSON(value?: CompetitionEntity | null): any {
         'speaker': value.speaker,
         'aboyeur': value.aboyeur,
         'feedback': value.feedback,
+        'resultsValidated': value.resultsValidated,
     };
 }
 

@@ -307,7 +307,6 @@ const EditResultsPage = (gprops: any) => {
                     return winners.join(',');
                 }
                 const exportPDF = async () => {
-                    const rankByCate : any = {}
                     let rowstoDisplay : any[][] = [];
                     transformedRows.forEach((r:RaceRow,index:number)=>{
                         rowstoDisplay.push([r.rankingScratch,displayRankOfCate(r),displayDossard(r.riderNumber.toString()),r.name,r.club,r.gender,r.catev,r.catea,r.fede])
@@ -339,19 +338,15 @@ const EditResultsPage = (gprops: any) => {
 
                         body: rowstoDisplay,
                         didParseCell: function(data:any) {
-                            /*if (data.row.section === 'body' && data.column.dataKey === 7) {
-                                if (data.cell.raw) data.cell.text = 'C';
-                            }*/
-                            if (data.row.section === 'body' && data.column.dataKey === 5) {
+                            if (data.row.section === 'body' && data.column.dataKey === 1) {
                                 if (!isNaN(data.cell.raw)) {
-                                    rankByCate['cate' + data.cell.raw] = (rankByCate['cate' + data.cell.raw] ? rankByCate['cate' + data.cell.raw] : 0) + 1;
-                                    if (rankByCate['cate' + data.cell.raw] === 1) {
+                                    if (data.cell.raw === 1) {
                                         colorize(data, [102, 140, 255])
                                     }
-                                    if (rankByCate['cate' + data.cell.raw] === 2) {
+                                    if (data.cell.raw === 2) {
                                         colorize(data, [153, 179, 255])
                                     }
-                                    if (rankByCate['cate' + data.cell.raw] === 3) {
+                                    if (data.cell.raw === 3) {
                                         colorize(data, [204, 217, 255])
                                     }
                                 }
@@ -392,17 +387,21 @@ const EditResultsPage = (gprops: any) => {
                     });
                     // @ts-ignore
                     let finalY = doc.lastAutoTable.finalY;
+                    if (finalY>240) {
+                        doc.addPage();
+                        finalY = 5;
+                    }
                     doc.putTotalPages(totalPagesExp)
                     doc.setFontSize(10)
                     doc.setTextColor("#424242")
                     doc.setFontStyle('bold')
-                    doc.fromHTML( "<div style='border-width:1px;width:300px;font-size:14px;color:\'#666666\';font-family: \"Open Sans\", \"Helvetica Neue\", sans-serif;'><b>NOMBRE DE COUREURS :</b> " + transformedRows.length + ' en catégorie(s) ' + currentRace +
+                    doc.fromHTML( "<div><b>NOMBRE DE COUREURS :</b> " + transformedRows.length + ' en catégorie(s) ' + currentRace +
                         "<br><b>ORGANISATEUR : </b>" + competition.club.longName + "<br><b>COMMISSAIRES</b> : " +
                         (competition.commissaires?competition.commissaires:'NC') + "<br><b>SPEAKER</b> : " + (competition.speaker?competition.speaker:'NC')
                         + ((competition.competitionType === 'CX')?("<br><b>ABOYEUR</b> : " + (competition.aboyeur?competition.aboyeur:'NC')):'') +
                         "<br><b>REMARQUES</b> : "
-                        + (competition.feedback?competition.feedback:'NC')  + "</div><br><b>Vainqueur(s) du challenge : </b>" + getChallengeWinners(),10,finalY+5,{
-                        'width': 190})
+                        + (competition.feedback?competition.feedback:'NC')  + "</div><br><b>Vainqueur(s) du challenge : </b>" + getChallengeWinners(),10,finalY,{
+                        'width': 350})
                     doc.save('Classement_' + competition.name.replace(/\s/g, '') + '_cate_' + currentRace + '.pdf');
 
                 }
