@@ -1,6 +1,6 @@
 {
   "name": "OpenDossard",
-  "version": "0.1.30",
+  "version": "0.1.31",
   "priprimevate": true,
   "dependencies": {
     "@material-ui/core": "4.9.5",
