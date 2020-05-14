@@ -54,7 +54,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         openedNL:false,
         openedToOtherFede:false,
         displayPast:true,
-        displaySince:365,
+        displaySince:600,
     }
     const fetchCompetitions = async () => {
         try {

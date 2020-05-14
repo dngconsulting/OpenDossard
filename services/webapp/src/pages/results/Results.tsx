@@ -201,14 +201,20 @@ const EditResultsPage = (gprops: any) => {
                     let rankToReturn;
                     // If the rider federation is not the hosting race fede, rank that differently
                     // https://github.com/dngconsulting/OpenDossard/issues/91
-                    if (rowdata.fede !== competition.fede) {
+                    if (rowdata.gender === 'F') {
                         rankToReturn = (transformedRows
-                            .filter((v: RaceRow) => (v.fede != competition.fede))
+                            .filter((v: RaceRow) => (v.gender === 'F'))
                             .findIndex((item: RaceRow) => item.id === rowdata.id)) + 1
                     } else {
-                        rankToReturn = (transformedRows
-                            .filter((v: RaceRow) => (v.fede === competition.fede) && (v.catev === rowdata.catev))
-                            .findIndex((item: RaceRow) => item.id === rowdata.id)) + 1;
+                        if (rowdata.fede !== competition.fede) {
+                            rankToReturn = (transformedRows
+                                .filter((v: RaceRow) => (v.fede != competition.fede))
+                                .findIndex((item: RaceRow) => item.id === rowdata.id)) + 1
+                        } else {
+                            rankToReturn = (transformedRows
+                                .filter((v: RaceRow) => (v.fede === competition.fede) && (v.catev === rowdata.catev))
+                                .findIndex((item: RaceRow) => item.id === rowdata.id)) + 1;
+                        }
                     }
 
                     return (rankToReturn === 0) ? '' : rankToReturn;
