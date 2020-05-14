@@ -14,7 +14,6 @@ async function bootstrap() {
     app.useGlobalFilters(new NotFoundExceptionFilter());
     app.use(compression());
     app.use(swStats.getMiddleware({
-        uriPath: '/monitoring',
         durationBuckets: [10, 25, 50, 100, 200],
         requestSizeBuckets: [10, 25, 50, 100, 200],
         responseSizeBuckets: [10, 25, 50, 100, 200],
