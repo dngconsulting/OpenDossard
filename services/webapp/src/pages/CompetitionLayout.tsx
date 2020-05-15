@@ -9,8 +9,10 @@ import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
 import Paper from '@material-ui/core/Paper';
 import {Link} from "react-router-dom";
+import ForwardIcon from "@material-ui/icons/Forward";
 import AssignmentIcon from "@material-ui/icons/Assignment";
 import FormatListNumberedIcon from "@material-ui/icons/FormatListNumbered";
+import {capitalizeFirstLetter} from "../util";
 
 const computeTabs = (rows: RaceRow[], races: string[]): IRaceStat => {
 
@@ -96,7 +98,7 @@ const CompetitionCard = ({rows,history,displayType,competition}: {rows:RaceRow[]
     const titleCard = displayType==='results'?'Classements':'Engagements';
     return <Grid container={true} style={{padding: 10, width: '100%', justifyContent: 'center'}}>
         <Typography component="h5" variant="h5" align="center">
-            {displayType==='results'?<FormatListNumberedIcon style={{verticalAlign:'text-top'}}/>:<AssignmentIcon style={{verticalAlign:'text-top'}}/>} {titleCard} {c.name}  <Typography>Organisé par {club} le {moment(c.eventDate).format('DD/MM/YYYY')} </Typography>
+            {displayType==='results'?<FormatListNumberedIcon style={{verticalAlign:'text-top'}}/>:<AssignmentIcon style={{verticalAlign:'text-top'}}/>}{titleCard}<ForwardIcon style={{verticalAlign:'text-top'}}/>{c.name}  ({club}) - {capitalizeFirstLetter(moment(c.eventDate).locale('fr').format('dddd DD MMM YYYY'))}
             <div style={{fontSize:14}}>
                 {displayType==='results' && <Link to={"/competition/" + competition?.id + "/engagement/edit"+history.location.hash}>Accéder aux engagements</Link>}
                 {displayType==='engagements' && existResults && <Link to={"/competition/" + competition?.id + "/results/edit"+history.location.hash}>Accéder aux classements</Link>}

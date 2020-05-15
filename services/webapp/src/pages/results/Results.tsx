@@ -1,4 +1,4 @@
-import React, {Fragment, useContext, useRef, useState} from 'react';
+import React, {Fragment, useContext, useEffect, useRef, useState} from 'react';
 import {DataTable} from 'primereact/datatable';
 import {InputText} from 'primereact/inputtext';
 import {CompetitionLayout} from '../CompetitionLayout';
@@ -18,7 +18,7 @@ import jsPDF from "jspdf";
 import demodnf from '../../assets/images/demodnf.gif';
 import {AlertDialog} from "../../alert/Alert";
 import InfoGen from "./InfoGen";
-import {capitalizeFirstLetter, displayDossard} from "../../util";
+import {capitalizeFirstLetter, displayDossard, useWindowDimensions} from "../../util";
 import moment from "moment";
 import {Link} from "react-router-dom";
 import {ActionButton} from "../../components/ActionButton";
@@ -28,6 +28,7 @@ const previousRowEmpty = (index: number, transformedRows: any) => {
 };
 
 const EditResultsPage = (gprops: any) => {
+    const { height, width } = useWindowDimensions();
     const competitionId = gprops.match.params.id;
     const isEdit = (gprops.match.params.mode === 'edit');
     const dg = useRef(null);
@@ -86,56 +87,51 @@ const EditResultsPage = (gprops: any) => {
             return true;
         }
 
-        try {
-            if (rows.filter(item => item.riderNumber === parseInt(currentDossard) && item.rankingScratch !== currentRanking).length > 0) {
-                console.log('Updating Dossard ' + currentDossard + ' with ranking ' + currentRanking);
-                try {
-                    setLoading(true);
+        if (rows.filter(item => item.riderNumber === parseInt(currentDossard) && item.rankingScratch !== currentRanking).length > 0) {
+            console.log('Updating Dossard ' + currentDossard + ' with ranking ' + currentRanking);
+            try {
+                setLoading(true);
+                setCurrentDossard('');
+                setCurrentNotRankedStatus({status: '', rowindex: 0});
+                await apiRaces.updateRanking({
+                    raceRow: {
+                        riderNumber: parseInt(currentDossard),
+                        raceCode: currentRace,
+                        competitionId: parseInt(competitionId),
+                        ...(currentNotRankedStatus.status !== '' ? {
+                            comment: currentNotRankedStatus.status,
+                            rankingScratch: null
+                        } : {rankingScratch: parseInt(currentRanking), comment: null}),
+                    }
+                });
 
-                    await apiRaces.updateRanking({
-                        raceRow: {
-                            riderNumber: parseInt(currentDossard),
-                            raceCode: currentRace,
-                            competitionId: parseInt(competitionId),
-                            ...(currentNotRankedStatus.status !== '' ? {
-                                comment: currentNotRankedStatus.status,
-                                rankingScratch: null
-                            } : {rankingScratch: parseInt(currentRanking), comment: null}),
-                        }
-                    });
-
-                    const lrows = await fetchRows();
-                    setNotification({
-                        message: `Le coureur ${lrows.find((item: any) => item.riderNumber === parseInt(currentDossard)).name} vient d'etre classé ${currentRanking} `,
-                        type: 'info',
-                        open: true
-                    });
-                } catch (response) {
-                    const jsonError = await response.json();
-                    setNotification({
-                        message: `La mise à jour a échouée ${jsonError.message ? jsonError.message : ''}`,
-                        type: 'error',
-                        open: true
-                    });
-                } finally {
-                    setLoading(false);
-                }
-
-            } else {
-                if (currentDossard && currentDossard.trim().length>0) {
-                    setNotification({
-                        message: "Le numéro de dossard " + currentDossard + " n'a pas été engagé ou est incorrect",
-                        type: 'error',
-                        open: true
-                    });
-                    return false;
-                }
+                const lrows = await fetchRows();
+                setNotification({
+                    message: `Le coureur ${lrows.find((item: any) => item.riderNumber === parseInt(currentDossard) && item.raceCode===currentRace).name} vient d'etre classé ${currentRanking} `,
+                    type: 'info',
+                    open: true
+                });
+            } catch (response) {
+                const jsonError = await response.json();
+                setNotification({
+                    message: `La mise à jour a échouée ${jsonError.message ? jsonError.message : ''}`,
+                    type: 'error',
+                    open: true
+                });
+            } finally {
+                setLoading(false);
             }
-        } finally {
-            setCurrentDossard('');
-            setCurrentNotRankedStatus({status: '', rowindex: 0});
-        }
 
+        } else {
+            if (currentDossard && currentDossard.trim().length>0) {
+                setNotification({
+                    message: "Le numéro de dossard " + currentDossard + " n'a pas été engagé ou est incorrect",
+                    type: 'error',
+                    open: true
+                });
+                return false;
+            }
+        }
         return true;
     };
 
@@ -238,6 +234,7 @@ const EditResultsPage = (gprops: any) => {
                     }
                     return null;
                 };
+
 
                 const displayRank = (rowdata: any) => {
                     return rowdata.classement + ((rankOfCate(rowdata, transformedRows) !== '' && !isNaN(rowdata.classement) && rowdata.riderNumber) ? (' (' + rankOfCate(rowdata, transformedRows) + ')') : '');
@@ -457,6 +454,8 @@ const EditResultsPage = (gprops: any) => {
                             <ActionButton onClick={()=>{exportCSV()}}><span style={{color:'white'}} ><CloudDownload style={{verticalAlign:'middle'}}/>Télécharger CSV</span></ActionButton>
                         </div>
                         <DataTable ref={dg}
+                                   scrollHeight={(height-150)+'px'}
+                                   scrollable={true}
                                    reorderableColumns
                                    resizableColumns
                                    responsive={true}
@@ -472,7 +471,7 @@ const EditResultsPage = (gprops: any) => {
                                 {<SearchIcon height={20} style={{padding:0}} htmlColor={'#333333'}/>}
                             </IconButton>} rowReorder={true}
                                                style={{width: '3em'}}/>}
-                            <Column columnKey={'2'} field="classement" header="Clt."
+                            <Column columnKey={'2'}  field="classement" header="Clt."
                                     {...(isEdit && modeDNFActivated ? {editor: (allprops) => isEdit && notRankedEditor(allprops)} : undefined)}
                                     filterMatchMode='contains'
                                     body={(rowdata: RaceRow, column: any) => displayRank(rowdata)}
@@ -495,9 +494,9 @@ const EditResultsPage = (gprops: any) => {
                                     body={(rowdata: RaceRow, column: any) => displayName(rowdata, column)}
                                     filter={showFilters}
                                     filterMatchMode='contains'/>
-                            <Column columnKey={'5'} field='club' header='Club' filter={showFilters}
+                            <Column columnKey={'5'}  field='club' header='Club' filter={showFilters}
                                     filterMatchMode='contains'/>
-                            <Column columnKey={'6'} field='gender' header='H/F' filter={showFilters}
+                            <Column columnKey={'6'}  field='gender' header='H/F' filter={showFilters}
                                     filterMatchMode='contains'
                                     style={{width: '5%', textAlign: 'center'}}/>
                             <Column columnKey={'7'} field='dept' header='Dept' filter={showFilters}

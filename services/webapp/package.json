@@ -1,6 +1,6 @@
 {
   "name": "OpenDossard",
-  "version": "0.1.32",
+  "version": "0.1.33",
   "priprimevate": true,
   "dependencies": {
     "@material-ui/core": "4.9.5",
@@ -29,8 +29,8 @@
     "material-table": "1.50.0",
     "moment": "2.24.0",
     "portable-fetch": "3.0.0",
-    "primeicons": "2.0.0",
-    "primereact": "3.2.0",
+    "primeicons": "^3.0.0-rc.1",
+    "primereact": "4.2.1",
     "prop-types": "^15.7.2",
     "react": "16.9.0",
     "react-dom": "^16.13.0",

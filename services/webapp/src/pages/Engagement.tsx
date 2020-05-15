@@ -38,7 +38,7 @@ import * as _ from "lodash";
 import moment from 'moment'
 import 'moment/locale/fr'
 import SearchIcon from '@material-ui/icons/Search';
-import {addWrappedText, capitalizeFirstLetter, displayDossard} from "../util";
+import {capitalizeFirstLetter, displayDossard, useWindowDimensions} from "../util";
 import {ActionButton} from "../components/ActionButton";
 
 moment.locale('fr')
@@ -91,6 +91,7 @@ const surclassed = ({catev, raceCode}: RaceRow) => {
 
 const SHORT = {style: {width: 90, textAlign: 'center', padding: 5}, bodyClassName: 'nopadding'};
 const EngagementPage = (props: any) => {
+    const { height, width } = useWindowDimensions();
     const competitionId = props.match.params.id;
     const saisieResultat = props.match.url.includes('engagementresultats');
     const dg = useRef(null);
@@ -311,11 +312,11 @@ const EngagementPage = (props: any) => {
                         <div style={{display:'flex',flexDirection:'row',backgroundColor:'#3333330d', padding:'5px'}}>
                             <ActionButton onClick={()=>{exportPDF()}}><span style={{color:'white'}} ><PictureAsPdf style={{verticalAlign:'middle'}}/>Télécharger PDF</span></ActionButton>
                             <ActionButton onClick={()=>{exportCSV()}}><span style={{color:'white'}} ><CloudDownload style={{verticalAlign:'middle'}}/>Télécharger CSV</span></ActionButton>
-                            { rows.filter((rr:RaceRow)=>(rr.rankingScratch!=null || rr.comment!=null)).length===0 &&
-                            <Reorganizer competition={competition} rows={rows} onSuccess={() => {
+
+                            <Reorganizer disabled={!(rows.filter((rr:RaceRow)=>(rr.rankingScratch!=null || rr.comment!=null)).length===0)} competition={competition} rows={rows} onSuccess={() => {
                                 fetchRows();
                                 fetchCompetition();
-                            }}/>}
+                            }}/>
                         </div>
                         <Grid container={true}>
                             <ConfirmDialog name={selectedRow ? selectedRow.name : null} open={open}
@@ -330,6 +331,8 @@ const EngagementPage = (props: any) => {
                         </Grid>
 
                         <DataTable ref={dg} value={saisieResultat?filterByRace(rows, currentRace).reverse():filterByRace(rows, currentRace)}
+                                   scrollHeight={(height-150)+'px'}
+                                   scrollable={true}
                                    emptyMessage="Aucun coureur encore engagé sur cette épreuve ou aucun coureur ne correspond à votre filtre de recherche"
                                    responsive={true}
                                    columnResizeMode='expand'

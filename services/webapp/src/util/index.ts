@@ -1,5 +1,29 @@
 // @ts-ignore
 import * as _ from "lodash";
+import {useEffect, useState} from "react";
+
+function getWindowDimensions() {
+    const { innerWidth: width, innerHeight: height } = window;
+    return {
+        width,
+        height
+    };
+}
+
+export function useWindowDimensions() {
+    const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
+
+    useEffect(() => {
+        function handleResize() {
+            setWindowDimensions(getWindowDimensions());
+        }
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    return windowDimensions;
+}
 
 // @ts-ignore
 export const addWrappedText = ({text, textWidth, doc, fontSize = 10, fontType = 'normal', lineSpacing = 5, xPosition = 10, initialYPosition = 10, pageWrapInitialYPosition = 10}) => {

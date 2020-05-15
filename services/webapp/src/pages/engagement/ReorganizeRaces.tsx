@@ -12,6 +12,7 @@ import Badge from '@material-ui/core/Badge/Badge';
 import {apiCompetitions} from '../../util/api';
 import {NotificationContext} from '../../components/CadSnackbar';
 import {ActionButton} from "../../components/ActionButton";
+import {cadtheme} from "../../theme/theme";
 
 const styles = makeStyles(theme => ({
     button: {
@@ -116,7 +117,7 @@ const computeErrors = (races: string[], categories: string[]) => {
     return [];
 };
 
-export const Reorganizer = ({competition, rows, onSuccess}: { competition: Competition, rows: RaceRow[], onSuccess: () => void }) => {
+export const Reorganizer = ({disabled, competition, rows, onSuccess}: { disabled:boolean,competition: Competition, rows: RaceRow[], onSuccess: () => void }) => {
 
     const [races, setRaces] = useState([]);
     const [open, setOpen] = useState(false);
@@ -156,8 +157,8 @@ export const Reorganizer = ({competition, rows, onSuccess}: { competition: Compe
     const errors = computeErrors(races, byCate.map(c => c.catev));
 
     return <div>
-        <ActionButton
-                onClick={() => setOpen(true)}><ThreeSixty style={{color:"white"}}/><span style={{color:'white'}}>Réorganiser les courses</span> </ActionButton>
+        <ActionButton disabled={disabled}
+                      onClick={() => setOpen(true)}><span style={{color:disabled?cadtheme.palette.grey.A100:"white"}} ><ThreeSixty style={{color:disabled?cadtheme.palette.grey.A100:"white",verticalAlign:'middle'}}/>Réorganiser les courses</span></ActionButton>
         <Dialog
             open={open}
             onClose={() => setOpen(false)}
