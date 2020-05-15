@@ -148,7 +148,12 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         setSelectPastOrFuture(targetValue);
         filterData(data,targetValue)
     };
-        return (
+
+    const setSelectedCompetition = (selectedCompetition: Competition) => {
+            goToPage(selectedCompetition.id,'engagement');
+    };
+
+    return (
             <Paper className={classes.root}>
                 <Link to='/competitionchooser#past'>
                     <Radio
@@ -182,6 +187,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                            value={filteredData}
                            emptyMessage="Aucune donnée ne correspond à la recherche"
                            selectionMode="single"
+                           onSelectionChange={e => setSelectedCompetition(e.value)}
                 >
                     <Column header='Engagements' body={displayEngagement}
                             style={{minWidth: '2%',textAlign:'center'}}/>
