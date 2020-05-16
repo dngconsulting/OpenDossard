@@ -1,11 +1,11 @@
 import * as React from 'react';
-import {useEffect, useRef, useState} from 'react';
+import {Ref, useEffect, useRef, useState} from 'react';
 import MaterialTable, {Query, QueryResult} from 'material-table';
 import {AppText as T} from '../../util/text';
 import {apiLicences} from '../../util/api';
-import {LicenceEntity as Licence, Search} from '../../sdk';
+import {LicenceEntity as Licence,Search} from '../../sdk';
 import {cadtheme} from '../../theme/theme';
-import {Button, Paper} from '@material-ui/core';
+import {Button, Icon, Paper} from '@material-ui/core';
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import {useContext} from "react";
 import {NotificationContext} from "../../components/CadSnackbar";
@@ -20,6 +20,26 @@ interface ILicencesProps {
 }
 
 const getPageSizeLicencesForPageDebounced = AwesomeDebouncePromise((p) => apiLicences.getPageSizeLicencesForPage({search:p}),500)
+
+const tableIcons = {
+    Add: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>add_box</Icon>),
+    Check: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>check</Icon>),
+    Clear: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>clear</Icon>),
+    Delete: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon style={{fontSize:'20px'}} {...props} ref={ref}>delete_outline</Icon>),
+    DetailPanel: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>chevron_right</Icon>),
+    Edit: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon style={{fontSize:'10px'}}  {...props} ref={ref}>edit</Icon>),
+    Export: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>save_alt</Icon>),
+    Filter: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon style={{fontSize:'15px'}} {...props} ref={ref}>filter_list</Icon>),
+    FirstPage: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>first_page</Icon>),
+    LastPage: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>last_page</Icon>),
+    NextPage: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>chevron_right</Icon>),
+    PreviousPage: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>chevron_left</Icon>),
+    ResetSearch: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>clear</Icon>),
+    Search: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>search</Icon>),
+    SortArrow: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>arrow_downward</Icon>),
+    ThirdStateCheck: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>remove</Icon>),
+    ViewColumn: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>view_column</Icon>)
+};
 
 
 
@@ -63,38 +83,43 @@ const LicencesPage = (props: ILicencesProps) => {
         };
     };
     return (
+
         <Paper style={{padding:'5px', height:'100%'}}>
 
             <MaterialTable
                 title={T.LICENCES.TITLE}
                 columns={[
-                    {title: 'ID', field: 'id',cellStyle:{width:50},filterPlaceholder: id},
-                    {title: 'Licence', field: 'licenceNumber',cellStyle:{width:50}},
-                    {title: 'CatéV.', field: 'catev',cellStyle:{width:50}},
-                    {title: 'CatéA', field: 'catea',cellStyle:{width:50}},
-                    {title: 'Nom', field: 'name',cellStyle:{width:200}},
-                    {title: 'Prénom', field: 'firstName',cellStyle:{width:200}},
-                    {title: 'Club', field: 'club',cellStyle:{width:400}},
-                    {title: 'Genre', field: 'gender',cellStyle:{width:50}},
-                    {title: 'Dept', field: 'dept',cellStyle:{width:50}},
-                    {title: 'Année', field: 'birthYear',cellStyle:{width:100}},
-                    {title: 'Fédé', field: 'fede',cellStyle:{width:50},sorting:false},
+                    {title: 'ID', field: 'id',headerStyle:{maxWidth: 20,minWidth:20},filterPlaceholder: id},
+                    {title: 'Licence N°', field: 'licenceNumber',headerStyle:{width:20,minWidth:20}},
+                    {title: 'Nom', field: 'name',headerStyle:{width:150,minWidth:150,maxWidth:150}},
+                    {title: 'Prénom', field: 'firstName',headerStyle:{width:100,minWidth:100,maxWidth:100}},
+                    {title: 'Club', field: 'club',headerStyle:{width:380,minWidth:380}},
+                    {title: 'H/F', field: 'gender',headerStyle:{width:10,minWidth:10,maxWidth: 10}},
+                    {title: 'Dept', field: 'dept',headerStyle:{width:10,minWidth:10,maxWidth: 10}},
+                    {title: 'Année', field: 'birthYear',headerStyle:{width:10,minWidth:10,maxWidth: 10}},
+                    {title: 'Caté.A', field: 'catea',headerStyle:{width:10,minWidth:10,maxWidth: 10}},
+                    {title: 'Caté.V', field: 'catev',headerStyle:{width:10,minWidth:10,maxWidth: 10}},
+                    {title: 'Fédé', field: 'fede',headerStyle:{width:20,minWidth:20,maxWidth: 20},sorting:false},
                 ]}
+
                 ref={tableRef}
                 data={fetchLicences}
+                icons={tableIcons}
                 options={{
+                    filterCellStyle:{maxWidth:100,padding:0, margin:0},
+                    rowStyle:{maxHeight:20,fontSize:10,padding:0,margin:0},
                     filtering: true,
                     toolbar: true,
                     padding: 'dense',
                     actionsColumnIndex: -1,
-                    pageSize: 10,
+                    pageSize: 17,
                     pageSizeOptions: [5, 10, 20],
                     search: true,
                     headerStyle: {
                         backgroundColor: cadtheme.palette.primary.main,
                         color: '#FFF',
                         fontSize: 15,
-                        zIndex: 'auto'
+                        zIndex: 'auto',
                     }
                 }}
                 editable={{
@@ -133,6 +158,7 @@ const LicencesPage = (props: ILicencesProps) => {
                     },
                     {
                         icon: 'edit',
+                        iconProps:{fontSize:'small'},
                         tooltip: T.LICENCES.EDIT_TOOL_TIP,
                         onClick: (event, rowData:any)=> {
                             props.history.push('/licence/'+rowData.id);

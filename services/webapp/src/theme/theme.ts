@@ -81,19 +81,28 @@ export const cadtheme = createMuiTheme({
         },
         MuiTableCell: {
             root: {
-                padding: 10,
                 fontSize:15,
                 zIndex:2000,
             },
             body: {
                 color: 'black',
-                fontSize:15
+                fontSize:15,
+            },
+            sizeSmall: {
+                padding: "0px 0px 0px 0px",
+                height:"20px"
             },
             head: {
                 color: 'white',
+                padding:3,
                 fontSize:15,
                 backgroundColor: palette.primary.light,
             },
+        },
+        MuiTableBody: {
+            root:{
+
+            }
         },
         MuiTableSortLabel: {
             root: {

@@ -26,7 +26,7 @@
     "jspdf": "1.5.3",
     "jspdf-autotable": "^3.3.2",
     "lodash": "4.17.15",
-    "material-table": "1.50.0",
+    "material-table": "1.57.2",
     "moment": "2.24.0",
     "portable-fetch": "3.0.0",
     "primeicons": "^3.0.0-rc.1",
