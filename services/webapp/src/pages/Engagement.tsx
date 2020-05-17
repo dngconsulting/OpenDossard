@@ -6,7 +6,7 @@ import {
     DialogActions,
     DialogContent,
     DialogContentText,
-    DialogTitle,
+    DialogTitle, Fab,
     IconButton,
     makeStyles
 } from '@material-ui/core';
@@ -40,6 +40,8 @@ import 'moment/locale/fr'
 import SearchIcon from '@material-ui/icons/Search';
 import {capitalizeFirstLetter, displayDossard, useWindowDimensions} from "../util";
 import {ActionButton} from "../components/ActionButton";
+import FormatListNumberedIcon from "@material-ui/icons/FormatListNumbered";
+import {cadtheme} from "../theme/theme";
 
 moment.locale('fr')
 const style = makeStyles(theme => ({
@@ -106,29 +108,6 @@ const EngagementPage = (props: any) => {
         openDialog(false);
     };
 
-    const handleOk = async (fetchRows: any) => {
-        closeDialog();
-        try {
-            setShowSablier(true)
-            await apiRaces.deleteRace({id: String(selectedRow.id)});
-            fetchRows();
-        } catch (ex) {
-            setNotification({
-                message: `Le coureur ${selectedRow.name} n'a pas pu être supprimé`,
-                type: 'error',
-                open: true
-            });
-            throw ex;
-        }
-        finally {
-            setShowSablier(false)
-        }
-        setNotification({
-            message: `Le coureur ${selectedRow.name} a été supprimé de la compétition`,
-            type: 'info',
-            open: true
-        });
-    };
     const classes = style({});
 
     const exportCSV = async () => {
@@ -155,6 +134,31 @@ const EngagementPage = (props: any) => {
                             openDialog(true);
                         }}/>)
                     }
+                };
+
+                const handleOk = async (fetchRows: any) => {
+                    closeDialog();
+                    try {
+                        setShowSablier(true)
+                        await apiRaces.deleteRace({id: String(selectedRow.id)});
+                        await fetchRows();
+                        console.log('ROWS=' + JSON.stringify(rows))
+                    } catch (ex) {
+                        setNotification({
+                            message: `Le coureur ${selectedRow.name} n'a pas pu être supprimé`,
+                            type: 'error',
+                            open: true
+                        });
+                        throw ex;
+                    }
+                    finally {
+                        setShowSablier(false)
+                    }
+                    setNotification({
+                        message: `Le coureur ${selectedRow.name} a été supprimé de la compétition`,
+                        type: 'info',
+                        open: true
+                    });
                 };
 
                 const columns: ColumnProps[] = [
@@ -199,7 +203,7 @@ const EngagementPage = (props: any) => {
                     },
                     {field: 'fede', header: 'Fédé.', ...FILTERABLE, ...SHORT,sortable:true},
                 ];
-
+                const existResults = rows.length>0
 
                 const exportPDF = async () => {
                     let rowstoDisplay : any[][] = [];
@@ -309,14 +313,21 @@ const EngagementPage = (props: any) => {
                                 <CircularProgress color="primary" />
                             </div>
                         </div>}
-                        <div style={{display:'flex',flexDirection:'row',backgroundColor:'#3333330d', padding:'5px'}}>
-                            <ActionButton onClick={()=>{exportPDF()}}><span style={{color:'white'}} ><PictureAsPdf style={{verticalAlign:'middle'}}/>Télécharger PDF</span></ActionButton>
-                            <ActionButton onClick={()=>{exportCSV()}}><span style={{color:'white'}} ><CloudDownload style={{verticalAlign:'middle'}}/>Télécharger CSV</span></ActionButton>
-
-                            <Reorganizer disabled={!(rows.filter((rr:RaceRow)=>(rr.rankingScratch!=null || rr.comment!=null)).length===0)} competition={competition} rows={rows} onSuccess={() => {
-                                fetchRows();
-                                fetchCompetition();
-                            }}/>
+                        <div style={{display:'flex',flexDirection:'row',backgroundColor:'#3333330d', justifyContent:'space-between', padding:'5px'}}>
+                            <div style={{display:'flex',flexDirection:'row'}}>
+                                <ActionButton onClick={()=>{exportPDF()}}><span style={{color:'white'}} ><PictureAsPdf style={{verticalAlign:'middle'}}/>Télécharger PDF</span></ActionButton>
+                                <ActionButton onClick={()=>{exportCSV()}}><span style={{color:'white'}} ><CloudDownload style={{verticalAlign:'middle'}}/>Télécharger CSV</span></ActionButton>
+                                <Reorganizer disabled={!(rows.filter((rr:RaceRow)=>(rr.rankingScratch!=null || rr.comment!=null)).length===0)} competition={competition} rows={rows} onSuccess={() => {
+                                    fetchRows();
+                                    fetchCompetition();
+                                }}/>
+                            </div>
+                            {existResults && <div style={{display:'flex',flexDirection:'row'}}>
+                                <Fab
+                                style={{borderRadius:4,fontSize:'12px',margin:'5px',paddingLeft:10,fontWeight:'bold',paddingRight:10,paddingBottom:5,paddingTop:5,backgroundColor:cadtheme.palette.primary.dark}}
+                                variant="extended" size='small'><Link style={{ color: '#FFF' }} to={"/competition/" + competition?.id + "/results/edit"+props.history.location.hash}>
+                                <FormatListNumberedIcon style={{verticalAlign:'middle'}}/>
+                                Accéder aux classements</Link></Fab></div>}
                         </div>
                         <Grid container={true}>
                             <ConfirmDialog name={selectedRow ? selectedRow.name : null} open={open}
@@ -331,7 +342,7 @@ const EngagementPage = (props: any) => {
                         </Grid>
 
                         <DataTable ref={dg} value={saisieResultat?filterByRace(rows, currentRace).reverse():filterByRace(rows, currentRace)}
-                                   scrollHeight={(height-150)+'px'}
+                                   scrollHeight={(height-300)+'px'}
                                    scrollable={true}
                                    emptyMessage="Aucun coureur encore engagé sur cette épreuve ou aucun coureur ne correspond à votre filtre de recherche"
                                    responsive={true}

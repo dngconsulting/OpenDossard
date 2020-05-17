@@ -11,7 +11,7 @@ import {filterByRace} from '../../util/services';
 import {CloudDownload, Delete, PictureAsPdf,Edit,PageviewSharp} from '@material-ui/icons';
 import EmojiEventsIcon from '@material-ui/icons/EmojiEvents';
 import EmojiPeopleIcon from '@material-ui/icons/EmojiPeople';
-import {IconButton, Tooltip, withStyles} from '@material-ui/core';
+import {Fab, IconButton, Tooltip, withStyles} from '@material-ui/core';
 import {Column} from 'primereact/column';
 import {withRouter} from 'react-router';
 import jsPDF from "jspdf";
@@ -22,6 +22,8 @@ import {capitalizeFirstLetter, displayDossard, useWindowDimensions} from "../../
 import moment from "moment";
 import {Link} from "react-router-dom";
 import {ActionButton} from "../../components/ActionButton";
+import AssignmentIcon from "@material-ui/icons/Assignment";
+import {cadtheme} from "../../theme/theme";
 
 const previousRowEmpty = (index: number, transformedRows: any) => {
     return ((index > 0) && (transformedRows[index - 1].riderNumber === undefined));
@@ -439,22 +441,30 @@ const EditResultsPage = (gprops: any) => {
                             await fetchCompetition()
                         }} open={true} competitionId={competition?.id}/>}
 
-                        <div style={{display:'flex',flexDirection:'row',backgroundColor:'#3333330d', cursor:'pointer', padding:'5px'}}>
-                            <ActionButton>{isEdit?<PageviewSharp style={{color:'white',verticalAlign:'middle'}}/>:<Edit style={{color:'white',verticalAlign:'middle'}}/>}
-                                <Link style={{color:'white'}} to={"/competition/" + competition?.id + "/results/" + (isEdit?'view':'edit')}>{isEdit?"Passer en visualisation":"Passer en edition"}</Link>
-                            </ActionButton>
-                            {isEdit && (modeDNFActivated ?<ActionButton>
-                                    <a style={{color:'white'}} onClick={(e)=>setModeDNFActivated(false)}>Arrêter saisie des abandons</a></ActionButton>:
-                              <ActionButton style={{fontSize:'12px',padding:'5px'}} variant="extended" color="secondary" size='small' aria-label="add">
-                                  <Edit style={{verticalAlign:'middle'}}/>
-                                  <a style={{color:'white'}} onClick={(e)=>setShowDNFDialog(true)}>Saisir les abandons</a>
-                            </ActionButton>)}
-                            {isEdit &&<ActionButton onClick={()=>{setOpenInfoGen(true)}}><span style={{color:'white'}}><Edit style={{verticalAlign:'middle'}}/>Informations épreuve</span></ActionButton>}
-                            <ActionButton onClick={()=>{exportPDF()}}><span style={{color:'white'}} ><PictureAsPdf style={{verticalAlign:'middle'}}/>Télécharger PDF</span></ActionButton>
-                            <ActionButton onClick={()=>{exportCSV()}}><span style={{color:'white'}} ><CloudDownload style={{verticalAlign:'middle'}}/>Télécharger CSV</span></ActionButton>
+                        <div style={{display:'flex',flexDirection:'row',backgroundColor:'#3333330d', cursor:'pointer', justifyContent:'space-between', padding:'5px'}}>
+                            <div style={{display:'flex',flexDirection:'row'}}>
+                                <ActionButton>{isEdit?<PageviewSharp style={{color:'white',verticalAlign:'middle'}}/>:<Edit style={{color:'white',verticalAlign:'middle'}}/>}
+                                    <Link style={{color:'white'}} to={"/competition/" + competition?.id + "/results/" + (isEdit?'view':'edit')}>{isEdit?"Passer en visualisation":"Passer en edition"}</Link>
+                                </ActionButton>
+                                {isEdit && (modeDNFActivated ?<ActionButton>
+                                        <a style={{color:'white'}} onClick={(e)=>setModeDNFActivated(false)}>Arrêter saisie des abandons</a></ActionButton>:
+                                    <ActionButton style={{fontSize:'12px',padding:'5px'}} variant="extended" color="secondary" size='small' aria-label="add">
+                                        <Edit style={{verticalAlign:'middle'}}/>
+                                        <a style={{color:'white'}} onClick={(e)=>setShowDNFDialog(true)}>Saisir les abandons</a>
+                                    </ActionButton>)}
+                                {isEdit &&<ActionButton onClick={()=>{setOpenInfoGen(true)}}><span style={{color:'white'}}><Edit style={{verticalAlign:'middle'}}/>Informations épreuve</span></ActionButton>}
+                                <ActionButton onClick={()=>{exportPDF()}}><span style={{color:'white'}} ><PictureAsPdf style={{verticalAlign:'middle'}}/>Télécharger PDF</span></ActionButton>
+                                <ActionButton onClick={()=>{exportCSV()}}><span style={{color:'white'}} ><CloudDownload style={{verticalAlign:'middle'}}/>Télécharger CSV</span></ActionButton>
+                            </div>
+                            <div style={{display:'flex',flexDirection:'row',alignItems:'flex-end'}}>
+                                <Fab
+                                    style={{borderRadius:4,fontSize:'12px',margin:'5px',fontWeight:'bold',paddingLeft:10,paddingRight:10,paddingBottom:5,paddingTop:5,backgroundColor:cadtheme.palette.primary.dark}}
+                                    variant="extended" size='small'>
+                                    <Link style={{ color: '#FFF' }} to={"/competition/" + competition?.id + "/engagement/edit"+gprops.history.location.hash}>
+                                        <AssignmentIcon style={{verticalAlign:'middle'}}/>Accéder aux engagements</Link></Fab></div>
                         </div>
                         <DataTable ref={dg}
-                                   scrollHeight={(height-150)+'px'}
+                                   scrollHeight={(height-300)+'px'}
                                    scrollable={true}
                                    reorderableColumns
                                    resizableColumns

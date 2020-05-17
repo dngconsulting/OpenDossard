@@ -94,15 +94,10 @@ export const CompetitionLayout = ({history,competitionId, displayType, children}
 const CompetitionCard = ({rows,history,displayType,competition}: {rows:RaceRow[],history:any,displayType:'results'|'engagements',competition: Competition }) => {
     const c: Partial<Competition> = competition ? competition : {};
     const club = c.club ? c.club.longName : '';
-    const existResults = rows.length>0
     const titleCard = displayType==='results'?'Classements':'Engagements';
     return <Grid container={true} style={{padding: 10, width: '100%', justifyContent: 'center'}}>
-        <Typography component="h5" variant="h5" align="center">
+        <Typography component="h6" variant="h6" align="center">
             {displayType==='results'?<FormatListNumberedIcon style={{verticalAlign:'text-top'}}/>:<AssignmentIcon style={{verticalAlign:'text-top'}}/>}{titleCard}<ForwardIcon style={{verticalAlign:'text-top'}}/>{c.name}  ({club}) - {capitalizeFirstLetter(moment(c.eventDate).locale('fr').format('dddd DD MMM YYYY'))}
-            <div style={{fontSize:14}}>
-                {displayType==='results' && <Link to={"/competition/" + competition?.id + "/engagement/edit"+history.location.hash}>Accéder aux engagements</Link>}
-                {displayType==='engagements' && existResults && <Link to={"/competition/" + competition?.id + "/results/edit"+history.location.hash}>Accéder aux classements</Link>}
-            </div>
         </Typography>
     </Grid>;
 };
