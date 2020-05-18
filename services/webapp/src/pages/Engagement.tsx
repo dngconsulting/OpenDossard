@@ -142,7 +142,6 @@ const EngagementPage = (props: any) => {
                         setShowSablier(true)
                         await apiRaces.deleteRace({id: String(selectedRow.id)});
                         await fetchRows();
-                        console.log('ROWS=' + JSON.stringify(rows))
                     } catch (ex) {
                         setNotification({
                             message: `Le coureur ${selectedRow.name} n'a pas pu être supprimé`,
