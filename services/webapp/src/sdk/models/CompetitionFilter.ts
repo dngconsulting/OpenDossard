@@ -61,19 +61,31 @@ export interface CompetitionFilter {
      * @type {boolean}
      * @memberof CompetitionFilter
      */
-    displayFuture: boolean;
+    displayFuture?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof CompetitionFilter
      */
-    displayPast: boolean;
+    displayPast?: boolean;
     /**
      * 
      * @type {number}
      * @memberof CompetitionFilter
      */
     displaySince?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof CompetitionFilter
+     */
+    startDate?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CompetitionFilter
+     */
+    endDate?: string;
 }
 
 export function CompetitionFilterFromJSON(json: any): CompetitionFilter {
@@ -91,9 +103,11 @@ export function CompetitionFilterFromJSONTyped(json: any, ignoreDiscriminator: b
         'depts': !exists(json, 'depts') ? undefined : ((json['depts'] as Array<any>).map(DepartementFromJSON)),
         'openedToOtherFede': !exists(json, 'openedToOtherFede') ? undefined : json['openedToOtherFede'],
         'openedNL': !exists(json, 'openedNL') ? undefined : json['openedNL'],
-        'displayFuture': json['displayFuture'],
-        'displayPast': json['displayPast'],
+        'displayFuture': !exists(json, 'displayFuture') ? undefined : json['displayFuture'],
+        'displayPast': !exists(json, 'displayPast') ? undefined : json['displayPast'],
         'displaySince': !exists(json, 'displaySince') ? undefined : json['displaySince'],
+        'startDate': !exists(json, 'startDate') ? undefined : json['startDate'],
+        'endDate': !exists(json, 'endDate') ? undefined : json['endDate'],
     };
 }
 
@@ -114,6 +128,8 @@ export function CompetitionFilterToJSON(value?: CompetitionFilter | null): any {
         'displayFuture': value.displayFuture,
         'displayPast': value.displayPast,
         'displaySince': value.displaySince,
+        'startDate': value.startDate,
+        'endDate': value.endDate,
     };
 }
 

@@ -17,10 +17,10 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import {InjectEntityManager} from '@nestjs/typeorm';
-
+import * as moment from "moment";
 import * as _ from 'lodash';
 import {AuthGuard} from '@nestjs/passport';
-import {RaceCreate, RaceNbRider, RaceRow} from '../dto/model.dto';
+import {CompetitionFilter, RaceCreate, RaceNbRider, RaceRow} from '../dto/model.dto';
 import {ROLES, RolesGuard} from "../guards/roles.guard";
 import {Roles} from "../decorators/roles.decorator";
 
@@ -49,14 +49,16 @@ export class RacesCtrl {
         return null;
     }
 
-    @Get()
+    @Post("/getRaces")
     @ApiOperation({
-        operationId: 'getAllRaces',
-        summary: 'Rechercher toutes les participations à toutes les courses ',
+        operationId: 'getRaces',
+        summary: 'Rechercher les participations aux courses de MM/JJ/AAAA à MM/JJ/AAAA',
     })
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
     @Roles(ROLES.MOBILE,ROLES.ORGANISATEUR,ROLES.ADMIN)
-    public async getAllRaces(): Promise<RaceRow[]> {
+    public async getRaces(@Body() filter:CompetitionFilter ): Promise<RaceRow[]> {
+        if (filter.startDate==null || filter.startDate==='') filter.startDate='01/01/2018';
+        if (filter.endDate==null || filter.endDate==='') filter.endDate=moment().locale('fr').format('MM/DD/YYYY');
         const query = `select r.id,
                               r.race_code as "raceCode",
                               r.catev,                             
@@ -80,8 +82,11 @@ export class RacesCtrl {
                        from race r
                                 join licence l on r.licence_id = l.id
                                 join competition c on r.competition_id = c.id
-                       order by r.id desc`;
-        return await this.entityManager.query(query);
+                       where c.event_date>$1 and c.event_date<$2 
+                       order by r.id desc
+                       
+                       `;
+        return await this.entityManager.query(query,[filter.startDate,filter.endDate]);
     }
 
     @Get('palmares/:id')

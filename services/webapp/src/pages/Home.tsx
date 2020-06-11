@@ -1,12 +1,14 @@
 import * as React from 'react';
-import {useEffect, useState} from 'react';
-import {Grid, Paper, Theme, withStyles} from '@material-ui/core';
+import {useEffect, useRef, useState} from 'react';
+import {Grid, Paper, TextField, Theme, withStyles} from '@material-ui/core';
 import * as Highcharts from 'highcharts';
 import {RaceRow} from '../sdk';
 import _ from 'lodash';
 import {apiRaces} from '../util/api';
 import HighchartsReact from 'highcharts-react-official';
 import {CATEA_FSGT,CATEA_UFOLEP} from '../pages/common/shared-entities'
+import moment from "moment";
+import Box from '@material-ui/core/Box';
 
 interface IDashboardProps {
     classes?: any;
@@ -22,6 +24,8 @@ const HomePage = (props: IDashboardProps) => {
     const [optionNbRidersChartRiders, setOptionNbRidersChartRiders] = useState<Highcharts.Options>();
     const [optionNbLicencesChartRiders, setOptionNbLicencesChartRiders] = useState<Highcharts.Options>();
     const [optionParCateA, setOptionParCateA] = useState<Highcharts.Options>();
+    const startDateRef = useRef(null);
+    const endDateRef = useRef(null);
 
     const fillRiderByCateaChart = (rows: RaceRow[]) => {
         const options: Highcharts.Options = {
@@ -138,21 +142,58 @@ const HomePage = (props: IDashboardProps) => {
         options.xAxis.categories = clubAndNbOrdered.map(item => item.club);
         setOptionNbRidersChartClub(options);
     };
+    const startDate = (startDateRef && startDateRef.current)?startDateRef.current.value:"2018-05-24";
+    const endDate = (endDateRef && endDateRef.current)?endDateRef.current.value:moment().locale('fr').format('YYYY-MM-DD');
+    const getRaces = async () => {
+        const d1 = moment(startDateRef.current.value,moment.HTML5_FMT.DATE).locale('fr').format('MM/DD/YYYY');
+        const d2 = moment(endDateRef.current.value,moment.HTML5_FMT.DATE).locale('fr').format('MM/DD/YYYY');
+        if (d1.includes('Invalid date') || d2.includes('Invalid date')) return;
+        const rows = await apiRaces.getRaces({
+            competitionFilter:{
+                displayFuture:true,
+                displayPast:true,
+                startDate:d1,
+                endDate:d2,
+            }});
+        fillRiderParticipationChart(rows);
+        fillClubParticipationChart(rows);
+        fillRiderOnlyParticipationChart(rows);
+        fillRiderByCateaChart(rows);
+    };
     useEffect(() => {
-            const getAllRaces = async () => {
-                const rows = await apiRaces.getAllRaces();
-                fillRiderParticipationChart(rows);
-                fillClubParticipationChart(rows);
-                fillRiderOnlyParticipationChart(rows);
-                fillRiderByCateaChart(rows);
-            };
-            getAllRaces();
+            getRaces();
         }
         , []);
 
 
     return (
         <div className={classes.root}>
+            <Box padding={1} display="flex" flexDirection="row" justifyContent={"center"} alignItems="center">
+            <TextField
+                inputRef={startDateRef}
+                id="date"
+                label="Date de début"
+                type="date"
+                onChange={()=>getRaces()}
+                defaultValue={startDate}
+                className={classes.textField}
+                InputLabelProps={{
+                    shrink: true,
+                }}
+            />
+            <TextField
+                inputRef={endDateRef}
+                id="date"
+                label="Date de fin"
+                type="date"
+                defaultValue={endDate}
+                onChange={()=>getRaces()}
+                className={classes.textField}
+                InputLabelProps={{
+                    shrink: true,
+                }}
+            />
+            </Box>
             <Grid container={true}> {
                 [optionNbRidersChartRiders, optionNbRidersChartClub, optionParCateA, optionNbLicencesChartRiders].map((item, index) =>
                     <Grid key={index} style={{padding: 5}} item={true} xs={12} md={6}>
@@ -201,6 +242,15 @@ const styles = (theme: Theme) => ({
     },
     chart: {
         width: '100%'
+    },
+    textField: {
+        marginLeft: theme.spacing(1),
+        marginRight: theme.spacing(1),
+        width: 200,
+    },
+    container: {
+        display: 'flex',
+        flexWrap: 'wrap',
     },
 });
 

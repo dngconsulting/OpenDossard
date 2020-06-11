@@ -76,7 +76,11 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
     };
     const fetchAllRaces = async () => {
         try {
-           const results = await apiRaces.getAllRaces();
+           const results = await apiRaces.getRaces({
+               competitionFilter:{
+                   displayFuture:true,
+                   displayPast:true,
+               }});
            setRaceRows(results);
         }
         catch (ex) {

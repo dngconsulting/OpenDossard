@@ -86,9 +86,11 @@ export class CompetitionFilter {
     depts?: Departement[];
     openedToOtherFede?: boolean;
     openedNL?: boolean;
-    displayFuture: boolean;
-    displayPast: boolean;
+    displayFuture?: boolean;
+    displayPast?: boolean;
     displaySince?: number;
+    startDate?:string;
+    endDate?:string;
 }
 
 export class Departement {

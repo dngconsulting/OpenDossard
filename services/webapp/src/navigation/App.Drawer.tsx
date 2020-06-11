@@ -73,14 +73,14 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
             title: 'Saisie Rapide résultats',
             icon: () => <AssignmentIcon color={'error'}/>
         }]:[]),
-        {
+       /* {
             key: '5',
             path: '/stats',
             component: StatsPage,
             state: {title: 'Statistiques et graphiques'},
             title: 'Statistiques',
             icon: () => <ShowChartIcon/>
-        },
+        },*/
         {
             key: '6',
             path: '/account',

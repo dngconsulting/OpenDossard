@@ -15,6 +15,9 @@
 
 import * as runtime from '../runtime';
 import {
+    CompetitionFilter,
+    CompetitionFilterFromJSON,
+    CompetitionFilterToJSON,
     RaceCreate,
     RaceCreateFromJSON,
     RaceCreateToJSON,
@@ -44,6 +47,10 @@ export interface GetCompetitionRacesRequest {
 
 export interface GetPalmaresRequest {
     id: number;
+}
+
+export interface GetRacesRequest {
+    competitionFilter: CompetitionFilter;
 }
 
 export interface RemoveRankingRequest {
@@ -181,40 +188,6 @@ export class RaceAPIApi extends runtime.BaseAPI {
     }
 
     /**
-     * Rechercher toutes les participations à toutes les courses 
-     */
-    async getAllRacesRaw(): Promise<runtime.ApiResponse<Array<RaceRow>>> {
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/api/races`,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(RaceRowFromJSON));
-    }
-
-    /**
-     * Rechercher toutes les participations à toutes les courses 
-     */
-    async getAllRaces(): Promise<Array<RaceRow>> {
-        const response = await this.getAllRacesRaw();
-        return await response.value();
-    }
-
-    /**
      * Rechercher tous les coureurs participants à une course 
      */
     async getCompetitionRacesRaw(requestParameters: GetCompetitionRacesRequest): Promise<runtime.ApiResponse<Array<RaceRow>>> {
@@ -321,6 +294,47 @@ export class RaceAPIApi extends runtime.BaseAPI {
      */
     async getPalmares(requestParameters: GetPalmaresRequest): Promise<Array<RaceRow>> {
         const response = await this.getPalmaresRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Rechercher les participations aux courses de MM/JJ/AAAA à MM/JJ/AAAA
+     */
+    async getRacesRaw(requestParameters: GetRacesRequest): Promise<runtime.ApiResponse<Array<RaceRow>>> {
+        if (requestParameters.competitionFilter === null || requestParameters.competitionFilter === undefined) {
+            throw new runtime.RequiredError('competitionFilter','Required parameter requestParameters.competitionFilter was null or undefined when calling getRaces.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/races/getRaces`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CompetitionFilterToJSON(requestParameters.competitionFilter),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(RaceRowFromJSON));
+    }
+
+    /**
+     * Rechercher les participations aux courses de MM/JJ/AAAA à MM/JJ/AAAA
+     */
+    async getRaces(requestParameters: GetRacesRequest): Promise<Array<RaceRow>> {
+        const response = await this.getRacesRaw(requestParameters);
         return await response.value();
     }
 

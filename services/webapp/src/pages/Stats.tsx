@@ -36,7 +36,11 @@ const StatsPage = (props: IStatsPageProps) => {
 
     useEffect(() => {
             const getAllRaces = async () => {
-                const rows = await apiRaces.getAllRaces();
+                const rows = await apiRaces.getRaces({
+                    competitionFilter:{
+                        displayFuture:true,
+                        displayPast:true,
+                    }});
                 nbRidersByCourseChart(rows);
             };
             getAllRaces();
