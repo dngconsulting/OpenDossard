@@ -4,11 +4,12 @@ import {Grid, Paper, TextField, Theme, withStyles} from '@material-ui/core';
 import * as Highcharts from 'highcharts';
 import {RaceRow} from '../sdk';
 import _ from 'lodash';
-import {apiRaces} from '../util/api';
+import {apiLicences, apiRaces} from '../util/api';
 import HighchartsReact from 'highcharts-react-official';
 import {CATEA_FSGT,CATEA_UFOLEP} from '../pages/common/shared-entities'
 import moment from "moment";
 import Box from '@material-ui/core/Box';
+import AwesomeDebouncePromise from "awesome-debounce-promise";
 
 interface IDashboardProps {
     classes?: any;
@@ -144,17 +145,19 @@ const HomePage = (props: IDashboardProps) => {
     };
     const startDate = (startDateRef && startDateRef.current)?startDateRef.current.value:"2018-05-24";
     const endDate = (endDateRef && endDateRef.current)?endDateRef.current.value:moment().locale('fr').format('YYYY-MM-DD');
+    const getRacesDebounce = AwesomeDebouncePromise((d1,d2) => apiRaces.getRaces({
+        competitionFilter:{
+            displayFuture:true,
+            displayPast:true,
+            startDate:d1,
+            endDate:d2,
+        }}),500)
     const getRaces = async () => {
         const d1 = moment(startDateRef.current.value,moment.HTML5_FMT.DATE).locale('fr').format('MM/DD/YYYY');
         const d2 = moment(endDateRef.current.value,moment.HTML5_FMT.DATE).locale('fr').format('MM/DD/YYYY');
+        console.log('getRaces =' + d1 + ' ' + d2)
         if (d1.includes('Invalid date') || d2.includes('Invalid date')) return;
-        const rows = await apiRaces.getRaces({
-            competitionFilter:{
-                displayFuture:true,
-                displayPast:true,
-                startDate:d1,
-                endDate:d2,
-            }});
+        const rows = await getRacesDebounce(d1,d2)
         fillRiderParticipationChart(rows);
         fillClubParticipationChart(rows);
         fillRiderOnlyParticipationChart(rows);

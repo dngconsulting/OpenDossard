@@ -312,6 +312,7 @@ const EditResultsPage = (gprops: any) => {
                     return winners.join(',');
                 }
                 const exportPodiumsPDF = async () => {
+                    const filename = 'Podiums_' + competition.name.replace(/\s/g, '') + '.pdf'
                     let doc = new jsPDF("p","mm","a4");
                     competition.races.forEach((currRace:string,index:number)=>{
                         let podiumsForCurrentRace : any[][] = [];
@@ -366,6 +367,13 @@ const EditResultsPage = (gprops: any) => {
                                 doc.text('Epreuve : ' + competition.name, data.settings.margin.left + 50, 15);
                                 doc.text('Date : ' + capitalizeFirstLetter(moment(competition.eventDate).locale('fr').format('dddd DD MMM YYYY')), data.settings.margin.left + 50, 20);
                                 doc.text('Course(s) : ' + competition.races.toString(), data.settings.margin.left + 50, 25);
+                                // Footer
+                                doc.setFontSize(10)
+
+                                // jsPDF 1.4+ uses getWidth, <1.4 uses .width
+                                var pageSize = doc.internal.pageSize
+                                var pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight()
+                                doc.text("Fichier : " + filename + " Imprimé à : " + moment().format("HH:mm:ss"), 40, pageHeight - 5)
                             },
                             margin: { top: 30,left:5,right:5 },
                             styles: {
@@ -379,10 +387,11 @@ const EditResultsPage = (gprops: any) => {
                         });
                     })
 
-                    doc.save('Podiums_' + competition.name.replace(/\s/g, '') + '.pdf');
+                    doc.save(filename);
                 }
                 const exportPDF = async () => {
                     let rowstoDisplay : any[][] = [];
+                    const filename = 'Classement_' + competition.name.replace(/\s/g, '') + '_cate_' + currentRace + '.pdf';
                     transformedRows.forEach((r:RaceRow,index:number)=>{
                         (r.rankingScratch || r.comment) && rowstoDisplay.push([r.rankingScratch,displayRankOfCate(r),displayDossard(r.riderNumber.toString()),r.name,r.club,r.gender,r.catev,r.catea,r.fede])
                     })
@@ -449,6 +458,7 @@ const EditResultsPage = (gprops: any) => {
                             var pageSize = doc.internal.pageSize
                             var pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight()
                             doc.text(str, data.settings.margin.left, pageHeight - 10)
+                            doc.text("Fichier : " + filename + " Imprimé à : " + moment().format("HH:mm:ss"), 40, pageHeight - 5)
                         },
                         margin: { top: 30,left:5,right:5 },
                         styles: {
@@ -477,8 +487,7 @@ const EditResultsPage = (gprops: any) => {
                         "<br><b>REMARQUES</b> : "
                         + (competition.feedback?competition.feedback:'NC')  + "</div><br><b>Vainqueur(s) du challenge : </b>" + getChallengeWinners(),10,finalY,{
                         'width': 350})
-                    doc.save('Classement_' + competition.name.replace(/\s/g, '') + '_cate_' + currentRace + '.pdf');
-
+                    doc.save(filename);
                 }
 
                 const flagchallenge = (row: RaceRow) => row.riderNumber &&

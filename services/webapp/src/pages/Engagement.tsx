@@ -207,6 +207,7 @@ const EngagementPage = (props: any) => {
                 const exportPDF = async () => {
                     let rowstoDisplay : any[][] = [];
                     const lrows = filterByRace(rows, currentRace);
+                    const filename = 'Engagement_' + competition.name.replace(/\s/g, '') + '_cate_' + currentRace + '.pdf'
                     _.orderBy(lrows, ['riderNumber'], ['asc']).forEach((r:RaceRow,index:number)=>{
                         if (index===0) {
                             rowstoDisplay.push(['',
@@ -265,7 +266,7 @@ const EngagementPage = (props: any) => {
                             var pageSize = doc.internal.pageSize
                             var pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight()
                             doc.text(str, data.settings.margin.left, pageHeight - 10)
-
+                            doc.text("Fichier : " + filename + " Imprimé à : " + moment().format("HH:mm:ss"), 40, pageHeight - 5)
                         },
                         margin: { top: 14,left:10 },
                         styles: {
@@ -279,7 +280,7 @@ const EngagementPage = (props: any) => {
                     // @ts-ignore
                     let finalY = doc.lastAutoTable.finalY;
                     doc.putTotalPages(totalPagesExp)
-                    doc.save('Engagement_' + competition.name.replace(/\s/g, '') + '_cate_' + currentRace + '.pdf');
+                    doc.save(filename);
                 }
 
                 const controleDossards = () => {
