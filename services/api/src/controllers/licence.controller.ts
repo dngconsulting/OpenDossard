@@ -97,7 +97,7 @@ export class LicenceController {
                 if (typeof search.orderBy !== 'undefined') {
                     qb.orderBy(`"${mappingLicenceFields[search.orderBy]}"`, search.orderDirection);
                 } else {
-                    qb.orderBy('id', search.orderDirection);
+                    qb.orderBy('name', search.orderDirection);
                 }
             }
         } else {
