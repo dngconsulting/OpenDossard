@@ -26,7 +26,7 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import {Utility} from '../state/Utility';
 import {NavLink} from 'react-router-dom';
 import {styles} from './styles';
-import StatsPage from '../pages/Stats';
+import PalmaresPage from '../pages/Palmares';
 import {UserEntity as User} from '../sdk';
 import {grey} from '@material-ui/core/colors';
 import {cadtheme} from '../theme/theme';
@@ -73,14 +73,14 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
             title: 'Saisie Rapide résultats',
             icon: () => <AssignmentIcon color={'error'}/>
         }]:[]),
-       /* {
+        {
             key: '5',
-            path: '/stats',
-            component: StatsPage,
-            state: {title: 'Statistiques et graphiques'},
-            title: 'Statistiques',
+            path: '/palmares',
+            component: PalmaresPage,
+            state: {title: 'Palmarès coureurs'},
+            title: 'Palmarès',
             icon: () => <ShowChartIcon/>
-        },*/
+        },
         {
             key: '6',
             path: '/account',
