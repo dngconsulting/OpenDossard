@@ -1,3 +1,28 @@
 .width500 {
-    width: 500px
+    width: 500px;
+}
+.vertical-timeline {
+    padding:10px
+}
+.vertical-timeline-element {
+    margin:10px
+}
+.vertical-timeline-element-content {
+    height: 120px;
+}
+.vertical-timeline-element-icon {
+    left: -20px;
+}
+.vertical-timeline-element-title {
+    margin:0px;
+    padding:0px
+}
+
+.vertical-timeline-element-subtitle {
+    margin:0px;
+    padding:0px
+}
+.vertical-timeline-element-date {
+    margin:0px;
+    padding:0px
 }
