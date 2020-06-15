@@ -3,14 +3,18 @@ import {Ref, useEffect, useRef, useState} from 'react';
 import MaterialTable, {Query, QueryResult} from 'material-table';
 import {AppText as T} from '../../util/text';
 import {apiLicences} from '../../util/api';
-import {LicenceEntity as Licence,Search} from '../../sdk';
+import {LicenceEntity, LicenceEntity as Licence, Search} from '../../sdk';
 import {cadtheme} from '../../theme/theme';
 import {Button, Icon, Paper} from '@material-ui/core';
-import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import {useContext} from "react";
 import {NotificationContext} from "../../components/CadSnackbar";
 import {store} from "../../store/Store";
 import {setVar} from "../../actions/App.Actions";
+import {ActionButton} from "../../components/ActionButton";
+import {PictureAsPdf} from "@material-ui/icons";
+import jsPDF from "jspdf";
+import moment from "moment";
+import {useWindowDimensions} from "../../util";
 
 interface ILicencesProps {
     items: any[];
@@ -18,8 +22,6 @@ interface ILicencesProps {
     history: any;
     location:any
 }
-
-const getPageSizeLicencesForPageDebounced = AwesomeDebouncePromise((p) => apiLicences.getPageSizeLicencesForPage({search:p}),500)
 
 const tableIcons = {
     Add: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>add_box</Icon>),
@@ -41,13 +43,13 @@ const tableIcons = {
     ViewColumn: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>view_column</Icon>)
 };
 
-
-
 const LicencesPage = (props: ILicencesProps) => {
     const [id,setId] = useState(null)
     const [name,setName] = useState(null)
     const [, setNotification] = useContext(NotificationContext);
-    const tableRef = useRef()
+    const [psize,setPSize] = useState(17)
+    const windowDimensions  = useWindowDimensions();
+    const tableRef = useRef(null)
     useEffect(()=> {
         const queryParams = new URLSearchParams(props.location.search)
         if (queryParams.has('id')) {
@@ -57,8 +59,9 @@ const LicencesPage = (props: ILicencesProps) => {
     })
 
     const fetchLicences = async (query: Query<Licence>): Promise<QueryResult<Licence>> => {
-        const res = await getPageSizeLicencesForPageDebounced(prepareFilter(query));
-        return {data: res.data, page: res.page, totalCount: res.totalCount};
+        const res = await apiLicences.getPageSizeLicencesForPage({search:prepareFilter(query)});
+        const d = res.data;
+        return {data: d, page: res.page, totalCount: res.totalCount};
     };
 
     const prepareFilter = (query: Query<Licence>): Search => {
@@ -73,6 +76,7 @@ const LicencesPage = (props: ILicencesProps) => {
                 });
             }
        }
+        setPSize(query.pageSize)
         return {
             currentPage: query.page,
             pageSize: query.pageSize,
@@ -82,12 +86,73 @@ const LicencesPage = (props: ILicencesProps) => {
             filters
         };
     };
+
+    const exportPDF = async () => {
+        let rowstoDisplay : any[][] = [];
+        const filename = 'Licences.pdf';
+        tableRef.current.state.data.forEach((r:LicenceEntity,index:number)=>{
+            rowstoDisplay.push([r.id,r.licenceNumber,r.name,r.firstName,r.club,r.gender,r.dept,r.birthYear,r.catea,r.catev,r.fede]);
+        })
+        let doc = new jsPDF("p","mm","a4");
+        // @ts-ignore
+        var totalPagesExp = '{total_pages_count_string}'
+        // @ts-ignore
+        doc.autoTable({head: [['ID', 'Licence N°', 'Nom','Prenom', 'Club','H/F','Dept','Année','Cat.A','Cat.V','Fédé.']],
+            bodyStyles: {
+                minCellHeight:3,
+                cellHeight:3,
+                cellPadding:0.5
+            },
+            columnStyles: {
+                0: {cellWidth: 10},
+                1: {cellWidth: 20},
+                2: {cellWidth: 20},
+                3: {cellWidth: 20},
+                4: {cellWidth: 50},
+                5: {cellWidth: 10},
+                6: {cellWidth: 10},
+                7: {cellWidth: 15},
+                8: {cellWidth: 12},
+                9: {cellWidth: 12},
+                10: {cellWidth: 15},
+            },body: rowstoDisplay,
+            didDrawPage: (data:any) => {
+                // Header
+                doc.setFontSize(14)
+                doc.setTextColor(40)
+                doc.setFontStyle('normal')
+                doc.setFontSize(10)
+                doc.text('Listing de '  + rowstoDisplay.length + ' Licences', data.settings.margin.left + 70, 10);
+
+                // Footer
+                var str = 'Page ' + doc.internal.getNumberOfPages() + '/' + totalPagesExp
+                doc.setFontSize(8)
+
+                // jsPDF 1.4+ uses getWidth, <1.4 uses .width
+                var pageSize = doc.internal.pageSize
+                var pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight()
+                doc.text(str, data.settings.margin.left, pageHeight - 10)
+                doc.text("Fichier : " + filename + " Imprimé le : " + moment().format("DD/MM/YYYY HH:mm:ss"), 70, pageHeight - 5)
+            },
+            margin: { top: 14,left:10 },
+            styles: {
+                valign: 'middle',
+                fontSize: 7,
+                minCellHeight: 5,
+                maxCellHeight:5,
+                margin:0
+            },
+        });
+        // @ts-ignore
+        let finalY = doc.lastAutoTable.finalY;
+        doc.putTotalPages(totalPagesExp)
+        doc.save(filename);
+    }
     return (
-
-        <Paper style={{padding:'5px', height:'100%'}}>
-
+        <Paper style={{flex:1,padding:'5px'}}>
             <MaterialTable
                 title={T.LICENCES.TITLE}
+                tableRef={tableRef}
                 columns={[
                     {title: 'ID', field: 'id',headerStyle:{maxWidth: 20,minWidth:20},filterPlaceholder: id},
                     {title: 'Licence N°', field: 'licenceNumber',headerStyle:{width:20,minWidth:20}},
@@ -102,23 +167,27 @@ const LicencesPage = (props: ILicencesProps) => {
                     {title: 'Fédé', field: 'fede',headerStyle:{width:20,minWidth:20,maxWidth: 20},sorting:false},
                 ]}
 
-                ref={tableRef}
                 data={fetchLicences}
                 icons={tableIcons}
                 options={{
                     filterCellStyle:{maxWidth:100,padding:0, margin:0},
                     rowStyle:{maxHeight:20,fontSize:10,padding:0,margin:0},
                     filtering: true,
+                    debounceInterval:1000,
+                    pageSize:psize,
                     toolbar: true,
                     padding: 'dense',
                     actionsColumnIndex: -1,
-                    pageSize: 17,
-                    pageSizeOptions: [5, 10, 20],
+                    maxBodyHeight: windowDimensions.height - 200,
+                    pageSizeOptions: [5, 10, 17, 20, 100],
                     search: true,
+                    exportButton: true,
+                    exportFileName:"licences",
                     headerStyle: {
                         backgroundColor: cadtheme.palette.primary.main,
                         color: '#FFF',
                         fontSize: 15,
+                        padding:5,
                         zIndex: 'auto',
                     }
                 }}
@@ -163,7 +232,15 @@ const LicencesPage = (props: ILicencesProps) => {
                         onClick: (event, rowData:any)=> {
                             props.history.push('/licence/'+rowData.id);
                         }
-                    }
+                    },
+                    {
+                        icon: () => <ActionButton><span style={{color:'white'}} ><PictureAsPdf style={{verticalAlign:'middle'}}/>Export PDF</span></ActionButton>,
+                        tooltip: "Exporter la page courante en PDF",
+                        isFreeAction: true,
+                        onClick: () => {
+                            exportPDF()
+                        }
+                    },
                 ]}
                 localization={{
                     body: {
