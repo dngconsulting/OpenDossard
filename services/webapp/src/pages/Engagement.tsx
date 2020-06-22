@@ -306,6 +306,16 @@ const EngagementPage = (props: any) => {
                         open: true
                     });
                 }
+
+                const canReorganise = (rows:RaceRow[]) =>  {
+                    const alreadyRanked = !(rows.filter((rr:RaceRow)=>(rr.rankingScratch!=null || rr.comment!=null)).length===0)
+                    const groupByNumber = _.groupBy(rows, row=>row.riderNumber);
+                    const sameNumberInDifferentCates = Object.keys(groupByNumber).filter(key=>groupByNumber[key].length>1).length>0
+                    if (alreadyRanked) return 'Réorganisation de la course impossible car des coureurs ont déjà été classés'
+                    else if (sameNumberInDifferentCates) return 'Réorganisation de la course impossible car la même séquence de dossard a été affectée à plusieurs catégories'
+                    return true;
+                }
+                const canReorg = canReorganise(rows)
                 return (
                     <Box position="relative" padding={0}>
                         {showSablier && <div style={{position:'fixed',display:'block',width:'100%',height:'100%',top:0,left:0,right:0,bottom:0,backgroundColor:'rgba(0,0,0,0.5)',zIndex:10000,cursor:'pointer'}}>
@@ -315,9 +325,9 @@ const EngagementPage = (props: any) => {
                         </div>}
                         <div style={{display:'flex',flexDirection:'row',backgroundColor:'#3333330d', justifyContent:'space-between', padding:'5px'}}>
                             <div style={{display:'flex',flexDirection:'row'}}>
-                                <ActionButton onClick={()=>{exportPDF()}}><span style={{color:'white'}} ><PictureAsPdf style={{verticalAlign:'middle'}}/>Télécharger PDF</span></ActionButton>
-                                <ActionButton onClick={()=>{exportCSV()}}><span style={{color:'white'}} ><CloudDownload style={{verticalAlign:'middle'}}/>Télécharger CSV</span></ActionButton>
-                                <Reorganizer disabled={!(rows.filter((rr:RaceRow)=>(rr.rankingScratch!=null || rr.comment!=null)).length===0)} competition={competition} rows={rows} onSuccess={() => {
+                                <ActionButton title={'Télécharger un fichier PDF'}  onClick={()=>{exportPDF()}}><span style={{color:'white'}} ><PictureAsPdf style={{verticalAlign:'middle'}}/>Télécharger PDF</span></ActionButton>
+                                <ActionButton title={'Télécharger un fichier CSV'} onClick={()=>{exportCSV()}}><span style={{color:'white'}} ><CloudDownload style={{verticalAlign:'middle'}}/>Télécharger CSV</span></ActionButton>
+                                <Reorganizer tooltip={canReorg===true?'Fusionner ou scinder des départs':canReorg.toString()} disabled={canReorg!=true} competition={competition} rows={rows} onSuccess={() => {
                                     fetchRows();
                                     fetchCompetition();
                                 }}/>

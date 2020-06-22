@@ -2,7 +2,7 @@ import {CompetitionEntity as Competition, RaceRow} from '../sdk';
 import RaceTabs, {IRaceStat} from '../components/RaceTabs';
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import {createStyles, Theme} from '@material-ui/core';
-import {default as React, ReactNode, useEffect, useLayoutEffect, useState} from 'react';
+import {default as React, ReactNode, useLayoutEffect, useState} from 'react';
 import {apiCompetitions, apiRaces} from '../util/api';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';

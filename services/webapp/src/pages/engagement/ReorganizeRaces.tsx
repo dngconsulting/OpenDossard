@@ -13,6 +13,7 @@ import {apiCompetitions} from '../../util/api';
 import {NotificationContext} from '../../components/CadSnackbar';
 import {ActionButton} from "../../components/ActionButton";
 import {cadtheme} from "../../theme/theme";
+import Tooltip from '@material-ui/core/Tooltip';
 
 const styles = makeStyles(theme => ({
     button: {
@@ -117,7 +118,7 @@ const computeErrors = (races: string[], categories: string[]) => {
     return [];
 };
 
-export const Reorganizer = ({disabled, competition, rows, onSuccess}: { disabled:boolean,competition: Competition, rows: RaceRow[], onSuccess: () => void }) => {
+export const Reorganizer = ({tooltip, disabled, competition, rows, onSuccess,}: { tooltip:string, disabled: boolean, competition: Competition, rows: RaceRow[], onSuccess: () => void }) => {
 
     const [races, setRaces] = useState([]);
     const [open, setOpen] = useState(false);
@@ -155,17 +156,24 @@ export const Reorganizer = ({disabled, competition, rows, onSuccess}: { disabled
 
     const byCate = computeByCate(rows);
     const errors = computeErrors(races, byCate.map(c => c.catev));
-
     return <div>
-        <ActionButton disabled={disabled}
-                      onClick={() => setOpen(true)}><span style={{color:disabled?cadtheme.palette.grey.A100:"white"}} ><ThreeSixty style={{color:disabled?cadtheme.palette.grey.A100:"white",verticalAlign:'middle'}}/>Réorganiser les courses</span></ActionButton>
+        <Tooltip title={tooltip}>
+            <span>
+            <ActionButton disabled={disabled}
+                          onClick={() => setOpen(true)}><span
+                style={{color: disabled ? cadtheme.palette.grey.A100 : "white"}}><ThreeSixty style={{
+                color: disabled ? cadtheme.palette.grey.A100 : "white",
+                verticalAlign: 'middle'
+            }}/>Réorganiser la course</span></ActionButton>
+            </span>
+        </Tooltip>
         <Dialog
             open={open}
             onClose={() => setOpen(false)}
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
         >
-            <DialogTitle id="alert-dialog-title">Réorganiser les courses</DialogTitle>
+            <DialogTitle id="alert-dialog-title">Réorganiser les départs</DialogTitle>
             <DialogContent className={classes.dialogContent}>
                 <Typography variant="body2">
                     Ici, vous pouvez revoir les catégories de chaque courses, ajouter ou supprimer

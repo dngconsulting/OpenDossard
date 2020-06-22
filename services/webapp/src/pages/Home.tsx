@@ -155,7 +155,6 @@ const HomePage = (props: IDashboardProps) => {
     const getRaces = async () => {
         const d1 = moment(startDateRef.current.value,moment.HTML5_FMT.DATE).locale('fr').format('MM/DD/YYYY');
         const d2 = moment(endDateRef.current.value,moment.HTML5_FMT.DATE).locale('fr').format('MM/DD/YYYY');
-        console.log('getRaces =' + d1 + ' ' + d2)
         if (d1.includes('Invalid date') || d2.includes('Invalid date')) return;
         const rows = await getRacesDebounce(d1,d2)
         fillRiderParticipationChart(rows);

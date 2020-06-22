@@ -522,19 +522,19 @@ const EditResultsPage = (gprops: any) => {
 
                         <div style={{display:'flex',flexDirection:'row',backgroundColor:'#3333330d', cursor:'pointer', justifyContent:'space-between', padding:'5px'}}>
                             <div style={{display:'flex',flexDirection:'row'}}>
-                                <ActionButton>{isEdit?<PageviewSharp style={{color:'white',verticalAlign:'middle'}}/>:<Edit style={{color:'white',verticalAlign:'middle'}}/>}
+                                <ActionButton title="Visualiser ou éditer les classements">{isEdit?<PageviewSharp style={{color:'white',verticalAlign:'middle'}}/>:<Edit style={{color:'white',verticalAlign:'middle'}}/>}
                                     <Link style={{color:'white'}} to={"/competition/" + competition?.id + "/results/" + (isEdit?'view':'edit')}>{isEdit?"Passer en visualisation":"Passer en edition"}</Link>
                                 </ActionButton>
                                 {isEdit && (modeDNFActivated ?<ActionButton>
                                         <a style={{color:'white'}} onClick={(e)=>setModeDNFActivated(false)}>Arrêter saisie des abandons</a></ActionButton>:
-                                    <ActionButton style={{fontSize:'12px',padding:'5px'}} variant="extended" color="secondary" size='small' aria-label="add">
+                                    <ActionButton title="Saisir les déclassés, abandons, ..." style={{fontSize:'12px',padding:'5px'}} variant="extended" color="secondary" size='small' aria-label="add">
                                         <Edit style={{verticalAlign:'middle'}}/>
                                         <a style={{color:'white'}} onClick={(e)=>setShowDNFDialog(true)}>Saisir les abandons</a>
                                     </ActionButton>)}
-                                {isEdit &&<ActionButton onClick={()=>{setOpenInfoGen(true)}}><span style={{color:'white'}}><Edit style={{verticalAlign:'middle'}}/>Informations épreuve</span></ActionButton>}
-                                <ActionButton onClick={()=>{exportPDF()}}><span style={{color:'white'}} ><PictureAsPdf style={{verticalAlign:'middle'}}/>Télécharger PDF</span></ActionButton>
-                                <ActionButton onClick={()=>{exportPodiumsPDF()}}><span style={{color:'white'}} ><PictureAsPdf style={{verticalAlign:'middle'}}/>Podiums PDF</span></ActionButton>
-                                <ActionButton onClick={()=>{exportCSV()}}><span style={{color:'white'}} ><CloudDownload style={{verticalAlign:'middle'}}/>Télécharger CSV</span></ActionButton>
+                                {isEdit &&<ActionButton title="Saisir speakers, commissaires, observations ou valider les classements" onClick={()=>{setOpenInfoGen(true)}}><span style={{color:'white'}}><Edit style={{verticalAlign:'middle'}}/>Informations épreuve</span></ActionButton>}
+                                <ActionButton title="Télécharger un fichier PDF des classements" onClick={()=>{exportPDF()}}><span style={{color:'white'}} ><PictureAsPdf style={{verticalAlign:'middle'}}/>Télécharger PDF</span></ActionButton>
+                                <ActionButton title="Télécharger les podiums en PDF" onClick={()=>{exportPodiumsPDF()}}><span style={{color:'white'}} ><PictureAsPdf style={{verticalAlign:'middle'}}/>Podiums PDF</span></ActionButton>
+                                <ActionButton title="Exporter les classements en CSV" onClick={()=>{exportCSV()}}><span style={{color:'white'}} ><CloudDownload style={{verticalAlign:'middle'}}/>Télécharger CSV</span></ActionButton>
                             </div>
                             <div style={{display:'flex',flexDirection:'row',alignItems:'flex-end'}}>
                                 <Fab
