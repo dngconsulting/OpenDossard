@@ -1,6 +1,5 @@
 import * as React from 'react';
 import AssignmentIcon from '@material-ui/icons/Assignment';
-import FormatListNumberedIcon from '@material-ui/icons/FormatListNumbered';
 import PeopleIcon from '@material-ui/icons/People';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 import DashboardIcon from '@material-ui/icons/Dashboard';
@@ -159,7 +158,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
                         );
                     })}
                     <Divider/>
-                    <div style={{marginTop:10,fontSize:'12px',width:'100%',textAlign:'center'}}>V {version}</div>
+                    <div style={{marginTop:10,fontSize:'12px',width:'100%',textAlign:'center'}}>V{version}</div>
                 </Drawer>
         );
     }
