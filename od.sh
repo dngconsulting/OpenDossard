@@ -8,11 +8,11 @@ goprod() {
 }
 
 start() {
-    docker-compose up -d
+    docker-compose up --remove-orphans -d
 }
 
 stop() {
-    docker-compose down
+    docker-compose down --remove-orphans
 }
 
 restart() {
