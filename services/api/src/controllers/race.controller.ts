@@ -57,8 +57,15 @@ export class RacesCtrl {
     @ApiResponse({status: 200, type: RaceRow, isArray: true})
     @Roles(ROLES.MOBILE,ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async getRaces(@Body() filter:CompetitionFilter ): Promise<RaceRow[]> {
+        const parameters = []
+        let endDate="";
         if (filter.startDate==null || filter.startDate==='') filter.startDate='01/01/2018';
-        if (filter.endDate==null || filter.endDate==='') filter.endDate=moment().locale('fr').format('MM/DD/YYYY');
+        parameters.push(filter.startDate)
+        if (filter.endDate) {
+            endDate = " and c.event_date<$2"
+            parameters.push(filter.endDate)
+        }
+
         const query = `select r.id,
                               r.race_code as "raceCode",
                               r.catev,                             
@@ -82,11 +89,8 @@ export class RacesCtrl {
                        from race r
                                 join licence l on r.licence_id = l.id
                                 join competition c on r.competition_id = c.id
-                       where c.event_date>$1 and c.event_date<$2 
-                       order by r.id desc
-                       
-                       `;
-        return await this.entityManager.query(query,[filter.startDate,filter.endDate]);
+                       where c.event_date>$1 ${endDate} order by r.id desc `;
+        return await this.entityManager.query(query,parameters);
     }
 
     @Get('palmares/:id')
