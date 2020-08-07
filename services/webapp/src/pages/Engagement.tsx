@@ -38,7 +38,7 @@ import * as _ from "lodash";
 import moment from 'moment'
 import 'moment/locale/fr'
 import SearchIcon from '@material-ui/icons/Search';
-import {capitalizeFirstLetter, displayDossard, useWindowDimensions} from "../util";
+import {capitalizeFirstLetter, ConfirmDialog, displayDossard, useWindowDimensions} from "../util";
 import {ActionButton} from "../components/ActionButton";
 import FormatListNumberedIcon from "@material-ui/icons/FormatListNumbered";
 import {cadtheme} from "../theme/theme";
@@ -53,34 +53,6 @@ const style = makeStyles(theme => ({
     }
 }));
 
-const ConfirmDialog = (props: any) => {
-    return (
-        <div>
-            <Dialog
-                open={props.open}
-                onClose={props.handleClose}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">{'Désengager un coureur'}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Êtes-vous sûr de vouloir désengager le coureur {props.name} ?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={props.handleClose} variant={'contained'} color="primary">
-                        Annuler
-                    </Button>
-                    <Button onClick={props.handleOk} variant={'contained'} color="primary"
-                            autoFocus={true}>
-                        Confirmer
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </div>
-    );
-};
 
 const filterByRace = (rows: RaceRow[], race: string): RaceRow[] => {
     return rows.filter((coureur) => coureur.raceCode === race);
@@ -340,7 +312,9 @@ const EngagementPage = (props: any) => {
                                 Accéder aux classements</Link></Fab></div>}
                         </div>
                         <Grid container={true}>
-                            <ConfirmDialog name={selectedRow ? selectedRow.name : null} open={open}
+                            <ConfirmDialog question={'Êtes-vous sûr de vouloir désengager le coureur ' + (selectedRow ? selectedRow.name : null)} title={'Désengager un coureur'} open={open}
+                                           confirmMessage={'Oui'}
+                                           cancelMessage={'Non'}
                                            handleClose={closeDialog}
                                            handleOk={() => handleOk(fetchRows)}/>
                             <CreationForm competition={competition}
@@ -364,7 +338,7 @@ const EngagementPage = (props: any) => {
                                    resizableColumns
                                    exportFilename={'Engagements_'+(competition&&competition.name) + '_CAT_' + currentRace}
                         >
-                            {columns.map((column, i) => <Column columnKey={(i++).toString()} {...column}/>)}
+                            {columns.map((column, i) => <Column key={i} columnKey={(i++).toString()} {...column}/>)}
                         </DataTable>
                     </Box>
                 );

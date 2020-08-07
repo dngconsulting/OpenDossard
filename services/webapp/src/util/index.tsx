@@ -1,6 +1,8 @@
 // @ts-ignore
 import * as _ from "lodash";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
+import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@material-ui/core";
+import Button from "@material-ui/core/Button";
 
 function getWindowDimensions() {
     const { innerWidth: width, innerHeight: height } = window;
@@ -50,3 +52,32 @@ export const capitalizeFirstLetter = (s: string) => {
 export const displayDossard = (dossard: string) => {
     return _.padStart(dossard, 3, '0')
 }
+
+export const ConfirmDialog = (props: any) => {
+    return (
+        <div>
+            <Dialog
+                open={props.open}
+                onClose={props.handleClose}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">{props.title}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        {props.question}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={props.handleClose} variant={'contained'} color="secondary">
+                        {props.cancelMessage}
+                    </Button>
+                    <Button onClick={props.handleOk} variant={'contained'} color="primary"
+                            autoFocus={true}>
+                        {props.confirmMessage}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </div>
+    );
+};

@@ -52,6 +52,8 @@ async function bootstrap() {
     await app.listen(9090);
     Logger.debug(`Server launched in mode ${config.app.env} `);
     Logger.debug('JWT Expire ' + config.app.jwtExpires);
+    Logger.debug('Database :' + config.db.database);
+    Logger.debug('Database Host : ' + config.db.host);
 }
 
 bootstrap();

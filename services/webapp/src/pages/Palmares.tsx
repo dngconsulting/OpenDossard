@@ -23,11 +23,6 @@ const PalmaresPage = (props: IStatsPageProps) => {
     const [licence, setLicence] = useState<Licence>(null)
     const [rows, setRows] = useState<Array<RaceRow>>(null);
     const [, setNotification] = useContext(NotificationContext);
-    useEffect(() => {
-
-        }
-        , []);
-
     const onRiderChange = async (licence: Licence) => {
         setLicence(licence)
         const lraceRows: RaceRow[] = await apiRaces.getPalmares({id: licence.id});

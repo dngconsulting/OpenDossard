@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useState} from 'react'
 
 import AsyncSelect from 'react-select/async';
 
@@ -11,7 +11,6 @@ import AsyncSelect from 'react-select/async';
  * @constructor
  */
 export default function AutocompleteInput({selectBox,selection, onChangeSelection, style, placeholder, feedDataAndRenderer}: any) {
-
     const promiseOptions = async (inputValue: any) =>
         new Promise(resolve => {
             resolve(feedDataAndRenderer(inputValue))
@@ -22,7 +21,7 @@ export default function AutocompleteInput({selectBox,selection, onChangeSelectio
             <AsyncSelect
                 ref={selectBox}
                 autoFocus={true}
-                noOptionsMessage={()=>'Veuillez saisir un coureur'}
+                noOptionsMessage={()=>'Aucun coureur ne correspond à votre recherche '}
                 loadingMessage={()=>'Chargement ...'}
                 value={selection}
                 onChange={onChangeSelection}
