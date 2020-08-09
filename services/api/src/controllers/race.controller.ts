@@ -255,10 +255,11 @@ export class RacesCtrl {
     @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
     public async reorderRanking(@Body() racesrows: RaceRow[]): Promise<void> {
         // Lets remove non ranked riders and DSQ/ABD
-        Logger.debug('RaceRows request ' + racesrows);
+        Logger.debug('Reorder ranking');
         const rows = _.remove(racesrows, item => item.id && !item.comment);
         for (let index = 1; index <= rows.length; index++) {
             const item = rows[index - 1];
+            // TODO Warning n+1 Select here
             const raceRowToSave: RaceEntity = await this.entityManager.findOne(RaceEntity, {id: item.id});
             if (raceRowToSave.rankingScratch !== index && !raceRowToSave.comment) {
                 raceRowToSave.rankingScratch = index;
