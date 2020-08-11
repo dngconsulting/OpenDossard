@@ -21,6 +21,12 @@ import { exists, mapValues } from '../runtime';
 export interface RaceNbRider {
     /**
      * 
+     * @type {Date}
+     * @memberof RaceNbRider
+     */
+    date?: Date;
+    /**
+     * 
      * @type {number}
      * @memberof RaceNbRider
      */
@@ -39,12 +45,6 @@ export interface RaceNbRider {
     name?: string;
     /**
      * 
-     * @type {Date}
-     * @memberof RaceNbRider
-     */
-    date: Date;
-    /**
-     * 
      * @type {string}
      * @memberof RaceNbRider
      */
@@ -61,10 +61,10 @@ export function RaceNbRiderFromJSONTyped(json: any, ignoreDiscriminator: boolean
     }
     return {
         
+        'date': !exists(json, 'date') ? undefined : (new Date(json['date'])),
         'count': !exists(json, 'count') ? undefined : json['count'],
         'raceCode': !exists(json, 'raceCode') ? undefined : json['raceCode'],
         'name': !exists(json, 'name') ? undefined : json['name'],
-        'date': (new Date(json['date'])),
         'fede': !exists(json, 'fede') ? undefined : json['fede'],
     };
 }
@@ -78,10 +78,10 @@ export function RaceNbRiderToJSON(value?: RaceNbRider | null): any {
     }
     return {
         
+        'date': value.date === undefined ? undefined : (value.date.toISOString()),
         'count': value.count,
         'raceCode': value.raceCode,
         'name': value.name,
-        'date': (value.date.toISOString()),
         'fede': value.fede,
     };
 }

@@ -7,7 +7,7 @@ import {ControlProps} from 'react-select/src/components/Control';
 import {MenuProps} from 'react-select/src/components/Menu';
 import {ValueType} from 'react-select/src/types';
 import {apiClubs} from '../../util/api';
-import {ClubRow} from '../../sdk/models';
+import {FedeEnum, ClubRow} from '../../sdk/models';
 
 export interface IOptionType {
     label: string;
@@ -82,7 +82,7 @@ const components = {
 };
 
 
-export default function ClubSelect({onSelect, chosenClub} : {onSelect : (value:string)=>void, chosenClub : IOptionType}) {
+export default function ClubSelect({onSelect, chosenClub,fede} : {onSelect : (value:string)=>void, chosenClub : IOptionType,fede:FedeEnum}) {
     // @ts-ignore
     const classes = useStyles();
     const theme = useTheme();
@@ -91,7 +91,7 @@ export default function ClubSelect({onSelect, chosenClub} : {onSelect : (value:s
     const [isLoading,setLoading] = useState<boolean>(false)
 
     const fetchData = async ()  => {
-        const lclubs = await apiClubs.getAllClubs();
+        const lclubs = await apiClubs.getClubsByFede({fede:fede});
         const loptionType = lclubs.map((option: ClubRow) => ({
             value: option.id,
             label:option.longName
@@ -100,7 +100,7 @@ export default function ClubSelect({onSelect, chosenClub} : {onSelect : (value:s
     };
     useEffect(()=>{
         fetchData();
-    },[]);
+    },[fede]);
 
     useEffect(()=>{
         setSelectedClub(chosenClub);
@@ -114,7 +114,7 @@ export default function ClubSelect({onSelect, chosenClub} : {onSelect : (value:s
     };
     const handleCreate = async (inputValue:string) => {
         setLoading(true)
-        const newClub = await apiClubs.createClub({clubEntity:{id:0,shortName:null,dept:null,longName:inputValue}})
+        const newClub = await apiClubs.createClub({clubEntity:{id:0,shortName:null,dept:null,longName:inputValue,fede:fede}})
         const newClubOption = {value:newClub.id,label:newClub.longName}
         setClubs(prevState =>
             prevState.concat([newClubOption])

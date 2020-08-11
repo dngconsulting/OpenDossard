@@ -22,6 +22,10 @@ import {
     CompetitionInfoFromJSON,
     CompetitionInfoFromJSONTyped,
     CompetitionInfoToJSON,
+    FedeEnum,
+    FedeEnumFromJSON,
+    FedeEnumFromJSONTyped,
+    FedeEnumToJSON,
     PricingInfo,
     PricingInfoFromJSON,
     PricingInfoFromJSONTyped,
@@ -36,16 +40,28 @@ import {
 export interface CompetitionEntity {
     /**
      * 
-     * @type {number}
-     * @memberof CompetitionEntity
-     */
-    id: number;
-    /**
-     * 
      * @type {Date}
      * @memberof CompetitionEntity
      */
     eventDate: Date;
+    /**
+     * 
+     * @type {FedeEnum}
+     * @memberof CompetitionEntity
+     */
+    fede: FedeEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof CompetitionEntity
+     */
+    competitionType: CompetitionEntityCompetitionTypeEnum;
+    /**
+     * 
+     * @type {number}
+     * @memberof CompetitionEntity
+     */
+    id: number;
     /**
      * 
      * @type {ClubEntity}
@@ -94,18 +110,6 @@ export interface CompetitionEntity {
      * @memberof CompetitionEntity
      */
     races?: Array<string>;
-    /**
-     * 
-     * @type {string}
-     * @memberof CompetitionEntity
-     */
-    fede: CompetitionEntityFedeEnum;
-    /**
-     * 
-     * @type {string}
-     * @memberof CompetitionEntity
-     */
-    competitionType: CompetitionEntityCompetitionTypeEnum;
     /**
      * 
      * @type {Array<CompetitionInfo>}
@@ -226,8 +230,10 @@ export function CompetitionEntityFromJSONTyped(json: any, ignoreDiscriminator: b
     }
     return {
         
-        'id': json['id'],
         'eventDate': (new Date(json['eventDate'])),
+        'fede': FedeEnumFromJSON(json['fede']),
+        'competitionType': json['competitionType'],
+        'id': json['id'],
         'club': ClubEntityFromJSON(json['club']),
         'name': json['name'],
         'zipCode': json['zipCode'],
@@ -236,8 +242,6 @@ export function CompetitionEntityFromJSONTyped(json: any, ignoreDiscriminator: b
         'observations': !exists(json, 'observations') ? undefined : json['observations'],
         'pricing': !exists(json, 'pricing') ? undefined : ((json['pricing'] as Array<any>).map(PricingInfoFromJSON)),
         'races': !exists(json, 'races') ? undefined : json['races'],
-        'fede': json['fede'],
-        'competitionType': json['competitionType'],
         'competitionInfo': !exists(json, 'competitionInfo') ? undefined : ((json['competitionInfo'] as Array<any>).map(CompetitionInfoFromJSON)),
         'lieuDossard': !exists(json, 'lieuDossard') ? undefined : json['lieuDossard'],
         'lieuDossardGPS': json['lieuDossardGPS'],
@@ -268,8 +272,10 @@ export function CompetitionEntityToJSON(value?: CompetitionEntity | null): any {
     }
     return {
         
-        'id': value.id,
         'eventDate': (value.eventDate.toISOString()),
+        'fede': FedeEnumToJSON(value.fede),
+        'competitionType': value.competitionType,
+        'id': value.id,
         'club': ClubEntityToJSON(value.club),
         'name': value.name,
         'zipCode': value.zipCode,
@@ -278,8 +284,6 @@ export function CompetitionEntityToJSON(value?: CompetitionEntity | null): any {
         'observations': value.observations,
         'pricing': value.pricing === undefined ? undefined : ((value.pricing as Array<any>).map(PricingInfoToJSON)),
         'races': value.races,
-        'fede': value.fede,
-        'competitionType': value.competitionType,
         'competitionInfo': value.competitionInfo === undefined ? undefined : ((value.competitionInfo as Array<any>).map(CompetitionInfoToJSON)),
         'lieuDossard': value.lieuDossard,
         'lieuDossardGPS': value.lieuDossardGPS,
@@ -305,6 +309,16 @@ export function CompetitionEntityToJSON(value?: CompetitionEntity | null): any {
 * @export
 * @enum {string}
 */
+export enum CompetitionEntityCompetitionTypeEnum {
+    CX = 'CX',
+    ROUTE = 'ROUTE',
+    VTT = 'VTT',
+    AUTRE = 'AUTRE'
+}
+/**
+* @export
+* @enum {string}
+*/
 export enum CompetitionEntityCategoriesEnum {
     _1ere = '1ere',
     _2eme = '2eme',
@@ -314,28 +328,6 @@ export enum CompetitionEntityCategoriesEnum {
     Cadets = 'Cadets',
     Minimes = 'Minimes',
     Feminines = 'Feminines'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum CompetitionEntityFedeEnum {
-    FSGT = 'FSGT',
-    UFOLEP = 'UFOLEP',
-    FFC = 'FFC',
-    CYCLOS = 'CYCLOS',
-    FFVELO = 'FFVELO',
-    NL = 'NL'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum CompetitionEntityCompetitionTypeEnum {
-    CX = 'CX',
-    ROUTE = 'ROUTE',
-    VTT = 'VTT',
-    AUTRE = 'AUTRE'
 }
 
 

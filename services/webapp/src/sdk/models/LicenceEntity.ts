@@ -13,12 +13,25 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import {
+    FedeEnum,
+    FedeEnumFromJSON,
+    FedeEnumFromJSONTyped,
+    FedeEnumToJSON,
+} from './';
+
 /**
  * 
  * @export
  * @interface LicenceEntity
  */
 export interface LicenceEntity {
+    /**
+     * 
+     * @type {FedeEnum}
+     * @memberof LicenceEntity
+     */
+    fede: FedeEnum;
     /**
      * 
      * @type {number}
@@ -79,12 +92,6 @@ export interface LicenceEntity {
      * @memberof LicenceEntity
      */
     catev: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof LicenceEntity
-     */
-    fede: LicenceEntityFedeEnum;
 }
 
 export function LicenceEntityFromJSON(json: any): LicenceEntity {
@@ -97,6 +104,7 @@ export function LicenceEntityFromJSONTyped(json: any, ignoreDiscriminator: boole
     }
     return {
         
+        'fede': FedeEnumFromJSON(json['fede']),
         'id': json['id'],
         'licenceNumber': json['licenceNumber'],
         'name': json['name'],
@@ -107,7 +115,6 @@ export function LicenceEntityFromJSONTyped(json: any, ignoreDiscriminator: boole
         'birthYear': json['birthYear'],
         'catea': json['catea'],
         'catev': json['catev'],
-        'fede': json['fede'],
     };
 }
 
@@ -120,6 +127,7 @@ export function LicenceEntityToJSON(value?: LicenceEntity | null): any {
     }
     return {
         
+        'fede': FedeEnumToJSON(value.fede),
         'id': value.id,
         'licenceNumber': value.licenceNumber,
         'name': value.name,
@@ -130,21 +138,7 @@ export function LicenceEntityToJSON(value?: LicenceEntity | null): any {
         'birthYear': value.birthYear,
         'catea': value.catea,
         'catev': value.catev,
-        'fede': value.fede,
     };
-}
-
-/**
-* @export
-* @enum {string}
-*/
-export enum LicenceEntityFedeEnum {
-    FSGT = 'FSGT',
-    UFOLEP = 'UFOLEP',
-    FFC = 'FFC',
-    CYCLOS = 'CYCLOS',
-    FFVELO = 'FFVELO',
-    NL = 'NL'
 }
 
 

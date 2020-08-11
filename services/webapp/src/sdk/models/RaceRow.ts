@@ -21,6 +21,12 @@ import { exists, mapValues } from '../runtime';
 export interface RaceRow {
     /**
      * 
+     * @type {Date}
+     * @memberof RaceRow
+     */
+    competitionDate?: Date;
+    /**
+     * 
      * @type {number}
      * @memberof RaceRow
      */
@@ -147,12 +153,6 @@ export interface RaceRow {
     competitionRaces?: Array<string>;
     /**
      * 
-     * @type {Date}
-     * @memberof RaceRow
-     */
-    competitionDate?: Date;
-    /**
-     * 
      * @type {boolean}
      * @memberof RaceRow
      */
@@ -169,6 +169,7 @@ export function RaceRowFromJSONTyped(json: any, ignoreDiscriminator: boolean): R
     }
     return {
         
+        'competitionDate': !exists(json, 'competitionDate') ? undefined : (new Date(json['competitionDate'])),
         'id': !exists(json, 'id') ? undefined : json['id'],
         'raceCode': !exists(json, 'raceCode') ? undefined : json['raceCode'],
         'birthYear': !exists(json, 'birthYear') ? undefined : json['birthYear'],
@@ -190,7 +191,6 @@ export function RaceRowFromJSONTyped(json: any, ignoreDiscriminator: boolean): R
         'competitionName': !exists(json, 'competitionName') ? undefined : json['competitionName'],
         'competitionType': !exists(json, 'competitionType') ? undefined : json['competitionType'],
         'competitionRaces': !exists(json, 'competitionRaces') ? undefined : json['competitionRaces'],
-        'competitionDate': !exists(json, 'competitionDate') ? undefined : (new Date(json['competitionDate'])),
         'sprintchallenge': !exists(json, 'sprintchallenge') ? undefined : json['sprintchallenge'],
     };
 }
@@ -204,6 +204,7 @@ export function RaceRowToJSON(value?: RaceRow | null): any {
     }
     return {
         
+        'competitionDate': value.competitionDate === undefined ? undefined : (value.competitionDate.toISOString()),
         'id': value.id,
         'raceCode': value.raceCode,
         'birthYear': value.birthYear,
@@ -225,7 +226,6 @@ export function RaceRowToJSON(value?: RaceRow | null): any {
         'competitionName': value.competitionName,
         'competitionType': value.competitionType,
         'competitionRaces': value.competitionRaces,
-        'competitionDate': value.competitionDate === undefined ? undefined : (value.competitionDate.toISOString()),
         'sprintchallenge': value.sprintchallenge,
     };
 }

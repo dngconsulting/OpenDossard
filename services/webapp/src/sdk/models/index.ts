@@ -5,6 +5,7 @@ export * from './CompetitionFilter';
 export * from './CompetitionInfo';
 export * from './CompetitionReorganize';
 export * from './Departement';
+export * from './FedeEnum';
 export * from './Filter';
 export * from './LicenceEntity';
 export * from './LicencesPage';

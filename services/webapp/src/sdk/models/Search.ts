@@ -28,6 +28,12 @@ import {
 export interface Search {
     /**
      * 
+     * @type {string}
+     * @memberof Search
+     */
+    orderDirection?: string;
+    /**
+     * 
      * @type {number}
      * @memberof Search
      */
@@ -38,12 +44,6 @@ export interface Search {
      * @memberof Search
      */
     pageSize?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof Search
-     */
-    orderDirection?: string;
     /**
      * 
      * @type {string}
@@ -74,9 +74,9 @@ export function SearchFromJSONTyped(json: any, ignoreDiscriminator: boolean): Se
     }
     return {
         
+        'orderDirection': !exists(json, 'orderDirection') ? undefined : json['orderDirection'],
         'currentPage': !exists(json, 'currentPage') ? undefined : json['currentPage'],
         'pageSize': !exists(json, 'pageSize') ? undefined : json['pageSize'],
-        'orderDirection': !exists(json, 'orderDirection') ? undefined : json['orderDirection'],
         'orderBy': !exists(json, 'orderBy') ? undefined : json['orderBy'],
         'search': !exists(json, 'search') ? undefined : json['search'],
         'filters': !exists(json, 'filters') ? undefined : ((json['filters'] as Array<any>).map(FilterFromJSON)),
@@ -92,9 +92,9 @@ export function SearchToJSON(value?: Search | null): any {
     }
     return {
         
+        'orderDirection': value.orderDirection,
         'currentPage': value.currentPage,
         'pageSize': value.pageSize,
-        'orderDirection': value.orderDirection,
         'orderBy': value.orderBy,
         'search': value.search,
         'filters': value.filters === undefined ? undefined : ((value.filters as Array<any>).map(FilterToJSON)),

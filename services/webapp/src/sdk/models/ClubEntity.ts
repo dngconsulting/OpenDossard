@@ -13,12 +13,25 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import {
+    FedeEnum,
+    FedeEnumFromJSON,
+    FedeEnumFromJSONTyped,
+    FedeEnumToJSON,
+} from './';
+
 /**
  * 
  * @export
  * @interface ClubEntity
  */
 export interface ClubEntity {
+    /**
+     * 
+     * @type {FedeEnum}
+     * @memberof ClubEntity
+     */
+    fede: FedeEnum;
     /**
      * 
      * @type {number}
@@ -55,6 +68,7 @@ export function ClubEntityFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     }
     return {
         
+        'fede': FedeEnumFromJSON(json['fede']),
         'id': json['id'],
         'shortName': json['shortName'],
         'dept': json['dept'],
@@ -71,6 +85,7 @@ export function ClubEntityToJSON(value?: ClubEntity | null): any {
     }
     return {
         
+        'fede': FedeEnumToJSON(value.fede),
         'id': value.id,
         'shortName': value.shortName,
         'dept': value.dept,

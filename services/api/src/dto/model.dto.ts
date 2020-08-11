@@ -74,6 +74,7 @@ export class LicencesPage {
 export class Search {
     currentPage?: number;
     pageSize?: number;
+    @ApiProperty({ type: 'string'})
     orderDirection?: 'ASC' | 'DESC';
     orderBy?: string;
     search?: string;

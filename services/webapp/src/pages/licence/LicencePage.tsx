@@ -16,7 +16,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Button from '@material-ui/core/Button';
 import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
 import ClubSelect, {IOptionType} from './ClubSelect';
-import {LicenceEntity, LicenceEntity as Licence, LicenceEntityFedeEnum} from '../../sdk';
+import {FedeEnum, LicenceEntity, LicenceEntity as Licence} from '../../sdk';
 import {apiLicences, apiRaces} from '../../util/api';
 import {FEDERATIONS} from '../common/shared-entities';
 import {NotificationContext} from "../../components/CadSnackbar";
@@ -69,7 +69,7 @@ const LicencesPage = (props: ILicencesProps) => {
         firstName: '',
         licenceNumber: '',
         gender:'H',
-        fede: LicenceEntityFedeEnum.NL,
+        fede: null,
         birthYear: '',
         dept: '',
         club: '',
@@ -82,7 +82,6 @@ const LicencesPage = (props: ILicencesProps) => {
         if(!isNaN(parseInt(id))){
             setEditMode(true)
             apiLicences.get({id}).then((res:Licence) =>{
-
                 const toUpdateLicence = {...newLicence,
                     id:res.id,
                     name:res.name,
@@ -116,7 +115,8 @@ const LicencesPage = (props: ILicencesProps) => {
             const newLicenceToUpdage = {...newLicence,
                 [event.target.name as string]: event.target.value,
                 catev:  '',
-                catea:  ''
+                catea:  '',
+                club : '',
             }
             setNewLicence(newLicenceToUpdage)
         }
@@ -215,9 +215,9 @@ const LicencesPage = (props: ILicencesProps) => {
                     />
                 </Grid>
                 <Grid item={true} xs={6}>
-                    <FormControl className={classes.formControl}>
                         <InputLabel htmlFor="fede">Fédération</InputLabel>
                         <Select
+                            style={{width:150}}
                             value={newLicence.fede}
                             onChange={e=> {
                                 handleFEDEChange(e);
@@ -231,7 +231,7 @@ const LicencesPage = (props: ILicencesProps) => {
                             {Object.keys(FEDERATIONS).map((key, index) => <MenuItem key={index}
                                                                                     value={FEDERATIONS[key].name.value}>{FEDERATIONS[key].name.label}</MenuItem>)}
                         </Select>
-                    </FormControl>
+
                 </Grid>
                 <Grid item={true} xs={6}>
                     <FormControl className={classes.formControl} error={validation.name}>
@@ -321,13 +321,14 @@ const LicencesPage = (props: ILicencesProps) => {
                         }}
                     />
                 </Grid>
+
                 <Grid item={true} xs={12}>
                     <Grid item={true} xs={10}>
-                        <ClubSelect onSelect={onSelectClub} chosenClub={{value:null,label:newLicence.club} as IOptionType}/>
+                        {newLicence.fede && newLicence.fede !== FedeEnum.NL && <ClubSelect onSelect={onSelectClub} fede={newLicence.fede} chosenClub={{value:null,label:newLicence.club} as IOptionType}/>}
                     </Grid>
                 </Grid>
                 <Grid item={true} xs={6}>
-                    <FormControl className={classes.formControl} error={validation.catea}>
+                    {newLicence.fede && <FormControl className={classes.formControl} error={validation.catea}>
                         <InputLabel htmlFor="catea">Catégorie Age</InputLabel>
                         <Select
                             value={newLicence.catea.toUpperCase()}
@@ -343,9 +344,10 @@ const LicencesPage = (props: ILicencesProps) => {
                             })
                         }
                         </Select>
-                    </FormControl>
+                    </FormControl> }
                 </Grid>
                 <Grid item={true} xs={6}>
+                    {newLicence.fede &&
                     <FormControl className={classes.formControl} error={validation.catev}>
                         <InputLabel htmlFor="catev">Catégorie Valeur</InputLabel>
                         <Select
@@ -363,7 +365,7 @@ const LicencesPage = (props: ILicencesProps) => {
                             })
                         }
                         </Select>
-                    </FormControl>
+                    </FormControl> }
                 </Grid>
                 <Grid item={true} xs={6}>
                     <Button variant="contained" color="secondary" className={classes.button}

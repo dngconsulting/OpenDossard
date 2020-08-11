@@ -1,5 +1,5 @@
 import {EntityManager, Repository} from 'typeorm';
-import {Body, Controller, Get, Post, UseGuards} from '@nestjs/common';
+import {Body, Controller, Get, Param, Post, UseGuards} from '@nestjs/common';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
 import {ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
 import {ClubEntity} from '../entity/club.entity';
@@ -31,7 +31,16 @@ export class ClubController {
     public async getAllClubs(): Promise<ClubRow[]> {
         return this.repository.find();
     }
-
+    @ApiOperation({
+        operationId: 'getClubsByFede',
+        summary: 'Rechercher tous les clubs de la federation en paramètre',
+        description: 'Renvoie la liste des clubs de la federation en parametre',
+    })
+    @ApiResponse({status: 200, type: ClubRow, isArray: true, description: 'Liste des clubs'})
+    @Get("byfede/:fede")
+    public async getClubByFede(@Param('fede') fede:string): Promise<ClubRow[]> {
+        return this.repository.find({where:{fede:fede}});
+    }
     @Post()
     @ApiOperation({
         operationId: 'createClub',

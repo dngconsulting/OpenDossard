@@ -27,6 +27,10 @@ export interface CreateClubRequest {
     clubEntity: ClubEntity;
 }
 
+export interface GetClubsByFedeRequest {
+    fede: string;
+}
+
 /**
  * no description
  */
@@ -106,6 +110,46 @@ export class ClubAPIApi extends runtime.BaseAPI {
      */
     async getAllClubs(): Promise<Array<ClubRow>> {
         const response = await this.getAllClubsRaw();
+        return await response.value();
+    }
+
+    /**
+     * Renvoie la liste des clubs de la federation en parametre
+     * Rechercher tous les clubs de la federation en paramètre
+     */
+    async getClubsByFedeRaw(requestParameters: GetClubsByFedeRequest): Promise<runtime.ApiResponse<Array<ClubRow>>> {
+        if (requestParameters.fede === null || requestParameters.fede === undefined) {
+            throw new runtime.RequiredError('fede','Required parameter requestParameters.fede was null or undefined when calling getClubsByFede.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/clubs/byfede/{fede}`.replace(`{${"fede"}}`, encodeURIComponent(String(requestParameters.fede))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ClubRowFromJSON));
+    }
+
+    /**
+     * Renvoie la liste des clubs de la federation en parametre
+     * Rechercher tous les clubs de la federation en paramètre
+     */
+    async getClubsByFede(requestParameters: GetClubsByFedeRequest): Promise<Array<ClubRow>> {
+        const response = await this.getClubsByFedeRaw(requestParameters);
         return await response.value();
     }
 

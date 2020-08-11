@@ -44,6 +44,6 @@ export class LicenceEntity {
         nullable: true,
         default: FederationEntity.NL,
     })
-    @ApiProperty({ enum: FederationEntity})
+    @ApiProperty({ enum: FederationEntity,enumName:'FedeEnum'})
     fede: FederationEntity;
 }
