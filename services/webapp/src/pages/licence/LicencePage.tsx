@@ -17,11 +17,12 @@ import Button from '@material-ui/core/Button';
 import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
 import ClubSelect, {IOptionType} from './ClubSelect';
 import {LicenceEntity, LicenceEntity as Licence, LicenceEntityFedeEnum} from '../../sdk';
-import {apiLicences} from '../../util/api';
+import {apiLicences, apiRaces} from '../../util/api';
 import {FEDERATIONS} from '../common/shared-entities';
 import {NotificationContext} from "../../components/CadSnackbar";
-import {store} from "../../store/Store";
-import {setVar} from "../../actions/App.Actions";
+
+import {ConfirmDialog} from "../../util";
+import {LoaderIndicator} from "../../components/LoaderIndicator";
 
 interface ILicencesProps {
     items: any[];
@@ -58,6 +59,10 @@ const LicencesPage = (props: ILicencesProps) => {
     const [editMode,setEditMode] = useState<boolean>(false);
     const [deptError,setDeptError] = useState<boolean>(false);
     const [birthError,setBirthError] = useState<boolean>(false);
+    const [open, openDialog] = React.useState(false);
+    const [updatedLicence,setUpdatedLicence] = useState(null)
+    const [loading,showLoading] = React.useState(false);
+
     const [newLicence, setNewLicence] = React.useState<Licence>({
         id:null,
         name:'',
@@ -138,7 +143,7 @@ const LicencesPage = (props: ILicencesProps) => {
         setNewLicence({...newLicence, club: value});
     };
 
-    const createLicence = async (id: number) => {
+    const createOrUpdateLicence = async (id: number) => {
         if ((newLicence.catea==='') || (newLicence.catev==='') || (newLicence.name==='' || newLicence.firstName==='' || newLicence.dept==='')) {
             setValidation({
                 name: !newLicence.name,
@@ -153,30 +158,15 @@ const LicencesPage = (props: ILicencesProps) => {
                 open: true,
                 type: 'error'
             });
-            return;
+            return null;
         }
-        store.dispatch(setVar({showLoading: true}))
+        showLoading(true)
         let returnedLicence : LicenceEntity = newLicence ;
         try {
             if (id) {
                 await apiLicences.update({licenceEntity: newLicence})
             } else {
                 returnedLicence = await apiLicences.create({licenceEntity: newLicence});
-            }
-            if (props.history.location.hash && props.history.location.hash.length>0) {
-                props.history.goBack();
-                setNotification({
-                    message: `Important : Vous venez de modifier les données du coureur ${newLicence.firstName} ${newLicence.name}. Vous devez le désengager `+
-                     `et le réengager afin que les données soient actualisées sur l'épreuve`,
-                    type: 'warning',
-                    open: true
-                });
-            }
-            else {
-                props.history.push({
-                    pathname: '/licences/',
-                    search: 'id=' + returnedLicence.id
-                })
             }
         }
         catch (err) {
@@ -187,14 +177,31 @@ const LicencesPage = (props: ILicencesProps) => {
             });
         }
         finally {
-            store.dispatch(setVar({showLoading: false}))
+           showLoading(false)
         }
+        return returnedLicence
     };
-
+    const competitionId = (props.history.location.hash && props.history.location.hash.length>0)?props.history.location.hash.toString().split('_')[1]:null
+    const updateEngagement = async (competitionId:number,licenceId:number) => {
+        await apiRaces.refreshEngagement({competitionId:competitionId,licenceId:licenceId})
+    }
     // @ts-ignore
     const classes = useStyles();
     return (
         <Container maxWidth="sm">
+            <LoaderIndicator visible={loading}/>
+            <ConfirmDialog title={'Attention '}
+                           question={`Vous venez de modifier la licence du coureur ${newLicence.firstName} ${newLicence.name}, souhaitez-vous actualiser son engagement avec ces dernières informations ?`}
+                           open={open}
+                           confirmMessage={'Oui'}
+                           cancelMessage={'Non'}
+                           handleClose={()=>{openDialog(false);props.history.goBack();}}
+                           handleOk={async () => {
+                               openDialog(false)
+                               await updateEngagement(parseInt(competitionId),parseInt(updatedLicence.id));
+                               props.history.goBack();
+                           }
+                           }/>
             <Grid container={true} spacing={3}>
                 <Grid item={true} xs={12}>
                     <h1>{editMode?'Modifier':'Ajouter'} une nouvelle Licence</h1>
@@ -367,8 +374,20 @@ const LicencesPage = (props: ILicencesProps) => {
                     </Button>
                 </Grid>
                 <Grid item={true} xs={6}>
-                    <Button variant="contained" color="primary" className={classes.button} onClick={()=>
-                        createLicence(newLicence.id)}>
+                    <Button variant="contained" color="primary" className={classes.button} onClick={async ()=> {
+                        const licenceUpdated = await createOrUpdateLicence(newLicence.id)
+                        if (licenceUpdated===null) return;
+                        if (props.history.location.hash && props.history.location.hash.length>0) {
+                            setUpdatedLicence(licenceUpdated)
+                            openDialog(true)
+                        }
+                        else {
+                            props.history.push({
+                                pathname: '/licences/',
+                                search: 'id=' + licenceUpdated.id
+                            })
+                        }
+                    }}>
                         Sauvegarder
                     </Button>
                 </Grid>

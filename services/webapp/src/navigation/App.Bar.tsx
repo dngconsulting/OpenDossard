@@ -24,6 +24,7 @@ import AppRoutes from './AppRoutes';
 import {CadSnackBar} from '../components/CadSnackbar';
 import logo from '../assets/logos/logoblanc.svg';
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
+import {LoaderIndicator} from "../components/LoaderIndicator";
 
 const classNames = require('classnames');
 
@@ -185,11 +186,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
     private renderLoader() {
         if (this.props.showLoading) {
             return (
-                <div style={{position:'fixed',display:'block',width:'100%',height:'100%',top:0,left:0,right:0,bottom:0,backgroundColor:'rgba(0,0,0,0.5)',zIndex:10000,cursor:'pointer'}}>
-                    <div style={{position:'absolute',top:'40%',left:'40%'}}>
-                        <CircularProgress color="primary" />
-                    </div>
-                </div>
+                <LoaderIndicator/>
             );
         }
        return null;

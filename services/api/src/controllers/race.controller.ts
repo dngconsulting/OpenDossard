@@ -232,6 +232,28 @@ export class RacesCtrl {
         await this.entityManager.save(newRace);
     }
 
+    @Post('/refreshEngagement/:licenceId/:competitionId')
+    @ApiOperation({
+        operationId: 'refreshEngagement',
+        summary: 'Met à jour l\'engagement du coureur licenceId sur la competition competitionId',
+    })
+    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
+    public async refreshEngagement(@Param('competitionId') competitionId: number,@Param('licenceId') licenceId: number)
+        : Promise<void> {
+        Logger.debug('[RefreshEngagement] licenceId =' + licenceId + ' competitionId=' + competitionId)
+        const licence = await this.entityManager.findOne<LicenceEntity>(LicenceEntity, {
+            id: licenceId,
+        });
+        const racerowToUpdate = await this.entityManager.findOne<RaceEntity>(RaceEntity, {
+            competition: {id:competitionId},
+            licence: {id:licenceId}
+        });
+        racerowToUpdate.club = licence.club;
+        racerowToUpdate.catea = licence.catea;
+        racerowToUpdate.catev = licence.catev;
+        await this.entityManager.save(racerowToUpdate);
+    }
+
     @Put('/flagChallenge')
     @ApiOperation({
         summary: 'Classe le vainqueur du challenge',

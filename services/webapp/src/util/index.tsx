@@ -53,6 +53,7 @@ export const displayDossard = (dossard: string) => {
     return _.padStart(dossard, 3, '0')
 }
 
+// TODO remplacer un jour par https://github.com/jonatanklosko/material-ui-confirm compatible hooks
 export const ConfirmDialog = (props: any) => {
     return (
         <div>

@@ -158,8 +158,8 @@ export const CreationForm = (
     };
 
     const classes = formStyles({});
+    let catecolor = race && form && !race.includes(form.catev) ? 'red':'black'
 
-    const catecolor = (form.licence && form.catev !== form.licence.catev) ? 'red' : '#000';
     return <Grid container={true} alignItems="flex-end" className={classes.form}>
         {showSablier && <div style={{position:'fixed',display:'block',width:'100%',height:'100%',top:0,left:0,right:0,bottom:0,backgroundColor:'rgba(0,0,0,0.5)',zIndex:10000,cursor:'pointer'}}>
           <div style={{position:'absolute',top:'40%',left:'40%'}}>
@@ -204,7 +204,7 @@ export const CreationForm = (
         <Grid item={true}>
             <FormControl>
                 <InputLabel htmlFor="age-native-simple">Catégorie</InputLabel>
-                <Select  value={form.catev as string} style={{color: 'black', minWidth: '100px'}}
+                <Select  value={form.catev as string} style={{color: catecolor, minWidth: '100px'}}
                         inputProps={{
                             name: 'Catégorie',
                             id: 'age-native-simple'

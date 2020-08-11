@@ -53,6 +53,11 @@ export interface GetRacesRequest {
     competitionFilter: CompetitionFilter;
 }
 
+export interface RefreshEngagementRequest {
+    competitionId: number;
+    licenceId: number;
+}
+
 export interface RemoveRankingRequest {
     raceRow: RaceRow;
 }
@@ -336,6 +341,47 @@ export class RaceAPIApi extends runtime.BaseAPI {
     async getRaces(requestParameters: GetRacesRequest): Promise<Array<RaceRow>> {
         const response = await this.getRacesRaw(requestParameters);
         return await response.value();
+    }
+
+    /**
+     * Met à jour l\'engagement du coureur licenceId sur la competition competitionId
+     */
+    async refreshEngagementRaw(requestParameters: RefreshEngagementRequest): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.competitionId === null || requestParameters.competitionId === undefined) {
+            throw new runtime.RequiredError('competitionId','Required parameter requestParameters.competitionId was null or undefined when calling refreshEngagement.');
+        }
+
+        if (requestParameters.licenceId === null || requestParameters.licenceId === undefined) {
+            throw new runtime.RequiredError('licenceId','Required parameter requestParameters.licenceId was null or undefined when calling refreshEngagement.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/races/refreshEngagement/{licenceId}/{competitionId}`.replace(`{${"competitionId"}}`, encodeURIComponent(String(requestParameters.competitionId))).replace(`{${"licenceId"}}`, encodeURIComponent(String(requestParameters.licenceId))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Met à jour l\'engagement du coureur licenceId sur la competition competitionId
+     */
+    async refreshEngagement(requestParameters: RefreshEngagementRequest): Promise<void> {
+        await this.refreshEngagementRaw(requestParameters);
     }
 
     /**

@@ -157,7 +157,7 @@ const EngagementPage = (props: any) => {
                     }]:[]),
                     {field: 'riderNumber', header: 'Dossard', ...FILTERABLE, ...SHORT, body:(row:RaceRow)=>displayDossard(row.riderNumber.toString()),sortable:true},
                     {field: 'name', header: 'Coureur', ...FILTERABLE, bodyClassName: 'nopadding',body: (rowdata: RaceRow, column: any) =>
-                        (rowdata.comment==null && rowdata.rankingScratch == null)?<Link to={"/licence/"+rowdata.licenceId+"#engagement"}>{rowdata.name}</Link>:rowdata.name}
+                        (rowdata.comment==null && rowdata.rankingScratch == null)?<Link to={"/licence/"+rowdata.licenceId+"#engagement_"+rowdata.competitionId}>{rowdata.name}</Link>:rowdata.name}
                         ,
                     {field: 'club', header: 'Club', ...FILTERABLE, bodyClassName: 'nopadding',sortable:true},
                     {field: 'gender', header: 'H/F', ...FILTERABLE, ...SHORT},

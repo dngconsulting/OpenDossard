@@ -18,6 +18,7 @@ export class RlogInterceptor implements NestInterceptor {
         Logger.log('--------------------------------------------------------');
         Logger.log(context.switchToHttp().getRequest().method + ' ' +
             context.switchToHttp().getRequest().url);
+        Logger.log('User  ' + JSON.stringify(context.switchToHttp().getRequest().user));
         Logger.log('Request Body  ' + JSON.stringify(context.switchToHttp().getRequest().body));
         Logger.log('Request Headers ' + JSON.stringify(context.switchToHttp().getRequest().headers));
         Logger.log('Response ' + JSON.stringify(context.switchToHttp().getResponse().statusCode));
