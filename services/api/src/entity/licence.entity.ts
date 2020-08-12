@@ -46,4 +46,7 @@ export class LicenceEntity {
     })
     @ApiProperty({ enum: FederationEntity,enumName:'FedeEnum'})
     fede: FederationEntity;
+
+    @Column({nullable: true})
+    saison: string;
 }

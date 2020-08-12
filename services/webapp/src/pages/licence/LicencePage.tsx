@@ -75,6 +75,7 @@ const LicencesPage = (props: ILicencesProps) => {
         club: '',
         catea: '',
         catev: '',
+        saison: '',
     });
 
     useEffect(()=>{
@@ -87,6 +88,7 @@ const LicencesPage = (props: ILicencesProps) => {
                     name:res.name,
                     firstName:res.firstName,
                     licenceNumber: res.licenceNumber,
+                    saison:res.saison,
                     gender: res.gender,
                     birthYear: res.birthYear?res.birthYear:'',
                     fede: res.fede,
@@ -204,7 +206,7 @@ const LicencesPage = (props: ILicencesProps) => {
                            }/>
             <Grid container={true} spacing={3}>
                 <Grid item={true} xs={12}>
-                    <h1>{editMode?'Modifier':'Ajouter'} une nouvelle Licence</h1>
+                    <h1>{editMode?'Modifier':'Ajouter'} une licence</h1>
                 </Grid>
                 <Grid item={true} xs={6}>
                     <TextField
@@ -261,7 +263,7 @@ const LicencesPage = (props: ILicencesProps) => {
                         <FormHelperText id="component-error-text" hidden={!validation.firstName}>Veuillez compléter le prénom</FormHelperText>
                     </FormControl>
                 </Grid>
-                <Grid item={true} xs={12} style={{display: 'flex'}}>
+                <Grid item={true} xs={6} style={{display: 'flex'}}>
                     <div><span style={{position: 'relative', top: '11px'}}>Genre</span></div>
                     <RadioGroup aria-label="position" name="position" value={newLicence.gender}
                                 onChange={handleRadioChange} row={true}>
@@ -278,6 +280,18 @@ const LicencesPage = (props: ILicencesProps) => {
                             labelPlacement="start"
                         />
                     </RadioGroup>
+                </Grid>
+                <Grid item={true} xs={6}>
+                    <TextField
+                        style={{width:100}}
+                        id="saison"
+                        label="Saison"
+                        margin="normal"
+                        value={newLicence.saison}
+                        onChange={e => {
+                            setNewLicence({...newLicence, saison: e.target.value})
+                        }}
+                    />
                 </Grid>
                 <Grid item={true} xs={6}>
                     <TextField

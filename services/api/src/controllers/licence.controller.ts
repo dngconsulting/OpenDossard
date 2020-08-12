@@ -159,6 +159,7 @@ export class LicenceController {
         toUpdate.dept = licence.dept;
         toUpdate.catea = licence.catea;
         toUpdate.catev = licence.catev;
+        toUpdate.saison = licence.saison;
         await this.entityManager.save(toUpdate);
     }
 

@@ -165,6 +165,7 @@ const LicencesPage = (props: ILicencesProps) => {
                     {title: 'Caté.A', field: 'catea',headerStyle:{width:10,minWidth:10,maxWidth: 10}},
                     {title: 'Caté.V', field: 'catev',headerStyle:{width:10,minWidth:10,maxWidth: 10}},
                     {title: 'Fédé', field: 'fede',headerStyle:{width:20,minWidth:20,maxWidth: 20},sorting:false},
+                    {title: 'Saison', field: 'saison',headerStyle:{width:20,minWidth:20,maxWidth: 20},sorting:false},
                 ]}
 
                 data={fetchLicences}

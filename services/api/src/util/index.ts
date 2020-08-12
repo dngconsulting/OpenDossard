@@ -7,5 +7,6 @@ export const mappingLicenceFields = {
     catev: 'catev',
     fede:'fede::text',
     birthYear:'birth_year',
-    id:'id'
+    id:'id',
+    saison:'saison'
 }
