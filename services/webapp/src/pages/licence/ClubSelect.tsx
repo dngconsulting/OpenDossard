@@ -8,6 +8,7 @@ import {MenuProps} from 'react-select/src/components/Menu';
 import {ValueType} from 'react-select/src/types';
 import {apiClubs} from '../../util/api';
 import {FedeEnum, ClubRow} from '../../sdk/models';
+import {Button} from "@material-ui/core";
 
 export interface IOptionType {
     label: string;
@@ -137,7 +138,7 @@ export default function ClubSelect({onSelect, chosenClub,fede} : {onSelect : (va
                 <CreatableSelect
                     isClearable={true}
                     classes={classes}
-                    formatCreateLabel={(value:string)=>'Créer le club "' + value + '" ?'}
+                    formatCreateLabel={(value:string)=><div style={{flex:1,flexDirection:'row',padding:5,backgroundColor:'transparent'}}><div style={{alignSelf:'flex-start',paddingBottom:10}}>Le club "<i>{value}</i>" n'existe pas</div><Button style={{alignSelf:'flex-end'}} variant="contained" color="primary">Créer ce club</Button></div>}
                     isDisabled={isLoading}
                     isLoading={isLoading}
                     onCreateOption={handleCreate}
