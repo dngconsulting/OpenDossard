@@ -1,21 +1,11 @@
 import React, {useContext, useRef, useState} from 'react';
 
-import {
-    CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle, Fab,
-    IconButton,
-    makeStyles
-} from '@material-ui/core';
+import { CircularProgress, Fab, IconButton, makeStyles } from '@material-ui/core';
 import 'primereact/resources/themes/nova-light/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import {apiRaces} from '../util/api';
 import Grid from '@material-ui/core/Grid';
-import Button from '@material-ui/core/Button';
 import {CompetitionLayout} from './CompetitionLayout';
 import {NotificationContext} from '../components/CadSnackbar';
 import {DataTable} from 'primereact/datatable';
@@ -42,6 +32,8 @@ import {capitalizeFirstLetter, ConfirmDialog, displayDossard, useWindowDimension
 import {ActionButton} from "../components/ActionButton";
 import FormatListNumberedIcon from "@material-ui/icons/FormatListNumbered";
 import {cadtheme} from "../theme/theme";
+import ExpandMore from "@material-ui/icons/ExpandMore";
+import {DropdownMenu, DropdownMenuItem} from "../components/DropdownMenu";
 
 moment.locale('fr')
 const style = makeStyles(theme => ({
@@ -74,6 +66,7 @@ const EngagementPage = (props: any) => {
     const [open, openDialog] = React.useState(false);
     const [showSablier,setShowSablier] = React.useState(false);
     const [showFilters,setShowFilters] = React.useState(false);
+    const [downloadMenuAnchorEl, setDownloadMenuAnchorEl] = useState(null)
 
     const FILTERABLE = {filter: showFilters, filterMatchMode: 'contains'};
     const closeDialog = () => {
@@ -297,12 +290,36 @@ const EngagementPage = (props: any) => {
                         </div>}
                         <div style={{display:'flex',flexDirection:'row',backgroundColor:'#3333330d', justifyContent:'space-between', padding:'5px'}}>
                             <div style={{display:'flex',flexDirection:'row'}}>
-                                <ActionButton title={'Télécharger un fichier PDF'}  onClick={()=>{exportPDF()}}><span style={{color:'white'}} ><PictureAsPdf style={{verticalAlign:'middle'}}/>Télécharger PDF</span></ActionButton>
-                                <ActionButton title={'Télécharger un fichier CSV'} onClick={()=>{exportCSV()}}><span style={{color:'white'}} ><CloudDownload style={{verticalAlign:'middle'}}/>Télécharger CSV</span></ActionButton>
                                 <Reorganizer tooltip={canReorg===true?'Fusionner ou scinder des départs':canReorg.toString()} disabled={canReorg!=true} competition={competition} rows={rows} onSuccess={() => {
                                     fetchRows();
                                     fetchCompetition();
                                 }}/>
+                                <ActionButton
+                                    title="Télécharger"
+                                    aria-controls={'download-menu'}
+                                    aria-haspopup="true"
+                                    onClick={(evt:React.MouseEvent)=> setDownloadMenuAnchorEl(evt.currentTarget)}
+                                >
+                                    <span style={{color:'white'}}> Télécharger <ExpandMore style={{verticalAlign:'middle'}}/></span>
+                                </ActionButton>
+                                <DropdownMenu
+                                    id="download-menu"
+                                    anchorEl={downloadMenuAnchorEl}
+                                    open={Boolean(downloadMenuAnchorEl)}
+                                    onClose={() => setDownloadMenuAnchorEl(null)}
+                                    anchorOrigin={{
+                                        horizontal: 'left',
+                                        vertical: 'bottom'
+                                    }}
+                                >
+                                    <DropdownMenuItem title={'Télécharger les engagement en PDF'} onClick={() => {exportPDF(); setDownloadMenuAnchorEl(null)}}>
+                                        <PictureAsPdf style={{verticalAlign:'middle'}}/> Engagements PDF
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem title={'Télécharger les engagement en CSV'} onClick={() => {exportCSV(); setDownloadMenuAnchorEl(null)}}>
+                                        <CloudDownload style={{verticalAlign:'middle'}}/> Engagements CSV
+                                    </DropdownMenuItem>
+
+                                </DropdownMenu>
                             </div>
                             {existResults && <div style={{display:'flex',flexDirection:'row'}}>
                                 <Fab

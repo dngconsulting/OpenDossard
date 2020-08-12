@@ -1,4 +1,4 @@
-import React, {Fragment, useContext, useEffect, useRef, useState} from 'react';
+import React, {Fragment, useContext, useRef, useState} from 'react';
 import {DataTable} from 'primereact/datatable';
 import {InputText} from 'primereact/inputtext';
 import {CompetitionLayout} from '../CompetitionLayout';
@@ -22,8 +22,10 @@ import {capitalizeFirstLetter, displayDossard, useWindowDimensions} from "../../
 import moment from "moment";
 import {Link} from "react-router-dom";
 import {ActionButton} from "../../components/ActionButton";
+import ExpandMore from "@material-ui/icons/ExpandMore";
 import AssignmentIcon from "@material-ui/icons/Assignment";
 import {cadtheme} from "../../theme/theme";
+import {DropdownMenu, DropdownMenuItem} from '../../components/DropdownMenu'
 
 const previousRowEmpty = (index: number, transformedRows: any) => {
     return ((index > 0) && (transformedRows[index - 1].riderNumber === undefined));
@@ -45,6 +47,7 @@ const EditResultsPage = (gprops: any) => {
         rowindex: 0
     });
     const [loading, setLoading] = useState(false);
+    const [downloadMenuAnchorEl, setDownloadMenuAnchorEl] = useState(null)
 
     const transformRows = (rows: RaceRow[]) => {
         const sortedByRankingWithoutABD = _.remove(_.orderBy(rows, ['rankingScratch'], ['asc']), (item: RaceRow) => item.comment == null);
@@ -387,6 +390,7 @@ const EditResultsPage = (gprops: any) => {
 
                     doc.save(filename);
                 }
+
                 const exportPDF = async () => {
                     let rowstoDisplay : any[][] = [];
                     const filename = 'Classement_' + competition.name.replace(/\s/g, '') + '_cate_' + currentRace + '.pdf';
@@ -530,9 +534,38 @@ const EditResultsPage = (gprops: any) => {
                                         <a style={{color:'white'}} onClick={(e)=>setShowDNFDialog(true)}>Saisir les abandons</a>
                                     </ActionButton>)}
                                 {isEdit &&<ActionButton title="Saisir speakers, commissaires, observations ou valider les classements" onClick={()=>{setOpenInfoGen(true)}}><span style={{color:'white'}}><Edit style={{verticalAlign:'middle'}}/>Informations épreuve</span></ActionButton>}
-                                <ActionButton title="Télécharger un fichier PDF des classements" onClick={()=>{exportPDF()}}><span style={{color:'white'}} ><PictureAsPdf style={{verticalAlign:'middle'}}/>Télécharger PDF</span></ActionButton>
-                                <ActionButton title="Télécharger les podiums en PDF" onClick={()=>{exportPodiumsPDF()}}><span style={{color:'white'}} ><PictureAsPdf style={{verticalAlign:'middle'}}/>Podiums PDF</span></ActionButton>
-                                <ActionButton title="Exporter les classements en CSV" onClick={()=>{exportCSV()}}><span style={{color:'white'}} ><CloudDownload style={{verticalAlign:'middle'}}/>Télécharger CSV</span></ActionButton>
+                                <ActionButton
+                                    title="Télécharger"
+                                    aria-controls={'download-menu'}
+                                    aria-haspopup="true"
+                                    onClick={(evt:React.MouseEvent)=> setDownloadMenuAnchorEl(evt.currentTarget)}
+                                >
+                                    <span style={{color:'white'}}> Télécharger <ExpandMore style={{verticalAlign:'middle'}}/></span>
+                                </ActionButton>
+                                <DropdownMenu
+                                    id="download-menu"
+                                    anchorEl={downloadMenuAnchorEl}
+                                    open={Boolean(downloadMenuAnchorEl)}
+                                    onClose={() => setDownloadMenuAnchorEl(null)}
+                                    anchorOrigin={{
+                                        horizontal: 'left',
+                                        vertical: 'bottom'
+                                    }}
+                                >
+                                    <DropdownMenuItem title="Télécharger les classements en PDF" onClick={() => {exportPDF(); setDownloadMenuAnchorEl(null)}}>
+                                        <PictureAsPdf style={{verticalAlign:'middle'}}/> Classements PDF
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem title="Télécharger les podiums en PDF" onClick={()=>{exportPodiumsPDF(); setDownloadMenuAnchorEl(null)}}>
+                                        <PictureAsPdf style={{verticalAlign:'middle'}}/> Podiums PDF
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem title="Exporter les classements en CSV" onClick={()=>{exportCSV(); setDownloadMenuAnchorEl(null)}}>
+                                        <CloudDownload style={{verticalAlign:'middle'}}/> Classements CSV
+                                    </DropdownMenuItem>
+                                </DropdownMenu>
+
+
+
+
                             </div>
                             <div style={{display:'flex',flexDirection:'row',alignItems:'flex-end'}}>
                                 <Fab
