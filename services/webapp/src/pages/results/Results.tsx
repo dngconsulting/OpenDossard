@@ -272,6 +272,7 @@ const EditResultsPage = (gprops: any) => {
                             <option value="ABD">ABD</option>
                             <option value="NC">NC</option>
                             <option value="NP">NP</option>
+                            <option value="CHT">CHT</option>
                         </select>
                     );
                 };
