@@ -1,8 +1,8 @@
-import {LicenceEntity as Licence} from '../../sdk';
+import {FedeEnum, LicenceEntity as Licence} from '../../sdk';
 import {apiLicences} from '../../util/api';
 import * as React from 'react';
 
-export const filterLicences = async (inputValue: string) => {
+export const filterLicences = async (inputValue: string,preferredFede?:FedeEnum) => {
     const licences: Licence[] = await apiLicences.getLicencesLike({param:inputValue.toUpperCase()});
     const strings = licences.map((i: Licence) => {
         const textToDisplay = i.name + ' ' + i.firstName + ' ' +  (i.licenceNumber?i.licenceNumber:'')
@@ -12,7 +12,7 @@ export const filterLicences = async (inputValue: string) => {
                 <div style={{lineHeight: "normal", position:"relative", width: '450px'}}>
                     <div dangerouslySetInnerHTML={{__html: textToDisplay.toUpperCase().replace(inputValue.toUpperCase(),"<b>"+inputValue.toUpperCase()+"</b>")}} style={{fontSize: "medium"}}></div>
                     <span style={{fontSize: "small"}}>{i.club}</span>
-                    <div style={{position: "absolute", right:0, bottom:0}}>{i.catev} {i.catea} {i.fede}</div>
+                    <div style={{position: "absolute", right:0, bottom:0,...(preferredFede && i.fede===preferredFede?{fontWeight:"bolder"}:{fontWeight:"normal"})}}>{i.catev} {i.catea} {i.fede}</div>
                 </div>
         };
     });
