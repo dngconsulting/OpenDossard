@@ -9,6 +9,7 @@
 }
 .vertical-timeline-element-content {
     height: 120px;
+    cursor: pointer;
 }
 .vertical-timeline-element-icon {
     left: -20px;
