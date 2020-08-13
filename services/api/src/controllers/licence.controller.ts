@@ -45,6 +45,7 @@ export class LicenceController {
                               l.first_name as "firstName",
                               l.birth_year as "birthYear",
                               l.catev,
+                              l.saison,
                               l.catea from licence l where REPLACE(CONCAT(UPPER(l.name),UPPER(unaccent(l.first_name)),UPPER(CAST(l.fede AS VARCHAR)),UPPER(l.licence_number)),' ','') like $1 
                               order by (l.name,l.first_name) fetch first 30 rows only`;
         return await this.entityManager.query(query, [filterParam]);
@@ -136,6 +137,7 @@ export class LicenceController {
         newLicence.catea = licence.catea;
         newLicence.catev = licence.catev.toUpperCase();
         newLicence.fede = licence.fede;
+        newLicence.saison = licence.saison;
         const licenceInserted = await this.entityManager.save(newLicence);
         return licenceInserted
     }
