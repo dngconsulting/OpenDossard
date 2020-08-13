@@ -4,7 +4,7 @@ import * as React from 'react';
 export const filterLicences = async (inputValue: string,preferredFede?:FedeEnum) => {
     const licences: Licence[] = await apiLicences.getLicencesLike({param:inputValue.toUpperCase()});
     const strings = licences.map((licence: Licence) => {
-        const textToDisplay = licence.name + ' ' + licence.firstName + ' ' +  (licence.licenceNumber?licence.licenceNumber:'' + licence.saison)
+        const textToDisplay = licence.name + ' ' + licence.firstName + ' ' +  (licence.licenceNumber?licence.licenceNumber:'')
         const activeColor = licence.saison?((licence.saison && licence.saison.includes(new Date().getFullYear().toString()))?'darkgreen':'red'):'grey';
         const isPreferredFede = preferredFede && licence.fede===preferredFede;
         return {
