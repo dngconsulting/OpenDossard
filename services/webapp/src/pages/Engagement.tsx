@@ -17,13 +17,9 @@ import {RaceRow} from '../sdk';
 import {CloudDownload, Delete, PictureAsPdf, Warning} from '@material-ui/icons';
 import jsPDF from "jspdf";
 import 'jspdf-autotable'
-import * as AppActionCreators from "../actions/App.Actions";
-import {Link, withRouter} from "react-router-dom";
-import {connect} from "react-redux";
+import {Link} from "react-router-dom";
 import {withStyles} from "@material-ui/core/styles";
 import {styles} from "../navigation/styles";
-import {ReduxState} from "../state/ReduxState";
-import {bindActionCreators, Dispatch} from "redux";
 import * as _ from "lodash";
 import moment from 'moment'
 import 'moment/locale/fr'
@@ -365,13 +361,5 @@ const EngagementPage = (props: any) => {
     </CompetitionLayout>;
 
 };
-const mapStateToProps = (state: ReduxState) => ({
-    utility: state.utility,
-    authentication: state.authentication,
-    showLoading:state.app.showLoading,
-});
 
-const mapDispatchtoProps = (dispatch: Dispatch) =>
-    bindActionCreators(_.assign({}, AppActionCreators), dispatch);
-
-export default withRouter(connect(mapStateToProps, mapDispatchtoProps)(withStyles(styles as any, {withTheme: true})(EngagementPage as any)) as any);
+export default withStyles(styles as any, {withTheme: true})(EngagementPage as any);

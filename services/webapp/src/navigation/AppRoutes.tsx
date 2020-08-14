@@ -10,17 +10,28 @@ import EngagementPage from '../pages/Engagement';
 import HomePage from '../pages/Home';
 import EditResultsPage from '../pages/results/Results';
 
-export default ( {renderAccount} : {renderAccount: () => ReactElement} ) => (
-    <React.Fragment>
-        <Route path='/' exact={true} title="Page d'accueil" component={isAuthenticated(HomePage)} />
-        <Route path='/licences' title="Les licences" component={isAuthenticated(LicencesPage)} />
-        <Route path='/licence/:id' component={isAuthenticated(LicencePage)} />
-        <Route title="Sélection d'une épreuve" path='/competitionchooser' component={isAuthenticated(CompetitionChooser)} />
-        <Route title="Palmares" path='/palmares/:id?' component={isAuthenticated(PalmaresPage)}/>
-        <Route title="Mon compte" path='/account' render={renderAccount} />
-        <Route title="Engagement" path='/competition/:id/engagement' component={isAuthenticated(EngagementPage)} />
-        <Route title="Engagement et édition résultats" path='/competition/:id/engagementresultats' component={isAuthenticated(EngagementPage)} />
-        <Route path='/competition/:id/results/:mode' title="Editer les résultats" component={isAuthenticated(EditResultsPage)} />
+const WrappedHomepage = isAuthenticated(HomePage);
+const WrappedEngagementPage = isAuthenticated(EngagementPage);
+const WrappedEditResultPage = isAuthenticated(EditResultsPage);
+const WrappedPalmaresPage = isAuthenticated(PalmaresPage);
+const WrappedCompetitionChooser = isAuthenticated(CompetitionChooser)
+const WrappedLicencePage = isAuthenticated(LicencePage)
 
-    </React.Fragment>
-)
+export default ({renderAccount}: { renderAccount: () => ReactElement }) => {
+
+    return (
+        <React.Fragment>
+            <Route path='/' exact={true} title="Page d'accueil" component={WrappedHomepage}/>
+            <Route path='/licences' title="Les licences" component={WrappedLicencePage}/>
+            <Route path='/licence/:id' component={WrappedLicencePage}/>
+            <Route title="Sélection d'une épreuve" path='/competitionchooser' component={WrappedCompetitionChooser}/>
+            <Route title="Palmares" path='/palmares/:id?' component={WrappedPalmaresPage}/>
+            <Route title="Mon compte" path='/account' render={renderAccount}/>
+            <Route title="Engagement" path='/competition/:id/engagement' component={WrappedEngagementPage}/>
+            <Route title="Engagement et édition résultats" path='/competition/:id/engagementresultats'
+                   component={WrappedEngagementPage}/>
+            <Route path='/competition/:id/results/:mode/' title="Editer les résultats"
+                   component={WrappedEditResultPage}/>
+        </React.Fragment>
+    )
+}

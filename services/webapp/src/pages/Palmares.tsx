@@ -27,6 +27,7 @@ const PalmaresPage = (props: IStatsPageProps) => {
     const [, setNotification] = useContext(NotificationContext);
 
     const onRiderChange = async (select: Licence) => {
+        if (!select) return ;
         props.history.push({
             pathname: '/palmares/' + select.id
         })
@@ -64,7 +65,7 @@ const PalmaresPage = (props: IStatsPageProps) => {
             asyncFun();
         }
 
-    }, []);
+    }, [licenceId]);
 
     const getClassement = (rr:RaceRow) => {
         if (rr.rankingScratch!=null) {
@@ -85,7 +86,8 @@ const PalmaresPage = (props: IStatsPageProps) => {
     function linkToCompetition({competitionId, raceCode}:RaceRow) {
         props.history.push({
             pathname: '/competition/' + competitionId + '/results/view',
-            hash: raceCode
+            hash: raceCode,
+            search: 'palmares='+licenceId
         })
     }
 
@@ -105,18 +107,20 @@ const PalmaresPage = (props: IStatsPageProps) => {
                     {rows.map((raceRow) =>
                         <VerticalTimelineElement
                             key={raceRow.id}
-                            style={{width: 530, height: 120}}
+                            style={{width: 450, height: 120}}
                             className="vertical-timeline-element--education"
+                            dateClassName={"palmaresDate"}
                             contentArrowStyle={{borderRight: '15px solid white'}}
                             date={moment(raceRow.competitionDate).locale('fr').format('dddd DD MMM YYYY')}
                             iconStyle={{background: 'rgb(33, 150, 243)', color: '#fff'}}
                             icon={<EmojiEventsIcon/>}
                             onTimelineElementClick={() => linkToCompetition(raceRow)}
                         >
-                            <h3 className="vertical-timeline-element-title">{raceRow.name}</h3>
+                            <h4 className="vertical-timeline-element-title">{raceRow.name}</h4>
                             <h5 className="vertical-timeline-element-subtitle">Course {raceRow.raceCode}</h5>
                             <p style={{margin: 0}}>
-                              Classement scratch : <strong>{getClassement(raceRow) + getIeme(raceRow)}</strong>
+                              Classement scratch : <strong>{getClassement(raceRow) + getIeme(raceRow)}</strong><br/>
+                                <a>Consulter classement complet</a>
                             </p>
                         </VerticalTimelineElement>
                     )}

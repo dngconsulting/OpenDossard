@@ -1,8 +1,14 @@
 .width500 {
-    width: 500px;
+    width: 400px;
+}
+
+.palmaresDate {
+    width: 400px;
+    padding: 0px !important;
+    margin:0px;
 }
 .vertical-timeline {
-    padding:10px
+    padding:20px
 }
 .vertical-timeline-element {
     margin:10px
@@ -10,13 +16,14 @@
 .vertical-timeline-element-content {
     height: 120px;
     cursor: pointer;
+    padding:10px;
 }
 .vertical-timeline-element-icon {
     left: -20px;
 }
 .vertical-timeline-element-title {
     margin:0px;
-    padding:0px
+    padding:0px;
 }
 
 .vertical-timeline-element-subtitle {
@@ -25,5 +32,5 @@
 }
 .vertical-timeline-element-date {
     margin:0px;
-    padding:0px
+    padding:0px;
 }

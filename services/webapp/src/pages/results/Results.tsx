@@ -35,6 +35,7 @@ const EditResultsPage = (gprops: any) => {
     const { height, width } = useWindowDimensions();
     const competitionId = gprops.match.params.id;
     const isEdit = (gprops.match.params.mode === 'edit');
+    const fromPalmaresLicenceId = new URLSearchParams(gprops.location.search).get('palmares')
     const dg = useRef(null);
     const [showDNFDialog,setShowDNFDialog] = useState(false)
     const [modeDNFActivated,setModeDNFActivated] = useState(false)
@@ -563,17 +564,16 @@ const EditResultsPage = (gprops: any) => {
                                         <CloudDownload style={{verticalAlign:'middle'}}/> Classements CSV
                                     </DropdownMenuItem>
                                 </DropdownMenu>
-
-
-
-
                             </div>
                             <div style={{display:'flex',flexDirection:'row',alignItems:'flex-end'}}>
                                 <Fab
                                     style={{borderRadius:4,fontSize:'12px',margin:'5px',fontWeight:'bold',paddingLeft:10,paddingRight:10,paddingBottom:5,paddingTop:5,backgroundColor:cadtheme.palette.primary.dark}}
                                     variant="extended" size='small'>
+                                    {fromPalmaresLicenceId? <Link style={{ color: '#FFF' }} to={'/palmares/' + fromPalmaresLicenceId}>
+                                        <AssignmentIcon style={{verticalAlign:'middle'}}/>Revenir au palmarès </Link>:
                                     <Link style={{ color: '#FFF' }} to={"/competition/" + competition?.id + "/engagement/edit"+gprops.history.location.hash}>
-                                        <AssignmentIcon style={{verticalAlign:'middle'}}/>Accéder aux engagements</Link></Fab></div>
+                                        <AssignmentIcon style={{verticalAlign:'middle'}}/>Accéder aux engagements</Link>}
+                                </Fab></div>
                         </div>
                         <DataTable ref={dg}
                                    scrollHeight={(height-300)+'px'}

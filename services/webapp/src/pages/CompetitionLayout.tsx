@@ -8,7 +8,6 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
 import Paper from '@material-ui/core/Paper';
-import {Link} from "react-router-dom";
 import ForwardIcon from "@material-ui/icons/Forward";
 import AssignmentIcon from "@material-ui/icons/Assignment";
 import FormatListNumberedIcon from "@material-ui/icons/FormatListNumbered";
@@ -64,8 +63,10 @@ export const CompetitionLayout = ({history,competitionId, displayType, children}
         if (history.location.hash) {
             setCurrentRace(history.location.hash.substring(1));
         } else {
+            history.push(history.location.pathname+'#' + c.races[0])
             setCurrentRace(c.races[0])
         }
+
         setCompetition(c);
     };
 
@@ -74,7 +75,7 @@ export const CompetitionLayout = ({history,competitionId, displayType, children}
         await fetchRows();
     }
         f()
-    }, ['Loading']);
+    }, []);
 
     const classes = pageStyles({});
     return (
@@ -84,7 +85,8 @@ export const CompetitionLayout = ({history,competitionId, displayType, children}
                 <RaceTabs selected={currentRace} tabs={tabs} value={currentRace} onChange={
                     race => {
                         history.push(history.location.pathname+'#' + race)
-                        setCurrentRace(race)}
+                        setCurrentRace(race)
+                        }
                 }/>
                 {children({competition, currentRace, rows, fetchRows, fetchCompetition})}
             </div>

@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
+import {createStyles, makeStyles, Theme, withStyles} from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import cadtheme from '../App';
 import {apiCompetitions, apiRaces} from '../util/api';
@@ -12,6 +12,7 @@ import {toMMDDYYYY} from '../util/date';
 import moment from 'moment';
 import _ from 'lodash';
 import {NotificationContext} from "../components/CadSnackbar";
+import {styles} from "../navigation/styles";
 
 interface ICompetitionChooserProps {
     classes?: any;
@@ -214,4 +215,4 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
 
 };
 
-export default withRouter(CompetitionChooser);
+export default withStyles(styles as any, {withTheme: true})(CompetitionChooser as any);
