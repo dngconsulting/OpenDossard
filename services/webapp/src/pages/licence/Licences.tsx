@@ -91,13 +91,13 @@ const LicencesPage = (props: ILicencesProps) => {
         let rowstoDisplay : any[][] = [];
         const filename = 'Licences.pdf';
         tableRef.current.state.data.forEach((r:LicenceEntity,index:number)=>{
-            rowstoDisplay.push([r.id,r.licenceNumber,r.name,r.firstName,r.club,r.gender,r.dept,r.birthYear,r.catea,r.catev,r.fede]);
+            rowstoDisplay.push([r.id,r.licenceNumber,r.name,r.firstName,r.club,r.gender,r.dept,r.birthYear,r.catea,r.catev,r.fede,r.saison]);
         })
         let doc = new jsPDF("p","mm","a4");
         // @ts-ignore
         var totalPagesExp = '{total_pages_count_string}'
         // @ts-ignore
-        doc.autoTable({head: [['ID', 'Licence N°', 'Nom','Prenom', 'Club','H/F','Dept','Année','Cat.A','Cat.V','Fédé.']],
+        doc.autoTable({head: [['ID', 'Licence N°', 'Nom','Prenom', 'Club','H/F','Dept','Année','Cat.A','Cat.V','Fédé.','Valid.']],
             bodyStyles: {
                 minCellHeight:3,
                 cellHeight:3,
@@ -108,13 +108,14 @@ const LicencesPage = (props: ILicencesProps) => {
                 1: {cellWidth: 20},
                 2: {cellWidth: 20},
                 3: {cellWidth: 20},
-                4: {cellWidth: 50},
+                4: {cellWidth: 40},
                 5: {cellWidth: 10},
                 6: {cellWidth: 10},
                 7: {cellWidth: 15},
                 8: {cellWidth: 12},
                 9: {cellWidth: 12},
                 10: {cellWidth: 15},
+                11: {cellWidth:10}
             },body: rowstoDisplay,
             didDrawPage: (data:any) => {
                 // Header
@@ -122,7 +123,7 @@ const LicencesPage = (props: ILicencesProps) => {
                 doc.setTextColor(40)
                 doc.setFontStyle('normal')
                 doc.setFontSize(10)
-                doc.text('Listing de '  + rowstoDisplay.length + ' Licences', data.settings.margin.left + 70, 10);
+                doc.text('Open Dossard - Listing de '  + rowstoDisplay.length + ' Licences', data.settings.margin.left + 70, 10);
 
                 // Footer
                 var str = 'Page ' + doc.internal.getNumberOfPages() + '/' + totalPagesExp

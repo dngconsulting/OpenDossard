@@ -23,8 +23,8 @@ export default ({renderAccount}: { renderAccount: () => ReactElement }) => {
     return (
         <React.Fragment>
             <Route path='/' exact={true} title="Page d'accueil" component={WrappedHomepage}/>
-            <Route path='/licences' title="Les licences" component={WrappedLicencesPage}/>
-            <Route path='/licence/:id' component={WrappedLicencePage}/>
+            <Route path='/licences' title="Les licences" component={isAuthenticated(LicencesPage)}/>
+            <Route path='/licence/:id' component={isAuthenticated(LicencePage)}/>
             <Route title="Sélection d'une épreuve" path='/competitionchooser' component={WrappedCompetitionChooser}/>
             <Route title="Palmares" path='/palmares/:id?' component={WrappedPalmaresPage}/>
             <Route title="Mon compte" path='/account' render={renderAccount}/>
