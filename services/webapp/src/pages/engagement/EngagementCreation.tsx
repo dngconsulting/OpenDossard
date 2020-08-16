@@ -212,7 +212,7 @@ export const CreationForm = (
                         onChange={e => {
                             setForm({...form, catev: e.target.value as string});
                         }}>
-                    {FEDERATIONS.FSGT.catev.map((value: ICategory, index: number) =>
+                    {competition && competition.fede && FEDERATIONS[competition.fede].catev.map((value: ICategory, index: number) =>
                         <MenuItem key={index} value={value.value}>{value.label}</MenuItem>)}
                 </Select>
             </FormControl>

@@ -76,7 +76,7 @@ export const FEDERATIONS = {
         name: {label: 'UFOLEP', value: 'UFOLEP'},
         catev: [ {label: 'Catégorie 1', value: '1'},
             {label: 'Catégorie 2', value: '2'},
-            {label: 'Catégorie 3', value: '3'}, {label: 'GSa', value: 'GSA'},{label: 'GSb', value: 'GSB'},{label: 'Jeune', value: 'JEUNE'},{label: 'Féminine', value: 'FEM'}],
+            {label: 'Catégorie 3', value: '3'}, {label: 'GS', value: 'GS'},{label: 'Jeune', value: 'JEUNE'},{label: 'Féminine', value: 'FEM'}],
         catea:[...CATEA_UFOLEP,{label:'FNC', value:'FNC'},{label:'FFS', value:'FFS'}]
     },
     FFC: {
