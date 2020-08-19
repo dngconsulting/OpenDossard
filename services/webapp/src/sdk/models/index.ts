@@ -4,6 +4,7 @@ export * from './CompetitionEntity';
 export * from './CompetitionFilter';
 export * from './CompetitionInfo';
 export * from './CompetitionReorganize';
+export * from './CompetitionsPage';
 export * from './Departement';
 export * from './FedeEnum';
 export * from './Filter';

@@ -1,26 +1,17 @@
-import {
-    BadRequestException,
-    Body,
-    Controller,
-    Get,
-    Logger,
-    NotFoundException,
-    Param,
-    Post,
-    UseGuards,
-} from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Logger, NotFoundException, Param, Post, UseGuards} from '@nestjs/common';
 import {ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
-import {Any, Between, EntityManager, Repository} from 'typeorm';
+import {Any, Between, EntityManager, LessThanOrEqual, MoreThanOrEqual, Repository, In} from 'typeorm';
 import {CompetitionEntity, CompetitionType} from '../entity/competition.entity';
 import {RaceEntity} from '../entity/race.entity';
 import {AuthGuard} from '@nestjs/passport';
-import {CompetitionFilter, CompetitionReorganize, Departement} from '../dto/model.dto';
+import {CompetitionFilter, CompetitionReorganize, CompetitionsPage, Departement, Search} from '../dto/model.dto';
 import * as moment from 'moment'
 import {TooMuchResults} from "../exception/TooMuchResults";
 import {ROLES, RolesGuard} from "../guards/roles.guard";
 import {Roles} from "../decorators/roles.decorator";
 import {FindManyOptions} from "typeorm/find-options/FindManyOptions";
+import {FederationEntity} from "../entity/federation.entity";
 
 const MAX_COMPETITION_TODISPLAY = 5000;
 /**
@@ -29,7 +20,7 @@ const MAX_COMPETITION_TODISPLAY = 5000;
  */
 @Controller('/api/competition')
 @ApiTags('CompetitionAPI')
-@UseGuards(AuthGuard('jwt'),RolesGuard)
+@UseGuards(AuthGuard('jwt'), RolesGuard)
 export class CompetitionController {
     constructor(
         @InjectRepository(CompetitionEntity)
@@ -66,6 +57,79 @@ export class CompetitionController {
         }
 
         return r[0];
+    }
+
+    @Post('/filter')
+    @ApiOperation({
+        operationId: 'getCompetitionByFilterAndPage',
+        summary: 'Rechercher les compétitions correspondantes au filtre et à la pagination de la recherche',
+    })
+    @ApiResponse({
+        status: 200,
+        type: CompetitionsPage,
+        description: 'Ensemble de compétitions correspondantes au filtre et à la pagination de la recherche',
+    })
+    @Roles(ROLES.MOBILE, ROLES.ORGANISATEUR, ROLES.ADMIN)
+    public async getCompetitionByFilterAndPage(@Body() search: Search): Promise<CompetitionsPage> {
+        console.log(search);
+
+        const fedeFilter = {fede: Any([FederationEntity.FSGT, FederationEntity.UFOLEP])}
+
+        let dateFilter = {};
+        let competitionTypeFilter = {};
+        let deptFilter = {};
+        search.filters.map(filter => {
+            if (filter.name === 'pastOrFuture') {
+                if (filter.value.past && !filter.value.future) {
+                    dateFilter = {eventDate: LessThanOrEqual(moment().endOf('day'))};
+                }
+                if (filter.value.future && !filter.value.past) {
+                    dateFilter = {eventDate: MoreThanOrEqual(moment().startOf('day'))};
+                }
+            } else if (filter.name === 'competitionType') {
+                const values = [];
+                if (filter.value.route) {
+                    values.push(CompetitionType.ROUTE);
+                }
+                if (filter.value.vtt) {
+                    values.push(CompetitionType.VTT);
+                }
+                if (filter.value.cx) {
+                    values.push(CompetitionType.CX);
+                }
+                console.log(values);
+                if (values.length > 0) {
+                    competitionTypeFilter = {competitionType: In(values)};
+                }
+            } else if (filter.name === 'depts' && filter.value.length > 0) {
+                const values = filter.value.map(d => d.code);
+                deptFilter = {dept: In(values)};
+            }
+        });
+
+        const query: FindManyOptions<CompetitionEntity> = {
+            where: {
+                ...fedeFilter,
+                ...dateFilter,
+                ...competitionTypeFilter,
+                ...deptFilter,
+            },
+            order: {
+                eventDate: 'DESC',
+            },
+            relations: ['club'],
+            skip: search.currentPage * search.pageSize,
+            take: search.pageSize,
+
+        };
+
+        console.log(query);
+        const [result, totalCount] = await this.repository.findAndCount(query);
+
+        return {
+            data: result,
+            totalCount: totalCount,
+        };
     }
 
     @ApiOperation({

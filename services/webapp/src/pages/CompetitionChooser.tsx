@@ -1,17 +1,16 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {createStyles, makeStyles, Theme, withStyles} from '@material-ui/core/styles';
-import Paper from '@material-ui/core/Paper';
-import cadtheme from '../App';
-import {apiCompetitions, apiRaces} from '../util/api';
-import {CompetitionEntity, CompetitionEntity as Competition, RaceRow} from '../sdk';
-import {Link, NavLink, withRouter} from 'react-router-dom';
-import {Radio, Tooltip} from '@material-ui/core';
+import {Paper, Tooltip, TextField, FormGroup, FormControlLabel, Checkbox} from '@material-ui/core';
+import {Autocomplete} from '@material-ui/lab';
 import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
-import {toMMDDYYYY} from '../util/date';
-import moment from 'moment';
-import _ from 'lodash';
+
+import cadtheme from '../App';
 import {NotificationContext} from "../components/CadSnackbar";
+import {apiCompetitions, apiRaces} from '../util/api';
+import {toMMDDYYYY} from '../util/date';
+import {CompetitionEntity as Competition, CompetitionsPage, Filter, Search} from '../sdk';
+import {departements} from "../util/departements";
 import {styles} from "../navigation/styles";
 
 interface ICompetitionChooserProps {
@@ -40,74 +39,180 @@ const useStyles = makeStyles((theme: Theme) =>
         }
     }),
 );
+
 const CompetitionChooser = (props: ICompetitionChooserProps) => {
+    const preferenceKey = 'competitionChooserPreferences'
+    const preferenceStr = localStorage.getItem(preferenceKey);
+    const preference = preferenceStr ? JSON.parse(preferenceStr): null;
+
     const [, setNotification] = useContext(NotificationContext);
-    const [data, setData] = useState<CompetitionEntity[]>([]);
-    const [raceRows,setRaceRows] = useState<RaceRow[]>([]);
-    const [filteredData, setFilteredData] = useState<Competition[]>([]);
-    const [selectPastOrFuture, setSelectPastOrFuture] = useState(undefined);
-    const [loading, setLoading] = useState(false);
-    const classes = useStyles(cadtheme);
-    const competitionFilter = {
-        competitionTypes: ['ROUTE','CX'],
-        fedes: ['FSGT','UFOLEP'],
-        displayFuture:true,
-        openedNL:false,
-        openedToOtherFede:false,
-        displayPast:true,
-        displaySince:600,
+    const [pastOrFutureSelect, setPastOrFutureSelect] = useState(preference? preference.pastOrFutureSelect : {
+        past: true,
+        future: true
+    });
+    const [competitionTypeSelect, setCompetitionTypeSelect] = useState(preference? preference.competitionTypeSelect : {
+        route: true,
+        vtt: true,
+        cx: true
+    })
+    const [departementSelect, setdepartementSelect] = useState(preference ? preference.departementSelect : [])
+
+    const initialDatatableParams = {
+        loading: false,
+        showFilters: false,
+        filters: {},
+        sortField: '',
+        sortOrder: 0,
+        first: 0,
+        rows: 10,
+        page: 0
     }
-    const fetchCompetitions = async () => {
-        try {
-            const results = await apiCompetitions.getCompetitionsByFilter({competitionFilter: competitionFilter});
-            setData(results);
-            const filter = props.history.location.hash && props.history.location.hash.substr(1);
-            if (filter) {
-                setSelectPastOrFuture(filter)
-                filterData(results, filter)
+    const [datatableParams, setDatatableParams] = React.useState(initialDatatableParams)
+
+    const initialDatatableData:CompetitionsPage = {
+        data: [],
+        totalCount: 0
+    }
+    const [datatableData, setDatatableData] = useState<CompetitionsPage>(initialDatatableData);
+    const [raceData, setRaceData] = useState(new Map())
+    const filterOptions = {filter: datatableParams.showFilters, filterMatchMode: 'contains'};
+    const classes = useStyles(cadtheme);
+
+    useEffect(() => {
+        const pref = {
+            pastOrFutureSelect, competitionTypeSelect, departementSelect
+        }
+        localStorage.setItem(preferenceKey, JSON.stringify(pref));
+
+    }, [pastOrFutureSelect, competitionTypeSelect, departementSelect])
+
+    useEffect(() => {
+        refreshTable();
+    }, [pastOrFutureSelect, competitionTypeSelect, departementSelect, datatableParams])
+
+    const buildSearch = ():Search => {
+        let orders = {};
+        if (datatableParams.sortField !== '' && datatableParams.sortOrder !== 0){
+            orders = {
+                orderDirection: datatableParams.sortOrder === 1? 'ASC': 'DESC',
+                orderBy: datatableParams.sortField
             }
         }
+
+        const filters: Filter[] = [
+            {
+                name: 'pastOrFuture',
+                value: pastOrFutureSelect
+            },
+            {
+                name: 'competitionType',
+                value: competitionTypeSelect
+            },
+            {
+                name: 'depts',
+                value: departementSelect
+            }
+        ]
+
+        return {
+            currentPage: datatableParams.page,
+            pageSize: datatableParams.rows,
+            ...orders,
+            filters
+        }
+    }
+
+    const refreshTable = async () => {
+        try {
+            const search = buildSearch();
+            console.log(search);
+            const result = await apiCompetitions.getCompetitionByFilterAndPage({search})
+            console.log(result);
+            setDatatableData(result)
+
+            const raceMap = new Map();
+            for (const compet of result.data) {
+                const races = await apiRaces.getCompetitionRaces({id: compet.id})
+                const nbEngagements = races.length;
+                const nbClassements = races.filter(r=> r.comment!=null || r.rankingScratch!=null).length;
+                raceMap.set(compet.id, {nbEngagements, nbClassements});
+            }
+            setRaceData(raceMap);
+        }
         catch (ex) {
+            console.log(ex)
             setNotification({
                 message: `Impossible de récupérer la liste des épreuves`,
                 open: true,
                 type: 'error'
             });
         }
-    };
-    const fetchAllRaces = async () => {
-        try {
-           const results = await apiRaces.getRaces({
-               competitionFilter:{
-                   displayFuture:true,
-                   displayPast:true,
-               }});
-           setRaceRows(results);
+    }
+
+    const selectAllIfAllUnchecked = (obj:object) => {
+        let allUnchecked = true;
+        for (const field of Object.keys(obj)) {
+            if(obj[field] === true) {
+                allUnchecked = false
+                break;
+            }
         }
-        catch (ex) {
-            setNotification({
-                message: `Impossible de récupérer la liste des participations`,
-                open: true,
-                type: 'error'
-            });
+        if (allUnchecked) {
+            for (const field of Object.keys(obj)) {
+                obj[field] = true;
+            }
         }
     }
 
-    useEffect(() => {
-        const initData = async () => {
-            if (data.length === 0) {
-                try {
-                    setLoading(true);
-                    await fetchCompetitions();
-                    await fetchAllRaces();
+    const handlePastOrFutureSelectChange = (evt:React.ChangeEvent<HTMLInputElement>) => {
+        const nextState = {...pastOrFutureSelect, [evt.target.name]: evt.target.checked}
+        selectAllIfAllUnchecked(nextState);
+        setPastOrFutureSelect(nextState)
+    }
 
-                } finally {
-                    setLoading(false);
-                }
-            }
-        }
-        initData();
-    }, []);
+    const handleCompetitionTypeSelectChange = (evt:React.ChangeEvent<HTMLInputElement>) => {
+        const nextState = {...competitionTypeSelect, [evt.target.name]: evt.target.checked}
+        selectAllIfAllUnchecked(nextState);
+        setCompetitionTypeSelect(nextState)
+    }
+
+    const handleDepartementSelectChange = (evt:any, value:object[]) => {
+        setdepartementSelect(value)
+    }
+
+    const handleShowFilterClick = () => {
+        setDatatableParams({
+            ...datatableParams,
+            showFilters: !datatableParams.showFilters
+        })
+    }
+
+    const handlePageChange =  (evt: any) => {
+        setDatatableParams({
+            ...datatableParams,
+            first: evt.first,
+            page: evt.page
+        })
+    }
+
+    const handleFilterChange = (evt: any) => {
+        setDatatableParams({
+            ...datatableParams,
+            filters: evt.filters
+        })
+    }
+
+    const handleSortChange = (evt:any) => {
+        setDatatableParams({
+            ...datatableParams,
+            sortField: evt.sortField,
+            sortOrder: evt.sortOrder
+        })
+    }
+
+    const setSelectedCompetition = (selectedCompetition: Competition) => {
+        goToPage(selectedCompetition.id,'engagement');
+    };
 
     const goToPage = (competitionid: number, resultsPage?: string) => {
         props.history.push({
@@ -121,7 +226,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
     };
 
     const displayEngagement = (competition: Competition) => {
-        const nbEngages = raceRows.filter(rr=>rr.competitionId===competition.id).length;
+        const nbEngages = raceData.has(competition.id) ? raceData.get(competition.id).nbEngagements : 0;
         return (
             nbEngages>0?<Tooltip key='2' title='Editer les engagements'>
                 <a href='#' onClick={(event: any) => goToPage(competition.id, 'engagement')}
@@ -131,84 +236,105 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
     }
 
     const displayClassement = (competition: Competition) => {
-        const nbClasses = raceRows.filter(rr=>rr.competitionId===competition.id && (rr.comment!=null || rr.rankingScratch!=null)).length;
+        const nbClasses = raceData.has(competition.id) ? raceData.get(competition.id).nbClassements : 0;
         return (
             nbClasses>0?<Tooltip key='2' title='Editer/Visualiser les classements'>
                 <a href='#' onClick={(event: any) => goToPage(competition.id, 'results/edit')}
-                        color="primary" style={{marginRight: '0px'}}>
+                   color="primary" style={{marginRight: '0px'}}>
                     {nbClasses} Classé(s)</a></Tooltip>:<span>Aucun classé</span>
-            );
+        );
     }
-    const filterData = (data:CompetitionEntity[],targetValue:string) => {
-        if (targetValue === 'all') {
-            setFilteredData(data) ;
-        } else {
-            setFilteredData(
-                _.orderBy(data.filter((comp: Competition) => targetValue === 'past' ? moment(comp.eventDate).isBefore(moment()) : moment(comp.eventDate).isAfter(moment())), ['eventDate'], targetValue === 'past'?['desc']:['asc'])
-            )
-        }
-    }
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const targetValue = event.target.value
-        setSelectPastOrFuture(targetValue);
-        filterData(data,targetValue)
-    };
 
-    const setSelectedCompetition = (selectedCompetition: Competition) => {
-            goToPage(selectedCompetition.id,'engagement');
-    };
+    const displayCategories = (competition: Competition) => {
+        return competition.categories.join(' ')
+    }
 
     return (
             <Paper className={classes.root}>
-                <Link to='/competitionchooser#past'>
-                    <Radio
-                        checked={selectPastOrFuture === 'past'}
-                        onChange={handleChange}
-                        value="past"
-                        name="radio-button-demo"
-                    />Epreuves passées
-                </Link>
-                <Link to='/competitionchooser#future'>
-                    <Radio
-                        checked={selectPastOrFuture === 'future'}
-                        onChange={handleChange}
-                        value="future"
-                        name="radio-button-demo"
-                    />Epreuves à venir
-                </Link>
-                <Link to='/competitionchooser#all'>
-                    <Radio
-                        checked={selectPastOrFuture === 'all'}
-                        onChange={handleChange}
-                        value="all"
-                        name="radio-button-demo"
-                    />Toutes les épreuves
-                </Link>
+                <div className={classes.titre}>Épreuves passées / futures</div>
+                <FormGroup row>
+                    <FormControlLabel
+                        control={<Checkbox checked={pastOrFutureSelect.past} name="past" onChange={handlePastOrFutureSelectChange}/>}
+                        label='Épreuves passées'
+                    />
+                    <FormControlLabel
+                        control={<Checkbox checked={pastOrFutureSelect.future} name="future" onChange={handlePastOrFutureSelectChange}/>}
+                        label='Épreuves futures'
+                    />
+                </FormGroup>
+                <div className={classes.titre}>Type d'épreuve</div>
+                <FormGroup row>
+                    <FormControlLabel
+                        control={<Checkbox checked={competitionTypeSelect.route} name="route" onChange={handleCompetitionTypeSelectChange}/>}
+                        label='Route'
+                    />
+                    <FormControlLabel
+                        control={<Checkbox checked={competitionTypeSelect.vtt} name="vtt" onChange={handleCompetitionTypeSelectChange}/>}
+                        label='VTT'
+                    />
+                    <FormControlLabel
+                        control={<Checkbox checked={competitionTypeSelect.cx} name="cx" onChange={handleCompetitionTypeSelectChange}/>}
+                        label='CX'
+                    />
+                </FormGroup>
+                <div className={classes.titre}>Départements</div>
+                <Autocomplete
+                    multiple
+                    options={departements}
+                    value={departementSelect}
+                    onChange={handleDepartementSelectChange}
+                    getOptionLabel={(option) => `${option.code} - ${option.name}`}
+                    renderInput={(params) => <TextField {...params} placeholder="Départements"/>}
+                />
+
                 <div className={classes.titre}>Veuillez sélectionner une épreuve :</div>
 
-                <DataTable responsive={true}
-                           loading={loading}
-                           autoLayout={true}
-                           value={filteredData}
-                           emptyMessage="Aucune donnée ne correspond à la recherche"
-                           selectionMode="single"
-                           onSelectionChange={e => setSelectedCompetition(e.value)}
+                <DataTable
+                    {...datatableParams}
+                    value={datatableData.data} totalRecords={datatableData.totalCount}
+                    lazy={true} onPage={handlePageChange} onFilter={handleFilterChange} onSort={handleSortChange}
+                    paginator={true} removableSort={true}
+                    responsive={true}
+                    emptyMessage="Aucune donnée ne correspond à la recherche"
+                    selectionMode="single"
+                    onSelectionChange={e => setSelectedCompetition(e.value)}
                 >
-                    <Column header='Engagements' body={displayEngagement}
-                            style={{minWidth: '2%',textAlign:'center'}}/>
-                    <Column header='Classements' body={displayClassement}
-                                               style={{minWidth: '5%', textAlign: 'center'}}/>
+                    {/*<Column
+                        header={
+                            <IconButton style={{height:20,padding:0}} onClick={() => handleShowFilterClick()}>
+                                <SearchIcon height={20} style={{padding:0}} htmlColor={'#333333'}/>
+                            </IconButton>
+                        }
+                        style= {{
+                            width: 50,
+                            textAlign: 'center',
+                            paddingLeft: 5,
+                            paddingRight: 5,
+                            cursor: 'pointer'
+                        }}
+                    />*/}
+                    <Column field='engagement' header='Engagements' body={displayEngagement}
+                            style={{width: '8%',textAlign:'center'}}
+                    />
+                    <Column field='classement' header='Classements' body={displayClassement}
+                            style={{width: '8%', textAlign: 'center'}}
+                    />
                     <Column field='eventDate' header='Date' body={displayDate}
-                            style={{minWidth: '2%'}}/>
+                            style={{width: '8%'}}
+                    />
                     <Column field='name' header="Nom de l'épreuve"
-                            style={{minWidth: '2%'}}/>
+                            style={{width: '16%'}}
+                    />
                     <Column field='zipCode' header='Lieu'
-                            style={{minWidth: '2%'}}/>
+                            style={{width: '8%'}}
+                    />
                     <Column field='club.longName' header='Club'
-                            style={{minWidth: '5%'}}/>
-                    <Column field='categories' header='Catégories'/>
+                            style={{width: '16%'}}
+                    />
+                    <Column field='categories' header='Catégories' body={displayCategories}/>
                     <Column field='fede' header='Fédération'
-                            style={{minWidth: '5%'}}/>
+                            style={{width: '8%'}}
+                    />
                 </DataTable>
             </Paper>)
             ;

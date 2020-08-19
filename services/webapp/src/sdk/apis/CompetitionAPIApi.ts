@@ -24,10 +24,20 @@ import {
     CompetitionReorganize,
     CompetitionReorganizeFromJSON,
     CompetitionReorganizeToJSON,
+    CompetitionsPage,
+    CompetitionsPageFromJSON,
+    CompetitionsPageToJSON,
+    Search,
+    SearchFromJSON,
+    SearchToJSON,
 } from '../models';
 
 export interface GetCompetitionRequest {
     id: string;
+}
+
+export interface GetCompetitionByFilterAndPageRequest {
+    search: Search;
 }
 
 export interface GetCompetitionsByFilterRequest {
@@ -84,6 +94,47 @@ export class CompetitionAPIApi extends runtime.BaseAPI {
      */
     async getCompetition(requestParameters: GetCompetitionRequest): Promise<CompetitionEntity> {
         const response = await this.getCompetitionRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Rechercher les compétitions correspondantes au filtre et à la pagination de la recherche
+     */
+    async getCompetitionByFilterAndPageRaw(requestParameters: GetCompetitionByFilterAndPageRequest): Promise<runtime.ApiResponse<CompetitionsPage>> {
+        if (requestParameters.search === null || requestParameters.search === undefined) {
+            throw new runtime.RequiredError('search','Required parameter requestParameters.search was null or undefined when calling getCompetitionByFilterAndPage.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/competition/filter`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: SearchToJSON(requestParameters.search),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CompetitionsPageFromJSON(jsonValue));
+    }
+
+    /**
+     * Rechercher les compétitions correspondantes au filtre et à la pagination de la recherche
+     */
+    async getCompetitionByFilterAndPage(requestParameters: GetCompetitionByFilterAndPageRequest): Promise<CompetitionsPage> {
+        const response = await this.getCompetitionByFilterAndPageRaw(requestParameters);
         return await response.value();
     }
 

@@ -1,5 +1,6 @@
 import {LicenceEntity} from '../entity/licence.entity';
 import {ApiProperty, ApiPropertyOptional} from '@nestjs/swagger';
+import {CompetitionEntity} from "../entity/competition.entity";
 
 export class ClubRow {
     public id?: number;
@@ -62,13 +63,7 @@ export class RaceNbRider {
 
 export class Filter {
     name?: string;
-    value?: string;
-}
-
-export class LicencesPage {
-    data?: LicenceEntity[];
-    page?: number;
-    totalCount?: number;
+    value?: any;
 }
 
 export class Search {
@@ -79,6 +74,18 @@ export class Search {
     orderBy?: string;
     search?: string;
     filters?: Filter[];
+}
+
+export class LicencesPage {
+    data?: LicenceEntity[];
+    page?: number;
+    totalCount?: number;
+}
+
+export class CompetitionsPage {
+    data?: CompetitionEntity[];
+    page?: number;
+    totalCount?: number;
 }
 
 export class CompetitionFilter {

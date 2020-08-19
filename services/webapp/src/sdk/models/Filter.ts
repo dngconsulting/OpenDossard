@@ -27,10 +27,10 @@ export interface Filter {
     name?: string;
     /**
      * 
-     * @type {string}
+     * @type {object}
      * @memberof Filter
      */
-    value?: string;
+    value?: object;
 }
 
 export function FilterFromJSON(json: any): Filter {
