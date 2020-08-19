@@ -57,12 +57,11 @@ const useStyles = makeStyles((theme: Theme) =>
 const LicencesPage = (props: ILicencesProps) => {
     const [, setNotification] = useContext(NotificationContext);
     const [editMode,setEditMode] = useState<boolean>(false);
-    const [deptError,setDeptError] = useState<boolean>(false);
     const [birthError,setBirthError] = useState<boolean>(false);
     const [open, openDialog] = React.useState(false);
     const [updatedLicence,setUpdatedLicence] = useState(null)
     const [loading,showLoading] = React.useState(false);
-
+    const id = props.match.params.id;
     const [newLicence, setNewLicence] = React.useState<Licence>({
         id:null,
         name:'',
@@ -75,11 +74,10 @@ const LicencesPage = (props: ILicencesProps) => {
         club: '',
         catea: '',
         catev: '',
-        saison: '',
+        saison: !isNaN(parseInt(id))?'':new Date().getFullYear().toString(),
     });
 
     useEffect(()=>{
-        const id = props.match.params.id;
         if(!isNaN(parseInt(id))){
             setEditMode(true)
             apiLicences.get({id}).then((res:Licence) =>{
@@ -103,7 +101,7 @@ const LicencesPage = (props: ILicencesProps) => {
         return () => setEditMode(false)
     },[]);
 
-    const [validation, setValidation] = React.useState({
+    const [validation, setValidation] = React.useState<{name?:boolean,firstName?:boolean,catea?:boolean,catev?:boolean,dept?:boolean,birthYear?:boolean}>({
         name:false,
         firstName:false,
         catea:false,
@@ -156,7 +154,7 @@ const LicencesPage = (props: ILicencesProps) => {
                 birthYear: !newLicence.birthYear
             });
             setNotification({
-                message: `Une de ces informations est manquante (caté valeur, caté age, nom et prénom)`,
+                message: `Une de ces informations est manquante (caté valeur, caté age, nom et prénom, dept entre 1 et 99)`,
                 open: true,
                 type: 'error'
             });
@@ -204,7 +202,7 @@ const LicencesPage = (props: ILicencesProps) => {
                                props.history.goBack();
                            }
                            }/>
-            <Grid container={true} spacing={3}>
+            <Grid container={true} spacing={1}>
                 <Grid item={true} xs={12}>
                     <h1>{editMode?'Modifier':'Ajouter'} une licence</h1>
                 </Grid>
@@ -219,7 +217,7 @@ const LicencesPage = (props: ILicencesProps) => {
                 <Grid item={true} xs={6}>
                         <InputLabel htmlFor="fede">Fédération</InputLabel>
                         <Select
-                            style={{width:150}}
+                            style={{width:200}}
                             value={newLicence.fede}
                             onChange={e=> {
                                 handleFEDEChange(e);
@@ -315,7 +313,7 @@ const LicencesPage = (props: ILicencesProps) => {
                 </Grid>
                 <Grid item={true} xs={6}>
                     <TextField
-                        error={deptError}
+                        error={validation.dept}
                         style={{width:100}}
                         id="department"
                         label="Département"
@@ -325,10 +323,10 @@ const LicencesPage = (props: ILicencesProps) => {
                         onBlur={e=>{
                             if (parseInt(e.target.value) <1 || parseInt(e.target.value) > 99) {
                                 setNewLicence({...newLicence, dept: ''})
-                                setDeptError(true)
+                                setValidation({dept:true})
                                 return;
                             }
-                            setDeptError(false)
+                            setValidation({dept:false})
                         }}
                         onChange={e => {
                             setNewLicence({...newLicence, dept: e.target.value})
@@ -337,8 +335,8 @@ const LicencesPage = (props: ILicencesProps) => {
                 </Grid>
 
                 <Grid item={true} xs={12}>
-                    <Grid item={true} xs={10}>
-                        {newLicence.fede && newLicence.fede !== FedeEnum.NL && <ClubSelect onSelect={onSelectClub} fede={newLicence.fede} chosenClub={{value:null,label:newLicence.club} as IOptionType}/>}
+                    <Grid item={true} xs={11}>
+                        {newLicence.fede && newLicence.fede !== FedeEnum.NL && <ClubSelect dept={newLicence.dept} onSelect={onSelectClub} fede={newLicence.fede} chosenClub={{value:null,label:newLicence.club} as IOptionType}/>}
                     </Grid>
                 </Grid>
                 <Grid item={true} xs={6}>

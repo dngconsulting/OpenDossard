@@ -83,7 +83,7 @@ const components = {
 };
 
 
-export default function ClubSelect({onSelect, chosenClub,fede} : {onSelect : (value:string)=>void, chosenClub : IOptionType,fede:FedeEnum}) {
+export default function ClubSelect({dept, onSelect, chosenClub,fede} : {dept:string, onSelect : (value:string)=>void, chosenClub : IOptionType,fede:FedeEnum}) {
     // @ts-ignore
     const classes = useStyles();
     const theme = useTheme();
@@ -95,7 +95,7 @@ export default function ClubSelect({onSelect, chosenClub,fede} : {onSelect : (va
         const lclubs = await apiClubs.getClubsByFede({fede:fede});
         const loptionType = lclubs.map((option: ClubRow) => ({
             value: option.id,
-            label:option.longName
+            label:option.longName + (option.dept?' (' + option.dept + ')':'')
         }))
         setClubs(loptionType);
     };
@@ -115,13 +115,13 @@ export default function ClubSelect({onSelect, chosenClub,fede} : {onSelect : (va
     };
     const handleCreate = async (inputValue:string) => {
         setLoading(true)
-        const newClub = await apiClubs.createClub({clubEntity:{id:0,shortName:null,dept:null,longName:inputValue,fede:fede}})
-        const newClubOption = {value:newClub.id,label:newClub.longName}
+        const newClub = await apiClubs.createClub({clubEntity:{id:0,shortName:null,dept:dept,longName:inputValue,fede:fede}})
+        const newClubOption = {value:newClub.id,label:newClub.longName + (dept?' (' + dept + ')':'')}
         setClubs(prevState =>
             prevState.concat([newClubOption])
         )
         setSelectedClub(newClubOption)
-        onSelect(inputValue)
+        onSelect(newClubOption.label?newClubOption.label:'')
         setLoading(false)
     }
     const selectStyles = {
