@@ -88,5 +88,10 @@ export const FEDERATIONS = {
         name:{label: 'Non Licencié', value: 'NL'},
         catev: [...CATEV],
         catea:CATEA_FSGT
+    },
+    FFTRI:{
+        name:{label: 'Fédération Triathlon', value: 'FFTRI'},
+        catev: [...CATEV],
+        catea:CATEA_FSGT
     }
 };
