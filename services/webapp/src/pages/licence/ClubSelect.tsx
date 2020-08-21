@@ -82,22 +82,24 @@ const components = {
     Menu
 };
 
-
+// TODO All this code would have been better with a CreateableSelect supporting getOptionLabel and getOptionValue
 export default function ClubSelect({dept, onSelect, chosenClub,fede} : {dept:string, onSelect : (value:string)=>void, chosenClub : IOptionType,fede:FedeEnum}) {
     // @ts-ignore
     const classes = useStyles();
     const theme = useTheme();
     const [selectedClub, setSelectedClub] = React.useState<ValueType<IOptionType>>(null);
-    const [clubs, setClubs] = useState<IOptionType[]>([]);
+    const [clubsOptionType, setClubsOptionType] = useState<IOptionType[]>([]);
+    const [clubs, setClubs] = useState<ClubRow[]>([]);
     const [isLoading,setLoading] = useState<boolean>(false)
 
     const fetchData = async ()  => {
         const lclubs = await apiClubs.getClubsByFede({fede:fede});
-        const loptionType = lclubs.map((option: ClubRow) => ({
-            value: option.id,
-            label:option.longName + (option.dept?' (' + option.dept + ')':'')
+        setClubs(lclubs)
+        const loptionType = lclubs.map((club: ClubRow) => ({
+            value: club.id,
+            label:club.longName + (club.dept?' (' + club.dept + ')':'')
         }))
-        setClubs(loptionType);
+        setClubsOptionType(loptionType);
         // empty chosen club should display "blank" item the list
         if (chosenClub.label==='' || chosenClub.label===null) {
             setSelectedClub(null);
@@ -113,17 +115,17 @@ export default function ClubSelect({dept, onSelect, chosenClub,fede} : {dept:str
         setSelectedClub(value);
         const selected = value as IOptionType;
         if (selected && selected.label)
-            onSelect(selected.label)
+            onSelect(clubs.filter(club=>club.id===selected.value)[0].longName)
     };
     const handleCreate = async (inputValue:string) => {
         setLoading(true)
         const newClub = await apiClubs.createClub({clubEntity:{id:0,shortName:null,dept:dept,longName:inputValue,fede:fede}})
         const newClubOption = {value:newClub.id,label:newClub.longName + (dept?' (' + dept + ')':'')}
-        setClubs(prevState =>
+        setClubsOptionType(prevState =>
             prevState.concat([newClubOption])
         )
         setSelectedClub(newClubOption)
-        onSelect(newClubOption.label?newClubOption.label:'')
+        onSelect(newClub.longName)
         setLoading(false)
     }
     const selectStyles = {
@@ -154,7 +156,7 @@ export default function ClubSelect({dept, onSelect, chosenClub,fede} : {dept:str
                         },
                     }}
                     placeholder="Rechercher ou Créer un nouveau Club"
-                    options={clubs}
+                    options={clubsOptionType}
                     noOptionsMessage={()=>'Aucune valeur correspondante'}
                     components={components}
                     value={selectedClub}
