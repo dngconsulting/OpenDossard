@@ -98,14 +98,16 @@ export default function ClubSelect({dept, onSelect, chosenClub,fede} : {dept:str
             label:option.longName + (option.dept?' (' + option.dept + ')':'')
         }))
         setClubs(loptionType);
+        // empty chosen club should display "blank" item the list
+        if (chosenClub.label==='' || chosenClub.label===null) {
+            setSelectedClub(null);
+            return;
+        }
+        setSelectedClub(loptionType.filter(club=>club.label.includes(chosenClub.label))[0])
     };
     useEffect(()=>{
         fetchData();
     },[fede]);
-
-    useEffect(()=>{
-        setSelectedClub(chosenClub);
-    },[chosenClub]);
 
     const handleChangeSingle = (value: ValueType<IOptionType>) => {
         setSelectedClub(value);
