@@ -60,7 +60,6 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
         {
             key: '3',
             path: '/competitionchooser',
-            hash:'past',
             state: {title: 'Liste des épreuves'},
             title: 'Liste des épreuves',
             icon: () => <AssignmentIcon/>
@@ -75,7 +74,6 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
         {
             key: '5',
             path: '/palmares',
-            component: PalmaresPage,
             state: {title: 'Palmarès coureurs'},
             title: 'Palmarès',
             icon: () => <ShowChartIcon/>
@@ -144,7 +142,6 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
                                      className={classes.link} to={{
                                 pathname: route.path,
                                 state: route.state,
-                                hash:route.hash,
                             }}>
                                 <Tooltip title={route.title}>
                                     <ListItem button={true}>

@@ -1,6 +1,7 @@
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import {createStyles, makeStyles, Theme, withStyles} from '@material-ui/core/styles';
-import {Paper, Tooltip, TextField, FormGroup, FormControlLabel, Checkbox} from '@material-ui/core';
+import {Paper, Tooltip, TextField, FormGroup, FormControlLabel, Checkbox, IconButton} from '@material-ui/core';
+import {Search as SearchIcon} from '@material-ui/icons'
 import {Autocomplete} from '@material-ui/lab';
 import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
@@ -10,7 +11,7 @@ import {NotificationContext} from "../components/CadSnackbar";
 import {apiCompetitions, apiRaces} from '../util/api';
 import {toMMDDYYYY} from '../util/date';
 import {CompetitionEntity as Competition, CompetitionsPage, Filter, Search} from '../sdk';
-import {departements} from "../util/departements";
+import {IDepartement, departements} from "../util/departements";
 import {styles} from "../navigation/styles";
 
 interface ICompetitionChooserProps {
@@ -51,11 +52,11 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         future: true
     });
     const [competitionTypeSelect, setCompetitionTypeSelect] = useState(preference? preference.competitionTypeSelect : {
-        route: true,
-        vtt: true,
-        cx: true
+        route: {enumName: 'ROUTE', selected: true},
+        vtt: {enumName: 'VTT', selected: true},
+        cx: {enumName: 'CX', selected: true},
     })
-    const [departementSelect, setdepartementSelect] = useState(preference ? preference.departementSelect : [])
+    const [departementSelect, setdepartementSelect] = useState<IDepartement[]>(preference ? preference.departementSelect : [])
 
     const initialDatatableParams = {
         loading: false,
@@ -64,7 +65,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         sortField: '',
         sortOrder: 0,
         first: 0,
-        rows: 10,
+        rows: 20,
         page: 0
     }
     const [datatableParams, setDatatableParams] = React.useState(initialDatatableParams)
@@ -101,18 +102,30 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
 
         const filters: Filter[] = [
             {
+                name: 'fedes',
+                value: ['FSGT', 'UFOLEP']
+
+            },
+            {
                 name: 'pastOrFuture',
                 value: pastOrFutureSelect
             },
             {
-                name: 'competitionType',
-                value: competitionTypeSelect
+                name: 'types',
+                value: Object.values(competitionTypeSelect).filter((v:any) => v.selected).map((v:any) => v.enumName)
             },
             {
                 name: 'depts',
-                value: departementSelect
+                value: departementSelect.map(d => d.code)
             }
         ]
+
+        // Add filter from header column search
+        const headerFilters = Object.entries<any>(datatableParams.filters).map(([key, val]) => ({
+            name: key,
+            value: val.value,
+        }));
+        filters.push(...headerFilters);
 
         return {
             currentPage: datatableParams.page,
@@ -149,34 +162,26 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         }
     }
 
-    const selectAllIfAllUnchecked = (obj:object) => {
-        let allUnchecked = true;
-        for (const field of Object.keys(obj)) {
-            if(obj[field] === true) {
-                allUnchecked = false
-                break;
-            }
-        }
-        if (allUnchecked) {
-            for (const field of Object.keys(obj)) {
-                obj[field] = true;
-            }
-        }
-    }
-
     const handlePastOrFutureSelectChange = (evt:React.ChangeEvent<HTMLInputElement>) => {
         const nextState = {...pastOrFutureSelect, [evt.target.name]: evt.target.checked}
-        selectAllIfAllUnchecked(nextState);
+        if(!nextState.past && !nextState.future){
+            nextState.past = true;
+            nextState.future = true;
+        }
         setPastOrFutureSelect(nextState)
     }
 
     const handleCompetitionTypeSelectChange = (evt:React.ChangeEvent<HTMLInputElement>) => {
-        const nextState = {...competitionTypeSelect, [evt.target.name]: evt.target.checked}
-        selectAllIfAllUnchecked(nextState);
+        const nextState = {...competitionTypeSelect, [evt.target.name]: {...competitionTypeSelect[evt.target.name], ...{selected: evt.target.checked}}}
+        if(!nextState.route.selected && !nextState.vtt.selected && !nextState.cx.selected){
+            nextState.route.selected = true;
+            nextState.vtt.selected = true;
+            nextState.cx.selected = true;
+        }
         setCompetitionTypeSelect(nextState)
     }
 
-    const handleDepartementSelectChange = (evt:any, value:object[]) => {
+    const handleDepartementSelectChange = (evt: any, value: any[]) => {
         setdepartementSelect(value)
     }
 
@@ -265,15 +270,15 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                 <div className={classes.titre}>Type d'épreuve</div>
                 <FormGroup row>
                     <FormControlLabel
-                        control={<Checkbox checked={competitionTypeSelect.route} name="route" onChange={handleCompetitionTypeSelectChange}/>}
+                        control={<Checkbox checked={competitionTypeSelect.route.selected} name="route" onChange={handleCompetitionTypeSelectChange}/>}
                         label='Route'
                     />
                     <FormControlLabel
-                        control={<Checkbox checked={competitionTypeSelect.vtt} name="vtt" onChange={handleCompetitionTypeSelectChange}/>}
+                        control={<Checkbox checked={competitionTypeSelect.vtt.selected} name="vtt" onChange={handleCompetitionTypeSelectChange}/>}
                         label='VTT'
                     />
                     <FormControlLabel
-                        control={<Checkbox checked={competitionTypeSelect.cx} name="cx" onChange={handleCompetitionTypeSelectChange}/>}
+                        control={<Checkbox checked={competitionTypeSelect.cx.selected} name="cx" onChange={handleCompetitionTypeSelectChange}/>}
                         label='CX'
                     />
                 </FormGroup>
@@ -299,7 +304,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                     selectionMode="single"
                     onSelectionChange={e => setSelectedCompetition(e.value)}
                 >
-                    {/*<Column
+                    <Column
                         header={
                             <IconButton style={{height:20,padding:0}} onClick={() => handleShowFilterClick()}>
                                 <SearchIcon height={20} style={{padding:0}} htmlColor={'#333333'}/>
@@ -312,7 +317,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                             paddingRight: 5,
                             cursor: 'pointer'
                         }}
-                    />*/}
+                    />
                     <Column field='engagement' header='Engagements' body={displayEngagement}
                             style={{width: '8%',textAlign:'center'}}
                     />
@@ -321,19 +326,26 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                     />
                     <Column field='eventDate' header='Date' body={displayDate}
                             style={{width: '8%'}}
+                            {...filterOptions} sortable={true}
                     />
                     <Column field='name' header="Nom de l'épreuve"
                             style={{width: '16%'}}
+                            {...filterOptions} sortable={true}
                     />
                     <Column field='zipCode' header='Lieu'
                             style={{width: '8%'}}
+                            {...filterOptions} sortable={true}
                     />
                     <Column field='club.longName' header='Club'
                             style={{width: '16%'}}
+                            {...filterOptions}
                     />
-                    <Column field='categories' header='Catégories' body={displayCategories}/>
+                    <Column field='categories' header='Catégories' body={displayCategories}
+                            {...filterOptions}
+                    />
                     <Column field='fede' header='Fédération'
                             style={{width: '8%'}}
+                            {...filterOptions}
                     />
                 </DataTable>
             </Paper>)

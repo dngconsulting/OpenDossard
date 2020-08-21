@@ -1,17 +1,16 @@
 import { BadRequestException, Body, Controller, Get, Logger, NotFoundException, Param, Post, UseGuards} from '@nestjs/common';
 import {ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
-import {Any, Between, EntityManager, LessThanOrEqual, MoreThanOrEqual, Repository, In} from 'typeorm';
+import {Any, Between, EntityManager, Repository} from 'typeorm';
 import {CompetitionEntity, CompetitionType} from '../entity/competition.entity';
 import {RaceEntity} from '../entity/race.entity';
 import {AuthGuard} from '@nestjs/passport';
 import {CompetitionFilter, CompetitionReorganize, CompetitionsPage, Departement, Search} from '../dto/model.dto';
-import * as moment from 'moment'
+import * as moment from 'moment';
 import {TooMuchResults} from "../exception/TooMuchResults";
 import {ROLES, RolesGuard} from "../guards/roles.guard";
 import {Roles} from "../decorators/roles.decorator";
 import {FindManyOptions} from "typeorm/find-options/FindManyOptions";
-import {FederationEntity} from "../entity/federation.entity";
 
 const MAX_COMPETITION_TODISPLAY = 5000;
 /**
@@ -71,64 +70,53 @@ export class CompetitionController {
     })
     @Roles(ROLES.MOBILE, ROLES.ORGANISATEUR, ROLES.ADMIN)
     public async getCompetitionByFilterAndPage(@Body() search: Search): Promise<CompetitionsPage> {
-        console.log(search);
+        const qb = this.repository.createQueryBuilder('comp');
 
-        const fedeFilter = {fede: Any([FederationEntity.FSGT, FederationEntity.UFOLEP])}
-
-        let dateFilter = {};
-        let competitionTypeFilter = {};
-        let deptFilter = {};
         search.filters.map(filter => {
-            if (filter.name === 'pastOrFuture') {
+            if (filter.name === 'fedes') {
+                if (filter.value.length > 0) {
+                    qb.andWhere('comp.fede IN(:...fedes)', {fedes: filter.value});
+                }
+            } else if (filter.name === 'pastOrFuture') {
                 if (filter.value.past && !filter.value.future) {
-                    dateFilter = {eventDate: LessThanOrEqual(moment().endOf('day'))};
+                    qb.andWhere('comp.eventDate <= :date', {date: moment().endOf('day')});
+                } else if (filter.value.future && !filter.value.past) {
+                    qb.andWhere('comp.eventDate >= :date', {date: moment().startOf('day')});
                 }
-                if (filter.value.future && !filter.value.past) {
-                    dateFilter = {eventDate: MoreThanOrEqual(moment().startOf('day'))};
+            } else if (filter.name === 'types') {
+                if (filter.value.length > 0) {
+                    qb.andWhere('comp.competitionType IN(:...types)', {types: filter.value});
                 }
-            } else if (filter.name === 'competitionType') {
-                const values = [];
-                if (filter.value.route) {
-                    values.push(CompetitionType.ROUTE);
+            } else if (filter.name === 'depts') {
+                if (filter.value.length > 0) {
+                    qb.andWhere('comp.dept IN (:...depts)', {depts: filter.value});
                 }
-                if (filter.value.vtt) {
-                    values.push(CompetitionType.VTT);
-                }
-                if (filter.value.cx) {
-                    values.push(CompetitionType.CX);
-                }
-                console.log(values);
-                if (values.length > 0) {
-                    competitionTypeFilter = {competitionType: In(values)};
-                }
-            } else if (filter.name === 'depts' && filter.value.length > 0) {
-                const values = filter.value.map(d => d.code);
-                deptFilter = {dept: In(values)};
+            } else if (filter.name === 'club.longName') {
+                qb.andWhere('club.longName ilike :club', {club: `%${filter.value}%`});
+            } else if (filter.name === 'eventDate') {
+                qb.andWhere("to_char(comp.eventDate,  'DD/MM/YYY') ilike :date", {date: `%${filter.value}%`});
+            } else {
+                // For other column, ilike on the field
+                qb.andWhere(`comp.${filter.name} ::text ilike :value`, {value: `%${filter.value}%`});
             }
         });
 
-        const query: FindManyOptions<CompetitionEntity> = {
-            where: {
-                ...fedeFilter,
-                ...dateFilter,
-                ...competitionTypeFilter,
-                ...deptFilter,
-            },
-            order: {
-                eventDate: 'DESC',
-            },
-            relations: ['club'],
-            skip: search.currentPage * search.pageSize,
-            take: search.pageSize,
+        if (search.orderDirection && search.orderBy) {
+            qb.orderBy(`comp.${search.orderBy}`, search.orderDirection);
+        } else {
+            qb.orderBy('comp.eventDate', 'DESC');
+        }
 
-        };
-
-        console.log(query);
-        const [result, totalCount] = await this.repository.findAndCount(query);
+        const [result, count] = await
+            qb
+                .leftJoinAndSelect('comp.club', 'club')
+                .skip(search.currentPage * search.pageSize)
+                .take(search.pageSize)
+                .getManyAndCount();
 
         return {
             data: result,
-            totalCount: totalCount,
+            totalCount: count,
         };
     }
 
