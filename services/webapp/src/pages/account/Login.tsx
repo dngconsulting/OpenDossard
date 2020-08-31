@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useEffect, useState} from 'react';
 import {
     Button,
     FormControl,
@@ -17,6 +18,7 @@ import {loadSDK, passportCtrl} from '../../util/api';
 import {UserEntity as User} from '../../sdk';
 import logohorizontal from '../../assets/logos/logoblanc.svg';
 import {cadtheme} from '../../theme/theme';
+import {makeStyles} from "@material-ui/core/styles";
 
 interface ILoginProps {
     login?: (data: any) => void;
@@ -32,119 +34,137 @@ interface ILoginState {
     error: boolean
 }
 
-class LoginPage extends React.Component<ILoginProps, ILoginState> {
-    public state = {
+const LoginPage = (props: ILoginProps) => {
+    const [isAuthenticating,setAuthenticating] = useState<boolean>(true);
+    const [state, setState] = useState<{ email?: string, password?: string, error?: boolean }>({
         email: '',
         password: '',
         error: false
-    };
-
-    private handleEmailAddressChange = (event: any) => {
-        if (event.target.value !== this.state.email) {
-            this.setState({email: event.target.value, error: false});
+    });
+    useEffect(()=>{
+        const fetchToken = async () => {
+            const token = localStorage.getItem('token') || ''
+            if (token !== null && token !== '') {
+                try {
+                    loadSDK(token);
+                    const me = await passportCtrl.me()
+                    setState({email:me.email})
+                    props.login(me);
+                } catch (e) {
+                    localStorage.removeItem('token')
+                }
+            }
+            setAuthenticating(false)
+        }
+        fetchToken()
+    },[]);
+    const handleEmailAddressChange = (event: any) => {
+        if (event.target.value !== state.email) {
+            setState({...state,email: event.target.value, error: false});
         }
     };
 
-    private handlePasswordChange = (event: any) => {
-        if (event.target.password !== this.state.password) {
-            this.setState({password: event.target.value, error: false});
+    const handlePasswordChange = (event: any) => {
+        if (event.target.password !== state.password) {
+            setState({...state,password: event.target.value, error: false});
         }
     };
 
-    private handleLogin = async () => {
+    const handleLogin = async () => {
         try {
             const user: User = await passportCtrl.login({
                 userEntity: {
                     id: -1,
-                    email: this.state.email,
-                    password: this.state.password
+                    email: state.email,
+                    password: state.password
                 }
             });
             loadSDK(user.accessToken);
-            this.props.login(user);
+            localStorage.setItem('token', user.accessToken);
+            props.login(user);
         } catch (err) {
-            this.setState({error: true});
+            setState({...state,error: true});
         }
     };
 
-    public render(): JSX.Element {
-        const classes = this.props.classes;
+    const classes = useStyles();
 
-        if (this.props.user) {
-            const path: string = querystring.parse((this.props.location.search as string).substr(1)).redirect as any || '/engagements';
-            return <Redirect to={path}/>;
-        }
-
-        return (
-            <div className={classes.container}>
-                <Paper style={{
-                    maxWidth: '400px',
-                    width: '90%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignContent: 'center'
-                }}>
-                    <div style={{
-                        display: 'flex',
-                        backgroundColor: cadtheme.palette.primary.main,
-                        alignItems: 'center',
-                        padding: '10px',
-                        justifyContent: 'center',
-                    }}><img src={logohorizontal} width='171' height='92' alt='logo'/></div>
-                    <FormControl required={true} fullWidth={true} className={classes.field}>
-                        <InputLabel error={this.state.error} style={{padding: 10}} htmlFor="email">Adresse
-                            mail ou identifiant Open Dossard</InputLabel>
-                        <Input
-                            value={this.state.email}
-                            error={this.state.error}
-                            onChange={this.handleEmailAddressChange}
-                            id="email"
-                            startAdornment={
-                                <InputAdornment position="start">
-                                    <Icon>email</Icon>
-                                </InputAdornment>}
-                        />
-                    </FormControl>
-                    <FormControl required={true} fullWidth={true} className={classes.field}>
-                        <InputLabel error={this.state.error} style={{padding: 10}}
-                                    htmlFor="password">Mot de passe</InputLabel>
-                        <Input
-                            value={this.state.password}
-                            error={this.state.error}
-                            onChange={this.handlePasswordChange}
-                            type="password"
-                            id="password"
-                            startAdornment={
-                                <InputAdornment position="start">
-                                    <Icon>lock</Icon>
-                                </InputAdornment>}
-                        />
-                    </FormControl>
-                    {this.state.error &&
-                    <FormControl error={true} component="fieldset" className={classes.formControl}>
-                      <FormHelperText>Le login ou le mot de passe est incorrect</FormHelperText>
-                    </FormControl>}
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        height: '100px'
-                    }}>
-                        <Button
-                            onClick={this.handleLogin}
-                            variant="contained"
-                            color="primary"
-                            className={classes.button}>
-                            Valider
-                        </Button>
-                    </div>
-                </Paper>
-            </div>
-        );
+   if (props.user) {
+        const path: string = querystring.parse((props.location.search as string).substr(1)).redirect as any || '/engagements';
+        return <Redirect to={path}/>;
     }
+    if (!isAuthenticating) {
+    return (
+        <div className={classes.container}>
+            <Paper style={{
+                maxWidth: '400px',
+                width: '90%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignContent: 'center'
+            }}>
+                <div style={{
+                    display: 'flex',
+                    backgroundColor: cadtheme.palette.primary.main,
+                    alignItems: 'center',
+                    padding: '10px',
+                    justifyContent: 'center',
+                }}><img src={logohorizontal} width='171' height='92' alt='logo'/></div>
+                <FormControl required={true} fullWidth={true} className={classes.field}>
+                    <InputLabel error={state.error} style={{padding: 10}} htmlFor="email">Adresse
+                        mail ou identifiant Open Dossard</InputLabel>
+                    <Input
+                        value={state.email}
+                        error={state.error}
+                        onChange={handleEmailAddressChange}
+                        id="email"
+                        startAdornment={
+                            <InputAdornment position="start">
+                                <Icon>email</Icon>
+                            </InputAdornment>}
+                    />
+                </FormControl>
+                <FormControl required={true} fullWidth={true} className={classes.field}>
+                    <InputLabel error={state.error} style={{padding: 10}}
+                                htmlFor="password">Mot de passe</InputLabel>
+                    <Input
+                        value={state.password}
+                        error={state.error}
+                        onChange={handlePasswordChange}
+                        type="password"
+                        id="password"
+                        startAdornment={
+                            <InputAdornment position="start">
+                                <Icon>lock</Icon>
+                            </InputAdornment>}
+                    />
+                </FormControl>
+                {state.error &&
+                <FormControl error={true} component="fieldset" className={classes.formControl}>
+                  <FormHelperText>Login ou mot de passe incorrect (ou serveur injoignable)</FormHelperText>
+                </FormControl>}
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '100px'
+                }}>
+                    <Button
+                        onClick={handleLogin}
+                        variant="contained"
+                        color="primary"
+                        className={classes.button}>
+                        Valider
+                    </Button>
+                </div>
+            </Paper>
+        </div>
+    )} else return (
+        <p style={{textAlign:'center'}}>Chargement de la page en cours ...</p>
+    );
 }
 
-const styles = (theme: Theme) => ({
+const useStyles = makeStyles({
     container: {
         display: 'flex',
         justifyContent: 'center',
@@ -154,15 +174,24 @@ const styles = (theme: Theme) => ({
         padding: 10
     },
     field: {
-        padding: theme.spacing(3)
+        padding: 30
     },
-    actions: theme.mixins.gutters({
+    actions: {
         display: 'flex',
         flexDirection: 'row',
         alignContent: 'center'
-    }),
+    },
+    button: {
+        fontWeight: 'bold',
+        width: 200,
+        height: 40,
+        cursor: 'pointer',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
 
 });
 
-export default withStyles(styles, {withTheme: true})(LoginPage as any) as any;
+export default LoginPage;
 

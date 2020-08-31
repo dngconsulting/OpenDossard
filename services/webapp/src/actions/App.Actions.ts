@@ -90,5 +90,6 @@ export function setVar(variable : any) {
 }
 
 export const logout = (): IAppAction => {
+    localStorage.removeItem('token');
     return { type: ActionType.LOGOUT_REQUEST };
 };

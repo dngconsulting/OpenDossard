@@ -10,9 +10,19 @@ export let defaultApiconfig: ConfigurationParameters = {
     basePath: window.location.origin,
     middleware: [{
         pre(context: RequestContext): any {
+            const authHeader = context.init.headers['Authorization'];
+            if (!authHeader)
+            {
+                console.log('no token in the request, lets get the existing one ');
+                const token = localStorage.getItem('token');
+                if (token) {
+                    context.init.headers['Authorization'] = 'Bearer ' + token
+                    loadSDK(token);
+                }
+            }
         },
         post: async (context: ResponseContext): Promise<void> => {
-            if (context.response.status === 401) {
+            if (context.response.status === 401 && !context.url.includes("/auth/login")) {
                 console.log('token expired, redirecting login page ...')
                 // static store access, probably better to inject dispatch via connect()
                 store.dispatch(logout())
