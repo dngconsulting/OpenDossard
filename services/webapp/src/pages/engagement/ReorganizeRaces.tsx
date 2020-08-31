@@ -159,10 +159,10 @@ export const Reorganizer = ({tooltip, disabled, competition, rows, onSuccess,}: 
     return <div>
         <Tooltip title={tooltip}>
             <span>
-            <ActionButton disabled={disabled}
+            <ActionButton color="primary" disabled={disabled}
                           onClick={() => setOpen(true)}><span
-                style={{color: disabled ? cadtheme.palette.grey.A100 : "white"}}><ThreeSixty style={{
-                color: disabled ? cadtheme.palette.grey.A100 : "white",
+                style={{color: "white"}}><ThreeSixty style={{
+                color: "white",
                 verticalAlign: 'middle'
             }}/>Réorganiser la course</span></ActionButton>
             </span>
@@ -190,7 +190,7 @@ export const Reorganizer = ({tooltip, disabled, competition, rows, onSuccess,}: 
                 }
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => setOpen(false)} variant='contained' color="primary">
+                <Button onClick={() => setOpen(false)} variant='contained' color="secondary">
                     Annuler
                 </Button>
                 <Button onClick={() => save()} variant='contained' color="primary"

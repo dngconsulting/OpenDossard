@@ -526,18 +526,19 @@ const EditResultsPage = (gprops: any) => {
 
                         <div style={{display:'flex',flexDirection:'row',backgroundColor:'#3333330d', cursor:'pointer', justifyContent:'space-between', padding:'5px'}}>
                             <div style={{display:'flex',flexDirection:'row'}}>
-                                <ActionButton title="Visualiser ou éditer les classements">{isEdit?<PageviewSharp style={{color:'white',verticalAlign:'middle'}}/>:<Edit style={{color:'white',verticalAlign:'middle'}}/>}
+                                <ActionButton color="primary" title="Visualiser ou éditer les classements">{isEdit?<PageviewSharp style={{color:'white',verticalAlign:'middle'}}/>:<Edit style={{color:'white',verticalAlign:'middle'}}/>}
                                     <Link style={{color:'white'}} to={"/competition/" + competition?.id + "/results/" + (isEdit?'view':'edit')}>{isEdit?"Passer en visualisation":"Passer en edition"}</Link>
                                 </ActionButton>
-                                {isEdit && (modeDNFActivated ?<ActionButton>
+                                {isEdit && (modeDNFActivated ?<ActionButton color={'secondary'}>
                                         <a style={{color:'white'}} onClick={(e)=>setModeDNFActivated(false)}>Arrêter saisie des abandons</a></ActionButton>:
-                                    <ActionButton title="Saisir les déclassés, abandons, ..." style={{fontSize:'12px',padding:'5px'}} variant="extended" color="secondary" size='small' aria-label="add">
+                                    <ActionButton title="Saisir les déclassés, abandons, ..." style={{fontSize:'12px',padding:'5px'}} variant="extended" color="primary" size='small' aria-label="add">
                                         <Edit style={{verticalAlign:'middle'}}/>
-                                        <a style={{color:'white'}} onClick={(e)=>setShowDNFDialog(true)}>Saisir les abandons</a>
+                                        <a style={{color:'white'}} onClick={(e)=>setModeDNFActivated(true)}>Saisir les abandons</a>
                                     </ActionButton>)}
-                                {isEdit &&<ActionButton title="Saisir speakers, commissaires, observations ou valider les classements" onClick={()=>{setOpenInfoGen(true)}}><span style={{color:'white'}}><Edit style={{verticalAlign:'middle'}}/>Informations épreuve</span></ActionButton>}
+                                {isEdit &&<ActionButton color="primary" title="Saisir speakers, commissaires, observations ou valider les classements" onClick={()=>{setOpenInfoGen(true)}}><span style={{color:'white'}}><Edit style={{verticalAlign:'middle'}}/>Informations épreuve</span></ActionButton>}
                                 <ActionButton
                                     title="Télécharger"
+                                    color="primary"
                                     aria-controls={'download-menu'}
                                     aria-haspopup="true"
                                     onClick={(evt:React.MouseEvent)=> setDownloadMenuAnchorEl(evt.currentTarget)}

@@ -292,6 +292,7 @@ const EngagementPage = (props: any) => {
                                 }}/>
                                 <ActionButton
                                     title="Télécharger"
+                                    color="primary"
                                     aria-controls={'download-menu'}
                                     aria-haspopup="true"
                                     onClick={(evt:React.MouseEvent)=> setDownloadMenuAnchorEl(evt.currentTarget)}
@@ -300,6 +301,7 @@ const EngagementPage = (props: any) => {
                                 </ActionButton>
                                 <DropdownMenu
                                     id="download-menu"
+                                    color="primary"
                                     anchorEl={downloadMenuAnchorEl}
                                     open={Boolean(downloadMenuAnchorEl)}
                                     onClose={() => setDownloadMenuAnchorEl(null)}
