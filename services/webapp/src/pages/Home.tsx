@@ -143,7 +143,7 @@ const HomePage = (props: IDashboardProps) => {
         options.xAxis.categories = clubAndNbOrdered.map(item => item.club);
         setOptionNbRidersChartClub(options);
     };
-    const startDate = (startDateRef && startDateRef.current)?startDateRef.current.value:"2018-05-24";
+    const startDate = (startDateRef && startDateRef.current)?startDateRef.current.value:"2020-02-01";
     const endDate = (endDateRef && endDateRef.current)?endDateRef.current.value:moment().locale('fr').format('YYYY-MM-DD');
     const getRacesDebounce = AwesomeDebouncePromise((d1,d2) => apiRaces.getRaces({
         competitionFilter:{
