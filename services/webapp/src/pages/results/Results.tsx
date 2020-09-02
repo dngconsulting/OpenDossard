@@ -246,7 +246,7 @@ const EditResultsPage = (gprops: any) => {
                     return rowdata.classement + ((rankOfCate(rowdata, transformedRows) !== '' && !isNaN(rowdata.classement) && rowdata.riderNumber) ? (' (' + rankOfCate(rowdata, transformedRows) + ')') : '');
                 };
 
-                const displayRankOfCate = (rowdata:any) => {
+                const displayRankOfCate = (rowdata:any,transformedRows:any) => {
                     if (rowdata.comment!=null) return rowdata.classement
                     return rankOfCate(rowdata, transformedRows)
                 }
@@ -401,7 +401,7 @@ const EditResultsPage = (gprops: any) => {
                         const filteredRowsByRace = transformRows(filterByRace(rows, currentRace))
                         filteredRowsByRace.forEach((r:RaceRow,index:number)=>{
                             (r.rankingScratch || r.comment) && rowstoDisplay.push(
-                                [r.rankingScratch,displayRankOfCate(r),displayDossard(r.riderNumber.toString()),r.name,r.club,r.gender,r.catev,r.catea,r.fede])
+                                [r.rankingScratch,displayRankOfCate(r,filteredRowsByRace),displayDossard(r.riderNumber.toString()),r.name,r.club,r.gender,r.catev,r.catea,r.fede])
                         })
                         // @ts-ignore
                         var totalPagesExp = '{total_pages_count_string}'
