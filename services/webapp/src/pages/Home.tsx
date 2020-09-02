@@ -140,7 +140,7 @@ const HomePage = (props: IDashboardProps) => {
         // @ts-ignore
         options.series[0].data = clubAndNbOrdered.map(item => item.nb);
         // @ts-ignore
-        options.xAxis.categories = clubAndNbOrdered.map(item => item.club);
+        options.xAxis.categories = clubAndNbOrdered.map(item => item.club===''?'Non Licenciés':item.club);
         setOptionNbRidersChartClub(options);
     };
     const startDate = (startDateRef && startDateRef.current)?startDateRef.current.value:"2020-02-01";

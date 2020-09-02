@@ -1,4 +1,4 @@
-import React, {CSSProperties, HTMLAttributes, useEffect, useState} from 'react';
+import React, {HTMLAttributes, useEffect, useState} from 'react';
 import CreatableSelect from 'react-select/creatable';
 import {createStyles, makeStyles, Theme, useTheme} from '@material-ui/core/styles';
 import TextField, {BaseTextFieldProps} from '@material-ui/core/TextField';
@@ -129,7 +129,7 @@ export default function ClubSelect({dept, onSelect, chosenClub,fede} : {dept:str
         setLoading(false)
     }
     const selectStyles = {
-        input: (base: CSSProperties) => ({
+        input: (base: any) => ({
             ...base,
             color: theme.palette.text.primary,
             '& input': {
