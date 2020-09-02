@@ -62,7 +62,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
             path: '/competitionchooser',
             hash:'past',
             state: {title: 'Liste des épreuves'},
-            title: 'Liste des épreuves',
+            title: 'Épreuves',
             icon: () => <AssignmentIcon/>
         },
         ...(props && props.authentication && props.authentication.roles && props.authentication.roles.includes('ADMIN') ? [{
@@ -84,7 +84,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
             key: '6',
             path: '/account',
             state: {title: 'Profile'},
-            title: 'Profile',
+            title: 'Mon compte',
             icon: () => <AccountCircleIcon/>
         }
     ];
@@ -115,7 +115,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
                                           primary={<Typography style={{
                                               fontSize: 20,
                                               color: '#FFFFFF'
-                                          }}>{(authentication && authentication.firstName ? authentication.firstName : '') + ' ' + (authentication && authentication.lastName ? authentication.lastName : '')} </Typography>}
+                                          }}>{(authentication && authentication.lastName ? authentication.lastName : '')} </Typography>}
                                           secondary={<Typography style={{
                                               fontSize: 13,
                                               color: '#FFFFFF'
