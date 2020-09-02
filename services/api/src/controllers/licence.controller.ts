@@ -105,9 +105,6 @@ export class LicenceController {
             qb.orWhere('licence_number ilike :value', {value: '%' + search.search + '%'});
             qb.orWhere(' name ilike :name', {name: '%' + search.search + '%'});
             qb.orWhere('first_name ilike :firstName', {firstName: '%' + search.search + '%'});
-            qb.orWhere(' club ilike :club', {club: '%' + search.search + '%'});
-            qb.orWhere(' birth_year ilike :birthYear', {birthYear: '%' + search.search + '%'});
-            qb.orWhere(' dept ilike :dept', {dept: '%' + search.search + '%'});
         }
         const res = await
             qb

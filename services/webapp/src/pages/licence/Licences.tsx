@@ -183,6 +183,7 @@ const LicencesPage = (props: ILicencesProps) => {
                     maxBodyHeight: windowDimensions.height - 200,
                     pageSizeOptions: [5, 10, 17, 20, 100],
                     search: true,
+                    searchFieldStyle: {width:320},
                     exportButton: true,
                     exportFileName:"licences",
                     headerStyle: {
@@ -236,7 +237,7 @@ const LicencesPage = (props: ILicencesProps) => {
                         }
                     },
                     {
-                        icon: () => <ActionButton><span style={{color:'white'}} ><PictureAsPdf style={{verticalAlign:'middle'}}/>Export PDF</span></ActionButton>,
+                        icon: () => <ActionButton color={'primary'}><span style={{color:'white'}} ><PictureAsPdf style={{verticalAlign:'middle'}}/>Export PDF</span></ActionButton>,
                         tooltip: "Exporter la page courante en PDF",
                         isFreeAction: true,
                         onClick: () => {
@@ -268,7 +269,7 @@ const LicencesPage = (props: ILicencesProps) => {
                     },
                     toolbar: {
                         searchTooltip: T.LICENCES.TOOLBAR.SEARCH_TOOL_TIP,
-                        searchPlaceholder: T.LICENCES.TOOLBAR.SEARCH_PLACE_HOLDER
+                        searchPlaceholder: 'Nom ou Prenom ou N° Licence'
                     }
                 }}
             />
