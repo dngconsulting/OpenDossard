@@ -4,6 +4,8 @@ services:
   dossarddb:
     container_name: dossarddb
     image: postgres:9.6-alpine
+    env_file:
+      - ./config/prod.env
     volumes:
       - postgres:/var/lib/postgresql/data:rw
     ports:

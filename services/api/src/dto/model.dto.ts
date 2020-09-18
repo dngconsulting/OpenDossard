@@ -1,5 +1,9 @@
 import {LicenceEntity} from '../entity/licence.entity';
 import {ApiProperty, ApiPropertyOptional} from '@nestjs/swagger';
+import { ClubEntity } from 'src/entity/club.entity';
+import { FederationEntity } from 'src/entity/federation.entity';
+import { Category, CompetitionType } from 'src/entity/competition.entity';
+import { PricingInfo } from 'src/entity/pricing-info';
 
 export class ClubRow {
     public id?: number;
@@ -99,4 +103,39 @@ export class Departement {
     departmentName: string;
     regionCode: string;
     regionName:string;
+}
+
+export class CompetitionCreate{
+    
+    competitionId: number;
+    name: string;
+    competitionType?:CompetitionType;
+    fede?:FederationEntity;
+    categories?:Category[];
+    races?: string[];
+    eventDate : Date;
+    zipCode : string;
+    club : ClubEntity;
+    info ?: string;
+    lapNumber?: string;
+    longueurCircuit ?: string;
+    contactPhone ?: string;
+    contactEmail ?: string;
+    siteWeb ?: string;
+    facebook ?: string;
+    latitude ?: number;
+    longitude ?: number;
+    pricing ?: PricingInfo [];
+    startDate ?:string;
+    openedToOtherFede?: boolean;
+    openedNL?: boolean;
+    observations?:string;
+    lieu_dossard?:string;
+    lieu_dossard_gps?:number[];
+    contact_name?:string;
+    commissaires?:string;
+    speaker?:string;
+    aboyeur?:string;
+    feedback?:string;
+    results_validated?:boolean;
 }

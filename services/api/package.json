@@ -39,12 +39,13 @@
     "@nestjs/platform-express": "6.10.7",
     "@nestjs/serve-static": "1.0.2",
     "@nestjs/swagger": "4.5.12",
-    "@nestjs/typeorm": "6.2.0",
+    "@nestjs/typeorm": "^6.2.0",
     "bcryptjs": "2.4.3",
     "class-transformer": "0.2.3",
     "class-validator": "0.10.1",
     "convict": "5.1.0",
     "lodash": "4.17.15",
+    "mysql": "^2.18.1",
     "passport": "0.4.0",
     "passport-jwt": "4.0.0",
     "passport-local": "1.0.0",
@@ -54,7 +55,7 @@
     "rxjs": "6.5.3",
     "swagger-stats": "^0.95.17",
     "swagger-ui-express": "4.1.4",
-    "typeorm": "0.2.19"
+    "typeorm": "^0.2.19"
   },
   "devDependencies": {
     "@nestjs/cli": "6.12.9",

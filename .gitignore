@@ -10,3 +10,4 @@ var
 /services/api/src/coverage/
 /node_modules/
 /services/webapp/package-lock.json
+services/api/package-lock.json

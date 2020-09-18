@@ -7,6 +7,7 @@ import {
     NotFoundException,
     Param,
     Post,
+    Put,
     UseGuards,
 } from '@nestjs/common';
 import {ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
@@ -15,7 +16,7 @@ import {Any, Between, EntityManager, Repository} from 'typeorm';
 import {CompetitionEntity, CompetitionType} from '../entity/competition.entity';
 import {RaceEntity} from '../entity/race.entity';
 import {AuthGuard} from '@nestjs/passport';
-import {CompetitionFilter, CompetitionReorganize, Departement} from '../dto/model.dto';
+import {CompetitionCreate, CompetitionFilter, CompetitionReorganize, Departement} from '../dto/model.dto';
 import * as moment from 'moment'
 import {TooMuchResults} from "../exception/TooMuchResults";
 import {ROLES, RolesGuard} from "../guards/roles.guard";
@@ -174,6 +175,83 @@ export class CompetitionController {
         competition.commissaires = competitionToSave.commissaires;
         competition.speaker = competitionToSave.speaker;
         competitionToSave.resultsValidated!=null && (competition.resultsValidated = competitionToSave.resultsValidated);
+        return await this.entityManager.save(competition)
+    }
+
+    @Post('/saveCompetition')
+    @ApiOperation({
+        operationId: 'saveCompetition',
+        summary: 'Création d\'une épreuve'
+    })
+    @ApiResponse({status: 200, isArray: false})
+    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
+    public async createCompetition(@Body() dto: CompetitionCreate): Promise<CompetitionEntity> {
+        console.log(dto.categories)
+        console.log(dto.name)
+        console.log(dto)
+        if(!dto.competitionType) throw new BadRequestException("le type de la compétition doit être renseigné.");
+        if (dto.name==="" || !dto.name) throw new BadRequestException("le nom de la compétition ne peut pas être nul.");
+        if(!dto.categories) throw new BadRequestException("les catégories de la compétition ne peuvent pas être nulles.");
+        if(!dto.races) throw new BadRequestException("les catégories de la compétition ne peuvent pas être nulles.");
+        if (!dto.eventDate) throw new BadRequestException("la date de la compétition ne peut pas être nulle.");
+        if(dto.zipCode==="" || !dto.zipCode) throw new BadRequestException("le code postal de la compétition ne peut pas être nul.");
+        if (dto.club===null) throw new BadRequestException("le club organisant la compétition ne peut pas être nul.");
+
+        const competition = new CompetitionEntity();
+        competition.name=dto.name;
+        competition.eventDate=dto.eventDate;
+        competition.zipCode=dto.zipCode;
+        competition.info=dto.info;
+        competition.siteweb=dto.siteWeb;
+        competition.longueurCircuit=dto.longueurCircuit;
+        competition.club=dto.club;
+        competition.contactPhone=dto.contactPhone;
+        competition.facebook=dto.facebook;
+        competition.contactEmail=dto.contactEmail;
+        competition.categories=dto.categories;
+        competition.fede=dto.fede;
+        competition.competitionType=dto.competitionType;
+        competition.races=dto.races
+    
+        return await this.entityManager.save(competition)
+    }
+
+    @Put(':id')
+    @ApiOperation({
+        operationId: 'updateCompetition',
+        summary: 'Sauvegarde les informations générales d\'une épreuve'
+    })
+    @ApiResponse({status: 200, isArray: false})
+    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
+    public async updateCompetition(@Param('id') id: string, @Body() dto: CompetitionCreate): Promise<CompetitionEntity> {
+        const competition = await this.repository.findOne(id);
+        if (!competition) {
+            throw new BadRequestException(`Competition ${id} not found`);
+        }
+        if(!dto.competitionType) throw new BadRequestException("le type de la compétition doit être renseigné.");
+        if (dto.name==="" || !dto.name) throw new BadRequestException("le nom de la compétition ne peut pas être nul.");
+        if(!dto.categories) throw new BadRequestException("les catégories de la compétition ne peuvent pas être nulles.");
+        if(!dto.races) throw new BadRequestException("les catégories de la compétition ne peuvent pas être nulles.");
+        if (!dto.eventDate) throw new BadRequestException("la date de la compétition ne peut pas être nulle.");
+        if(dto.zipCode==="" || !dto.zipCode) throw new BadRequestException("le code postal de la compétition ne peut pas être nul.");
+        if (dto.club===null) throw new BadRequestException("le club organisant la compétition ne peut pas être nul.");
+
+        
+        competition.name=dto.name;
+        competition.eventDate=dto.eventDate;
+        competition.zipCode=dto.zipCode;
+        competition.info=dto.info;
+        competition.siteweb=dto.siteWeb;
+        competition.longueurCircuit=dto.longueurCircuit;
+        competition.club=dto.club;
+        competition.contactPhone=dto.contactPhone;
+        competition.facebook=dto.facebook;
+        competition.contactEmail=dto.contactEmail;
+        competition.categories=dto.categories;
+        competition.fede=dto.fede;
+        competition.competitionType=dto.competitionType;
+        competition.races=dto.races
+    
         return await this.entityManager.save(competition)
     }
 }

@@ -67,6 +67,7 @@ export class CompetitionEntity {
      * La liste des catégories de valeurs concernées par l'épreuve
      * [PREMIERES, SECONDES, QUATRIEMES, CADETS, ...]
      */
+    
     @Column('simple-array')
     public categories: Category[];
 
