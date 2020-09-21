@@ -8,20 +8,21 @@ import {
     Param,
     Post,
     Put,
+    Delete,
     UseGuards,
 } from '@nestjs/common';
-import {ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
-import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
-import {Any, Between, EntityManager, Repository} from 'typeorm';
-import {CompetitionEntity, CompetitionType} from '../entity/competition.entity';
-import {RaceEntity} from '../entity/race.entity';
-import {AuthGuard} from '@nestjs/passport';
-import {CompetitionCreate, CompetitionFilter, CompetitionReorganize, Departement} from '../dto/model.dto';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import { Any, Between, EntityManager, Repository } from 'typeorm';
+import { CompetitionEntity, CompetitionType } from '../entity/competition.entity';
+import { RaceEntity } from '../entity/race.entity';
+import { AuthGuard } from '@nestjs/passport';
+import { CompetitionCreate, CompetitionFilter, CompetitionReorganize, Departement } from '../dto/model.dto';
 import * as moment from 'moment'
-import {TooMuchResults} from "../exception/TooMuchResults";
-import {ROLES, RolesGuard} from "../guards/roles.guard";
-import {Roles} from "../decorators/roles.decorator";
-import {FindManyOptions} from "typeorm/find-options/FindManyOptions";
+import { TooMuchResults } from "../exception/TooMuchResults";
+import { ROLES, RolesGuard } from "../guards/roles.guard";
+import { Roles } from "../decorators/roles.decorator";
+import { FindManyOptions } from "typeorm/find-options/FindManyOptions";
 
 const MAX_COMPETITION_TODISPLAY = 5000;
 /**
@@ -30,7 +31,7 @@ const MAX_COMPETITION_TODISPLAY = 5000;
  */
 @Controller('/api/competition')
 @ApiTags('CompetitionAPI')
-@UseGuards(AuthGuard('jwt'),RolesGuard)
+@UseGuards(AuthGuard('jwt'), RolesGuard)
 export class CompetitionController {
     constructor(
         @InjectRepository(CompetitionEntity)
@@ -52,13 +53,13 @@ export class CompetitionController {
         isArray: false,
         description: 'Renvoie une épreuve',
     })
-    @Roles(ROLES.MOBILE,ROLES.ORGANISATEUR,ROLES.ADMIN)
+    @Roles(ROLES.MOBILE, ROLES.ORGANISATEUR, ROLES.ADMIN)
     public async get(@Param('id') id: string): Promise<CompetitionEntity> {
         const r = await this.repository.find({
             order: {
                 eventDate: 'ASC',
             },
-            where: {id},
+            where: { id },
             relations: ['club'],
         });
 
@@ -81,34 +82,34 @@ export class CompetitionController {
         description: 'Rechercher Toutes les compétitions correspondant au filtre passé en paramètre',
     })
     @Post()
-    @Roles(ROLES.MOBILE,ROLES.ORGANISATEUR,ROLES.ADMIN)
-    public async getCompetitionsByFilter(@Body() competitionFilter : CompetitionFilter): Promise<CompetitionEntity[]> {
-        let futureEventDate,pastEventDate;
+    @Roles(ROLES.MOBILE, ROLES.ORGANISATEUR, ROLES.ADMIN)
+    public async getCompetitionsByFilter(@Body() competitionFilter: CompetitionFilter): Promise<CompetitionEntity[]> {
+        let futureEventDate, pastEventDate;
         console.log('[CompetitionController] Filtre => ' + JSON.stringify(competitionFilter));
-        const competFilter= competitionFilter.competitionTypes ? {competitionType: Any(Array.from(competitionFilter.competitionTypes))}:null
-        const fedeFilter=  competitionFilter.fedes? {fede: Any(Array.from(competitionFilter.fedes))}:null
-        if (competitionFilter.displayPast && competitionFilter.displayPast===true) {
+        const competFilter = competitionFilter.competitionTypes ? { competitionType: Any(Array.from(competitionFilter.competitionTypes)) } : null
+        const fedeFilter = competitionFilter.fedes ? { fede: Any(Array.from(competitionFilter.fedes)) } : null
+        if (competitionFilter.displayPast && competitionFilter.displayPast === true) {
             // If display since is not passed we set it by default to one year => 365 days
-            pastEventDate=moment(new Date()).subtract(competitionFilter.displaySince?competitionFilter.displaySince:365,'d').toDate()
+            pastEventDate = moment(new Date()).subtract(competitionFilter.displaySince ? competitionFilter.displaySince : 365, 'd').toDate()
         } else {
             // First minute of the current day
-            pastEventDate=moment(new Date()).startOf('day');
+            pastEventDate = moment(new Date()).startOf('day');
         }
-        if (competitionFilter.displayFuture && competitionFilter.displayFuture===true) {
+        if (competitionFilter.displayFuture && competitionFilter.displayFuture === true) {
             // Future is always set to 1 year, it has no sense to scope events planned in 2 or 3 years
-            futureEventDate=moment(new Date()).add(1,'y').toDate()
+            futureEventDate = moment(new Date()).add(1, 'y').toDate()
         } else {
             // Last minute of the current day
-            futureEventDate=moment(new Date()).endOf('day');
+            futureEventDate = moment(new Date()).endOf('day');
         }
-        const query : FindManyOptions<CompetitionEntity> = {
+        const query: FindManyOptions<CompetitionEntity> = {
             where: {
                 ...(competFilter),
                 ...(fedeFilter),
-                ...(competitionFilter.openedToOtherFede?{openedToOtherFede:competitionFilter.openedToOtherFede}:null),
-                ...(competitionFilter.openedNL?{openedNL:competitionFilter.openedNL}:null),
-                eventDate:Between(pastEventDate,futureEventDate),
-                ...(competitionFilter.depts && competitionFilter.depts.length>0?{dept:Any(competitionFilter.depts.map((dept:Departement)=>dept.departmentCode))}:null)
+                ...(competitionFilter.openedToOtherFede ? { openedToOtherFede: competitionFilter.openedToOtherFede } : null),
+                ...(competitionFilter.openedNL ? { openedNL: competitionFilter.openedNL } : null),
+                eventDate: Between(pastEventDate, futureEventDate),
+                ...(competitionFilter.depts && competitionFilter.depts.length > 0 ? { dept: Any(competitionFilter.depts.map((dept: Departement) => dept.departmentCode)) } : null)
             },
             order: {
                 eventDate: 'DESC',
@@ -118,7 +119,7 @@ export class CompetitionController {
         console.log('[CompetitionController] Query =' + JSON.stringify(query))
         const result: CompetitionEntity[] = await this.repository.find(query);
 
-        if (result.length>MAX_COMPETITION_TODISPLAY) {
+        if (result.length > MAX_COMPETITION_TODISPLAY) {
             throw new TooMuchResults();
         }
 
@@ -130,8 +131,8 @@ export class CompetitionController {
         operationId: 'reorganize',
         summary: 'Réorganisation des courses',
     })
-    @ApiResponse({status: 200, isArray: false})
-    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
+    @ApiResponse({ status: 200, isArray: false })
+    @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
     public async reorganize(@Body() dto: CompetitionReorganize): Promise<void> {
         const start = (new Date()).getTime();
         const competition = await this.repository.findOne(dto.competitionId);
@@ -140,7 +141,7 @@ export class CompetitionController {
         }
         dto.races = dto.races.filter(race => race.trim().length);
 
-        const rows = await this.entityManager.find<RaceEntity>(RaceEntity, {competition: {id: dto.competitionId}});
+        const rows = await this.entityManager.find<RaceEntity>(RaceEntity, { competition: { id: dto.competitionId } });
         Logger.debug('Rows to update found = ' + JSON.stringify(rows));
         let end = (new Date()).getTime();
         Logger.debug('Perf After finding races rows and current competition ' + (end - start) + 'ms');
@@ -163,8 +164,8 @@ export class CompetitionController {
         operationId: 'saveInfoGen',
         summary: 'Sauvegarde les informations générales d\'une épreuve (Speaker, Aboyeur, Commissaires,...)'
     })
-    @ApiResponse({status: 200, isArray: false})
-    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
+    @ApiResponse({ status: 200, isArray: false })
+    @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
     public async saveInfoGen(@Body() competitionToSave: CompetitionEntity): Promise<CompetitionEntity> {
         const competition = await this.repository.findOne(competitionToSave.id);
         if (!competition) throw new NotFoundException("Epreuve " + competitionToSave.name + " Introuvable")
@@ -174,7 +175,7 @@ export class CompetitionController {
         }
         competition.commissaires = competitionToSave.commissaires;
         competition.speaker = competitionToSave.speaker;
-        competitionToSave.resultsValidated!=null && (competition.resultsValidated = competitionToSave.resultsValidated);
+        competitionToSave.resultsValidated != null && (competition.resultsValidated = competitionToSave.resultsValidated);
         return await this.entityManager.save(competition)
     }
 
@@ -183,36 +184,36 @@ export class CompetitionController {
         operationId: 'saveCompetition',
         summary: 'Création d\'une épreuve'
     })
-    @ApiResponse({status: 200, isArray: false})
-    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
+    @ApiResponse({ status: 200, isArray: false })
+    @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
     public async createCompetition(@Body() dto: CompetitionCreate): Promise<CompetitionEntity> {
         console.log(dto.categories)
         console.log(dto.name)
         console.log(dto)
-        if(!dto.competitionType) throw new BadRequestException("le type de la compétition doit être renseigné.");
-        if (dto.name==="" || !dto.name) throw new BadRequestException("le nom de la compétition ne peut pas être nul.");
-        if(!dto.categories) throw new BadRequestException("les catégories de la compétition ne peuvent pas être nulles.");
-        if(!dto.races) throw new BadRequestException("les catégories de la compétition ne peuvent pas être nulles.");
+        if (!dto.competitionType) throw new BadRequestException("le type de la compétition doit être renseigné.");
+        if (dto.name === "" || !dto.name) throw new BadRequestException("le nom de la compétition ne peut pas être nul.");
+        if (!dto.categories) throw new BadRequestException("les catégories de la compétition ne peuvent pas être nulles.");
+        if (!dto.races) throw new BadRequestException("les catégories de la compétition ne peuvent pas être nulles.");
         if (!dto.eventDate) throw new BadRequestException("la date de la compétition ne peut pas être nulle.");
-        if(dto.zipCode==="" || !dto.zipCode) throw new BadRequestException("le code postal de la compétition ne peut pas être nul.");
-        if (dto.club===null) throw new BadRequestException("le club organisant la compétition ne peut pas être nul.");
+        if (dto.zipCode === "" || !dto.zipCode) throw new BadRequestException("le code postal de la compétition ne peut pas être nul.");
+        if (dto.club === null) throw new BadRequestException("le club organisant la compétition ne peut pas être nul.");
 
         const competition = new CompetitionEntity();
-        competition.name=dto.name;
-        competition.eventDate=dto.eventDate;
-        competition.zipCode=dto.zipCode;
-        competition.info=dto.info;
-        competition.siteweb=dto.siteWeb;
-        competition.longueurCircuit=dto.longueurCircuit;
-        competition.club=dto.club;
-        competition.contactPhone=dto.contactPhone;
-        competition.facebook=dto.facebook;
-        competition.contactEmail=dto.contactEmail;
-        competition.categories=dto.categories;
-        competition.fede=dto.fede;
-        competition.competitionType=dto.competitionType;
-        competition.races=dto.races
-    
+        competition.name = dto.name;
+        competition.eventDate = dto.eventDate;
+        competition.zipCode = dto.zipCode;
+        competition.info = dto.info;
+        competition.siteweb = dto.siteWeb;
+        competition.longueurCircuit = dto.longueurCircuit;
+        competition.club = dto.club;
+        competition.contactPhone = dto.contactPhone;
+        competition.facebook = dto.facebook;
+        competition.contactEmail = dto.contactEmail;
+        competition.categories = dto.categories;
+        competition.fede = dto.fede;
+        competition.competitionType = dto.competitionType;
+        competition.races = dto.races
+
         return await this.entityManager.save(competition)
     }
 
@@ -221,37 +222,55 @@ export class CompetitionController {
         operationId: 'updateCompetition',
         summary: 'Sauvegarde les informations générales d\'une épreuve'
     })
-    @ApiResponse({status: 200, isArray: false})
-    @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
+    @ApiResponse({ status: 200, isArray: false })
+    @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
     public async updateCompetition(@Param('id') id: string, @Body() dto: CompetitionCreate): Promise<CompetitionEntity> {
         const competition = await this.repository.findOne(id);
         if (!competition) {
             throw new BadRequestException(`Competition ${id} not found`);
         }
-        if(!dto.competitionType) throw new BadRequestException("le type de la compétition doit être renseigné.");
-        if (dto.name==="" || !dto.name) throw new BadRequestException("le nom de la compétition ne peut pas être nul.");
-        if(!dto.categories) throw new BadRequestException("les catégories de la compétition ne peuvent pas être nulles.");
-        if(!dto.races) throw new BadRequestException("les catégories de la compétition ne peuvent pas être nulles.");
+        if (!dto.competitionType) throw new BadRequestException("le type de la compétition doit être renseigné.");
+        if (dto.name === "" || !dto.name) throw new BadRequestException("le nom de la compétition ne peut pas être nul.");
+        if (!dto.categories) throw new BadRequestException("les catégories de la compétition ne peuvent pas être nulles.");
+        if (!dto.races) throw new BadRequestException("les catégories de la compétition ne peuvent pas être nulles.");
         if (!dto.eventDate) throw new BadRequestException("la date de la compétition ne peut pas être nulle.");
-        if(dto.zipCode==="" || !dto.zipCode) throw new BadRequestException("le code postal de la compétition ne peut pas être nul.");
-        if (dto.club===null) throw new BadRequestException("le club organisant la compétition ne peut pas être nul.");
+        if (dto.zipCode === "" || !dto.zipCode) throw new BadRequestException("le code postal de la compétition ne peut pas être nul.");
+        if (dto.club === null) throw new BadRequestException("le club organisant la compétition ne peut pas être nul.");
 
-        
-        competition.name=dto.name;
-        competition.eventDate=dto.eventDate;
-        competition.zipCode=dto.zipCode;
-        competition.info=dto.info;
-        competition.siteweb=dto.siteWeb;
-        competition.longueurCircuit=dto.longueurCircuit;
-        competition.club=dto.club;
-        competition.contactPhone=dto.contactPhone;
-        competition.facebook=dto.facebook;
-        competition.contactEmail=dto.contactEmail;
-        competition.categories=dto.categories;
-        competition.fede=dto.fede;
-        competition.competitionType=dto.competitionType;
-        competition.races=dto.races
-    
+
+        competition.name = dto.name;
+        competition.eventDate = dto.eventDate;
+        competition.zipCode = dto.zipCode;
+        competition.info = dto.info;
+        competition.siteweb = dto.siteWeb;
+        competition.longueurCircuit = dto.longueurCircuit;
+        competition.club = dto.club;
+        competition.contactPhone = dto.contactPhone;
+        competition.facebook = dto.facebook;
+        competition.contactEmail = dto.contactEmail;
+        competition.categories = dto.categories;
+        competition.fede = dto.fede;
+        competition.competitionType = dto.competitionType;
+        competition.races = dto.races
+
         return await this.entityManager.save(competition)
     }
+
+
+@Delete(':id')
+@ApiOperation({
+    operationId: 'deleteCompetition',
+    summary: 'Supprime une épreuve'
+})
+@ApiResponse({ status: 204, isArray: false })
+@Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
+public async deleteCompetition(@Param('id') id: string): Promise <void> {
+    const competition = await this.repository.findOne(id);
+    if(!competition) {
+        throw new BadRequestException(`Competition ${id} not found`);
+    }
+   
+     await this.entityManager.remove(competition)
 }
+}
+

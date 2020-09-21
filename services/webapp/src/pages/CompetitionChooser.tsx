@@ -185,7 +185,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                         name="radio-button-demo"
                     />Toutes les épreuves
                 </Link>
-                <Link to=''>
+                <Link to='/create'>
                 <Button style={{position:'absolute', right:25}} variant={'contained'} color={'primary'}>CREER EPREUVE</Button>
                 </Link>
                 <div className={classes.titre}>Veuillez sélectionner une épreuve :</div>
