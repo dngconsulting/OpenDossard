@@ -74,6 +74,7 @@ const LicencesPage = (props: ILicencesProps) => {
         club: '',
         catea: '',
         catev: '',
+        catevCX: '',
         saison: !isNaN(parseInt(id))?'':new Date().getFullYear().toString(),
     });
 
@@ -93,7 +94,8 @@ const LicencesPage = (props: ILicencesProps) => {
                     dept: res.dept,
                     club: res.club,
                     catea: res.catea.toUpperCase(),
-                    catev: res.catev.toUpperCase()
+                    catev: res.catev.toUpperCase(),
+                    catevCX: res.catevCX?res.catevCX.toUpperCase():''
                 }
                 setNewLicence(toUpdateLicence);
         })
@@ -115,6 +117,7 @@ const LicencesPage = (props: ILicencesProps) => {
             const newLicenceToUpdage = {...newLicence,
                 [event.target.name as string]: event.target.value,
                 catev:  '',
+                catevCX:'',
                 catea:  '',
                 club : '',
             }
@@ -135,6 +138,7 @@ const LicencesPage = (props: ILicencesProps) => {
             ...oldValues,
             catea:'',
             catev:'',
+            catevCX:'',
             gender: (event.target as HTMLInputElement).value
         }))
     };
@@ -202,9 +206,9 @@ const LicencesPage = (props: ILicencesProps) => {
                                props.history.goBack();
                            }
                            }/>
-            <Grid container={true} spacing={1}>
+            <Grid container={true} spacing={2} alignItems={'center'}>
                 <Grid item={true} xs={12}>
-                    <h1>{editMode?'Modifier':'Ajouter'} une licence</h1>
+                    <h1 style={{backgroundColor:'transparent'}}>{editMode?'Modifier':'Ajouter'} une licence</h1>
                 </Grid>
                 <Grid item={true} xs={6}>
                     <TextField
@@ -217,7 +221,7 @@ const LicencesPage = (props: ILicencesProps) => {
                 <Grid item={true} xs={6}>
                         <InputLabel htmlFor="fede">Fédération</InputLabel>
                         <Select
-                            style={{width:200}}
+                            style={{width:'100%'}}
                             value={newLicence.fede}
                             onChange={e=> {
                                 handleFEDEChange(e);
@@ -335,11 +339,11 @@ const LicencesPage = (props: ILicencesProps) => {
                 </Grid>
 
                 <Grid item={true} xs={12}>
-                    <Grid item={true} xs={11}>
+                    <Grid item={true} xs={12}>
                         {newLicence.fede && newLicence.fede !== FedeEnum.NL && <ClubSelect dept={newLicence.dept} onSelect={onSelectClub} fede={newLicence.fede} chosenClub={{value:null,label:newLicence.club} as IOptionType}/>}
                     </Grid>
                 </Grid>
-                <Grid item={true} xs={6}>
+                <Grid item={true} xs={4}>
                     {newLicence.fede && <FormControl className={classes.formControl} error={validation.catea}>
                         <InputLabel htmlFor="catea">Catégorie Age</InputLabel>
                         <Select
@@ -358,7 +362,7 @@ const LicencesPage = (props: ILicencesProps) => {
                         </Select>
                     </FormControl> }
                 </Grid>
-                <Grid item={true} xs={6}>
+                <Grid item={true} xs={4}>
                     {newLicence.fede &&
                     <FormControl className={classes.formControl} error={validation.catev}>
                         <InputLabel htmlFor="catev">Catégorie Valeur</InputLabel>
@@ -379,7 +383,28 @@ const LicencesPage = (props: ILicencesProps) => {
                         </Select>
                     </FormControl> }
                 </Grid>
-                <Grid item={true} xs={6}>
+                <Grid item={true} xs={4}>
+                    {newLicence.fede &&
+                    <FormControl className={classes.formControl} error={validation.catev}>
+                      <InputLabel htmlFor="catev">Catégorie CX</InputLabel>
+                      <Select
+                        value={newLicence.catevCX.toUpperCase()}
+                        onChange={handleChange}
+                        inputProps={{
+                            name: 'catevCX',
+                            id: 'catevCX',
+                        }}
+                      > {
+                          newLicence.fede &&
+                          FEDERATIONS[newLicence.fede.toString()].catev.map((item: ICategory, index: number) => {
+                              return (item && item.value) &&
+                                  (<MenuItem key={index} value={item && item.value && item.value.toUpperCase()}>{item && item.label}</MenuItem>)
+                          })
+                      }
+                      </Select>
+                    </FormControl> }
+                </Grid>
+                <Grid item={true} xs={6} alignItems={'center'}>
                     <Button variant="contained" color="secondary" className={classes.button}
                             onClick={() => {
                                 props.history.goBack();
@@ -387,8 +412,8 @@ const LicencesPage = (props: ILicencesProps) => {
                         Retour
                     </Button>
                 </Grid>
-                <Grid item={true} xs={6}>
-                    <Button variant="contained" color="primary" className={classes.button} onClick={async ()=> {
+                <Grid item={true} xs={6} alignItems={'center'}>
+                    <Button variant="contained"  color="primary" className={classes.button} onClick={async ()=> {
                         const licenceUpdated = await createOrUpdateLicence(newLicence.id)
                         if (licenceUpdated===null) return;
                         if (props.history.location.hash && props.history.location.hash.length>0) {

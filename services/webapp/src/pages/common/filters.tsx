@@ -1,8 +1,8 @@
-import {FedeEnum, LicenceEntity as Licence} from '../../sdk';
+import {FedeEnum, LicenceEntity as Licence,CompetitionEntityCompetitionTypeEnum} from '../../sdk';
 import {apiLicences} from '../../util/api';
 import * as React from 'react';
-export const filterLicences = async (inputValue: string,preferredFede?:FedeEnum) => {
-    const licences: Licence[] = await apiLicences.getLicencesLike({param:inputValue.toUpperCase()});
+export const filterLicences = async (inputValue: string,competitionType :CompetitionEntityCompetitionTypeEnum, preferredFede?:FedeEnum) => {
+    const licences: Licence[] = await apiLicences.getLicencesLike({param:inputValue.toUpperCase(),competitionType:competitionType});
     const strings = licences.map((licence: Licence) => {
         const textToDisplay = licence.name + ' ' + licence.firstName + ' ' +  (licence.licenceNumber?licence.licenceNumber:'')
         const activeColor = licence.saison?((licence.saison && licence.saison.includes(new Date().getFullYear().toString()))?'darkgreen':'red'):'grey';

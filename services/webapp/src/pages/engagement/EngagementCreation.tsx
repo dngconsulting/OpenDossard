@@ -184,7 +184,7 @@ export const CreationForm = (
             <AutocompleteInput selectBox={selectRef} style={{width: '550px'}} selection={form.licence}
                                onChangeSelection={onRiderChange}
                                placeholder="NOM Prénom Fede NuméroLicence"
-                               feedDataAndRenderer={(inputValue:string)=>filterLicences(inputValue,competition.fede)}/>
+                               feedDataAndRenderer={(inputValue:string)=>filterLicences(inputValue,competition.competitionType,competition.fede)}/>
         </Grid>
         <Grid item={true}>
             <TextField

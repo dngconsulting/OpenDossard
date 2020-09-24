@@ -6,8 +6,22 @@ services:
     image: postgres:9.6-alpine
     volumes:
       - postgres:/var/lib/postgresql/data:rw
+    env_file:
+      - ./config/dev.env
     ports:
       - "5432:5432"
+  webapp:
+    container_name: webapp
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    image: node:11.15.0-alpine
+    working_dir: "/app"
+    volumes:
+      - ./services/webapp:/app
+    command: "npm start"
+    ports:
+      - "3000:3000"
   api:
     container_name: api
     image: node:11.15.0-alpine
@@ -15,19 +29,10 @@ services:
     env_file:
       - ./config/dev.env
     volumes:
-      - ./services/api:/app:delegated
+      - ./services/api:/app
     command: "npm run start:debug"
     ports:
       - "9090:9090"
       - "9229:9229"
-  webapp:
-    container_name: webapp
-    image: node:11.15.0-alpine
-    working_dir: "/app"
-    volumes:
-      - ./services/webapp:/app:delegated
-    command: "npm start"
-    ports:
-      - "3000:3000"
 volumes:
   postgres:

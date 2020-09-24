@@ -1,16 +1,15 @@
 import * as React from 'react';
-import {useEffect, useRef, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import {VerticalTimeline, VerticalTimelineElement} from 'react-vertical-timeline-component';
 import AutocompleteInput from "../components/AutocompleteInput";
 import {filterLicences} from "./common/filters";
-import {LicenceEntity as Licence, RaceRow} from "../sdk/models";
+import {CompetitionEntityCompetitionTypeEnum, LicenceEntity as Licence, RaceRow} from "../sdk/models";
 import 'react-vertical-timeline-component/style.min.css';
 import EmojiEventsIcon from "@material-ui/icons/EmojiEvents";
 import './palmares.css';
 import {apiLicences, apiRaces} from "../util/api";
 import _ from 'lodash';
 import moment from "moment";
-import {useContext} from "react";
 import {NotificationContext} from "../components/CadSnackbar";
 
 interface IStatsPageProps {
@@ -99,7 +98,7 @@ const PalmaresPage = (props: IStatsPageProps) => {
                                    selection={licence}
                                    onChangeSelection={onRiderChange}
                                    placeholder="Nom Prénom Fede NuméroLicence"
-                                   feedDataAndRenderer={filterLicences}/>
+                                   feedDataAndRenderer={(param:string)=>filterLicences(param,CompetitionEntityCompetitionTypeEnum.ROUTE)}/>
             </div>
             <div>
                 {rows &&

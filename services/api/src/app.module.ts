@@ -19,7 +19,7 @@ import {UserEntity} from './entity/user.entity';
             maxQueryExecutionTime:10000,
             database: config.db.database,
             entities: [LicenceEntity, ClubEntity, CompetitionEntity, RaceEntity, UserEntity],
-            synchronize: config.app.env === 'DEV'?true:false,
+            synchronize: false,
             logging: true,
             poolErrorHandler: (err:any) => {Logger.warn("Postgresql connection Pool error " + JSON.stringify(err))},
         }), Apiv2Module],

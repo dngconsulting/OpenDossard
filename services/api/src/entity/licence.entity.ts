@@ -37,6 +37,9 @@ export class LicenceEntity {
     @Column({nullable: true})
     catev: string;
 
+    @Column({nullable: true, name:'catev_cx'})
+    catevCX: string;
+
     @Column({
         type: 'enum',
         name: 'fede',
