@@ -1,5 +1,21 @@
+
+
 body {
   margin: 0;
   padding: 0;
   font-family: sans-serif;
+}
+
+#mapId {
+  height:40vh;
+  width:38vw;
+  left:100px;
+  position:'fixed'!important;
+}
+
+#buttonLeaflet {
+  left:10px !important ;
+  top:230px !important;
+  position:'relative';
+  z-index: 2000;
 }
