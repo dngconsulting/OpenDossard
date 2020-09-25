@@ -320,7 +320,7 @@ const EditResultsPage = (gprops: any) => {
                 const exportPodiumsPDF = async () => {
                     const filename = 'Podiums_' + competition.name.replace(/\s/g, '') + '.pdf'
                     let doc = new jsPDF("p","mm","a4");
-                    competition.races.join(',').replace('/',',').split(',').forEach((currCategory:string,index:number)=>{
+                    competition.races.join(',').replace(/\//g, ",").split(',').forEach((currCategory:string,index:number)=>{
                         let podiumsForCurrentRace : any[][] = [];
                         const allRankRows = transformRows(rows)
                         // Put all main federation first
@@ -329,13 +329,15 @@ const EditResultsPage = (gprops: any) => {
                             if (rankOfCate(r, allRankRows) <= 3 && (r.catev===currCategory || (currCategory==='2' && r.catev==='1')) )
                                 (r.rankingScratch && r.comment==null) && podiumsForCurrentRace.push([rankOfCate(r, allRankRows), r.rankingScratch, displayDossard(r.riderNumber.toString()), r.name, r.club, r.gender, r.catev, r.catea, r.fede])
                         })
+                        const otherFedes = _.remove(podiumsForCurrentRace, (item:any) => item[8]!==competition.fede)
                         const podiumsForCurrentRaceOrdered = _.orderBy(podiumsForCurrentRace, item => item[8], ['asc']);
+                        const agregatedPodiums = podiumsForCurrentRace.concat(_.orderBy(otherFedes, item => item[1], ['asc']))
                         doc.setTextColor(40)
                         doc.setFontSize(12)
                         // @ts-ignore
-                        podiumsForCurrentRace.length>0 && doc.text('Catégorie ' + currCategory, 5, (index ==0 ? 29 : doc.autoTable.previous.finalY + 5));
+                        agregatedPodiums.length>0 && doc.text('Catégorie ' + currCategory, 5, (index ==0 ? 29 : doc.autoTable.previous.finalY + 5));
                         // @ts-ignore
-                        podiumsForCurrentRace.length>0 && doc.autoTable({head: [['Cl.','Scrat.','Doss', 'Coureur', 'Club','H/F','Caté.V','Caté.A','Fédé']],
+                        agregatedPodiums.length>0 && doc.autoTable({head: [['Cl.','Scrat.','Doss', 'Coureur', 'Club','H/F','Caté.V','Caté.A','Fédé']],
                             headStyles: {
                                 fontSize: 9, fontStyle: 'bold', halign: 'left',cellPadding:0.5,minCellHeight:8
                             },
@@ -355,7 +357,7 @@ const EditResultsPage = (gprops: any) => {
                                 7: {margin:0,cellWidth: 12},
                                 8: {margin:0,cellWidth: 20},
                             },
-                            body: podiumsForCurrentRaceOrdered,
+                            body: agregatedPodiums,
                             didDrawPage: (data:any) => {
                                 // Header
                                 doc.setFontSize(13)
