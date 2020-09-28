@@ -323,19 +323,20 @@ const EditResultsPage = (gprops: any) => {
                     competition.races.join(',').replace(/\//g, ",").split(',').forEach((currCategory:string,index:number)=>{
                         let podiumsForCurrentRace : any[][] = [];
                         const allRankRows = transformRows(rows)
+                        let sprintChallenge : RaceRow = null;
                         // Put all main federation first
                         allRankRows.forEach((r:RaceRow,index:number)=> {
                             // TODO this r.catev===1 is ugly but cate 1 can race in cate 2 races
                             if (rankOfCate(r, allRankRows) <= 3 && (r.catev===currCategory || (currCategory==='2' && r.catev==='1')) )
                                 (r.rankingScratch && r.comment==null) && podiumsForCurrentRace.push([rankOfCate(r, allRankRows), r.rankingScratch, displayDossard(r.riderNumber.toString()), r.name, r.club, r.gender, r.catev, r.catea, r.fede])
+                            if (r.sprintchallenge && r.catev === currCategory) sprintChallenge = r
                         })
                         const otherFedes = _.remove(podiumsForCurrentRace, (item:any) => item[8]!==competition.fede)
-                        const podiumsForCurrentRaceOrdered = _.orderBy(podiumsForCurrentRace, item => item[8], ['asc']);
                         const agregatedPodiums = podiumsForCurrentRace.concat(_.orderBy(otherFedes, item => item[1], ['asc']))
                         doc.setTextColor(40)
-                        doc.setFontSize(12)
+                        doc.setFontSize(11)
                         // @ts-ignore
-                        agregatedPodiums.length>0 && doc.text('Catégorie ' + currCategory, 5, (index ==0 ? 29 : doc.autoTable.previous.finalY + 5));
+                        agregatedPodiums.length>0 && doc.text('Catégorie ' + currCategory + (sprintChallenge?' (Vainqueur du challenge : '+sprintChallenge.name+')':''), 5, (index ==0 ? 35 : doc.autoTable.previous.finalY + 5));
                         // @ts-ignore
                         agregatedPodiums.length>0 && doc.autoTable({head: [['Cl.','Scrat.','Doss', 'Coureur', 'Club','H/F','Caté.V','Caté.A','Fédé']],
                             headStyles: {
@@ -380,7 +381,7 @@ const EditResultsPage = (gprops: any) => {
                                 var pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight()
                                 doc.text(filename + " généré à " + moment().format("HH:mm"), 40, pageHeight - 5)
                             },
-                            margin: { top: 30,left:5,right:5 },
+                            margin: { top: 38,left:5,right:5 },
                             styles: {
                                 valign: 'middle',
                                 halign: 'left',
