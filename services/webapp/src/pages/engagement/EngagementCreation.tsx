@@ -12,7 +12,7 @@ import AutocompleteInput from '../../components/AutocompleteInput';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import makeStyles from '@material-ui/core/styles/makeStyles';
-import {CircularProgress, createStyles, FormHelperText, InputLabel, Theme} from '@material-ui/core';
+import {CircularProgress, createStyles, InputLabel, Theme} from '@material-ui/core';
 import {apiRaces} from '../../util/api';
 import {NotificationContext} from '../../components/CadSnackbar';
 import {filterLicences} from '../common/filters';
@@ -196,7 +196,7 @@ export const CreationForm = (
                 Saisir coureur <ForwardIcon style={{verticalAlign:'middle'}}/>
             </Typography>
         </Grid>
-        <Grid item={true} style={{zIndex: 20}}>
+        <Grid item={true} style={{zIndex: 20,marginTop:5}}>
             <AutocompleteInput selectBox={selectRef} style={{width: '550px'}} selection={form.licence}
                                onChangeSelection={onRiderChange}
                                placeholder="NOM Prénom Fede NuméroLicence"

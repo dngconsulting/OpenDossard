@@ -11,6 +11,7 @@ import {apiLicences, apiRaces} from "../util/api";
 import _ from 'lodash';
 import moment from "moment";
 import {NotificationContext} from "../components/CadSnackbar";
+import {useRef} from "react";
 
 interface IStatsPageProps {
     items: any[];
@@ -24,9 +25,14 @@ const PalmaresPage = (props: IStatsPageProps) => {
     const [licence, setLicence] = useState<Licence>(null)
     const [rows, setRows] = useState<Array<RaceRow>>(null);
     const [, setNotification] = useContext(NotificationContext);
+    const selectRef = useRef(null);
 
     const onRiderChange = async (select: Licence) => {
-        if (!select) return ;
+        if (!select) {
+            setLicence(null)
+            setRows(null)
+            return ;
+        }
         props.history.push({
             pathname: '/palmares/' + select.id
         })
@@ -50,6 +56,9 @@ const PalmaresPage = (props: IStatsPageProps) => {
         if (!isNaN(parseInt(licenceId))) {
             async function asyncFun() {
                 const lic = await apiLicences.get({id: licenceId});
+                if (!lic) {
+                    return;
+                };
                 setLicence(licenceWithLabel(lic))
                 const lraceRows: RaceRow[] = await apiRaces.getPalmares({id: licenceId});
                 if (lraceRows.length === 0) {
@@ -94,7 +103,8 @@ const PalmaresPage = (props: IStatsPageProps) => {
         <div style={{flex: 1, padding: 10, zIndex: 20}}>
             <div style={{display: "flex", alignItems: 'center', verticalAlign: 'center', justifyContent: 'center'}}>
                 <span style={{marginRight: 10}}>Coureur :</span>
-                <AutocompleteInput style={{width: '550px'}}
+                <AutocompleteInput selectBox={selectRef}
+                                   style={{width: '550px'}}
                                    selection={licence}
                                    onChangeSelection={onRiderChange}
                                    placeholder="Nom Prénom Fede NuméroLicence"
