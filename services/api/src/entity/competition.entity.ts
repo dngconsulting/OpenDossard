@@ -166,10 +166,10 @@ export class CompetitionEntity {
     @Column({nullable: true,name:'results_validated'})
     resultsValidated?: boolean;
 
-    @Column({type: 'json', nullable: true,name:'ranking_urls'})
+    @Column({type: 'json', nullable: true,name:'photo_urls'})
     photoUrls?: Array<LinkInfo>;
 
-    @Column({type: 'json',nullable: true,name:'photo_urls'})
+    @Column({type: 'json',nullable: true,name:'ranking_urls'})
     rankingUrls?: Array<LinkInfo>;
 
 }
