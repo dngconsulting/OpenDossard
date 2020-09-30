@@ -14,16 +14,16 @@ export const filterLicences = async (inputValue: string,competitionType :Competi
         return {
             ...licence,
             label:
-                <div style={{lineHeight: "normal", position:"relative", width: '470px'}}>
+                <div style={{lineHeight: "normal", position:"relative", width: '600px'}}>
                    <div
                          dangerouslySetInnerHTML={{__html: textToDisplay.toUpperCase().replace(inputValue.toUpperCase(),"<b>"+inputValue.toUpperCase()+"</b>")}}
                          style={{fontSize: "medium"}}></div>
                     <span style={{fontSize: "small"}}>{licence.club}</span>
-                    <div style={{position: "absolute", right:20, bottom:0,...(isPreferredFede?{fontWeight:"bolder"}:{fontWeight:"normal"})}}>
-                        {licence.catev} {licence.catea} {licence.fede}
+                    <div style={{position: "absolute", right:50, bottom:0,...(isPreferredFede?{fontWeight:"bolder"}:{fontWeight:"normal"})}}>
+                        {hightlightNC(licence.catev)} {hightlightNC(licence.catea)} {hightlightNC(licence.fede)}
                     </div>
-                    <div style={{position: "absolute", right:5, bottom:5,backgroundColor:activeColor,clipPath: 'circle(50%)',width:'10px',height:'10px'}}></div>
-                    <div style={{fontSize: "small"}}> Lic. N°: {hightlightNC(licence.licenceNumber)} Année : {hightlightNC(licence.birthYear)} Dept : {hightlightNC(licence.dept)} Genre : {hightlightNC(licence.gender)}</div>
+                    <div style={{position: "absolute", right:38, bottom:5,backgroundColor:activeColor,clipPath: 'circle(50%)',width:'10px',height:'10px'}}></div>
+                    <div style={{fontSize: "small"}}> Lic. N°: {hightlightNC(licence.licenceNumber)},Année : {hightlightNC(licence.birthYear)},Dept : {hightlightNC(licence.dept)},Genre : {hightlightNC(licence.gender)},Saison : {hightlightNC(licence.saison)}</div>
                 </div>
         };
     });

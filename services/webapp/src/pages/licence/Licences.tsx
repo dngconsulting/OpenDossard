@@ -270,7 +270,7 @@ const LicencesPage = (props: ILicencesProps) => {
                     },
                     toolbar: {
                         searchTooltip: T.LICENCES.TOOLBAR.SEARCH_TOOL_TIP,
-                        searchPlaceholder: 'Nom ou Prenom ou N° Licence'
+                        searchPlaceholder: 'Nom Prenom Fédé N° Licence'
                     }
                 }}
             />

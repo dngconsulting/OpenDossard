@@ -197,7 +197,7 @@ export const CreationForm = (
             </Typography>
         </Grid>
         <Grid item={true} style={{zIndex: 20,marginTop:5}}>
-            <AutocompleteInput selectBox={selectRef} style={{width: '550px'}} selection={form.licence}
+            <AutocompleteInput selectBox={selectRef} style={{width: '650px'}} selection={form.licence}
                                onChangeSelection={onRiderChange}
                                placeholder="NOM Prénom Fede NuméroLicence"
                                feedDataAndRenderer={(inputValue:string)=>filterLicences(inputValue,competition.competitionType,competition.fede)}/>

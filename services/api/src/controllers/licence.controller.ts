@@ -103,9 +103,8 @@ export class LicenceController {
                 }
             }
         } else {
-            qb.orWhere('licence_number ilike :value', {value: '%' + search.search + '%'});
-            qb.orWhere(' name ilike :name', {name: '%' + search.search + '%'});
-            qb.orWhere('first_name ilike :firstName', {firstName: '%' + search.search + '%'});
+            const filterParam = '%' + search.search.replace(/\s+/g, '').normalize("NFD").replace(/[\u0300-\u036f]/g, "") + '%';
+            qb.where('REPLACE(CONCAT(UPPER(name),UPPER(unaccent(first_name)),UPPER(CAST(fede AS VARCHAR)),UPPER(licence_number)),\' \',\'\') ilike :value', {value: '%' + filterParam + '%'});
         }
         const res = await
             qb
