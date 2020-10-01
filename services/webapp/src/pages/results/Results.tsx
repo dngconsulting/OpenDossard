@@ -336,7 +336,7 @@ const EditResultsPage = (gprops: any) => {
                         doc.setTextColor(40)
                         doc.setFontSize(11)
                         // @ts-ignore
-                        agregatedPodiums.length>0 && doc.text('Catégorie ' + currCategory + (sprintChallenge?' (Vainqueur du challenge : '+sprintChallenge.name+')':''), 5, (index ==0 ? 35 : doc.autoTable.previous.finalY + 5));
+                        agregatedPodiums.length>0 && doc.text('Catégorie ' + currCategory + (sprintChallenge?'  - Challenge : '+sprintChallenge.name + ' - scratch: ' + sprintChallenge.rankingScratch +' ('+sprintChallenge.club+')':''), 5, (index ==0 ? 35 : doc.autoTable.previous.finalY + 5));
                         // @ts-ignore
                         agregatedPodiums.length>0 && doc.autoTable({head: [['Cl.','Scrat.','Doss', 'Coureur', 'Club','H/F','Caté.V','Caté.A','Fédé']],
                             headStyles: {
