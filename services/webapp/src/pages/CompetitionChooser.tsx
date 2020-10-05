@@ -218,5 +218,4 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
             ;
 
 };
-
 export default withStyles(styles as any, {withTheme: true})(CompetitionChooser as any);

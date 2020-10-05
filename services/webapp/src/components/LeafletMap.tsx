@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Map, TileLayer, withLeaflet } from 'react-leaflet';
 import { LatLngTuple } from 'leaflet';
 import { ReactLeafletSearch } from "react-leaflet-search";
-import UseAddMarker from './UseAddMarker';
+import AddMarker from './AddMarker'
 
 
 //coord Toulouse
@@ -14,22 +14,20 @@ const zoom: number = 8;
 const LeafletMap: React.FC = () => {
 
   const [position, setPosition] = useState([0, 0]);
-
-  function getPosition(value: any) { setPosition(value) }
+ 
+  function getPosition(value: any) { setPosition(value);console.log(value) }
 
   const ReactLeafletSearchComponent = withLeaflet(ReactLeafletSearch);
 
   return (
     <div>
-
+       
       <Map id="mapId"
         center={defaultLatLng}
         zoom={zoom}>
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="&copy; <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors">
-        </TileLayer>
-        <ReactLeafletSearchComponent //searchBar
+          
+           <ReactLeafletSearchComponent
+          className="searchBar" //searchBar
           position="topright"
           inputPlaceholder="Custom placeholder"
           showMarker={false}
@@ -38,8 +36,14 @@ const LeafletMap: React.FC = () => {
           closeResultsOnClick={true}
           openSearchOnLoad={true}
         />
-        <UseAddMarker coord={getPosition}//Marker+Buttonsubmit
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution="&copy; <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors">
+        </TileLayer>
+      
+        <AddMarker coord={getPosition}//Marker+Buttonsubmit
          /> 
+
       </Map>
      Coordonnées:{position}
     </div>

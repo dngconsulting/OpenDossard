@@ -7,15 +7,9 @@ body {
 }
 
 #mapId {
-  height:40vh;
-  width:38vw;
-  left:100px;
+  height:80vh;
+  width:90vw;
+  left:10px;
   position:'fixed'!important;
 }
 
-#buttonLeaflet {
-  left:10px !important ;
-  top:230px !important;
-  position:'relative';
-  z-index: 2000;
-}
