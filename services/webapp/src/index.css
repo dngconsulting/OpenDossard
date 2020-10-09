@@ -7,7 +7,7 @@ body {
 }
 
 #mapId {
-  height:80vh;
+  height:60vh;
   width:90vw;
   left:10px;
   position:'fixed'!important;

@@ -1,9 +1,11 @@
 import LeafletMap from 'components/LeafletMap';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 function MapRace () {
     return(
+        
         <LeafletMap />
+        
     )
 }
 

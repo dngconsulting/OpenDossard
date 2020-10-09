@@ -23,6 +23,7 @@ export enum FedeEnum {
     FFC = 'FFC',
     CYCLOS = 'CYCLOS',
     FFVELO = 'FFVELO',
+    FFTRI = 'FFTRI',
     NL = 'NL'
 }
 
