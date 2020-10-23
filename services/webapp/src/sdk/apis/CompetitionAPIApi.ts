@@ -15,6 +15,9 @@
 
 import * as runtime from '../runtime';
 import {
+    CompetitionCreate,
+    CompetitionCreateFromJSON,
+    CompetitionCreateToJSON,
     CompetitionEntity,
     CompetitionEntityFromJSON,
     CompetitionEntityToJSON,
@@ -25,6 +28,10 @@ import {
     CompetitionReorganizeFromJSON,
     CompetitionReorganizeToJSON,
 } from '../models';
+
+export interface DeleteCompetitionRequest {
+    id: number;
+}
 
 export interface GetCompetitionRequest {
     id: string;
@@ -38,14 +45,60 @@ export interface ReorganizeRequest {
     competitionReorganize: CompetitionReorganize;
 }
 
+export interface SaveCompetitionRequest {
+    competitionCreate: CompetitionCreate;
+}
+
 export interface SaveInfoGenRequest {
     competitionEntity: CompetitionEntity;
+}
+
+export interface UpdateCompetitionRequest {
+    id: string;
+    competitionCreate: CompetitionCreate;
 }
 
 /**
  * no description
  */
 export class CompetitionAPIApi extends runtime.BaseAPI {
+
+    /**
+     * Supprime une épreuve
+     */
+    async deleteCompetitionRaw(requestParameters: DeleteCompetitionRequest): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling deleteCompetition.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/competition/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Supprime une épreuve
+     */
+    async deleteCompetition(requestParameters: DeleteCompetitionRequest): Promise<void> {
+        await this.deleteCompetitionRaw(requestParameters);
+    }
 
     /**
      * Recherche une épreuve par son identifiant
@@ -171,6 +224,46 @@ export class CompetitionAPIApi extends runtime.BaseAPI {
     }
 
     /**
+     * Création d\'une épreuve
+     */
+    async saveCompetitionRaw(requestParameters: SaveCompetitionRequest): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.competitionCreate === null || requestParameters.competitionCreate === undefined) {
+            throw new runtime.RequiredError('competitionCreate','Required parameter requestParameters.competitionCreate was null or undefined when calling saveCompetition.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/competition/saveCompetition`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CompetitionCreateToJSON(requestParameters.competitionCreate),
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Création d\'une épreuve
+     */
+    async saveCompetition(requestParameters: SaveCompetitionRequest): Promise<void> {
+        await this.saveCompetitionRaw(requestParameters);
+    }
+
+    /**
      * Sauvegarde les informations générales d\'une épreuve (Speaker, Aboyeur, Commissaires,...)
      */
     async saveInfoGenRaw(requestParameters: SaveInfoGenRequest): Promise<runtime.ApiResponse<void>> {
@@ -208,6 +301,50 @@ export class CompetitionAPIApi extends runtime.BaseAPI {
      */
     async saveInfoGen(requestParameters: SaveInfoGenRequest): Promise<void> {
         await this.saveInfoGenRaw(requestParameters);
+    }
+
+    /**
+     * Sauvegarde les informations générales d\'une épreuve
+     */
+    async updateCompetitionRaw(requestParameters: UpdateCompetitionRequest): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling updateCompetition.');
+        }
+
+        if (requestParameters.competitionCreate === null || requestParameters.competitionCreate === undefined) {
+            throw new runtime.RequiredError('competitionCreate','Required parameter requestParameters.competitionCreate was null or undefined when calling updateCompetition.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/competition/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CompetitionCreateToJSON(requestParameters.competitionCreate),
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Sauvegarde les informations générales d\'une épreuve
+     */
+    async updateCompetition(requestParameters: UpdateCompetitionRequest): Promise<void> {
+        await this.updateCompetitionRaw(requestParameters);
     }
 
 }

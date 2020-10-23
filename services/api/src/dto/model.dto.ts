@@ -2,8 +2,9 @@ import {LicenceEntity} from '../entity/licence.entity';
 import {ApiProperty, ApiPropertyOptional} from '@nestjs/swagger';
 import { ClubEntity } from 'src/entity/club.entity';
 import { FederationEntity } from 'src/entity/federation.entity';
-import { Category, CompetitionType } from 'src/entity/competition.entity';
+import { Category, CompetitionType,} from 'src/entity/competition.entity';
 import { PricingInfo } from 'src/entity/pricing-info';
+import { CompetitionInfo } from 'src/entity/competition-info';
 
 export class ClubRow {
     public id?: number;
@@ -107,21 +108,22 @@ export class Departement {
 
 export class CompetitionCreate{
     
-    competitionId: number;
+    id?:number;
     name: string;
     competitionType?:CompetitionType;
     fede?:FederationEntity;
-    categories?:Category[];
+    categories?: Category[];
     races?: string[];
     eventDate : Date;
     zipCode : string;
-    club : ClubEntity;
+    club : number;
     info ?: string;
+    competitionInfo ?: CompetitionInfo[];
     lapNumber?: string;
     longueurCircuit ?: string;
     contactPhone ?: string;
     contactEmail ?: string;
-    siteWeb ?: string;
+    siteweb ?: string;
     facebook ?: string;
     latitude ?: number;
     longitude ?: number;
@@ -130,12 +132,13 @@ export class CompetitionCreate{
     openedToOtherFede?: boolean;
     openedNL?: boolean;
     observations?:string;
-    lieu_dossard?:string;
-    lieu_dossard_gps?:number[];
-    contact_name?:string;
+    lieuDossard?:string;
+    lieuDossardGPS?:string;
+    contactName?:string;
     commissaires?:string;
     speaker?:string;
     aboyeur?:string;
     feedback?:string;
     results_validated?:boolean;
+    dept?:string;
 }

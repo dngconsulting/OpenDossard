@@ -1,16 +1,21 @@
 
-import { TextField, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Checkbox, createStyles, makeStyles, Theme } from '@material-ui/core';
-import { InfoSharp } from '@material-ui/icons';
+import { TextField, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Checkbox, createStyles, makeStyles, Theme, FormHelperText, } from '@material-ui/core';
 import Editor from 'components/Editor';
-import ClubSelect, { IOptionType } from 'pages/licence/ClubSelect';
-import React, { useState } from 'react';
-import { CompetitionEntityCompetitionTypeEnum } from 'sdk';
+import moment from 'moment';
+import  { IOptionType } from 'pages/licence/ClubSelect';
+import React, { useEffect, useState } from 'react';
+import { ClubEntity, CompetitionCreateCompetitionTypeEnum,} from 'sdk';
 import { FedeEnum } from 'sdk/models/FedeEnum';
+import { apiClubs } from 'util/api';
+import ClubSelectRace from './ClubSelectRace';
 
 
 interface InfoRaceProps {
     value: any;
     info: any;
+    error: any;
+    validateError: boolean;
+    isEdit:boolean
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -20,68 +25,91 @@ const useStyles = makeStyles((theme: Theme) =>
             margin: 8,
             width: '200px',
             marginRight: '50px',
+            marginTop: '50px'
 
         },
-        formControl1: {
-            margin: 8,
-            width: '200px',
-            marginTop: '50px',
-            marginRight: '50px'
-        },
+    
         container: {
             margin: 8,
             width: '230px',
-            marginRight: '50px'
-
+            marginRight: '50px',
+            marginTop: '50px'
         },
 
     }),
 );
 
 const InfoRace = (props: InfoRaceProps) => {
-    const [idClub,setIdClub]=useState(0);
-    // const [infos,setInfos]=useState({error: false,epreuve:"",club:"",longueur:"",commune:"",date:null,nameContact:"",emailContact:"",facebook:"",phoneContact:"",siteWeb:"",fede:null,profil:"",type:null,checkedA:false,checkedB:false,obs:""});
-    // useEffect(
-    //     () => {
-
-    //       setInfos(props.value);
-
-
-    //     },[props.value]
-    //   );
+    const [labelClub,setLabelClub]=useState<string>();
+    console.log(props.value.club)
+    useEffect(()=>{
+    const fetchClub=async ()=>{
+        if(props.value.id){
+        const Club : ClubEntity =await apiClubs.getClubsById(props.value.club);
+        setLabelClub(Club.longName);
+        }
+    }
+    fetchClub()
+},[])
+    const date : string = moment(props.value.eventDate).format("YYYY-MM-DDTHH:mm");
+   
     const handleChangeBox = (event: React.ChangeEvent<HTMLInputElement>) => {
-        // setInfos({ ...infos, [event.currentTarget.name]: event.currentTarget.checked });
+
         props.info({ ...props.value, [event.target.name]: event.target.checked });
 
     };
-    const getObs = (value: any): void => { props.info({ ...props.value, obs: value }) };
+    const getObs = (data: any): void => {props.info({ ...props.value, observations: String(data) }) };
+    
+    const handleFormDate = (event: any) => {
+
+
+        props.info({ ...props.value, [event.currentTarget.name]: moment(event.currentTarget.value, "YYYY-MM-DD HH:mm:ssZZ")});
+    }
     const handleForm = (event: any) => {
-        // setInfos({...infos,[event.currentTarget.name] : event.currentTarget.value});
+
+
         props.info({ ...props.value, [event.currentTarget.name]: event.currentTarget.value });
     }
     const handleSelect = (event: any) => {
-        // setInfos({...infos,[event.currentTarget.name] : event.currentTarget.dataset.value});
-        props.info({ ...props.value, [event.target.name]: event.currentTarget.dataset.value });
-    }
 
-    const onSelectClub = (value: string) => {
+        props.info({ ...props.value, [event.target.name]: event.currentTarget.dataset.value });
+        
+    }
+    const handleSelectFede = (event: any) => {
+
+        
+        
+        if(event.currentTarget.dataset.value===FedeEnum.FSGT){
+            props.info({ ...props.value, [event.target.name]: event.currentTarget.dataset.value, races : ['2,3,4,5']});
+         }
+         else{
+            props.info({ ...props.value, [event.target.name]: event.currentTarget.dataset.value, races : ['Toutes']  });
+         }
+         
+    }
+    const onSelectClub = (value: number) => {
         props.info({ ...props.value, club: value });
     };
+
+
     const classes = useStyles();
     return (
         <div >
             <div style={{ display: 'block', width: '100%', marginLeft: 'auto', marginRight: 'auto' }}>
                 <TextField
                     required
-                    error={props.value.error === true && props.value.epreuve === ""}
+                    error={props.validateError === true && props.value.name === ""}
+                    helperText={(props.validateError === true && "le nom de l'épreuve doit être renseigné")}
+                    value={props.value.name}
                     type='text'
-                    name="epreuve"
+                    name="name"
                     onChange={handleForm}
                     label="Nom de l'épreuve"
                     style={{
                         margin: 8,
                         width: '200px',
-                        marginRight: '50px'
+                        marginRight: '50px',
+                        marginTop: '50px'
                     }}
                     placeholder=""
                     margin="normal"
@@ -89,44 +117,45 @@ const InfoRace = (props: InfoRaceProps) => {
                         shrink: true,
                     }} />
                 <TextField
-                    error={props.value.error === true && props.value.date === null}
+                    error={props.validateError === true && props.value.eventDate === null}
+                    helperText={(props.validateError === true && "la date de l'épreuve doit être renseignée")}
                     className={classes.container}
                     required
-                    name="date"
-                    onChange={handleForm}
+                    name="eventDate"
+                    onChange={handleFormDate}
                     id="datetime-local"
                     label="Date et heure de l'épreuve"
                     type="datetime-local"
-                    defaultValue="2020-09-24T10:30"
+                    
+                    value={date}
                     InputLabelProps={{
                         shrink: true,
                     }} />
 
-                <FormControl className={classes.formControl} required>
+                <FormControl className={classes.formControl} required error={props.validateError === true && props.value.competitionType === null}>
                     <InputLabel id="type-epreuve">TYPE</InputLabel>
                     <Select
-                        error={props.value.error === true && props.value.type === null}
-                        inputProps={{ name: 'type' }}
+                        inputProps={{ name: 'competitionType' }}
                         labelId="type-select-label"
                         id="type-select"
                         onChange={handleSelect}
-                        value={props.value.type || ''}
+                        value={props.value.competitionType || ''}
                     >
-                        <MenuItem value={CompetitionEntityCompetitionTypeEnum.CX}>CX</MenuItem>
-                        <MenuItem value={CompetitionEntityCompetitionTypeEnum.ROUTE}>ROUTE</MenuItem>
-                        <MenuItem value={CompetitionEntityCompetitionTypeEnum.VTT}>VTT</MenuItem>
-                        <MenuItem value={CompetitionEntityCompetitionTypeEnum.AUTRE}>AUTRES</MenuItem>
+                        <MenuItem value={CompetitionCreateCompetitionTypeEnum.CX}>CX</MenuItem>
+                        <MenuItem value={CompetitionCreateCompetitionTypeEnum.ROUTE}>ROUTE</MenuItem>
+                        <MenuItem value={CompetitionCreateCompetitionTypeEnum.VTT}>VTT</MenuItem>
+                        <MenuItem value={CompetitionCreateCompetitionTypeEnum.AUTRE}>AUTRES</MenuItem>
                     </Select>
+                    {(props.validateError && <FormHelperText>Le type de l'épreuve doit être renseigné</FormHelperText>)}
                 </FormControl>
-                <FormControl className={classes.formControl} required>
+                <FormControl className={classes.formControl} required error={props.validateError === true && props.value.fede === null}>
                     <InputLabel id="federation-epreuve">Fédération</InputLabel>
                     <Select
-                        error={props.value.error === true && props.value.fede === null}
                         inputProps={{ name: "fede" }}
                         labelId="federation-select-label"
                         id="federation-select"
-                        onChange={handleSelect}
-                        value={props.value.fede || ''}
+                        onChange={handleSelectFede}
+                        value={props.value.fede || ""}
                     >
                         <MenuItem value={FedeEnum.FSGT}>FSGT</MenuItem>
                         <MenuItem value={FedeEnum.UFOLEP}>UFOLEP</MenuItem>
@@ -136,11 +165,12 @@ const InfoRace = (props: InfoRaceProps) => {
                         <MenuItem value={FedeEnum.FFTRI}>FFTRI</MenuItem>
                         <MenuItem value={FedeEnum.NL}>NL</MenuItem>
                     </Select>
+                    {(props.validateError === true && <FormHelperText>La fédération de l'épreuve doit être renseignée</FormHelperText>)}
                 </FormControl>
             </div>
             <div style={{ display: 'block', width: '100%', marginLeft: 'auto', marginRight: 'auto' }}>
                 <TextField
-                    name='longueur'
+                    name='longueurCircuit'
                     label="Longueur circuit"
                     type="text"
                     style={{
@@ -149,6 +179,7 @@ const InfoRace = (props: InfoRaceProps) => {
                         marginRight: '50px',
                         marginTop: '50px'
                     }}
+                    value={props.value.longueurCircuit}
                     onChange={handleForm}
                     placeholder=""
                     margin="normal"
@@ -157,29 +188,38 @@ const InfoRace = (props: InfoRaceProps) => {
                     }} />
 
                 <TextField
+                    error={props.error[0]}
+                    helperText={(props.error[0] && "le code postal doit etre de 5 chiffres")}
                     onChange={handleForm}
-                    name='commune'
-                    type="text"
+                    name='zipCode'
                     label="Code Postal"
+                    value={props.value.zipCode}
                     style={{
                         margin: 8,
                         width: '200px',
                         marginRight: '50px',
                         marginTop: '50px'
                     }}
-                    placeholder=""
+                    placeholder="ex : 31000"
                     margin="normal"
+                    inputProps={{
+                        type: "text",
+                        maxLength: 5
+
+                    }}
+                    onInput={(e: any) => { e.target.value = e.target.value.replace(/[^0-9]/g, '') }}
                     InputLabelProps={{
                         shrink: true,
                     }} />
-                <FormControl className={classes.formControl1}>
+                <FormControl className={classes.formControl}>
                     <InputLabel>Profil</InputLabel>
                     <Select
                         labelId="profil-select-label"
                         id="profil-select"
-                        value={props.value.profil}
+                        value={props.value.info}
                         onChange={handleSelect}
-                        inputProps={{ name: 'profil' }}
+                        inputProps={{ name: 'info' }}
+                       
                     >
                         <MenuItem value={'Valloné'}>VALLONE</MenuItem>
                         <MenuItem value={'Montagne'}>MONTAGNEUX</MenuItem>
@@ -190,29 +230,32 @@ const InfoRace = (props: InfoRaceProps) => {
                 </FormControl>
                 {props.value.fede && props.value.fede !== FedeEnum.NL &&
                     <div style={{ width: '400px', marginTop: '47px', display: 'inline-block' }}>
-                        <ClubSelect dept="" fede={props.value.fede} onSelect={onSelectClub} chosenClub={{value:null,label:props.value.club} as IOptionType}/>
+                        <ClubSelectRace clubError={props.validateError} dept="" fede={props.value.fede} onSelect={onSelectClub}  chosenClub={{ value: props.value.club, label:labelClub  } as IOptionType} />
                     </div>}
             </div>
             <div>
                 <TextField
-                    name='nameContact'
+                    name='contactName'
                     type="text"
                     onChange={handleForm}
                     label="Nom contact"
+                    value={props.value.contactName}
                     style={{
                         margin: 8,
                         width: '200px',
                         marginRight: '50px',
                         marginTop: '50px'
                     }}
-                    placeholder=""
+                    placeholder="Prénom Nom"
                     margin="normal"
                     InputLabelProps={{
                         shrink: true,
                     }} />
                 <TextField
-                    name='phoneContact'
-                    type="tel"
+                    error={props.error[1]}
+                    helperText={props.error[1] && "le numéro de téléphone doit comporter 10 chiffres"}
+                    name='contactPhone'
+                    value={props.value.contactPhone}
                     onChange={handleForm}
                     label="Téléphone Contact"
                     style={{
@@ -221,13 +264,23 @@ const InfoRace = (props: InfoRaceProps) => {
                         marginRight: '50px',
                         marginTop: '50px'
                     }}
-                    placeholder=""
+                    placeholder="ex : 0695085349"
                     margin="normal"
+                    inputProps={{
+
+                        type: 'tel',
+                        maxLength: 10,
+
+                    }}
+                    onInput={(e: any) => { e.target.value = e.target.value.replace(/[^0-9]/g, '') }}
                     InputLabelProps={{
                         shrink: true,
                     }} />
                 <TextField
-                    name='emailContact'
+                    error={props.error[4]}
+                    helperText={props.error[4] === true && "l'email n'est pas au bon format xyz@gmail.com'"}
+                    name='contactEmail'
+                    value={props.value.contactEmail}
                     type="email"
                     onChange={handleForm}
                     label="E-mail Contact"
@@ -237,40 +290,46 @@ const InfoRace = (props: InfoRaceProps) => {
                         marginRight: '50px',
                         marginTop: '50px'
                     }}
-                    placeholder=""
+                    placeholder="ex : personne@gmail.com"
                     margin="normal"
                     InputLabelProps={{
                         shrink: true,
                     }}
                 />
                 <TextField
+                    error={props.error[2] === true}
+                    helperText={props.error[2] === true && "le nom du site doit commencer par https"}
                     name='facebook'
+                    value={props.value.facebook}
                     type="url"
                     onChange={handleForm}
                     label="Lien Facebook"
                     style={{
                         margin: 8,
-                        width: '200px',
+                        width: '250px',
                         marginRight: '50px',
                         marginTop: '50px'
                     }}
-                    placeholder=""
+                    placeholder="ex : https://www.monfacebook.fr"
                     margin="normal"
                     InputLabelProps={{
                         shrink: true,
                     }}
                 />
                 <TextField
-                    name='siteWeb'
+                    error={props.error[3] == true}
+                    helperText={props.error[3] === true && "le nom du site doit commencer par https"}
+                    name='siteweb'
+                    value={props.value.siteweb}
                     type="url"
                     onChange={handleForm}
                     label="Site web"
                     style={{
                         margin: 8,
-                        width: '200px',
+                        width: '250px',
                         marginTop: '50px'
                     }}
-                    placeholder=""
+                    placeholder="ex : https://www.monsite.fr"
                     margin="normal"
                     InputLabelProps={{
                         shrink: true,
@@ -280,22 +339,22 @@ const InfoRace = (props: InfoRaceProps) => {
             <div style={{ display: 'block', marginTop: '50px' }}>
                 <FormControlLabel
                     control={<Checkbox
-                        checked={props.value.checkedA}
+                        checked={props.value.openedToOtherFede}
                         onChange={handleChangeBox}
-                        name="checkedA"
+                        name="openedToOtherFede"
                         color="primary" />}
                     label="Ouvert aux licenciés des autres fédérations" />
                 <FormControlLabel
                     style={{ left: '80px', position: 'relative' }}
                     control={<Checkbox
-                        checked={props.value.checkedB}
+                        checked={props.value.openedNL}
                         onChange={handleChangeBox}
-                        name="checkedB"
+                        name="openedNL"
                         color="primary" />}
                     label="Ouvert aux non licenciés" />
             </div>
             <div style={{ display: 'block', margin: 'auto' }}>
-                <Editor data={getObs} />
+                <Editor data={getObs} edit={props.value.observations} />
             </div>
         </div>
     )

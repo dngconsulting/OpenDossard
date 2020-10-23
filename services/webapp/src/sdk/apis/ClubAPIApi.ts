@@ -31,6 +31,10 @@ export interface GetClubsByFedeRequest {
     fede: string;
 }
 
+export interface GetClubsByIdRequest {
+    id: number;
+}
+
 /**
  * no description
  */
@@ -150,6 +154,46 @@ export class ClubAPIApi extends runtime.BaseAPI {
      */
     async getClubsByFede(requestParameters: GetClubsByFedeRequest): Promise<Array<ClubRow>> {
         const response = await this.getClubsByFedeRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * renvoie un club
+     * Rechercher un club en fonction de son id
+     */
+    async getClubsByIdRaw(requestParameters: GetClubsByIdRequest): Promise<runtime.ApiResponse<ClubEntity>> {
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling getClubsById.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/clubs/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ClubEntityFromJSON(jsonValue));
+    }
+
+    /**
+     * renvoie un club
+     * Rechercher un club en fonction de son id
+     */
+    async getClubsById(requestParameters: GetClubsByIdRequest): Promise<ClubEntity> {
+        const response = await this.getClubsByIdRaw(requestParameters);
         return await response.value();
     }
 

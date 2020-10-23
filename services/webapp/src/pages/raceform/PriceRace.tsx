@@ -1,7 +1,9 @@
 import { Button, ButtonBase, createStyles, makeStyles, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Theme, Tooltip } from '@material-ui/core';
 import { Delete, EditRounded } from '@material-ui/icons';
-import React, { useState, useEffect } from 'react';
+import { NotificationContext } from 'components/CadSnackbar';
+import React, { useState, useEffect, useContext } from 'react';
 import { SubmitHandler, useForm, } from "react-hook-form";
+import { PricingInfo } from 'sdk';
 
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -20,10 +22,7 @@ const useStyles = makeStyles((theme: Theme) =>
     },
   }
   ));
-interface Iprices {
-  tarif: string;
-  montant: string;
-}
+
 interface PriceProps {
   delete: any
   prices: any
@@ -32,8 +31,10 @@ interface PriceProps {
 }
 const PriceRace = (props: PriceProps) => {
 
-  const [prices, setPrices] = useState([props.value]);
-  const [i, setI] = useState();
+  const [, setNotification] = useContext(NotificationContext);
+  const [prices, setPrices] = useState<PricingInfo[]>([props.value]);
+  const [i, setI] = useState<number>();
+  const [propRaceError, setPropRaceError] = useState<boolean>(false);
   const classes = useStyles();
   useEffect(
     () => {
@@ -43,21 +44,53 @@ const PriceRace = (props: PriceProps) => {
 
     }, [props.value]
   );
-  const { register, handleSubmit, watch, errors, setValue, getValues } = useForm<Iprices>();
-  const onSubmit: SubmitHandler<Iprices> = (data) => { console.log(JSON.stringify(data)); props.prices(data); };
+  const { register, handleSubmit, setValue, getValues } = useForm<PricingInfo>();
+  const onSubmit: SubmitHandler<PricingInfo> = (data) => {
+    if (String(data.tarif)==="" || data.name === "") {
+      setPropRaceError(true);
+      setNotification({
+        message: `tous les champs doivent être renseignées. Possibilité de mettre NC (non communiqué).`,
+        open: true,
+        type: 'error'
+      });
+    }
+    else {
+      setPropRaceError(false);
+      props.prices(data);
+    }
+    console.log(JSON.stringify(data));
+  };
+
   const onEdit = ((event: any): any => {
     setValue("tarif", prices[event.currentTarget.value].tarif);
-    setValue("montant", prices[event.currentTarget.value].montant);
-
-    setI(event.currentTarget.value)
+    setValue("name", prices[event.currentTarget.value].name);
+    setI(event.currentTarget.value);
   })
 
   const onUpdate = ((event: any): void => {
+    const tampons=prices[event.currentTarget.value];//recuperation avant erreur
+    prices[event.currentTarget.value] = getValues(["name", "tarif"]);
 
-    prices[event.currentTarget.value] = getValues(["tarif", "montant"]);
-    props.edit(prices)
-
+    if (String(prices[event.currentTarget.value].tarif) === "" || prices[event.currentTarget.value].name === "" ) {
+      setPropRaceError(true);
+      setNotification({
+        message: `tous les champs doivent être renseignées. Possibilité de mettre NC (non communiqué).`,
+        open: true,
+        type: 'error'
+      });
+      if(tampons){
+      prices[event.currentTarget.value].name=tampons.name;
+      prices[event.currentTarget.value].tarif=tampons.tarif;
+      }
+    }
+    else {
+      setPropRaceError(false);
+      props.edit(prices);
+    }
   });
+    
+
+  
 
   const onDelete = ((event: any): void => { props.delete(event.currentTarget.value); console.log(event.currentTarget.value) });
 
@@ -68,9 +101,9 @@ const PriceRace = (props: PriceProps) => {
           (
             <TableRow key={index}>
               <TableCell scope="row" align="center" style={{ columnWidth: '35%', border: '1px solid black' }}>
-                {row.tarif}
+                {row.name}
               </TableCell>
-              <TableCell align="center" style={{ columnWidth: '35%', border: '1px solid black' }}>{row.montant}
+              <TableCell align="center" style={{ columnWidth: '35%', border: '1px solid black' }}>{row.tarif}
               </TableCell>
               <TableCell align="center" style={{ columnWidth: '5%', border: '1px solid black' }}>
                 <Tooltip title='Modifier le tarif'>
@@ -95,28 +128,33 @@ const PriceRace = (props: PriceProps) => {
 
       <div style={{ display: 'block', width: '100%', marginLeft: 'auto', marginRight: 'auto' }}>
         <TextField
+          error={propRaceError}
+          // helperText={propRaceError && "champs requis"}
           className={classes.textField}
-          name="tarif"
-          inputRef={register({ required: true })}
+          name="name"
+          inputRef={register()}
           label="Nom du tarif"
-          placeholder=""
-          inputProps={{ 'name': 'tarif', 'ref': { register } }}
+          placeholder="ex : FSGT"
+          inputProps={{ 'name': 'name', 'ref': { register } }}
           InputLabelProps={{
             shrink: true,
           }}
         />
         {/* {errors.epreuve && <p>Le nom de la catégorie est obligatoire</p>} */}
         <TextField
+          error={propRaceError}
+          // helperText={propRaceError && "champs requis"}
           className={classes.textField}
-          name="montant"
+          name="tarif"
           inputRef={register}
           label="Montant"
-          placeholder=""
-          inputProps={{ 'name': 'montant', 'ref': { register } }}
+          placeholder="ex : 7€"
+          inputProps={{ 'name': 'tarif', 'ref': { register } }}
           margin="normal"
           InputLabelProps={{
             shrink: true,
           }}
+          onInput={(e: any) => { e.target.value = e.target.value.replace(/[^0-9]/g, '') }}
         />
       </div>
       <Button style={{ display: 'block', marginLeft: 'auto', marginRight: 'auto', width: '206px', marginTop: '30px' }} value={i} variant={'contained'} onClick={onUpdate} color={'primary'}>Sauvegarder</Button>

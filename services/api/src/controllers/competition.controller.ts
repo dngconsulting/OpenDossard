@@ -13,8 +13,8 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { Any, Between, EntityManager, Repository } from 'typeorm';
-import { CompetitionEntity, CompetitionType } from '../entity/competition.entity';
+import { Any, Between, EntityManager, EntityRepository, Repository } from 'typeorm';
+import { Category, CompetitionEntity, CompetitionType } from '../entity/competition.entity';
 import { RaceEntity } from '../entity/race.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { CompetitionCreate, CompetitionFilter, CompetitionReorganize, Departement } from '../dto/model.dto';
@@ -23,6 +23,8 @@ import { TooMuchResults } from "../exception/TooMuchResults";
 import { ROLES, RolesGuard } from "../guards/roles.guard";
 import { Roles } from "../decorators/roles.decorator";
 import { FindManyOptions } from "typeorm/find-options/FindManyOptions";
+import { FederationEntity } from 'src/entity/federation.entity';
+import { ClubEntity } from 'src/entity/club.entity';
 
 const MAX_COMPETITION_TODISPLAY = 5000;
 /**
@@ -36,6 +38,8 @@ export class CompetitionController {
     constructor(
         @InjectRepository(CompetitionEntity)
         private readonly repository: Repository<CompetitionEntity>,
+        @InjectRepository(ClubEntity)
+        private readonly clubRepository : Repository<ClubEntity>,
         @InjectEntityManager()
         private readonly entityManager: EntityManager,
     ) {
@@ -186,10 +190,8 @@ export class CompetitionController {
     })
     @ApiResponse({ status: 200, isArray: false })
     @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
-    public async createCompetition(@Body() dto: CompetitionCreate): Promise<CompetitionEntity> {
-        console.log(dto.categories)
-        console.log(dto.name)
-        console.log(dto)
+    public async createCompetition(@Body() dto: CompetitionCreate): Promise<void> {
+        
         if (!dto.competitionType) throw new BadRequestException("le type de la compétition doit être renseigné.");
         if (dto.name === "" || !dto.name) throw new BadRequestException("le nom de la compétition ne peut pas être nul.");
         if (!dto.categories) throw new BadRequestException("les catégories de la compétition ne peuvent pas être nulles.");
@@ -199,22 +201,35 @@ export class CompetitionController {
         if (dto.club === null) throw new BadRequestException("le club organisant la compétition ne peut pas être nul.");
 
         const competition = new CompetitionEntity();
+        
+        const club = await this.clubRepository.findOne(dto.club);
+    
         competition.name = dto.name;
         competition.eventDate = dto.eventDate;
         competition.zipCode = dto.zipCode;
         competition.info = dto.info;
-        competition.siteweb = dto.siteWeb;
+        competition.siteweb = dto.siteweb;
         competition.longueurCircuit = dto.longueurCircuit;
-        competition.club = dto.club;
+        competition.club = club;
         competition.contactPhone = dto.contactPhone;
         competition.facebook = dto.facebook;
         competition.contactEmail = dto.contactEmail;
-        competition.categories = dto.categories;
+        competition.categories=dto.categories;
         competition.fede = dto.fede;
         competition.competitionType = dto.competitionType;
-        competition.races = dto.races
+        competition.competitionInfo = dto.competitionInfo;
+        competition.races = dto.races;
+        competition.contactName= dto.contactName;
+        competition.lieuDossardGPS=dto.lieuDossardGPS;
+        competition.lieuDossard=dto.lieuDossard;
+        competition.observations=dto.observations;
+        competition.openedNL=dto.openedNL;
+        competition.openedToOtherFede=dto.openedToOtherFede;
+        competition.pricing=dto.pricing;
 
-        return await this.entityManager.save(competition)
+        await this.entityManager.save(competition);
+        
+      
     }
 
     @Put(':id')
@@ -242,13 +257,13 @@ export class CompetitionController {
         competition.eventDate = dto.eventDate;
         competition.zipCode = dto.zipCode;
         competition.info = dto.info;
-        competition.siteweb = dto.siteWeb;
+        competition.siteweb = dto.siteweb;
         competition.longueurCircuit = dto.longueurCircuit;
-        competition.club = dto.club;
+        //competition.club = dto.club;
         competition.contactPhone = dto.contactPhone;
         competition.facebook = dto.facebook;
         competition.contactEmail = dto.contactEmail;
-        competition.categories = dto.categories;
+        competition.categories = [Category.CADETS];
         competition.fede = dto.fede;
         competition.competitionType = dto.competitionType;
         competition.races = dto.races
@@ -264,7 +279,7 @@ export class CompetitionController {
 })
 @ApiResponse({ status: 204, isArray: false })
 @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
-public async deleteCompetition(@Param('id') id: string): Promise <void> {
+public async deleteCompetition(@Param('id') id: number): Promise <void> {
     const competition = await this.repository.findOne(id);
     if(!competition) {
         throw new BadRequestException(`Competition ${id} not found`);

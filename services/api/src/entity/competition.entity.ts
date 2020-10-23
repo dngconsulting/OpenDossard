@@ -17,6 +17,7 @@ export enum Category {
     CADETS = 'Cadets',
     MINIMES = 'Minimes',
     FEMININES = 'Feminines',
+    TOUTES='Toutes'
 }
 
 export enum CompetitionType {

@@ -1,5 +1,6 @@
 export * from './ClubEntity';
 export * from './ClubRow';
+export * from './CompetitionCreate';
 export * from './CompetitionEntity';
 export * from './CompetitionFilter';
 export * from './CompetitionInfo';

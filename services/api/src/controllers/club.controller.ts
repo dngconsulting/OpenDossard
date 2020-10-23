@@ -1,5 +1,5 @@
 import {EntityManager, Repository} from 'typeorm';
-import {Body, Controller, Get, Param, Post, UseGuards} from '@nestjs/common';
+import {BadRequestException, Body, Controller, Get, Param, Post, UseGuards} from '@nestjs/common';
 import {InjectEntityManager, InjectRepository} from '@nestjs/typeorm';
 import {ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
 import {ClubEntity} from '../entity/club.entity';
@@ -40,6 +40,20 @@ export class ClubController {
     @Get("byfede/:fede")
     public async getClubByFede(@Param('fede') fede:string): Promise<ClubRow[]> {
         return this.repository.find({where:{fede:fede}});
+    }
+    @ApiOperation({
+        operationId: 'getClubsById',
+        summary: 'Rechercher un club en fonction de son id',
+        description: 'renvoie un club',
+    })
+    @ApiResponse({status: 200, type: ClubEntity, isArray:false, description: 'Club'})
+    @Get(":id")
+    public async getClubById(@Param('id') id:number): Promise<ClubEntity> {
+        
+        if (!id) {
+            throw new BadRequestException(`Competition ${id} not found`);
+        }
+        return this.repository.findOne({id});
     }
     @Post()
     @ApiOperation({

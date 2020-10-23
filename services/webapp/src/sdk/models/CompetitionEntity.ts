@@ -327,7 +327,8 @@ export enum CompetitionEntityCategoriesEnum {
     _5eme = '5eme',
     Cadets = 'Cadets',
     Minimes = 'Minimes',
-    Feminines = 'Feminines'
+    Feminines = 'Feminines',
+    Toutes = 'Toutes'
 }
 
 

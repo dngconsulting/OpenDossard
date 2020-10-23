@@ -18,7 +18,7 @@ interface IleafletProps {
 const LeafletMap: any = (props: IleafletProps) => {
 
   function getPosition(value: any) {
-    props.position({ ...props.coord, position: value })
+    props.position(value)
   }
 
   const ReactLeafletSearchComponent = withLeaflet(ReactLeafletSearch);
@@ -44,7 +44,7 @@ const LeafletMap: any = (props: IleafletProps) => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution="&copy; <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors">
         </TileLayer>
-        <AddMarker coord={getPosition} position={props.coord.position}
+        <AddMarker coord={getPosition} position={props.coord}
         />
       </Map>
     </div>

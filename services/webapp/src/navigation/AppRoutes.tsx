@@ -28,6 +28,7 @@ export default ({renderAccount}: { renderAccount: () => ReactElement }) => {
             <Route path='/licence/:id' component={isAuthenticated(LicencePage)}/>
             <Route title="Sélection d'une épreuve" path='/competitionchooser' component={WrappedCompetitionChooser}/>
             <Route title="Création d'une épreuve" path='/create' component={CompetNavBar}/>
+            <Route title="Modification d'une épreuve" path='/update/:id' component={CompetNavBar}/>
             <Route title="Palmares" path='/palmares/:id?' component={WrappedPalmaresPage}/>
             <Route title="Mon compte" path='/account' render={renderAccount}/>
             <Route title="Engagement" path='/competition/:id/engagement' component={WrappedEngagementPage}/>
