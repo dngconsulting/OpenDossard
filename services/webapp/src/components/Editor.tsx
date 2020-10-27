@@ -7,8 +7,7 @@ const Editor = (props: any) => {
 
    const [obs,setObs]=useState<string>("");
    useEffect(()=>{setObs(props.edit)},[props.edit]);
-    console.log(typeof props.edit)
-    console.log(obs)
+
     return (
         <div>
             <h3>Notes de l'organisation</h3>
@@ -16,7 +15,6 @@ const Editor = (props: any) => {
                 data={obs}
                 editor={ClassicEditor}
                 onInit={(editor: any) => {
-                        editor.setData(props.edit);
                         editor.editing.view.change((writer: any) => {
                         writer.setStyle(
                             "height",

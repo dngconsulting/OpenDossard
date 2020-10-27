@@ -114,15 +114,32 @@ export default function ClubSelectRace({ dept, onSelect, chosenClub, fede, clubE
         // empty chosen club should display "blank" item the list
         if (chosenClub.label === '' || chosenClub.label === null) {
             setSelectedClub(null);
+            onSelect(null);
             return;
         }
         setSelectedClub(loptionType.filter(club => club.label.includes(chosenClub.label))[0])
     };
+
+    const onInitData = async () => {
+        if(chosenClub.value !==null){
+        const id=chosenClub.value;
+        const initClub= await apiClubs.getClubsById({id});
+        chosenClub.label=initClub.longName;
+        }
+      
+       
+    }
+   useEffect(() => {
+        onInitData();   
+    }, []);
+
     useEffect(() => {
+        
         fetchData();
     }, [fede]);
 
     const handleChangeSingle = (value: ValueType<IOptionType>) => {
+        
         setSelectedClub(value);
         const selected = value as IOptionType;
         if (selected && selected.label)

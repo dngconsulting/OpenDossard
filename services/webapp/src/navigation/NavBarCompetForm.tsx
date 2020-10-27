@@ -46,10 +46,35 @@ function TabPanel(props: TabPanelProps) {
 }
 
 const CompetNavBar = (props: any) => {
-
+  
   const [races, setRaces] = useState<CompetitionInfo[]>([]);
   const [prices, setPrices] = useState<PricingInfo[]>([]);
-  const [newCompetition, setNewCompetition] = useState<CompetitionCreate>({ races: ["Toutes"], categories: [CompetitionCreateCategoriesEnum.Toutes], eventDate: null, fede: null, name: "", club: null, competitionType: null, competitionInfo: races, zipCode: "", lieuDossardGPS: "", siteweb: "", facebook: "", contactPhone: "", contactEmail: "", contactName: "", openedToOtherFede: false, openedNL: false, observations:"", pricing: prices, lieuDossard: "", longueurCircuit: "", dept: "", info: "" })
+  const [newCompetition, setNewCompetition] = useState<CompetitionCreate>({
+    races: ["Toutes"],
+    categories: [CompetitionCreateCategoriesEnum.Toutes],
+    eventDate: null,
+    fede: null,
+    name: "",
+    club: null,
+    competitionType: null,
+    competitionInfo: races,
+    zipCode: "",
+    lieuDossardGPS: "",
+    siteweb: "",
+    facebook: "",
+    contactPhone: "",
+    contactEmail: "",
+    contactName: "",
+    openedToOtherFede: false,
+    openedNL: false,
+    observations: "",
+    pricing: [],
+    lieuDossard: "",
+    longueurCircuit: "",
+    dept: "",
+    info: ""
+  })
+  
   const [value, setValue] = useState<number>(0);
   const [zipCodeError, setZipCodeError] = useState<boolean>(false);
   const [phoneContactError, setPhoneContactError] = useState<boolean>(false);
@@ -57,14 +82,13 @@ const CompetNavBar = (props: any) => {
   const [linkError, setLinkError] = useState<boolean>(false);
   const [mailContactError, setMailContactError] = useState<boolean>(false)
   const [validateError, setValidateError] = useState<boolean>(false)
-  const error: any = [zipCodeError, phoneContactError, facebookError, linkError, mailContactError]
+  const error: any = [phoneContactError, facebookError, linkError, mailContactError,zipCodeError]
   const [position, setPosition] = useState<number[]>([0, 0])
-  const [nav, setNav] = useState<boolean>(false);
   const [loading, showLoading] = React.useState(false);
   const classes = useStyles();
   const [, setNotification] = useContext(NotificationContext);
   const competitionId = props.match.params.id;
-  const [isEdit, setIsEdit] = useState<boolean>(false);
+  
 
 
   useEffect(() => {
@@ -73,17 +97,22 @@ const CompetNavBar = (props: any) => {
         const id = String(competitionId);
         const editComp: CompetitionEntity = await apiCompetitions.getCompetition({ id });
         // ,fede:CompetitionCreateCategoriesEnum.editComp.fede)),type:String(editComp.fede))
-        setIsEdit(true);
+        
         setPrices(editComp.pricing);
 
         setRaces(editComp.competitionInfo);
-        
+
         //position string =>number
-        const tab = (editComp.lieuDossardGPS).split(',');
-        const lat = Number(tab[0]);
-        const lng = Number(tab[1]);
-        setPosition([lat, lng]);
-        const compareFede= (): any  => {
+        if (editComp.lieuDossardGPS || editComp.lieuDossardGPS !== "") {
+          const tab = (editComp.lieuDossardGPS).split(',');
+          const lat = Number(tab[0]);
+          const lng = Number(tab[1]);
+          setPosition([lat, lng]);
+        }
+        else {
+          setPosition([0, 0]);
+        }
+        const compareFede = (): any => {
           if (String(Object.values(editComp.fede)) === String(Object.values(CompetitionCreateFedeEnum.CYCLOS))) {
             return CompetitionCreateFedeEnum.CYCLOS
           }
@@ -113,8 +142,8 @@ const CompetNavBar = (props: any) => {
           }
 
         }
-        
-        const compareType= (): any  => {
+
+        const compareType = (): any => {
           if (String(Object.values(editComp.competitionType)) === String(Object.values(CompetitionCreateCompetitionTypeEnum.AUTRE))) {
             return CompetitionCreateFedeEnum.CYCLOS
           }
@@ -131,59 +160,84 @@ const CompetNavBar = (props: any) => {
             return CompetitionCreateCompetitionTypeEnum.VTT
           }
         }
-        
-    
 
-setNewCompetition({ ...newCompetition, id: editComp.id,competitionType: compareType(), eventDate: editComp.eventDate, name: editComp.name, club: editComp.club.id, zipCode: editComp.zipCode, facebook: editComp.facebook, lieuDossardGPS: editComp.lieuDossardGPS, siteweb: editComp.siteweb, contactEmail: editComp.contactEmail, contactName: editComp.contactName, contactPhone: editComp.contactPhone, openedNL: editComp.openedNL, openedToOtherFede: editComp.openedToOtherFede, observations: editComp.observations, lieuDossard: editComp.lieuDossard, dept: editComp.dept, info: editComp.info, longueurCircuit: editComp.longueurCircuit, fede:compareFede() });
+
+
+        setNewCompetition({ ...newCompetition, competitionInfo: editComp.competitionInfo, pricing:editComp.pricing, id: editComp.id, competitionType: compareType(), eventDate: editComp.eventDate, name: editComp.name, club: editComp.club.id, zipCode: editComp.zipCode, facebook: editComp.facebook, lieuDossardGPS: editComp.lieuDossardGPS, siteweb: editComp.siteweb, contactEmail: editComp.contactEmail, contactName: editComp.contactName, contactPhone: editComp.contactPhone, openedNL: editComp.openedNL, openedToOtherFede: editComp.openedToOtherFede, observations: editComp.observations, lieuDossard: editComp.lieuDossard, dept: editComp.dept, info: editComp.info, longueurCircuit: editComp.longueurCircuit, fede: compareFede(),commissaires : editComp.commissaires,speaker:editComp.speaker,aboyeur:editComp.aboyeur,feedback:editComp.feedback });
       }
     }
     editCompetition();
     
-  }, [])
+  },[])
 
 
 
   const handleSubmit = async (event: any): Promise<any> => {
 
-
-    console.log(JSON.stringify(newCompetition))
+    controlCompetition();
+    console.log(error, validateError)
+    console.log(JSON.stringify(newCompetition));
+    
 
     if (newCompetition === null) return;
-    showLoading(true)
-    try {
-      controlCompetition();
-      await apiCompetitions.saveCompetition({ competitionCreate: newCompetition });
-      window.location.href = "/competitionchooser#all";
+    showLoading(true);
+    console.log(controlTextfield())
+    const control=controlTextfield();
+    if (control===false) {
+      try {
+
+
+        if (newCompetition.id) {
+          const id = String(newCompetition.id);
+          await apiCompetitions.updateCompetition({ id, competitionCreate: newCompetition });
+          window.location.href = "/competitionchooser#all";
+
+        } else {
+
+          await apiCompetitions.saveCompetition({ competitionCreate: newCompetition });
+          window.location.href = "/competitionchooser#all";
+        }
+      }
+
+      catch (err) {
+        setNotification({
+          message: `L'épreuve ${newCompetition.name} n'a pu être créé ou modifiée`,
+          type: 'error',
+          open: true
+        });
+
+      }
+      finally {
+        showLoading(false)
+      }
     }
-    catch (err) {
+    else {
       setNotification({
-        message: `L'épreuve' ${newCompetition.name} n'a pu être créé ou modifiée`,
+        message: `Un ou plusieurs champs du formulaire est ou sont non conformes`,
         type: 'error',
         open: true
       });
-      setNav(false);
     }
-    finally {
-      showLoading(false)
-    }
-
   }
+
+
 
 
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
     setValue(newValue);
   };
 
-  const addRaces = (data: any): void => { races.push(data); setRaces(races); };
-  const addPrices = (data: any): void => { prices.push(data); setPrices(prices); };
-  const deleteRaces = (value: any): void => { const list = [...races]; list.splice(value, 1); setRaces(list); };
-  const deletePrices = (value: any): void => { const list = [...prices]; list.splice(value, 1); setPrices(list); };
+  const addRaces = (data: any): void => { races.push(data); setRaces(races); setNewCompetition({...newCompetition,competitionInfo:races}) };
+  const addPrices = (data: any): void => { prices.push(data); setPrices(prices); setNewCompetition({...newCompetition,pricing:prices})};
+  const deleteRaces = (value: any): void => { const list = [...races]; list.splice(value, 1); setRaces(list);setNewCompetition({...newCompetition,competitionInfo:list}) };
+  const deletePrices = (value: any): void => { const list = [...prices]; list.splice(value, 1); setPrices(list);setNewCompetition({...newCompetition,pricing:list}) };
   const getRaces = ((value: any): void => { const list = [...value]; setRaces(list) });
   const getPrices = ((value: any): void => { const list = [...value]; setPrices(list) });
   const getnewCompetition = ((value: any): void => { setNewCompetition(value); });
   const getPosition = ((value: any): void => { setPosition([value.lat, value.lng]); setNewCompetition({ ...newCompetition, lieuDossardGPS: String(value.lat + ', ' + value.lng) }); });
+  //champs obligatoires
   const controlCompetition = (): void => {
-    if ((newCompetition.name === "" || newCompetition.eventDate === null || newCompetition.competitionType === null || newCompetition.fede === null || newCompetition.club === null)) {
+    if ((newCompetition.name === "" || newCompetition.eventDate === null || newCompetition.competitionType === null || newCompetition.fede === null || newCompetition.club === null ||newCompetition.zipCode==="")) {
       setValidateError(true);
       setNotification({
         message: `Une de ces informations est manquante (nom, date, type, féderation de l' épreuve)`,
@@ -194,36 +248,47 @@ setNewCompetition({ ...newCompetition, id: editComp.id,competitionType: compareT
     else {
       setValidateError(false);
     }
+  }
+
+  //controles format
+  const controlTextfield = (): boolean => {
+    let bool=false;
     if ((newCompetition.contactPhone).length <= 9 && newCompetition.contactPhone !== "") {
       setPhoneContactError(true);
+      bool= true;
     }
     else {
-      setPhoneContactError(false)
+      setPhoneContactError(false);
     }
     if ((newCompetition.contactEmail).includes('@', null) === false && newCompetition.contactEmail !== "") {
-      setMailContactError(true)
+      setMailContactError(true);
+      bool= true;
     }
     else {
-      setMailContactError(false)
+      setMailContactError(false);
     }
-    if ((newCompetition.zipCode).length < 5 && newCompetition.zipCode !== "") {
+    if ((newCompetition.zipCode).length < 5) {
       setZipCodeError(true);
+      bool= true;
     }
     else {
-      setZipCodeError(false)
+      setZipCodeError(false);
     }
     if ((newCompetition.facebook).includes('https', 0) === false && newCompetition.facebook !== "") {
-      setFacebookError(true)
+      setFacebookError(true);
+      bool= true;
     }
     else {
-      setFacebookError(false)
+      setFacebookError(false);
     }
     if ((newCompetition.siteweb).includes('https', 0) === false && newCompetition.siteweb !== "") {
-      setLinkError(true)
+      setLinkError(true);
+      bool= true;
     }
     else {
-      setLinkError(false)
+      setLinkError(false);
     }
+    return bool;
   }
 
 
@@ -240,7 +305,7 @@ setNewCompetition({ ...newCompetition, id: editComp.id,competitionType: compareT
         </AppBar>
 
         <TabPanel value={value} index={0}>
-          <InfoRace value={newCompetition} info={getnewCompetition} error={error} validateError={validateError} isEdit={isEdit} />
+          <InfoRace value={newCompetition} info={getnewCompetition} error={error} validateError={validateError}/>
         </TabPanel>
 
         <TabPanel value={value} index={1}>

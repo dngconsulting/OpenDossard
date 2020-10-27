@@ -129,7 +129,6 @@ const PriceRace = (props: PriceProps) => {
       <div style={{ display: 'block', width: '100%', marginLeft: 'auto', marginRight: 'auto' }}>
         <TextField
           error={propRaceError}
-          // helperText={propRaceError && "champs requis"}
           className={classes.textField}
           name="name"
           inputRef={register()}
@@ -140,10 +139,9 @@ const PriceRace = (props: PriceProps) => {
             shrink: true,
           }}
         />
-        {/* {errors.epreuve && <p>Le nom de la catégorie est obligatoire</p>} */}
+
         <TextField
           error={propRaceError}
-          // helperText={propRaceError && "champs requis"}
           className={classes.textField}
           name="tarif"
           inputRef={register}

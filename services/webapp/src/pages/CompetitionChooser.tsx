@@ -3,9 +3,9 @@ import { createStyles, makeStyles, Theme, withStyles } from '@material-ui/core/s
 import Paper from '@material-ui/core/Paper';
 import cadtheme from '../App';
 import { apiCompetitions, apiRaces } from '../util/api';
-import { CompetitionEntity, CompetitionEntity as Competition, RaceRow, CompetitionAPIApi } from '../sdk';
-import { Link, NavLink, withRouter } from 'react-router-dom';
-import { ButtonBase, Radio, Tooltip } from '@material-ui/core';
+import { CompetitionEntity, CompetitionEntity as Competition, RaceRow} from '../sdk';
+import { Link} from 'react-router-dom';
+import { Radio, Tooltip } from '@material-ui/core';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { toMMDDYYYY } from '../util/date';
@@ -15,7 +15,7 @@ import { NotificationContext } from "../components/CadSnackbar";
 import { styles } from "../navigation/styles";
 import { Button } from '@material-ui/core';
 import { EditRounded, Delete, Rowing } from '@material-ui/icons';
-import zIndex from '@material-ui/core/styles/zIndex';
+
 
 interface ICompetitionChooserProps {
     classes?: any;
@@ -240,9 +240,9 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                     name="radio-button-demo"
                 />Toutes les épreuves
                 </Link>
-            <Link to='/create'>
-                <Button style={{ position: 'absolute', right: 25 }} variant={'contained'} color={'primary'}  >CREER EPREUVE</Button>
-            </Link>
+           
+                <Button style={{ position: 'absolute', right: 25 }} variant={'contained'} color={'primary'} onClick={e=>{  props.history.push({pathname: '/create',state: { title: "Création épreuve" }})}} >CREER EPREUVE</Button>
+         
             <div className={classes.titre}>Veuillez sélectionner une épreuve :</div>
 
             <DataTable responsive={true}

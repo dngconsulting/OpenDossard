@@ -3,10 +3,9 @@ import { TextField, FormControl, InputLabel, Select, MenuItem, FormControlLabel,
 import Editor from 'components/Editor';
 import moment from 'moment';
 import  { IOptionType } from 'pages/licence/ClubSelect';
-import React, { useEffect, useState } from 'react';
-import { ClubEntity, CompetitionCreateCompetitionTypeEnum,} from 'sdk';
+import React from 'react';
+import {  CompetitionCreateCompetitionTypeEnum,} from 'sdk';
 import { FedeEnum } from 'sdk/models/FedeEnum';
-import { apiClubs } from 'util/api';
 import ClubSelectRace from './ClubSelectRace';
 
 
@@ -14,8 +13,7 @@ interface InfoRaceProps {
     value: any;
     info: any;
     error: any;
-    validateError: boolean;
-    isEdit:boolean
+    validateError: boolean; 
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -40,17 +38,7 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 const InfoRace = (props: InfoRaceProps) => {
-    const [labelClub,setLabelClub]=useState<string>();
-    console.log(props.value.club)
-    useEffect(()=>{
-    const fetchClub=async ()=>{
-        if(props.value.id){
-        const Club : ClubEntity =await apiClubs.getClubsById(props.value.club);
-        setLabelClub(Club.longName);
-        }
-    }
-    fetchClub()
-},[])
+    
     const date : string = moment(props.value.eventDate).format("YYYY-MM-DDTHH:mm");
    
     const handleChangeBox = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,7 +87,7 @@ const InfoRace = (props: InfoRaceProps) => {
                 <TextField
                     required
                     error={props.validateError === true && props.value.name === ""}
-                    helperText={(props.validateError === true && "le nom de l'épreuve doit être renseigné")}
+                    helperText={(props.validateError === true && props.value.name === ""&& "le nom de l'épreuve doit être renseigné")}
                     value={props.value.name}
                     type='text'
                     name="name"
@@ -118,7 +106,7 @@ const InfoRace = (props: InfoRaceProps) => {
                     }} />
                 <TextField
                     error={props.validateError === true && props.value.eventDate === null}
-                    helperText={(props.validateError === true && "la date de l'épreuve doit être renseignée")}
+                    helperText={(props.validateError === true && "la date de l'épreuve doit être renseignée"&& props.value.eventDate === null)}
                     className={classes.container}
                     required
                     name="eventDate"
@@ -146,7 +134,7 @@ const InfoRace = (props: InfoRaceProps) => {
                         <MenuItem value={CompetitionCreateCompetitionTypeEnum.VTT}>VTT</MenuItem>
                         <MenuItem value={CompetitionCreateCompetitionTypeEnum.AUTRE}>AUTRES</MenuItem>
                     </Select>
-                    {(props.validateError && <FormHelperText>Le type de l'épreuve doit être renseigné</FormHelperText>)}
+                    {(props.validateError&&  props.value.competitionType === null && <FormHelperText>Le type de l'épreuve doit être renseigné</FormHelperText>)}
                 </FormControl>
                 <FormControl className={classes.formControl} required error={props.validateError === true && props.value.fede === null}>
                     <InputLabel id="federation-epreuve">Fédération</InputLabel>
@@ -165,7 +153,7 @@ const InfoRace = (props: InfoRaceProps) => {
                         <MenuItem value={FedeEnum.FFTRI}>FFTRI</MenuItem>
                         <MenuItem value={FedeEnum.NL}>NL</MenuItem>
                     </Select>
-                    {(props.validateError === true && <FormHelperText>La fédération de l'épreuve doit être renseignée</FormHelperText>)}
+                    {(props.validateError === true && props.value.fede === null && <FormHelperText>La fédération de l'épreuve doit être renseignée</FormHelperText>)}
                 </FormControl>
             </div>
             <div style={{ display: 'block', width: '100%', marginLeft: 'auto', marginRight: 'auto' }}>
@@ -188,8 +176,9 @@ const InfoRace = (props: InfoRaceProps) => {
                     }} />
 
                 <TextField
-                    error={props.error[0]}
-                    helperText={(props.error[0] && "le code postal doit etre de 5 chiffres")}
+                    required
+                    error={props.validateError === true && props.value.zipCode === "" || props.error[4]===true}
+                    helperText={(props.validateError === true && "le code postal doit être renseigné en 5 chiffres") || props.error[4]&& "le code postal doit être renseigné en 5 chiffres"}
                     onChange={handleForm}
                     name='zipCode'
                     label="Code Postal"
@@ -230,7 +219,7 @@ const InfoRace = (props: InfoRaceProps) => {
                 </FormControl>
                 {props.value.fede && props.value.fede !== FedeEnum.NL &&
                     <div style={{ width: '400px', marginTop: '47px', display: 'inline-block' }}>
-                        <ClubSelectRace clubError={props.validateError} dept="" fede={props.value.fede} onSelect={onSelectClub}  chosenClub={{ value: props.value.club, label:labelClub  } as IOptionType} />
+                        <ClubSelectRace clubError={props.validateError} dept="" fede={props.value.fede} onSelect={onSelectClub}  chosenClub={{ value: props.value.club, label:''  } as IOptionType} />
                     </div>}
             </div>
             <div>
@@ -246,14 +235,14 @@ const InfoRace = (props: InfoRaceProps) => {
                         marginRight: '50px',
                         marginTop: '50px'
                     }}
-                    placeholder="Prénom Nom"
+                    placeholder="Prénom NOM"
                     margin="normal"
                     InputLabelProps={{
                         shrink: true,
                     }} />
                 <TextField
-                    error={props.error[1]}
-                    helperText={props.error[1] && "le numéro de téléphone doit comporter 10 chiffres"}
+                    error={props.error[0]}
+                    helperText={props.error[0] && "le numéro de téléphone doit comporter 10 chiffres"}
                     name='contactPhone'
                     value={props.value.contactPhone}
                     onChange={handleForm}
@@ -277,8 +266,8 @@ const InfoRace = (props: InfoRaceProps) => {
                         shrink: true,
                     }} />
                 <TextField
-                    error={props.error[4]}
-                    helperText={props.error[4] === true && "l'email n'est pas au bon format xyz@gmail.com'"}
+                    error={props.error[3]}
+                    helperText={props.error[3] === true && "l'email n'est pas au bon format xyz@mail.com'"}
                     name='contactEmail'
                     value={props.value.contactEmail}
                     type="email"
@@ -290,15 +279,15 @@ const InfoRace = (props: InfoRaceProps) => {
                         marginRight: '50px',
                         marginTop: '50px'
                     }}
-                    placeholder="ex : personne@gmail.com"
+                    placeholder="ex : personne@mail.com"
                     margin="normal"
                     InputLabelProps={{
                         shrink: true,
                     }}
                 />
                 <TextField
-                    error={props.error[2] === true}
-                    helperText={props.error[2] === true && "le nom du site doit commencer par https"}
+                    error={props.error[1] === true}
+                    helperText={props.error[1] === true && "le nom du site doit commencer par https"}
                     name='facebook'
                     value={props.value.facebook}
                     type="url"
@@ -317,8 +306,8 @@ const InfoRace = (props: InfoRaceProps) => {
                     }}
                 />
                 <TextField
-                    error={props.error[3] == true}
-                    helperText={props.error[3] === true && "le nom du site doit commencer par https"}
+                    error={props.error[2] == true}
+                    helperText={props.error[2] === true && "le nom du site doit commencer par https"}
                     name='siteweb'
                     value={props.value.siteweb}
                     type="url"
@@ -335,6 +324,80 @@ const InfoRace = (props: InfoRaceProps) => {
                         shrink: true,
                     }}
                 />
+                </div>
+                <div>
+                 {props.value.id&&<TextField
+                    name='commissaires'
+                    value={props.value.commissaires}
+                    type="text"
+                    onChange={handleForm}
+                    label="Commissaires"
+                    style={{
+                        margin: 8,
+                        marginRight: '50px',
+                        width: '200px',
+                        marginTop: '50px'
+                    }}
+                    placeholder="Prénom NOM"
+                    margin="normal"
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
+                />}
+                 {props.value.id&&props.value.competitionType===CompetitionCreateCompetitionTypeEnum.CX &&<TextField
+                    name='aboyeur'
+                    value={props.value.aboyeur}
+                    type="text"
+                    onChange={handleForm}
+                    label="Aboyeur"
+                    style={{
+                        margin: 8,
+                        marginRight: '50px',
+                        width: '200px',
+                        marginTop: '50px'
+                    }}
+                    placeholder="Prénom NOM"
+                    margin="normal"
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
+                />}
+                {props.value.id&&<TextField
+                    name='speaker'
+                    value={props.value.speaker}
+                    type="text"
+                    onChange={handleForm}
+                    label="Speaker"
+                    style={{
+                        margin: 8,
+                        marginRight: '50px',
+                        width: '200px',
+                        marginTop: '50px'
+                    }}
+                    placeholder="Prénom NOM"
+                    margin="normal"
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
+                />}
+                 {props.value.id&&<TextField
+                    name='feedback'
+                    value={props.value.feedback}
+                    type="text"
+                    onChange={handleForm}
+                    label="Observations"
+                    style={{
+                        margin: 8,
+                        marginRight: '50px',
+                        width: '250px',
+                        marginTop: '50px'
+                    }}
+                    placeholder=""
+                    margin="normal"
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
+                />}
             </div>
             <div style={{ display: 'block', marginTop: '50px' }}>
                 <FormControlLabel

@@ -13,13 +13,11 @@ const AddMarker = (props: MarkerProps): any => {
 
     const { map } = useLeaflet();
     const [position, setPosition]: any = useState(props.position);
-   // const getPosition = (value: any) => { props.coord([value.lat, value.lng]); }
     const markerEvent = useCallback(
         (e: LeafletMouseEvent) => {
             e.originalEvent.preventDefault();
             setPosition(e.latlng);
             props.coord(e.latlng)
-            //getPosition(e.latlng)
             e.originalEvent.stopPropagation();
         }, [props.position]);
       

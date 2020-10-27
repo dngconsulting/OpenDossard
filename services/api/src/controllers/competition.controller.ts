@@ -23,7 +23,6 @@ import { TooMuchResults } from "../exception/TooMuchResults";
 import { ROLES, RolesGuard } from "../guards/roles.guard";
 import { Roles } from "../decorators/roles.decorator";
 import { FindManyOptions } from "typeorm/find-options/FindManyOptions";
-import { FederationEntity } from 'src/entity/federation.entity';
 import { ClubEntity } from 'src/entity/club.entity';
 
 const MAX_COMPETITION_TODISPLAY = 5000;
@@ -207,6 +206,7 @@ export class CompetitionController {
         competition.name = dto.name;
         competition.eventDate = dto.eventDate;
         competition.zipCode = dto.zipCode;
+        competition.dept=(dto.zipCode).substr(0,2);
         competition.info = dto.info;
         competition.siteweb = dto.siteweb;
         competition.longueurCircuit = dto.longueurCircuit;
@@ -226,6 +226,7 @@ export class CompetitionController {
         competition.openedNL=dto.openedNL;
         competition.openedToOtherFede=dto.openedToOtherFede;
         competition.pricing=dto.pricing;
+        competition.lieuDossard=dto.zipCode;
 
         await this.entityManager.save(competition);
         
@@ -252,21 +253,36 @@ export class CompetitionController {
         if (dto.zipCode === "" || !dto.zipCode) throw new BadRequestException("le code postal de la compétition ne peut pas être nul.");
         if (dto.club === null) throw new BadRequestException("le club organisant la compétition ne peut pas être nul.");
 
-
+        const club = await this.clubRepository.findOne(dto.club);
+        
         competition.name = dto.name;
         competition.eventDate = dto.eventDate;
         competition.zipCode = dto.zipCode;
+        competition.dept=(dto.zipCode).substr(0,2);
         competition.info = dto.info;
         competition.siteweb = dto.siteweb;
         competition.longueurCircuit = dto.longueurCircuit;
-        //competition.club = dto.club;
+        competition.club = club;
         competition.contactPhone = dto.contactPhone;
         competition.facebook = dto.facebook;
         competition.contactEmail = dto.contactEmail;
-        competition.categories = [Category.CADETS];
+        competition.categories=dto.categories;
         competition.fede = dto.fede;
         competition.competitionType = dto.competitionType;
-        competition.races = dto.races
+        competition.competitionInfo = dto.competitionInfo;
+        competition.races = dto.races;
+        competition.contactName= dto.contactName;
+        competition.lieuDossardGPS=dto.lieuDossardGPS;
+        competition.lieuDossard=dto.lieuDossard;
+        competition.observations=dto.observations;
+        competition.openedNL=dto.openedNL;
+        competition.openedToOtherFede=dto.openedToOtherFede;
+        competition.pricing=dto.pricing;
+        competition.aboyeur=dto.aboyeur;
+        competition.speaker=dto.speaker;
+        competition.commissaires=dto.commissaires;
+        competition.feedback=dto.feedback;
+        competition.lieuDossard=dto.zipCode;
 
         return await this.entityManager.save(competition)
     }

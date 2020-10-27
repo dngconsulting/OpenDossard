@@ -25,14 +25,7 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
-// interface Iraces {
-//   epreuve: string,
-//   dossard: string,
-//   depart: string,
-//   distance: string,
-//   deniv: string,
-//   link: string
-// }
+
 interface RaceProps {
   delete: any
   races: any
@@ -161,7 +154,6 @@ const PropRace = (props: RaceProps) => {
       <div style={{ display: 'block', width: '100%', marginLeft: 'auto', marginRight: 'auto' }}>
         <TextField
           error={propRaceError}
-          // helperText={propRaceError && "champs requis"}
           className={classes.textField}
           name="course"
           inputRef={register()}
@@ -175,7 +167,6 @@ const PropRace = (props: RaceProps) => {
 
         <TextField
           error={propRaceError}
-          // helperText={propRaceError && "champs requis"}
           className={classes.textField}
           name="horaireEngagement"
           inputRef={register()}
@@ -188,7 +179,6 @@ const PropRace = (props: RaceProps) => {
         />
         <TextField
           error={propRaceError}
-          // helperText={propRaceError && "champs requis"}
           className={classes.textField}
           inputRef={register()}
           name="horaireDepart"
@@ -203,7 +193,6 @@ const PropRace = (props: RaceProps) => {
       <div style={{ display: 'block', width: '100%', marginLeft: 'auto', marginRight: 'auto' }}>
         <TextField
           error={propRaceError}
-          // helperText={propRaceError && "champs requis"}
           className={classes.textField}
           name="info1"
           inputRef={register()}
@@ -216,7 +205,6 @@ const PropRace = (props: RaceProps) => {
         />
         <TextField
           error={propRaceError}
-          // helperText={propRaceError && "champs requis"}
           className={classes.textField}
           name="info2"
           inputRef={register()}
@@ -229,7 +217,6 @@ const PropRace = (props: RaceProps) => {
         />
         <TextField
           error={propRaceError===true}
-          // helperText={propRaceError==true && "champs requis"}
           className={classes.textField}
           name="info3"
           inputRef={register()}
