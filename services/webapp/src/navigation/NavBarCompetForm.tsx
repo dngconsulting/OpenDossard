@@ -7,7 +7,7 @@ import PriceRace from 'pages/raceform/PriceRace';
 import { PricingInfo, CompetitionInfo, CompetitionEntity } from 'sdk';
 import { NotificationContext } from 'components/CadSnackbar';
 import { apiCompetitions } from 'util/api';
-import { CompetitionCreate, CompetitionCreateCategoriesEnum, CompetitionCreateCompetitionTypeEnum, CompetitionCreateFedeEnum, } from 'sdk/models/CompetitionCreate';
+import { CompetitionCreate, CompetitionCreateCategoriesEnum, CompetitionCreateCompetitionTypeEnum, } from 'sdk/models/CompetitionCreate';
 
 
 interface TabPanelProps {
@@ -112,40 +112,11 @@ const CompetNavBar = (props: any) => {
         else {
           setPosition([0, 0]);
         }
-        const compareFede = (): any => {
-          if (String(Object.values(editComp.fede)) === String(Object.values(CompetitionCreateFedeEnum.CYCLOS))) {
-            return CompetitionCreateFedeEnum.CYCLOS
-          }
-
-          if (String(Object.values(editComp.fede)) === String(Object.values(CompetitionCreateFedeEnum.FFC))) {
-            return CompetitionCreateFedeEnum.FFC
-          }
-
-          if (String(Object.values(editComp.fede)) === String(Object.values(CompetitionCreateFedeEnum.FFTRI))) {
-            return CompetitionCreateFedeEnum.FFTRI
-          }
-
-          if (String(Object.values(editComp.fede)) === String(Object.values(CompetitionCreateFedeEnum.FFVELO))) {
-            return CompetitionCreateFedeEnum.FFVELO
-          }
-
-          if (String(Object.values(editComp.fede)) === String(Object.values(CompetitionCreateFedeEnum.FSGT))) {
-            return CompetitionCreateFedeEnum.FSGT
-
-          }
-          if (String(Object.values(editComp.fede)) === String(Object.values(CompetitionCreateFedeEnum.UFOLEP))) {
-            return CompetitionCreateFedeEnum.UFOLEP
-          }
-
-          if (String(Object.values(editComp.fede)) === String(Object.values(CompetitionCreateFedeEnum.NL))) {
-            return CompetitionCreateFedeEnum.NL
-          }
-
-        }
+        
 
         const compareType = (): any => {
           if (String(Object.values(editComp.competitionType)) === String(Object.values(CompetitionCreateCompetitionTypeEnum.AUTRE))) {
-            return CompetitionCreateFedeEnum.CYCLOS
+            return CompetitionCreateCompetitionTypeEnum.AUTRE
           }
 
           if (String(Object.values(editComp.competitionType)) === String(Object.values(CompetitionCreateCompetitionTypeEnum.CX))) {
@@ -163,7 +134,7 @@ const CompetNavBar = (props: any) => {
 
 
 
-        setNewCompetition({ ...newCompetition, competitionInfo: editComp.competitionInfo, pricing:editComp.pricing, id: editComp.id, competitionType: compareType(), eventDate: editComp.eventDate, name: editComp.name, club: editComp.club.id, zipCode: editComp.zipCode, facebook: editComp.facebook, lieuDossardGPS: editComp.lieuDossardGPS, siteweb: editComp.siteweb, contactEmail: editComp.contactEmail, contactName: editComp.contactName, contactPhone: editComp.contactPhone, openedNL: editComp.openedNL, openedToOtherFede: editComp.openedToOtherFede, observations: editComp.observations, lieuDossard: editComp.lieuDossard, dept: editComp.dept, info: editComp.info, longueurCircuit: editComp.longueurCircuit, fede: compareFede(),commissaires : editComp.commissaires,speaker:editComp.speaker,aboyeur:editComp.aboyeur,feedback:editComp.feedback });
+        setNewCompetition({ ...newCompetition, competitionInfo: editComp.competitionInfo, pricing:editComp.pricing, id: editComp.id, competitionType: compareType(), eventDate: editComp.eventDate, name: editComp.name, club: editComp.club.id, zipCode: editComp.zipCode, facebook: editComp.facebook, lieuDossardGPS: editComp.lieuDossardGPS, siteweb: editComp.siteweb, contactEmail: editComp.contactEmail, contactName: editComp.contactName, contactPhone: editComp.contactPhone, openedNL: editComp.openedNL, openedToOtherFede: editComp.openedToOtherFede, observations: editComp.observations, lieuDossard: editComp.lieuDossard, dept: editComp.dept, info: editComp.info, longueurCircuit: editComp.longueurCircuit, fede: editComp.fede,commissaires : editComp.commissaires,speaker:editComp.speaker,aboyeur:editComp.aboyeur,feedback:editComp.feedback });
       }
     }
     editCompetition();
@@ -175,13 +146,12 @@ const CompetNavBar = (props: any) => {
   const handleSubmit = async (event: any): Promise<any> => {
 
     controlCompetition();
-    console.log(error, validateError)
-    console.log(JSON.stringify(newCompetition));
+    
     
 
     if (newCompetition === null) return;
     showLoading(true);
-    console.log(controlTextfield())
+    
     const control=controlTextfield();
     if (control===false) {
       try {

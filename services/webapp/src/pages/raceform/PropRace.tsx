@@ -38,15 +38,16 @@ const PropRace = (props: RaceProps) => {
   const [, setNotification] = useContext(NotificationContext);
   const [tab, setTab] = useState<CompetitionInfo[]>([props.value]);
   const classes = useStyles();
-  const [i, setI] = useState<number>();
+  const [index, setIndex] = useState<number>();
   const [propRaceError, setPropRaceError] = useState<boolean>(false);
   const { register, handleSubmit, setValue, getValues } = useForm<CompetitionInfo>();
+  const messageNotification = `tous les champs doivent être renseignées. Possibilité de mettre NC (non communiqué).`
 
   const onSubmit: SubmitHandler<CompetitionInfo> = (data) => {
       if(data.course==="" || data.horaireEngagement==="" || data.horaireDepart==="" || data.info1==="" || data.info2==="" || data.info3===""){
         setPropRaceError(true); 
         setNotification({
-          message: `tous les champs doivent être renseignées. Possibilité de mettre NC (non communiqué).`,
+          message: {messageNotification},
           open: true,
           type: 'error'
         });
@@ -65,7 +66,7 @@ const PropRace = (props: RaceProps) => {
     setValue("horaireEngagement", tab[event.currentTarget.value].horaireEngagement);
     setValue("info3", tab[event.currentTarget.value].info3);
     setValue("info1", tab[event.currentTarget.value].info1);
-    setI(event.currentTarget.value);
+    setIndex(event.currentTarget.value);
     
  
   })
@@ -76,7 +77,7 @@ const PropRace = (props: RaceProps) => {
     if(tab[event.currentTarget.value].course==="" || tab[event.currentTarget.value].horaireEngagement==="" || tab[event.currentTarget.value].horaireDepart==="" || tab[event.currentTarget.value].info1==="" || tab[event.currentTarget.value].info2==="" || tab[event.currentTarget.value].info3===""){
       setPropRaceError(true); 
       setNotification({
-        message: `tous les champs doivent être renseignées. Possibilité de mettre NC (non communiqué).`,
+        message: {messageNotification},
         open: true,
         type: 'error'
       });
@@ -233,7 +234,7 @@ const PropRace = (props: RaceProps) => {
           }}
         />
       </div>
-      <Button style={{ display: 'block', marginLeft: 'auto', marginRight: 'auto', width: '206px', marginTop: '30px' }} variant={'contained'} value={i} color={'primary'} onClick={onUpdate}>Sauvegarder</Button>
+      <Button style={{ display: 'block', marginLeft: 'auto', marginRight: 'auto', width: '206px', marginTop: '30px' }} variant={'contained'} value={index} color={'primary'} onClick={onUpdate}>Sauvegarder</Button>
       <TableContainer component={Paper}>
         <Table className={classes.table} size="small" aria-label="a dense table">
           <TableHead>

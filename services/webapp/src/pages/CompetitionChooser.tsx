@@ -253,7 +253,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                 selectionMode="single"
                 //setSelectedCompetition((filteredData[e.index]))
                 //onSelectionChange={e => setSelectedCompetition(e.value)}
-                onRowClick={e => { console.log(filteredData); setSelectedCompetition((filteredData[e.index])) }}
+                onRowClick={e => { setSelectedCompetition((filteredData[e.index])) }}
             >
                 <Column header='Engagements' body={displayEngagement}
                     style={{ minWidth: '2%', textAlign: 'center' }} />

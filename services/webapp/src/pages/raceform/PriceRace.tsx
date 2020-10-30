@@ -33,9 +33,10 @@ const PriceRace = (props: PriceProps) => {
 
   const [, setNotification] = useContext(NotificationContext);
   const [prices, setPrices] = useState<PricingInfo[]>([props.value]);
-  const [i, setI] = useState<number>();
+  const [index, setIndex] = useState<number>();
   const [propRaceError, setPropRaceError] = useState<boolean>(false);
   const classes = useStyles();
+  const messageNotification = `tous les champs doivent être renseignées. Possibilité de mettre NC (non communiqué).`
   useEffect(
     () => {
 
@@ -49,7 +50,7 @@ const PriceRace = (props: PriceProps) => {
     if (String(data.tarif)==="" || data.name === "") {
       setPropRaceError(true);
       setNotification({
-        message: `tous les champs doivent être renseignées. Possibilité de mettre NC (non communiqué).`,
+        message:{messageNotification},
         open: true,
         type: 'error'
       });
@@ -58,13 +59,12 @@ const PriceRace = (props: PriceProps) => {
       setPropRaceError(false);
       props.prices(data);
     }
-    console.log(JSON.stringify(data));
   };
 
   const onEdit = ((event: any): any => {
     setValue("tarif", prices[event.currentTarget.value].tarif);
     setValue("name", prices[event.currentTarget.value].name);
-    setI(event.currentTarget.value);
+    setIndex(event.currentTarget.value);
   })
 
   const onUpdate = ((event: any): void => {
@@ -74,7 +74,7 @@ const PriceRace = (props: PriceProps) => {
     if (String(prices[event.currentTarget.value].tarif) === "" || prices[event.currentTarget.value].name === "" ) {
       setPropRaceError(true);
       setNotification({
-        message: `tous les champs doivent être renseignées. Possibilité de mettre NC (non communiqué).`,
+        message: {messageNotification},
         open: true,
         type: 'error'
       });
@@ -92,7 +92,7 @@ const PriceRace = (props: PriceProps) => {
 
   
 
-  const onDelete = ((event: any): void => { props.delete(event.currentTarget.value); console.log(event.currentTarget.value) });
+  const onDelete = ((event: any): void => { props.delete(event.currentTarget.value);});
 
   const TableGen = (): any => {
     return (
@@ -155,7 +155,7 @@ const PriceRace = (props: PriceProps) => {
           onInput={(e: any) => { e.target.value = e.target.value.replace(/[^0-9]/g, '') }}
         />
       </div>
-      <Button style={{ display: 'block', marginLeft: 'auto', marginRight: 'auto', width: '206px', marginTop: '30px' }} value={i} variant={'contained'} onClick={onUpdate} color={'primary'}>Sauvegarder</Button>
+      <Button style={{ display: 'block', marginLeft: 'auto', marginRight: 'auto', width: '206px', marginTop: '30px' }} value={index} variant={'contained'} onClick={onUpdate} color={'primary'}>Sauvegarder</Button>
       <TableContainer component={Paper}>
         <Table className={classes.table} size="small" aria-label="a dense table">
           <TableHead>

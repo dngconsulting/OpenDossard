@@ -2,7 +2,7 @@ import {LicenceEntity} from '../entity/licence.entity';
 import {ApiProperty, ApiPropertyOptional} from '@nestjs/swagger';
 import { ClubEntity } from 'src/entity/club.entity';
 import { FederationEntity } from 'src/entity/federation.entity';
-import { Category, CompetitionType,} from 'src/entity/competition.entity';
+import { Category, CompetitionEntity, CompetitionType,} from 'src/entity/competition.entity';
 import { PricingInfo } from 'src/entity/pricing-info';
 import { CompetitionInfo } from 'src/entity/competition-info';
 
@@ -111,6 +111,7 @@ export class CompetitionCreate{
     id?:number;
     name: string;
     competitionType?:CompetitionType;
+    @ApiProperty({enum: FederationEntity,enumName:'FedeEnum'})
     fede?:FederationEntity;
     categories?: Category[];
     races?: string[];

@@ -18,6 +18,10 @@ import {
     CompetitionInfoFromJSON,
     CompetitionInfoFromJSONTyped,
     CompetitionInfoToJSON,
+    FedeEnum,
+    FedeEnumFromJSON,
+    FedeEnumFromJSONTyped,
+    FedeEnumToJSON,
     PricingInfo,
     PricingInfoFromJSON,
     PricingInfoFromJSONTyped,
@@ -30,6 +34,12 @@ import {
  * @interface CompetitionCreate
  */
 export interface CompetitionCreate {
+    /**
+     * 
+     * @type {FedeEnum}
+     * @memberof CompetitionCreate
+     */
+    fede?: FedeEnum;
     /**
      * 
      * @type {number}
@@ -48,12 +58,6 @@ export interface CompetitionCreate {
      * @memberof CompetitionCreate
      */
     competitionType?: CompetitionCreateCompetitionTypeEnum;
-    /**
-     * 
-     * @type {string}
-     * @memberof CompetitionCreate
-     */
-    fede?: CompetitionCreateFedeEnum;
     /**
      * 
      * @type {Array<string>}
@@ -240,10 +244,10 @@ export function CompetitionCreateFromJSONTyped(json: any, ignoreDiscriminator: b
     }
     return {
         
+        'fede': !exists(json, 'fede') ? undefined : FedeEnumFromJSON(json['fede']),
         'id': !exists(json, 'id') ? undefined : json['id'],
         'name': json['name'],
         'competitionType': !exists(json, 'competitionType') ? undefined : json['competitionType'],
-        'fede': !exists(json, 'fede') ? undefined : json['fede'],
         'categories': !exists(json, 'categories') ? undefined : json['categories'],
         'races': !exists(json, 'races') ? undefined : json['races'],
         'eventDate': (new Date(json['eventDate'])),
@@ -285,10 +289,10 @@ export function CompetitionCreateToJSON(value?: CompetitionCreate | null): any {
     }
     return {
         
+        'fede': FedeEnumToJSON(value.fede),
         'id': value.id,
         'name': value.name,
         'competitionType': value.competitionType,
-        'fede': value.fede,
         'categories': value.categories,
         'races': value.races,
         'eventDate': (value.eventDate.toISOString()),
@@ -330,19 +334,6 @@ export enum CompetitionCreateCompetitionTypeEnum {
     ROUTE = 'ROUTE',
     VTT = 'VTT',
     AUTRE = 'AUTRE'
-}
-/**
-* @export
-* @enum {string}
-*/
-export enum CompetitionCreateFedeEnum {
-    FSGT = 'FSGT',
-    UFOLEP = 'UFOLEP',
-    FFC = 'FFC',
-    CYCLOS = 'CYCLOS',
-    FFVELO = 'FFVELO',
-    NL = 'NL',
-    FFTRI = 'FFTRI'
 }
 /**
 * @export

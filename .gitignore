@@ -11,3 +11,5 @@ var
 /node_modules/
 /services/webapp/package-lock.json
 services/api/package-lock.json
+services/webapp/debug.log
+config/dev.env

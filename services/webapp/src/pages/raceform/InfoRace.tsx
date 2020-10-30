@@ -4,7 +4,7 @@ import Editor from 'components/Editor';
 import moment from 'moment';
 import  { IOptionType } from 'pages/licence/ClubSelect';
 import React from 'react';
-import {  CompetitionCreateCompetitionTypeEnum,} from 'sdk';
+import {  CompetitionCreateCompetitionTypeEnum, CompetitionEntityCompetitionTypeEnum,} from 'sdk';
 import { FedeEnum } from 'sdk/models/FedeEnum';
 import ClubSelectRace from './ClubSelectRace';
 
@@ -129,10 +129,10 @@ const InfoRace = (props: InfoRaceProps) => {
                         onChange={handleSelect}
                         value={props.value.competitionType || ''}
                     >
-                        <MenuItem value={CompetitionCreateCompetitionTypeEnum.CX}>CX</MenuItem>
-                        <MenuItem value={CompetitionCreateCompetitionTypeEnum.ROUTE}>ROUTE</MenuItem>
-                        <MenuItem value={CompetitionCreateCompetitionTypeEnum.VTT}>VTT</MenuItem>
-                        <MenuItem value={CompetitionCreateCompetitionTypeEnum.AUTRE}>AUTRES</MenuItem>
+                        <MenuItem value={CompetitionEntityCompetitionTypeEnum.CX}>CX</MenuItem>
+                        <MenuItem value={CompetitionEntityCompetitionTypeEnum.ROUTE}>ROUTE</MenuItem>
+                        <MenuItem value={CompetitionEntityCompetitionTypeEnum.VTT}>VTT</MenuItem>
+                        <MenuItem value={CompetitionEntityCompetitionTypeEnum.AUTRE}>AUTRES</MenuItem>
                     </Select>
                     {(props.validateError&&  props.value.competitionType === null && <FormHelperText>Le type de l'épreuve doit être renseigné</FormHelperText>)}
                 </FormControl>
