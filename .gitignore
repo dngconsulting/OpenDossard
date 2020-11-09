@@ -13,3 +13,5 @@ var
 services/api/package-lock.json
 services/webapp/debug.log
 config/dev.env
+services/api/package-lock.json
+services/webapp/debug.log
