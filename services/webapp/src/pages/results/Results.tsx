@@ -210,7 +210,7 @@ const EditResultsPage = (gprops: any) => {
                     } else {
                         if (rowdata.fede !== competition.fede) {
                             rankToReturn = (transformedRows
-                                .filter((v: RaceRow) => (v.fede != competition.fede) && (v.catev === rowdata.catev))
+                                .filter((v: RaceRow) => (v.fede !== competition.fede) && (v.catev === rowdata.catev))
                                 .findIndex((item: RaceRow) => item.id === rowdata.id)) + 1
                         } else {
                             rankToReturn = (transformedRows
@@ -324,7 +324,7 @@ const EditResultsPage = (gprops: any) => {
                         let podiumsForCurrentRace : any[][] = [];
                         const allRankRows = transformRows(rows)
                         // Put all main federation first
-                        allRankRows.forEach((r:RaceRow,index:number)=> {
+                        allRankRows.forEach((r:RaceRow)=> {
                             // TODO this r.catev===1 is ugly but cate 1 can race in cate 2 races
                             if (rankOfCate(r, allRankRows) <= 3 && (r.catev===currCategory || (currCategory==='2' && r.catev==='1')) )
                                 (r.rankingScratch && r.comment==null) && podiumsForCurrentRace.push([rankOfCate(r, allRankRows), r.rankingScratch, displayDossard(r.riderNumber.toString()), r.name, r.club, r.gender, r.catev, r.catea, r.fede])
@@ -333,7 +333,7 @@ const EditResultsPage = (gprops: any) => {
                         doc.setTextColor(40)
                         doc.setFontSize(12)
                         // @ts-ignore
-                        podiumsForCurrentRace.length>0 && doc.text('Catégorie ' + currCategory, 5, (index ==0 ? 29 : doc.autoTable.previous.finalY + 5));
+                        podiumsForCurrentRace.length>0 && doc.text('Catégorie ' + currCategory, 5, (index === 0 ? 29 : doc.autoTable.previous.finalY + 5));
                         // @ts-ignore
                         podiumsForCurrentRace.length>0 && doc.autoTable({head: [['Cl.','Scrat.','Doss', 'Coureur', 'Club','H/F','Caté.V','Caté.A','Fédé']],
                             headStyles: {
@@ -399,14 +399,14 @@ const EditResultsPage = (gprops: any) => {
                     races.forEach((currentRace:string,pageIndex:number)=>{
                         let rowstoDisplay : any[][] = [];
                         const filteredRowsByRace = transformRows(filterByRace(rows, currentRace))
-                        filteredRowsByRace.forEach((r:RaceRow,index:number)=>{
+
+                        filteredRowsByRace.forEach((r:RaceRow) => {
                             (r.rankingScratch || r.comment) && rowstoDisplay.push(
                                 [r.rankingScratch,displayRankOfCate(r,filteredRowsByRace),displayDossard(r.riderNumber.toString()),r.name,r.club,r.gender,r.catev,r.catea,r.fede])
                         })
                         // @ts-ignore
-                        var totalPagesExp = '{total_pages_count_string}'
-                        // @ts-ignore
-                        doc.autoTable({head: [['Scrat.','Cat.','Doss', 'Coureur', 'Club','H/F','Caté.V','Caté.A','Fédé']],
+                        doc.autoTable({
+                            head: [['Scrat.','Cat.','Doss', 'Coureur', 'Club','H/F','Caté.V','Caté.A','Fédé']],
                             headStyles: {
                                 fontSize: 9, fontStyle: 'bold', halign: 'left',cellPadding:0.5,minCellHeight:8
                             },
@@ -426,7 +426,6 @@ const EditResultsPage = (gprops: any) => {
                                 7: {margin:0,cellWidth: 12},
                                 8: {margin:0,cellWidth: 20},
                             },
-
                             body: rowstoDisplay,
                             didDrawPage: (data:any) => {
                                 // Header
@@ -442,15 +441,6 @@ const EditResultsPage = (gprops: any) => {
                                 doc.text('Epreuve : ' + competition.name, data.settings.margin.left + 50, 15);
                                 doc.text('Date : ' + capitalizeFirstLetter(moment(competition.eventDate).locale('fr').format('dddd DD MMM YYYY')), data.settings.margin.left + 50, 20);
                                 doc.text('Catégorie(s) : ' + currentRace, data.settings.margin.left + 50, 25);
-                                // Footer
-                                var str = 'Page ' + doc.internal.getNumberOfPages() + '/' + totalPagesExp
-                                doc.setFontSize(10)
-
-                                // jsPDF 1.4+ uses getWidth, <1.4 uses .width
-                                var pageSize = doc.internal.pageSize
-                                var pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight()
-                                doc.text(str, data.settings.margin.left, pageHeight - 10)
-                                doc.text(filename + " généré à " + moment().format("HH:mm"), 40, pageHeight - 5)
                             },
                             margin: { top: 30,left:5,right:5 },
                             styles: {
@@ -468,11 +458,10 @@ const EditResultsPage = (gprops: any) => {
                             doc.addPage();
                             finalY = 5;
                         }
-                        doc.putTotalPages(totalPagesExp)
                         doc.setFontSize(10)
                         doc.setTextColor("#424242")
                         doc.setFontStyle('bold')
-                        doc.fromHTML( "<div><b>NOMBRE DE COUREURS :</b> " + transformedRows.length + ' en catégorie(s) ' + currentRace +
+                        doc.fromHTML( "<div><b>NOMBRE DE COUREURS :</b> " + filteredRowsByRace.length + ' en catégorie(s) ' + currentRace +
                             "<br><b>ORGANISATEUR : </b>" + competition.club.longName + "<br><b>COMMISSAIRES</b> : " +
                             (competition.commissaires?competition.commissaires:'NC') + "<br><b>SPEAKER</b> : " + (competition.speaker?competition.speaker:'NC')
                             + ((competition.competitionType === 'CX')?("<br><b>ABOYEUR</b> : " + (competition.aboyeur?competition.aboyeur:'NC')):'') +
@@ -482,6 +471,18 @@ const EditResultsPage = (gprops: any) => {
                         if (pageIndex+1<races.length) doc.addPage();
 
                     })
+
+                    // Footer
+                    for(let pageNumber=1; pageNumber<=doc.internal.getNumberOfPages(); pageNumber++) {
+                        doc.setPage(pageNumber);
+                        doc.setFontStyle('normal')
+
+                        // jsPDF 1.4+ uses getWidth, <1.4 uses .width
+                        const pageSize = doc.internal.pageSize
+                        const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight()
+                        doc.text('Page ' + pageNumber + '/' + doc.internal.getNumberOfPages(), 5, pageHeight - 10);
+                        doc.text(filename + " généré à " + moment().format("HH:mm"), 40, pageHeight - 5)
+                    }
                     doc.save(filename);
                 }
 
