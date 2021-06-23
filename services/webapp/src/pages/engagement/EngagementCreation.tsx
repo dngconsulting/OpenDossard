@@ -61,7 +61,7 @@ export const CreationForm = (
             competition: Competition,
             race: string,
             onSuccess: (race: IForm) => void,
-            rows: RaceRow[]
+            rows: RaceRow[],
             saisieResultat: boolean
         }
 ) => {
@@ -230,6 +230,10 @@ export const CreationForm = (
             </Button>
             <Button style={{marginLeft:10}} title={'Rafraichir la liste'}><RefreshIcon onClick={refresh} width={30} height={30} htmlColor={'#000000'}/></Button>
         </Grid>
-
+        <Grid item={true} style={{marginLeft: "auto"}}>
+            <Typography style={{marginRight: 10, textAlign: "right"}}>
+                Total : <b>{rows.length}</b> Engagé(s)
+            </Typography>
+        </Grid>
     </Grid>;
 };

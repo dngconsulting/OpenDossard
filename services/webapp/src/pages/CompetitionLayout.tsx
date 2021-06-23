@@ -2,7 +2,7 @@ import {CompetitionEntity as Competition, RaceRow} from '../sdk';
 import RaceTabs, {IRaceStat} from '../components/RaceTabs';
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import {createStyles, Theme} from '@material-ui/core';
-import {default as React, ReactNode, useLayoutEffect, useState} from 'react';
+import {default as React, ReactNode, useEffect, useLayoutEffect, useState} from 'react';
 import {apiCompetitions, apiRaces} from '../util/api';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
@@ -51,6 +51,7 @@ export const CompetitionLayout = ({history,competitionId, displayType, children}
     const [competition, setCompetition] = useState<Competition>(null);
     const [currentRace, setCurrentRace] = useState(null);
     const tabs = computeTabs(rows, competition ? competition.races : []);
+    const [ranking, setRanking] = useState(new Map())
 
     const fetchRows = async () => {
         const lrows = await apiRaces.getCompetitionRaces({id:competitionId});
@@ -70,6 +71,15 @@ export const CompetitionLayout = ({history,competitionId, displayType, children}
         setCompetition(c);
     };
 
+    useEffect(() => {
+        const rankingTotal = new Map();
+        for(const raceKey in tabs) {
+            const rankingByRace = rows.filter(race => race.raceCode === raceKey && (race.rankingScratch !== null || race.comment !== null)).length;
+            rankingTotal.set(raceKey, rankingByRace)
+        }
+        setRanking(rankingTotal);
+    }, [rows]);
+
     useLayoutEffect(() => { const f = async () => {
         await fetchCompetition();
         await fetchRows();
@@ -82,12 +92,14 @@ export const CompetitionLayout = ({history,competitionId, displayType, children}
         <Paper className={classes.container}>
             <div>
                 <CompetitionCard rows={rows} history={history} displayType={displayType} competition={competition}/>
-                <RaceTabs selected={currentRace} tabs={tabs} value={currentRace} onChange={
-                    race => {
-                        history.push(history.location.pathname+'#' + race)
-                        setCurrentRace(race)
-                        }
-                }/>
+                <RaceTabs selected={currentRace} tabs={tabs} value={currentRace}
+                          ranking={displayType === "results" ? ranking : new Map()}
+                          onChange={
+                              race => {
+                                  history.push(history.location.pathname+'#' + race)
+                                  setCurrentRace(race)
+                              }
+                          }/>
                 {children({competition, currentRace, rows, fetchRows, fetchCompetition})}
             </div>
         </Paper>);

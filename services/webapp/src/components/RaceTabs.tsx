@@ -11,7 +11,8 @@ interface IRaceTabs {
     tabs: IRaceStat,
     selected:string,
     value: string,
-    onChange: (value:string) => void
+    onChange: (value:string) => void,
+    ranking: any
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -46,21 +47,21 @@ const useStyles = makeStyles((theme: Theme) =>
     }),
 );
 
-const RaceTabs = ({tabs, value, onChange, selected}: IRaceTabs) => {
+const RaceTabs = ({tabs, value, onChange, selected, ranking}: IRaceTabs) => {
     const classes = useStyles({});
 
     return (
-        <Tabs value={value || Object.keys(tabs)[0] } onChange={(e, v) => onChange(v)}
-                            className={classes.tabs}
-                            centered={true}
-                            TabIndicatorProps={{style: {height:0}}} >
+        <Tabs value={value || Object.keys(tabs)[0] }
+              onChange={(e, v) => onChange(v)}
+              className={classes.tabs}
+              centered={true}
+              TabIndicatorProps={{style: {height:0}}} >
             {
-
                 Object.keys(tabs).sort().map((code,index) => (
                         <Tab selected={code===selected} key={code}
                              value={code}
                              label={
-                            <Badge badgeContent={tabs[code]}
+                            <Badge badgeContent={`${ranking.get(code) ? ranking.get(code) + "/" : ""}${tabs[code]}`}
                                    max={999}
                                    className={classes.badge}
                                    color="secondary">
