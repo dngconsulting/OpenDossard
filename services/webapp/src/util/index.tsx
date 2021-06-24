@@ -3,6 +3,7 @@ import * as _ from "lodash";
 import React, {useEffect, useState} from "react";
 import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@material-ui/core";
 import Button from "@material-ui/core/Button";
+import {Link} from "react-router-dom";
 
 function getWindowDimensions() {
     const { innerWidth: width, innerHeight: height } = window;
@@ -49,8 +50,8 @@ export const capitalizeFirstLetter = (s: string) => {
     return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
-export const displayDossard = (dossard: string) => {
-    return _.padStart(dossard, 3, '0')
+export const displayDossard = (dossard: string, licenceId: string) => {
+    return <Link to={`/palmares/${licenceId}`}>{_.padStart(dossard, 3, '0')}</Link>
 }
 
 // TODO remplacer un jour par https://github.com/jonatanklosko/material-ui-confirm compatible hooks
