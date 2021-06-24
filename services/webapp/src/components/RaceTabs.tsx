@@ -61,7 +61,7 @@ const RaceTabs = ({tabs, value, onChange, selected, ranking}: IRaceTabs) => {
                         <Tab selected={code===selected} key={code}
                              value={code}
                              label={
-                            <Badge badgeContent={`${ranking.get(code) ? ranking.get(code) + "/" : ""}${tabs[code]}`}
+                            <Badge badgeContent={`${ranking.get(code) ? ranking.get(code) + "-" + (tabs[code] - ranking.get(code)) : tabs[code]}`}
                                    max={999}
                                    className={classes.badge}
                                    color="secondary">
