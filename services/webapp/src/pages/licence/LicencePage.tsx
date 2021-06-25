@@ -15,6 +15,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Button from '@material-ui/core/Button';
 import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 import ClubSelect, {IOptionType} from './ClubSelect';
 import {FedeEnum, LicenceEntity, LicenceEntity as Licence} from '../../sdk';
 import {apiLicences, apiRaces} from '../../util/api';
@@ -101,26 +102,15 @@ const LicencesPage = (props: ILicencesProps) => {
         return () => setEditMode(false)
     },[]);
 
-    const [validation, setValidation] = React.useState<{name?:boolean,firstName?:boolean,catea?:boolean,catev?:boolean,dept?:boolean,birthYear?:boolean}>({
+    const [validation, setValidation] = React.useState<{name?:boolean,firstName?:boolean,catea?:boolean,catev?:boolean,dept?:boolean,birthYear?:boolean, saison?:boolean}>({
         name:false,
         firstName:false,
         catea:false,
         catev:false,
         dept:false,
-        birthYear:false
+        birthYear:false,
+        saison: false
     });
-
-    const handleFEDEChange = (event: React.ChangeEvent<{ name?: string; value: unknown }>) => {
-        if(event.target.name ==='fede' && event.target.value){
-            const newLicenceToUpdage = {...newLicence,
-                [event.target.name as string]: event.target.value,
-                catev:  '',
-                catea:  '',
-                club : '',
-            }
-            setNewLicence(newLicenceToUpdage)
-        }
-    };
 
     const handleChange = (event: React.ChangeEvent<{ name?: string; value: unknown }>) => {
         setNewLicence(oldValues => ({
@@ -144,17 +134,19 @@ const LicencesPage = (props: ILicencesProps) => {
     };
 
     const createOrUpdateLicence = async (id: number) => {
-        if ((newLicence.catea==='') || (newLicence.catev==='') || (newLicence.name==='' || newLicence.firstName==='' || newLicence.dept==='')) {
+        const isSaisonValid = newLicence.saison.length!==4 || parseInt(newLicence.saison)>new Date().getFullYear()
+        if ((newLicence.catea==='') || (newLicence.catev==='') || (newLicence.name==='' || newLicence.firstName==='' || newLicence.dept==='' || isSaisonValid)) {
             setValidation({
                 name: !newLicence.name,
                 firstName: !newLicence.firstName,
                 catea: !newLicence.catea,
                 catev: !newLicence.catev,
                 dept: !newLicence.dept,
-                birthYear: !newLicence.birthYear
+                birthYear: !newLicence.birthYear,
+                saison: isSaisonValid
             });
             setNotification({
-                message: `Une de ces informations est manquante (caté valeur, caté age, nom et prénom, dept entre 1 et 99)`,
+                message: 'Une de ces informations est incorrecte.',
                 open: true,
                 type: 'error'
             });
@@ -215,23 +207,33 @@ const LicencesPage = (props: ILicencesProps) => {
                     />
                 </Grid>
                 <Grid item={true} xs={6}>
-                        <InputLabel htmlFor="fede">Fédération</InputLabel>
-                        <Select
-                            style={{width:200}}
-                            value={newLicence.fede}
-                            onChange={e=> {
-                                handleFEDEChange(e);
+                    <Autocomplete
+                        options={Object.keys(FEDERATIONS).map((key) => ({
+                            value: FEDERATIONS[key].name.value,
+                            label: FEDERATIONS[key].name.label
+                        }))}
+                        getOptionLabel={(option) => option.label}
+                        getOptionSelected={(option, target) => option.value === target.value}
+                        autoComplete={true}
+                        autoSelect={true}
+                        autoHighlight={true}
+                        renderInput={(params) => <TextField {...params} label="Fédération" variant="standard" />}
+                        style={{ width: 200 }}
+                        onChange={(event: any, target: string | any) => {
+                            if(target) {
+                                const newLicenceToUpdage = {...newLicence,
+                                    ['fede']: target.value,
+                                    catev:  '',
+                                    catea:  '',
+                                    club : '',
                                 }
+                                setNewLicence(newLicenceToUpdage)
                             }
-                            inputProps={{
-                                name: 'fede',
-                                id: 'fede',
-                            }}
-                        >
-                            {Object.keys(FEDERATIONS).map((key, index) => <MenuItem key={index}
-                                                                                    value={FEDERATIONS[key].name.value}>{FEDERATIONS[key].name.label}</MenuItem>)}
-                        </Select>
-
+                            else {
+                                setNewLicence({...newLicence, ['fede']: null})
+                            }
+                        }}
+                    />
                 </Grid>
                 <Grid item={true} xs={6}>
                     <FormControl className={classes.formControl} error={validation.name}>
@@ -285,10 +287,12 @@ const LicencesPage = (props: ILicencesProps) => {
                         id="saison"
                         label="Saison"
                         margin="normal"
-                        value={newLicence.saison}
+                        type="number"
+                        defaultValue={newLicence.saison}
                         onChange={e => {
                             setNewLicence({...newLicence, saison: e.target.value})
                         }}
+                        error={validation.saison}
                     />
                 </Grid>
                 <Grid item={true} xs={6}>

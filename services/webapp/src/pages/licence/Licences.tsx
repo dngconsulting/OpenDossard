@@ -1,17 +1,18 @@
 import * as React from 'react';
-import {Ref, useEffect, useRef, useState} from 'react';
+import {forwardRef, useEffect, useRef, useState} from 'react';
 import MaterialTable, {Query, QueryResult} from 'material-table';
 import {AppText as T} from '../../util/text';
 import {apiLicences} from '../../util/api';
-import {LicenceEntity, LicenceEntity as Licence, Search} from '../../sdk';
+import {LicenceEntity, LicenceEntity as Licence, Search as SearchEntity} from '../../sdk';
 import {cadtheme} from '../../theme/theme';
-import {Button, Icon, Paper} from '@material-ui/core';
+import {Button, Paper} from '@material-ui/core';
 import {useContext} from "react";
 import {NotificationContext} from "../../components/CadSnackbar";
 import {store} from "../../store/Store";
 import {setVar} from "../../actions/App.Actions";
 import {ActionButton} from "../../components/ActionButton";
-import {PictureAsPdf} from "@material-ui/icons";
+import {AddBox, ArrowDownward, Check, ChevronLeft, ChevronRight, Clear, DeleteOutline, Edit, FilterList, FirstPage,
+    LastPage, PictureAsPdf, Remove, SaveAlt, Search, ViewColumn} from "@material-ui/icons";
 import jsPDF from "jspdf";
 import moment from "moment";
 import {useWindowDimensions} from "../../util";
@@ -24,23 +25,23 @@ interface ILicencesProps {
 }
 
 const tableIcons = {
-    Add: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>add_box</Icon>),
-    Check: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>check</Icon>),
-    Clear: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>clear</Icon>),
-    Delete: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon style={{fontSize:'20px'}} {...props} ref={ref}>delete_outline</Icon>),
-    DetailPanel: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>chevron_right</Icon>),
-    Edit: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon style={{fontSize:'10px'}}  {...props} ref={ref}>edit</Icon>),
-    Export: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>save_alt</Icon>),
-    Filter: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon style={{fontSize:'15px'}} {...props} ref={ref}>filter_list</Icon>),
-    FirstPage: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>first_page</Icon>),
-    LastPage: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>last_page</Icon>),
-    NextPage: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>chevron_right</Icon>),
-    PreviousPage: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>chevron_left</Icon>),
-    ResetSearch: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>clear</Icon>),
-    Search: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>search</Icon>),
-    SortArrow: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>arrow_downward</Icon>),
-    ThirdStateCheck: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>remove</Icon>),
-    ViewColumn: React.forwardRef((props, ref:Ref<SVGSVGElement>) => <Icon {...props} ref={ref}>view_column</Icon>)
+    Add: forwardRef((props, ref:React.Ref<SVGSVGElement>) => <AddBox {...props} ref={ref} />),
+    Check: forwardRef((props, ref:React.Ref<SVGSVGElement>) => <Check {...props} ref={ref} />),
+    Clear: forwardRef((props, ref:React.Ref<SVGSVGElement>) => <Clear {...props} ref={ref} />),
+    Delete: forwardRef((props, ref:React.Ref<SVGSVGElement>) => <DeleteOutline style={{fontSize:'20px'}} {...props} ref={ref} />),
+    DetailPanel: forwardRef((props, ref:React.Ref<SVGSVGElement>) => <ChevronRight {...props} ref={ref} />),
+    Edit: forwardRef((props, ref:React.Ref<SVGSVGElement>) => <Edit style={{fontSize:'10px'}} {...props} ref={ref} />),
+    Export: forwardRef((props, ref:React.Ref<SVGSVGElement>) => <SaveAlt {...props} ref={ref} />),
+    Filter: forwardRef((props, ref:React.Ref<SVGSVGElement>) => <FilterList style={{fontSize:'15px'}} {...props} ref={ref} />),
+    FirstPage: forwardRef((props, ref:React.Ref<SVGSVGElement>) => <FirstPage {...props} ref={ref} />),
+    LastPage: forwardRef((props, ref:React.Ref<SVGSVGElement>) => <LastPage {...props} ref={ref} />),
+    NextPage: forwardRef((props, ref:React.Ref<SVGSVGElement>) => <ChevronRight {...props} ref={ref} />),
+    PreviousPage: forwardRef((props, ref:React.Ref<SVGSVGElement>) => <ChevronLeft {...props} ref={ref} />),
+    ResetSearch: forwardRef((props, ref:React.Ref<SVGSVGElement>) => <Clear {...props} ref={ref} />),
+    Search: forwardRef((props, ref:React.Ref<SVGSVGElement>) => <Search {...props} ref={ref} />),
+    SortArrow: forwardRef((props, ref:React.Ref<SVGSVGElement>) => <ArrowDownward {...props} ref={ref} />),
+    ThirdStateCheck: forwardRef((props, ref:React.Ref<SVGSVGElement>) => <Remove {...props} ref={ref} />),
+    ViewColumn: forwardRef((props, ref:React.Ref<SVGSVGElement>) => <ViewColumn {...props} ref={ref} />),
 };
 
 const LicencesPage = (props: ILicencesProps) => {
@@ -64,7 +65,7 @@ const LicencesPage = (props: ILicencesProps) => {
         return {data: d, page: res.page, totalCount: res.totalCount};
     };
 
-    const prepareFilter = (query: Query<Licence>): Search => {
+    const prepareFilter = (query: Query<Licence>): SearchEntity => {
         const filters: any = [];
         if (name) filters.push({name:'name',value:name});
         if (id) {
