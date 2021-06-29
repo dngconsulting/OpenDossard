@@ -24,7 +24,7 @@ import * as _ from "lodash";
 import moment from 'moment'
 import 'moment/locale/fr'
 import SearchIcon from '@material-ui/icons/Search';
-import {capitalizeFirstLetter, ConfirmDialog, displayDossard, useWindowDimensions} from "../util";
+import {capitalizeFirstLetter, ConfirmDialog, displayDossard, linkToPalmares, useWindowDimensions} from "../util";
 import {ActionButton} from "../components/ActionButton";
 import FormatListNumberedIcon from "@material-ui/icons/FormatListNumbered";
 import {cadtheme} from "../theme/theme";
@@ -144,7 +144,7 @@ const EngagementPage = (props: any) => {
                         header:'Clt',
                         body: (rowdata: RaceRow, column: any) => column.rowIndex + 1, ...SHORT
                     }]:[]),
-                    {field: 'riderNumber', header: 'Dossard', ...FILTERABLE, ...SHORT, body:(row:RaceRow)=>displayDossard(row.riderNumber.toString(), row.licenceId),sortable:true},
+                    {field: 'riderNumber', header: 'Dossard', ...FILTERABLE, ...SHORT, body:(row:RaceRow)=>linkToPalmares(row.riderNumber.toString(), row.licenceId),sortable:true},
                     {field: 'name', header: 'Coureur', ...FILTERABLE, bodyClassName: 'nopadding',body: (rowdata: RaceRow, column: any) =>
                         (rowdata.comment==null && rowdata.rankingScratch == null)?<Link to={"/licence/"+rowdata.licenceId+"#engagement_"+rowdata.competitionId}>{rowdata.name}</Link>:rowdata.name}
                         ,
@@ -178,7 +178,7 @@ const EngagementPage = (props: any) => {
                                 _.uniqBy(lrows, 'catea').length,
                                 _.uniqBy(lrows, 'catev').length,_.uniqBy(lrows, 'fede').length])
                         }
-                        rowstoDisplay.push([displayDossard(r.riderNumber.toString(), r.licenceId),r.name,r.club,r.gender,_.padStart(r.dept.toString(), 2, '0'),r.birthYear,r.catea,r.catev,r.fede])
+                        rowstoDisplay.push([displayDossard(r.riderNumber.toString()),r.name,r.club,r.gender,_.padStart(r.dept.toString(), 2, '0'),r.birthYear,r.catea,r.catev,r.fede])
                     })
                     let doc = new jsPDF("p","mm","a4");
                     // @ts-ignore

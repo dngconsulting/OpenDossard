@@ -327,7 +327,7 @@ const EditResultsPage = (gprops: any) => {
                         allRankRows.forEach((r:RaceRow)=> {
                             // TODO this r.catev===1 is ugly but cate 1 can race in cate 2 races
                             if (rankOfCate(r, allRankRows) <= 3 && (r.catev===currCategory || (currCategory==='2' && r.catev==='1')) )
-                                (r.rankingScratch && r.comment==null) && podiumsForCurrentRace.push([rankOfCate(r, allRankRows), r.rankingScratch, displayDossard(r.riderNumber.toString(), r.licenceId), r.name, r.club, r.gender, r.catev, r.catea, r.fede])
+                                (r.rankingScratch && r.comment==null) && podiumsForCurrentRace.push([rankOfCate(r, allRankRows), r.rankingScratch, displayDossard(r.riderNumber.toString()), r.name, r.club, r.gender, r.catev, r.catea, r.fede])
                         })
                         const podiumsForCurrentRaceOrdered = _.orderBy(podiumsForCurrentRace, item => item[8], ['asc']);
                         doc.setTextColor(40)
@@ -402,7 +402,7 @@ const EditResultsPage = (gprops: any) => {
 
                         filteredRowsByRace.forEach((r:RaceRow) => {
                             (r.rankingScratch || r.comment) && rowstoDisplay.push(
-                                [r.rankingScratch,displayRankOfCate(r,filteredRowsByRace),displayDossard(r.riderNumber.toString(), r.licenceId),r.name,r.club,r.gender,r.catev,r.catea,r.fede])
+                                [r.rankingScratch,displayRankOfCate(r,filteredRowsByRace),displayDossard(r.riderNumber.toString()),r.name,r.club,r.gender,r.catev,r.catea,r.fede])
                         })
                         // @ts-ignore
                         doc.autoTable({
@@ -598,7 +598,7 @@ const EditResultsPage = (gprops: any) => {
                                     filterMatchMode='contains'
                                     body={(rowdata: RaceRow, column: any) => displayRank(rowdata)}
                                     style={{overflow: 'visible', width: '60px'}}/>
-                            <Column columnKey={'3'} field='riderNumber' body={(row:RaceRow)=>row.riderNumber && displayDossard(row.riderNumber.toString(), row.licenceId)} header='Dossard' filter={showFilters}
+                            <Column columnKey={'3'} field='riderNumber' body={(row:RaceRow)=>row.riderNumber && displayDossard(row.riderNumber.toString())} header='Dossard' filter={showFilters}
                                     style={{width: '5%',textAlign:'center'}}
                                     {...(isEdit ? {
                                         editor: (allprops) => {

@@ -12,6 +12,8 @@ import _ from 'lodash';
 import moment from "moment";
 import {useContext} from "react";
 import {NotificationContext} from "../components/CadSnackbar";
+import Button from "@material-ui/core/Button";
+import {createStyles, makeStyles, Theme} from "@material-ui/core/styles";
 
 interface IStatsPageProps {
     items: any[];
@@ -19,6 +21,14 @@ interface IStatsPageProps {
     match: any
     history: any
 }
+
+const useStyles = makeStyles((theme: Theme) =>
+    createStyles({
+        button: {
+            margin: theme.spacing(1),
+        }
+    }),
+);
 
 const PalmaresPage = (props: IStatsPageProps) => {
     const licenceId = props.match.params.id;
@@ -91,6 +101,7 @@ const PalmaresPage = (props: IStatsPageProps) => {
         })
     }
 
+    const classes = useStyles();
     return (
         <div style={{flex: 1, padding: 10, zIndex: 20}}>
             <div style={{display: "flex", alignItems: 'center', verticalAlign: 'center', justifyContent: 'center'}}>
@@ -100,6 +111,12 @@ const PalmaresPage = (props: IStatsPageProps) => {
                                    onChangeSelection={onRiderChange}
                                    placeholder="Nom Prénom Fede NuméroLicence"
                                    feedDataAndRenderer={filterLicences}/>
+                <Button variant="contained" color="secondary" className={classes.button}
+                        onClick={() => {
+                            props.history.goBack();
+                        }}>
+                    Retour
+                </Button>
             </div>
             <div>
                 {rows &&
