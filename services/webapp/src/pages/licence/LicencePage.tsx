@@ -112,15 +112,62 @@ const LicencesPage = (props: ILicencesProps) => {
         saison: false
     });
 
-    const handleChange = (event: React.ChangeEvent<{ name?: string; value: unknown }>) => {
-        setNewLicence(oldValues => ({
-            ...oldValues,
-            [event.target.name as string]: event.target.value,
-        }))
+    const fedeDetails = FEDERATIONS[newLicence.fede];
+
+    const autoSelectCateA = (year: string) => {
+        const age = new Date().getFullYear() - parseInt(year);
+        let catea = '';
+        if(newLicence.fede === 'FSGT') {
+            if(newLicence.gender === 'F') {
+                catea += 'F'
+            }
+            if (age >= 5 && age <= 6) {
+                catea += 'M'
+            }
+            else if (age >= 7 && age <= 8) {
+                catea += 'P'
+            }
+            else if (age >= 9 && age <= 10) {
+                catea += 'P'
+            }
+            else if (age >= 11 && age <= 12) {
+                catea += 'B'
+            }
+            else if (age >= 13 && age <= 14) {
+                catea += 'M'
+            }
+            else if (age >= 15 && age <= 16) {
+                catea += 'C'
+            }
+            else if (age >= 17 && age <= 18) {
+                catea += 'J'
+            }
+            else if (age >= 19 && age <= 22) {
+                catea += 'E'
+            }
+            else if (age >= 23 && age <= 39) {
+                catea += 'S'
+            }
+            else if (age >= 40 && age <= 49) {
+                catea += 'V'
+            }
+            else if (age >= 50 && age <= 59) {
+                catea += 'SV'
+            }
+            else if (age >= 60) {
+                catea += 'A'
+            }
+        }
+        return catea;
     }
 
-    const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const cateAOptions = newLicence.fede && fedeDetails.catea.map((catea: IAgeCategory) => ({
+        value: catea.value,
+        label: `${catea.label} (${catea.value})`,
+        gender: catea.gender
+    })).filter((catea: IAgeCategory) => catea.gender===newLicence.gender);
 
+    const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setNewLicence(oldValues => ({
             ...oldValues,
             catea:'',
@@ -169,7 +216,7 @@ const LicencesPage = (props: ILicencesProps) => {
             });
         }
         finally {
-           showLoading(false)
+            showLoading(false)
         }
         return returnedLicence
     };
@@ -212,6 +259,7 @@ const LicencesPage = (props: ILicencesProps) => {
                             value: FEDERATIONS[key].name.value,
                             label: FEDERATIONS[key].name.label
                         }))}
+                        value={fedeDetails ? fedeDetails.name : null}
                         getOptionLabel={(option) => option.label}
                         getOptionSelected={(option, target) => option.value === target.value}
                         autoComplete={true}
@@ -251,15 +299,15 @@ const LicencesPage = (props: ILicencesProps) => {
                 </Grid>
                 <Grid item={true} xs={6}>
                     <FormControl className={classes.formControl} error={validation.firstName}>
-                    <TextField
-                        required={true}
-                        id="firstName"
-                        label="Prénom"
-                        margin="normal"
-                        error={validation.firstName}
-                        value={newLicence.firstName}
-                        onChange={e => setNewLicence({...newLicence, firstName: e.target.value})}
-                    />
+                        <TextField
+                            required={true}
+                            id="firstName"
+                            label="Prénom"
+                            margin="normal"
+                            error={validation.firstName}
+                            value={newLicence.firstName}
+                            onChange={e => setNewLicence({...newLicence, firstName: e.target.value})}
+                        />
                         <FormHelperText id="component-error-text" hidden={!validation.firstName}>Veuillez compléter le prénom</FormHelperText>
                     </FormControl>
                 </Grid>
@@ -288,7 +336,7 @@ const LicencesPage = (props: ILicencesProps) => {
                         label="Saison"
                         margin="normal"
                         type="number"
-                        defaultValue={newLicence.saison}
+                        value={newLicence.saison}
                         onChange={e => {
                             setNewLicence({...newLicence, saison: e.target.value})
                         }}
@@ -312,7 +360,11 @@ const LicencesPage = (props: ILicencesProps) => {
                             setBirthError(false)
                         }}
                         onChange={e => {
-                            setNewLicence({...newLicence, birthYear: e.target.value})}}
+                            const catea = autoSelectCateA(e.target.value);
+                            setNewLicence({...newLicence,
+                                birthYear: e.target.value,
+                                catea: catea})
+                            }}
                     />
                 </Grid>
                 <Grid item={true} xs={6}>
@@ -344,43 +396,48 @@ const LicencesPage = (props: ILicencesProps) => {
                     </Grid>
                 </Grid>
                 <Grid item={true} xs={6}>
-                    {newLicence.fede && <FormControl className={classes.formControl} error={validation.catea}>
-                        <InputLabel htmlFor="catea">Catégorie Age</InputLabel>
-                        <Select
-                            value={newLicence.catea.toUpperCase()}
-                            onChange={handleChange}
-                            inputProps={{
-                                name: 'catea',
-                                id: 'catea',
+                    {newLicence.fede &&
+                    <FormControl className={classes.formControl}>
+                        <Autocomplete
+                            options={cateAOptions}
+                            value={cateAOptions.find((option: ICategory) => option.value===newLicence.catea) || null}
+                            getOptionLabel={(option) => option.label}
+                            getOptionSelected={(option, target) => option.value === target.value}
+                            autoComplete={true}
+                            autoSelect={true}
+                            autoHighlight={true}
+                            renderInput={(params) => <TextField {...params} label="Catégorie Age" variant="standard" error={validation.catea}/>}
+                            onChange={(event: any, target: string | any) => {
+                                setNewLicence(oldValues => ({
+                                    ...oldValues,
+                                    catea: target ? target.value : ''
+                                }))
                             }}
-                        >{
-                            FEDERATIONS[newLicence.fede.toString()].catea.map((item: IAgeCategory, index: number) => {
-                                if (item.gender===newLicence.gender) return (<MenuItem key={index} value={item && item.value.toUpperCase()}>{(item && item.label) + ' (' + (item && item.value && item.value.toUpperCase()) + ')'}</MenuItem>)
-                                return null;
-                            })
-                        }
-                        </Select>
+                        />
                     </FormControl> }
                 </Grid>
                 <Grid item={true} xs={6}>
                     {newLicence.fede &&
-                    <FormControl className={classes.formControl} error={validation.catev}>
-                        <InputLabel htmlFor="catev">Catégorie Valeur</InputLabel>
-                        <Select
-                            value={newLicence.catev.toUpperCase()}
-                            onChange={handleChange}
-                            inputProps={{
-                                name: 'catev',
-                                id: 'catev',
+                    <FormControl className={classes.formControl} >
+                        <Autocomplete
+                            options={newLicence.fede && fedeDetails.catev.map((catev: ICategory) => ({
+                                value: catev.value,
+                                label: catev.label
+                            }))}
+                            value={newLicence.fede && fedeDetails.catev.find((catev:ICategory) => catev.value===newLicence.catev) || null}
+                            getOptionLabel={(option) => option.label}
+                            getOptionSelected={(option, target) => option.value === target.value}
+                            autoComplete={true}
+                            autoSelect={true}
+                            autoHighlight={true}
+                            renderInput={(params) => <TextField {...params} label="Catégorie Valeur" variant="standard"  error={validation.catev}/>}
+                            onChange={(event: any, target: string | any) => {
+                                setNewLicence(oldValues => ({
+                                    ...oldValues,
+                                    catev: target ? target.value : '',
+                                }))
                             }}
-                        > {
-                            newLicence.fede &&
-                            FEDERATIONS[newLicence.fede.toString()].catev.map((item: ICategory, index: number) => {
-                                return (item && item.value) &&
-                                (<MenuItem key={index} value={item && item.value && item.value.toUpperCase()}>{item && item.label}</MenuItem>)
-                            })
-                        }
-                        </Select>
+                        />
                     </FormControl> }
                 </Grid>
                 <Grid item={true} xs={6}>
