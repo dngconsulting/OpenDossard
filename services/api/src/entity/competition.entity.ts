@@ -2,8 +2,8 @@ import {Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn} fr
 import {FederationEntity} from './federation.entity';
 import {ClubEntity} from './club.entity';
 import {ApiProperty} from '@nestjs/swagger';
-import {CompetitionInfo} from "./competition-info";
-import {PricingInfo} from "./pricing-info";
+import {CompetitionInfo} from './competition-info';
+import {PricingInfo} from './pricing-info';
 
 /**
  * Cette énum représente les catégories gérées par une épreuve
@@ -17,7 +17,7 @@ export enum Category {
     CADETS = 'Cadets',
     MINIMES = 'Minimes',
     FEMININES = 'Feminines',
-    TOUTES='Toutes'
+    TOUTES = 'Toutes',
 }
 
 export enum CompetitionType {
@@ -39,7 +39,7 @@ export class CompetitionEntity {
     /**
      * La eventDate de l'épreuve au format JS
      */
-    @Column({nullable: false,name:'event_date'})
+    @Column({nullable: false, name: 'event_date'})
     @ApiProperty({type: 'string', format: 'date-time'})
     @Index()
     public eventDate: Date;
@@ -47,7 +47,7 @@ export class CompetitionEntity {
      * La référence du club organisateur
      */
     @ManyToOne((type) => ClubEntity)
-    @JoinColumn({name:'club_id'})
+    @JoinColumn({name: 'club_id'})
     public club: ClubEntity;
     /**
      * Le nom de l'épreuve
@@ -57,7 +57,7 @@ export class CompetitionEntity {
     /**
      * Le code postal correspondant à la commune
      */
-    @Column({nullable: false,name:'zip_code'})
+    @Column({nullable: false, name: 'zip_code'})
     public zipCode: string;
     /**
      * L'identifiant OpenRunner du circuit, plat/vallonné/montagneux
@@ -68,7 +68,6 @@ export class CompetitionEntity {
      * La liste des catégories de valeurs concernées par l'épreuve
      * [PREMIERES, SECONDES, QUATRIEMES, CADETS, ...]
      */
-    
     @Column('simple-array')
     public categories: Category[];
 
@@ -84,7 +83,7 @@ export class CompetitionEntity {
      *  {'Non Licenciés' : 10, 'FSGT' : 7, 'UFOLEP' : 9}
      */
     @Column({type: 'json', nullable: true})
-    public pricing?: Array<PricingInfo>;
+    public pricing?: PricingInfo[];
 
     /**
      * Liste des courses ['1/2/3','4/5']
@@ -100,12 +99,12 @@ export class CompetitionEntity {
         nullable: true,
         default: FederationEntity.FSGT,
     })
-    @ApiProperty({enum: FederationEntity,enumName:'FedeEnum'})
+    @ApiProperty({enum: FederationEntity, enumName: 'FedeEnum'})
     fede: FederationEntity;
 
     @Column({
         type: 'enum',
-        name:'competition_type',
+        name: 'competition_type',
         nullable: true,
         enum: CompetitionType,
         default: CompetitionType.ROUTE,
@@ -113,59 +112,58 @@ export class CompetitionEntity {
     @ApiProperty({enum: CompetitionType})
     competitionType: CompetitionType;
 
+    @Column({type: 'json', nullable: true, name: 'competition_info'})
+    competitionInfo?: CompetitionInfo[];
 
-    @Column({type: 'json', nullable: true,name:'competition_info'})
-    competitionInfo?: Array<CompetitionInfo>;
+    @Column({nullable: true, name: 'lieu_dossard'})
+    localisation?: string;
 
-    @Column({nullable: true,name:'lieu_dossard'})
-    lieuDossard?: string;
+    @Column({nullable: true, name: 'lieu_dossard_gps'})
+    gpsCoordinates: string;
 
-    @Column({nullable: true,name:'lieu_dossard_gps'})
-    lieuDossardGPS: string;
+    @Column({nullable: true, name: 'longueur_circuit'})
+    circuitLength?: string;
 
-    @Column({nullable: true,name:'longueur_circuit'})
-    longueurCircuit?: string;
-
-    @Column({nullable: true})
-    siteweb?: string;
+    @Column({nullable: true, name: 'siteweb'})
+    website?: string;
 
     @Column({nullable: true})
     facebook?: string;
 
-    @Column({nullable: true,name:'contact_email'})
+    @Column({nullable: true, name: 'contact_email'})
     contactEmail?: string;
 
-    @Column({nullable: true,name:'contact_phone'})
+    @Column({nullable: true, name: 'contact_phone'})
     contactPhone?: string;
 
-    @Column({nullable: true,name:'contact_name'})
+    @Column({nullable: true, name: 'contact_name'})
     contactName?: string;
 
-    @Column({nullable: true,name:'opened_to_other_fede'})
-    openedToOtherFede?: boolean;
+    @Column({nullable: true, name: 'opened_to_other_fede'})
+    isOpenedToOtherFede?: boolean;
 
-    @Column({nullable: true,name:'opened_nl'})
-    openedNL?: boolean;
+    @Column({nullable: true, name: 'opened_nl'})
+    isOpenedToNL?: boolean;
 
-    @Column({length: 2,nullable:true})
+    @Column({length: 2, nullable: true})
     dept?: string;
 
-    @Column({nullable:true})
+    @Column({nullable: true})
     rankingUrl?: string;
 
-    @Column({nullable:true})
-    commissaires?: string;
+    @Column({nullable: true, name: 'commissaires'})
+    commissioner?: string;
 
-    @Column({nullable:true})
+    @Column({nullable: true})
     speaker?: string;
 
-    @Column({nullable:true})
+    @Column({nullable: true})
     aboyeur?: string;
 
-    @Column({nullable:true})
+    @Column({nullable: true})
     feedback?: string;
 
-    @Column({nullable: true,name:'results_validated'})
-    resultsValidated?: boolean;
+    @Column({nullable: true, name: 'results_validated'})
+    isValidResults?: boolean;
 
 }

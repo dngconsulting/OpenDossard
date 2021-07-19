@@ -71,7 +71,7 @@ export interface CompetitionCreate {
      */
     races?: Array<string>;
     /**
-     * 
+     *
      * @type {Date}
      * @memberof CompetitionCreate
      */
@@ -111,7 +111,7 @@ export interface CompetitionCreate {
      * @type {string}
      * @memberof CompetitionCreate
      */
-    longueurCircuit?: string;
+    circuitLength?: string;
     /**
      * 
      * @type {string}
@@ -129,7 +129,7 @@ export interface CompetitionCreate {
      * @type {string}
      * @memberof CompetitionCreate
      */
-    siteweb?: string;
+    website?: string;
     /**
      * 
      * @type {string}
@@ -165,13 +165,13 @@ export interface CompetitionCreate {
      * @type {boolean}
      * @memberof CompetitionCreate
      */
-    openedToOtherFede?: boolean;
+    isOpenedToOtherFede?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof CompetitionCreate
      */
-    openedNL?: boolean;
+    isOpenedToNL?: boolean;
     /**
      * 
      * @type {string}
@@ -183,13 +183,13 @@ export interface CompetitionCreate {
      * @type {string}
      * @memberof CompetitionCreate
      */
-    lieuDossard?: string;
+    localisation?: string;
     /**
      * 
      * @type {string}
      * @memberof CompetitionCreate
      */
-    lieuDossardGPS?: string;
+    gpsCoordinates?: string;
     /**
      * 
      * @type {string}
@@ -201,7 +201,7 @@ export interface CompetitionCreate {
      * @type {string}
      * @memberof CompetitionCreate
      */
-    commissaires?: string;
+    commissioner?: string;
     /**
      * 
      * @type {string}
@@ -256,22 +256,22 @@ export function CompetitionCreateFromJSONTyped(json: any, ignoreDiscriminator: b
         'info': !exists(json, 'info') ? undefined : json['info'],
         'competitionInfo': !exists(json, 'competitionInfo') ? undefined : ((json['competitionInfo'] as Array<any>).map(CompetitionInfoFromJSON)),
         'lapNumber': !exists(json, 'lapNumber') ? undefined : json['lapNumber'],
-        'longueurCircuit': !exists(json, 'longueurCircuit') ? undefined : json['longueurCircuit'],
+        'circuitLength': !exists(json, 'circuitLength') ? undefined : json['circuitLength'],
         'contactPhone': !exists(json, 'contactPhone') ? undefined : json['contactPhone'],
         'contactEmail': !exists(json, 'contactEmail') ? undefined : json['contactEmail'],
-        'siteweb': !exists(json, 'siteweb') ? undefined : json['siteweb'],
+        'website': !exists(json, 'website') ? undefined : json['website'],
         'facebook': !exists(json, 'facebook') ? undefined : json['facebook'],
         'latitude': !exists(json, 'latitude') ? undefined : json['latitude'],
         'longitude': !exists(json, 'longitude') ? undefined : json['longitude'],
         'pricing': !exists(json, 'pricing') ? undefined : ((json['pricing'] as Array<any>).map(PricingInfoFromJSON)),
         'startDate': !exists(json, 'startDate') ? undefined : json['startDate'],
-        'openedToOtherFede': !exists(json, 'openedToOtherFede') ? undefined : json['openedToOtherFede'],
-        'openedNL': !exists(json, 'openedNL') ? undefined : json['openedNL'],
+        'isOpenedToOtherFede': !exists(json, 'isOpenedToOtherFede') ? undefined : json['isOpenedToOtherFede'],
+        'isOpenedToNL': !exists(json, 'isOpenedToNL') ? undefined : json['isOpenedToNL'],
         'observations': !exists(json, 'observations') ? undefined : json['observations'],
-        'lieuDossard': !exists(json, 'lieuDossard') ? undefined : json['lieuDossard'],
-        'lieuDossardGPS': !exists(json, 'lieuDossardGPS') ? undefined : json['lieuDossardGPS'],
+        'localisation': !exists(json, 'localisation') ? undefined : json['localisation'],
+        'gpsCoordinates': !exists(json, 'gpsCoordinates') ? undefined : json['gpsCoordinates'],
         'contactName': !exists(json, 'contactName') ? undefined : json['contactName'],
-        'commissaires': !exists(json, 'commissaires') ? undefined : json['commissaires'],
+        'commissioner': !exists(json, 'commissioner') ? undefined : json['commissioner'],
         'speaker': !exists(json, 'speaker') ? undefined : json['speaker'],
         'aboyeur': !exists(json, 'aboyeur') ? undefined : json['aboyeur'],
         'feedback': !exists(json, 'feedback') ? undefined : json['feedback'],
@@ -301,22 +301,22 @@ export function CompetitionCreateToJSON(value?: CompetitionCreate | null): any {
         'info': value.info,
         'competitionInfo': value.competitionInfo === undefined ? undefined : ((value.competitionInfo as Array<any>).map(CompetitionInfoToJSON)),
         'lapNumber': value.lapNumber,
-        'longueurCircuit': value.longueurCircuit,
+        'circuitLength': value.circuitLength,
         'contactPhone': value.contactPhone,
         'contactEmail': value.contactEmail,
-        'siteweb': value.siteweb,
+        'website': value.website,
         'facebook': value.facebook,
         'latitude': value.latitude,
         'longitude': value.longitude,
         'pricing': value.pricing === undefined ? undefined : ((value.pricing as Array<any>).map(PricingInfoToJSON)),
         'startDate': value.startDate,
-        'openedToOtherFede': value.openedToOtherFede,
-        'openedNL': value.openedNL,
+        'isOpenedToOtherFede': value.isOpenedToOtherFede,
+        'isOpenedToNL': value.isOpenedToNL,
         'observations': value.observations,
-        'lieuDossard': value.lieuDossard,
-        'lieuDossardGPS': value.lieuDossardGPS,
+        'localisation': value.localisation,
+        'gpsCoordinates': value.gpsCoordinates,
         'contactName': value.contactName,
-        'commissaires': value.commissaires,
+        'commissioner': value.commissioner,
         'speaker': value.speaker,
         'aboyeur': value.aboyeur,
         'feedback': value.feedback,

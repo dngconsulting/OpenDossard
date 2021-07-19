@@ -23,7 +23,6 @@ class App extends React.Component {
                         <AppNavBar/>
                     </MuiThemeProvider>
                 </Router>
-
             </Provider>
         );
     }

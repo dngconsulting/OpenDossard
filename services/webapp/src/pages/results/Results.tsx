@@ -463,7 +463,7 @@ const EditResultsPage = (gprops: any) => {
                         doc.setFontStyle('bold')
                         doc.fromHTML( "<div><b>NOMBRE DE COUREURS :</b> " + filteredRowsByRace.length + ' en catégorie(s) ' + currentRace +
                             "<br><b>ORGANISATEUR : </b>" + competition.club.longName + "<br><b>COMMISSAIRES</b> : " +
-                            (competition.commissaires?competition.commissaires:'NC') + "<br><b>SPEAKER</b> : " + (competition.speaker?competition.speaker:'NC')
+                            (competition.commissioner?competition.commissioner:'NC') + "<br><b>SPEAKER</b> : " + (competition.speaker?competition.speaker:'NC')
                             + ((competition.competitionType === 'CX')?("<br><b>ABOYEUR</b> : " + (competition.aboyeur?competition.aboyeur:'NC')):'') +
                             "<br><b>REMARQUES</b> : "
                             + (competition.feedback?competition.feedback:'NC')  + "</div><br><b>Vainqueur(s) du challenge : </b>" + getChallengeWinners(filteredRowsByRace),10,finalY,{

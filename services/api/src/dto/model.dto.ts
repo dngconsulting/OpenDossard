@@ -2,7 +2,7 @@ import {LicenceEntity} from '../entity/licence.entity';
 import {ApiProperty, ApiPropertyOptional} from '@nestjs/swagger';
 import { ClubEntity } from 'src/entity/club.entity';
 import { FederationEntity } from 'src/entity/federation.entity';
-import { Category, CompetitionEntity, CompetitionType,} from 'src/entity/competition.entity';
+import { Category, CompetitionEntity, CompetitionType} from 'src/entity/competition.entity';
 import { PricingInfo } from 'src/entity/pricing-info';
 import { CompetitionInfo } from 'src/entity/competition-info';
 
@@ -25,21 +25,21 @@ export class RaceRow {
     public riderNumber?: number;
     public surclassed?: boolean;
     public licenceNumber?: string;
-    public licenceId?:string;
+    public licenceId?: string;
     public name?: string;
     public riderName?: string;
     public club?: string;
     public catev?: string;
     public catea?: string;
-    public dept?:string;
+    public dept?: string;
     public fede?: string;
     public gender?: string;
     public rankingScratch: number;
     public comment: string;
     public competitionId: number;
     public competitionName?: string;
-    public competitionType?:string;
-    public competitionRaces?:string[];
+    public competitionType?: string;
+    public competitionRaces?: string[];
     @ApiPropertyOptional({ type: 'string', format: 'date-time'})
     public competitionDate?: Date;
     public sprintchallenge?: boolean;
@@ -95,51 +95,50 @@ export class CompetitionFilter {
     displayFuture?: boolean;
     displayPast?: boolean;
     displaySince?: number;
-    startDate?:string;
-    endDate?:string;
+    startDate?: string;
+    endDate?: string;
 }
 
 export class Departement {
-    departmentCode : string;
+    departmentCode: string;
     departmentName: string;
     regionCode: string;
-    regionName:string;
+    regionName: string;
 }
 
-export class CompetitionCreate{
-    
-    id?:number;
+export class CompetitionCreate {
+    id?: number;
     name: string;
-    competitionType?:CompetitionType;
-    @ApiProperty({enum: FederationEntity,enumName:'FedeEnum'})
-    fede?:FederationEntity;
+    competitionType?: CompetitionType;
+    @ApiProperty({enum: FederationEntity, enumName: 'FedeEnum'})
+    fede?: FederationEntity;
     categories?: Category[];
     races?: string[];
-    eventDate : Date;
-    zipCode : string;
-    club : number;
-    info ?: string;
+    eventDate: Date;
+    zipCode: string;
+    club: number;
+    info?: string;
     competitionInfo ?: CompetitionInfo[];
     lapNumber?: string;
-    longueurCircuit ?: string;
-    contactPhone ?: string;
-    contactEmail ?: string;
-    siteweb ?: string;
-    facebook ?: string;
-    latitude ?: number;
-    longitude ?: number;
-    pricing ?: PricingInfo [];
-    startDate ?:string;
-    openedToOtherFede?: boolean;
-    openedNL?: boolean;
-    observations?:string;
-    lieuDossard?:string;
-    lieuDossardGPS?:string;
-    contactName?:string;
-    commissaires?:string;
-    speaker?:string;
-    aboyeur?:string;
-    feedback?:string;
-    results_validated?:boolean;
-    dept?:string;
+    circuitLength?: string;
+    contactPhone?: string;
+    contactEmail?: string;
+    website?: string;
+    facebook?: string;
+    latitude?: number;
+    longitude?: number;
+    pricing?: PricingInfo [];
+    startDate?: string;
+    isOpenedToOtherFede?: boolean;
+    isOpenedToNL?: boolean;
+    observations?: string;
+    localisation?: string;
+    gpsCoordinates?: string;
+    contactName?: string;
+    commissaires?: string;
+    speaker?: string;
+    aboyeur?: string;
+    feedback?: string;
+    isValidResults?: boolean;
+    dept?: string;
 }

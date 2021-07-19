@@ -13,7 +13,7 @@ import Switch from '@material-ui/core/Switch';
 import {CompetitionEntity, CompetitionEntityCompetitionTypeEnum} from "../../sdk/models";
 import {apiCompetitions} from "../../util/api";
 
-interface InfoGenProps {
+interface IInfoGenProps {
     classes: any;
     history: any;
     match: any;
@@ -35,7 +35,7 @@ const useStyles = makeStyles((theme: Theme) =>
         }
     }),
 );
-const InfoGen = (props: InfoGenProps) => {
+const InfoGen = (props: IInfoGenProps) => {
     const [, setNotification] = useContext(NotificationContext);
     const [showSablier, setShowSablier] = React.useState(false);
     const [currentCompetition, setCurrentCompetition] = useState<CompetitionEntity>(null);
@@ -125,10 +125,10 @@ const InfoGen = (props: InfoGenProps) => {
                             <FormControl className={classes.formControl}>
                                 <div style={{paddingTop: 20}}>Commissaires :</div>
                                 <TextareaAutosize
-                                    value={currentCompetition?.commissaires}
+                                    value={currentCompetition?.commissioner}
                                     style={{width: 355}}
                                     onChange={(e) => {
-                                        setCurrentCompetition({...currentCompetition, commissaires: e.target.value})
+                                        setCurrentCompetition({...currentCompetition, commissioner: e.target.value})
                                     }}
                                     rowsMin={5}
                                     placeholder="Commissaire 1  Commissaire 2  Commissaire 3"
@@ -159,9 +159,9 @@ const InfoGen = (props: InfoGenProps) => {
                                 />
                             </FormControl>
                             <FormControl style={{display:'block'}} className={classes.formControl}>
-                                <Switch checked={!!currentCompetition?.resultsValidated}  onChange={(e) => {
+                                <Switch checked={!!currentCompetition?.isValidInfos} onChange={(e) => {
                                     setCurrentCompetition((prev)=>{
-                                        return {...currentCompetition, resultsValidated: !prev.resultsValidated}
+                                        return {...currentCompetition, isValidInfos: !prev.isValidInfos}
                                     })
                                 }} /> Valider les classements
                             </FormControl>

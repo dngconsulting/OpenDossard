@@ -20,22 +20,21 @@ const WrappedLicencePage = isAuthenticated(LicencePage)
 const WrappedLicencesPage = isAuthenticated(LicencesPage)
 
 export default ({renderAccount}: { renderAccount: () => ReactElement }) => {
-
     return (
         <React.Fragment>
             <Route path='/' exact={true} title="Page d'accueil" component={WrappedHomepage}/>
             <Route path='/licences' title="Les licences" component={isAuthenticated(LicencesPage)}/>
             <Route path='/licence/:id' component={isAuthenticated(LicencePage)}/>
-            <Route title="Sélection d'une épreuve" path='/competitionchooser' component={WrappedCompetitionChooser}/>
-            <Route title="Création d'une épreuve" path='/create' component={CompetNavBar}/>
-            <Route title="Modification d'une épreuve" path='/update/:id' component={CompetNavBar}/>
-            <Route title="Palmares" path='/palmares/:id?' component={WrappedPalmaresPage}/>
-            <Route title="Mon compte" path='/account' render={renderAccount}/>
-            <Route title="Engagement" path='/competition/:id/engagement' component={WrappedEngagementPage}/>
-            <Route title="Engagement et édition résultats" path='/competition/:id/engagementresultats'
+            <Route path='/palmares/:id?' title="Palmares" component={WrappedPalmaresPage}/>
+            <Route path='/account' title="Mon compte" render={renderAccount}/>
+            <Route path='/competition/:id/engagement' title="Engagement" component={WrappedEngagementPage}/>
+            <Route path='/competition/:id/engagementresultats' title="Engagement et édition résultats"
                    component={WrappedEngagementPage}/>
             <Route path='/competition/:id/results/:mode/' title="Editer les résultats"
                    component={WrappedEditResultPage}/>
+            <Route path='/competitionchooser' title="Sélection d'une épreuve" component={WrappedCompetitionChooser}/>
+            <Route path='/create' title="Création d'une épreuve" component={CompetNavBar}/>
+            <Route path='/update/:id' title="Modification d'une épreuve" component={CompetNavBar}/>
         </React.Fragment>
     )
 }

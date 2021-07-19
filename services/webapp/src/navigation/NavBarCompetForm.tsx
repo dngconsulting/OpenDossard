@@ -9,8 +9,7 @@ import { NotificationContext } from 'components/CadSnackbar';
 import { apiCompetitions } from 'util/api';
 import { CompetitionCreate, CompetitionCreateCategoriesEnum, CompetitionCreateCompetitionTypeEnum, } from 'sdk/models/CompetitionCreate';
 
-
-interface TabPanelProps {
+interface ITabPanelProps {
   children?: React.ReactNode;
   index: any;
   value: any;
@@ -18,22 +17,20 @@ interface TabPanelProps {
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
-
     Tab: {
       "&:hover": { backgroundColor: '#4169E1' }
     }
   }))
 
-function TabPanel(props: TabPanelProps) {
+function TabPanel(props: ITabPanelProps) {
   const { children, value, index, ...other } = props;
-  const classes = useStyles();
+
   return (
     <div
       role="tabpanel"
       hidden={value !== index}
       id={`simple-tabpanel-${index}`}
       aria-labelledby={`simple-tab-${index}`}
-
       {...other}
     >
       {value === index && (
@@ -46,7 +43,6 @@ function TabPanel(props: TabPanelProps) {
 }
 
 const CompetNavBar = (props: any) => {
-  
   const [races, setRaces] = useState<CompetitionInfo[]>([]);
   const [prices, setPrices] = useState<PricingInfo[]>([]);
   const [newCompetition, setNewCompetition] = useState<CompetitionCreate>({
@@ -59,52 +55,51 @@ const CompetNavBar = (props: any) => {
     competitionType: null,
     competitionInfo: races,
     zipCode: "",
-    lieuDossardGPS: "",
-    siteweb: "",
+    gpsCoordinates: "",
+    website: "",
     facebook: "",
     contactPhone: "",
     contactEmail: "",
     contactName: "",
-    openedToOtherFede: false,
-    openedNL: false,
+    isOpenedToOtherFede: false,
+    isOpenedToNL: false,
     observations: "",
     pricing: [],
-    lieuDossard: "",
-    longueurCircuit: "",
+    localisation: "",
+    circuitLength: "",
     dept: "",
     info: ""
   })
-  
-  const [value, setValue] = useState<number>(0);
-  const [zipCodeError, setZipCodeError] = useState<boolean>(false);
-  const [phoneContactError, setPhoneContactError] = useState<boolean>(false);
-  const [facebookError, setFacebookError] = useState<boolean>(false);
-  const [linkError, setLinkError] = useState<boolean>(false);
-  const [mailContactError, setMailContactError] = useState<boolean>(false)
-  const [validateError, setValidateError] = useState<boolean>(false)
-  const error: any = [phoneContactError, facebookError, linkError, mailContactError,zipCodeError]
-  const [position, setPosition] = useState<number[]>([0, 0])
-  const [loading, showLoading] = React.useState(false);
-  const classes = useStyles();
-  const [, setNotification] = useContext(NotificationContext);
-  const competitionId = props.match.params.id;
-  
 
+  const competitionId = props.match.params.id;
+
+  const [value, setValue]               = useState<number>(0);
+  const [zipCodeError, setZipCodeError] = useState<boolean>(false);
+  const [phoneError, setPhoneError]     = useState<boolean>(false);
+  const [linkError, setLinkError]       = useState<boolean>(false);
+  const [emailError, setEmailError]     = useState<boolean>(false);
+  const [isValidInfos, setIsValidInfos] = useState<boolean>(false);
+  const [position, setPosition]         = useState<number[]>([0, 0]);
+  const [, setIsLoading]                = useState(false);
+
+  const [, setNotification]             = useContext(NotificationContext);
+
+  const classes = useStyles();
+  const error: any = [phoneError, linkError, emailError, zipCodeError];
 
   useEffect(() => {
     const editCompetition = async () => {
       if (competitionId) {
         const id = String(competitionId);
-        const editComp: CompetitionEntity = await apiCompetitions.getCompetition({ id });
+        const editComp: CompetitionEntity = await apiCompetitions.getCompetition({id});
         // ,fede:CompetitionCreateCategoriesEnum.editComp.fede)),type:String(editComp.fede))
-        
-        setPrices(editComp.pricing);
 
+        setPrices(editComp.pricing);
         setRaces(editComp.competitionInfo);
 
-        //position string =>number
-        if (editComp.lieuDossardGPS || editComp.lieuDossardGPS !== "") {
-          const tab = (editComp.lieuDossardGPS).split(',');
+        // position string =>number
+        if (editComp.gpsCoordinates || editComp.gpsCoordinates !== "") {
+          const tab = (editComp.gpsCoordinates).split(',');
           const lat = Number(tab[0]);
           const lng = Number(tab[1]);
           setPosition([lat, lng]);
@@ -112,7 +107,6 @@ const CompetNavBar = (props: any) => {
         else {
           setPosition([0, 0]);
         }
-        
 
         const compareType = (): any => {
           if (String(Object.values(editComp.competitionType)) === String(Object.values(CompetitionCreateCompetitionTypeEnum.AUTRE))) {
@@ -132,26 +126,47 @@ const CompetNavBar = (props: any) => {
           }
         }
 
-
-
-        setNewCompetition({ ...newCompetition, competitionInfo: editComp.competitionInfo, pricing:editComp.pricing, id: editComp.id, competitionType: compareType(), eventDate: editComp.eventDate, name: editComp.name, club: editComp.club.id, zipCode: editComp.zipCode, facebook: editComp.facebook, lieuDossardGPS: editComp.lieuDossardGPS, siteweb: editComp.siteweb, contactEmail: editComp.contactEmail, contactName: editComp.contactName, contactPhone: editComp.contactPhone, openedNL: editComp.openedNL, openedToOtherFede: editComp.openedToOtherFede, observations: editComp.observations, lieuDossard: editComp.lieuDossard, dept: editComp.dept, info: editComp.info, longueurCircuit: editComp.longueurCircuit, fede: editComp.fede,commissaires : editComp.commissaires,speaker:editComp.speaker,aboyeur:editComp.aboyeur,feedback:editComp.feedback });
+        setNewCompetition({
+          ...newCompetition,
+          competitionInfo: editComp.competitionInfo,
+          pricing:editComp.pricing,
+          id: editComp.id,
+          competitionType: compareType(),
+          eventDate: editComp.eventDate,
+          name: editComp.name,
+          club: editComp.club.id,
+          zipCode: editComp.zipCode,
+          facebook: editComp.facebook,
+          gpsCoordinates: editComp.gpsCoordinates,
+          website: editComp.website,
+          contactEmail: editComp.contactEmail,
+          contactName: editComp.contactName,
+          contactPhone: editComp.contactPhone,
+          isOpenedToNL: editComp.isOpenedToNL,
+          isOpenedToOtherFede: editComp.isOpenedToOtherFede,
+          observations: editComp.observations,
+          localisation: editComp.localisation,
+          dept: editComp.dept,
+          info: editComp.info,
+          circuitLength: editComp.circuitLength,
+          fede: editComp.fede,
+          commissioner : editComp.commissioner,
+          speaker:editComp.speaker,
+          aboyeur:editComp.aboyeur,
+          feedback:editComp.feedback
+        });
       }
     }
     editCompetition();
-    
+
   },[])
 
-
-
   const handleSubmit = async (event: any): Promise<any> => {
-
     controlCompetition();
-    
-    
 
-    if (newCompetition === null) return;
-    showLoading(true);
-    
+    if (newCompetition === null) { return; }
+    setIsLoading(true);
+
     const control=controlTextfield();
     if (control===false) {
       try {
@@ -178,7 +193,7 @@ const CompetNavBar = (props: any) => {
 
       }
       finally {
-        showLoading(false)
+        setIsLoading(false);
       }
     }
     else {
@@ -204,11 +219,11 @@ const CompetNavBar = (props: any) => {
   const getRaces = ((value: any): void => { const list = [...value]; setRaces(list) });
   const getPrices = ((value: any): void => { const list = [...value]; setPrices(list) });
   const getnewCompetition = ((value: any): void => { setNewCompetition(value); });
-  const getPosition = ((value: any): void => { setPosition([value.lat, value.lng]); setNewCompetition({ ...newCompetition, lieuDossardGPS: String(value.lat + ', ' + value.lng) }); });
-  //champs obligatoires
+  const getPosition = ((value: any): void => { setPosition([value.lat, value.lng]); setNewCompetition({ ...newCompetition, gpsCoordinates: String(value.lat + ', ' + value.lng) }); });
+  // champs obligatoires
   const controlCompetition = (): void => {
     if ((newCompetition.name === "" || newCompetition.eventDate === null || newCompetition.competitionType === null || newCompetition.fede === null || newCompetition.club === null ||newCompetition.zipCode==="")) {
-      setValidateError(true);
+      setIsValidInfos(true);
       setNotification({
         message: `Une de ces informations est manquante (nom, date, type, féderation de l' épreuve)`,
         open: true,
@@ -216,26 +231,26 @@ const CompetNavBar = (props: any) => {
       });
     }
     else {
-      setValidateError(false);
+      setIsValidInfos(false);
     }
   }
 
-  //controles format
+  // controles format
   const controlTextfield = (): boolean => {
     let bool=false;
     if ((newCompetition.contactPhone).length <= 9 && newCompetition.contactPhone !== "") {
-      setPhoneContactError(true);
+      setPhoneError(true);
       bool= true;
     }
     else {
-      setPhoneContactError(false);
+      setPhoneError(false);
     }
     if ((newCompetition.contactEmail).includes('@', null) === false && newCompetition.contactEmail !== "") {
-      setMailContactError(true);
+      setEmailError(true);
       bool= true;
     }
     else {
-      setMailContactError(false);
+      setEmailError(false);
     }
     if ((newCompetition.zipCode).length < 5) {
       setZipCodeError(true);
@@ -245,13 +260,13 @@ const CompetNavBar = (props: any) => {
       setZipCodeError(false);
     }
     if ((newCompetition.facebook).includes('https', 0) === false && newCompetition.facebook !== "") {
-      setFacebookError(true);
+      setLinkError(true);
       bool= true;
     }
     else {
-      setFacebookError(false);
+      setLinkError(false);
     }
-    if ((newCompetition.siteweb).includes('https', 0) === false && newCompetition.siteweb !== "") {
+    if ((newCompetition.website).includes('https', 0) === false && newCompetition.website !== "") {
       setLinkError(true);
       bool= true;
     }
@@ -275,7 +290,7 @@ const CompetNavBar = (props: any) => {
         </AppBar>
 
         <TabPanel value={value} index={0}>
-          <InfoRace value={newCompetition} info={getnewCompetition} error={error} validateError={validateError}/>
+          <InfoRace value={newCompetition} info={getnewCompetition} error={error} validateError={isValidInfos}/>
         </TabPanel>
 
         <TabPanel value={value} index={1}>

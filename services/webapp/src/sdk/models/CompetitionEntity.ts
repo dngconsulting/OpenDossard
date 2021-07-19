@@ -121,25 +121,25 @@ export interface CompetitionEntity {
      * @type {string}
      * @memberof CompetitionEntity
      */
-    lieuDossard?: string;
+    localisation?: string;
     /**
      * 
      * @type {string}
      * @memberof CompetitionEntity
      */
-    lieuDossardGPS: string;
+    gpsCoordinates: string;
     /**
      * 
      * @type {string}
      * @memberof CompetitionEntity
      */
-    longueurCircuit?: string;
+    circuitLength?: string;
     /**
      * 
      * @type {string}
      * @memberof CompetitionEntity
      */
-    siteweb?: string;
+    website?: string;
     /**
      * 
      * @type {string}
@@ -169,13 +169,13 @@ export interface CompetitionEntity {
      * @type {boolean}
      * @memberof CompetitionEntity
      */
-    openedToOtherFede?: boolean;
+    isOpenedToOtherFede?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof CompetitionEntity
      */
-    openedNL?: boolean;
+    isOpenedToNL?: boolean;
     /**
      * 
      * @type {string}
@@ -193,7 +193,7 @@ export interface CompetitionEntity {
      * @type {string}
      * @memberof CompetitionEntity
      */
-    commissaires?: string;
+    commissioner?: string;
     /**
      * 
      * @type {string}
@@ -217,7 +217,7 @@ export interface CompetitionEntity {
      * @type {boolean}
      * @memberof CompetitionEntity
      */
-    resultsValidated?: boolean;
+    isValidInfos?: boolean;
 }
 
 export function CompetitionEntityFromJSON(json: any): CompetitionEntity {
@@ -229,7 +229,6 @@ export function CompetitionEntityFromJSONTyped(json: any, ignoreDiscriminator: b
         return json;
     }
     return {
-        
         'eventDate': (new Date(json['eventDate'])),
         'fede': FedeEnumFromJSON(json['fede']),
         'competitionType': json['competitionType'],
@@ -243,23 +242,23 @@ export function CompetitionEntityFromJSONTyped(json: any, ignoreDiscriminator: b
         'pricing': !exists(json, 'pricing') ? undefined : ((json['pricing'] as Array<any>).map(PricingInfoFromJSON)),
         'races': !exists(json, 'races') ? undefined : json['races'],
         'competitionInfo': !exists(json, 'competitionInfo') ? undefined : ((json['competitionInfo'] as Array<any>).map(CompetitionInfoFromJSON)),
-        'lieuDossard': !exists(json, 'lieuDossard') ? undefined : json['lieuDossard'],
-        'lieuDossardGPS': json['lieuDossardGPS'],
-        'longueurCircuit': !exists(json, 'longueurCircuit') ? undefined : json['longueurCircuit'],
-        'siteweb': !exists(json, 'siteweb') ? undefined : json['siteweb'],
+        'localisation': !exists(json, 'localisation') ? undefined : json['localisation'],
+        'gpsCoordinates': json['gpsCoordinates'],
+        'circuitLength': !exists(json, 'circuitLength') ? undefined : json['circuitLength'],
+        'website': !exists(json, 'website') ? undefined : json['website'],
         'facebook': !exists(json, 'facebook') ? undefined : json['facebook'],
         'contactEmail': !exists(json, 'contactEmail') ? undefined : json['contactEmail'],
         'contactPhone': !exists(json, 'contactPhone') ? undefined : json['contactPhone'],
         'contactName': !exists(json, 'contactName') ? undefined : json['contactName'],
-        'openedToOtherFede': !exists(json, 'openedToOtherFede') ? undefined : json['openedToOtherFede'],
-        'openedNL': !exists(json, 'openedNL') ? undefined : json['openedNL'],
+        'isOpenedToOtherFede': !exists(json, 'isOpenedToOtherFede') ? undefined : json['isOpenedToOtherFede'],
+        'isOpenedToNL': !exists(json, 'isOpenedToNL') ? undefined : json['isOpenedToNL'],
         'dept': !exists(json, 'dept') ? undefined : json['dept'],
         'rankingUrl': !exists(json, 'rankingUrl') ? undefined : json['rankingUrl'],
-        'commissaires': !exists(json, 'commissaires') ? undefined : json['commissaires'],
+        'commissioner': !exists(json, 'commissioner') ? undefined : json['commissioner'],
         'speaker': !exists(json, 'speaker') ? undefined : json['speaker'],
         'aboyeur': !exists(json, 'aboyeur') ? undefined : json['aboyeur'],
         'feedback': !exists(json, 'feedback') ? undefined : json['feedback'],
-        'resultsValidated': !exists(json, 'resultsValidated') ? undefined : json['resultsValidated'],
+        'isValidInfos': !exists(json, 'isValidInfos') ? undefined : json['isValidInfos'],
     };
 }
 
@@ -272,7 +271,7 @@ export function CompetitionEntityToJSON(value?: CompetitionEntity | null): any {
     }
     return {
         
-        'eventDate': (value.eventDate.toISOString()),
+        'date': (value.eventDate.toISOString()),
         'fede': FedeEnumToJSON(value.fede),
         'competitionType': value.competitionType,
         'id': value.id,
@@ -285,23 +284,23 @@ export function CompetitionEntityToJSON(value?: CompetitionEntity | null): any {
         'pricing': value.pricing === undefined ? undefined : ((value.pricing as Array<any>).map(PricingInfoToJSON)),
         'races': value.races,
         'competitionInfo': value.competitionInfo === undefined ? undefined : ((value.competitionInfo as Array<any>).map(CompetitionInfoToJSON)),
-        'lieuDossard': value.lieuDossard,
-        'lieuDossardGPS': value.lieuDossardGPS,
-        'longueurCircuit': value.longueurCircuit,
-        'siteweb': value.siteweb,
+        'localisation': value.localisation,
+        'gpsCoordinates': value.gpsCoordinates,
+        'circuitLength': value.circuitLength,
+        'website': value.website,
         'facebook': value.facebook,
         'contactEmail': value.contactEmail,
         'contactPhone': value.contactPhone,
         'contactName': value.contactName,
-        'openedToOtherFede': value.openedToOtherFede,
-        'openedNL': value.openedNL,
+        'isOpenedToOtherFede': value.isOpenedToOtherFede,
+        'isOpenedToNL': value.isOpenedToNL,
         'dept': value.dept,
         'rankingUrl': value.rankingUrl,
-        'commissaires': value.commissaires,
+        'commissioner': value.commissioner,
         'speaker': value.speaker,
         'aboyeur': value.aboyeur,
         'feedback': value.feedback,
-        'resultsValidated': value.resultsValidated,
+        'isValidInfos': value.isValidInfos,
     };
 }
 
