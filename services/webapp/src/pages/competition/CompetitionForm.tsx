@@ -8,6 +8,8 @@ import { PricingInfo, CompetitionInfo, CompetitionEntity } from 'sdk';
 import { NotificationContext } from 'components/CadSnackbar';
 import { apiCompetitions } from 'util/api';
 import { CompetitionCreate, CompetitionCreateCategoriesEnum, CompetitionCreateCompetitionTypeEnum, } from 'sdk/models/CompetitionCreate';
+import {withStyles} from "@material-ui/core/styles";
+import {styles} from "../../navigation/styles";
 
 interface ITabPanelProps {
   children?: React.ReactNode;
@@ -175,12 +177,12 @@ const CompetNavBar = (props: any) => {
         if (newCompetition.id) {
           const id = String(newCompetition.id);
           await apiCompetitions.updateCompetition({ id, competitionCreate: newCompetition });
-          window.location.href = "/competitionchooser#all";
+          window.location.href = "/competitions#all";
 
         } else {
 
           await apiCompetitions.saveCompetition({ competitionCreate: newCompetition });
-          window.location.href = "/competitionchooser#all";
+          window.location.href = "/competitions#all";
         }
       }
 
@@ -204,9 +206,6 @@ const CompetNavBar = (props: any) => {
       });
     }
   }
-
-
-
 
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
     setValue(newValue);
@@ -311,7 +310,7 @@ const CompetNavBar = (props: any) => {
   );
 
 }
-export default CompetNavBar;
+export default withStyles(styles as any, { withTheme: true })(CompetNavBar as any);
 
 
 

@@ -1,7 +1,7 @@
 import React, {Fragment, useContext, useRef, useState} from 'react';
 import {DataTable} from 'primereact/datatable';
 import {InputText} from 'primereact/inputtext';
-import {CompetitionLayout} from '../CompetitionLayout';
+import {CompetitionLayout} from '../competition/CompetitionLayout';
 import {RaceRow} from '../../sdk/models';
 import _ from 'lodash';
 import SearchIcon from '@material-ui/icons/Search';

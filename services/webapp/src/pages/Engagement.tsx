@@ -6,7 +6,7 @@ import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import {apiRaces} from '../util/api';
 import Grid from '@material-ui/core/Grid';
-import {CompetitionLayout} from './CompetitionLayout';
+import {CompetitionLayout} from './competition/CompetitionLayout';
 import {NotificationContext} from '../components/CadSnackbar';
 import {DataTable} from 'primereact/datatable';
 import {Column, ColumnProps} from 'primereact/column';

@@ -1,18 +1,18 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { createStyles, makeStyles, Theme, withStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
-import cadtheme from '../App';
-import { apiCompetitions, apiRaces } from '../util/api';
-import { CompetitionEntity, CompetitionEntity as Competition, RaceRow} from '../sdk';
+import cadtheme from '../../App';
+import { apiCompetitions, apiRaces } from '../../util/api';
+import { CompetitionEntity, CompetitionEntity as Competition, RaceRow} from '../../sdk';
 import { Link} from 'react-router-dom';
 import { Radio, Tooltip } from '@material-ui/core';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { toMMDDYYYY } from '../util/date';
+import { toMMDDYYYY } from '../../util/date';
 import moment from 'moment';
 import _ from 'lodash';
-import { NotificationContext } from "../components/CadSnackbar";
-import { styles } from "../navigation/styles";
+import { NotificationContext } from "../../components/CadSnackbar";
+import { styles } from "../../navigation/styles";
 import { Button } from '@material-ui/core';
 import { EditRounded, Delete, Rowing } from '@material-ui/icons';
 
@@ -125,7 +125,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
 
     const goToPageUpdate = (competitionId: number) => {
         props.history.push({
-            pathname: '/update/' + competitionId,
+            pathname: '/competition/update/' + competitionId,
             state: { title: "Modification épreuve" }
         })
     };
@@ -220,21 +220,21 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
 
     return (
         <Paper className={classes.root}>
-            <Link to='/competitionchooser#past'>
+            <Link to='/competitions#past'>
                 <Radio checked={selectPastOrFuture === 'past'}
                        onChange={handleChange}
                        value="past"
                        name="radio-button-demo"
                 />Epreuves passées
             </Link>
-            <Link to='/competitionchooser#future'>
+            <Link to='/competitions#future'>
                 <Radio checked={selectPastOrFuture === 'future'}
                        onChange={handleChange}
                        value="future"
                        name="radio-button-demo"
                 />Epreuves à venir
             </Link>
-            <Link to='/competitionchooser#all'>
+            <Link to='/competitions#all'>
                 <Radio checked={selectPastOrFuture === 'all'}
                        onChange={handleChange}
                        value="all"
@@ -243,7 +243,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
             </Link>
            
             <Button style={{ position: 'absolute', right: 25 }} variant={'contained'} color={'primary'}
-                    onClick={()=>{props.history.push({pathname: '/create', state: { title: "Création épreuve" }})}}>
+                    onClick={()=>{props.history.push({pathname: '/competition/create', state: { title: "Création épreuve" }})}}>
                 CRÉER EPREUVE
             </Button>
          

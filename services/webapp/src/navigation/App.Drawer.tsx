@@ -59,7 +59,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
         },
         {
             key: '3',
-            path: '/competitionchooser',
+            path: '/competitions',
             hash:'past',
             state: {title: 'Liste des épreuves'},
             title: 'Épreuves',
@@ -67,7 +67,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
         },
         ...(props && props.authentication && props.authentication.roles && props.authentication.roles.includes('ADMIN') ? [{
             key: '999',
-            path: '/competitionchooser/engagementresultats',
+            path: '/competitions/engagementresultats',
             state: {title: 'Gestion des Engagements'},
             title: 'Saisie Rapide résultats',
             icon: () => <AssignmentIcon color={'error'}/>

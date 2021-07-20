@@ -1,9 +1,9 @@
-import {CompetitionEntity as Competition, RaceRow} from '../sdk';
-import RaceTabs, {IRaceStat} from '../components/RaceTabs';
+import {CompetitionEntity as Competition, RaceRow} from '../../sdk';
+import RaceTabs, {IRaceStat} from '../../components/RaceTabs';
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import {createStyles, Theme} from '@material-ui/core';
 import {default as React, ReactNode, useEffect, useLayoutEffect, useState} from 'react';
-import {apiCompetitions, apiRaces} from '../util/api';
+import {apiCompetitions, apiRaces} from '../../util/api';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
@@ -11,7 +11,7 @@ import Paper from '@material-ui/core/Paper';
 import ForwardIcon from "@material-ui/icons/Forward";
 import AssignmentIcon from "@material-ui/icons/Assignment";
 import FormatListNumberedIcon from "@material-ui/icons/FormatListNumbered";
-import {capitalizeFirstLetter} from "../util";
+import {capitalizeFirstLetter} from "../../util";
 
 const computeTabs = (rows: RaceRow[], races: string[]): IRaceStat => {
 
@@ -109,9 +109,15 @@ const CompetitionCard = ({rows,history,displayType,competition}: {rows:RaceRow[]
     const c: Partial<Competition> = competition ? competition : {};
     const club = c.club ? c.club.longName : '';
     const titleCard = displayType==='results'?'Classements':'Engagements';
-    return <Grid container={true} style={{padding: 10, width: '100%', justifyContent: 'center'}}>
-        <Typography component="h6" variant="h6" align="center">
-            {displayType==='results'?<FormatListNumberedIcon style={{verticalAlign:'text-top'}}/>:<AssignmentIcon style={{verticalAlign:'text-top'}}/>}{titleCard}<ForwardIcon style={{verticalAlign:'text-top'}}/>{c.name}  ({club}) - {capitalizeFirstLetter(moment(c.eventDate).locale('fr').format('dddd DD MMM YYYY'))}
-        </Typography>
-    </Grid>;
+    return (
+        <Grid container={true} style={{padding: 10, width: '100%', justifyContent: 'center'}}>
+            <Typography component="h6" variant="h6" align="center">
+                {displayType==='results'? <FormatListNumberedIcon style={{verticalAlign:'text-top'}}/>
+                                        : <AssignmentIcon style={{verticalAlign:'text-top'}}/>
+                }
+                {titleCard}<ForwardIcon style={{verticalAlign:'text-top'}}/>
+                {c.name} ({club}) - {capitalizeFirstLetter(moment(c.eventDate).locale('fr').format('dddd DD MMM YYYY'))}
+            </Typography>
+        </Grid>
+    );
 };
