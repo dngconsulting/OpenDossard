@@ -1,38 +1,30 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useLeaflet, Marker } from 'react-leaflet';
-import { LeafletMouseEvent } from 'leaflet';
-import React from 'react';
+import {LatLng, LatLngExpression, LeafletMouseEvent} from 'leaflet';
 
-interface MarkerProps {
-    coord: any;
-    position: any;
-
+interface IMarkerProps {
+    coordinates: LatLngExpression,
+    updateCoordinates: (gpsCoordinates: LatLng) => void,
 }
-const AddMarker = (props: MarkerProps): any => {
 
-
+function AddMarker(props: IMarkerProps): any {
     const { map } = useLeaflet();
-    const [position, setPosition]: any = useState(props.position);
+
     const markerEvent = useCallback(
         (e: LeafletMouseEvent) => {
             e.originalEvent.preventDefault();
-            setPosition(e.latlng);
-            props.coord(e.latlng)
+            props.updateCoordinates(e.latlng);
             e.originalEvent.stopPropagation();
-        }, [props.position]);
-      
-    useEffect(
-        () => {
+        }, [props.updateCoordinates]
+    );
 
+    useEffect(() => {
             map?.doubleClickZoom.disable()
             map?.on('click', markerEvent)
-        }, [map, markerEvent]
-    )
+        }, [map, markerEvent])
+
     return (
-        <div>
-            <Marker position={position}></Marker>
-        </div>
+        <Marker position={props.coordinates} />
     )
 }
-
 export default AddMarker;

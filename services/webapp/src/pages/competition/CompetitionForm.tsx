@@ -8,13 +8,31 @@ import { PricingInfo, CompetitionInfo, CompetitionEntity } from 'sdk';
 import { NotificationContext } from 'components/CadSnackbar';
 import { apiCompetitions } from 'util/api';
 import { CompetitionCreate, CompetitionCreateCategoriesEnum, CompetitionCreateCompetitionTypeEnum, } from 'sdk/models/CompetitionCreate';
-import {withStyles} from "@material-ui/core/styles";
-import {styles} from "../../navigation/styles";
+import { withStyles } from '@material-ui/core/styles';
+import { styles } from '../../navigation/styles';
+import { LatLng } from 'leaflet';
 
 interface ITabPanelProps {
   children?: React.ReactNode;
-  index: any;
-  value: any;
+  index: number;
+  value: number;
+}
+
+interface ICompetNavBar {
+  match: any;
+}
+
+interface IErrorsForm {
+  fede:boolean,
+  name:boolean,
+  competitionType:boolean,
+  eventDate:boolean,
+  zipCode:boolean,
+  club:boolean,
+  contactPhone:boolean,
+  contactEmail:boolean,
+  facebook:boolean,
+  website:boolean
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -22,19 +40,15 @@ const useStyles = makeStyles((theme: Theme) =>
     Tab: {
       "&:hover": { backgroundColor: '#4169E1' }
     }
-  }))
+  })
+)
 
 function TabPanel(props: ITabPanelProps) {
   const { children, value, index, ...other } = props;
 
   return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
+    <div role="tabpanel" hidden={value !== index} id={`simple-tabpanel-${index}`}
+         aria-labelledby={`simple-tab-${index}`} {...other}>
       {value === index && (
         <Box p={3}>
           <Typography component="div">{children}</Typography>
@@ -44,243 +58,300 @@ function TabPanel(props: ITabPanelProps) {
   );
 }
 
-const CompetNavBar = (props: any) => {
-  const [races, setRaces] = useState<CompetitionInfo[]>([]);
-  const [prices, setPrices] = useState<PricingInfo[]>([]);
+const CompetNavBar = (props: ICompetNavBar) => {
+  const id      = props.match.params.id;
+  const classes = useStyles();
+  const LAT     = 43.604652;
+  const LNG     = 1.444209;
+
+  const [, setNotification]       = useContext(NotificationContext);
+  const [isLoading, setIsLoading] = useState(false);
+  const [value, setValue]         = useState<number>(0);
+  const [errors, setErrors]       = useState<IErrorsForm>({
+    fede: false,
+    name: false,
+    competitionType: false,
+    eventDate: false,
+    zipCode: false,
+    club: false,
+    contactPhone: false,
+    contactEmail: false,
+    facebook: false,
+    website: false,
+  });
   const [newCompetition, setNewCompetition] = useState<CompetitionCreate>({
-    races: ["Toutes"],
-    categories: [CompetitionCreateCategoriesEnum.Toutes],
-    eventDate: null,
     fede: null,
     name: "",
-    club: null,
     competitionType: null,
-    competitionInfo: races,
+    categories: [CompetitionCreateCategoriesEnum.Toutes],
+    races: ["Toutes"],
+    eventDate: null,
     zipCode: "",
-    gpsCoordinates: "",
-    website: "",
-    facebook: "",
+    club: null,
+    info: "",
+    competitionInfo: [],
+    circuitLength: "",
     contactPhone: "",
     contactEmail: "",
-    contactName: "",
+    website: "",
+    facebook: "",
+    latitude: LAT,
+    longitude: LNG,
+    pricing: [],
     isOpenedToOtherFede: false,
     isOpenedToNL: false,
     observations: "",
-    pricing: [],
     localisation: "",
-    circuitLength: "",
+    gpsCoordinates: "",
+    contactName: "",
+    commissioner: "",
+    speaker: "",
+    aboyeur: "",
+    feedback: "",
     dept: "",
-    info: ""
-  })
-
-  const competitionId = props.match.params.id;
-
-  const [value, setValue]               = useState<number>(0);
-  const [zipCodeError, setZipCodeError] = useState<boolean>(false);
-  const [phoneError, setPhoneError]     = useState<boolean>(false);
-  const [linkError, setLinkError]       = useState<boolean>(false);
-  const [emailError, setEmailError]     = useState<boolean>(false);
-  const [isValidInfos, setIsValidInfos] = useState<boolean>(false);
-  const [position, setPosition]         = useState<number[]>([0, 0]);
-  const [, setIsLoading]                = useState(false);
-
-  const [, setNotification]             = useContext(NotificationContext);
-
-  const classes = useStyles();
-  const error: any = [phoneError, linkError, emailError, zipCodeError];
+  });
 
   useEffect(() => {
-    const editCompetition = async () => {
-      if (competitionId) {
-        const id = String(competitionId);
-        const editComp: CompetitionEntity = await apiCompetitions.getCompetition({id});
-        // ,fede:CompetitionCreateCategoriesEnum.editComp.fede)),type:String(editComp.fede))
-
-        setPrices(editComp.pricing);
-        setRaces(editComp.competitionInfo);
-
-        // position string =>number
-        if (editComp.gpsCoordinates || editComp.gpsCoordinates !== "") {
-          const tab = (editComp.gpsCoordinates).split(',');
-          const lat = Number(tab[0]);
-          const lng = Number(tab[1]);
-          setPosition([lat, lng]);
-        }
-        else {
-          setPosition([0, 0]);
-        }
-
-        const compareType = (): any => {
-          if (String(Object.values(editComp.competitionType)) === String(Object.values(CompetitionCreateCompetitionTypeEnum.AUTRE))) {
-            return CompetitionCreateCompetitionTypeEnum.AUTRE
-          }
-
-          if (String(Object.values(editComp.competitionType)) === String(Object.values(CompetitionCreateCompetitionTypeEnum.CX))) {
-            return CompetitionCreateCompetitionTypeEnum.CX
-          }
-
-          if (String(Object.values(editComp.competitionType)) === String(Object.values(CompetitionCreateCompetitionTypeEnum.ROUTE))) {
-            return CompetitionCreateCompetitionTypeEnum.ROUTE
-          }
-
-          if (String(Object.values(editComp.competitionType)) === String(Object.values(CompetitionCreateCompetitionTypeEnum.VTT))) {
-            return CompetitionCreateCompetitionTypeEnum.VTT
-          }
-        }
-
-        setNewCompetition({
+    if (!isNaN(parseInt(id))) {
+      apiCompetitions.getCompetition({id}).then((res: CompetitionEntity) => {
+        const toUpdateCompetition: CompetitionCreate = {
           ...newCompetition,
-          competitionInfo: editComp.competitionInfo,
-          pricing:editComp.pricing,
-          id: editComp.id,
-          competitionType: compareType(),
-          eventDate: editComp.eventDate,
-          name: editComp.name,
-          club: editComp.club.id,
-          zipCode: editComp.zipCode,
-          facebook: editComp.facebook,
-          gpsCoordinates: editComp.gpsCoordinates,
-          website: editComp.website,
-          contactEmail: editComp.contactEmail,
-          contactName: editComp.contactName,
-          contactPhone: editComp.contactPhone,
-          isOpenedToNL: editComp.isOpenedToNL,
-          isOpenedToOtherFede: editComp.isOpenedToOtherFede,
-          observations: editComp.observations,
-          localisation: editComp.localisation,
-          dept: editComp.dept,
-          info: editComp.info,
-          circuitLength: editComp.circuitLength,
-          fede: editComp.fede,
-          commissioner : editComp.commissioner,
-          speaker:editComp.speaker,
-          aboyeur:editComp.aboyeur,
-          feedback:editComp.feedback
-        });
-      }
+          fede: res.fede,
+          id: res.id,
+          name: res.name,
+          competitionType: compareType(res.competitionType),
+          races: res.races,
+          eventDate: res.eventDate,
+          zipCode: res.zipCode,
+          club: res.club.id,
+          info: res.info,
+          competitionInfo: res.competitionInfo,
+          circuitLength: res.circuitLength,
+          contactPhone: res.contactPhone,
+          contactEmail: res.contactEmail,
+          website: res.website,
+          facebook: res.facebook,
+          latitude: getGPSCoordinates(res.gpsCoordinates)[0],
+          longitude: getGPSCoordinates(res.gpsCoordinates)[1],
+          pricing: res.pricing,
+          isOpenedToOtherFede: res.isOpenedToOtherFede,
+          isOpenedToNL: res.isOpenedToNL,
+          observations: res.observations,
+          localisation: res.localisation,
+          gpsCoordinates: String(getGPSCoordinates(res.gpsCoordinates)),
+          contactName: res.contactName,
+          commissioner: res.commissioner,
+          speaker: res.speaker,
+          aboyeur: res.aboyeur,
+          feedback: res.feedback,
+          dept: res.dept,
+        }
+        setNewCompetition(toUpdateCompetition);
+      })
     }
-    editCompetition();
-
   },[])
 
-  const handleSubmit = async (event: any): Promise<any> => {
+  const compareType = (competitionType: string): CompetitionCreateCompetitionTypeEnum => {
+    let type: CompetitionCreateCompetitionTypeEnum = null;
+    switch(competitionType) {
+      case CompetitionCreateCompetitionTypeEnum.CX:
+        type = CompetitionCreateCompetitionTypeEnum.CX;
+        break;
+      case CompetitionCreateCompetitionTypeEnum.ROUTE:
+        type = CompetitionCreateCompetitionTypeEnum.ROUTE;
+        break;
+      case CompetitionCreateCompetitionTypeEnum.VTT:
+        type = CompetitionCreateCompetitionTypeEnum.VTT;
+        break;
+      case CompetitionCreateCompetitionTypeEnum.AUTRE:
+        type = CompetitionCreateCompetitionTypeEnum.AUTRE;
+        break;
+      default:
+        setErrors({
+          ...errors,
+          competitionType: true
+        });
+    }
+    return type;
+  }
+
+  const convertGPSCoordinates = (gpsCoordinates: LatLng): string => {
+    return String(gpsCoordinates.lat + ', ' + gpsCoordinates.lng);
+  }
+
+  const getGPSCoordinates = (gpsCoordinates: string): number[] => {
+    let coordinates = [LAT, LNG];
+    if(gpsCoordinates || gpsCoordinates !== "") {
+      const coordinatesTab: string[] = gpsCoordinates.split(',');
+      const lat: number = parseFloat(coordinatesTab[0]);
+      const lng: number = parseFloat(coordinatesTab[1]);
+      coordinates = [lat, lng];
+    }
+    return coordinates;
+  }
+
+  const handleSubmit = async (): Promise<any> => {
     controlCompetition();
 
-    if (newCompetition === null) { return; }
-    setIsLoading(true);
+    if (newCompetition !== null) {
+      setIsLoading(true);
 
-    const control=controlTextfield();
-    if (control===false) {
-      try {
-
-
-        if (newCompetition.id) {
-          const id = String(newCompetition.id);
-          await apiCompetitions.updateCompetition({ id, competitionCreate: newCompetition });
-          window.location.href = "/competitions#all";
-
-        } else {
-
-          await apiCompetitions.saveCompetition({ competitionCreate: newCompetition });
-          window.location.href = "/competitions#all";
+      const control = controlTextfield();
+      if (!control) {
+        try {
+          if (newCompetition.id) {
+            await apiCompetitions.updateCompetition({ id, competitionCreate: newCompetition });
+            window.location.href = "/competitions#all";
+          } else {
+            await apiCompetitions.saveCompetition({ competitionCreate: newCompetition });
+            window.location.href = "/competitions#all";
+          }
+        }
+        catch (err) {
+          setNotification({
+            message: `L'épreuve ${newCompetition.name} n'a pas pu être créée ou modifiée`,
+            type: 'error',
+            open: true
+          });
+        }
+        finally {
+          setIsLoading(false);
         }
       }
-
-      catch (err) {
+      else {
         setNotification({
-          message: `L'épreuve ${newCompetition.name} n'a pu être créé ou modifiée`,
+          message: 'Un ou plusieurs champs du formulaire ne sont pas conformes',
           type: 'error',
           open: true
         });
-
       }
-      finally {
-        setIsLoading(false);
-      }
-    }
-    else {
-      setNotification({
-        message: `Un ou plusieurs champs du formulaire est ou sont non conformes`,
-        type: 'error',
-        open: true
-      });
     }
   }
 
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
     setValue(newValue);
-  };
+  }
 
-  const addRaces = (data: any): void => { races.push(data); setRaces(races); setNewCompetition({...newCompetition,competitionInfo:races}) };
-  const addPrices = (data: any): void => { prices.push(data); setPrices(prices); setNewCompetition({...newCompetition,pricing:prices})};
-  const deleteRaces = (value: any): void => { const list = [...races]; list.splice(value, 1); setRaces(list);setNewCompetition({...newCompetition,competitionInfo:list}) };
-  const deletePrices = (value: any): void => { const list = [...prices]; list.splice(value, 1); setPrices(list);setNewCompetition({...newCompetition,pricing:list}) };
-  const getRaces = ((value: any): void => { const list = [...value]; setRaces(list) });
-  const getPrices = ((value: any): void => { const list = [...value]; setPrices(list) });
-  const getnewCompetition = ((value: any): void => { setNewCompetition(value); });
-  const getPosition = ((value: any): void => { setPosition([value.lat, value.lng]); setNewCompetition({ ...newCompetition, gpsCoordinates: String(value.lat + ', ' + value.lng) }); });
+  const setMainInfos = (competition: CompetitionCreate): void => {
+    setNewCompetition(competition);
+  }
+
+  const setCompetitionInfos = (infos: CompetitionInfo[]): void => {
+    setNewCompetition({...newCompetition, competitionInfo: infos})
+  }
+
+  const setPricesInfo = (pricesInfos: PricingInfo[]): void => {
+    setNewCompetition({...newCompetition, pricing: pricesInfos})
+  }
+
+  const setGPSCoordinates = ((gpsCoordinates: LatLng): void => {
+    setNewCompetition({
+      ...newCompetition,
+      latitude: gpsCoordinates.lat,
+      longitude: gpsCoordinates.lng,
+      gpsCoordinates: convertGPSCoordinates(gpsCoordinates),
+    })
+  })
+
   // champs obligatoires
   const controlCompetition = (): void => {
-    if ((newCompetition.name === "" || newCompetition.eventDate === null || newCompetition.competitionType === null || newCompetition.fede === null || newCompetition.club === null ||newCompetition.zipCode==="")) {
-      setIsValidInfos(true);
+    if ((newCompetition.name === "" || newCompetition.eventDate === null || newCompetition.competitionType === null ||
+        newCompetition.fede === null || newCompetition.club === null ||newCompetition.zipCode==="")) {
+      setErrors({
+        ...errors,
+        name: !newCompetition.name,
+        eventDate: !newCompetition.eventDate,
+        competitionType: !newCompetition.competitionType,
+        fede: !newCompetition.fede,
+        zipCode: !newCompetition.zipCode,
+        club: !newCompetition.club
+      });
       setNotification({
-        message: `Une de ces informations est manquante (nom, date, type, féderation de l' épreuve)`,
+        message: 'Une de ces informations est manquante : nom, date, type, féderation de l\'épreuve',
         open: true,
         type: 'error'
       });
     }
-    else {
-      setIsValidInfos(false);
-    }
+
   }
 
   // controles format
   const controlTextfield = (): boolean => {
-    let bool=false;
-    if ((newCompetition.contactPhone).length <= 9 && newCompetition.contactPhone !== "") {
-      setPhoneError(true);
-      bool= true;
+    let isCompletionError = false;
+    if (newCompetition.contactPhone && (newCompetition.contactPhone).length <= 9 && newCompetition.contactPhone !== "") {
+      setErrors({
+        ...errors,
+        contactPhone: true
+      });
+      isCompletionError= true;
     }
     else {
-      setPhoneError(false);
+      setErrors({
+        ...errors,
+        contactPhone: false
+      });
     }
-    if ((newCompetition.contactEmail).includes('@', null) === false && newCompetition.contactEmail !== "") {
-      setEmailError(true);
-      bool= true;
-    }
-    else {
-      setEmailError(false);
-    }
-    if ((newCompetition.zipCode).length < 5) {
-      setZipCodeError(true);
-      bool= true;
-    }
-    else {
-      setZipCodeError(false);
-    }
-    if ((newCompetition.facebook).includes('https', 0) === false && newCompetition.facebook !== "") {
-      setLinkError(true);
-      bool= true;
+    if (newCompetition.contactEmail && (newCompetition.contactEmail).includes('@', null) === false && newCompetition.contactEmail !== "") {
+      setErrors({
+        ...errors,
+        contactEmail: true
+      });
+      isCompletionError= true;
     }
     else {
-      setLinkError(false);
+      setErrors({
+        ...errors,
+        contactEmail: false
+      });
     }
-    if ((newCompetition.website).includes('https', 0) === false && newCompetition.website !== "") {
-      setLinkError(true);
-      bool= true;
+    if (newCompetition.zipCode && (newCompetition.zipCode).length < 5) {
+      setErrors({
+        ...errors,
+        zipCode: true
+      });
+      isCompletionError= true;
     }
     else {
-      setLinkError(false);
+      setErrors({
+        ...errors,
+        zipCode: false
+      });
     }
-    return bool;
+    if (newCompetition.facebook && (newCompetition.facebook).includes('http', 0) === false && newCompetition.facebook !== "") {
+      setErrors({
+        ...errors,
+        facebook: true
+      });
+      isCompletionError= true;
+    }
+    else {
+      setErrors({
+        ...errors,
+        facebook: false
+      });
+    }
+    if (newCompetition.website && (newCompetition.website).includes('http', 0) === false && newCompetition.website !== "") {
+      setErrors({
+        ...errors,
+        website: true
+      });
+      isCompletionError= true;
+    }
+    else {
+      setErrors({
+        ...errors,
+        website: false
+      });
+    }
+    return isCompletionError;
   }
-
 
   return (
     <div>
       <div style={{ display: 'block', minHeight: '700px' }}>
         <AppBar position="static" style={{ backgroundColor: '#008B8B' }}>
-          <Tabs value={value} onChange={handleChange} aria-label="simple tabs example" style={{ backgroundColor: '#008B8B' }} centered>
+          <Tabs value={value} onChange={handleChange} aria-label="simple tabs example"
+                style={{ backgroundColor: '#008B8B' }} centered={true}>
             <Tab className={classes.Tab} label="Informations Générales" />
             <Tab className={classes.Tab} label="Horaires & Circuit" />
             <Tab className={classes.Tab} label="Tarifs" />
@@ -289,23 +360,26 @@ const CompetNavBar = (props: any) => {
         </AppBar>
 
         <TabPanel value={value} index={0}>
-          <InfoRace value={newCompetition} info={getnewCompetition} error={error} validateError={isValidInfos}/>
+          <InfoRace mainInfos={newCompetition} updateMainInfos={setMainInfos} errors={errors}/>
         </TabPanel>
 
         <TabPanel value={value} index={1}>
-          <PropRace races={addRaces} delete={deleteRaces} edit={getRaces} value={races} />
+          <PropRace infos={newCompetition.competitionInfo} updateCompetitionInfos={setCompetitionInfos}/>
         </TabPanel>
 
         <TabPanel value={value} index={2}>
-          <PriceRace value={prices} prices={addPrices} delete={deletePrices} edit={getPrices} />
+          <PriceRace pricesInfos={newCompetition.pricing} updatePricesInfos={setPricesInfo} />
         </TabPanel>
 
         <TabPanel value={value} index={3}>
-          <LeafletMap coord={position} position={getPosition} />
+          <LeafletMap lat={newCompetition.latitude} lng={newCompetition.longitude} updateCoordinates={setGPSCoordinates} />
         </TabPanel>
       </div>
 
-      <Button onClick={handleSubmit} style={{ display: 'block', width: '206px', marginLeft: 'auto', marginRight: 'auto', marginBottom: 10 }} variant={'contained'} color={'primary'} >Sauvegarder</Button>
+      <Button onClick={handleSubmit} variant={'contained'} color={'primary'}
+              style={{ display: 'block', width: '206px', marginLeft: 'auto', marginRight: 'auto', marginBottom: 10 }}>
+        Sauvegarder
+      </Button>
     </div>
   );
 

@@ -1,4 +1,3 @@
-
 import { TextField, Button, Paper, Table, TableHead, TableRow, TableCell, TableBody, createStyles, makeStyles, Theme, Tooltip, TableContainer } from '@material-ui/core';
 import { Delete, EditRounded } from '@material-ui/icons';
 import React, { useState, useEffect, useContext } from 'react';
@@ -6,7 +5,6 @@ import { SubmitHandler, useForm, } from "react-hook-form";
 import { ButtonBase } from '@material-ui/core';
 import { NotificationContext } from 'components/CadSnackbar';
 import { CompetitionInfo } from 'sdk';
-
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -25,216 +23,139 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
-
-interface RaceProps {
-  delete: any
-  races: any
-  value: any
-  edit: any
+interface IError {
+    course: boolean,
+    horaireEngagement: boolean,
+    horaireDepart: boolean,
+    info1: boolean,
+    info2: boolean,
+    info3: boolean,
 }
 
-const PropRace = (props: RaceProps) => {
+interface IRaceProps {
+  infos: CompetitionInfo[],
+  updateCompetitionInfos: (races: CompetitionInfo[]) => void,
+}
+
+const PropRace = (props: IRaceProps) => {
+  const classes = useStyles();
 
   const [, setNotification] = useContext(NotificationContext);
-  const [tab, setTab] = useState<CompetitionInfo[]>([props.value]);
-  const classes = useStyles();
-  const [index, setIndex] = useState<number>();
-  const [propRaceError, setPropRaceError] = useState<boolean>(false);
-  const { register, handleSubmit, setValue, getValues } = useForm<CompetitionInfo>();
-  const messageNotification = `tous les champs doivent être renseignées. Possibilité de mettre NC (non communiqué).`
+  const [tab, setTab]       = useState<CompetitionInfo[]>(props.infos);
+  const [index, setIndex]   = useState<number>();
+  const [error, setError]   = useState<IError>({
+      course: false,
+      horaireEngagement: false,
+      horaireDepart: false,
+      info1: false,
+      info2: false,
+      info3: false,
+  });
+  const { register, handleSubmit, setValue } = useForm<CompetitionInfo>();
 
-  const onSubmit: SubmitHandler<CompetitionInfo> = (data) => {
-      if(data.course==="" || data.horaireEngagement==="" || data.horaireDepart==="" || data.info1==="" || data.info2==="" || data.info3===""){
-        setPropRaceError(true); 
+  const onSubmit: SubmitHandler<CompetitionInfo> = (data: CompetitionInfo) => {
+      setError({
+          course: !data.course,
+          horaireEngagement: !data.horaireEngagement,
+          horaireDepart: !data.horaireDepart,
+          info1: !data.info1,
+          info2: !data.info2,
+          info3: !data.info3,
+      });
+
+      if(data.course === "" || data.horaireEngagement === "" || data.horaireDepart === "" || data.info1 === "" ||
+          data.info2 === "" ) {
         setNotification({
-          message: {messageNotification},
+          message: 'Tous les champs doivent être renseignées. Possibilité de mettre NC (non communiqué).',
           open: true,
           type: 'error'
         });
       }
       else{
-        setPropRaceError(false); 
-        props.races(data);
+        props.infos.push(data);
+        props.updateCompetitionInfos(props.infos);
       }
   }
   
-  const onEdit = ((event: any): any => {
-   
-    setValue("course", tab[event.currentTarget.value].course);
-    setValue("info2", tab[event.currentTarget.value].info2);
-    setValue("horaireDepart", tab[event.currentTarget.value].horaireDepart);
-    setValue("horaireEngagement", tab[event.currentTarget.value].horaireEngagement);
-    setValue("info3", tab[event.currentTarget.value].info3);
-    setValue("info1", tab[event.currentTarget.value].info1);
+  const editTabRow = ((event: any): void => {
+    const tabInfo = tab[event.currentTarget.value];
+    setValue("course", tabInfo.course);
+    setValue("info1", tabInfo.info1);
+    setValue("info2", tabInfo.info2);
+    setValue("info3", tabInfo.info3);
+    setValue("horaireDepart", tabInfo.horaireDepart);
+    setValue("horaireEngagement", tabInfo.horaireEngagement);
     setIndex(event.currentTarget.value);
-    
- 
   })
 
-  const onUpdate = ((event: any): void => {
-    const tampons=tab[event.currentTarget.value];
-    tab[event.currentTarget.value] = getValues(["course", "horaireEngagement", "horaireDepart", "info1", "info2", "info3"]);
-    if(tab[event.currentTarget.value].course==="" || tab[event.currentTarget.value].horaireEngagement==="" || tab[event.currentTarget.value].horaireDepart==="" || tab[event.currentTarget.value].info1==="" || tab[event.currentTarget.value].info2==="" || tab[event.currentTarget.value].info3===""){
-      setPropRaceError(true); 
-      setNotification({
-        message: {messageNotification},
-        open: true,
-        type: 'error'
-      });
-      if(tampons){
-      tab[event.currentTarget.value].course=tampons.course;
-      tab[event.currentTarget.value].horaireDepart=tampons.horaireDepart;
-      tab[event.currentTarget.value].horaireEngagement=tampons.horaireEngagement;
-      tab[event.currentTarget.value].info1=tampons.info1;
-      tab[event.currentTarget.value].info2=tampons.info2;
-      tab[event.currentTarget.value].info3=tampons.info3;
-      }
-    }
-    else{
-    
-    setPropRaceError(false);
-    props.edit(tab)
+  const deleteTabRow = ((event: any): void => {
+    const raceIndex = event.currentTarget.value;
+    props.infos.splice(raceIndex, 1);
+    props.updateCompetitionInfos(props.infos);
+  })
 
-  }
-});
-
-  const onDelete = ((event: any): void => { props.delete(event.currentTarget.value); });
-
-  const TableGen = (): any => {
-    return (
-      <TableBody>
-        {tab.map((row: any, index: any) =>
-          (
-            <TableRow key={index}>
-              <TableCell scope="row" align="center" style={{ columnWidth: '25%', border: '1px solid black' }}>
-                {row.course}
-              </TableCell>
-              <TableCell align="center" style={{ width: '10%', border: '1px solid black' }}>{row.horaireEngagement}
-              </TableCell>
-              <TableCell align="center" style={{ width: '10%', border: '1px solid black' }}>{row.horaireDepart}
-              </TableCell>
-              <TableCell align="center" style={{ width: '10%', border: '1px solid black' }}>{row.info1}
-              </TableCell>
-              <TableCell align="center" style={{ width: '10%', border: '1px solid black' }}>{row.info2}
-              </TableCell>
-              <TableCell align="center" style={{ width: '25%', border: '1px solid black' }}>{row.info3}
-              </TableCell>
-              <TableCell align="center" style={{ width: '5%', border: '1px solid black' }}>
-                <Tooltip title='Modifier cette catégorie'>
-                  <ButtonBase value={index} onClick={onEdit}>
-                    <EditRounded
-                    />
-                  </ButtonBase>
-                </Tooltip>
-              </TableCell>
-              <TableCell align="center" style={{ width: '5%', border: '1px solid black', paddingLeft: '16px' }}>
-                <Tooltip title='Supprimer définitivement cette catégorie'>
-                  <ButtonBase value={index} onClick={onDelete}>
-                    <Delete />
-                  </ButtonBase>
-                </Tooltip>
-              </TableCell>
-            </TableRow>
-          ))}</TableBody>)
-  }
-
-
-
-  useEffect(
-    () => {
-
-      setTab(props.value);
-
-
-    }, [props.value]
-  );
-
+  useEffect(() => {
+      setTab(props.infos);
+    }, [props.infos]);
 
   return (
     <div>
       <div style={{ display: 'block', width: '100%', marginLeft: 'auto', marginRight: 'auto' }}>
-        <TextField
-          error={propRaceError}
-          className={classes.textField}
-          name="course"
-          inputRef={register()}
-          label="Catégorie/Epreuve"
-          placeholder=""
-          inputProps={{ 'name': 'course', 'ref': { register } }}
-          InputLabelProps={{
-            shrink: true,
-          }}
-        />
-
-        <TextField
-          error={propRaceError}
-          className={classes.textField}
-          name="horaireEngagement"
-          inputRef={register()}
-          label="Heure Dossard/Inscription"
-          placeholder="ex : 14h"
-          margin="normal"
-          InputLabelProps={{
-            shrink: true,
-          }}
-        />
-        <TextField
-          error={propRaceError}
-          className={classes.textField}
-          inputRef={register()}
-          name="horaireDepart"
-          label="Heure départ"
-          placeholder="ex : 15h"
-          margin="normal"
-          InputLabelProps={{
-            shrink: true,
-          }}
-        />
+        <TextField label="Catégorie/Epreuve"
+                   error={error.course}
+                   className={classes.textField}
+                   name="course"
+                   inputRef={register()}
+                   inputProps={{ 'name': 'course', 'ref': { register } }}
+                   InputLabelProps={{shrink: true}} />
+        <TextField label="Heure Dossard/Inscription"
+                   error={error.horaireEngagement}
+                   className={classes.textField}
+                   name="horaireEngagement"
+                   inputRef={register()}
+                   placeholder="ex : 14h"
+                   margin="normal"
+                   InputLabelProps={{shrink: true}} />
+        <TextField label="Heure départ"
+                   error={error.horaireDepart}
+                   className={classes.textField}
+                   inputRef={register()}
+                   name="horaireDepart"
+                   placeholder="ex : 15h"
+                   margin="normal"
+                   InputLabelProps={{shrink: true}} />
       </div>
       <div style={{ display: 'block', width: '100%', marginLeft: 'auto', marginRight: 'auto' }}>
-        <TextField
-          error={propRaceError}
-          className={classes.textField}
-          name="info1"
-          inputRef={register()}
-          label="Tour/Distance"
-          placeholder="ex : 5 ou 125kms"
-          margin="normal"
-          InputLabelProps={{
-            shrink: true,
-          }}
-        />
-        <TextField
-          error={propRaceError}
-          className={classes.textField}
-          name="info2"
-          inputRef={register()}
-          label="Kms/Dénivelé"
-          placeholder="ex: 7,5km ou 1550mD+"
-          margin="normal"
-          InputLabelProps={{
-            shrink: true,
-          }}
-        />
-        <TextField
-          error={propRaceError===true}
-          className={classes.textField}
-          name="info3"
-          inputRef={register()}
-          label="Lien OpenRunner"
-          style={{
-            margin: 8,
-            marginRight: '150px',
-            width: '250px'
-          }}
-          placeholder="https:/www.lienOpenrunner.com"
-          margin="normal"
-          InputLabelProps={{
-            shrink: true,
-          }}
-        />
+        <TextField label="Tour/Distance"
+                   error={error.info1}
+                   className={classes.textField}
+                   name="info1"
+                   inputRef={register()}
+                   placeholder="ex : 5 ou 125kms"
+                   margin="normal"
+                   InputLabelProps={{shrink: true}} />
+        <TextField label="Kms/Dénivelé"
+                   error={error.info2}
+                   className={classes.textField}
+                   name="info2"
+                   inputRef={register()}
+                   placeholder="ex: 7,5km ou 1550mD+"
+                   margin="normal"
+                   InputLabelProps={{shrink: true}} />
+        <TextField label="Lien OpenRunner"
+                   error={error.info3}
+                   className={classes.textField}
+                   name="info3"
+                   inputRef={register()}
+                   style={{margin: 8, marginRight: '150px', width: '250px'}}
+                   placeholder="https:/www.lienOpenrunner.com"
+                   margin="normal"
+                   InputLabelProps={{shrink: true}} />
       </div>
-      <Button style={{ display: 'block', marginLeft: 'auto', marginRight: 'auto', width: '206px', marginTop: '30px' }} variant={'contained'} value={index} color={'primary'} onClick={onUpdate}>Sauvegarder</Button>
+      <Button style={{ display: 'block', marginLeft: 'auto', marginRight: 'auto', width: '206px', marginTop: '30px' }}
+              variant={'contained'} value={index} color={'primary'} onClick={handleSubmit(onSubmit)}>
+        Sauvegarder
+      </Button>
       <TableContainer component={Paper}>
         <Table className={classes.table} size="small" aria-label="a dense table">
           <TableHead>
@@ -245,14 +166,54 @@ const PropRace = (props: RaceProps) => {
               <TableCell align="center" style={{ width: '10%', border: '1px solid black' }}>Tour Distance</TableCell>
               <TableCell align="center" style={{ width: '10%', border: '1px solid black' }}>Kms/Dénivelé</TableCell>
               <TableCell align="center" style={{ width: '25%', border: '1px solid black' }}>Lien OpenRunner</TableCell>
-              <TableCell align="center" style={{ width: '5%', border: '1px solid black' }}></TableCell>
-              <TableCell align="center" style={{ width: '5%', border: '1px solid black' }}></TableCell>
+              <TableCell align="center" style={{ width: '5%', border: '1px solid black' }} />
+              <TableCell align="center" style={{ width: '5%', border: '1px solid black' }} />
             </TableRow>
           </TableHead>
-          <TableGen />
+          <TableBody>
+            { tab.map((info: CompetitionInfo, key: number) => (
+                <TableRow key={key}>
+                  <TableCell scope="row" align="center" style={{ columnWidth: '25%', border: '1px solid black' }}>
+                    {info.course}
+                  </TableCell>
+                  <TableCell align="center" style={{ width: '10%', border: '1px solid black' }}>
+                    {info.horaireEngagement}
+                  </TableCell>
+                  <TableCell align="center" style={{ width: '10%', border: '1px solid black' }}>
+                    {info.horaireDepart}
+                  </TableCell>
+                  <TableCell align="center" style={{ width: '10%', border: '1px solid black' }}>
+                    {info.info1}
+                  </TableCell>
+                  <TableCell align="center" style={{ width: '10%', border: '1px solid black' }}>
+                    {info.info2}
+                  </TableCell>
+                  <TableCell align="center" style={{ width: '25%', border: '1px solid black' }}>
+                    {info.info3}
+                  </TableCell>
+                  <TableCell align="center" style={{ width: '5%', border: '1px solid black' }}>
+                    <Tooltip title='Modifier cette catégorie'>
+                      <ButtonBase value={key} onClick={editTabRow}>
+                        <EditRounded />
+                      </ButtonBase>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell align="center" style={{ width: '5%', border: '1px solid black', paddingLeft: '16px' }}>
+                    <Tooltip title='Supprimer définitivement cette catégorie'>
+                      <ButtonBase value={key} onClick={deleteTabRow}>
+                        <Delete />
+                      </ButtonBase>
+                    </Tooltip>
+                  </TableCell>
+                </TableRow>
+            ))}
+          </TableBody>
         </Table>
       </TableContainer>
-      <Button onClick={handleSubmit(onSubmit)} style={{ display: 'block', marginLeft: 'auto', marginRight: 'auto', width: '206px' }} variant={'contained'} color={'primary'} >Ajouter Epreuve</Button>
+      <Button style={{ display: 'block', marginLeft: 'auto', marginRight: 'auto', width: '206px' }}
+              variant={'contained'} color={'primary'} onClick={handleSubmit(onSubmit)} >
+        Ajouter Epreuve
+      </Button>
     </div>
   )
 }

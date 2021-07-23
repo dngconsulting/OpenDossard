@@ -44,13 +44,11 @@ const useStyles = makeStyles((theme: Theme) =>
 
 const CompetitionChooser = (props: ICompetitionChooserProps) => {
     const [, setNotification] = useContext(NotificationContext);
-
     const [data, setData] = useState<CompetitionEntity[]>([]);
     const [raceRows, setRaceRows] = useState<RaceRow[]>([]);
     const [filteredData, setFilteredData] = useState<Competition[]>([]);
     const [selectPastOrFuture, setSelectPastOrFuture] = useState(undefined);
     const [loading, setLoading] = useState(false);
-
     const classes = useStyles(cadtheme);
     const competitionFilter = {
         competitionTypes: ['ROUTE', 'CX'],
@@ -118,14 +116,14 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
 
     const goToPage = (competitionId: number, resultsPage?: string) => {
         props.history.push({
-            pathname: '/competition/' + competitionId + '/' + (resultsPage ? resultsPage : 'engagement'),
+            pathname: `/competition/${competitionId}/${resultsPage ? resultsPage : 'engagement'}`,
             state: { title: (resultsPage ? 'Résultats' : 'Engagements') }
         })
     };
 
     const goToPageUpdate = (competitionId: number) => {
         props.history.push({
-            pathname: '/competition/update/' + competitionId,
+            pathname: `/competition/update/${competitionId}`,
             state: { title: "Modification épreuve" }
         })
     };
@@ -159,12 +157,12 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
                 : <span>Aucun classé</span>
         );
     }
-    const filterData = (data: CompetitionEntity[], targetValue: string) => {
+    const filterData = (competition: CompetitionEntity[], targetValue: string) => {
         if (targetValue === 'all') {
-            setFilteredData(data);
+            setFilteredData(competition);
         } else {
             setFilteredData(
-                _.orderBy(data.filter(
+                _.orderBy(competition.filter(
                     (comp: Competition) => targetValue === 'past' ? moment(comp.eventDate).isBefore(moment())
                     : moment(comp.eventDate).isAfter(moment())
                 ), ['event_date'], targetValue === 'past' ? ['desc'] : ['asc'])
@@ -184,10 +182,11 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
     const editIcon = (compRow: CompetitionEntity): JSX.Element => {
         return (
             <Tooltip title='Modifier cette épreuve'>
-                <EditRounded onClick={async(event:any)=> {
+                <EditRounded onClick={ async(event:any)=> {
                                 event.stopPropagation();
                                 goToPageUpdate(compRow.id);
-                             }} fontSize={'default'} />
+                             }}
+                             fontSize={'default'} />
             </Tooltip>
         );
     }
@@ -243,7 +242,12 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
             </Link>
            
             <Button style={{ position: 'absolute', right: 25 }} variant={'contained'} color={'primary'}
-                    onClick={()=>{props.history.push({pathname: '/competition/create', state: { title: "Création épreuve" }})}}>
+                    onClick={()=>{
+                        props.history.push({
+                            pathname: '/competition/create',
+                            state: { title: "Création épreuve" }
+                        })
+                    }}>
                 CRÉER EPREUVE
             </Button>
          
