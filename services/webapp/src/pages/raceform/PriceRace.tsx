@@ -4,6 +4,7 @@ import { NotificationContext } from 'components/CadSnackbar';
 import React, { useState, useEffect, useContext } from 'react';
 import { SubmitHandler, useForm, } from "react-hook-form";
 import {CompetitionInfo, PricingInfo} from 'sdk';
+import {IErrorPrice, IErrorProp} from "../competition/CompetitionForm";
 
 const useStyles = makeStyles(
     (theme: Theme) => createStyles({
@@ -22,24 +23,19 @@ const useStyles = makeStyles(
     }),
 );
 
-interface IError {
-    name: boolean;
-    tarif: boolean;
-}
-
 interface IPriceProps {
     pricesInfos: PricingInfo[],
-    updatePricesInfos: (priceList: PricingInfo[]) => void,
+    updatePricesInfos: (priceList: PricingInfo[], errors: boolean) => void,
 }
 
 const PriceRace = (props: IPriceProps) => {
     const classes      = useStyles();
-    const errorMessage = 'Tous les champs doivent être renseignées. Possibilité de mettre NC (non communiqué).';
+    const errorMessage = 'Veuillez remplir l\'ensemble des champs obligatoires.';
 
     const [, setNotification] = useContext(NotificationContext);
     const [prices, setPrices] = useState<PricingInfo[]>(props.pricesInfos);
     const [index, setIndex]   = useState<number>();
-    const [error, setError]   = useState<IError>({
+    const [error, setError]   = useState<IErrorPrice>({
         name: false,
         tarif: false,
     });
@@ -75,7 +71,8 @@ const PriceRace = (props: IPriceProps) => {
         }
         else {
             props.pricesInfos.push(data)
-            props.updatePricesInfos(props.pricesInfos);
+            const pricesError = error.tarif && error.name;
+            props.updatePricesInfos(props.pricesInfos, pricesError);
             resetFormValues();
             setIsHiddenForm(true);
         }
@@ -94,7 +91,8 @@ const PriceRace = (props: IPriceProps) => {
         }
         else {
             prices[event.currentTarget.value] = getValues(["name", "tarif"]);
-            props.updatePricesInfos(prices)
+            const pricesError = error.tarif && error.name
+            props.updatePricesInfos(prices, pricesError)
             resetFormValues();
             setIsHiddenForm(true);
         }
@@ -112,8 +110,12 @@ const PriceRace = (props: IPriceProps) => {
 
     const deleteTabRow = ((event: any): void => {
         const raceIndex = event.currentTarget.value;
+        let pricesError = error.tarif && error.name
         props.pricesInfos.splice(raceIndex, 1);
-        props.updatePricesInfos(props.pricesInfos);
+        if(props.pricesInfos.length === 0) {
+            pricesError = true;
+        }
+        props.updatePricesInfos(props.pricesInfos, pricesError);
     })
 
     const addTabRow = () => {
@@ -126,7 +128,8 @@ const PriceRace = (props: IPriceProps) => {
     <div>
       <div hidden={isHiddenForm}>
         <div style={{ display: 'block', width: '100%', marginLeft: 'auto', marginRight: 'auto' }}>
-          <TextField label="Nom du tarif"
+          <TextField required={true}
+                     label="Nom du tarif"
                      error={error.name}
                      helperText={error.name && "Le nom du tarif doit être renseigné"}
                      placeholder="ex : FSGT"
@@ -135,7 +138,8 @@ const PriceRace = (props: IPriceProps) => {
                      inputRef={register()}
                      inputProps={{ 'name': 'name', 'ref': { register } }}
                      InputLabelProps={{shrink: true}} />
-          <TextField label="Montant"
+          <TextField required={true}
+                     label="Montant"
                      error={error.tarif}
                      helperText={error.tarif && "Le montant doit être renseigné"}
                      placeholder="ex : 7€"

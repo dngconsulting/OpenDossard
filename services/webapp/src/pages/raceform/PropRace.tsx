@@ -5,6 +5,7 @@ import { SubmitHandler, useForm, } from "react-hook-form";
 import { ButtonBase } from '@material-ui/core';
 import { NotificationContext } from 'components/CadSnackbar';
 import { CompetitionInfo } from 'sdk';
+import { IErrorProp } from "../competition/CompetitionForm";
 
 const useStyles = makeStyles(
     (theme: Theme) => createStyles({
@@ -23,17 +24,9 @@ const useStyles = makeStyles(
     }),
 );
 
-interface IError {
-    course: boolean,
-    horaireEngagement: boolean,
-    horaireDepart: boolean,
-    info1: boolean,
-    info2: boolean,
-}
-
 interface IRaceProps {
     infos: CompetitionInfo[],
-    updateCompetitionInfos: (races: CompetitionInfo[]) => void,
+    updateCompetitionInfos: (races: CompetitionInfo[], errors: boolean) => void,
 }
 
 const PropRace = (props: IRaceProps) => {
@@ -43,7 +36,7 @@ const PropRace = (props: IRaceProps) => {
     const [, setNotification] = useContext(NotificationContext);
     const [tab, setTab]       = useState<CompetitionInfo[]>(props.infos);
     const [index, setIndex]   = useState<number>();
-    const [error, setError]   = useState<IError>({
+    const [error, setError]   = useState<IErrorProp>({
         course: false,
         horaireEngagement: false,
         horaireDepart: false,
@@ -67,7 +60,7 @@ const PropRace = (props: IRaceProps) => {
         setValue("horaireEngagement", "");
     }
 
-    const showEmptyFields = (data: CompetitionInfo): void=> {
+    const showEmptyFields = (data: CompetitionInfo): void => {
         setError({
             course: !data.course,
             horaireEngagement: !data.horaireEngagement,
@@ -89,7 +82,8 @@ const PropRace = (props: IRaceProps) => {
         }
         else{
             props.infos.push(data);
-            props.updateCompetitionInfos(props.infos);
+            const infosError = error.course && error.info1 && error.info2 && error.horaireDepart && error.horaireEngagement;
+            props.updateCompetitionInfos(props.infos, infosError);
             resetFormValues();
             setIsHiddenForm(true);
         }
@@ -109,7 +103,8 @@ const PropRace = (props: IRaceProps) => {
         }
         else {
             tab[event.currentTarget.value] = {...row};
-            props.updateCompetitionInfos(tab)
+            const infosError = error.course && error.info1 && error.info2 && error.horaireDepart && error.horaireEngagement;
+            props.updateCompetitionInfos(tab, infosError);
             resetFormValues();
             setIsHiddenForm(true);
         }
@@ -131,8 +126,12 @@ const PropRace = (props: IRaceProps) => {
 
     const deleteTabRow = ((event: any): void => {
         const raceIndex = event.currentTarget.value;
+        let infosError = error.course && error.info1 && error.info2 && error.horaireDepart && error.horaireEngagement;
         props.infos.splice(raceIndex, 1);
-        props.updateCompetitionInfos(props.infos);
+        if(props.infos.length === 0) {
+            infosError = true;
+        }
+        props.updateCompetitionInfos(props.infos, infosError);
     })
 
     const addTabRow = () => {

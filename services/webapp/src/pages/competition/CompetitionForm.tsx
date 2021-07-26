@@ -22,7 +22,20 @@ interface ICompetNavBar {
   match: any;
 }
 
-interface IErrorsForm {
+export interface IErrorProp {
+  course: boolean,
+  horaireEngagement: boolean,
+  horaireDepart: boolean,
+  info1: boolean,
+  info2: boolean,
+}
+
+export interface IErrorPrice {
+  name: boolean;
+  tarif: boolean;
+}
+
+export interface IErrorInfo {
   fede:boolean,
   name:boolean,
   competitionType:boolean,
@@ -33,6 +46,12 @@ interface IErrorsForm {
   contactEmail:boolean,
   facebook:boolean,
   website:boolean
+}
+
+interface IErrorsForm {
+  info: boolean,
+  price: boolean,
+  prop: boolean,
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -68,16 +87,9 @@ const CompetNavBar = (props: ICompetNavBar) => {
   const [isLoading, setIsLoading] = useState(false);
   const [value, setValue]         = useState<number>(0);
   const [errors, setErrors]       = useState<IErrorsForm>({
-    fede: false,
-    name: false,
-    competitionType: false,
-    eventDate: false,
-    zipCode: false,
-    club: false,
-    contactPhone: false,
-    contactEmail: false,
-    facebook: false,
-    website: false,
+    info: false,
+    price: false,
+    prop: false
   });
   const [newCompetition, setNewCompetition] = useState<CompetitionCreate>({
     fede: null,
@@ -109,6 +121,7 @@ const CompetNavBar = (props: ICompetNavBar) => {
     aboyeur: "",
     feedback: "",
     dept: "",
+    resultsValidated: false,
   });
 
   useEffect(() => {
@@ -145,6 +158,7 @@ const CompetNavBar = (props: ICompetNavBar) => {
           aboyeur: res.aboyeur,
           feedback: res.feedback,
           dept: res.dept,
+          resultsValidated: res.isValidInfos,
         }
         setNewCompetition(toUpdateCompetition);
       })
@@ -167,10 +181,7 @@ const CompetNavBar = (props: ICompetNavBar) => {
         type = CompetitionCreateCompetitionTypeEnum.AUTRE;
         break;
       default:
-        setErrors({
-          ...errors,
-          competitionType: true
-        });
+        setNewCompetition({...newCompetition, resultsValidated: false});
     }
     return type;
   }
@@ -191,36 +202,29 @@ const CompetNavBar = (props: ICompetNavBar) => {
   }
 
   const handleSubmit = async (): Promise<any> => {
-    controlCompetition();
-
     if (newCompetition !== null) {
       setIsLoading(true);
-
-      const control = controlTextfield();
-      if (!control) {
+      if (setResultsValidation()) {
         try {
           if (newCompetition.id) {
-            await apiCompetitions.updateCompetition({ id, competitionCreate: newCompetition });
+            await apiCompetitions.updateCompetition({id, competitionCreate: newCompetition});
             window.location.href = "/competitions#all";
           } else {
-            await apiCompetitions.saveCompetition({ competitionCreate: newCompetition });
+            await apiCompetitions.saveCompetition({competitionCreate: newCompetition});
             window.location.href = "/competitions#all";
           }
-        }
-        catch (err) {
+        } catch (err) {
           setNotification({
             message: `L'épreuve ${newCompetition.name} n'a pas pu être créée ou modifiée`,
             type: 'error',
             open: true
           });
-        }
-        finally {
+        } finally {
           setIsLoading(false);
         }
-      }
-      else {
+      } else {
         setNotification({
-          message: 'Un ou plusieurs champs du formulaire ne sont pas conformes',
+          message: 'Veuillez remplir l\'ensemble des champs obligatoires de chaque onglet.',
           type: 'error',
           open: true
         });
@@ -232,15 +236,18 @@ const CompetNavBar = (props: ICompetNavBar) => {
     setValue(newValue);
   }
 
-  const setMainInfos = (competition: CompetitionCreate): void => {
+  const setMainInfos = (competition: CompetitionCreate, errorInfo: boolean): void => {
+    setErrors({...errors, info: errorInfo});
     setNewCompetition(competition);
   }
 
-  const setCompetitionInfos = (infos: CompetitionInfo[]): void => {
+  const setCompetitionInfos = (infos: CompetitionInfo[], errorProp: boolean): void => {
+    setErrors({...errors, prop: errorProp})
     setNewCompetition({...newCompetition, competitionInfo: infos})
   }
 
-  const setPricesInfo = (pricesInfos: PricingInfo[]): void => {
+  const setPricesInfo = (pricesInfos: PricingInfo[], errorPrice: boolean): void => {
+    setErrors({...errors, price: errorPrice})
     setNewCompetition({...newCompetition, pricing: pricesInfos})
   }
 
@@ -253,97 +260,13 @@ const CompetNavBar = (props: ICompetNavBar) => {
     })
   })
 
-  // champs obligatoires
-  const controlCompetition = (): void => {
-    if ((newCompetition.name === "" || newCompetition.eventDate === null || newCompetition.competitionType === null ||
-        newCompetition.fede === null || newCompetition.club === null ||newCompetition.zipCode==="")) {
-      setErrors({
-        ...errors,
-        name: !newCompetition.name,
-        eventDate: !newCompetition.eventDate,
-        competitionType: !newCompetition.competitionType,
-        fede: !newCompetition.fede,
-        zipCode: !newCompetition.zipCode,
-        club: !newCompetition.club
-      });
-      setNotification({
-        message: 'Une de ces informations est manquante : nom, date, type, féderation de l\'épreuve',
-        open: true,
-        type: 'error'
-      });
+  const setResultsValidation = ():boolean => {
+    let validation = false;
+    if(newCompetition.pricing.length !== 0 && newCompetition.competitionInfo.length !== 0) {
+      validation = (!errors.info && !errors.prop && !errors.price);
     }
-
-  }
-
-  // controles format
-  const controlTextfield = (): boolean => {
-    let isCompletionError = false;
-    if (newCompetition.contactPhone && (newCompetition.contactPhone).length <= 9 && newCompetition.contactPhone !== "") {
-      setErrors({
-        ...errors,
-        contactPhone: true
-      });
-      isCompletionError= true;
-    }
-    else {
-      setErrors({
-        ...errors,
-        contactPhone: false
-      });
-    }
-    if (newCompetition.contactEmail && (newCompetition.contactEmail).includes('@', null) === false && newCompetition.contactEmail !== "") {
-      setErrors({
-        ...errors,
-        contactEmail: true
-      });
-      isCompletionError= true;
-    }
-    else {
-      setErrors({
-        ...errors,
-        contactEmail: false
-      });
-    }
-    if (newCompetition.zipCode && (newCompetition.zipCode).length < 5) {
-      setErrors({
-        ...errors,
-        zipCode: true
-      });
-      isCompletionError= true;
-    }
-    else {
-      setErrors({
-        ...errors,
-        zipCode: false
-      });
-    }
-    if (newCompetition.facebook && (newCompetition.facebook).includes('http', 0) === false && newCompetition.facebook !== "") {
-      setErrors({
-        ...errors,
-        facebook: true
-      });
-      isCompletionError= true;
-    }
-    else {
-      setErrors({
-        ...errors,
-        facebook: false
-      });
-    }
-    if (newCompetition.website && (newCompetition.website).includes('http', 0) === false && newCompetition.website !== "") {
-      setErrors({
-        ...errors,
-        website: true
-      });
-      isCompletionError= true;
-    }
-    else {
-      setErrors({
-        ...errors,
-        website: false
-      });
-    }
-    return isCompletionError;
+    setNewCompetition({...newCompetition, resultsValidated: validation})
+    return validation;
   }
 
   return (
@@ -360,11 +283,11 @@ const CompetNavBar = (props: ICompetNavBar) => {
         </AppBar>
 
         <TabPanel value={value} index={0}>
-          <InfoRace mainInfos={newCompetition} updateMainInfos={setMainInfos} errors={errors}/>
+          <InfoRace mainInfos={newCompetition} updateMainInfos={setMainInfos} />
         </TabPanel>
 
         <TabPanel value={value} index={1}>
-          <PropRace infos={newCompetition.competitionInfo} updateCompetitionInfos={setCompetitionInfos}/>
+          <PropRace infos={newCompetition.competitionInfo} updateCompetitionInfos={setCompetitionInfos} />
         </TabPanel>
 
         <TabPanel value={value} index={2}>
@@ -384,6 +307,7 @@ const CompetNavBar = (props: ICompetNavBar) => {
   );
 
 }
+
 export default withStyles(styles as any, { withTheme: true })(CompetNavBar as any);
 
 
