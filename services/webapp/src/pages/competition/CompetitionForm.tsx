@@ -279,7 +279,7 @@ const CompetNavBar = (props: ICompetNavBar) => {
 
   const setResultsValidation = ():boolean => {
     let validation = false;
-    if(newCompetition.pricing.length !== 0 && newCompetition.competitionInfo.length !== 0) {
+    if(newCompetition.competitionInfo.length !== 0) {
       validation = (!errors.info && !errors.prop && !errors.price);
     }
     setNewCompetition({...newCompetition, resultsValidated: validation})

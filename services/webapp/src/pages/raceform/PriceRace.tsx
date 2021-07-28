@@ -110,11 +110,8 @@ const PriceRace = (props: IPriceProps) => {
 
     const deleteTabRow = ((event: any): void => {
         const raceIndex = event.currentTarget.value;
-        let pricesError = error.tarif && error.name
+        const pricesError = error.tarif && error.name
         props.pricesInfos.splice(raceIndex, 1);
-        if(props.pricesInfos.length === 0) {
-            pricesError = true;
-        }
         props.updatePricesInfos(props.pricesInfos, pricesError);
     })
 
