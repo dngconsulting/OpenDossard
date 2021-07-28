@@ -31,9 +31,9 @@ services:
       - ./website/:/var/www/html:delegated
       - ./config/nginx.conf:/etc/nginx/nginx.conf:delegated
       - ./config/ssl.conf:/etc/nginx/ssl.conf:delegated
-      - ./config/ssl/cert.pem:/etc/letsencrypt/opendossard/cert.pem:delegated
-      - ./config/ssl/key.pem:/etc/letsencrypt/opendossard/key.pem:delegated
-      - ./config/ssl/dhparams.pem:/etc/letsencrypt/opendossard/dhparams.pem:delegated
+      - /etc/letsencrypt/live/opendossard.com/fullchain.pem:/etc/letsencrypt/opendossard/cert.pem:delegated
+      - /etc/letsencrypt/live/opendossard.com/privkey.pem:/etc/letsencrypt/opendossard/key.pem:delegated
+      - /etc/letsencrypt/live/opendossard.com/dhparam.pem:/etc/letsencrypt/opendossard/dhparams.pem:delegated
 volumes:
   postgres:
 

@@ -4,6 +4,7 @@ import {ClubEntity} from './club.entity';
 import {ApiProperty} from '@nestjs/swagger';
 import {CompetitionInfo} from './competition-info';
 import {PricingInfo} from './pricing-info';
+import {LinkInfo} from './link-info';
 
 /**
  * Cette énum représente les catégories gérées par une épreuve
@@ -166,4 +167,9 @@ export class CompetitionEntity {
     @Column({nullable: true, name: 'results_validated'})
     isValidResults?: boolean;
 
+    @Column({type: 'json', nullable: true, name: 'photo_urls'})
+    photoUrls?: LinkInfo[];
+
+    @Column({type: 'json', nullable: true, name: 'ranking_urls'})
+    rankingUrls?: LinkInfo[];
 }

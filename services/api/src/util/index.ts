@@ -4,6 +4,7 @@ export const mappingLicenceFields = {
     club: 'club', dept: 'dept',
     gender: 'gender',
     catea: 'catea',
+    catevCX: 'catev_cx',
     catev: 'catev',
     fede:'fede::text',
     birthYear:'birth_year',

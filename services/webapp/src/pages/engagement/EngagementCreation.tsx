@@ -1,12 +1,18 @@
 import {default as React, useContext, useEffect, useRef, useState} from 'react';
-import {CompetitionEntity as Competition, LicenceEntity as Licence, RaceCreate, RaceRow} from '../../sdk/models';
+import {
+    CompetitionEntity as Competition,
+    CompetitionEntityCompetitionTypeEnum,
+    LicenceEntity as Licence,
+    RaceCreate,
+    RaceRow
+} from '../../sdk/models';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import AutocompleteInput from '../../components/AutocompleteInput';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import makeStyles from '@material-ui/core/styles/makeStyles';
-import {CircularProgress, createStyles, FormHelperText, InputLabel, Theme} from '@material-ui/core';
+import {CircularProgress, createStyles, InputLabel, Theme} from '@material-ui/core';
 import {apiRaces} from '../../util/api';
 import {NotificationContext} from '../../components/CadSnackbar';
 import {filterLicences} from '../common/filters';
@@ -16,6 +22,7 @@ import {FEDERATIONS} from '../common/shared-entities';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import {ConfirmDialog} from "../../util";
 import FormControl from "@material-ui/core/FormControl";
+import ForwardIcon from "@material-ui/icons/Forward";
 
 const create = async (newRace: RaceCreate) => {
     await apiRaces.engage({raceCreate: newRace});
@@ -146,7 +153,16 @@ export const CreationForm = (
         }
         selectRef && selectRef.current && selectRef.current.focus();
     };
-
+    const displayCategory = () => {
+        if (!competition) return '';
+        switch (competition.competitionType) {
+            case CompetitionEntityCompetitionTypeEnum.AUTRE: return 'Caté.';break;
+            case CompetitionEntityCompetitionTypeEnum.ROUTE:  return 'Caté. Route';break;
+            case CompetitionEntityCompetitionTypeEnum.VTT:  return 'Caté. VTT';break;
+            case CompetitionEntityCompetitionTypeEnum.CX:  return 'Caté. CX';break;
+            default:return 'Catégorie'
+        }
+    }
     const onRiderChange = (licence: Licence) => {
         licence && dossardSelectRef && dossardSelectRef.current && dossardSelectRef.current.focus();
         setForm({
@@ -177,14 +193,14 @@ export const CreationForm = (
                        }/>
         <Grid item={true}>
             <Typography variant="h5" style={{marginRight: 20}}>
-                Engager Coureur :
+                Saisir coureur <ForwardIcon style={{verticalAlign:'middle'}}/>
             </Typography>
         </Grid>
-        <Grid item={true} style={{zIndex: 20}}>
-            <AutocompleteInput selectBox={selectRef} style={{width: '550px'}} selection={form.licence}
+        <Grid item={true} style={{zIndex: 20,marginTop:5}}>
+            <AutocompleteInput selectBox={selectRef} style={{width: '650px'}} selection={form.licence}
                                onChangeSelection={onRiderChange}
                                placeholder="NOM Prénom Fede NuméroLicence"
-                               feedDataAndRenderer={(inputValue:string)=>filterLicences(inputValue,competition.fede)}/>
+                               feedDataAndRenderer={(inputValue:string)=>filterLicences(inputValue,competition.competitionType,competition.fede)}/>
         </Grid>
         <Grid item={true}>
             <TextField
@@ -193,7 +209,7 @@ export const CreationForm = (
                 value={saisieResultat ? ranking : form.riderNumber}
                 disabled={saisieResultat}
                 className={classes.field}
-                style={{width: '100px'}}
+                style={{width: '100px',fontSize:15}}
                 onChange={e => setForm({...form, riderNumber: e.target.value})}
                 inputProps={{
                     onKeyPress: e => e.key === 'Enter' && confirmAndSubmit(),
@@ -203,7 +219,7 @@ export const CreationForm = (
         </Grid>
         <Grid item={true}>
             <FormControl>
-                <InputLabel htmlFor="age-native-simple">Catégorie</InputLabel>
+                <InputLabel style={{fontSize:15}} htmlFor="age-native-simple">{displayCategory()}</InputLabel>
                 <Select  value={form.catev as string} style={{color: catecolor, minWidth: '100px'}}
                         inputProps={{
                             name: 'Catégorie',

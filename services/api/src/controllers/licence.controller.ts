@@ -8,6 +8,7 @@ import {AuthGuard} from '@nestjs/passport';
 import {ROLES, RolesGuard} from "../guards/roles.guard";
 import {Roles} from "../decorators/roles.decorator";
 import {mappingLicenceFields} from "../util";
+import {CompetitionType} from "../entity/competition.entity";
 
 /**
  * Licence Controler is in charge of handling rider licences
@@ -25,7 +26,7 @@ export class LicenceController {
     ) {
     }
 
-    @Get('/search/:param')
+    @Get('/search/:param/:competitionType')
     @ApiOperation({
         operationId: 'getLicencesLike',
         summary: 'Recherche des licences',
@@ -33,7 +34,7 @@ export class LicenceController {
     })
     @ApiResponse({status: 200, type: LicenceEntity, isArray: true, description: 'Liste des licences'})
     @Roles(ROLES.ORGANISATEUR,ROLES.ADMIN)
-    public async getLicencesLike(@Param('param') param: string): Promise<LicenceEntity> {
+    public async getLicencesLike(@Param('param') param: string,@Param('competitionType') competitionType: CompetitionType): Promise<LicenceEntity> {
         const filterParam = '%' + param.replace(/\s+/g, '').normalize("NFD").replace(/[\u0300-\u036f]/g, "") + '%';
         const query: string = `select l.licence_number as "licenceNumber",
                               l.id,
@@ -44,7 +45,7 @@ export class LicenceController {
                               l.fede,
                               l.first_name as "firstName",
                               l.birth_year as "birthYear",
-                              l.catev,
+                              ${competitionType===CompetitionType.CX?'l.catev_cx as "catev"':'l.catev as "catev"'},
                               l.saison,
                               l.catea from licence l where REPLACE(CONCAT(UPPER(l.name),UPPER(unaccent(l.first_name)),UPPER(CAST(l.fede AS VARCHAR)),UPPER(l.licence_number)),' ','') like $1 
                               order by (l.name,l.first_name) fetch first 30 rows only`;
@@ -102,9 +103,8 @@ export class LicenceController {
                 }
             }
         } else {
-            qb.orWhere('licence_number ilike :value', {value: '%' + search.search + '%'});
-            qb.orWhere(' name ilike :name', {name: '%' + search.search + '%'});
-            qb.orWhere('first_name ilike :firstName', {firstName: '%' + search.search + '%'});
+            const filterParam = '%' + search.search.replace(/\s+/g, '').normalize("NFD").replace(/[\u0300-\u036f]/g, "") + '%';
+            qb.where('REPLACE(CONCAT(UPPER(name),UPPER(unaccent(first_name)),UPPER(CAST(fede AS VARCHAR)),UPPER(licence_number)),\' \',\'\') ilike :value', {value: '%' + filterParam + '%'});
         }
         const res = await
             qb
@@ -133,6 +133,7 @@ export class LicenceController {
         newLicence.birthYear = licence.birthYear;
         newLicence.catea = licence.catea;
         newLicence.catev = licence.catev.toUpperCase();
+        if (licence.catevCX) newLicence.catevCX = licence.catevCX.toUpperCase();
         newLicence.fede = licence.fede;
         newLicence.saison = licence.saison;
         const licenceInserted = await this.entityManager.save(newLicence);
@@ -158,6 +159,7 @@ export class LicenceController {
         toUpdate.dept = licence.dept;
         toUpdate.catea = licence.catea;
         toUpdate.catev = licence.catev;
+        if (licence.catevCX) toUpdate.catevCX = licence.catevCX;
         toUpdate.saison = licence.saison;
         await this.entityManager.save(toUpdate);
     }

@@ -2,22 +2,10 @@ import {EntityManager} from 'typeorm';
 
 import {RaceEntity} from '../entity/race.entity';
 import {LicenceEntity} from '../entity/licence.entity';
-import {CompetitionEntity} from '../entity/competition.entity';
+import {CompetitionEntity, CompetitionType} from '../entity/competition.entity';
 import {ApiBody, ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
-import {
-    BadRequestException,
-    Body,
-    Controller,
-    Delete,
-    Get,
-    Logger,
-    Param,
-    Post,
-    Put,
-    UseGuards,
-} from '@nestjs/common';
+import {BadRequestException, Body, Controller, Delete, Get, Logger, Param, Post, Put, UseGuards,} from '@nestjs/common';
 import {InjectEntityManager} from '@nestjs/typeorm';
-import * as moment from "moment";
 import * as _ from 'lodash';
 import {AuthGuard} from '@nestjs/passport';
 import {CompetitionFilter, RaceCreate, RaceNbRider, RaceRow} from '../dto/model.dto';
@@ -245,12 +233,15 @@ export class RacesCtrl {
             id: licenceId,
         });
         const racerowToUpdate = await this.entityManager.findOne<RaceEntity>(RaceEntity, {
-            competition: {id:competitionId},
-            licence: {id:licenceId}
+            where : {
+                competition: {id:competitionId},
+                licence: {id:licenceId}
+            },
+            relations: ['competition']
         });
         racerowToUpdate.club = licence.club;
         racerowToUpdate.catea = licence.catea;
-        racerowToUpdate.catev = licence.catev;
+        racerowToUpdate.catev = (racerowToUpdate.competition.competitionType === CompetitionType.CX?licence.catevCX:licence.catev);
         await this.entityManager.save(racerowToUpdate);
     }
 

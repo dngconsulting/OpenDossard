@@ -98,6 +98,12 @@ export interface LicenceEntity {
      * @memberof LicenceEntity
      */
     saison: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LicenceEntity
+     */
+    catevCX: string;
 }
 
 export function LicenceEntityFromJSON(json: any): LicenceEntity {
@@ -122,6 +128,7 @@ export function LicenceEntityFromJSONTyped(json: any, ignoreDiscriminator: boole
         'catea': json['catea'],
         'catev': json['catev'],
         'saison': json['saison'],
+        'catevCX': json['catevCX'],
     };
 }
 
@@ -146,6 +153,7 @@ export function LicenceEntityToJSON(value?: LicenceEntity | null): any {
         'catea': value.catea,
         'catev': value.catev,
         'saison': value.saison,
+        'catevCX': value.catevCX,
     };
 }
 

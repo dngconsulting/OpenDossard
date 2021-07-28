@@ -1,16 +1,15 @@
 import * as React from 'react';
-import {useEffect, useRef, useState} from 'react';
+import {useContext, useEffect, useRef, useState} from 'react';
 import {VerticalTimeline, VerticalTimelineElement} from 'react-vertical-timeline-component';
 import AutocompleteInput from "../components/AutocompleteInput";
 import {filterLicences} from "./common/filters";
-import {LicenceEntity as Licence, RaceRow} from "../sdk/models";
+import {CompetitionEntityCompetitionTypeEnum, LicenceEntity as Licence, RaceRow} from "../sdk/models";
 import 'react-vertical-timeline-component/style.min.css';
 import EmojiEventsIcon from "@material-ui/icons/EmojiEvents";
 import './palmares.css';
 import {apiLicences, apiRaces} from "../util/api";
 import _ from 'lodash';
 import moment from "moment";
-import {useContext} from "react";
 import {NotificationContext} from "../components/CadSnackbar";
 import Button from "@material-ui/core/Button";
 import {createStyles, makeStyles, Theme} from "@material-ui/core/styles";
@@ -33,11 +32,16 @@ const useStyles = makeStyles((theme: Theme) =>
 const PalmaresPage = (props: IStatsPageProps) => {
     const licenceId = props.match.params.id;
     const [licence, setLicence] = useState<Licence>(null)
-    const [rows, setRows] = useState<Array<RaceRow>>(null);
+    const [rows, setRows] = useState<RaceRow[]>(null);
     const [, setNotification] = useContext(NotificationContext);
+    const selectRef = useRef(null);
 
     const onRiderChange = async (select: Licence) => {
-        if (!select) return ;
+        if (!select) {
+            setLicence(null)
+            setRows(null)
+            return ;
+        }
         props.history.push({
             pathname: '/palmares/' + select.id
         })
@@ -61,6 +65,9 @@ const PalmaresPage = (props: IStatsPageProps) => {
         if (!isNaN(parseInt(licenceId))) {
             async function asyncFun() {
                 const lic = await apiLicences.get({id: licenceId});
+                if (!lic) {
+                    return;
+                };
                 setLicence(licenceWithLabel(lic))
                 const lraceRows: RaceRow[] = await apiRaces.getPalmares({id: licenceId});
                 if (lraceRows.length === 0) {
@@ -106,15 +113,14 @@ const PalmaresPage = (props: IStatsPageProps) => {
         <div style={{flex: 1, padding: 10, zIndex: 20}}>
             <div style={{display: "flex", alignItems: 'center', verticalAlign: 'center', justifyContent: 'center'}}>
                 <span style={{marginRight: 10}}>Coureur :</span>
-                <AutocompleteInput style={{width: '550px'}}
+                <AutocompleteInput selectBox={selectRef}
+                                   style={{width: '550px'}}
                                    selection={licence}
                                    onChangeSelection={onRiderChange}
                                    placeholder="Nom Prénom Fede NuméroLicence"
-                                   feedDataAndRenderer={filterLicences}/>
+                                   feedDataAndRenderer={(param:string)=>filterLicences(param,CompetitionEntityCompetitionTypeEnum.ROUTE)} />
                 <Button variant="contained" color="secondary" className={classes.button}
-                        onClick={() => {
-                            props.history.goBack();
-                        }}>
+                        onClick={() => { props.history.goBack(); }}>
                     Retour
                 </Button>
             </div>

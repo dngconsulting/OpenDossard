@@ -1,6 +1,7 @@
 import React, {useState} from 'react'
 
 import AsyncSelect from 'react-select/async';
+import {components} from "react-select";
 
 /**
  *
@@ -11,19 +12,51 @@ import AsyncSelect from 'react-select/async';
  * @constructor
  */
 export default function AutocompleteInput({selectBox,selection, onChangeSelection, style, placeholder, feedDataAndRenderer}: any) {
-    const promiseOptions = async (inputValue: any) =>
-        new Promise(resolve => {
+    const promiseOptions = async (inputValue: any) => {
+        return new Promise(resolve => {
             resolve(feedDataAndRenderer(inputValue))
         })
+    }
 
+    const SingleValue = ({
+                             cx,
+                             getStyles,
+                             selectProps,
+                             data,
+                             isDisabled,
+                             className,
+                             ...props
+                         }:any) => {
+        console.log(props);
+        return (
+            <div>
+                <div>{data.name + ' ' + data.firstName}</div>
+            </div>
+        );
+    };
+
+    const customStyles = {
+        control: (base:any) => ({
+            ...base,
+            height: 60,
+            minHeight: 35,
+            lineHeight:3,
+            padding:0
+        }),
+        input: (base:any) => ({
+            fontSize:20
+        })
+    };
     return (
         <div style={style}>
             <AsyncSelect
                 ref={selectBox}
                 autoFocus={true}
+                styles={customStyles}
                 noOptionsMessage={()=>'Aucun coureur ne correspond à votre recherche '}
                 loadingMessage={()=>'Chargement ...'}
                 value={selection}
+                //components={{ SingleValue }}
                 onChange={onChangeSelection}
                 isClearable={true}
                 defaultOptions={false}

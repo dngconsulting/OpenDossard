@@ -40,6 +40,7 @@ export interface GetRequest {
 
 export interface GetLicencesLikeRequest {
     param: string;
+    competitionType: string;
 }
 
 export interface GetPageSizeLicencesForPageRequest {
@@ -218,6 +219,10 @@ export class LicenceAPIApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('param','Required parameter requestParameters.param was null or undefined when calling getLicencesLike.');
         }
 
+        if (requestParameters.competitionType === null || requestParameters.competitionType === undefined) {
+            throw new runtime.RequiredError('competitionType','Required parameter requestParameters.competitionType was null or undefined when calling getLicencesLike.');
+        }
+
         const queryParameters: runtime.HTTPQuery = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -231,7 +236,7 @@ export class LicenceAPIApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/api/licences/search/{param}`.replace(`{${"param"}}`, encodeURIComponent(String(requestParameters.param))),
+            path: `/api/licences/search/{param}/{competitionType}`.replace(`{${"param"}}`, encodeURIComponent(String(requestParameters.param))).replace(`{${"competitionType"}}`, encodeURIComponent(String(requestParameters.competitionType))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,

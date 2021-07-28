@@ -92,13 +92,13 @@ const LicencesPage = (props: ILicencesProps) => {
         let rowstoDisplay : any[][] = [];
         const filename = 'Licences.pdf';
         tableRef.current.state.data.forEach((r:LicenceEntity,index:number)=>{
-            rowstoDisplay.push([r.id,r.licenceNumber,r.name,r.firstName,r.club,r.gender,r.dept,r.birthYear,r.catea,r.catev,r.fede,r.saison]);
+            rowstoDisplay.push([r.id,r.licenceNumber,r.name,r.firstName,r.club,r.gender,r.dept,r.birthYear,r.catea,r.catev,r.catevCX,r.fede,r.saison]);
         })
         let doc = new jsPDF("p","mm","a4");
         // @ts-ignore
         var totalPagesExp = '{total_pages_count_string}'
         // @ts-ignore
-        doc.autoTable({head: [['ID', 'Licence N°', 'Nom','Prenom', 'Club','H/F','Dept','Année','Cat.A','Cat.V','Fédé.','Valid.']],
+        doc.autoTable({head: [['ID', 'Licence N°', 'Nom','Prenom', 'Club','H/F','Dept','Année','Cat.A','Cat.V','Caté.CX','Fédé.','Valid.']],
             bodyStyles: {
                 minCellHeight:3,
                 cellHeight:3,
@@ -157,15 +157,16 @@ const LicencesPage = (props: ILicencesProps) => {
                 tableRef={tableRef}
                 columns={[
                     {title: 'ID', field: 'id',headerStyle:{maxWidth: 20,minWidth:20},filterPlaceholder: id},
-                    {title: 'Licence N°', field: 'licenceNumber',headerStyle:{width:20,minWidth:20}},
+                    {title: 'Lic. N°', field: 'licenceNumber',headerStyle:{width:20,minWidth:20}},
                     {title: 'Nom', field: 'name',headerStyle:{width:150,minWidth:150,maxWidth:150}},
                     {title: 'Prénom', field: 'firstName',headerStyle:{width:100,minWidth:100,maxWidth:100}},
-                    {title: 'Club', field: 'club',headerStyle:{width:380,minWidth:380}},
+                    {title: 'Club', field: 'club',headerStyle:{minWidth:380}},
                     {title: 'H/F', field: 'gender',headerStyle:{width:10,minWidth:10,maxWidth: 10}},
                     {title: 'Dept', field: 'dept',headerStyle:{width:10,minWidth:10,maxWidth: 10}},
                     {title: 'Année', field: 'birthYear',headerStyle:{width:10,minWidth:10,maxWidth: 10}},
                     {title: 'Caté.A', field: 'catea',headerStyle:{width:10,minWidth:10,maxWidth: 10}},
                     {title: 'Caté.V', field: 'catev',headerStyle:{width:10,minWidth:10,maxWidth: 10}},
+                    {title: 'Caté.CX', field: 'catevCX',headerStyle:{width:10,minWidth:10,maxWidth: 10}},
                     {title: 'Fédé', field: 'fede',headerStyle:{width:20,minWidth:20,maxWidth: 20},sorting:false},
                     {title: 'Saison', field: 'saison',headerStyle:{width:20,minWidth:20,maxWidth: 20},sorting:false},
                 ]}
@@ -173,8 +174,8 @@ const LicencesPage = (props: ILicencesProps) => {
                 data={fetchLicences}
                 icons={tableIcons}
                 options={{
-                    filterCellStyle:{maxWidth:100,padding:0, margin:0},
-                    rowStyle:{maxHeight:20,fontSize:10,padding:0,margin:0},
+                    filterCellStyle:{padding:0, margin:0},
+                    rowStyle:{maxHeight:20,fontSize:8,padding:0,margin:0},
                     filtering: true,
                     debounceInterval:1000,
                     pageSize:psize,
@@ -270,7 +271,7 @@ const LicencesPage = (props: ILicencesProps) => {
                     },
                     toolbar: {
                         searchTooltip: T.LICENCES.TOOLBAR.SEARCH_TOOL_TIP,
-                        searchPlaceholder: 'Nom ou Prenom ou N° Licence'
+                        searchPlaceholder: 'Nom Prenom Fédé N° Licence'
                     }
                 }}
             />
