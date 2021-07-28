@@ -401,7 +401,7 @@ const InfoRace = (props: IInfoRaceProps) => {
                 <TextField label="Site web"
                            value={props.mainInfos.website}
                            placeholder="ex : https://www.monsite.fr"
-                           name='siteweb'
+                           name='website'
                            type="url"
                            onSelect={handleForm}
                            onChange={handleForm}

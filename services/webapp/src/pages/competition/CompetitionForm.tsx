@@ -1,6 +1,6 @@
 import LeafletMap from 'components/LeafletMap';
 import React, { useContext, useEffect, useState } from 'react';
-import { AppBar, Tabs, Tab, Button, createStyles, makeStyles, Theme, Box, Typography } from '@material-ui/core';
+import { AppBar, Tabs, Tab, Button, Container, Grid, createStyles, makeStyles, Theme, Box, Typography } from '@material-ui/core';
 import InfoRace from 'pages/raceform/InfoRace';
 import PropRace from 'pages/raceform/PropRace';
 import PriceRace from 'pages/raceform/PriceRace';
@@ -20,6 +20,7 @@ interface ITabPanelProps {
 
 interface ICompetNavBar {
   match: any;
+  history: any;
 }
 
 export interface IErrorProp {
@@ -58,6 +59,14 @@ const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     Tab: {
       "&:hover": { backgroundColor: '#4169E1' }
+    },
+    button: {
+      display: 'block',
+      width: '206px',
+      marginLeft: 'auto',
+      marginRight: 'auto',
+      marginBottom: 10,
+      margin: theme.spacing(1),
     }
   })
 )
@@ -208,10 +217,18 @@ const CompetNavBar = (props: ICompetNavBar) => {
         try {
           if (newCompetition.id) {
             await apiCompetitions.updateCompetition({id, competitionCreate: newCompetition});
-            window.location.href = "/competitions#all";
+            setNotification({
+              message: `L'épreuve ${newCompetition.name} a bien été modifiée`,
+              type: 'success',
+              open: true
+            });
           } else {
             await apiCompetitions.saveCompetition({competitionCreate: newCompetition});
-            window.location.href = "/competitions#all";
+            setNotification({
+              message: `L'épreuve ${newCompetition.name} a bien été créée`,
+              type: 'success',
+              open: true
+            });
           }
         } catch (err) {
           setNotification({
@@ -298,11 +315,20 @@ const CompetNavBar = (props: ICompetNavBar) => {
           <LeafletMap lat={newCompetition.latitude} lng={newCompetition.longitude} updateCoordinates={setGPSCoordinates} />
         </TabPanel>
       </div>
-
-      <Button onClick={handleSubmit} variant={'contained'} color={'primary'}
-              style={{ display: 'block', width: '206px', marginLeft: 'auto', marginRight: 'auto', marginBottom: 10 }}>
-        Sauvegarder
-      </Button>
+      <Container>
+        <Grid container={true} spacing={4} alignItems={'center'} >
+          <Grid item={true} xs={6}>
+            <Button variant="contained" color="secondary" className={classes.button}
+                    onClick={ () => {props.history.goBack()} } >
+              Retour
+            </Button>
+          </Grid>
+            <Button onClick={handleSubmit} variant={'contained'} color={'primary'}
+                    className={classes.button}>
+              Sauvegarder
+            </Button>
+          </Grid>
+      </Container>
     </div>
   );
 
