@@ -247,7 +247,9 @@ const EditResultsPage = (gprops: any) => {
                 };
 
                 const displayRankOfCate = (rowdata:any,transformedRows:any) => {
-                    if (rowdata.comment!=null) return rowdata.classement
+                    if(rowdata.comment!==null) {
+                        return rowdata.classement
+                    }
                     return rankOfCate(rowdata, transformedRows)
                 }
                 const getTitleChallengeButton = (row: RaceRow) => {
@@ -321,7 +323,7 @@ const EditResultsPage = (gprops: any) => {
                     const filename = 'Podiums_' + competition.name.replace(/\s/g, '') + '.pdf'
                     let doc = new jsPDF("p","mm","a4");
                     competition.races.join(',').replace(/\//g, ",").split(',').forEach((currCategory:string,index:number)=>{
-                        let podiumsForCurrentRace : any[][] = [];
+                        const podiumsForCurrentRace : any[][] = [];
                         const allRankRows = transformRows(rows)
                         let sprintChallenge : RaceRow = null;
                         // Put all main federation first
@@ -336,8 +338,10 @@ const EditResultsPage = (gprops: any) => {
                         doc.setTextColor(40)
                         doc.setFontSize(11)
                         // @ts-ignore
+                        // tslint:disable-next-line:no-unused-expression
                         agregatedPodiums.length>0 && doc.text('Catégorie ' + currCategory + (sprintChallenge?'  - Challenge : '+sprintChallenge.name + ' - scratch: ' + sprintChallenge.rankingScratch +' ('+sprintChallenge.club+')':''), 5, (index === 0 ? 35 : doc.autoTable.previous.finalY + 5));
                         // @ts-ignore
+                        // tslint:disable-next-line:no-unused-expression
                         agregatedPodiums.length>0 && doc.autoTable({head: [['Cl.','Scrat.','Doss', 'Coureur', 'Club','H/F','Caté.V','Caté.A','Fédé']],
                             headStyles: {
                                 fontSize: 9, fontStyle: 'bold', halign: 'left',cellPadding:0.5,minCellHeight:8
@@ -377,8 +381,8 @@ const EditResultsPage = (gprops: any) => {
                                 doc.setFontSize(10)
 
                                 // jsPDF 1.4+ uses getWidth, <1.4 uses .width
-                                var pageSize = doc.internal.pageSize
-                                var pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight()
+                                const pageSize = doc.internal.pageSize
+                                const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight()
                                 doc.text(filename + " généré à " + moment().format("HH:mm"), 40, pageHeight - 5)
                             },
                             margin: { top: 38,left:5,right:5 },
@@ -398,15 +402,16 @@ const EditResultsPage = (gprops: any) => {
 
                 const generateFilePDF = (races:string[]) => {
                     const filename = 'Clt_' + competition.name.toString().replace(/\s/g, '') + '_cate_' + races.toString().replace(/\s/g, '') + '.pdf';
-                    let doc = new jsPDF("p","mm","a4");
+                    const doc = new jsPDF("p","mm","a4");
                     races.forEach((currentRace:string,pageIndex:number)=>{
-                        let rowstoDisplay : any[][] = [];
+                        const rowstoDisplay : any[][] = [];
                         const filteredRowsByRace = transformRows(filterByRace(rows, currentRace))
 
                         filteredRowsByRace.forEach((r:RaceRow) => {
                             (r.rankingScratch || r.comment) && rowstoDisplay.push(
                                 [r.rankingScratch,displayRankOfCate(r,filteredRowsByRace),displayDossard(r.riderNumber.toString()),r.name,r.club,r.gender,r.catev,r.catea,r.fede])
                         })
+                        // @ts-ignore
                         doc.autoTable({
                             head: [['Scrat.','Cat.','Doss', 'Coureur', 'Club','H/F','Caté.V','Caté.A','Fédé']],
                             headStyles: {
@@ -470,7 +475,9 @@ const EditResultsPage = (gprops: any) => {
                             "<br><b>REMARQUES</b> : "
                             + (competition.feedback?competition.feedback:'NC')  + "</div><br><b>Vainqueur(s) du challenge : </b>" + getChallengeWinners(filteredRowsByRace),10,finalY,{
                             'width': 350})
-                        if (pageIndex+1<races.length) doc.addPage();
+                        if (pageIndex+1<races.length) {
+                            doc.addPage()
+                        };
 
                     })
 
@@ -580,8 +587,8 @@ const EditResultsPage = (gprops: any) => {
                         <DataTable ref={dg}
                                    scrollHeight={(height-300)+'px'}
                                    scrollable={true}
-                                   reorderableColumns
-                                   resizableColumns
+                                   reorderableColumns={true}
+                                   resizableColumns={true}
                                    responsive={true}
                                    exportFilename={'Resultats_' + (competition&&competition.name) + '_CAT_' + currentRace}
                                    value={transformedRows}

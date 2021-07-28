@@ -67,7 +67,9 @@ const LicencesPage = (props: ILicencesProps) => {
 
     const prepareFilter = (query: Query<Licence>): SearchEntity => {
         const filters: any = [];
-        if (name) filters.push({name:'name',value:name});
+        if(name) {
+            filters.push({name: 'name', value: name});
+        }
         if (id) {
             filters.push({name:'id',value:id})
         } else {
@@ -89,14 +91,14 @@ const LicencesPage = (props: ILicencesProps) => {
     };
 
     const exportPDF = async () => {
-        let rowstoDisplay : any[][] = [];
+        const rowstoDisplay : any[][] = [];
         const filename = 'Licences.pdf';
-        tableRef.current.state.data.forEach((r:LicenceEntity,index:number)=>{
+        tableRef.current.state.data.forEach((r:LicenceEntity)=>{
             rowstoDisplay.push([r.id,r.licenceNumber,r.name,r.firstName,r.club,r.gender,r.dept,r.birthYear,r.catea,r.catev,r.catevCX,r.fede,r.saison]);
         })
-        let doc = new jsPDF("p","mm","a4");
+        const doc = new jsPDF("p","mm","a4");
         // @ts-ignore
-        var totalPagesExp = '{total_pages_count_string}'
+        const totalPagesExp = '{total_pages_count_string}'
         // @ts-ignore
         doc.autoTable({head: [['ID', 'Licence N°', 'Nom','Prenom', 'Club','H/F','Dept','Année','Cat.A','Cat.V','Caté.CX','Fédé.','Valid.']],
             bodyStyles: {
@@ -127,12 +129,12 @@ const LicencesPage = (props: ILicencesProps) => {
                 doc.text('Open Dossard - Listing de '  + rowstoDisplay.length + ' Licences', data.settings.margin.left + 70, 10);
 
                 // Footer
-                var str = 'Page ' + doc.internal.getNumberOfPages() + '/' + totalPagesExp
+                const str = 'Page ' + doc.internal.getNumberOfPages() + '/' + totalPagesExp
                 doc.setFontSize(8)
 
                 // jsPDF 1.4+ uses getWidth, <1.4 uses .width
-                var pageSize = doc.internal.pageSize
-                var pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight()
+                const pageSize = doc.internal.pageSize
+                const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight()
                 doc.text(str, data.settings.margin.left, pageHeight - 10)
                 doc.text("Fichier : " + filename + " Imprimé le : " + moment().format("DD/MM/YYYY HH:mm:ss"), 70, pageHeight - 5)
             },
@@ -146,7 +148,7 @@ const LicencesPage = (props: ILicencesProps) => {
             },
         });
         // @ts-ignore
-        let finalY = doc.lastAutoTable.finalY;
+        const finalY = doc.lastAutoTable.finalY;
         doc.putTotalPages(totalPagesExp)
         doc.save(filename);
     }
