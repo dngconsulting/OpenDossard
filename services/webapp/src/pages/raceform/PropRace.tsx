@@ -216,7 +216,7 @@ const PropRace = (props: IRaceProps) => {
           <Table className={classes.table} size="small" aria-label="a dense table">
             <TableHead>
               <TableRow>
-                <TableCell align="center" style={{ width: '25%', border: '1px solid black' }}>Epreuve</TableCell>
+                <TableCell align="center" style={{ width: '25%', border: '1px solid black' }}>Catégorie</TableCell>
                 <TableCell align="center" style={{ width: '10%', border: '1px solid black' }}>Heure Dossard</TableCell>
                 <TableCell align="center" style={{ width: '10%', border: '1px solid black' }}>Heure Départ</TableCell>
                 <TableCell align="center" style={{ width: '10%', border: '1px solid black' }}>Tour Distance</TableCell>
@@ -270,7 +270,7 @@ const PropRace = (props: IRaceProps) => {
         </TableContainer>
         <Button style={{ display: 'block', marginLeft: 'auto', marginRight: 'auto', width: '206px' }}
                 variant={'contained'} color={'primary'} onClick={addTabRow} >
-          Ajouter Epreuve
+          Ajouter une course
         </Button>
       </div>
     )
