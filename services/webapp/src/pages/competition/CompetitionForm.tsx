@@ -58,7 +58,10 @@ interface IErrorsForm {
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     Tab: {
-      "&:hover": { backgroundColor: '#4169E1' }
+      "&:hover": {
+        backgroundColor: '#2d4889',
+        color: '#ffffff',
+      },
     },
     button: {
       display: 'block',
@@ -92,13 +95,14 @@ const CompetNavBar = (props: ICompetNavBar) => {
   const LAT     = 43.604652;
   const LNG     = 1.444209;
 
-  const [, setNotification]       = useContext(NotificationContext);
-  const [isLoading, setIsLoading] = useState(false);
-  const [value, setValue]         = useState<number>(0);
-  const [errors, setErrors]       = useState<IErrorsForm>({
-    info: false,
+  const [, setNotification]          = useContext(NotificationContext);
+  const [isSubmitted, setIsSubmited] = useState(false);
+  const [isLoading, setIsLoading]    = useState(false);
+  const [value, setValue]            = useState<number>(0);
+  const [errors, setErrors]          = useState<IErrorsForm>({
+    info: true,
     price: false,
-    prop: false
+    prop: true
   });
   const [newCompetition, setNewCompetition] = useState<CompetitionCreate>({
     fede: null,
@@ -211,6 +215,7 @@ const CompetNavBar = (props: ICompetNavBar) => {
   }
 
   const handleSubmit = async (): Promise<any> => {
+    setIsSubmited(true);
     if (newCompetition !== null) {
       setIsLoading(true);
       if (setResultsValidation()) {
@@ -289,12 +294,11 @@ const CompetNavBar = (props: ICompetNavBar) => {
   return (
     <div>
       <div style={{ display: 'block', minHeight: '700px' }}>
-        <AppBar position="static" style={{ backgroundColor: '#008B8B' }}>
-          <Tabs value={value} onChange={handleChange} aria-label="simple tabs example"
-                style={{ backgroundColor: '#008B8B' }} centered={true}>
-            <Tab className={classes.Tab} label="Informations Générales" />
-            <Tab className={classes.Tab} label="Horaires & Circuit" />
-            <Tab className={classes.Tab} label="Tarifs" />
+        <AppBar position="static" style={{ backgroundColor: 'rgba(45,72,137,0.45)' }}>
+          <Tabs value={value} onChange={handleChange} style={{ backgroundColor: 'rgba(45,72,137,0.45)' }} centered={true} indicatorColor={'primary'}>
+            <Tab className={classes.Tab} label="Informations Générales" style={ isSubmitted && errors.info ? { color:'#F66262FF' } : {} } />
+            <Tab className={classes.Tab} label="Horaires & Circuit" style={ isSubmitted && errors.prop ? { color:'#F66262FF' } : {} }  />
+            <Tab className={classes.Tab} label="Tarifs" style={ isSubmitted && errors.price ? { color:'#F66262FF' } : {} }  />
             <Tab className={classes.Tab} label="Localisation" />
           </Tabs>
         </AppBar>
