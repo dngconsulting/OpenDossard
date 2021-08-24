@@ -16,7 +16,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Button from '@material-ui/core/Button';
 import {createStyles, makeStyles, Theme} from '@material-ui/core/styles';
 import Autocomplete from '@material-ui/lab/Autocomplete';
-import ClubSelect, {IOptionType} from './ClubSelect';
+import ClubSelect, {IOptionType} from '../../components/ClubSelect';
 import {FedeEnum, LicenceEntity, LicenceEntity as Licence} from '../../sdk';
 import {apiLicences, apiRaces} from '../../util/api';
 import {FEDERATIONS} from '../common/shared-entities';
@@ -47,6 +47,8 @@ interface IValidationForm {
     name?:boolean,
     firstName?:boolean,
     fede?:boolean,
+    licenceNumber?: boolean,
+    club?: boolean,
     catea?:boolean,
     catev?:boolean,
     dept?:boolean,
@@ -57,6 +59,7 @@ interface IValidationForm {
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
         formControl: {
+            width: '90%',
             minWidth: 167,
         },
         button: {
@@ -91,6 +94,8 @@ const LicencesPage = (props: ILicencesProps) => {
         name:false,
         firstName:false,
         fede: false,
+        licenceNumber: false,
+        club: false,
         catea:false,
         catev:false,
         dept:false,
@@ -132,46 +137,44 @@ const LicencesPage = (props: ILicencesProps) => {
     const autoSelectCateA = (year: string) => {
         const age = new Date().getFullYear() - parseInt(year);
         let catea = '';
-        if(newLicence.fede === 'FSGT') {
-            if(newLicence.gender === 'F') {
-                catea += 'F'
-            }
-            if (age >= 5 && age <= 6) {
-                catea += 'M'
-            }
-            else if (age >= 7 && age <= 8) {
-                catea += 'P'
-            }
-            else if (age >= 9 && age <= 10) {
-                catea += 'P'
-            }
-            else if (age >= 11 && age <= 12) {
-                catea += 'B'
-            }
-            else if (age >= 13 && age <= 14) {
-                catea += 'M'
-            }
-            else if (age >= 15 && age <= 16) {
-                catea += 'C'
-            }
-            else if (age >= 17 && age <= 18) {
-                catea += 'J'
-            }
-            else if (age >= 19 && age <= 22) {
-                catea += 'E'
-            }
-            else if (age >= 23 && age <= 39) {
-                catea += 'S'
-            }
-            else if (age >= 40 && age <= 49) {
-                catea += 'V'
-            }
-            else if (age >= 50 && age <= 59) {
-                catea += 'SV'
-            }
-            else if (age >= 60) {
-                catea += 'A'
-            }
+        if(newLicence.gender === 'F') {
+            catea += 'F'
+        }
+        if (age >= 5 && age <= 6) {
+            catea += 'M'
+        }
+        else if (age >= 7 && age <= 8) {
+            catea += 'P'
+        }
+        else if (age >= 9 && age <= 10) {
+            catea += 'P'
+        }
+        else if (age >= 11 && age <= 12) {
+            catea += 'B'
+        }
+        else if (age >= 13 && age <= 14) {
+            catea += 'M'
+        }
+        else if (age >= 15 && age <= 16) {
+            catea += 'C'
+        }
+        else if (age >= 17 && age <= 18) {
+            catea += 'J'
+        }
+        else if (age >= 19 && age <= 22) {
+            catea += 'E'
+        }
+        else if (age >= 23 && age <= 39) {
+            catea += 'S'
+        }
+        else if (age >= 40 && age <= 49) {
+            catea += 'V'
+        }
+        else if (age >= 50 && age <= 59) {
+            catea += 'SV'
+        }
+        else if (age >= 60) {
+            catea += 'A'
         }
         return catea;
     };
@@ -189,7 +192,6 @@ const LicencesPage = (props: ILicencesProps) => {
                 fede: target.value,
                 catev:  '',
                 catevCX:'',
-                catea:  '',
                 club : '',
             }
             setNewLicence(newLicenceToUpdate)
@@ -211,46 +213,58 @@ const LicencesPage = (props: ILicencesProps) => {
 
     const createOrUpdateLicence = async (key: number) => {
         let returnedLicence : LicenceEntity = null
+
+        const isNameValid = !newLicence.name
+        const isFirstnameValid = !newLicence.firstName
+        const isFedeValid = !newLicence.fede
+        const isLicenceNumberValid = newLicence.fede !== null && newLicence.fede !== FedeEnum.NL && !newLicence.licenceNumber
+        const isCateaValid = !newLicence.catea
+        const isCatevValid = !newLicence.catev
+        const isClubValid = newLicence.fede !== FedeEnum.NL && !newLicence.club
+        const isDeptValid = !newLicence.dept
+        const isBirthYearValid = !newLicence.birthYear
         const isSeasonValid = newLicence.saison.length !== 4 || parseInt(newLicence.saison) > new Date().getFullYear()
 
-        if (newLicence.name === '' || newLicence.firstName === '' || newLicence.dept === '' || isSeasonValid ||
-            newLicence.fede === null || (newLicence.fede && newLicence.fede !== FedeEnum.NL && (newLicence.catea === '' || newLicence.catev === ''))) {
+        setValidation({
+            name: isNameValid,
+            firstName: isFirstnameValid,
+            fede: isFedeValid,
+            licenceNumber: isLicenceNumberValid,
+            club: isClubValid,
+            catea: isCateaValid,
+            catev: isCatevValid,
+            dept: isDeptValid,
+            birthYear: isBirthYearValid,
+            saison: isSeasonValid
+        });
 
-            setValidation({
-                name: !newLicence.name,
-                firstName: !newLicence.firstName,
-                fede: !newLicence.fede,
-                catea: newLicence.fede !== FedeEnum.NL && !newLicence.catea,
-                catev: newLicence.fede !== FedeEnum.NL && !newLicence.catev,
-                dept: !newLicence.dept,
-                birthYear: !newLicence.birthYear,
-                saison: isSeasonValid
-            });
+        if (isNameValid || isFirstnameValid || isFedeValid || isLicenceNumberValid || isCateaValid || isCatevValid ||
+            isDeptValid || isBirthYearValid || isSeasonValid || isClubValid) {
             setNotification({
                 message: 'Veuillez remplir l\'ensemble des champs obligatoires.',
                 open: true,
                 type: 'error'
             });
-            return returnedLicence;
-        }
-        showLoading(true)
-        returnedLicence = newLicence
-        try {
-            if (key) {
-                await apiLicences.update({licenceEntity: newLicence})
-            } else {
-                returnedLicence = await apiLicences.create({licenceEntity: newLicence});
+        } else {
+            showLoading(true)
+            returnedLicence = newLicence
+            try {
+                if (key) {
+                    await apiLicences.update({licenceEntity: newLicence})
+                } else {
+                    returnedLicence = await apiLicences.create({licenceEntity: newLicence});
+                }
             }
-        }
-        catch (err) {
-            setNotification({
-                message: `Le coureur ${newLicence.firstName} ${newLicence.name} n'a pu être créé ou modifié`,
-                type: 'error',
-                open: true
-            });
-        }
-        finally {
-           showLoading(false)
+            catch (err) {
+                setNotification({
+                    message: `Le coureur ${newLicence.firstName} ${newLicence.name} n'a pu être créé ou modifié`,
+                    type: 'error',
+                    open: true
+                });
+            }
+            finally {
+                showLoading(false)
+            }
         }
         return returnedLicence
     };
@@ -305,36 +319,6 @@ const LicencesPage = (props: ILicencesProps) => {
                     <h1 style={{backgroundColor:'transparent'}}>{editMode?'Modifier':'Ajouter'} une licence</h1>
                 </Grid>
                 <Grid item={true} xs={6}>
-                    <TextField id="licenceNumber"
-                               label="Numéro Licence"
-                               value={newLicence.licenceNumber}
-                               onChange={e => setNewLicence({...newLicence, licenceNumber: e.target.value})} />
-                </Grid>
-                <Grid item={true} xs={6}>
-                    <Autocomplete value={fedeDetails ? fedeDetails.name : null}
-                                  getOptionLabel={(option) => option.label}
-                                  getOptionSelected={(option, target) => option.value === target.value}
-                                  autoComplete={true}
-                                  autoSelect={true}
-                                  autoHighlight={true}
-                                  renderInput={(params) => (
-                                      <TextField {...params}
-                                                 required={true}
-                                                 label="Fédération"
-                                                 variant="standard"
-                                                 error={validation.fede}
-                                                 helperText={validation.fede ? 'Veuillez compléter la fédération' : ''}/>
-                                  )}
-                                  style={{ width: '100%' }}
-                                  onChange={(event: any, target: string|any) => {handleFEDEChange(target)}}
-                                  options={Object.keys(FEDERATIONS).map(
-                                      (key) => ({
-                                          value: FEDERATIONS[key].name.value,
-                                          label: FEDERATIONS[key].name.label
-                                      })
-                                  )} />
-                </Grid>
-                <Grid item={true} xs={6}>
                     <FormControl className={classes.formControl} error={validation.name}>
                         <TextField required={true}
                                    id="name"
@@ -377,8 +361,38 @@ const LicencesPage = (props: ILicencesProps) => {
                     </RadioGroup>
                 </Grid>
                 <Grid item={true} xs={6}>
+                    <FormControl className={classes.formControl} error={validation.birthYear}>
+                        <TextField required={true}
+                                   error={validation.birthYear}
+                                   id="birthYear"
+                                   type="number"
+                                   label="Année de la naissance"
+                                   margin="normal"
+                                   value={newLicence.birthYear}
+                                   onBlur={e => {
+                                       if (new Date().getFullYear() - parseInt(e.target.value) > 130 || new Date().getFullYear() - parseInt(e.target.value) < 4) {
+                                           setNewLicence({...newLicence, birthYear: ''})
+                                           setValidation({...validation, birthYear: true})
+                                       }
+                                       else {
+                                           setValidation({...validation, birthYear: false})
+                                       }
+                                   }}
+                                   onChange={e => {
+                                       setNewLicence({
+                                           ...newLicence,
+                                           birthYear: e.target.value,
+                                           catea: autoSelectCateA(e.target.value)})
+                                   }} />
+                        <FormHelperText id="component-error-text" hidden={!validation.birthYear}>
+                            Veuillez indiquer une année entre {new Date().getFullYear() - 4} et {new Date().getFullYear() - 130}
+                        </FormHelperText>
+                    </FormControl>
+                </Grid>
+                <Grid item={true} xs={6}>
                     <FormControl className={classes.formControl} error={validation.saison}>
-                        <TextField style={{width:100}}
+                        <TextField required={true}
+                                   style={{width:100}}
                                    id="saison"
                                    label="Saison"
                                    margin="normal"
@@ -390,35 +404,6 @@ const LicencesPage = (props: ILicencesProps) => {
                                    error={validation.saison} />
                         <FormHelperText id="component-error-text" hidden={!validation.saison}>
                             Veuillez saisir une saison correspondant à la saison actuelle ou antérieure.
-                        </FormHelperText>
-                    </FormControl>
-                </Grid>
-                <Grid item={true} xs={6}>
-                    <FormControl className={classes.formControl} error={validation.birthYear}>
-                        <TextField error={validation.birthYear}
-                               id="birthYear"
-                               type="number"
-                               label="Année de la naissance"
-                               margin="normal"
-                               value={newLicence.birthYear}
-                               onBlur={e => {
-                                   if (new Date().getFullYear() - parseInt(e.target.value) > 130 || new Date().getFullYear() - parseInt(e.target.value) < 4) {
-                                       setNewLicence({...newLicence, birthYear: ''})
-                                       setValidation({...validation, birthYear: true})
-                                   }
-                                   else {
-                                       setValidation({...validation, birthYear: false})
-                                   }
-                               }}
-                               onChange={e => {
-                                   const catea = autoSelectCateA(e.target.value);
-                                   setNewLicence({
-                                       ...newLicence,
-                                       birthYear: e.target.value,
-                                       catea})
-                               }} />
-                        <FormHelperText id="component-error-text" hidden={!validation.birthYear}>
-                            Veuillez indiquer une année entre {new Date().getFullYear() - 4} et {new Date().getFullYear() - 130}
                         </FormHelperText>
                     </FormControl>
                 </Grid>
@@ -447,72 +432,104 @@ const LicencesPage = (props: ILicencesProps) => {
                         </FormHelperText>
                     </FormControl>
                 </Grid>
+                <Grid item={true} xs={6}>
+                    <FormControl className={classes.formControl}>
+                        <Autocomplete value={fedeDetails ? fedeDetails.name : null}
+                                      getOptionLabel={(option) => option.label}
+                                      getOptionSelected={(option, target) => option.value === target.value}
+                                      autoComplete={true}
+                                      autoSelect={true}
+                                      autoHighlight={true}
+                                      renderInput={(params) => (
+                                          <TextField {...params}
+                                                     required={true}
+                                                     label="Fédération"
+                                                     variant="standard"
+                                                     error={validation.fede}
+                                                     helperText={validation.fede ? 'Veuillez compléter la fédération' : ''}/>
+                                      )}
+                                      style={{ width: '100%' }}
+                                      onChange={(event: any, target: string|any) => {handleFEDEChange(target)}}
+                                      options={Object.keys(FEDERATIONS).map(
+                                          (key) => ({
+                                              value: FEDERATIONS[key].name.value,
+                                              label: FEDERATIONS[key].name.label
+                                          })
+                                      )} />
+                    </FormControl>
+
+                </Grid>
                 { newLicence.fede && newLicence.fede !== FedeEnum.NL &&
-                <Grid container={true} spacing={4} alignItems={'center'} >
-                    <Grid item={true} xs={12}>
-                        <Grid item={true} xs={12}>
-                                <ClubSelect dept={newLicence.dept}
-                                            onSelect={ (value:string) => {
-                                                setNewLicence({...newLicence, club: value});
-                                            }}
-                                            fede={newLicence.fede}
-                                            chosenClub={{value:null,label:newLicence.club} as IOptionType} />
-                        </Grid>
-                    </Grid>
-                    <Grid item={true} xs={4}>
-                        <FormControl className={classes.formControl}>
-                            <Autocomplete options={cateAOptions}
-                                          value={cateAOptions.find((option: ICategory) => option.value === newLicence.catea) || null}
-                                          getOptionLabel={(option) => option.label}
-                                          getOptionSelected={(option, target) => option.value === target.value}
-                                          autoComplete={true}
-                                          autoSelect={true}
-                                          autoHighlight={true}
-                                          renderInput={(params) => (
-                                              <TextField {...params}
-                                                         required={true}
-                                                         label="Catégorie Age"
-                                                         variant="standard"
-                                                         error={validation.catea}
-                                                         helperText={validation.catea ? 'Veuillez compléter la Catégorie âge' : ''}/>
-                                          )}
-                                          onChange={(event: any, target: string | any) => {
-                                              setNewLicence(oldValues => ({
-                                                  ...oldValues,
-                                                  catea: target ? target.value : ''
-                                              }))
-                                          }} />
-                        </FormControl>
-                    </Grid>
-                    <Grid item={true} xs={4}>
-                        <FormControl className={classes.formControl} >
-                            <Autocomplete value={newLicence.fede && fedeDetails.catev.find((catev:ICategory) => catev.value === newLicence.catev) || null}
-                                          getOptionLabel={(option) => option.label}
-                                          getOptionSelected={(option, target) => option.value === target.value}
-                                          autoComplete={true}
-                                          autoSelect={true}
-                                          autoHighlight={true}
-                                          renderInput={(params) => (
-                                              <TextField {...params}
-                                                         required={true}
-                                                         label="Catégorie Valeur"
-                                                         variant="standard"
-                                                         error={validation.catea}
-                                                         helperText={validation.catea ? 'Veuillez compléter la Catégorie valeur' : ''}/>
-                                          )}
-                                          onChange={(event: any, target: string | any) => {
-                                              setNewLicence(oldValues => ({
-                                                  ...oldValues,
-                                                  catev: target ? target.value : '',
-                                              }))
-                                          }}
-                                          options={newLicence.fede && fedeDetails.catev.map((catev: ICategory) => ({
-                                              value: catev.value,
-                                              label: catev.label
-                                          }))} />
-                        </FormControl>
-                    </Grid>
-                    <Grid item={true} xs={4}>
+                <Grid item={true} xs={6}>
+                    <FormControl className={classes.formControl}>
+                        <TextField required={true}
+                                   id="licenceNumber"
+                                   label="Numéro Licence"
+                                   error={validation.licenceNumber}
+                                   helperText={validation.licenceNumber ? 'Veuillez indiquer le numéro de licence.' : ''}
+                                   onChange={e => setNewLicence({...newLicence, licenceNumber: e.target.value})} />
+                    </FormControl>
+                </Grid>
+                }
+            </Grid>
+
+            {newLicence.fede &&
+            <Grid container={true} spacing={2} alignItems={'center'} style={{marginTop: '1em'}} >
+                <Grid item={true} xs={4} >
+                    <FormControl className={classes.formControl}>
+                        <Autocomplete options={cateAOptions}
+                                      value={cateAOptions.find((option: ICategory) => option.value === newLicence.catea) || null}
+                                      getOptionLabel={(option) => option.label}
+                                      getOptionSelected={(option, target) => option.value === target.value}
+                                      autoComplete={true}
+                                      autoSelect={true}
+                                      autoHighlight={true}
+                                      renderInput={(params) => (
+                                          <TextField {...params}
+                                                     required={true}
+                                                     label="Catégorie Age"
+                                                     variant="standard"
+                                                     error={validation.catea}
+                                                     helperText={validation.catea ? 'Veuillez compléter la Catégorie âge' : ''}/>
+                                      )}
+                                      onChange={(event: any, target: string | any) => {
+                                          setNewLicence(oldValues => ({
+                                              ...oldValues,
+                                              catea: target ? target.value : ''
+                                          }))
+                                      }} />
+                    </FormControl>
+                </Grid>
+                <Grid item={true} xs={4}>
+                    <FormControl className={classes.formControl} >
+                        <Autocomplete value={newLicence.fede && fedeDetails.catev.find((catev:ICategory) => catev.value === newLicence.catev) || null}
+                                      getOptionLabel={(option) => option.label}
+                                      getOptionSelected={(option, target) => option.value === target.value}
+                                      autoComplete={true}
+                                      autoSelect={true}
+                                      autoHighlight={true}
+                                      renderInput={(params) => (
+                                          <TextField {...params}
+                                                     required={true}
+                                                     label="Catégorie Valeur"
+                                                     variant="standard"
+                                                     error={validation.catev}
+                                                     helperText={validation.catev ? 'Veuillez compléter la Catégorie valeur' : ''}/>
+                                      )}
+                                      onChange={(event: any, target: string | any) => {
+                                          setNewLicence(oldValues => ({
+                                              ...oldValues,
+                                              catev: target ? target.value : '',
+                                          }))
+                                      }}
+                                      options={newLicence.fede && fedeDetails.catev.map((catev: ICategory) => ({
+                                          value: catev.value,
+                                          label: catev.label
+                                      }))} />
+                    </FormControl>
+                </Grid>
+                <Grid item={true} xs={4}>
+                    <FormControl className={classes.formControl}>
                         <Autocomplete value={newLicence.fede && fedeDetails.catev.find((catev:ICategory) => catev.value === newLicence.catevCX) || null}
                                       getOptionLabel={(option) => option.label}
                                       getOptionSelected={(option, target) => option.value === target.value}
@@ -533,21 +550,36 @@ const LicencesPage = (props: ILicencesProps) => {
                                       options={newLicence.fede && fedeDetails.catev.map((catev: ICategory) => ({
                                           value: catev.value,
                                           label: catev.label
-                                      }))} />
-                    </Grid>
-                </Grid> }
-                <Grid container={true} spacing={4} alignItems={'center'} >
-                    <Grid item={true} xs={6}>
-                        <Button variant="contained" color="secondary" className={classes.button}
-                                onClick={ () => {props.history.goBack()} } >
-                            Retour
-                        </Button>
-                    </Grid>
-                    <Grid item={true} xs={6}>
-                        <Button variant="contained"  color="primary" className={classes.button}
-                                onClick={onSubmit}
-                        >Sauvegarder</Button>
-                    </Grid>
+                                      }))}
+                                      style={{width: '87%'}} />
+                    </FormControl>
+                </Grid>
+            </Grid>
+            }
+            {newLicence.fede && newLicence.fede !== FedeEnum.NL &&
+            <Grid container={true} spacing={2} alignItems={'center'} style={{marginTop: '2em'}} >
+                <Grid item={true} xs={12}>
+                    <ClubSelect isError={validation.club}
+                                dept={newLicence.dept}
+                                fede={newLicence.fede}
+                                onSelectClubName={(value) => {
+                                    setNewLicence({...newLicence, club: value})
+                                }}
+                                chosenClub={{ value: null, label: newLicence.club } as IOptionType}/>
+                </Grid>
+            </Grid>
+            }
+            <Grid container={true} spacing={2} alignItems={'center'} >
+                <Grid item={true} xs={6}>
+                    <Button variant="contained" color="secondary" className={classes.button}
+                            onClick={ () => {props.history.goBack()} } >
+                        Retour
+                    </Button>
+                </Grid>
+                <Grid item={true} xs={6}>
+                    <Button variant="contained"  color="primary" className={classes.button} onClick={onSubmit}>
+                        Sauvegarder
+                    </Button>
                 </Grid>
             </Grid>
         </Container>

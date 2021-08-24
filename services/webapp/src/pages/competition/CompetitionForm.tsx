@@ -327,15 +327,14 @@ const CompetNavBar = (props: ICompetNavBar) => {
               Retour
             </Button>
           </Grid>
-            <Button onClick={handleSubmit} variant={'contained'} color={'primary'}
-                    className={classes.button}>
-              Sauvegarder
-            </Button>
-          </Grid>
+          <Button onClick={handleSubmit} variant={'contained'} color={'primary'}
+                  className={classes.button}>
+            Sauvegarder
+          </Button>
+        </Grid>
       </Container>
     </div>
   );
-
 }
 
 export default withStyles(styles as any, { withTheme: true })(CompetNavBar as any);
