@@ -5,7 +5,7 @@ import cadtheme from '../../App';
 import { apiCompetitions, apiRaces } from '../../util/api';
 import { CompetitionEntity, CompetitionEntity as Competition, RaceRow} from '../../sdk';
 import { Link} from 'react-router-dom';
-import { Radio, Tooltip } from '@material-ui/core';
+import {FormControl, FormControlLabel, Radio, RadioGroup, Tooltip} from '@material-ui/core';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { toMMDDYYYY } from '../../util/date';
@@ -219,27 +219,34 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
 
     return (
         <Paper className={classes.root}>
-            <Link to='/competitions#past'>
-                <Radio checked={selectPastOrFuture === 'past'}
-                       onChange={handleChange}
-                       value="past"
-                       name="radio-button-demo"
-                />Epreuves passées
-            </Link>
-            <Link to='/competitions#future'>
-                <Radio checked={selectPastOrFuture === 'future'}
-                       onChange={handleChange}
-                       value="future"
-                       name="radio-button-demo"
-                />Epreuves à venir
-            </Link>
-            <Link to='/competitions#all'>
-                <Radio checked={selectPastOrFuture === 'all'}
-                       onChange={handleChange}
-                       value="all"
-                       name="radio-button-demo"
-                />Toutes les épreuves
-            </Link>
+            <FormControl component="fieldset" >
+                <RadioGroup aria-label="races" name="races" value={setSelectPastOrFuture} onChange={handleChange} row={true}>
+                    <FormControlLabel value="past" label="Epreuves passées" control={
+                        <Link to='/competitions#past'>
+                            <Radio checked={selectPastOrFuture === 'past'}
+                               value="past"
+                               name="radio-button-demo"
+                            />
+                        </Link>
+                    } />
+                    <FormControlLabel value="future" label="Epreuves à venir" control={
+                        <Link to='/competitions#future'>
+                            <Radio checked={selectPastOrFuture === 'future'}
+                                   value="future"
+                                   name="radio-button-demo"
+                            />
+                        </Link>
+                    } />
+                    <FormControlLabel value="all" label="Toutes les épreuves" control={
+                        <Link to='/competitions#all'>
+                            <Radio checked={selectPastOrFuture === 'all'}
+                                   value="all"
+                                   name="radio-button-demo"
+                            />
+                        </Link>
+                    } />
+                </RadioGroup>
+            </FormControl>
            
             <Button style={{ position: 'absolute', right: 25 }} variant={'contained'} color={'primary'}
                     onClick={()=>{
