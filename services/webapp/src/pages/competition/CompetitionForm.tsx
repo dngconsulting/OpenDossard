@@ -76,7 +76,7 @@ const useStyles = makeStyles((theme: Theme) =>
     createStyles({
         Tab: {
             "&:hover": {
-                backgroundColor: '#2d4889',
+                backgroundColor: '#004f04',
                 color: '#ffffff',
             },
         },
@@ -86,7 +86,6 @@ const useStyles = makeStyles((theme: Theme) =>
             marginLeft: 'auto',
             marginRight: 'auto',
             marginBottom: 10,
-            margin: theme.spacing(1),
         }
     })
 )
@@ -305,9 +304,9 @@ const CompetNavBar = (props: ICompetNavBar) => {
     return (
         <div>
             <LoaderIndicator visible={isLoading}/>
-            <div style={{display: 'block', minHeight: '700px'}}>
-                <AppBar position="static" style={{backgroundColor: 'rgba(45,72,137,0.45)'}}>
-                    <Tabs value={value} onChange={handleChange} style={{backgroundColor: 'rgba(45,72,137,0.45)'}}
+            <div style={{display: 'block', minHeight: '700px', border:0}}>
+                <AppBar  position="static" style={{backgroundColor: '#60ac5d'}}>
+                    <Tabs TabIndicatorProps={{style: {background:'white'}}} value={value} onChange={handleChange}  style={{backgroundColor: '#2e7c31'}}
                           centered={true} indicatorColor={'primary'}>
                         <Tab className={classes.Tab} label="Informations Générales"
                              style={isSubmitted && errors.info ? {color: '#F66262FF'} : {}}/>

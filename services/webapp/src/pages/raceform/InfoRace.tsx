@@ -284,7 +284,7 @@ const InfoRace = (props: IInfoRaceProps) => {
                     <TextField label="Longueur circuit"
                                value={props.mainInfos.circuitLength}
                                type="text"
-                               name='longueurCircuit'
+                               name='circuitLength'
                                onSelect={handleForm}
                                onChange={handleForm}
                                InputLabelProps={{shrink: true,}}
@@ -341,7 +341,7 @@ const InfoRace = (props: IInfoRaceProps) => {
                                   )}
                                   style={{ width: '80%' }}
                                   onChange={handleFEDEChange}
-                                  options={Object.keys(FedeEnum).map(
+                                  options={Object.keys(FedeEnum).filter(fede=>(fede!='NL' && fede!='FFTRI')).map(
                                       (key) => ({
                                           value: FedeEnum[key],
                                           label: FedeEnum[key]
