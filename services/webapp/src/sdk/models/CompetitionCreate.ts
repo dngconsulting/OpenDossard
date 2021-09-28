@@ -22,6 +22,10 @@ import {
     FedeEnumFromJSON,
     FedeEnumFromJSONTyped,
     FedeEnumToJSON,
+    LinkInfo,
+    LinkInfoFromJSON,
+    LinkInfoFromJSONTyped,
+    LinkInfoToJSON,
     PricingInfo,
     PricingInfoFromJSON,
     PricingInfoFromJSONTyped,
@@ -71,7 +75,7 @@ export interface CompetitionCreate {
      */
     races?: Array<string>;
     /**
-     *
+     * 
      * @type {Date}
      * @memberof CompetitionCreate
      */
@@ -201,7 +205,7 @@ export interface CompetitionCreate {
      * @type {string}
      * @memberof CompetitionCreate
      */
-    commissioner?: string;
+    commissaires?: string;
     /**
      * 
      * @type {string}
@@ -225,13 +229,25 @@ export interface CompetitionCreate {
      * @type {boolean}
      * @memberof CompetitionCreate
      */
-    resultsValidated?: boolean;
+    isValidResults?: boolean;
     /**
      * 
      * @type {string}
      * @memberof CompetitionCreate
      */
     dept?: string;
+    /**
+     * 
+     * @type {Array<LinkInfo>}
+     * @memberof CompetitionCreate
+     */
+    photoUrls?: Array<LinkInfo>;
+    /**
+     * 
+     * @type {Array<LinkInfo>}
+     * @memberof CompetitionCreate
+     */
+    rankingUrls?: Array<LinkInfo>;
 }
 
 export function CompetitionCreateFromJSON(json: any): CompetitionCreate {
@@ -271,12 +287,14 @@ export function CompetitionCreateFromJSONTyped(json: any, ignoreDiscriminator: b
         'localisation': !exists(json, 'localisation') ? undefined : json['localisation'],
         'gpsCoordinates': !exists(json, 'gpsCoordinates') ? undefined : json['gpsCoordinates'],
         'contactName': !exists(json, 'contactName') ? undefined : json['contactName'],
-        'commissioner': !exists(json, 'commissioner') ? undefined : json['commissioner'],
+        'commissaires': !exists(json, 'commissaires') ? undefined : json['commissaires'],
         'speaker': !exists(json, 'speaker') ? undefined : json['speaker'],
         'aboyeur': !exists(json, 'aboyeur') ? undefined : json['aboyeur'],
         'feedback': !exists(json, 'feedback') ? undefined : json['feedback'],
-        'resultsValidated': !exists(json, 'results_validated') ? undefined : json['results_validated'],
+        'isValidResults': !exists(json, 'isValidResults') ? undefined : json['isValidResults'],
         'dept': !exists(json, 'dept') ? undefined : json['dept'],
+        'photoUrls': !exists(json, 'photoUrls') ? undefined : ((json['photoUrls'] as Array<any>).map(LinkInfoFromJSON)),
+        'rankingUrls': !exists(json, 'rankingUrls') ? undefined : ((json['rankingUrls'] as Array<any>).map(LinkInfoFromJSON)),
     };
 }
 
@@ -316,12 +334,14 @@ export function CompetitionCreateToJSON(value?: CompetitionCreate | null): any {
         'localisation': value.localisation,
         'gpsCoordinates': value.gpsCoordinates,
         'contactName': value.contactName,
-        'commissioner': value.commissioner,
+        'commissaires': value.commissaires,
         'speaker': value.speaker,
         'aboyeur': value.aboyeur,
         'feedback': value.feedback,
-        'results_validated': value.resultsValidated,
+        'isValidResults': value.isValidResults,
         'dept': value.dept,
+        'photoUrls': value.photoUrls === undefined ? undefined : ((value.photoUrls as Array<any>).map(LinkInfoToJSON)),
+        'rankingUrls': value.rankingUrls === undefined ? undefined : ((value.rankingUrls as Array<any>).map(LinkInfoToJSON)),
     };
 }
 

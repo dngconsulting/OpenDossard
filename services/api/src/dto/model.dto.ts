@@ -5,6 +5,7 @@ import { FederationEntity } from 'src/entity/federation.entity';
 import { Category, CompetitionEntity, CompetitionType} from 'src/entity/competition.entity';
 import { PricingInfo } from 'src/entity/pricing-info';
 import { CompetitionInfo } from 'src/entity/competition-info';
+import {LinkInfo} from "../entity/link-info";
 
 export class ClubRow {
     public id?: number;
@@ -139,6 +140,8 @@ export class CompetitionCreate {
     speaker?: string;
     aboyeur?: string;
     feedback?: string;
+    photoUrls?: LinkInfo[];
+    rankingUrls?: LinkInfo[];
     isValidResults?: boolean;
     dept?: string;
 }

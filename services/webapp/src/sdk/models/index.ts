@@ -10,6 +10,7 @@ export * from './FedeEnum';
 export * from './Filter';
 export * from './LicenceEntity';
 export * from './LicencesPage';
+export * from './LinkInfo';
 export * from './PricingInfo';
 export * from './RaceCreate';
 export * from './RaceNbRider';

@@ -26,6 +26,10 @@ import {
     FedeEnumFromJSON,
     FedeEnumFromJSONTyped,
     FedeEnumToJSON,
+    LinkInfo,
+    LinkInfoFromJSON,
+    LinkInfoFromJSONTyped,
+    LinkInfoToJSON,
     PricingInfo,
     PricingInfoFromJSON,
     PricingInfoFromJSONTyped,
@@ -193,7 +197,7 @@ export interface CompetitionEntity {
      * @type {string}
      * @memberof CompetitionEntity
      */
-    commissioner?: string;
+    commissaires?: string;
     /**
      * 
      * @type {string}
@@ -217,7 +221,19 @@ export interface CompetitionEntity {
      * @type {boolean}
      * @memberof CompetitionEntity
      */
-    isValidInfos?: boolean;
+    isValidResults?: boolean;
+    /**
+     * 
+     * @type {Array<LinkInfo>}
+     * @memberof CompetitionEntity
+     */
+    photoUrls?: Array<LinkInfo>;
+    /**
+     * 
+     * @type {Array<LinkInfo>}
+     * @memberof CompetitionEntity
+     */
+    rankingUrls?: Array<LinkInfo>;
 }
 
 export function CompetitionEntityFromJSON(json: any): CompetitionEntity {
@@ -229,6 +245,7 @@ export function CompetitionEntityFromJSONTyped(json: any, ignoreDiscriminator: b
         return json;
     }
     return {
+        
         'eventDate': (new Date(json['eventDate'])),
         'fede': FedeEnumFromJSON(json['fede']),
         'competitionType': json['competitionType'],
@@ -254,11 +271,13 @@ export function CompetitionEntityFromJSONTyped(json: any, ignoreDiscriminator: b
         'isOpenedToNL': !exists(json, 'isOpenedToNL') ? undefined : json['isOpenedToNL'],
         'dept': !exists(json, 'dept') ? undefined : json['dept'],
         'rankingUrl': !exists(json, 'rankingUrl') ? undefined : json['rankingUrl'],
-        'commissioner': !exists(json, 'commissioner') ? undefined : json['commissioner'],
+        'commissaires': !exists(json, 'commissaires') ? undefined : json['commissaires'],
         'speaker': !exists(json, 'speaker') ? undefined : json['speaker'],
         'aboyeur': !exists(json, 'aboyeur') ? undefined : json['aboyeur'],
         'feedback': !exists(json, 'feedback') ? undefined : json['feedback'],
-        'isValidInfos': !exists(json, 'isValidInfos') ? undefined : json['isValidInfos'],
+        'isValidResults': !exists(json, 'isValidResults') ? undefined : json['isValidResults'],
+        'photoUrls': !exists(json, 'photoUrls') ? undefined : ((json['photoUrls'] as Array<any>).map(LinkInfoFromJSON)),
+        'rankingUrls': !exists(json, 'rankingUrls') ? undefined : ((json['rankingUrls'] as Array<any>).map(LinkInfoFromJSON)),
     };
 }
 
@@ -271,7 +290,7 @@ export function CompetitionEntityToJSON(value?: CompetitionEntity | null): any {
     }
     return {
         
-        'date': (value.eventDate.toISOString()),
+        'eventDate': (value.eventDate.toISOString()),
         'fede': FedeEnumToJSON(value.fede),
         'competitionType': value.competitionType,
         'id': value.id,
@@ -296,11 +315,13 @@ export function CompetitionEntityToJSON(value?: CompetitionEntity | null): any {
         'isOpenedToNL': value.isOpenedToNL,
         'dept': value.dept,
         'rankingUrl': value.rankingUrl,
-        'commissioner': value.commissioner,
+        'commissaires': value.commissaires,
         'speaker': value.speaker,
         'aboyeur': value.aboyeur,
         'feedback': value.feedback,
-        'isValidInfos': value.isValidInfos,
+        'isValidResults': value.isValidResults,
+        'photoUrls': value.photoUrls === undefined ? undefined : ((value.photoUrls as Array<any>).map(LinkInfoToJSON)),
+        'rankingUrls': value.rankingUrls === undefined ? undefined : ((value.rankingUrls as Array<any>).map(LinkInfoToJSON)),
     };
 }
 

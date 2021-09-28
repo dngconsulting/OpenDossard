@@ -18,12 +18,13 @@ const WrappedPalmaresPage    = isAuthenticated(PalmaresPage);
 const WrappedCompetitionChooser = isAuthenticated(CompetitionChooser);
 const WrappedLicencePage     = isAuthenticated(LicencePage);
 const WrappedCompetitionPage = isAuthenticated(CompetNavBar);
+const WrappedLicencesPage = isAuthenticated(LicencesPage)
 
 export default ({renderAccount}: { renderAccount: () => ReactElement }) => {
     return (
         <React.Fragment>
             <Route path='/' exact={true} title="Page d'accueil" component={WrappedHomepage}/>
-            <Route path='/licences' title="Les licences" component={WrappedLicencePage}/>
+            <Route path='/licences' title="Les licences" component={WrappedLicencesPage}/>
             <Route path='/licence/:id' component={WrappedLicencePage}/>
             <Route path='/palmares/:id?' title="Palmares" component={WrappedPalmaresPage}/>
             <Route path='/account' title="Mon compte" render={renderAccount}/>

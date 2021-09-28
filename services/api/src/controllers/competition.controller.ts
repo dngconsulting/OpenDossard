@@ -178,10 +178,10 @@ export class CompetitionController {
         if (competition.competitionType === CompetitionType.CX) {
             competition.aboyeur = competitionToSave.aboyeur;
         }
-        competition.commissioner = competitionToSave.commissioner;
+        competition.commissaires = competitionToSave.commissaires;
         competition.speaker = competitionToSave.speaker;
         competitionToSave.isValidResults != null && (competition.isValidResults = competitionToSave.isValidResults);
-        return await this.entityManager.save(competition);
+        return await this.repository.save(competition);
     }
 
     @Post('/saveCompetition')
@@ -191,19 +191,19 @@ export class CompetitionController {
     })
     @ApiResponse({ status: 200, isArray: false })
     @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
-    public async createCompetition(@Body() dto: CompetitionCreate): Promise<void> {
+    public async upsertCompetition(@Body() dto: CompetitionCreate): Promise<void> {
         if (!dto.competitionType) { throw new BadRequestException('le type de la compétition doit être renseigné.'); }
-        if (dto.name === '' || !dto.name) { throw new BadRequestException('le nom de la compétition ne peut pas être nul.'); }
-        if (!dto.categories) { throw new BadRequestException('les catégories de la compétition ne peuvent pas être nulles.'); }
-        if (!dto.races) { throw new BadRequestException('les catégories de la compétition ne peuvent pas être nulles.'); }
-        if (!dto.eventDate) { throw new BadRequestException('la date de la compétition ne peut pas être nulle.'); }
-        if (dto.zipCode === '' || !dto.zipCode) { throw new BadRequestException('le code postal de la compétition ne peut pas être nul.'); }
-        if (dto.club === null) { throw new BadRequestException('le club organisant la compétition ne peut pas être nul.'); }
+        if (dto.name === '' || !dto.name) { throw new BadRequestException('le nom de la compétition doit être renseigné'); }
+        if (!dto.categories) { throw new BadRequestException('les catégories gérées par la compétition doivent être renseignées'); }
+        if (!dto.races) { throw new BadRequestException('les catégories gérées par la compétition doivent être renseignées'); }
+        if (!dto.eventDate) { throw new BadRequestException('la date de l\'épreuve doit être renseignée'); }
+        if (dto.zipCode === '' || !dto.zipCode) { throw new BadRequestException('le code postal de la compétition doit être renseigné'); }
+        if (dto.club === null) { throw new BadRequestException('le club organisant la compétition doit être renseigné'); }
 
         const competition = new CompetitionEntity();
 
         const club = await this.clubRepository.findOne(dto.club);
-
+        competition.id = dto.id;
         competition.name = dto.name;
         competition.eventDate = dto.eventDate;
         competition.zipCode = dto.zipCode;
@@ -227,65 +227,9 @@ export class CompetitionController {
         competition.isOpenedToNL = dto.isOpenedToNL;
         competition.isOpenedToOtherFede = dto.isOpenedToOtherFede;
         competition.pricing = dto.pricing;
-        // competition.localisation = dto.zipCode;
+        competition.commissaires = dto.commissaires;
 
-        await this.entityManager.save(competition);
-    }
-
-    @Put(':id')
-    @ApiOperation({
-        operationId: 'updateCompetition',
-        summary: 'Sauvegarde les informations générales d\'une épreuve',
-    })
-    @ApiResponse({ status: 200, isArray: false })
-    @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
-    public async updateCompetition(@Param('id') id: string, @Body() dto: CompetitionCreate): Promise<CompetitionEntity> {
-        const competition = await this.repository.findOne(id);
-
-        if (!competition) {
-            throw new BadRequestException(`Competition ${id} not found`);
-        }
-
-        if (!dto.competitionType) { throw new BadRequestException('le type de la compétition doit être renseigné.'); }
-        if (dto.name === '' || !dto.name) { throw new BadRequestException('le nom de la compétition ne peut pas être nul.'); }
-        if (!dto.categories) { throw new BadRequestException('les catégories de la compétition ne peuvent pas être nulles.'); }
-        if (!dto.races) { throw new BadRequestException('les catégories de la compétition ne peuvent pas être nulles.'); }
-        if (!dto.eventDate) { throw new BadRequestException('la date de la compétition ne peut pas être nulle.'); }
-        if (dto.zipCode === '' || !dto.zipCode) { throw new BadRequestException('le code postal de la compétition ne peut pas être nul.'); }
-        if (dto.club === null) { throw new BadRequestException('le club organisant la compétition ne peut pas être nul.'); }
-
-        const club = await this.clubRepository.findOne(dto.club);
-
-        competition.name = dto.name;
-        competition.eventDate = dto.eventDate;
-        competition.zipCode = dto.zipCode;
-        competition.dept = (dto.zipCode).substr(0, 2);
-        competition.info = dto.info;
-        competition.website = dto.website;
-        competition.circuitLength = dto.circuitLength;
-        competition.club = club;
-        competition.contactPhone = dto.contactPhone;
-        competition.facebook = dto.facebook;
-        competition.contactEmail = dto.contactEmail;
-        competition.categories = dto.categories;
-        competition.fede = dto.fede;
-        competition.competitionType = dto.competitionType;
-        competition.competitionInfo = dto.competitionInfo;
-        competition.races = dto.races;
-        competition.contactName = dto.contactName;
-        competition.gpsCoordinates = dto.gpsCoordinates;
-        competition.localisation = dto.localisation;
-        competition.observations = dto.observations;
-        competition.isOpenedToNL = dto.isOpenedToNL;
-        competition.isOpenedToOtherFede = dto.isOpenedToOtherFede;
-        competition.pricing = dto.pricing;
-        competition.aboyeur = dto.aboyeur;
-        competition.speaker = dto.speaker;
-        competition.commissioner = dto.commissaires;
-        competition.feedback = dto.feedback;
-        // competition.localisation = dto.zipCode;
-
-        return await this.entityManager.save(competition);
+        await this.repository.save(competition);
     }
 
     @Delete(':id')

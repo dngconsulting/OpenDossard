@@ -152,8 +152,8 @@ export class CompetitionEntity {
     @Column({nullable: true})
     rankingUrl?: string;
 
-    @Column({nullable: true, name: 'commissaires'})
-    commissioner?: string;
+    @Column({nullable: true})
+    commissaires?: string;
 
     @Column({nullable: true})
     speaker?: string;

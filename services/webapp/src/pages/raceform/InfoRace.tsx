@@ -55,7 +55,7 @@ const InfoRace = (props: IInfoRaceProps) => {
         const mainInfoError = showEmptyFields();
         props.updateMainInfos({...props.mainInfos, observations: data}, mainInfoError)
     }
-    
+
     const handleFormDate = (event: any): void => {
         const label = event.currentTarget.name;
         const value = event.currentTarget.value;
@@ -143,7 +143,7 @@ const InfoRace = (props: IInfoRaceProps) => {
                     contactPhone: true,
                 });
                 mainInfoError = mainInfoError && error.contactPhone;
-                props.updateMainInfos({...props.mainInfos, resultsValidated: false}, mainInfoError);
+                props.updateMainInfos({...props.mainInfos, isValidResults: false}, mainInfoError);
             }
             else {
                 setError({
@@ -159,7 +159,7 @@ const InfoRace = (props: IInfoRaceProps) => {
                     contactEmail: true,
                 });
                 mainInfoError = mainInfoError && error.contactPhone;
-                props.updateMainInfos({...props.mainInfos, resultsValidated: false}, mainInfoError);
+                props.updateMainInfos({...props.mainInfos, isValidResults: false}, mainInfoError);
             }
             else {
                 setError({
@@ -175,7 +175,7 @@ const InfoRace = (props: IInfoRaceProps) => {
                     zipCode: true,
                 });
                 mainInfoError = mainInfoError && error.contactPhone;
-                props.updateMainInfos({...props.mainInfos, resultsValidated: false}, mainInfoError);
+                props.updateMainInfos({...props.mainInfos, isValidResults: false}, mainInfoError);
             }
             else {
                 setError({
@@ -191,7 +191,7 @@ const InfoRace = (props: IInfoRaceProps) => {
                     facebook: true,
                 });
                 mainInfoError = mainInfoError && error.contactPhone;
-                props.updateMainInfos({...props.mainInfos, resultsValidated: false}, mainInfoError);
+                props.updateMainInfos({...props.mainInfos, isValidResults: false}, mainInfoError);
             }
             else {
                 setError({
@@ -207,7 +207,7 @@ const InfoRace = (props: IInfoRaceProps) => {
                     website: true,
                 });
                 mainInfoError = mainInfoError && error.contactPhone;
-                props.updateMainInfos({...props.mainInfos, resultsValidated: false}, mainInfoError);
+                props.updateMainInfos({...props.mainInfos, isValidResults: false}, mainInfoError);
             }
             else {
                 setError({
@@ -426,7 +426,7 @@ const InfoRace = (props: IInfoRaceProps) => {
                     <Grid container={true} spacing={2} alignItems={'center'}>
                         <Grid item={true} xs={4} style={{marginTop: '2rem'}}>
                             <TextField label="Commissaires"
-                                       value={props.mainInfos.commissioner}
+                                       value={props.mainInfos.commissaires}
                                        placeholder="Prénom NOM"
                                        name='commissaires'
                                        type="text"

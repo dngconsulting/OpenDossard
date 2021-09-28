@@ -53,11 +53,6 @@ export interface SaveInfoGenRequest {
     competitionEntity: CompetitionEntity;
 }
 
-export interface UpdateCompetitionRequest {
-    id: string;
-    competitionCreate: CompetitionCreate;
-}
-
 /**
  * no description
  */
@@ -142,7 +137,7 @@ export class CompetitionAPIApi extends runtime.BaseAPI {
 
     /**
      * Recherche toutes les compétitions disponibles dans le filtre
-     * Rechercher Toutes les compétitions correspondant au filtre passé en paramètre
+     * Rechercher toutes les compétitions correspondant au filtre passé en paramètre
      */
     async getCompetitionsByFilterRaw(requestParameters: GetCompetitionsByFilterRequest): Promise<runtime.ApiResponse<Array<CompetitionEntity>>> {
         if (requestParameters.competitionFilter === null || requestParameters.competitionFilter === undefined) {
@@ -176,7 +171,7 @@ export class CompetitionAPIApi extends runtime.BaseAPI {
 
     /**
      * Recherche toutes les compétitions disponibles dans le filtre
-     * Rechercher Toutes les compétitions correspondant au filtre passé en paramètre
+     * Rechercher toutes les compétitions correspondant au filtre passé en paramètre
      */
     async getCompetitionsByFilter(requestParameters: GetCompetitionsByFilterRequest): Promise<Array<CompetitionEntity>> {
         const response = await this.getCompetitionsByFilterRaw(requestParameters);
@@ -301,50 +296,6 @@ export class CompetitionAPIApi extends runtime.BaseAPI {
      */
     async saveInfoGen(requestParameters: SaveInfoGenRequest): Promise<void> {
         await this.saveInfoGenRaw(requestParameters);
-    }
-
-    /**
-     * Sauvegarde les informations générales d\'une épreuve
-     */
-    async updateCompetitionRaw(requestParameters: UpdateCompetitionRequest): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters.id === null || requestParameters.id === undefined) {
-            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling updateCompetition.');
-        }
-
-        if (requestParameters.competitionCreate === null || requestParameters.competitionCreate === undefined) {
-            throw new runtime.RequiredError('competitionCreate','Required parameter requestParameters.competitionCreate was null or undefined when calling updateCompetition.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/api/competition/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: CompetitionCreateToJSON(requestParameters.competitionCreate),
-        });
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     * Sauvegarde les informations générales d\'une épreuve
-     */
-    async updateCompetition(requestParameters: UpdateCompetitionRequest): Promise<void> {
-        await this.updateCompetitionRaw(requestParameters);
     }
 
 }

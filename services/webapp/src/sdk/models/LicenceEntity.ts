@@ -97,13 +97,13 @@ export interface LicenceEntity {
      * @type {string}
      * @memberof LicenceEntity
      */
-    saison: string;
+    catevCX: string;
     /**
      * 
      * @type {string}
      * @memberof LicenceEntity
      */
-    catevCX: string;
+    saison: string;
 }
 
 export function LicenceEntityFromJSON(json: any): LicenceEntity {
@@ -127,8 +127,8 @@ export function LicenceEntityFromJSONTyped(json: any, ignoreDiscriminator: boole
         'birthYear': json['birthYear'],
         'catea': json['catea'],
         'catev': json['catev'],
-        'saison': json['saison'],
         'catevCX': json['catevCX'],
+        'saison': json['saison'],
     };
 }
 
@@ -152,8 +152,8 @@ export function LicenceEntityToJSON(value?: LicenceEntity | null): any {
         'birthYear': value.birthYear,
         'catea': value.catea,
         'catev': value.catev,
-        'saison': value.saison,
         'catevCX': value.catevCX,
+        'saison': value.saison,
     };
 }
 

@@ -125,10 +125,10 @@ const InfoGen = (props: IInfoGenProps) => {
                             <FormControl className={classes.formControl}>
                                 <div style={{paddingTop: 20}}>Commissaires :</div>
                                 <TextareaAutosize
-                                    value={currentCompetition?.commissioner}
+                                    value={currentCompetition?.commissaires}
                                     style={{width: 355}}
                                     onChange={(e) => {
-                                        setCurrentCompetition({...currentCompetition, commissioner: e.target.value})
+                                        setCurrentCompetition({...currentCompetition, commissaires: e.target.value})
                                     }}
                                     rowsMin={5}
                                     placeholder="Commissaire 1  Commissaire 2  Commissaire 3"
@@ -159,9 +159,9 @@ const InfoGen = (props: IInfoGenProps) => {
                                 />
                             </FormControl>
                             <FormControl style={{display:'block'}} className={classes.formControl}>
-                                <Switch checked={!!currentCompetition?.isValidInfos} onChange={(e) => {
+                                <Switch checked={!!currentCompetition?.isValidResults} onChange={(e) => {
                                     setCurrentCompetition((prev)=>{
-                                        return {...currentCompetition, isValidInfos: !prev.isValidInfos}
+                                        return {...currentCompetition, isValidResults: !prev.isValidResults}
                                     })
                                 }} /> Valider les classements
                             </FormControl>
