@@ -13,7 +13,7 @@ COPY services/webapp/ ./
 RUN npm run build
 
 # Setup the server
-FROM node:10.12.0-alpine
+FROM node:12-alpine
 
 WORKDIR /app/
 COPY --from=client /app/client/build/ ./client/build/

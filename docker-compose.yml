@@ -15,7 +15,7 @@ services:
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
-    image: node:11.15.0-alpine
+    image: node:12-alpine
     working_dir: "/app"
     volumes:
       - ./services/webapp:/app
@@ -24,7 +24,7 @@ services:
       - "3000:3000"
   api:
     container_name: api
-    image: node:11.15.0-alpine
+    image: node:12-alpine
     working_dir: "/app"
     env_file:
       - ./config/dev.env

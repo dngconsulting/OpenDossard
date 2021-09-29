@@ -6,7 +6,9 @@ import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 const Editor = (props: any) => {
 
    const [obs,setObs]=useState<string>("");
-   useEffect(()=>{setObs(props.edit)},[props.edit]);
+   useEffect(()=>{
+       setObs(props.edit)
+   },[props.edit]);
 
     return (
         <div>
@@ -24,9 +26,7 @@ const Editor = (props: any) => {
                     })
                 }}
                 onChange={(event: any, editor: { getData: () => any; }) => {
-                    
                     props.data((editor.getData()));
-                    
                 }}
 
             />
