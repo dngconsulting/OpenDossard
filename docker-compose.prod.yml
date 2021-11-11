@@ -7,6 +7,8 @@ services:
       - postgres:/var/lib/postgresql/data:rw
     ports:
       - "5432:5432"
+    env_file:
+      - ./config/prod.env
   api_webapp:
     container_name: api_webapp
     working_dir: "/app/server/"
