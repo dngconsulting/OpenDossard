@@ -13,7 +13,7 @@ import {
   Tooltip,
   TableContainer
 } from "@material-ui/core";
-import { Delete, EditRounded } from "@material-ui/icons";
+import { Delete, EditRounded, FileCopyRounded } from "@material-ui/icons";
 import React, { useState, useEffect, useContext } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { ButtonBase } from "@material-ui/core";
@@ -35,6 +35,9 @@ const useStyles = makeStyles((theme: Theme) =>
       marginLeft: "auto",
       tableLayout: "auto",
       width: "100%"
+    },
+    tableRow: {
+      height: 30
     }
   })
 );
@@ -394,7 +397,7 @@ const HorairesRace = (props: IRaceProps) => {
           aria-label="a dense table"
         >
           <TableHead>
-            <TableRow>
+            <TableRow className={classes.tableRow}>
               <TableCell
                 align="center"
                 style={{ width: "25%", border: "1px solid black" }}
@@ -439,12 +442,16 @@ const HorairesRace = (props: IRaceProps) => {
                 align="center"
                 style={{ width: "5%", border: "1px solid black" }}
               />
+              <TableCell
+                align="center"
+                style={{ width: "5%", border: "1px solid black" }}
+              />
             </TableRow>
           </TableHead>
           <TableBody>
             {tab && tab.length > 0 ? (
               tab.map((info: CompetitionInfo, key: number) => (
-                <TableRow key={key}>
+                <TableRow key={key} className={classes.tableRow}>
                   <TableCell
                     scope="row"
                     align="center"
@@ -481,6 +488,26 @@ const HorairesRace = (props: IRaceProps) => {
                     style={{ width: "25%", border: "1px solid black" }}
                   >
                     {info.info3}
+                  </TableCell>
+                  <TableCell
+                    align="center"
+                    style={{ width: "5%", border: "1px solid black" }}
+                  >
+                    <Tooltip title="Dupliquer cette ligne">
+                      <ButtonBase
+                        value={key}
+                        onClick={() => {
+                          setValue("course", info.course);
+                          setValue("info1", info.info1);
+                          setValue("info2", info.info2);
+                          setValue("info3", info.info3);
+                          setValue("horaireDepart", info.horaireDepart);
+                          setValue("horaireEngagement", info.horaireEngagement);
+                        }}
+                      >
+                        <FileCopyRounded />
+                      </ButtonBase>
+                    </Tooltip>
                   </TableCell>
                   <TableCell
                     align="center"

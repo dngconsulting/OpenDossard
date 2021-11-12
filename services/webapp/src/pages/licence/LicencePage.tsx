@@ -45,6 +45,7 @@ interface IAgeCategory {
 
 interface IValidationForm {
   name?: boolean;
+  genre?: boolean;
   firstName?: boolean;
   fede?: boolean;
   licenceNumber?: boolean;
@@ -80,7 +81,7 @@ const LicencesPage = (props: ILicencesProps) => {
     name: "",
     firstName: "",
     licenceNumber: "",
-    gender: "H",
+    gender: null,
     fede: null,
     birthYear: "",
     dept: "",
@@ -95,6 +96,7 @@ const LicencesPage = (props: ILicencesProps) => {
     firstName: false,
     fede: false,
     licenceNumber: false,
+    genre: false,
     club: false,
     catea: false,
     catev: false,
@@ -209,6 +211,7 @@ const LicencesPage = (props: ILicencesProps) => {
     const isNameValid = !newLicence.name;
     const isFirstnameValid = !newLicence.firstName;
     const isFedeValid = !newLicence.fede;
+    const isGenreValid = !newLicence.gender;
     const isLicenceNumberValid =
       newLicence.fede !== null &&
       newLicence.fede !== FedeEnum.NL &&
@@ -229,6 +232,7 @@ const LicencesPage = (props: ILicencesProps) => {
       fede: isFedeValid,
       licenceNumber: isLicenceNumberValid,
       club: isClubValid,
+      genre: isGenreValid,
       catea: isCateaValid,
       catev: isCatevValid,
       dept: isDeptValid,
@@ -238,6 +242,7 @@ const LicencesPage = (props: ILicencesProps) => {
 
     if (
       isNameValid ||
+      isGenreValid ||
       isFirstnameValid ||
       isFedeValid ||
       isLicenceNumberValid ||
