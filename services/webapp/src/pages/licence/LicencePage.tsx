@@ -742,7 +742,7 @@ const LicencesPage = (props: ILicencesProps) => {
           marginTop: 24
         }}
       >
-        <Grid justify={"center"} item={true} xs={6}>
+        <Grid item={true} xs={6}>
           <Button
             variant="contained"
             color="secondary"
@@ -754,7 +754,7 @@ const LicencesPage = (props: ILicencesProps) => {
             Retour
           </Button>
         </Grid>
-        <Grid justify={"flex-end"} item={true} xs={6}>
+        <Grid item={true} xs={6}>
           <Button
             variant="contained"
             color="primary"
