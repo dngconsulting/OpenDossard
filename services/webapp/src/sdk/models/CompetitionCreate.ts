@@ -226,18 +226,6 @@ export interface CompetitionCreate {
     feedback?: string;
     /**
      * 
-     * @type {boolean}
-     * @memberof CompetitionCreate
-     */
-    isValidResults?: boolean;
-    /**
-     * 
-     * @type {string}
-     * @memberof CompetitionCreate
-     */
-    dept?: string;
-    /**
-     * 
      * @type {Array<LinkInfo>}
      * @memberof CompetitionCreate
      */
@@ -248,6 +236,18 @@ export interface CompetitionCreate {
      * @memberof CompetitionCreate
      */
     rankingUrls?: Array<LinkInfo>;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CompetitionCreate
+     */
+    isValidResults?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof CompetitionCreate
+     */
+    dept?: string;
 }
 
 export function CompetitionCreateFromJSON(json: any): CompetitionCreate {
@@ -291,10 +291,10 @@ export function CompetitionCreateFromJSONTyped(json: any, ignoreDiscriminator: b
         'speaker': !exists(json, 'speaker') ? undefined : json['speaker'],
         'aboyeur': !exists(json, 'aboyeur') ? undefined : json['aboyeur'],
         'feedback': !exists(json, 'feedback') ? undefined : json['feedback'],
-        'isValidResults': !exists(json, 'isValidResults') ? undefined : json['isValidResults'],
-        'dept': !exists(json, 'dept') ? undefined : json['dept'],
         'photoUrls': !exists(json, 'photoUrls') ? undefined : ((json['photoUrls'] as Array<any>).map(LinkInfoFromJSON)),
         'rankingUrls': !exists(json, 'rankingUrls') ? undefined : ((json['rankingUrls'] as Array<any>).map(LinkInfoFromJSON)),
+        'isValidResults': !exists(json, 'isValidResults') ? undefined : json['isValidResults'],
+        'dept': !exists(json, 'dept') ? undefined : json['dept'],
     };
 }
 
@@ -338,10 +338,10 @@ export function CompetitionCreateToJSON(value?: CompetitionCreate | null): any {
         'speaker': value.speaker,
         'aboyeur': value.aboyeur,
         'feedback': value.feedback,
-        'isValidResults': value.isValidResults,
-        'dept': value.dept,
         'photoUrls': value.photoUrls === undefined ? undefined : ((value.photoUrls as Array<any>).map(LinkInfoToJSON)),
         'rankingUrls': value.rankingUrls === undefined ? undefined : ((value.rankingUrls as Array<any>).map(LinkInfoToJSON)),
+        'isValidResults': value.isValidResults,
+        'dept': value.dept,
     };
 }
 

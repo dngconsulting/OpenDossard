@@ -94,7 +94,6 @@ const EditResultsPage = (gprops: any) => {
         }
 
         if (rows.filter(item => item.riderNumber === parseInt(currentDossard) && item.rankingScratch !== currentRanking).length > 0) {
-            console.log('Updating Dossard ' + currentDossard + ' with ranking ' + currentRanking);
             try {
                 setLoading(true);
                 setCurrentDossard('');

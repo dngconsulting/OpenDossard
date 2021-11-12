@@ -24,6 +24,7 @@ import { ROLES, RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
 import { FindManyOptions } from 'typeorm/find-options/FindManyOptions';
 import { ClubEntity } from 'src/entity/club.entity';
+import {plainToClass} from "class-transformer";
 
 const MAX_COMPETITION_TO_DISPLAY = 5000;
 /**
@@ -136,7 +137,7 @@ export class CompetitionController {
         operationId: 'reorganize',
         summary: 'Réorganisation des courses',
     })
-    @ApiResponse({ status: 200, isArray: false })
+
     @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
     public async reorganize(@Body() dto: CompetitionReorganize): Promise<void> {
         const start = (new Date()).getTime();
@@ -169,7 +170,7 @@ export class CompetitionController {
         operationId: 'saveInfoGen',
         summary: 'Sauvegarde les informations générales d\'une épreuve (Speaker, Aboyeur, Commissaires,...)',
     })
-    @ApiResponse({ status: 200, isArray: false })
+
     @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
     public async saveInfoGen(@Body() competitionToSave: CompetitionEntity): Promise<CompetitionEntity> {
         const competition = await this.repository.findOne(competitionToSave.id);
@@ -187,11 +188,11 @@ export class CompetitionController {
     @Post('/saveCompetition')
     @ApiOperation({
         operationId: 'saveCompetition',
-        summary: 'Création d\'une épreuve',
+        summary: 'Création d\'une épreuve X',
     })
-    @ApiResponse({ status: 200, isArray: false })
+
     @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
-    public async upsertCompetition(@Body() dto: CompetitionCreate): Promise<void> {
+        public async upsertCompetition(@Body() dto: CompetitionCreate): Promise<CompetitionCreate> {
         if (!dto.competitionType) { throw new BadRequestException('le type de la compétition doit être renseigné.'); }
         if (dto.name === '' || !dto.name) { throw new BadRequestException('le nom de la compétition doit être renseigné'); }
         if (!dto.categories) { throw new BadRequestException('les catégories gérées par la compétition doivent être renseignées'); }
@@ -228,8 +229,10 @@ export class CompetitionController {
         competition.isOpenedToOtherFede = dto.isOpenedToOtherFede;
         competition.pricing = dto.pricing;
         competition.commissaires = dto.commissaires;
-
-        await this.repository.save(competition);
+        // For new competition reset the sequence in case other have insert rows in competition table
+        if (!competition.id) await this.entityManager.connection.manager.query("SELECT SETVAL('public.competition_id_seq', COALESCE(MAX(id), 1) ) FROM public.competition");
+        const updatedCompetition = await this.repository.save(competition);
+        return plainToClass(CompetitionCreate,updatedCompetition);
     }
 
     @Delete(':id')

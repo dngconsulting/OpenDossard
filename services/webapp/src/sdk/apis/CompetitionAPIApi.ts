@@ -219,9 +219,9 @@ export class CompetitionAPIApi extends runtime.BaseAPI {
     }
 
     /**
-     * Création d\'une épreuve
+     * Création d\'une épreuve X
      */
-    async saveCompetitionRaw(requestParameters: SaveCompetitionRequest): Promise<runtime.ApiResponse<void>> {
+    async saveCompetitionRaw(requestParameters: SaveCompetitionRequest): Promise<runtime.ApiResponse<CompetitionCreate>> {
         if (requestParameters.competitionCreate === null || requestParameters.competitionCreate === undefined) {
             throw new runtime.RequiredError('competitionCreate','Required parameter requestParameters.competitionCreate was null or undefined when calling saveCompetition.');
         }
@@ -248,14 +248,15 @@ export class CompetitionAPIApi extends runtime.BaseAPI {
             body: CompetitionCreateToJSON(requestParameters.competitionCreate),
         });
 
-        return new runtime.VoidApiResponse(response);
+        return new runtime.JSONApiResponse(response, (jsonValue) => CompetitionCreateFromJSON(jsonValue));
     }
 
     /**
-     * Création d\'une épreuve
+     * Création d\'une épreuve X
      */
-    async saveCompetition(requestParameters: SaveCompetitionRequest): Promise<void> {
-        await this.saveCompetitionRaw(requestParameters);
+    async saveCompetition(requestParameters: SaveCompetitionRequest): Promise<CompetitionCreate> {
+        const response = await this.saveCompetitionRaw(requestParameters);
+        return await response.value();
     }
 
     /**

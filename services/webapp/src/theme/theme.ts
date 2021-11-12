@@ -20,6 +20,15 @@ export const cadtheme = createMuiTheme({
     shadows:Array<string>(25).fill('none') as Theme['shadows'],
     palette,
     overrides:{
+        MuiContainer: {
+            root: {marginTop:0}
+        },
+        MuiFormLabel: {
+          root: {width:250}
+        },
+        MuiPaper: {
+          root : {backgroundColor:'white'}
+        },
         MuiDrawer: {
         },
         MuiTabs: {
