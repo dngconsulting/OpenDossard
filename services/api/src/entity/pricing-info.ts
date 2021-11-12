@@ -1,8 +1,8 @@
-import {ApiProperty} from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 
 export class PricingInfo {
-    @ApiProperty()
-    name: string;
-    @ApiProperty()
-    tarif: number;
+  @ApiProperty()
+  name: string;
+  @ApiProperty()
+  tarif: string;
 }

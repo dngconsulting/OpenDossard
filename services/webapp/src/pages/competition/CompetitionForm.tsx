@@ -1,4 +1,4 @@
-import LeafletMap from "components/LeafletMap";
+import LeafletMap, { DEFAULT_LAT, DEFAULT_LNG } from "components/LeafletMap";
 import React, { useContext, useEffect, useState } from "react";
 import {
   AppBar,
@@ -124,8 +124,6 @@ function TabPanel(props: ITabPanelProps) {
 const CompetNavBar = (props: ICompetNavBar) => {
   const id = props.match.params.id;
   const classes = useStyles();
-  const LAT = 43.604652;
-  const LNG = 1.444209;
 
   const [, setNotification] = useContext(NotificationContext);
   const [isSubmitted, setIsSubmited] = useState(false);
@@ -144,7 +142,7 @@ const CompetNavBar = (props: ICompetNavBar) => {
     races: ["2,3,4,5"],
     eventDate: null,
     zipCode: "",
-    club: null,
+    clubId: null,
     info: "",
     competitionInfo: [],
     circuitLength: "",
@@ -152,8 +150,8 @@ const CompetNavBar = (props: ICompetNavBar) => {
     contactEmail: "",
     website: "",
     facebook: "",
-    latitude: LAT,
-    longitude: LNG,
+    latitude: DEFAULT_LAT,
+    longitude: DEFAULT_LNG,
     pricing: [],
     isOpenedToOtherFede: false,
     isOpenedToNL: false,
@@ -183,7 +181,7 @@ const CompetNavBar = (props: ICompetNavBar) => {
           races: res.races,
           eventDate: res.eventDate,
           zipCode: res.zipCode,
-          club: res.club.id,
+          clubId: res.club.id,
           info: res.info,
           competitionInfo: res.competitionInfo,
           circuitLength: res.circuitLength,
@@ -242,7 +240,7 @@ const CompetNavBar = (props: ICompetNavBar) => {
   };
 
   const getGPSCoordinates = (gpsCoordinates: string): number[] => {
-    let coordinates = [LAT, LNG];
+    let coordinates = [DEFAULT_LAT, DEFAULT_LNG];
     if (gpsCoordinates || gpsCoordinates !== "") {
       const coordinatesTab: string[] = gpsCoordinates.split(",");
       const lat: number = parseFloat(coordinatesTab[0]);
@@ -312,7 +310,7 @@ const CompetNavBar = (props: ICompetNavBar) => {
         <TabPanel value={value} index={0}>
           <InfoRace
             history={props.history}
-            mainInfos={newCompetition}
+            competition={newCompetition}
             updateMainInfos={setMainInfos}
             onSaveCompetition={() =>
               saveCompetition({
@@ -346,15 +344,59 @@ const CompetNavBar = (props: ICompetNavBar) => {
           <PriceRace
             pricesInfos={newCompetition.pricing}
             updatePricesInfos={setPricesInfo}
+            onSaveCompetition={() =>
+              saveCompetition({
+                competition: newCompetition,
+                setIsLoading: setIsLoading,
+                setIsSubmited: setIsSubmited,
+                setNotification: setNotification,
+                setNewCompetition: setNewCompetition
+              })
+            }
           />
         </TabPanel>
 
         <TabPanel value={value} index={3}>
-          <LeafletMap
-            lat={newCompetition.latitude}
-            lng={newCompetition.longitude}
-            updateCoordinates={setGPSCoordinates}
-          />
+          <>
+            <LeafletMap
+              lat={getGPSCoordinates(newCompetition.gpsCoordinates)[0]}
+              lng={getGPSCoordinates(newCompetition.gpsCoordinates)[1]}
+              updateCoordinates={setGPSCoordinates}
+            />
+            <div
+              style={{
+                width: "70%",
+                marginRight: "auto",
+                marginLeft: "auto"
+              }}
+            >
+              Veuillez utiliser le clic droit de la souris pour positionner la
+              localisation exacte de la course (ou du retrait des dossards)
+            </div>
+            <Button
+              style={{
+                display: "block",
+                marginLeft: "auto",
+                marginRight: "auto",
+                width: "256px",
+                marginTop: "30px"
+              }}
+              variant={"contained"}
+              value={1}
+              color={"primary"}
+              onClick={async () => {
+                await saveCompetition({
+                  competition: newCompetition,
+                  setIsLoading: setIsLoading,
+                  setIsSubmited: setIsSubmited,
+                  setNotification: setNotification,
+                  setNewCompetition: setNewCompetition
+                });
+              }}
+            >
+              Enregistrer la localisation
+            </Button>
+          </>
         </TabPanel>
       </div>
     </>

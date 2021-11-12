@@ -218,9 +218,10 @@ const LicencesPage = (props: ILicencesProps) => {
     const isClubValid = newLicence.fede !== FedeEnum.NL && !newLicence.club;
     const isDeptValid = !newLicence.dept;
     const isBirthYearValid = !newLicence.birthYear;
-    const isSeasonValid =
-      newLicence.saison.length !== 4 ||
-      parseInt(newLicence.saison) > new Date().getFullYear();
+    const isSeasonValid = newLicence.saison
+      ? newLicence.saison.length !== 4 ||
+        parseInt(newLicence.saison) > new Date().getFullYear()
+      : false;
 
     setValidation({
       name: isNameValid,
@@ -308,7 +309,17 @@ const LicencesPage = (props: ILicencesProps) => {
   const classes = useStyles();
 
   return (
-    <Container maxWidth="sm">
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "column",
+        width: "60%",
+        marginLeft: "auto",
+        marginRight: "auto"
+      }}
+    >
       <LoaderIndicator visible={loading} />
       <ConfirmDialog
         title={"Attention "}
@@ -329,19 +340,107 @@ const LicencesPage = (props: ILicencesProps) => {
           props.history.goBack();
         }}
       />
+      <Grid item={true} xs={12}>
+        <h1 style={{ backgroundColor: "transparent" }}>
+          {editMode ? "Modifier" : "Ajouter"} une licence
+        </h1>
+      </Grid>
       <Grid container={true} spacing={2} alignItems={"center"}>
-        <Grid item={true} xs={12}>
-          <h1 style={{ backgroundColor: "transparent" }}>
-            {editMode ? "Modifier" : "Ajouter"} une licence
-          </h1>
+        <Grid item={true} xs={4}>
+          <FormControl className={classes.formControl}>
+            <Autocomplete
+              value={fedeDetails ? fedeDetails.name : null}
+              getOptionLabel={option => option.label}
+              getOptionSelected={(option, target) =>
+                option.value === target.value
+              }
+              autoComplete={true}
+              autoSelect={true}
+              autoHighlight={true}
+              renderInput={params => (
+                <TextField
+                  {...params}
+                  required={true}
+                  label="Fédération"
+                  variant="standard"
+                  error={validation.fede}
+                  helperText={
+                    validation.fede ? "Veuillez compléter la fédération" : ""
+                  }
+                />
+              )}
+              style={{ width: "100%" }}
+              onChange={(event: any, target: string | any) => {
+                handleFEDEChange(target);
+              }}
+              options={Object.keys(FEDERATIONS).map(key => ({
+                value: FEDERATIONS[key].name.value,
+                label: FEDERATIONS[key].name.label
+              }))}
+            />
+          </FormControl>
         </Grid>
+        {newLicence.fede && newLicence.fede !== FedeEnum.NL ? (
+          <>
+            <Grid item={true} xs={4}>
+              <FormControl className={classes.formControl}>
+                <TextField
+                  required={true}
+                  id="licenceNumber"
+                  label="Numéro Licence"
+                  error={validation.licenceNumber}
+                  helperText={
+                    validation.licenceNumber
+                      ? "Veuillez indiquer le numéro de licence."
+                      : ""
+                  }
+                  onChange={e =>
+                    setNewLicence({
+                      ...newLicence,
+                      licenceNumber: e.target.value
+                    })
+                  }
+                />
+              </FormControl>
+            </Grid>
+            <Grid item={true} xs={4}>
+              <FormControl
+                className={classes.formControl}
+                error={validation.saison}
+              >
+                <TextField
+                  required={true}
+                  style={{ width: 100 }}
+                  id="saison"
+                  label="Saison"
+                  margin="none"
+                  type="number"
+                  value={newLicence.saison}
+                  onChange={e => {
+                    setNewLicence({ ...newLicence, saison: e.target.value });
+                  }}
+                  error={validation.saison}
+                />
+                <FormHelperText
+                  id="component-error-text"
+                  hidden={!validation.saison}
+                >
+                  Veuillez saisir une saison correspondant à la saison actuelle
+                  ou antérieure.
+                </FormHelperText>
+              </FormControl>
+            </Grid>
+          </>
+        ) : (
+          <Grid item={true} xs={8}></Grid>
+        )}
         <Grid item={true} xs={6}>
           <FormControl className={classes.formControl} error={validation.name}>
             <TextField
               required={true}
               id="name"
               label="Nom"
-              margin="normal"
+              margin="none"
               error={validation.name}
               value={newLicence.name}
               onChange={e =>
@@ -362,7 +461,7 @@ const LicencesPage = (props: ILicencesProps) => {
               required={true}
               label="Prénom"
               id="firstName"
-              margin="normal"
+              margin="none"
               error={validation.firstName}
               value={newLicence.firstName}
               onChange={e =>
@@ -413,7 +512,7 @@ const LicencesPage = (props: ILicencesProps) => {
               id="birthYear"
               type="number"
               label="Année de la naissance"
-              margin="normal"
+              margin="none"
               value={newLicence.birthYear}
               onBlur={e => {
                 if (
@@ -443,120 +542,6 @@ const LicencesPage = (props: ILicencesProps) => {
             </FormHelperText>
           </FormControl>
         </Grid>
-        <Grid item={true} xs={6}>
-          <FormControl
-            className={classes.formControl}
-            error={validation.saison}
-          >
-            <TextField
-              required={true}
-              style={{ width: 100 }}
-              id="saison"
-              label="Saison"
-              margin="normal"
-              type="number"
-              value={newLicence.saison}
-              onChange={e => {
-                setNewLicence({ ...newLicence, saison: e.target.value });
-              }}
-              error={validation.saison}
-            />
-            <FormHelperText
-              id="component-error-text"
-              hidden={!validation.saison}
-            >
-              Veuillez saisir une saison correspondant à la saison actuelle ou
-              antérieure.
-            </FormHelperText>
-          </FormControl>
-        </Grid>
-        <Grid item={true} xs={6}>
-          <FormControl className={classes.formControl} error={validation.dept}>
-            <TextField
-              required={true}
-              error={validation.dept}
-              id="department"
-              label="Département"
-              type="number"
-              margin="normal"
-              value={newLicence.dept}
-              onBlur={e => {
-                if (
-                  parseInt(e.target.value) < 1 ||
-                  parseInt(e.target.value) > 99
-                ) {
-                  setNewLicence({ ...newLicence, dept: "" });
-                  setValidation({ dept: true });
-                  return;
-                }
-                setValidation({ dept: false });
-              }}
-              onChange={e => {
-                setNewLicence({ ...newLicence, dept: e.target.value });
-              }}
-            />
-            <FormHelperText id="component-error-text" hidden={!validation.dept}>
-              Veuillez saisir un département dont la valeur est entre 01 et 99.
-            </FormHelperText>
-          </FormControl>
-        </Grid>
-        <Grid item={true} xs={6}>
-          <FormControl className={classes.formControl}>
-            <Autocomplete
-              value={fedeDetails ? fedeDetails.name : null}
-              getOptionLabel={option => option.label}
-              getOptionSelected={(option, target) =>
-                option.value === target.value
-              }
-              autoComplete={true}
-              autoSelect={true}
-              autoHighlight={true}
-              renderInput={params => (
-                <TextField
-                  {...params}
-                  required={true}
-                  label="Fédération"
-                  variant="standard"
-                  error={validation.fede}
-                  helperText={
-                    validation.fede ? "Veuillez compléter la fédération" : ""
-                  }
-                />
-              )}
-              style={{ width: "100%" }}
-              onChange={(event: any, target: string | any) => {
-                handleFEDEChange(target);
-              }}
-              options={Object.keys(FEDERATIONS).map(key => ({
-                value: FEDERATIONS[key].name.value,
-                label: FEDERATIONS[key].name.label
-              }))}
-            />
-          </FormControl>
-        </Grid>
-        {newLicence.fede && newLicence.fede !== FedeEnum.NL && (
-          <Grid item={true} xs={6}>
-            <FormControl className={classes.formControl}>
-              <TextField
-                required={true}
-                id="licenceNumber"
-                label="Numéro Licence"
-                error={validation.licenceNumber}
-                helperText={
-                  validation.licenceNumber
-                    ? "Veuillez indiquer le numéro de licence."
-                    : ""
-                }
-                onChange={e =>
-                  setNewLicence({
-                    ...newLicence,
-                    licenceNumber: e.target.value
-                  })
-                }
-              />
-            </FormControl>
-          </Grid>
-        )}
       </Grid>
 
       {newLicence.fede && (
@@ -695,6 +680,37 @@ const LicencesPage = (props: ILicencesProps) => {
           </Grid>
         </Grid>
       )}
+      <Grid style={{ marginTop: "2em" }} container={true} item={true} xs={12}>
+        <FormControl className={classes.formControl} error={validation.dept}>
+          <TextField
+            required={true}
+            error={validation.dept}
+            id="department"
+            label="Département"
+            type="number"
+            margin="none"
+            style={{ width: "50%" }}
+            value={newLicence.dept}
+            onBlur={e => {
+              if (
+                parseInt(e.target.value) < 1 ||
+                parseInt(e.target.value) > 99
+              ) {
+                setNewLicence({ ...newLicence, dept: "" });
+                setValidation({ dept: true });
+                return;
+              }
+              setValidation({ dept: false });
+            }}
+            onChange={e => {
+              setNewLicence({ ...newLicence, dept: e.target.value });
+            }}
+          />
+          <FormHelperText id="component-error-text" hidden={!validation.dept}>
+            Veuillez saisir un département dont la valeur est entre 01 et 99.
+          </FormHelperText>
+        </FormControl>
+      </Grid>
       {newLicence.fede && newLicence.fede !== FedeEnum.NL && (
         <Grid
           container={true}
@@ -717,8 +733,16 @@ const LicencesPage = (props: ILicencesProps) => {
           </Grid>
         </Grid>
       )}
-      <Grid container={true} spacing={2} alignItems={"center"}>
-        <Grid item={true} xs={6}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "flex-end",
+          marginTop: 24
+        }}
+      >
+        <Grid justify={"center"} item={true} xs={6}>
           <Button
             variant="contained"
             color="secondary"
@@ -730,7 +754,7 @@ const LicencesPage = (props: ILicencesProps) => {
             Retour
           </Button>
         </Grid>
-        <Grid item={true} xs={6}>
+        <Grid justify={"flex-end"} item={true} xs={6}>
           <Button
             variant="contained"
             color="primary"
@@ -740,8 +764,8 @@ const LicencesPage = (props: ILicencesProps) => {
             Sauvegarder
           </Button>
         </Grid>
-      </Grid>
-    </Container>
+      </div>
+    </div>
   );
 };
 

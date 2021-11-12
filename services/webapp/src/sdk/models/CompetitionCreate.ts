@@ -91,7 +91,7 @@ export interface CompetitionCreate {
      * @type {number}
      * @memberof CompetitionCreate
      */
-    club: number;
+    clubId: number;
     /**
      * 
      * @type {string}
@@ -268,7 +268,7 @@ export function CompetitionCreateFromJSONTyped(json: any, ignoreDiscriminator: b
         'races': !exists(json, 'races') ? undefined : json['races'],
         'eventDate': (new Date(json['eventDate'])),
         'zipCode': json['zipCode'],
-        'club': json['club'],
+        'clubId': json['clubId'],
         'info': !exists(json, 'info') ? undefined : json['info'],
         'competitionInfo': !exists(json, 'competitionInfo') ? undefined : ((json['competitionInfo'] as Array<any>).map(CompetitionInfoFromJSON)),
         'lapNumber': !exists(json, 'lapNumber') ? undefined : json['lapNumber'],
@@ -315,7 +315,7 @@ export function CompetitionCreateToJSON(value?: CompetitionCreate | null): any {
         'races': value.races,
         'eventDate': (value.eventDate.toISOString()),
         'zipCode': value.zipCode,
-        'club': value.club,
+        'clubId': value.clubId,
         'info': value.info,
         'competitionInfo': value.competitionInfo === undefined ? undefined : ((value.competitionInfo as Array<any>).map(CompetitionInfoToJSON)),
         'lapNumber': value.lapNumber,

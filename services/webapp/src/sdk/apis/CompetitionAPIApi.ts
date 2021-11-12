@@ -262,7 +262,7 @@ export class CompetitionAPIApi extends runtime.BaseAPI {
     /**
      * Sauvegarde les informations générales d\'une épreuve (Speaker, Aboyeur, Commissaires,...)
      */
-    async saveInfoGenRaw(requestParameters: SaveInfoGenRequest): Promise<runtime.ApiResponse<void>> {
+    async saveInfoGenRaw(requestParameters: SaveInfoGenRequest): Promise<runtime.ApiResponse<CompetitionEntity>> {
         if (requestParameters.competitionEntity === null || requestParameters.competitionEntity === undefined) {
             throw new runtime.RequiredError('competitionEntity','Required parameter requestParameters.competitionEntity was null or undefined when calling saveInfoGen.');
         }
@@ -289,14 +289,15 @@ export class CompetitionAPIApi extends runtime.BaseAPI {
             body: CompetitionEntityToJSON(requestParameters.competitionEntity),
         });
 
-        return new runtime.VoidApiResponse(response);
+        return new runtime.JSONApiResponse(response, (jsonValue) => CompetitionEntityFromJSON(jsonValue));
     }
 
     /**
      * Sauvegarde les informations générales d\'une épreuve (Speaker, Aboyeur, Commissaires,...)
      */
-    async saveInfoGen(requestParameters: SaveInfoGenRequest): Promise<void> {
-        await this.saveInfoGenRaw(requestParameters);
+    async saveInfoGen(requestParameters: SaveInfoGenRequest): Promise<CompetitionEntity> {
+        const response = await this.saveInfoGenRaw(requestParameters);
+        return await response.value();
     }
 
 }

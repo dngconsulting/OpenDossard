@@ -27,10 +27,10 @@ export interface PricingInfo {
     name: string;
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof PricingInfo
      */
-    tarif: number;
+    tarif: string;
 }
 
 export function PricingInfoFromJSON(json: any): PricingInfo {

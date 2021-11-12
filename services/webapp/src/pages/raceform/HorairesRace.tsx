@@ -230,6 +230,7 @@ const HorairesRace = (props: IRaceProps) => {
         error.horaireDepart &&
         error.horaireEngagement;
       props.updateCompetitionInfos(tab, infosError);
+      props.onSaveCompetition();
       resetFormValues();
     }
   };
@@ -260,10 +261,129 @@ const HorairesRace = (props: IRaceProps) => {
       infosError = true;
     }
     props.updateCompetitionInfos(props.competition.competitionInfo, infosError);
+    props.onSaveCompetition();
   };
 
   return (
     <>
+      <div
+        style={{
+          display: "flex",
+          marginTop: "2rem",
+          width: "100%",
+          justifyContent: "center",
+          alignItems: "center"
+        }}
+      >
+        <TextField
+          required={true}
+          label={wordingDepartsOfFede(props.competition.fede)[0]}
+          error={error.course}
+          className={classes.textField}
+          name="course"
+          inputRef={register()}
+          placeholder={wordingDepartsOfFede(props.competition.fede)[1]}
+          inputProps={{ name: "course", ref: { register } }}
+          InputLabelProps={{ shrink: true }}
+        />
+        <TextField
+          required={true}
+          label={wordingInscriptionOfFede(props.competition.fede)[0]}
+          error={error.horaireEngagement}
+          className={classes.textField}
+          name="horaireEngagement"
+          inputRef={register()}
+          placeholder={wordingInscriptionOfFede(props.competition.fede)[1]}
+          margin="normal"
+          InputLabelProps={{ shrink: true }}
+        />
+        <TextField
+          required={true}
+          label="Heure du départ"
+          error={error.horaireDepart}
+          className={classes.textField}
+          inputRef={register()}
+          name="horaireDepart"
+          placeholder="ex : 15h"
+          margin="normal"
+          InputLabelProps={{ shrink: true }}
+        />
+      </div>
+      <div
+        style={{
+          display: "flex",
+          marginTop: "2rem",
+          width: "100%",
+          justifyContent: "center",
+          alignItems: "center"
+        }}
+      >
+        <TextField
+          required={true}
+          label={wordingLapsOfFede(props.competition.fede)[0]}
+          error={error.info1}
+          className={classes.textField}
+          name="info1"
+          inputRef={register()}
+          placeholder={wordingLapsOfFede(props.competition.fede)[1]}
+          margin="normal"
+          InputLabelProps={{ shrink: true }}
+        />
+        <TextField
+          required={true}
+          label={wordingLastInfoOfFede(props.competition.fede)[0]}
+          error={error.info2}
+          className={classes.textField}
+          name="info2"
+          inputRef={register()}
+          placeholder={wordingLastInfoOfFede(props.competition.fede)[1]}
+          margin="normal"
+          InputLabelProps={{ shrink: true }}
+        />
+        <TextField
+          label="Lien OpenRunner"
+          className={classes.textField}
+          name="info3"
+          inputRef={register()}
+          style={{ margin: 8, marginRight: "150px", width: "250px" }}
+          placeholder="https:/www.lienOpenrunner.com"
+          margin="normal"
+          InputLabelProps={{ shrink: true }}
+        />
+      </div>
+      {isEditing ? (
+        <Button
+          style={{
+            display: "block",
+            marginLeft: "auto",
+            marginRight: "auto",
+            width: "206px",
+            marginTop: "30px"
+          }}
+          variant={"contained"}
+          value={index}
+          color={"primary"}
+          onClick={onEdit}
+        >
+          Modifier
+        </Button>
+      ) : (
+        <Button
+          style={{
+            display: "block",
+            marginLeft: "auto",
+            marginRight: "auto",
+            width: "256px",
+            marginTop: "30px"
+          }}
+          variant={"contained"}
+          value={index}
+          color={"primary"}
+          onClick={handleSubmit(onSubmit)}
+        >
+          Ajouter une course/départ
+        </Button>
+      )}
       <TableContainer
         style={{ marginLeft: 16, marginTop: 16, padding: 0 }}
         component={Paper}
@@ -401,125 +521,6 @@ const HorairesRace = (props: IRaceProps) => {
           </TableBody>
         </Table>
       </TableContainer>
-
-      <div
-        style={{
-          display: "flex",
-          marginTop: "2rem",
-          width: "100%",
-          justifyContent: "center",
-          alignItems: "center"
-        }}
-      >
-        <TextField
-          required={true}
-          label={wordingDepartsOfFede(props.competition.fede)[0]}
-          error={error.course}
-          className={classes.textField}
-          name="course"
-          inputRef={register()}
-          placeholder={wordingDepartsOfFede(props.competition.fede)[1]}
-          inputProps={{ name: "course", ref: { register } }}
-          InputLabelProps={{ shrink: true }}
-        />
-        <TextField
-          required={true}
-          label={wordingInscriptionOfFede(props.competition.fede)[0]}
-          error={error.horaireEngagement}
-          className={classes.textField}
-          name="horaireEngagement"
-          inputRef={register()}
-          placeholder={wordingInscriptionOfFede(props.competition.fede)[1]}
-          margin="normal"
-          InputLabelProps={{ shrink: true }}
-        />
-        <TextField
-          required={true}
-          label="Heure du départ"
-          error={error.horaireDepart}
-          className={classes.textField}
-          inputRef={register()}
-          name="horaireDepart"
-          placeholder="ex : 15h"
-          margin="normal"
-          InputLabelProps={{ shrink: true }}
-        />
-      </div>
-      <div
-        style={{
-          display: "flex",
-          marginTop: "2rem",
-          width: "100%",
-          justifyContent: "center",
-          alignItems: "center"
-        }}
-      >
-        <TextField
-          required={true}
-          label={wordingLapsOfFede(props.competition.fede)[0]}
-          error={error.info1}
-          className={classes.textField}
-          name="info1"
-          inputRef={register()}
-          placeholder={wordingLapsOfFede(props.competition.fede)[1]}
-          margin="normal"
-          InputLabelProps={{ shrink: true }}
-        />
-        <TextField
-          required={true}
-          label={wordingLastInfoOfFede(props.competition.fede)[0]}
-          error={error.info2}
-          className={classes.textField}
-          name="info2"
-          inputRef={register()}
-          placeholder={wordingLastInfoOfFede(props.competition.fede)[1]}
-          margin="normal"
-          InputLabelProps={{ shrink: true }}
-        />
-        <TextField
-          label="Lien OpenRunner"
-          className={classes.textField}
-          name="info3"
-          inputRef={register()}
-          style={{ margin: 8, marginRight: "150px", width: "250px" }}
-          placeholder="https:/www.lienOpenrunner.com"
-          margin="normal"
-          InputLabelProps={{ shrink: true }}
-        />
-      </div>
-      {isEditing ? (
-        <Button
-          style={{
-            display: "block",
-            marginLeft: "auto",
-            marginRight: "auto",
-            width: "206px",
-            marginTop: "30px"
-          }}
-          variant={"contained"}
-          value={index}
-          color={"primary"}
-          onClick={onEdit}
-        >
-          Modifier
-        </Button>
-      ) : (
-        <Button
-          style={{
-            display: "block",
-            marginLeft: "auto",
-            marginRight: "auto",
-            width: "256px",
-            marginTop: "30px"
-          }}
-          variant={"contained"}
-          value={index}
-          color={"primary"}
-          onClick={handleSubmit(onSubmit)}
-        >
-          Ajouter une course/départ
-        </Button>
-      )}
     </>
   );
 };

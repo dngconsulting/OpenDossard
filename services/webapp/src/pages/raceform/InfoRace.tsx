@@ -24,7 +24,7 @@ import Grid from "@material-ui/core/Grid";
 import { saveCompetition } from "../common/Competition";
 
 interface IInfoRaceProps {
-  mainInfos: CompetitionCreate;
+  competition: CompetitionCreate;
   history: any;
   onSaveCompetition: any;
   updateMainInfos: (competition: CompetitionCreate, errors: boolean) => void;
@@ -47,7 +47,7 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 const InfoRace = (props: IInfoRaceProps) => {
-  const date: string = moment(props.mainInfos.eventDate).format(
+  const date: string = moment(props.competition.eventDate).format(
     "YYYY-MM-DDTHH:mm"
   );
   const classes = useStyles();
@@ -83,17 +83,17 @@ const InfoRace = (props: IInfoRaceProps) => {
     const mainInfoError = showEmptyFields();
     props.updateMainInfos(
       {
-        ...props.mainInfos,
+        ...props.competition,
         [event.target.name]: event.target.checked
       },
       mainInfoError
     );
   };
 
-  const handleObservations = (data: string): void => {
+  const updateObservations = (data: string): void => {
     const mainInfoError = showEmptyFields();
     props.updateMainInfos(
-      { ...props.mainInfos, observations: data },
+      { ...props.competition, observations: data },
       mainInfoError
     );
   };
@@ -110,7 +110,7 @@ const InfoRace = (props: IInfoRaceProps) => {
     const mainInfoError = showEmptyFields();
     props.updateMainInfos(
       {
-        ...props.mainInfos,
+        ...props.competition,
         [label]: moment(value, "YYYY-MM-DD HH:mm:ssZZ")
       },
       mainInfoError
@@ -130,7 +130,7 @@ const InfoRace = (props: IInfoRaceProps) => {
     const mainInfoError = showEmptyFields();
     props.updateMainInfos(
       {
-        ...props.mainInfos,
+        ...props.competition,
         [label]: value
       },
       mainInfoError
@@ -143,7 +143,10 @@ const InfoRace = (props: IInfoRaceProps) => {
       ...error,
       club: !value
     });
-    props.updateMainInfos({ ...props.mainInfos, club: value }, mainInfoError);
+    props.updateMainInfos(
+      { ...props.competition, clubId: value },
+      mainInfoError
+    );
   };
 
   const handleFEDEChange = (event: any, target: string | any) => {
@@ -156,9 +159,9 @@ const InfoRace = (props: IInfoRaceProps) => {
       if (target.value === FedeEnum.FSGT) {
         props.updateMainInfos(
           {
-            ...props.mainInfos,
+            ...props.competition,
             fede: target.value,
-            club: null,
+            clubId: null,
             races: ["2,3,4,5"]
           },
           mainInfoError
@@ -166,9 +169,9 @@ const InfoRace = (props: IInfoRaceProps) => {
       } else {
         props.updateMainInfos(
           {
-            ...props.mainInfos,
+            ...props.competition,
             fede: target.value,
-            club: null,
+            clubId: null,
             races: ["Toutes"]
           },
           mainInfoError
@@ -177,9 +180,9 @@ const InfoRace = (props: IInfoRaceProps) => {
     } else {
       props.updateMainInfos(
         {
-          ...props.mainInfos,
+          ...props.competition,
           fede: null,
-          club: null,
+          clubId: null,
           races: []
         },
         mainInfoError
@@ -208,7 +211,7 @@ const InfoRace = (props: IInfoRaceProps) => {
         });
         mainInfoError = mainInfoError && error.contactPhone;
         props.updateMainInfos(
-          { ...props.mainInfos, isValidResults: false },
+          { ...props.competition, isValidResults: false },
           mainInfoError
         );
       } else {
@@ -225,7 +228,7 @@ const InfoRace = (props: IInfoRaceProps) => {
         });
         mainInfoError = mainInfoError && error.contactPhone;
         props.updateMainInfos(
-          { ...props.mainInfos, isValidResults: false },
+          { ...props.competition, isValidResults: false },
           mainInfoError
         );
       } else {
@@ -242,7 +245,7 @@ const InfoRace = (props: IInfoRaceProps) => {
         });
         mainInfoError = mainInfoError && error.contactPhone;
         props.updateMainInfos(
-          { ...props.mainInfos, isValidResults: false },
+          { ...props.competition, isValidResults: false },
           mainInfoError
         );
       } else {
@@ -259,7 +262,7 @@ const InfoRace = (props: IInfoRaceProps) => {
         });
         mainInfoError = mainInfoError && error.contactPhone;
         props.updateMainInfos(
-          { ...props.mainInfos, isValidResults: false },
+          { ...props.competition, isValidResults: false },
           mainInfoError
         );
       } else {
@@ -276,7 +279,7 @@ const InfoRace = (props: IInfoRaceProps) => {
         });
         mainInfoError = mainInfoError && error.contactPhone;
         props.updateMainInfos(
-          { ...props.mainInfos, isValidResults: false },
+          { ...props.competition, isValidResults: false },
           mainInfoError
         );
       } else {
@@ -296,7 +299,7 @@ const InfoRace = (props: IInfoRaceProps) => {
             <TextField
               required={true}
               label="Nom de l'épreuve"
-              value={props.mainInfos.name}
+              value={props.competition.name}
               error={error.name}
               helperText={
                 error.name && "Le nom de l'épreuve doit être renseigné"
@@ -330,8 +333,8 @@ const InfoRace = (props: IInfoRaceProps) => {
           <Grid item={true} xs={4}>
             <Autocomplete
               value={{
-                label: props.mainInfos.competitionType || "",
-                value: props.mainInfos.competitionType || ""
+                label: props.competition.competitionType || "",
+                value: props.competition.competitionType || ""
               }}
               getOptionLabel={option => option.label}
               getOptionSelected={(option, target) =>
@@ -360,12 +363,12 @@ const InfoRace = (props: IInfoRaceProps) => {
                 const mainInfoError = showEmptyFields();
                 if (target) {
                   props.updateMainInfos(
-                    { ...props.mainInfos, competitionType: target.value },
+                    { ...props.competition, competitionType: target.value },
                     mainInfoError
                   );
                 } else {
                   props.updateMainInfos(
-                    { ...props.mainInfos, competitionType: null },
+                    { ...props.competition, competitionType: null },
                     mainInfoError
                   );
                 }
@@ -381,7 +384,7 @@ const InfoRace = (props: IInfoRaceProps) => {
           <Grid item={true} xs={4}>
             <TextField
               label="Longueur circuit"
-              value={props.mainInfos.circuitLength}
+              value={props.competition.circuitLength}
               type="text"
               name="circuitLength"
               onSelect={handleForm}
@@ -394,7 +397,7 @@ const InfoRace = (props: IInfoRaceProps) => {
             <TextField
               required={true}
               label="Code Postal"
-              value={props.mainInfos.zipCode}
+              value={props.competition.zipCode}
               placeholder="ex : 31000"
               name="zipCode"
               onSelect={handleForm}
@@ -414,7 +417,7 @@ const InfoRace = (props: IInfoRaceProps) => {
           </Grid>
           <Grid item={true} xs={4}>
             <Autocomplete
-              value={props.mainInfos.info}
+              value={props.competition.info}
               getOptionLabel={option => option}
               getOptionSelected={(option, target) => option === target}
               autoComplete={true}
@@ -427,7 +430,7 @@ const InfoRace = (props: IInfoRaceProps) => {
               onChange={(event: any, target: string | any) => {
                 const mainInfoError = showEmptyFields();
                 props.updateMainInfos(
-                  { ...props.mainInfos, info: target },
+                  { ...props.competition, info: target },
                   mainInfoError
                 );
               }}
@@ -443,8 +446,8 @@ const InfoRace = (props: IInfoRaceProps) => {
           <Grid item={true} xs={4}>
             <Autocomplete
               value={{
-                label: props.mainInfos.fede || "",
-                value: props.mainInfos.fede || ""
+                label: props.competition.fede || "",
+                value: props.competition.fede || ""
               }}
               getOptionLabel={option => option.label}
               getOptionSelected={(option, target) =>
@@ -478,15 +481,15 @@ const InfoRace = (props: IInfoRaceProps) => {
             />
           </Grid>
           <Grid item={true} xs={8}>
-            {props.mainInfos.fede && props.mainInfos.fede !== FedeEnum.NL && (
+            {props.competition.fede && props.competition.fede !== FedeEnum.NL && (
               <ClubSelect
                 isError={error.club}
-                dept={props.mainInfos.dept}
-                fede={props.mainInfos.fede}
+                dept={props.competition.dept}
+                fede={props.competition.fede}
                 onSelectClubId={onSelectClub}
                 defaultChosenClub={
                   {
-                    value: props.mainInfos.club,
+                    value: props.competition.clubId,
                     label: "default"
                   } as IOptionType
                 }
@@ -496,7 +499,7 @@ const InfoRace = (props: IInfoRaceProps) => {
           <Grid item={true} xs={4}>
             <TextField
               label="Nom contact"
-              value={props.mainInfos.contactName}
+              value={props.competition.contactName}
               placeholder="Prénom NOM"
               name="contactName"
               type="text"
@@ -509,7 +512,7 @@ const InfoRace = (props: IInfoRaceProps) => {
           <Grid item={true} xs={4}>
             <TextField
               label="Téléphone Contact"
-              value={props.mainInfos.contactPhone}
+              value={props.competition.contactPhone}
               placeholder="ex : 0695085349"
               name="contactPhone"
               onSelect={handleForm}
@@ -530,7 +533,7 @@ const InfoRace = (props: IInfoRaceProps) => {
           <Grid item={true} xs={4}>
             <TextField
               label="E-mail Contact"
-              value={props.mainInfos.contactEmail}
+              value={props.competition.contactEmail}
               placeholder="ex : personne@mail.com"
               name="contactEmail"
               type="email"
@@ -548,7 +551,7 @@ const InfoRace = (props: IInfoRaceProps) => {
           <Grid item={true} xs={4}>
             <TextField
               label="Lien Facebook"
-              value={props.mainInfos.facebook}
+              value={props.competition.facebook}
               placeholder="ex : https://www.monfacebook.fr"
               name="facebook"
               type="url"
@@ -565,7 +568,7 @@ const InfoRace = (props: IInfoRaceProps) => {
           <Grid item={true} xs={4}>
             <TextField
               label="Site web"
-              value={props.mainInfos.website}
+              value={props.competition.website}
               placeholder="ex : https://www.monsite.fr"
               name="website"
               type="url"
@@ -580,12 +583,12 @@ const InfoRace = (props: IInfoRaceProps) => {
             />
           </Grid>
         </Grid>
-        {props.mainInfos.id ? (
+        {props.competition.id ? (
           <Grid container={true} spacing={2} alignItems={"center"}>
             <Grid item={true} xs={4}>
               <TextField
                 label="Commissaires"
-                value={props.mainInfos.commissaires}
+                value={props.competition.commissaires}
                 placeholder="Prénom NOM"
                 name="commissaires"
                 type="text"
@@ -598,7 +601,7 @@ const InfoRace = (props: IInfoRaceProps) => {
             <Grid item={true} xs={4}>
               <TextField
                 label="Speaker"
-                value={props.mainInfos.speaker}
+                value={props.competition.speaker}
                 placeholder="Prénom NOM"
                 name="speaker"
                 type="text"
@@ -608,12 +611,12 @@ const InfoRace = (props: IInfoRaceProps) => {
                 style={{ width: "80%" }}
               />
             </Grid>
-            {props.mainInfos.competitionType ===
+            {props.competition.competitionType ===
             CompetitionCreateCompetitionTypeEnum.CX ? (
               <Grid item={true} xs={4}>
                 <TextField
                   label="Aboyeur"
-                  value={props.mainInfos.aboyeur}
+                  value={props.competition.aboyeur}
                   InputLabelProps={{ shrink: true }}
                   name="aboyeur"
                   type="text"
@@ -627,7 +630,7 @@ const InfoRace = (props: IInfoRaceProps) => {
             <Grid item={true} xs={12}>
               <TextField
                 label="Note commissaire(s)"
-                value={props.mainInfos.feedback}
+                value={props.competition.feedback}
                 name="feedback"
                 type="text"
                 onSelect={handleForm}
@@ -643,7 +646,7 @@ const InfoRace = (props: IInfoRaceProps) => {
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={props.mainInfos.isOpenedToOtherFede}
+                  checked={props.competition.isOpenedToOtherFede}
                   onSelect={handleChangeBox}
                   onChange={handleChangeBox}
                   name="isOpenedToOtherFede"
@@ -657,7 +660,7 @@ const InfoRace = (props: IInfoRaceProps) => {
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={props.mainInfos.isOpenedToNL}
+                  checked={props.competition.isOpenedToNL}
                   onSelect={handleChangeBox}
                   onChange={handleChangeBox}
                   name="isOpenedToNL"
@@ -669,8 +672,8 @@ const InfoRace = (props: IInfoRaceProps) => {
           </Grid>
           <Grid item={true} xs={12}>
             <Editor
-              data={handleObservations}
-              edit={props.mainInfos.observations}
+              updateObservations={updateObservations}
+              observations={props.competition.observations}
             />
           </Grid>
         </Grid>
