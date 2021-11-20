@@ -109,6 +109,7 @@ const PriceRace = (props: IPriceProps) => {
       props.updatePricesInfos(prices, pricesError);
       props.onSaveCompetition();
       resetFormValues();
+      setIsEditing(false);
     }
   };
 

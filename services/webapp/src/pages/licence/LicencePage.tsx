@@ -212,10 +212,7 @@ const LicencesPage = (props: ILicencesProps) => {
     const isFirstnameValid = !newLicence.firstName;
     const isFedeValid = !newLicence.fede;
     const isGenreValid = !newLicence.gender;
-    const isLicenceNumberValid =
-      newLicence.fede !== null &&
-      newLicence.fede !== FedeEnum.NL &&
-      !newLicence.licenceNumber;
+    const isLicenceNumberValid = !newLicence.licenceNumber;
     const isCateaValid = !newLicence.catea;
     const isCatevValid = !newLicence.catev;
     const isClubValid = newLicence.fede !== FedeEnum.NL && !newLicence.club;
@@ -394,6 +391,7 @@ const LicencesPage = (props: ILicencesProps) => {
                   id="licenceNumber"
                   label="Numéro Licence"
                   error={validation.licenceNumber}
+                  value={newLicence.licenceNumber}
                   helperText={
                     validation.licenceNumber
                       ? "Veuillez indiquer le numéro de licence."

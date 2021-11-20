@@ -235,6 +235,7 @@ const HorairesRace = (props: IRaceProps) => {
       props.updateCompetitionInfos(tab, infosError);
       props.onSaveCompetition();
       resetFormValues();
+      setIsEditing(false);
     }
   };
 

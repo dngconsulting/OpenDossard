@@ -47,9 +47,10 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 const InfoRace = (props: IInfoRaceProps) => {
-  const date: string = moment(props.competition.eventDate).format(
-    "YYYY-MM-DDTHH:mm"
+  const date: string = moment(props.competition.eventDate ?? new Date()).format(
+    moment.HTML5_FMT.DATETIME_LOCAL
   );
+
   const classes = useStyles();
   const [error, setError] = useState<IErrorInfo>({
     fede: false,
@@ -111,7 +112,7 @@ const InfoRace = (props: IInfoRaceProps) => {
     props.updateMainInfos(
       {
         ...props.competition,
-        [label]: moment(value, "YYYY-MM-DD HH:mm:ssZZ")
+        [label]: moment(value, moment.HTML5_FMT.DATETIME_LOCAL)
       },
       mainInfoError
     );
@@ -290,6 +291,9 @@ const InfoRace = (props: IInfoRaceProps) => {
       }
     }
   };
+  console.log(
+    moment(props.competition.eventDate, moment.HTML5_FMT.DATETIME_LOCAL)
+  );
 
   return (
     <>
@@ -314,15 +318,15 @@ const InfoRace = (props: IInfoRaceProps) => {
           </Grid>
           <Grid item={true} xs={4}>
             <TextField
+              id="datetime-local"
+              type="datetime-local"
+              value={date}
               required={true}
               label="Date et heure de l'épreuve"
-              value={date}
               error={error.eventDate}
-              type="datetime-local"
-              id="datetime-local"
-              name="eventDate"
-              onSelect={handleFormDate}
               onChange={handleFormDate}
+              onSelect={handleFormDate}
+              name="eventDate"
               helperText={
                 error.eventDate && "la date de l'épreuve doit être renseignée"
               }
