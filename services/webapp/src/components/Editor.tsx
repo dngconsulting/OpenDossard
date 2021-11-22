@@ -11,7 +11,7 @@ const Editor = (props: any) => {
       </div>
       <CKEditor
         style={{ minHeight: 100 }}
-        data={props.observations}
+        data={props.observations ?? ""}
         onInit={(editor: any) => {
           setReady(true);
         }}

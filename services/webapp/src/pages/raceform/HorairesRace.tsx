@@ -1,26 +1,26 @@
 import {
-  TextField,
   Button,
-  Paper,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
+  ButtonBase,
   createStyles,
   makeStyles,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
   Theme,
-  Tooltip,
-  TableContainer
+  Tooltip
 } from "@material-ui/core";
 import { Delete, EditRounded, FileCopyRounded } from "@material-ui/icons";
-import React, { useState, useEffect, useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { ButtonBase } from "@material-ui/core";
 import { NotificationContext } from "components/CadSnackbar";
 import { CompetitionCreate, CompetitionInfo, FedeEnum } from "sdk";
 import { IErrorProp } from "../competition/CompetitionForm";
-import { saveCompetition } from "../common/Competition";
+import _ from "lodash";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -53,7 +53,7 @@ const HorairesRace = (props: IRaceProps) => {
   const errorMessage = "Veuillez remplir l'ensemble des champs obligatoires";
 
   const [, setNotification] = useContext(NotificationContext);
-  const [tab, setTab] = useState<CompetitionInfo[]>(
+  const [competitionInfos, setCompetitionInfos] = useState<CompetitionInfo[]>(
     props.competition.competitionInfo
   );
   const [index, setIndex] = useState<number>();
@@ -70,7 +70,7 @@ const HorairesRace = (props: IRaceProps) => {
   >();
 
   useEffect(() => {
-    setTab(props.competition.competitionInfo);
+    if (!props.competition.competitionInfo) setCompetitionInfos([]);
   }, [props.competition.competitionInfo]);
 
   const resetFormValues = (): void => {
@@ -109,18 +109,16 @@ const HorairesRace = (props: IRaceProps) => {
         type: "error"
       });
     } else {
-      props.competition.competitionInfo.push(data);
+      if (_.isEmpty(data.info3)) delete data.info3;
+      setCompetitionInfos([...competitionInfos, data]);
       const infosError =
         error.course &&
         error.info1 &&
         error.info2 &&
         error.horaireDepart &&
         error.horaireEngagement;
-      props.updateCompetitionInfos(
-        props.competition.competitionInfo,
-        infosError
-      );
-      props.onSaveCompetition();
+      props.updateCompetitionInfos(competitionInfos, infosError);
+      props.onSaveCompetition([...competitionInfos, data]);
       resetFormValues();
     }
   };
@@ -211,7 +209,7 @@ const HorairesRace = (props: IRaceProps) => {
       "info3"
     ]);
     showEmptyFields(row);
-
+    if (_.isEmpty(row.info3)) delete row.info3;
     if (
       row.course === "" ||
       row.horaireEngagement === "" ||
@@ -225,15 +223,15 @@ const HorairesRace = (props: IRaceProps) => {
         type: "error"
       });
     } else {
-      tab[event.currentTarget.value] = { ...row };
+      competitionInfos[event.currentTarget.value] = { ...row };
       const infosError =
         error.course &&
         error.info1 &&
         error.info2 &&
         error.horaireDepart &&
         error.horaireEngagement;
-      props.updateCompetitionInfos(tab, infosError);
-      props.onSaveCompetition();
+      props.updateCompetitionInfos(competitionInfos, infosError);
+      props.onSaveCompetition(competitionInfos);
       resetFormValues();
       setIsEditing(false);
     }
@@ -242,7 +240,7 @@ const HorairesRace = (props: IRaceProps) => {
   const editTabRow = (event: any): void => {
     setIsEditing(true);
 
-    const tabInfo = tab[event.currentTarget.value];
+    const tabInfo = competitionInfos[event.currentTarget.value];
     setValue("course", tabInfo.course);
     setValue("info1", tabInfo.info1);
     setValue("info2", tabInfo.info2);
@@ -260,12 +258,12 @@ const HorairesRace = (props: IRaceProps) => {
       error.info2 &&
       error.horaireDepart &&
       error.horaireEngagement;
-    props.competition.competitionInfo.splice(raceIndex, 1);
-    if (props.competition.competitionInfo.length === 0) {
+    setCompetitionInfos(competitionInfos.splice(raceIndex, 1));
+    if (competitionInfos.length === 0) {
       infosError = true;
     }
-    props.updateCompetitionInfos(props.competition.competitionInfo, infosError);
-    props.onSaveCompetition();
+    props.updateCompetitionInfos(competitionInfos, infosError);
+    props.onSaveCompetition(competitionInfos);
   };
 
   return (
@@ -450,8 +448,8 @@ const HorairesRace = (props: IRaceProps) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {tab && tab.length > 0 ? (
-              tab.map((info: CompetitionInfo, key: number) => (
+            {competitionInfos && competitionInfos.length > 0 ? (
+              competitionInfos.map((info: CompetitionInfo, key: number) => (
                 <TableRow key={key} className={classes.tableRow}>
                   <TableCell
                     scope="row"

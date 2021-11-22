@@ -18,14 +18,14 @@ import { Delete, EditRounded } from "@material-ui/icons";
 import { NotificationContext } from "components/CadSnackbar";
 import React, { useContext, useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { PricingInfo } from "sdk";
-import { IErrorPrice } from "../competition/CompetitionForm";
+import { LinkInfo, PricingInfo } from "sdk";
+import { IErrorMedia } from "../competition/CompetitionForm";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     textField: {
       margin: 8,
-      width: "200px",
+      width: "300px",
       marginRight: "150px"
     },
     table: {
@@ -37,77 +37,74 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-interface IPriceProps {
-  pricesInfos: PricingInfo[];
-  updatePricesInfos: (priceList: PricingInfo[], errors: boolean) => void;
-  onSaveCompetition: (prices: PricingInfo[]) => void;
+interface IMediaProps {
+  mediaInfos: LinkInfo[];
+  updateMediaInfos: (mediasInfos: LinkInfo[], errors: boolean) => void;
+  onSaveCompetition: Function;
 }
 
-const PriceRace = (props: IPriceProps) => {
+const MediaRace = (props: IMediaProps) => {
   const classes = useStyles();
   const errorMessage = "Veuillez remplir l'ensemble des champs obligatoires.";
 
   const [, setNotification] = useContext(NotificationContext);
-  const [prices, setPrices] = useState<PricingInfo[]>([]);
+  const [medias, setMedias] = useState<LinkInfo[]>([]);
   const [index, setIndex] = useState<number>();
-  const [error, setError] = useState<IErrorPrice>({
-    name: false,
-    tarif: false
+  const [error, setError] = useState<IErrorMedia>({
+    label: false,
+    link: false
   });
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const { register, handleSubmit, getValues, setValue } = useForm<
-    PricingInfo
-  >();
+  const { register, handleSubmit, getValues, setValue } = useForm<LinkInfo>();
 
   useEffect(() => {
-    if (props.pricesInfos) setPrices(props.pricesInfos);
-  }, [props.pricesInfos]);
+    if (props.mediaInfos) setMedias(props.mediaInfos);
+  }, [props.mediaInfos]);
 
   const resetFormValues = (): void => {
-    setValue("tarif", null);
-    setValue("name", "");
+    setValue("label", null);
+    setValue("link", "");
   };
 
-  const showEmptyFields = (data: PricingInfo): void => {
+  const showEmptyFields = (data: LinkInfo): void => {
     setError({
-      name: !data.name,
-      tarif: !data.tarif
+      label: !data.label,
+      link: !data.link
     });
   };
 
-  const onSubmit: SubmitHandler<PricingInfo> = (data: PricingInfo) => {
+  const onSubmit: SubmitHandler<LinkInfo> = (data: LinkInfo) => {
     showEmptyFields(data);
-
-    if (data.name === "" || String(data.tarif) === "" || data.tarif === null) {
+    if (data.label === "" || data.link === "") {
       setNotification({
         message: errorMessage,
         open: true,
         type: "error"
       });
     } else {
-      prices.push(data);
-      const pricesError = error.tarif && error.name;
-      props.updatePricesInfos(prices, pricesError);
-      props.onSaveCompetition(prices);
+      medias.push(data);
+      const mediasError = error.label && error.link;
+      props.updateMediaInfos(medias, mediasError);
+      props.onSaveCompetition(medias);
       resetFormValues();
     }
   };
 
   const onEdit = (event: any): void => {
-    const row = getValues(["name", "tarif"]);
+    const row = getValues(["label", "link"]);
     showEmptyFields(row);
 
-    if (row.name === "" || String(row.tarif) === "" || row.tarif === null) {
+    if (row.label === "" || row.link === "") {
       setNotification({
         message: errorMessage,
         open: true,
         type: "error"
       });
     } else {
-      prices[event.currentTarget.value] = getValues(["name", "tarif"]);
-      const pricesError = error.tarif && error.name;
-      props.updatePricesInfos(prices, pricesError);
-      props.onSaveCompetition(prices);
+      medias[event.currentTarget.value] = getValues(["label", "link"]);
+      const mediasError = error.label && error.link;
+      props.updateMediaInfos(medias, mediasError);
+      props.onSaveCompetition(medias);
       resetFormValues();
       setIsEditing(false);
     }
@@ -116,18 +113,18 @@ const PriceRace = (props: IPriceProps) => {
   const editTabRow = (event: any): void => {
     setIsEditing(true);
 
-    const tabPrices = prices[event.currentTarget.value];
-    setValue("tarif", tabPrices.tarif);
-    setValue("name", tabPrices.name);
+    const tabMedias = medias[event.currentTarget.value];
+    setValue("label", tabMedias.label);
+    setValue("link", tabMedias.link);
     setIndex(event.currentTarget.value);
   };
 
   const deleteTabRow = (event: any): void => {
     const raceIndex = event.currentTarget.value;
-    const pricesError = error.tarif && error.name;
-    prices.splice(raceIndex, 1);
-    props.updatePricesInfos(prices, pricesError);
-    props.onSaveCompetition(prices);
+    const pricesError = error.label && error.link;
+    medias.splice(raceIndex, 1);
+    props.updateMediaInfos(medias, pricesError);
+    props.onSaveCompetition(medias);
   };
 
   return (
@@ -142,26 +139,26 @@ const PriceRace = (props: IPriceProps) => {
       >
         <TextField
           required={true}
-          label="Nom du tarif"
-          error={error.name}
-          helperText={error.name && "Le nom du tarif doit être renseigné"}
-          placeholder="ex : Licencié FFC"
+          label="Nom de l'album"
+          error={error.label}
+          helperText={error.label && "Le nom de l'album doit être renseigné"}
+          placeholder="ex : Photos toutes catégories"
           className={classes.textField}
-          name="name"
+          name="label"
           inputRef={register()}
-          inputProps={{ name: "name", ref: { register } }}
+          inputProps={{ name: "label", ref: { register } }}
           InputLabelProps={{ shrink: true }}
         />
         <TextField
           required={true}
-          label="Montant"
-          error={error.tarif}
-          helperText={error.tarif && "Le montant doit être renseigné"}
-          placeholder="ex : 7€"
+          label="Lien de l'album"
+          error={error.link}
+          helperText={error.link && "Le lien hypertexte doit être renseigné"}
+          placeholder="ex : http://google/album/course2"
           className={classes.textField}
-          name="tarif"
+          name="link"
           inputRef={register}
-          inputProps={{ name: "tarif", ref: { register } }}
+          inputProps={{ name: "link", ref: { register } }}
           margin="normal"
           InputLabelProps={{ shrink: true }}
         />
@@ -214,13 +211,13 @@ const PriceRace = (props: IPriceProps) => {
                 align="center"
                 style={{ width: "35%", border: "1px solid black" }}
               >
-                Tarif
+                Nom de l'album
               </TableCell>
               <TableCell
                 align="center"
                 style={{ width: "35%", border: "1px solid black" }}
               >
-                Montant
+                Lien de l'album
               </TableCell>
               <TableCell
                 align="center"
@@ -233,27 +230,31 @@ const PriceRace = (props: IPriceProps) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {prices && prices.length > 0 ? (
-              prices.map((row: PricingInfo, key: number) => (
+            {medias && medias.length > 0 ? (
+              medias.map((row: LinkInfo, key: number) => (
                 <TableRow key={key}>
                   <TableCell
                     scope="row"
                     align="center"
                     style={{ columnWidth: "35%", border: "1px solid black" }}
                   >
-                    {row ? row.name : ""}
+                    {row ? row.label : ""}
                   </TableCell>
                   <TableCell
                     align="center"
                     style={{ columnWidth: "35%", border: "1px solid black" }}
                   >
-                    {row ? row.tarif : ""}
+                    <Tooltip title="Cliquer sur le lien pour visualiser l'album">
+                      <a target="_blank" href={row ? row.link : ""}>
+                        {row ? row.link : ""}
+                      </a>
+                    </Tooltip>
                   </TableCell>
                   <TableCell
                     align="center"
                     style={{ columnWidth: "5%", border: "1px solid black" }}
                   >
-                    <Tooltip title="Modifier le tarif">
+                    <Tooltip title="Modifier le lien">
                       <ButtonBase value={key} onClick={editTabRow}>
                         <EditRounded fontSize={"default"} />
                       </ButtonBase>
@@ -267,7 +268,7 @@ const PriceRace = (props: IPriceProps) => {
                       paddingLeft: "16px"
                     }}
                   >
-                    <Tooltip title="Supprimer définitivement ce tarif">
+                    <Tooltip title="Supprimer définitivement ce lien">
                       <ButtonBase value={key} onClick={deleteTabRow}>
                         <Delete fontSize={"default"} />
                       </ButtonBase>
@@ -281,7 +282,7 @@ const PriceRace = (props: IPriceProps) => {
                   style={{ textAlign: "center", height: 50 }}
                   colSpan={8}
                 >
-                  Aucun tarif encore ajouté
+                  Aucun lien encore ajouté
                 </TableCell>
               </TableRow>
             )}
@@ -291,4 +292,4 @@ const PriceRace = (props: IPriceProps) => {
     </div>
   );
 };
-export default PriceRace;
+export default MediaRace;

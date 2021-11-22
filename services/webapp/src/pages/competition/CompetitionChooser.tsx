@@ -122,7 +122,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         setLoading(true);
 
         await fetchCompetitions();
-        await fetchAllRaces();
+        fetchAllRaces();
       } finally {
         setLoading(false);
       }

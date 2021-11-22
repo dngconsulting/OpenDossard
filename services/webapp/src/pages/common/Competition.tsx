@@ -1,11 +1,11 @@
 import { apiCompetitions } from "../../util/api";
 import { CompetitionCreate } from "../../sdk";
+import _ from "lodash";
 
 const isCompetitionValid = (competition: CompetitionCreate): boolean => {
   return (
     !!competition.name &&
     !!competition?.eventDate &&
-    !!competition?.categories &&
     !!competition?.zipCode &&
     !!competition?.races
   );
@@ -39,7 +39,8 @@ export const saveCompetition = async ({
             open: true
           });
         } catch (err) {
-          const er = await err.json();
+          let er = { message: "" };
+          if (err.json) er = await err.json();
           setNotification({
             message: `L'épreuve ${competition.name} n'a pas pu être créée ou modifiée ${er?.message}`,
             type: "error",

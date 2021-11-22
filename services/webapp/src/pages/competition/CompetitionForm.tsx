@@ -16,7 +16,7 @@ import {
 import InfoRace from "pages/raceform/InfoRace";
 import HorairesRace from "pages/raceform/HorairesRace";
 import PriceRace from "pages/raceform/PriceRace";
-import { CompetitionInfo, PricingInfo } from "sdk";
+import { CompetitionInfo, LinkInfo, PricingInfo } from "sdk";
 import { NotificationContext } from "components/CadSnackbar";
 import { apiCompetitions } from "util/api";
 import {
@@ -29,6 +29,7 @@ import { styles } from "../../navigation/styles";
 import { LatLng } from "leaflet";
 import { LoaderIndicator } from "../../components/LoaderIndicator";
 import { saveCompetition } from "../common/Competition";
+import MediaRace from "../raceform/MediaRace";
 
 interface ITabPanelProps {
   children?: React.ReactNode;
@@ -47,6 +48,11 @@ export interface IErrorProp {
   horaireDepart: boolean;
   info1: boolean;
   info2: boolean;
+}
+
+export interface IErrorMedia {
+  label: boolean;
+  link: boolean;
 }
 
 export interface IErrorPrice {
@@ -140,9 +146,10 @@ const CompetNavBar = (props: ICompetNavBar) => {
     competitionType: null,
     categories: [CompetitionCreateCategoriesEnum.Toutes],
     races: ["2,3,4,5"],
-    eventDate: null,
+    eventDate: new Date(),
     zipCode: "",
     clubId: null,
+    photoUrls: [],
     info: "",
     competitionInfo: [],
     circuitLength: "",
@@ -196,6 +203,7 @@ const CompetNavBar = (props: ICompetNavBar) => {
           isOpenedToNL: res.isOpenedToNL,
           observations: res.observations,
           localisation: res.localisation,
+          photoUrls: res.photoUrls,
           gpsCoordinates: String(getGPSCoordinates(res.gpsCoordinates)),
           contactName: res.contactName,
           commissaires: res.commissaires,
@@ -241,7 +249,7 @@ const CompetNavBar = (props: ICompetNavBar) => {
 
   const getGPSCoordinates = (gpsCoordinates: string): number[] => {
     let coordinates = [DEFAULT_LAT, DEFAULT_LNG];
-    if (gpsCoordinates || gpsCoordinates !== "") {
+    if (gpsCoordinates && gpsCoordinates !== "") {
       const coordinatesTab: string[] = gpsCoordinates.split(",");
       const lat: number = parseFloat(coordinatesTab[0]);
       const lng: number = parseFloat(coordinatesTab[1]);
@@ -262,14 +270,6 @@ const CompetNavBar = (props: ICompetNavBar) => {
     setNewCompetition(competition);
   };
 
-  const setCompetitionInfos = (
-    infos: CompetitionInfo[],
-    errorProp: boolean
-  ): void => {
-    setErrors({ ...errors, horaires: errorProp });
-    setNewCompetition({ ...newCompetition, competitionInfo: infos });
-  };
-
   const setPricesInfo = (
     pricesInfos: PricingInfo[],
     errorPrice: boolean
@@ -278,6 +278,20 @@ const CompetNavBar = (props: ICompetNavBar) => {
     setNewCompetition({ ...newCompetition, pricing: pricesInfos });
   };
 
+  const setCompetitionInfos = (
+    infos: CompetitionInfo[],
+    errorProp: boolean
+  ): void => {
+    setErrors({ ...errors, horaires: errorProp });
+    setNewCompetition({ ...newCompetition, competitionInfo: infos });
+  };
+
+  const setMediasInfo = (
+    mediasInfos: LinkInfo[],
+    errorMedia: boolean
+  ): void => {
+    setNewCompetition({ ...newCompetition, photoUrls: mediasInfos });
+  };
   const setGPSCoordinates = (gpsCoordinates: LatLng): void => {
     setNewCompetition({
       ...newCompetition,
@@ -304,6 +318,7 @@ const CompetNavBar = (props: ICompetNavBar) => {
             <Tab className={classes.Tab} label="Horaires & Circuit" />
             <Tab className={classes.Tab} label="Tarifs" />
             <Tab className={classes.Tab} label="Localisation" />
+            <Tab className={classes.Tab} label="Photos/Medias" />
           </Tabs>
         </AppBar>
 
@@ -328,9 +343,9 @@ const CompetNavBar = (props: ICompetNavBar) => {
           <HorairesRace
             competition={newCompetition}
             updateCompetitionInfos={setCompetitionInfos}
-            onSaveCompetition={() =>
+            onSaveCompetition={(infos: CompetitionInfo[]) =>
               saveCompetition({
-                competition: newCompetition,
+                competition: { ...newCompetition, competitionInfo: infos },
                 setIsLoading: setIsLoading,
                 setIsSubmited: setIsSubmited,
                 setNotification: setNotification,
@@ -344,9 +359,9 @@ const CompetNavBar = (props: ICompetNavBar) => {
           <PriceRace
             pricesInfos={newCompetition.pricing}
             updatePricesInfos={setPricesInfo}
-            onSaveCompetition={() =>
+            onSaveCompetition={prices =>
               saveCompetition({
-                competition: newCompetition,
+                competition: { ...newCompetition, pricing: prices },
                 setIsLoading: setIsLoading,
                 setIsSubmited: setIsSubmited,
                 setNotification: setNotification,
@@ -397,6 +412,24 @@ const CompetNavBar = (props: ICompetNavBar) => {
               Enregistrer la localisation
             </Button>
           </>
+        </TabPanel>
+        <TabPanel value={value} index={4}>
+          <MediaRace
+            mediaInfos={newCompetition.photoUrls}
+            updateMediaInfos={setMediasInfo}
+            onSaveCompetition={async (medias: LinkInfo[]) => {
+              await saveCompetition({
+                competition: {
+                  ...newCompetition,
+                  ...(medias.length > 0 ? { photoUrls: medias } : {})
+                },
+                setIsLoading: setIsLoading,
+                setIsSubmited: setIsSubmited,
+                setNotification: setNotification,
+                setNewCompetition: setNewCompetition
+              });
+            }}
+          />
         </TabPanel>
       </div>
     </>

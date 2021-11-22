@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import {
-  TextField,
-  FormControlLabel,
+  Button,
   Checkbox,
   Container,
-  Button,
+  createStyles,
+  FormControlLabel,
   makeStyles,
-  Theme,
-  createStyles
+  TextField,
+  Theme
 } from "@material-ui/core";
 import Editor from "components/Editor";
 import moment from "moment";
@@ -21,8 +21,14 @@ import { FedeEnum } from "sdk/models/FedeEnum";
 import { IErrorInfo } from "../competition/CompetitionForm";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import Grid from "@material-ui/core/Grid";
-import { saveCompetition } from "../common/Competition";
+import _ from "lodash";
 
+const isSafari = () => {
+  return (
+    navigator.userAgent.indexOf("Safari") != -1 &&
+    navigator.userAgent.indexOf("Chrome") == -1
+  );
+};
 interface IInfoRaceProps {
   competition: CompetitionCreate;
   history: any;
@@ -92,6 +98,7 @@ const InfoRace = (props: IInfoRaceProps) => {
   };
 
   const updateObservations = (data: string): void => {
+    if (_.isEmpty(data)) return;
     const mainInfoError = showEmptyFields();
     props.updateMainInfos(
       { ...props.competition, observations: data },
@@ -291,9 +298,6 @@ const InfoRace = (props: IInfoRaceProps) => {
       }
     }
   };
-  console.log(
-    moment(props.competition.eventDate, moment.HTML5_FMT.DATETIME_LOCAL)
-  );
 
   return (
     <>

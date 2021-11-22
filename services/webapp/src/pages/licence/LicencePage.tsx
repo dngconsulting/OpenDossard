@@ -557,6 +557,11 @@ const LicencesPage = (props: ILicencesProps) => {
           <Grid item={true} xs={4}>
             <FormControl className={classes.formControl}>
               <Autocomplete
+                noOptionsText={
+                  !newLicence.gender || !newLicence.birthYear
+                    ? "N'oubliez pas de saisir un genre et une année de naissance"
+                    : "Aucune valeur"
+                }
                 options={cateAOptions}
                 value={
                   cateAOptions.find(

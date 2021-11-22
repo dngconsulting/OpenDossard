@@ -40,6 +40,7 @@ import { Roles } from "../decorators/roles.decorator";
 import { FindManyOptions } from "typeorm/find-options/FindManyOptions";
 import { ClubEntity } from "src/entity/club.entity";
 import { plainToClass } from "class-transformer";
+import * as _ from "lodash";
 
 const MAX_COMPETITION_TO_DISPLAY = 5000;
 /**
@@ -324,11 +325,24 @@ export class CompetitionController {
     competition.speaker = dto.speaker;
     competition.aboyeur = dto.aboyeur;
     competition.commissaires = dto.commissaires;
+    competition.photoUrls = dto.photoUrls;
     // For new competition reset the sequence in case other have insert rows in competition table
     if (!competition.id)
       await this.entityManager.connection.manager.query(
         "SELECT SETVAL('public.competition_id_seq', COALESCE(MAX(id), 1) ) FROM public.competition"
       );
+    // Clean all empty values
+    for (const propertyName in competition) {
+      if (!competition[propertyName] || _.isEmpty(competition[propertyName]))
+        if (
+          (propertyName !== "gpsCoordinates" &&
+            typeof competition[propertyName] === "string") ||
+          Array.isArray(competition[propertyName])
+        ) {
+          Logger.debug("Delete propertyName");
+          delete competition[propertyName];
+        }
+    }
     const updatedCompetitionEntity = await this.repository.save(competition);
     const competitionUpserted: CompetitionCreate = plainToClass(
       CompetitionCreate,
