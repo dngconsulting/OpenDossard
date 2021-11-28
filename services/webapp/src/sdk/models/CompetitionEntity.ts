@@ -125,25 +125,25 @@ export interface CompetitionEntity {
      * @type {string}
      * @memberof CompetitionEntity
      */
-    localisation?: string;
+    lieuDossard?: string;
     /**
      * 
      * @type {string}
      * @memberof CompetitionEntity
      */
-    gpsCoordinates: string;
+    lieuDossardGPS: string;
     /**
      * 
      * @type {string}
      * @memberof CompetitionEntity
      */
-    circuitLength?: string;
+    longueurCircuit?: string;
     /**
      * 
      * @type {string}
      * @memberof CompetitionEntity
      */
-    website?: string;
+    siteweb?: string;
     /**
      * 
      * @type {string}
@@ -173,13 +173,13 @@ export interface CompetitionEntity {
      * @type {boolean}
      * @memberof CompetitionEntity
      */
-    isOpenedToOtherFede?: boolean;
+    openedToOtherFede?: boolean;
     /**
      * 
      * @type {boolean}
      * @memberof CompetitionEntity
      */
-    isOpenedToNL?: boolean;
+    openedNL?: boolean;
     /**
      * 
      * @type {string}
@@ -221,7 +221,7 @@ export interface CompetitionEntity {
      * @type {boolean}
      * @memberof CompetitionEntity
      */
-    isValidResults?: boolean;
+    resultsValidated?: boolean;
     /**
      * 
      * @type {Array<LinkInfo>}
@@ -259,23 +259,23 @@ export function CompetitionEntityFromJSONTyped(json: any, ignoreDiscriminator: b
         'pricing': !exists(json, 'pricing') ? undefined : ((json['pricing'] as Array<any>).map(PricingInfoFromJSON)),
         'races': !exists(json, 'races') ? undefined : json['races'],
         'competitionInfo': !exists(json, 'competitionInfo') ? undefined : ((json['competitionInfo'] as Array<any>).map(CompetitionInfoFromJSON)),
-        'localisation': !exists(json, 'localisation') ? undefined : json['localisation'],
-        'gpsCoordinates': json['gpsCoordinates'],
-        'circuitLength': !exists(json, 'circuitLength') ? undefined : json['circuitLength'],
-        'website': !exists(json, 'website') ? undefined : json['website'],
+        'lieuDossard': !exists(json, 'lieuDossard') ? undefined : json['lieuDossard'],
+        'lieuDossardGPS': json['lieuDossardGPS'],
+        'longueurCircuit': !exists(json, 'longueurCircuit') ? undefined : json['longueurCircuit'],
+        'siteweb': !exists(json, 'siteweb') ? undefined : json['siteweb'],
         'facebook': !exists(json, 'facebook') ? undefined : json['facebook'],
         'contactEmail': !exists(json, 'contactEmail') ? undefined : json['contactEmail'],
         'contactPhone': !exists(json, 'contactPhone') ? undefined : json['contactPhone'],
         'contactName': !exists(json, 'contactName') ? undefined : json['contactName'],
-        'isOpenedToOtherFede': !exists(json, 'isOpenedToOtherFede') ? undefined : json['isOpenedToOtherFede'],
-        'isOpenedToNL': !exists(json, 'isOpenedToNL') ? undefined : json['isOpenedToNL'],
+        'openedToOtherFede': !exists(json, 'openedToOtherFede') ? undefined : json['openedToOtherFede'],
+        'openedNL': !exists(json, 'openedNL') ? undefined : json['openedNL'],
         'dept': !exists(json, 'dept') ? undefined : json['dept'],
         'rankingUrl': !exists(json, 'rankingUrl') ? undefined : json['rankingUrl'],
         'commissaires': !exists(json, 'commissaires') ? undefined : json['commissaires'],
         'speaker': !exists(json, 'speaker') ? undefined : json['speaker'],
         'aboyeur': !exists(json, 'aboyeur') ? undefined : json['aboyeur'],
         'feedback': !exists(json, 'feedback') ? undefined : json['feedback'],
-        'isValidResults': !exists(json, 'isValidResults') ? undefined : json['isValidResults'],
+        'resultsValidated': !exists(json, 'resultsValidated') ? undefined : json['resultsValidated'],
         'photoUrls': !exists(json, 'photoUrls') ? undefined : ((json['photoUrls'] as Array<any>).map(LinkInfoFromJSON)),
         'rankingUrls': !exists(json, 'rankingUrls') ? undefined : ((json['rankingUrls'] as Array<any>).map(LinkInfoFromJSON)),
     };
@@ -303,23 +303,23 @@ export function CompetitionEntityToJSON(value?: CompetitionEntity | null): any {
         'pricing': value.pricing === undefined ? undefined : ((value.pricing as Array<any>).map(PricingInfoToJSON)),
         'races': value.races,
         'competitionInfo': value.competitionInfo === undefined ? undefined : ((value.competitionInfo as Array<any>).map(CompetitionInfoToJSON)),
-        'localisation': value.localisation,
-        'gpsCoordinates': value.gpsCoordinates,
-        'circuitLength': value.circuitLength,
-        'website': value.website,
+        'lieuDossard': value.lieuDossard,
+        'lieuDossardGPS': value.lieuDossardGPS,
+        'longueurCircuit': value.longueurCircuit,
+        'siteweb': value.siteweb,
         'facebook': value.facebook,
         'contactEmail': value.contactEmail,
         'contactPhone': value.contactPhone,
         'contactName': value.contactName,
-        'isOpenedToOtherFede': value.isOpenedToOtherFede,
-        'isOpenedToNL': value.isOpenedToNL,
+        'openedToOtherFede': value.openedToOtherFede,
+        'openedNL': value.openedNL,
         'dept': value.dept,
         'rankingUrl': value.rankingUrl,
         'commissaires': value.commissaires,
         'speaker': value.speaker,
         'aboyeur': value.aboyeur,
         'feedback': value.feedback,
-        'isValidResults': value.isValidResults,
+        'resultsValidated': value.resultsValidated,
         'photoUrls': value.photoUrls === undefined ? undefined : ((value.photoUrls as Array<any>).map(LinkInfoToJSON)),
         'rankingUrls': value.rankingUrls === undefined ? undefined : ((value.rankingUrls as Array<any>).map(LinkInfoToJSON)),
     };

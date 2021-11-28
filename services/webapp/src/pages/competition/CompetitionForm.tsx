@@ -16,7 +16,7 @@ import {
 import InfoRace from "pages/raceform/InfoRace";
 import HorairesRace from "pages/raceform/HorairesRace";
 import PriceRace from "pages/raceform/PriceRace";
-import { CompetitionInfo, LinkInfo, PricingInfo } from "sdk";
+import { CompetitionEntity, CompetitionInfo, LinkInfo, PricingInfo } from "sdk";
 import { NotificationContext } from "components/CadSnackbar";
 import { apiCompetitions } from "util/api";
 import {
@@ -178,7 +178,9 @@ const CompetNavBar = (props: ICompetNavBar) => {
     const loadCompetition = async () => {
       setIsLoading(true);
       if (!isNaN(parseInt(id))) {
-        const res = await apiCompetitions.getCompetition({ id });
+        const res: CompetitionEntity = await apiCompetitions.getCompetition({
+          id
+        });
         const toUpdateCompetition: CompetitionCreate = {
           ...newCompetition,
           fede: res.fede,
@@ -191,27 +193,27 @@ const CompetNavBar = (props: ICompetNavBar) => {
           clubId: res.club.id,
           info: res.info,
           competitionInfo: res.competitionInfo,
-          circuitLength: res.circuitLength,
+          circuitLength: res.longueurCircuit,
           contactPhone: res.contactPhone,
           contactEmail: res.contactEmail,
-          website: res.website,
+          website: res.siteweb,
           facebook: res.facebook,
-          latitude: getGPSCoordinates(res.gpsCoordinates)[0],
-          longitude: getGPSCoordinates(res.gpsCoordinates)[1],
+          latitude: getGPSCoordinates(res.lieuDossardGPS)[0],
+          longitude: getGPSCoordinates(res.lieuDossardGPS)[1],
           pricing: res.pricing,
-          isOpenedToOtherFede: res.isOpenedToOtherFede,
-          isOpenedToNL: res.isOpenedToNL,
+          isOpenedToOtherFede: res.openedToOtherFede,
+          isOpenedToNL: res.openedNL,
           observations: res.observations,
-          localisation: res.localisation,
+          localisation: res.lieuDossard,
           photoUrls: res.photoUrls,
-          gpsCoordinates: String(getGPSCoordinates(res.gpsCoordinates)),
+          gpsCoordinates: String(getGPSCoordinates(res.lieuDossardGPS)),
           contactName: res.contactName,
           commissaires: res.commissaires,
           speaker: res.speaker,
           aboyeur: res.aboyeur,
           feedback: res.feedback,
           dept: res.dept,
-          isValidResults: res.isValidResults
+          isValidResults: res.resultsValidated
         };
         setNewCompetition(toUpdateCompetition);
       }

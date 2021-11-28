@@ -2,26 +2,18 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Logger,
   NotFoundException,
   Param,
   Post,
-  Put,
-  Delete,
   UseGuards
 } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
+import { Any, Between, EntityManager, Repository } from "typeorm";
 import {
-  Any,
-  Between,
-  EntityManager,
-  EntityRepository,
-  Repository
-} from "typeorm";
-import {
-  Category,
   CompetitionEntity,
   CompetitionType
 } from "../entity/competition.entity";
@@ -171,7 +163,6 @@ export class CompetitionController {
       },
       relations: ["club"]
     };
-    console.log("[CompetitionController] Query =" + JSON.stringify(query));
     const result: CompetitionEntity[] = await this.repository.find(query);
 
     if (result.length > MAX_COMPETITION_TO_DISPLAY) {
@@ -244,8 +235,8 @@ export class CompetitionController {
     }
     competition.commissaires = competitionToSave.commissaires;
     competition.speaker = competitionToSave.speaker;
-    competitionToSave.isValidResults != null &&
-      (competition.isValidResults = competitionToSave.isValidResults);
+    competitionToSave.resultsValidated != null &&
+      (competition.resultsValidated = competitionToSave.resultsValidated);
     return await this.repository.save(competition);
   }
 
@@ -303,8 +294,8 @@ export class CompetitionController {
     competition.zipCode = dto.zipCode;
     competition.dept = dto.zipCode.substr(0, 2);
     competition.info = dto.info;
-    competition.website = dto.website;
-    competition.circuitLength = dto.circuitLength;
+    competition.siteweb = dto.website;
+    competition.longueurCircuit = dto.circuitLength;
     competition.club = club;
     competition.contactPhone = dto.contactPhone;
     competition.facebook = dto.facebook;
@@ -315,12 +306,14 @@ export class CompetitionController {
     competition.competitionInfo = dto.competitionInfo;
     competition.races = dto.races;
     competition.contactName = dto.contactName;
-    competition.gpsCoordinates = dto.gpsCoordinates;
+    competition.lieuDossardGPS = dto.gpsCoordinates;
     competition.feedback = dto.feedback;
-    competition.localisation = dto.localisation;
+    competition.lieuDossard = dto.localisation;
     competition.observations = dto.observations;
-    competition.isOpenedToNL = dto.isOpenedToNL;
-    competition.isOpenedToOtherFede = dto.isOpenedToOtherFede;
+    if (competition.fede !== "CYCLOS") {
+      competition.openedNL = dto.isOpenedToNL;
+      competition.openedToOtherFede = dto.isOpenedToOtherFede;
+    }
     competition.pricing = dto.pricing;
     competition.speaker = dto.speaker;
     competition.aboyeur = dto.aboyeur;

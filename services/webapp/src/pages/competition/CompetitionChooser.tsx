@@ -32,6 +32,7 @@ import _ from "lodash";
 import { NotificationContext } from "../../components/CadSnackbar";
 import { styles } from "../../navigation/styles";
 import { Delete, EditRounded } from "@material-ui/icons";
+import { ConfirmDialog } from "../../util";
 
 interface ICompetitionChooserProps {
   classes?: any;
@@ -63,6 +64,8 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
   const [, setNotification] = useContext(NotificationContext);
 
   const [data, setData] = useState<CompetitionEntity[]>([]);
+  const [open, openDialog] = React.useState(false);
+  const [competitionToDelete, setCompetitionToDelete] = React.useState(null);
   const [raceRows, setRaceRows] = useState<RaceRow[]>([]);
   const [filteredData, setFilteredData] = useState<Competition[]>([]);
   const [selectPastOrFuture, setSelectPastOrFuture] = useState(undefined);
@@ -75,7 +78,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
     openedNL: false,
     openedToOtherFede: false,
     displayPast: true,
-    displaySince: 600
+    displaySince: 730
   });
 
   const fetchCompetitions = async () => {
@@ -240,20 +243,8 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         <Delete
           onClick={async (event: any) => {
             event.stopPropagation();
-            try {
-              setLoading(true);
-              const id = compRow.id;
-              await apiCompetitions.deleteCompetition({ id });
-              fetchCompetitions();
-            } catch {
-              setNotification({
-                message: `L'épreuve' ${compRow.name} n'a pu être effacée`,
-                type: "error",
-                open: true
-              });
-            } finally {
-              setLoading(false);
-            }
+            openDialog(true);
+            setCompetitionToDelete(compRow);
           }}
           fontSize={"default"}
         />
@@ -263,6 +254,33 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
 
   return (
     <Paper className={classes.root}>
+      <ConfirmDialog
+        title={"Attention"}
+        question={
+          "Êtes-vous sûr de vouloir supprimer DEFINITIVEMENT cette épreuve (s'il existe un coureur engagé, cette suppression sera interdite) ?"
+        }
+        open={open}
+        confirmMessage={"Oui je souhaite supprimer cette épreuve"}
+        cancelMessage={"Non"}
+        handleClose={() => openDialog(false)}
+        handleOk={async () => {
+          openDialog(false);
+          try {
+            setLoading(true);
+            const id = competitionToDelete.id;
+            await apiCompetitions.deleteCompetition({ id });
+            fetchCompetitions();
+          } catch {
+            setNotification({
+              message: `L'épreuve' ${competitionToDelete.name} n'a pu être effacée`,
+              type: "error",
+              open: true
+            });
+          } finally {
+            setLoading(false);
+          }
+        }}
+      />
       <FormControl
         style={{ display: "flex", flexDirection: "row", alignItems: "center" }}
         component="fieldset"

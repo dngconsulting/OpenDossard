@@ -368,10 +368,18 @@ const InfoRace = (props: IInfoRaceProps) => {
               style={{ width: "80%" }}
               onChange={(event: any, target: string | any) => {
                 setError({ ...error, competitionType: !target });
+
                 const mainInfoError = showEmptyFields();
                 if (target) {
                   props.updateMainInfos(
-                    { ...props.competition, competitionType: target.value },
+                    {
+                      ...props.competition,
+                      competitionType: target.value,
+                      ...(target.value ==
+                      CompetitionCreateCompetitionTypeEnum.CX
+                        ? { info: "Cyclo-Cross" }
+                        : { info: "" })
+                    },
                     mainInfoError
                   );
                 } else {
@@ -442,13 +450,18 @@ const InfoRace = (props: IInfoRaceProps) => {
                   mainInfoError
                 );
               }}
-              options={[
-                "Valloné",
-                "Montagne",
-                "Circuit Plat",
-                "Moy-Montagne",
-                "NC"
-              ]}
+              options={
+                props.competition.competitionType ===
+                CompetitionCreateCompetitionTypeEnum.CX
+                  ? ["Cyclo Cross"]
+                  : [
+                      "Valloné",
+                      "Montagne",
+                      "Circuit Plat",
+                      "Moy-Montagne",
+                      "NC"
+                    ]
+              }
             />
           </Grid>
           <Grid item={true} xs={4}>
@@ -650,34 +663,38 @@ const InfoRace = (props: IInfoRaceProps) => {
           </Grid>
         ) : null}
         <Grid container={true} spacing={2} alignItems={"center"}>
-          <Grid item={true} xs={4}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={props.competition.isOpenedToOtherFede}
-                  onSelect={handleChangeBox}
-                  onChange={handleChangeBox}
-                  name="isOpenedToOtherFede"
-                  color="primary"
+          {props.competition.fede !== FedeEnum.CYCLOS && (
+            <React.Fragment>
+              <Grid item={true} xs={4}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={props.competition.isOpenedToOtherFede}
+                      onSelect={handleChangeBox}
+                      onChange={handleChangeBox}
+                      name="isOpenedToOtherFede"
+                      color="primary"
+                    />
+                  }
+                  label="Ouvert aux licenciés des autres fédérations"
                 />
-              }
-              label="Ouvert aux licenciés des autres fédérations"
-            />
-          </Grid>
-          <Grid item={true} xs={4}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={props.competition.isOpenedToNL}
-                  onSelect={handleChangeBox}
-                  onChange={handleChangeBox}
-                  name="isOpenedToNL"
-                  color="primary"
+              </Grid>
+              <Grid item={true} xs={4}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={props.competition.isOpenedToNL}
+                      onSelect={handleChangeBox}
+                      onChange={handleChangeBox}
+                      name="isOpenedToNL"
+                      color="primary"
+                    />
+                  }
+                  label="Ouvert aux non licenciés"
                 />
-              }
-              label="Ouvert aux non licenciés"
-            />
-          </Grid>
+              </Grid>
+            </React.Fragment>
+          )}
           <Grid item={true} xs={12}>
             <Editor
               updateObservations={updateObservations}
