@@ -137,7 +137,8 @@ const PriceRace = (props: IPriceProps) => {
           display: "flex",
           width: "100%",
           alignItems: "center",
-          justifyContent: "center"
+          justifyContent: "center",
+          marginTop: 30
         }}
       >
         <TextField

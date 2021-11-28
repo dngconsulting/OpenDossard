@@ -1,10 +1,11 @@
 import React from "react";
-import { Map, TileLayer, withLeaflet, LayersControl } from "react-leaflet";
+import { LayersControl, Map, TileLayer, withLeaflet } from "react-leaflet";
 import { ReactLeafletSearch } from "react-leaflet-search";
-import { LatLng, LatLngExpression } from "leaflet";
+import { LatLng } from "leaflet";
 import AddMarker from "./AddMarker";
 
 interface ILeafletProps {
+  commune: string;
   lat: number;
   lng: number;
   updateCoordinates: (gpsCoordinates: LatLng) => void;
@@ -12,7 +13,7 @@ interface ILeafletProps {
 export const DEFAULT_LAT = 43.604652;
 export const DEFAULT_LNG = 1.444209;
 const LeafletMap = (props: ILeafletProps) => {
-  const zoom = 12;
+  const zoom = 14;
 
   const ReactLeafletSearchComponent = withLeaflet(ReactLeafletSearch);
 
@@ -26,13 +27,18 @@ const LeafletMap = (props: ILeafletProps) => {
         className="searchBar"
         position="topright"
         providerOptions={{ region: "fr" }}
-        inputPlaceholder="Commune ou Code Postal ici"
+        inputPlaceholder={
+          "Saisir " +
+          (props.commune ? "'" + props.commune + "'" : "code postal") +
+          " ou commune"
+        }
         showMarker={false}
         zoom={zoom}
         showPopup={true}
         closeResultsOnClick={true}
         openSearchOnLoad={true}
       />
+
       <LayersControl position="topleft">
         <LayersControl.BaseLayer checked name="Vue cartographique">
           <TileLayer
@@ -47,7 +53,6 @@ const LeafletMap = (props: ILeafletProps) => {
           />
         </LayersControl.BaseLayer>
       </LayersControl>
-
       <AddMarker
         updateCoordinates={setGPSCoordinates}
         coordinates={{ lat: props.lat, lng: props.lng }}

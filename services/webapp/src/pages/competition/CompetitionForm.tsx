@@ -30,6 +30,7 @@ import { LatLng } from "leaflet";
 import { LoaderIndicator } from "../../components/LoaderIndicator";
 import { saveCompetition } from "../common/Competition";
 import MediaRace from "../raceform/MediaRace";
+import _ from "lodash";
 
 interface ITabPanelProps {
   children?: React.ReactNode;
@@ -130,7 +131,9 @@ function TabPanel(props: ITabPanelProps) {
 const CompetNavBar = (props: ICompetNavBar) => {
   const id = props.match.params.id;
   const classes = useStyles();
-
+  const [communeLocalisationForMap, setCommuneLocalisationForMap] = useState<
+    string
+  >();
   const [, setNotification] = useContext(NotificationContext);
   const [isSubmitted, setIsSubmited] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -215,6 +218,8 @@ const CompetNavBar = (props: ICompetNavBar) => {
           dept: res.dept,
           isValidResults: res.resultsValidated
         };
+        if (!_.isEmpty(toUpdateCompetition.localisation))
+          setCommuneLocalisationForMap(toUpdateCompetition.localisation);
         setNewCompetition(toUpdateCompetition);
       }
       setIsLoading(false);
@@ -270,6 +275,8 @@ const CompetNavBar = (props: ICompetNavBar) => {
   ): void => {
     setErrors({ ...errors, info: errorInfo });
     setNewCompetition(competition);
+    if (!_.isEmpty(competition.localisation))
+      setCommuneLocalisationForMap(competition.localisation);
   };
 
   const setPricesInfo = (
@@ -376,6 +383,7 @@ const CompetNavBar = (props: ICompetNavBar) => {
         <TabPanel value={value} index={3}>
           <>
             <LeafletMap
+              commune={communeLocalisationForMap}
               lat={getGPSCoordinates(newCompetition.gpsCoordinates)[0]}
               lng={getGPSCoordinates(newCompetition.gpsCoordinates)[1]}
               updateCoordinates={setGPSCoordinates}

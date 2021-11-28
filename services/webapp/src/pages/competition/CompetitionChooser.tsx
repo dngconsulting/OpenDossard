@@ -72,8 +72,8 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
   const [loading, setLoading] = useState(false);
   const classes = useStyles(cadtheme);
   const [competitionFilter, setCompetitionFilter] = useState({
-    competitionTypes: ["ROUTE", "CX"],
-    fedes: ["FSGT", "UFOLEP"],
+    competitionTypes: ["ROUTE", "CX", "VTT"],
+    fedes: ["FSGT"],
     displayFuture: true,
     openedNL: false,
     openedToOtherFede: false,

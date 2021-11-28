@@ -192,7 +192,7 @@ const LicencesPage = (props: ILicencesProps) => {
           "Cat.V",
           "Caté.CX",
           "Fédé.",
-          "Valid."
+          "Saison"
         ]
       ],
       bodyStyles: {
@@ -208,11 +208,12 @@ const LicencesPage = (props: ILicencesProps) => {
         4: { cellWidth: 40 },
         5: { cellWidth: 10 },
         6: { cellWidth: 10 },
-        7: { cellWidth: 15 },
-        8: { cellWidth: 12 },
-        9: { cellWidth: 12 },
+        7: { cellWidth: 10 },
+        8: { cellWidth: 6 },
+        9: { cellWidth: 6 },
         10: { cellWidth: 15 },
-        11: { cellWidth: 10 }
+        11: { cellWidth: 12 },
+        12: { cellWidth: 10 }
       },
       body: rowstoDisplay,
       didDrawPage: (data: any) => {
@@ -246,6 +247,13 @@ const LicencesPage = (props: ILicencesProps) => {
           70,
           pageHeight - 5
         );
+      },
+      headStyles: {
+        fontSize: 9,
+        fontStyle: "bold",
+        halign: "left",
+        cellPadding: 0.5,
+        minCellHeight: 8
       },
       margin: { top: 14, left: 10 },
       styles: {

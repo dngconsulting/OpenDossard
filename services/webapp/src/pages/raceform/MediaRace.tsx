@@ -134,7 +134,8 @@ const MediaRace = (props: IMediaProps) => {
           display: "flex",
           width: "100%",
           alignItems: "center",
-          justifyContent: "center"
+          justifyContent: "center",
+          marginTop: 30
         }}
       >
         <TextField

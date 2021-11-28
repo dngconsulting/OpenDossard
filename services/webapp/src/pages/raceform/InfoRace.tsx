@@ -340,6 +340,7 @@ const InfoRace = (props: IInfoRaceProps) => {
           </Grid>
           <Grid item={true} xs={4}>
             <Autocomplete
+              disabled={!!props.competition.id}
               value={{
                 label: props.competition.competitionType || "",
                 value: props.competition.competitionType || ""
@@ -476,6 +477,7 @@ const InfoRace = (props: IInfoRaceProps) => {
               }
               autoComplete={true}
               autoSelect={true}
+              disabled={!!props.competition.id}
               autoHighlight={true}
               renderInput={params => (
                 <TextField
