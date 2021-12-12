@@ -456,10 +456,10 @@ const InfoRace = (props: IInfoRaceProps) => {
                 CompetitionCreateCompetitionTypeEnum.CX
                   ? ["Cyclo Cross"]
                   : [
-                      "Valloné",
                       "Montagne",
-                      "Circuit Plat",
                       "Moy-Montagne",
+                      "Vallonné",
+                      "Circuit Plat",
                       "NC"
                     ]
               }
