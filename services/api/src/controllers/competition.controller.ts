@@ -12,7 +12,7 @@ import {
 } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
-import { Any, Between, EntityManager, Repository } from "typeorm";
+import { EntityManager, Repository } from "typeorm";
 import {
   CompetitionEntity,
   CompetitionType
@@ -22,17 +22,15 @@ import { AuthGuard } from "@nestjs/passport";
 import {
   CompetitionCreate,
   CompetitionFilter,
-  CompetitionReorganize,
-  Departement
+  CompetitionReorganize
 } from "../dto/model.dto";
-import * as moment from "moment";
 import { TooMuchResults } from "../exception/TooMuchResults";
 import { ROLES, RolesGuard } from "../guards/roles.guard";
 import { Roles } from "../decorators/roles.decorator";
-import { FindManyOptions } from "typeorm/find-options/FindManyOptions";
 import { ClubEntity } from "src/entity/club.entity";
 import { plainToClass } from "class-transformer";
 import * as _ from "lodash";
+import { CompetitionService } from "../services/competition.service";
 
 const MAX_COMPETITION_TO_DISPLAY = 5000;
 /**
@@ -44,6 +42,7 @@ const MAX_COMPETITION_TO_DISPLAY = 5000;
 @UseGuards(AuthGuard("jwt"), RolesGuard)
 export class CompetitionController {
   constructor(
+    private readonly competitionService: CompetitionService,
     @InjectRepository(CompetitionEntity)
     private readonly repository: Repository<CompetitionEntity>,
     @InjectRepository(ClubEntity)
@@ -99,72 +98,9 @@ export class CompetitionController {
   public async getCompetitionsByFilter(
     @Body() competitionFilter: CompetitionFilter
   ): Promise<CompetitionEntity[]> {
-    let futureEventDate;
-    let pastEventDate;
-    console.log(
-      "[CompetitionController] Filtre => " + JSON.stringify(competitionFilter)
+    const result = await this.competitionService.findCompetitionByFilter(
+      competitionFilter
     );
-    const competFilter = competitionFilter.competitionTypes
-      ? { competitionType: Any(Array.from(competitionFilter.competitionTypes)) }
-      : null;
-    const fedeFilter = competitionFilter.fedes
-      ? { fede: Any(Array.from(competitionFilter.fedes)) }
-      : null;
-    if (
-      competitionFilter.displayPast &&
-      competitionFilter.displayPast === true
-    ) {
-      // If display since is not passed we set it by default to one year => 365 days
-      pastEventDate = moment(new Date())
-        .subtract(
-          competitionFilter.displaySince ? competitionFilter.displaySince : 365,
-          "d"
-        )
-        .toDate();
-    } else {
-      // First minute of the current day
-      pastEventDate = moment(new Date()).startOf("day");
-    }
-    if (
-      competitionFilter.displayFuture &&
-      competitionFilter.displayFuture === true
-    ) {
-      // Future is always set to 1 year, it has no sense to scope events planned in 2 or 3 years
-      futureEventDate = moment(new Date())
-        .add(1, "y")
-        .toDate();
-    } else {
-      // Last minute of the current day
-      futureEventDate = moment(new Date()).endOf("day");
-    }
-    const query: FindManyOptions<CompetitionEntity> = {
-      where: {
-        ...competFilter,
-        ...fedeFilter,
-        ...(competitionFilter.openedToOtherFede
-          ? { openedToOtherFede: competitionFilter.openedToOtherFede }
-          : null),
-        ...(competitionFilter.openedNL
-          ? { openedNL: competitionFilter.openedNL }
-          : null),
-        eventDate: Between(pastEventDate, futureEventDate),
-        ...(competitionFilter.depts && competitionFilter.depts.length > 0
-          ? {
-              dept: Any(
-                competitionFilter.depts.map(
-                  (dept: Departement) => dept.departmentCode
-                )
-              )
-            }
-          : null)
-      },
-      order: {
-        eventDate: "DESC"
-      },
-      relations: ["club"]
-    };
-    const result: CompetitionEntity[] = await this.repository.find(query);
-
     if (result.length > MAX_COMPETITION_TO_DISPLAY) {
       throw new TooMuchResults();
     }

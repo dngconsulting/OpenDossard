@@ -105,7 +105,7 @@ export const FEDERATIONS = {
     catea: CATEA_FSGT
   },
   CYCLOS: {
-    name: { label: "CYCLOS", value: "CYCLOS" },
+    name: { label: "Cyclosportives", value: "CYCLOS" },
     catev: [...CATEV],
     catea: CATEA_FSGT
   }
