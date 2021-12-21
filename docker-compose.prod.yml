@@ -19,7 +19,6 @@ services:
       - ./config/prod.env
     environment:
       NODE_ENV: production
-      GENERATE_SOURCEMAP: false
       TSC_COMPILE_ON_ERROR: true
       DISABLE_ESLINT_PLUGIN: true
       CI: true

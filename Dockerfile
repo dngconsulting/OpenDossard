@@ -14,6 +14,9 @@ COPY services/webapp/ ./
 RUN npx workbox generateSW
 ARG MAX_OLD_SPACE_SIZE=3048
 ENV NODE_OPTIONS=--max_old_space_size=${MAX_OLD_SPACE_SIZE}
+ENV GENERATE_SOURCEMAP=false
+ENV TSC_COMPILE_ON_ERROR=true
+ENV DISABLE_ESLINT_PLUGIN=true
 RUN npm run build
 
 # Setup the server
