@@ -15,3 +15,6 @@ services/webapp/debug.log
 config/dev.env
 services/api/package-lock.json
 services/webapp/debug.log
+**/public/workbox-*.js
+**/public/sw.js
+**/public/worker-*.js

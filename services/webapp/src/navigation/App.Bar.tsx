@@ -22,10 +22,10 @@ import { AccountPage } from "../pages/account/Account";
 import AppDrawer from "./App.Drawer";
 import AppRoutes from "./AppRoutes";
 import { CadSnackBar } from "../components/CadSnackbar";
-import logo from "../assets/logos/logoblanc.svg";
+import Logo from "../assets/logos/logood.png";
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import { LoaderIndicator } from "../components/LoaderIndicator";
-import { version } from "../../package.json";
+import { Version } from "../version";
 
 const classNames = require("classnames");
 
@@ -124,7 +124,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
             >
               <MenuIcon />
             </IconButton>
-            <img src={logo} width={84} height={44} alt="logo" />
+            <img src={Logo} alt={"Logo"} width={84} height={44} />
             <Typography
               className={classes.fillSpace}
               color="inherit"
@@ -133,7 +133,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
               {this.props.history.location.state &&
               this.props.history.location.state.title
                 ? this.props.history.location.state.title
-                : " Bienvenue dans Open Dossard v" + version}
+                : " Bienvenue dans Open Dossard v" + Version}
             </Typography>
             <div>
               <IconButton

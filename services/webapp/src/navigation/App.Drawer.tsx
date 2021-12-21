@@ -29,7 +29,7 @@ import PalmaresPage from "../pages/Palmares";
 import { UserEntity as User } from "../sdk";
 import { grey } from "@material-ui/core/colors";
 import { cadtheme } from "../theme/theme";
-import { version } from "../../package.json";
+import { Version } from "../version";
 
 const classNames = require("classnames");
 
@@ -204,7 +204,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
             textAlign: "center"
           }}
         >
-          V{version}
+          V{Version}
         </div>
       </Drawer>
     );
