@@ -84,7 +84,7 @@
   "proxy": "http://api:9090",
   "scripts": {
     "start": "node node_modules/react-scripts/bin/react-scripts start",
-    "build": "node node_modules/react-scripts/bin/react-scripts build",
+    "build": "node node_modules/react-scripts/bin/react-scripts build --verbose",
     "test": "node node_modules/react-scripts/bin/react-scripts-ts test --env=jsdom",
     "deploy": "node server.js",
     "eject": "node node_modules/react-scripts/bin/react-scripts-ts eject",

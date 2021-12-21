@@ -19,6 +19,10 @@ services:
       - ./config/prod.env
     environment:
       NODE_ENV: production
+      GENERATE_SOURCEMAP: false
+      TSC_COMPILE_ON_ERROR: true
+      DISABLE_ESLINT_PLUGIN: true
+      CI: true
       PORT: 80
   website:
     image: nginx:1.17.5-alpine
