@@ -10,8 +10,8 @@ RUN rm -rf ./node_modules
 RUN npm install -g react-scripts
 RUN npm install
 RUN npm install workbox-cli --global
-RUN npx workbox generateSW
 COPY services/webapp/ ./
+RUN npx workbox generateSW
 RUN npm run build
 
 # Setup the server
