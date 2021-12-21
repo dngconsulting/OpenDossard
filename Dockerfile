@@ -12,7 +12,7 @@ RUN npm install
 RUN npm install workbox-cli --global
 COPY services/webapp/ ./
 RUN npx workbox generateSW
-ARG MAX_OLD_SPACE_SIZE=8192
+ARG MAX_OLD_SPACE_SIZE=2048
 ENV NODE_OPTIONS=--max_old_space_size=${MAX_OLD_SPACE_SIZE}
 RUN npm run build
 
