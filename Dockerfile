@@ -1,6 +1,6 @@
 # NOTE : We are grouping here client & server in the same container
 # Setup and build the client
-FROM node:12-alpine as client
+FROM node:14-alpine as client
 
 WORKDIR /app/client/
 COPY services/webapp/package*.json ./
@@ -15,7 +15,7 @@ RUN npx workbox generateSW
 RUN npm run build
 
 # Setup the server
-FROM node:12-alpine
+FROM node:14-alpine
 
 WORKDIR /app/
 COPY --from=client /app/client/build/ ./client/build/
