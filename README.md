@@ -43,3 +43,19 @@ Il est possible de configurer la base de données manuellement ou automatiquemen
 
 - [TS Lint configuration](documentation/tslint.md)
 
+### Installation des certificats SSL en mode Wildcard avec certbot / DNS Gandi
+- Première installation du certificat 
+```
+certbot certonly -a certbot-plugin-gandi:dns --certbot-plugin-gandi:dns-credentials <GANDI_INI_PATH> -d opendossard.com -d \*.opendossard.com  --server https://acme-v02.api.letsencrypt.org/directory --email sami.jaber@gmail.com --agree-tos -n
+```
+- Ensuite dans le cron 
+```
+  0 0 * * 0 certbot -q renew -a certbot-plugin-gandi:dns --certbot-plugin-gandi:dns-credentials <GANDI_INI_PATH> --server https://acme-v02.api.letsencrypt.org/directory
+```
+- Insérer dans le fichier gandi.ini la clé de la façon suivante :
+```
+certbot_plugin_gandi:dns_api_key=API_KEY
+email=mister@mymail.com
+```
+## Pré-requis pour installer un nouveau serveur 
+- apt-get install => docker, docker-compose, git, certbot  
