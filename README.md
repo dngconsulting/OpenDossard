@@ -57,5 +57,9 @@ certbot certonly -a certbot-plugin-gandi:dns --certbot-plugin-gandi:dns-credenti
 certbot_plugin_gandi:dns_api_key=API_KEY
 email=mister@mymail.com
 ```
+- Ne pas oublier de générer dhparam pour avoir la note A+
+```
+ openssl dhparam -out dhparams.pem 2048
+```
 ## Pré-requis pour installer un nouveau serveur 
 - apt-get install => docker, docker-compose, git, certbot  

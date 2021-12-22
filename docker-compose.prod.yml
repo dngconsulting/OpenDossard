@@ -38,7 +38,7 @@ services:
       - ./config/ssl.conf:/etc/nginx/ssl.conf:delegated
       - /etc/letsencrypt/live/opendossard.com/fullchain.pem:/etc/letsencrypt/opendossard/cert.pem:delegated
       - /etc/letsencrypt/live/opendossard.com/privkey.pem:/etc/letsencrypt/opendossard/key.pem:delegated
-      - /etc/letsencrypt/live/opendossard.com/dhparam.pem:/etc/letsencrypt/opendossard/dhparams.pem:delegated
+      - /etc/letsencrypt/live/opendossard.com/dhparams/dhparam.pem:/etc/letsencrypt/opendossard/dhparam.pem:delegated
 volumes:
   postgres:
 
