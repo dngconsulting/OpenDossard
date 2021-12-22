@@ -23,20 +23,53 @@ services:
       DISABLE_ESLINT_PLUGIN: "true"
       CI: "true"
       PORT: 80
-  website:
-    image: nginx:1.17.5-alpine
-    container_name: website
-    restart: always
-    ports:
-      - "443:443"
-      - "80:80"
+  certbot:
+    build: ./certbot
+    image: opendossard/certbot
+    env_file:
+      - ./config/prod.env
     volumes:
+      - od_certbot_certs:/etc/letsencrypt
+      - test1_devcomanda_com_certbot:/var/www/certbot/test1.devcomanda.com
+      - test2_devcomanda_com_certbot:/var/www/certbot/test2.devcomanda.com
+    depends_on:
+      - nginx
+  cron:
+    build: ./cron
+    image: opendossard/cron
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/workdir:ro
+    depends_on:
+      - nginx
+      - certbot
+  nginx:
+    build: ./nginx
+    image: opendossard/nginx
+    env_file:
+      - ./config/prod.env
+    volumes:
+      - od_nginx_ssl:/etc/nginx/ssl
+      - od_certbot_certs:/etc/letsencrypt
+      - app_opendossard_com_certbot:/var/www/certbot/app.opendossard.com
+      - preprod_opendossard_com_certbot:/var/www/certbot/preprod.opendossard.com
+      - test_opendossard_com_certbot:/var/www/certbot/test.opendossard.com
+      - ./html:/var/www/html/app.opendossard.com
+      - ./html:/var/www/html/preprod.opendossard.com
+      - ./html:/var/www/html/test.opendossard.com
       - ./website/:/var/www/html:delegated
-      - ./config/nginx.conf:/etc/nginx/nginx.conf:delegated
-      - ./config/ssl.conf:/etc/nginx/ssl.conf:delegated
-      - /etc/letsencrypt/live/opendossard.com/fullchain.pem:/etc/letsencrypt/opendossard/cert.pem:delegated
-      - /etc/letsencrypt/live/opendossard.com/privkey.pem:/etc/letsencrypt/opendossard/key.pem:delegated
-      - /etc/letsencrypt/live/opendossard.com/dhparam.pem:/etc/letsencrypt/opendossard/dhparams.pem:delegated
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: always
+
 volumes:
   postgres:
+  od_nginx_ssl:
+    external: true
+  od_certbot_certs:
+    external: true
+  app_opendossard_com_certbot:
+  preprod_opendossard_com_certbot:
+  test_opendossard_com_certbot:
 
