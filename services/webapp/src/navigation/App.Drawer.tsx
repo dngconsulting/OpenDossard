@@ -47,7 +47,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
       key: "1",
       path: "/",
       state: { title: "Tableau de bord de l'ensemble des courses" },
-      title: "Tableau de bord de l'ensemble des course",
+      title: "Tableau de bord",
       icon: () => <DashboardIcon />
     },
     {

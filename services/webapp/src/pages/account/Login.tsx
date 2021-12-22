@@ -7,9 +7,7 @@ import {
   Icon,
   Input,
   InputAdornment,
-  InputLabel,
-  Theme,
-  withStyles
+  InputLabel
 } from "@material-ui/core";
 import Paper from "@material-ui/core/Paper";
 import * as querystring from "querystring";
@@ -108,7 +106,9 @@ const LoginPage = (props: ILoginProps) => {
             width: "90%",
             display: "flex",
             flexDirection: "column",
-            alignContent: "center"
+            alignContent: "center",
+            boxShadow: "6px 5px 25px -3px rgba(0,0,0,0.57)",
+            borderRadius: 10
           }}
         >
           <div
@@ -129,7 +129,7 @@ const LoginPage = (props: ILoginProps) => {
           >
             <InputLabel
               error={state.error}
-              style={{ padding: 10 }}
+              style={{ padding: 10, width: "100%" }}
               htmlFor="email"
             >
               Adresse mail ou identifiant Open Dossard
