@@ -33,12 +33,12 @@ services:
       - "443:443"
       - "80:80"
     volumes:
-      - ./website/:/var/www/html:delegated
-      - ./config/nginx.conf:/etc/nginx/nginx.conf:delegated
-      - ./config/ssl.conf:/etc/nginx/ssl.conf:delegated
-      - /etc/letsencrypt/live/opendossard.com/fullchain.pem:/etc/letsencrypt/opendossard/cert.pem:delegated
-      - /etc/letsencrypt/live/opendossard.com/privkey.pem:/etc/letsencrypt/opendossard/key.pem:delegated
-      - /etc/letsencrypt/live/opendossard.com/dhparams/dhparam.pem:/etc/letsencrypt/opendossard/dhparam.pem:delegated
+      - ./website/:/var/www/html
+      - ./config/nginx.conf:/etc/nginx/nginx.conf
+      - ./config/ssl.conf:/etc/nginx/ssl.conf
+      - /etc/letsencrypt/live/opendossard.com/fullchain.pem:/etc/letsencrypt/opendossard/cert.pem
+      - /etc/letsencrypt/live/opendossard.com/privkey.pem:/etc/letsencrypt/opendossard/key.pem
+      - /etc/letsencrypt/live/opendossard.com/dhparam.pem:/etc/letsencrypt/opendossard/dhparam.pem
 volumes:
   postgres:
 
