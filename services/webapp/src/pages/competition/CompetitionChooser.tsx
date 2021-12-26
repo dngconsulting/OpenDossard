@@ -209,7 +209,8 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         emptyMessage="Aucune épreuve ne correspond à la recherche"
         selectionMode="single"
         onRowClick={(e: any) => {
-          setSelectedCompetition(data[e.index]);
+          console.log("Select " + JSON.stringify(e.data.id));
+          setSelectedCompetition(data.find(d => d.id === e.data.id));
         }}
       >
         <Column
