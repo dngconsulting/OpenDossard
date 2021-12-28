@@ -97,13 +97,18 @@ const HomePage = (props: IDashboardProps) => {
       (item: RaceRow) => item.competitionId
     );
     // @ts-ignore
-    options.series[0].data = Object.keys(nbRidersByCourse).map(
-      item => nbRidersByCourse[item].length
-    );
+    const allCourses = Object.keys(nbRidersByCourse).map(item => {
+      return {
+        nb: nbRidersByCourse[item].length,
+        name: nbRidersByCourse[item][0].name
+      };
+    });
+    const allCourseOrdered = _.orderBy(allCourses, ["nb"], ["desc"]);
     // @ts-ignore
-    options.xAxis.categories = Object.keys(nbRidersByCourse).map(
-      item => nbRidersByCourse[item][0].name
-    );
+    options.series[0].data = allCourseOrdered.map(item => item.nb);
+    // @ts-ignore
+    options.xAxis.categories = allCourseOrdered.map(item => item.name);
+
     setOptionNbRidersChartRiders(options);
   };
   const fillRiderOnlyParticipationChart = (rows: RaceRow[]) => {
