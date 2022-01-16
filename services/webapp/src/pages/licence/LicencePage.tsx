@@ -242,13 +242,13 @@ const LicencesPage = (props: ILicencesProps) => {
       isGenreValid ||
       isFirstnameValid ||
       isFedeValid ||
-      isLicenceNumberValid ||
+      (newLicence.fede !== FedeEnum.NL && isLicenceNumberValid) ||
       isCateaValid ||
       isCatevValid ||
       isDeptValid ||
       isBirthYearValid ||
-      isSeasonValid ||
-      isClubValid
+      (newLicence.fede !== FedeEnum.NL && isSeasonValid) ||
+      (newLicence.fede !== FedeEnum.NL && isClubValid)
     ) {
       setNotification({
         message: "Veuillez remplir l'ensemble des champs obligatoires.",
