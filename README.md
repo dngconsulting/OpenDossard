@@ -46,7 +46,7 @@ Il est possible de configurer la base de données manuellement ou automatiquemen
 ### Installation des certificats SSL en mode Wildcard avec certbot / DNS Gandi
 - Première installation du certificat 
 ```
-certbot certonly -a certbot-plugin-gandi:dns --certbot-plugin-gandi:dns-credentials <GANDI_INI_PATH> -d opendossard.com -d \*.opendossard.com  --server https://acme-v02.api.letsencrypt.org/directory --email sami.jaber@gmail.com --agree-tos -n
+certbot certonly -a certbot-plugin-gandi:dns --certbot-plugin-gandi:dns-credentials <GANDI_INI_PATH> -d opendossard.com -d \*.opendossard.com  --server https://acme-v02.api.letsencrypt.org/directory --email mymail@nospam.com --agree-tos -n
 ```
 - Ensuite dans le cron 
 ```
