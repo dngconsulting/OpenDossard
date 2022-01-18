@@ -25,9 +25,16 @@ services:
     expose:
       - "9090"
     restart: always
-    env_file:
-      - ./config/prod.env
     environment:
+      POSTGRES_HOST:
+      POSTGRES_PORT:
+      POSTGRES_DB:
+      POSTGRES_USER:
+      POSTGRES_PASSWORD:
+      MONITORING_PASSWORD:
+      MONITORING_USER:
+      JWT_SECRET:
+      JWT_EXPIRE_SECONDS:
       NODE_ENV: production
       TSC_COMPILE_ON_ERROR: "true"
       DISABLE_ESLINT_PLUGIN: "true"
