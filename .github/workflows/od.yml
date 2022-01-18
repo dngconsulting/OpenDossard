@@ -1,9 +1,14 @@
 name: docker-compose-actions-workflow
 on: push
 jobs:
-  test:
+  build-opendossard:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Build Open Dossard images 
-        run: docker-compose -f docker-compose.prod.yml build --no-cache --force-rm --parallel 
+      - name: Build Open Dossard and push images
+        run: docker-compose -f docker-compose.prod.yml build --no-cache --force-rm --parallel
+      - uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: opendossard_api_webapp:latest
