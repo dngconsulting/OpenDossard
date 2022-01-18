@@ -5,7 +5,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Build the stack
-        run: docker-compose -f docker-compose.prod.yml up --build -d
-      - name: Test
-        run: docker run --network container:api_webapp appropriate/curl -s --retry 10 --retry-connrefused http://localhost/
+      - name: Build Open Dossard images 
+        run: docker-compose -f docker-compose.prod.yml build --no-cache --force-rm --parallel 
