@@ -19,8 +19,7 @@ services:
       - JWT_EXPIRE_SECONDS
   api_webapp:
     container_name: api_webapp
-    working_dir: "/app/server/"
-    build: .
+    image: ghcr.io/dngconsulting/opendossard_api_webapp:latest
     command: "npm run start:prod"
     expose:
       - "9090"
@@ -56,4 +55,3 @@ services:
       - /etc/letsencrypt/live/opendossard.com/dhparam.pem:/etc/letsencrypt/opendossard/dhparam.pem
 volumes:
   postgres:
-
