@@ -278,6 +278,9 @@ export class CompetitionController {
       updatedCompetitionEntity
     );
     competitionUpserted.clubId = updatedCompetitionEntity.club.id;
+    competitionUpserted.latitude = dto.latitude;
+    competitionUpserted.longitude = dto.longitude;
+    competitionUpserted.gpsCoordinates = dto.gpsCoordinates;
     return competitionUpserted;
   }
 
