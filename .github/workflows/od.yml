@@ -1,5 +1,8 @@
 name: docker-compose-actions-workflow
-on: push
+on:
+  push:
+    tags:
+      - 'v*'
 jobs:
   build-opendossard:
     runs-on: ubuntu-latest
