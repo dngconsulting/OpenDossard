@@ -1,10 +1,8 @@
 #!/bin/sh
 
 goprod() {
-    git pull
-    docker-compose -f docker-compose.prod.yml down --remove-orphans
-    docker-compose -f docker-compose.prod.yml build --no-cache --force-rm --parallel
-    docker-compose -f docker-compose.prod.yml up --force-recreate --remove-orphans
+    docker-compose -f docker-compose.prod.yml pull
+    docker-compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
 }
 
 start() {
