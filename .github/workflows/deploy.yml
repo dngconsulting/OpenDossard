@@ -1,0 +1,27 @@
+name: Deploy on server
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        type: choice
+        description: Environnement
+        options:
+          - PROD
+          - PREPROD
+          - TEST
+        required: true
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.IP }}
+          username: ${{ secrets.USER }}
+          password: ${{ secrets.PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          script: | 
+            ${{ secrets.SCRIPT}}
+            pm2 restart 0
