@@ -1,4 +1,4 @@
-name: docker-compose-actions-workflow
+name: Build Images and publish
 on:
   push:
     tags:
