@@ -1,33 +1,32 @@
 //#region
-import * as React from "react";
-import { withStyles } from "@material-ui/core/styles";
-import AppBar from "@material-ui/core/AppBar";
-import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
-import IconButton from "@material-ui/core/IconButton";
-import MenuIcon from "@material-ui/icons/Menu";
-import { Menu, MenuItem } from "@material-ui/core";
-import { withRouter } from "react-router-dom";
-import Hidden from "@material-ui/core/Hidden";
-import { styles } from "./styles";
-import * as AppActionCreators from "../actions/App.Actions";
-import { IApplicationProps } from "../actions/App.Actions";
-import { ReduxState } from "../state/ReduxState";
-import { connect } from "react-redux";
-import * as _ from "lodash";
-import { bindActionCreators, Dispatch } from "redux";
-import { AlertDialog } from "../alert/Alert";
-import SpinnerDialog from "../spinner/Spinner";
-import { AccountPage } from "../pages/account/Account";
-import AppDrawer from "./App.Drawer";
-import AppRoutes from "./AppRoutes";
-import { CadSnackBar } from "../components/CadSnackbar";
-import Logo from "../assets/logos/logood.png";
-import AccountCircleIcon from "@material-ui/icons/AccountCircle";
-import { LoaderIndicator } from "../components/LoaderIndicator";
-import { Version } from "../version";
+import * as React from 'react';
+import { withStyles } from '@material-ui/core/styles';
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
+import IconButton from '@material-ui/core/IconButton';
+import MenuIcon from '@material-ui/icons/Menu';
+import { Menu, MenuItem } from '@material-ui/core';
+import { withRouter } from 'react-router-dom';
+import Hidden from '@material-ui/core/Hidden';
+import { styles } from './styles';
+import * as AppActionCreators from '../actions/App.Actions';
+import { IApplicationProps } from '../actions/App.Actions';
+import { ReduxState } from '../state/ReduxState';
+import { connect } from 'react-redux';
+import * as _ from 'lodash';
+import { bindActionCreators, Dispatch } from 'redux';
+import { AlertDialog } from '../alert/Alert';
+import SpinnerDialog from '../spinner/Spinner';
+import { AccountPage } from '../pages/account/Account';
+import AppDrawer from './App.Drawer';
+import AppRoutes from './AppRoutes';
+import { CadSnackBar } from '../components/CadSnackbar';
+import Logo from '../assets/logos/logood.png';
+import AccountCircleIcon from '@material-ui/icons/AccountCircle';
+import { LoaderIndicator } from '../components/LoaderIndicator';
 
-const classNames = require("classnames");
+const classNames = require('classnames');
 
 //#endregion
 
@@ -79,12 +78,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
 
   private renderAlert(): JSX.Element {
     if (this.props.utility.alert) {
-      return (
-        <AlertDialog
-          handleClose={this.props.closePopup}
-          data={this.props.utility.alert}
-        />
-      );
+      return <AlertDialog handleClose={this.props.closePopup} data={this.props.utility.alert} />;
     }
 
     return null;
@@ -105,60 +99,46 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
       const open = Boolean(anchorEl);
 
       return (
-        <AppBar
-          position="fixed"
-          className={classNames(
-            classes.appBar,
-            utility.drawerOpen && classes.appBarShift
-          )}
-        >
+        <AppBar position="fixed" className={classNames(classes.appBar, utility.drawerOpen && classes.appBarShift)}>
           <Toolbar disableGutters={!utility.drawerOpen}>
             <IconButton
               color="inherit"
               aria-label="open drawer"
               onClick={() => this.handleDrawer(utility.drawerOpen)}
-              className={classNames(
-                classes.menuButton,
-                utility.drawerOpen && classes.hide
-              )}
+              className={classNames(classes.menuButton, utility.drawerOpen && classes.hide)}
             >
               <MenuIcon />
             </IconButton>
-            <img src={Logo} alt={"Logo"} width={84} height={44} />
-            <Typography
-              className={classes.fillSpace}
-              color="inherit"
-              noWrap={true}
-            >
-              {this.props.history.location.state &&
-              this.props.history.location.state.title
+            <img src={Logo} alt={'Logo'} width={84} height={44} />
+            <Typography className={classes.fillSpace} color="inherit" noWrap={true}>
+              {this.props.history.location.state && this.props.history.location.state.title
                 ? this.props.history.location.state.title
-                : " Bienvenue dans Open Dossard v" + Version}
+                : ' Bienvenue dans Open Dossard v' + `${process.env.REACT_APP_VERSION}`}
             </Typography>
             <div>
               <IconButton
-                aria-owns={open ? "menu-appbar" : null}
+                aria-owns={open ? 'menu-appbar' : null}
                 aria-haspopup="true"
                 onClick={this.handleMenu}
                 color="inherit"
               >
-                <AccountCircleIcon htmlColor={"white"} />
+                <AccountCircleIcon htmlColor={'white'} />
               </IconButton>
               <Menu
                 id="menu-appbar"
                 anchorEl={anchorEl}
                 anchorOrigin={{
-                  vertical: "top",
-                  horizontal: "right"
+                  vertical: 'top',
+                  horizontal: 'right'
                 }}
                 transformOrigin={{
-                  vertical: "top",
-                  horizontal: "right"
+                  vertical: 'top',
+                  horizontal: 'right'
                 }}
                 open={open}
                 onClose={this.handleMenuClose.bind(this, null)}
               >
-                <MenuItem onClick={this.handleMenuClose.bind(this, "/account")}>
+                <MenuItem onClick={this.handleMenuClose.bind(this, '/account')}>
                   {this.props.authentication.email}
                 </MenuItem>
                 <MenuItem onClick={this.handleLogout}>Déconnecter</MenuItem>
@@ -229,12 +209,8 @@ const mapStateToProps = (state: ReduxState) => ({
   showLoading: state.app.showLoading
 });
 
-const mapDispatchtoProps = (dispatch: Dispatch) =>
-  bindActionCreators(_.assign({}, AppActionCreators), dispatch);
+const mapDispatchtoProps = (dispatch: Dispatch) => bindActionCreators(_.assign({}, AppActionCreators), dispatch);
 
 export default withRouter(
-  connect(
-    mapStateToProps,
-    mapDispatchtoProps
-  )(withStyles(styles as any, { withTheme: true })(MiniDrawer as any)) as any
+  connect(mapStateToProps, mapDispatchtoProps)(withStyles(styles as any, { withTheme: true })(MiniDrawer as any)) as any
 );
