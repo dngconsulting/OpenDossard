@@ -191,7 +191,9 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
             textAlign: 'center'
           }}
         >
-          V{`${process.env.REACT_APP_VERSION}`}
+          <a href={'https://github.com/dngconsulting/OpenDossard/releases/tag/v' + process.env.REACT_APP_VERSION}>
+            V{`${process.env.REACT_APP_VERSION}`}
+          </a>
         </div>
       </Drawer>
     );
