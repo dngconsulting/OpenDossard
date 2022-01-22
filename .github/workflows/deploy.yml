@@ -2,7 +2,7 @@ name: Deploy on server
 on:
   workflow_dispatch:
     inputs:
-      name:
+      envname:
         type: choice
         description: Environnement
         options:
@@ -14,7 +14,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    environment: TEST
+    environment: ${{inputs.envname}
     steps:
       - name: executing remote ssh commands using password
         uses: appleboy/ssh-action@master
