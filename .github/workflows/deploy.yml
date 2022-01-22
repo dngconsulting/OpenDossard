@@ -6,9 +6,9 @@ on:
         type: choice
         description: Environnement
         options:
-          - PROD
-          - PREPROD
           - TEST
+          - PREPROD
+          - PROD
         required: true
 jobs:
   build:
