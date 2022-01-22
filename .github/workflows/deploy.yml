@@ -18,10 +18,10 @@ jobs:
       - name: executing remote ssh commands using password
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.IP }}
-          username: ${{ secrets.USER }}
-          password: ${{ secrets.PRIVATE_KEY }}
-          port: ${{ secrets.PORT }}
+          host: ${{ secrets.HOSTNAME }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
           script: | 
-            ${{ secrets.SCRIPT}}
-            pm2 restart 0
+            whoami
+            docker ps
