@@ -1,8 +1,13 @@
 #!/bin/sh
 
 goprod() {
+    echo "Pulling des images"
     docker-compose -f docker-compose.prod.yml pull
+    echo "Lancement des conteneurs"
     docker-compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
+    echo "Verification du conteneur api_webpp"
+    docker-inspect api_webapp
+    docker image prune --all --force &
 }
 
 start() {
