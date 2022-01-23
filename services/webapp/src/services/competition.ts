@@ -14,7 +14,8 @@ export const fetchCompetitions = async ({
     const results = await apiCompetitions.getCompetitionsByFilter({
       competitionFilter
     });
-    setData(results);
+    if (competitionFilter?.displayFuture === true ) setData(_.orderBy(results, ['eventDate'], ['asc']))
+    else setData(results);
   } catch (ex) {
     setNotification({
       message: `Impossible de récupérer la liste des épreuves`,

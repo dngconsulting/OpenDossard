@@ -483,7 +483,6 @@ export const CompetitionFilterPanel = ({
           className="basic-multi-select"
           classNamePrefix="select"
           onChange={(deptsSelected: any) => {
-            console.log(JSON.stringify(deptsSelected));
             setCompetitionFilter({
               ...competitionFilter,
               depts: deptsSelected

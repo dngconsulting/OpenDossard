@@ -20,7 +20,6 @@ export class CompetitionService {
   ): Promise<CompetitionEntity[] | undefined> {
     let startDate;
     let endDate;
-    let order: "DESC" | "ASC" = "DESC";
     if (competitionFilter?.startDate)
       startDate = moment(competitionFilter?.startDate, "MM/DD/YYYY").locale(
         "fr"
@@ -54,7 +53,6 @@ export class CompetitionService {
         competitionFilter.displayFuture &&
         competitionFilter.displayFuture === true
       ) {
-        order = "ASC";
         // Future is always set to 1 year, it has no sense to scope events planned in 2 or 3 years
         endDate = moment(new Date()).add(1, "y");
       } else {
@@ -84,7 +82,7 @@ export class CompetitionService {
           : null)
       },
       order: {
-        eventDate: order
+        eventDate: "DESC"
       },
       relations: ["club"]
     };
