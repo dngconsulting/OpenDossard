@@ -187,7 +187,8 @@ const LoginPage = (props: ILoginProps) => {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              height: "100px"
+              height: "100px",
+              width:'100%'
             }}
           >
             <Button
@@ -199,6 +200,10 @@ const LoginPage = (props: ILoginProps) => {
               Valider
             </Button>
           </div>
+          <div style={{textAlign:'center',paddingBottom:10}}>
+            <a href={'https://github.com/dngconsulting/OpenDossard/releases/tag/v' + process.env.REACT_APP_VERSION}>
+            V{`${process.env.REACT_APP_VERSION}`}
+          </a></div>
         </Paper>
       </div>
     );
@@ -227,7 +232,7 @@ const useStyles = makeStyles({
   },
   button: {
     fontWeight: "bold",
-    width: 200,
+    width: 350,
     height: 40,
     cursor: "pointer",
     display: "flex",
