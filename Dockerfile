@@ -8,7 +8,7 @@ RUN apk update && apk upgrade && \
     apk add --no-cache bash git openssh
 RUN rm -rf ./node_modules
 RUN npm install -g react-scripts
-RUN npm install
+RUN npm ci
 RUN npm install workbox-cli --global
 COPY services/webapp/ ./
 RUN npx workbox generateSW
@@ -28,7 +28,7 @@ COPY --from=client /app/client/build/ ./client/build/
 WORKDIR /app/server/
 COPY services/api/package*.json ./
 RUN rm -rf ./node_modules
-RUN npm install
+RUN npm ci
 COPY services/api/ ./
 RUN npm run build
 ENV PORT 9090

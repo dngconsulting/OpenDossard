@@ -187,7 +187,7 @@ const LoginPage = (props: ILoginProps) => {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              height: "100px",
+              marginBottom:10,
               width:'100%'
             }}
           >
@@ -200,7 +200,7 @@ const LoginPage = (props: ILoginProps) => {
               Valider
             </Button>
           </div>
-          <div style={{textAlign:'center',paddingBottom:10}}>
+          <div style={{position:'relative',margin:'auto',height:1,top:20,textAlign:'center',paddingBottom:10}}>
             <a href={'https://github.com/dngconsulting/OpenDossard/releases/tag/v' + process.env.REACT_APP_VERSION}>
             V{`${process.env.REACT_APP_VERSION}`}
           </a></div>
