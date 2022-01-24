@@ -6,7 +6,7 @@ goprod() {
     echo "Lancement des conteneurs"
     docker-compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
     echo "Verification du conteneur api_webpp"
-    docker-inspect api_webapp
+    docker inspect api_webapp
     docker image prune --all --force &
 }
 
