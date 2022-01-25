@@ -1,8 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 
 goprod() {
-    echo "Setting env"
-    source ~/.bashrc
     echo "Pulling des images"
     docker-compose -f docker-compose.prod.yml pull
     echo "Lancement des conteneurs"
