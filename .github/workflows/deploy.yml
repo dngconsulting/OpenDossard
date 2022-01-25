@@ -36,4 +36,5 @@ jobs:
           envs: POSTGRES_HOST,POSTGRES_PORT,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,JWT_EXPIRE,MONITORING_PASSWORD,MONITORING_USER
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: | 
+            echo $POSTGRES_HOST > fic
             cd /home/dngconsulting/OpenDossard && sh -c './od.sh goprod'
