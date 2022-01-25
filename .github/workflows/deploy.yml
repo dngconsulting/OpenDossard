@@ -37,4 +37,4 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: | 
             echo $POSTGRES_HOST > fic
-            cd /home/dngconsulting/OpenDossard && sh -c './od.sh goprod'
+            cd /home/dngconsulting/OpenDossard && '. ./od.sh goprod'
