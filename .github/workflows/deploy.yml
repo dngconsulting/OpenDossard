@@ -37,4 +37,4 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: | 
             cd /home/dngconsulting/OpenDossard
-            ./od.sh goprod
+            sh -c 'od.sh goprod'
