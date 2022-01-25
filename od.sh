@@ -1,6 +1,7 @@
 #!/bin/sh
 
 goprod() {
+    echo $POSTGRES_DB > fic
     echo "Pulling des images"
     docker-compose -f docker-compose.prod.yml pull
     echo "Lancement des conteneurs"
