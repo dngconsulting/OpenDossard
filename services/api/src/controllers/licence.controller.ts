@@ -48,7 +48,7 @@ export class LicenceController {
     isArray: true,
     description: "Liste des licences"
   })
-  @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
+  @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN, ROLES.MOBILE)
   public async getLicencesLike(
     @Param("param") param: string,
     @Param("competitionType") competitionType: CompetitionType
@@ -92,7 +92,7 @@ export class LicenceController {
     isArray: false,
     description: "Renvoie une licence"
   })
-  @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
+  @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN, ROLES.MOBILE)
   public async get(@Param("id") id: string): Promise<LicenceEntity> {
     return await this.repository
       .createQueryBuilder()
