@@ -135,6 +135,39 @@ export class RacesCtrl {
                        order by r.id desc`;
     return await this.entityManager.query(query, [licenceId]);
   }
+  @Get("withpalmares/:query")
+  @ApiOperation({
+    operationId: "getLicencesWithPalmares",
+    summary:
+      "Rechercher le palmares d'un coureur qui a fait au moins une course"
+  })
+  @ApiResponse({ status: 200, type: LicenceEntity, isArray: true })
+  @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN, ROLES.MOBILE)
+  public async getLicencesWithPalmares(
+    @Param("query") query: string
+  ): Promise<LicenceEntity[]> {
+    const filterParam =
+      "%" +
+      query
+        .replace(/\s+/g, "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") +
+      "%";
+    const q: string = `select distinct l.licence_number ,
+                                       l.id,
+                                       l.club,
+                                       l.gender,
+                                       l.name,
+                                       l.dept,
+                                       l.fede,
+                                       l.first_name as "firstName",
+                                       l.birth_year as "birthYear",
+                                       l.saison,
+                                       l.catea from licence l join race r on r.licence_id=l.id
+                       where REPLACE(CONCAT(UPPER(l.name),UPPER(unaccent(l.first_name))),' ','') like $1 or REPLACE(CONCAT(UPPER(l.first_name),UPPER(unaccent(l.name))),' ','') like $1 
+                       order by l.name  fetch first 30 rows only`;
+    return await this.entityManager.query(q, [filterParam]);
+  }
 
   @Get("/:id")
   @ApiOperation({
