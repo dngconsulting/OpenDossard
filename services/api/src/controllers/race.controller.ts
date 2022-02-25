@@ -164,7 +164,7 @@ export class RacesCtrl {
                                        l.birth_year as "birthYear",
                                        l.saison,
                                        l.catea from licence l join race r on r.licence_id=l.id
-                       where REPLACE(CONCAT(UPPER(l.name),UPPER(unaccent(l.first_name))),' ','') like $1 or REPLACE(CONCAT(UPPER(l.first_name),UPPER(unaccent(l.name))),' ','') like $1 
+                       where REPLACE(CONCAT(UPPER(l.name),UPPER(unaccent(l.first_name))),' ','') like $1 or REPLACE(CONCAT(UPPER(unaccent(l.first_name)),UPPER(l.name)),' ','') like $1 
                        order by l.name  fetch first 30 rows only`;
     return await this.entityManager.query(q, [filterParam]);
   }
