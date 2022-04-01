@@ -9,7 +9,7 @@ import {
   Search as SearchEntity
 } from "../../sdk";
 import { cadtheme } from "../../theme/theme";
-import { Button, Paper } from "@material-ui/core";
+import { Button, Paper,Tooltip } from "@material-ui/core";
 import { useContext } from "react";
 import { NotificationContext } from "../../components/CadSnackbar";
 import { store } from "../../store/Store";
@@ -36,6 +36,8 @@ import {
 import jsPDF from "jspdf";
 import moment from "moment";
 import { useWindowDimensions } from "../../util";
+import * as _ from 'lodash';
+import { Link } from 'react-router-dom';
 
 interface ILicencesProps {
   items: any[];
@@ -290,7 +292,10 @@ const LicencesPage = (props: ILicencesProps) => {
           {
             title: "Nom",
             field: "name",
-            headerStyle: { width: 150, minWidth: 150, maxWidth: 150 }
+            headerStyle: { width: 150, minWidth: 150, maxWidth: 150 },
+            render: (data, type) => {
+              return   <Tooltip title="Pour accéder au palmarès du coureur, dans une nouvelle fenêtre: Ctrl+click"><Link style={{cursor:'pointer'}} to={`/palmares/${data.id}`}>{data.name}</Link></Tooltip>
+            }
           },
           {
             title: "Prénom",
