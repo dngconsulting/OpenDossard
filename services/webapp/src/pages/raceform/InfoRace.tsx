@@ -7,8 +7,8 @@ import {
   FormControlLabel,
   makeStyles,
   TextField,
-  Theme
-} from "@material-ui/core";
+  Theme, Tooltip
+} from '@material-ui/core';
 import Editor from "components/Editor";
 import moment from "moment";
 import ClubSelect, { IOptionType } from "components/ClubSelect";
@@ -304,6 +304,7 @@ const InfoRace = (props: IInfoRaceProps) => {
       <Container style={{ marginLeft: 0, marginTop: "2rem" }}>
         <Grid container={true} spacing={2} alignItems={"center"}>
           <Grid item={true} xs={4}>
+            <Tooltip title={"Correspond au nom de l'épreuve, éviter le tout en Majuscule"}>
             <TextField
               required={true}
               label="Nom de l'épreuve"
@@ -319,6 +320,7 @@ const InfoRace = (props: IInfoRaceProps) => {
               InputLabelProps={{ shrink: true }}
               style={{ width: "80%" }}
             />
+          </Tooltip>
           </Grid>
           <Grid item={true} xs={4}>
             <TextField
@@ -339,6 +341,7 @@ const InfoRace = (props: IInfoRaceProps) => {
             />
           </Grid>
           <Grid item={true} xs={4}>
+            <Tooltip title={"Une fois enregistrée, le type ne peut être changé car il impacte d'autres données du formulaire"}>
             <Autocomplete
               disabled={!!props.competition.id}
               value={{
@@ -397,8 +400,10 @@ const InfoRace = (props: IInfoRaceProps) => {
                 })
               )}
             />
+            </Tooltip>
           </Grid>
           <Grid item={true} xs={4}>
+            <Tooltip title={"Correspond à la longueur la plus longue du ou des circuits, insérer l'unité en kms ou mètres"}>
             <TextField
               label="Longueur circuit"
               value={props.competition.circuitLength}
@@ -409,6 +414,7 @@ const InfoRace = (props: IInfoRaceProps) => {
               InputLabelProps={{ shrink: true }}
               style={{ width: "80%" }}
             />
+            </Tooltip>
           </Grid>
           <Grid item={true} xs={4}>
             <TextField
@@ -466,6 +472,7 @@ const InfoRace = (props: IInfoRaceProps) => {
             />
           </Grid>
           <Grid item={true} xs={4}>
+            <Tooltip title={"Une fois enregistrée, la fédération ne peut être changée car elle impacte d'autres données du formulaire"}>
             <Autocomplete
               value={{
                 label: props.competition.fede || "",
@@ -502,6 +509,7 @@ const InfoRace = (props: IInfoRaceProps) => {
                   label: FedeEnum[key]
                 }))}
             />
+            </Tooltip>
           </Grid>
           <Grid item={true} xs={8}>
             {props.competition.fede && props.competition.fede !== FedeEnum.NL && (
@@ -609,6 +617,7 @@ const InfoRace = (props: IInfoRaceProps) => {
         {props.competition.id ? (
           <Grid container={true} spacing={2} alignItems={"center"}>
             <Grid item={true} xs={4}>
+              <Tooltip title={"Cette information est falcutative et apparait dans l'application Dossardeur"}>
               <TextField
                 label="Commissaires"
                 value={props.competition.commissaires}
@@ -620,8 +629,10 @@ const InfoRace = (props: IInfoRaceProps) => {
                 InputLabelProps={{ shrink: true }}
                 style={{ width: "80%" }}
               />
+              </Tooltip>
             </Grid>
             <Grid item={true} xs={4}>
+              <Tooltip title={"Cette information est falcutative et apparait dans l'application Dossardeur"}>
               <TextField
                 label="Speaker"
                 value={props.competition.speaker}
@@ -632,7 +643,7 @@ const InfoRace = (props: IInfoRaceProps) => {
                 onChange={handleForm}
                 InputLabelProps={{ shrink: true }}
                 style={{ width: "80%" }}
-              />
+              /></Tooltip>
             </Grid>
             {props.competition.competitionType ===
             CompetitionCreateCompetitionTypeEnum.CX ? (
@@ -668,6 +679,7 @@ const InfoRace = (props: IInfoRaceProps) => {
           {props.competition.fede !== FedeEnum.CYCLOS && (
             <React.Fragment>
               <Grid item={true} xs={4}>
+                <Tooltip title={"Cochez cette case si votre épreuve est ouverte à d'autres fédérations que " + props.competition.fede}>
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -680,8 +692,10 @@ const InfoRace = (props: IInfoRaceProps) => {
                   }
                   label="Ouvert aux licenciés des autres fédérations"
                 />
+                </Tooltip>
               </Grid>
               <Grid item={true} xs={4}>
+                <Tooltip title={"Cochez cette case uniquement si votre épreuve est ouverte aux non licenciés porteur d'un certificat médical"}>
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -694,6 +708,7 @@ const InfoRace = (props: IInfoRaceProps) => {
                   }
                   label="Ouvert aux non licenciés"
                 />
+                </Tooltip>
               </Grid>
             </React.Fragment>
           )}

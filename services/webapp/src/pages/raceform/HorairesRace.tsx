@@ -185,7 +185,7 @@ const HorairesRace = (props: IRaceProps) => {
       case FedeEnum.FSGT:
       case FedeEnum.FFC:
       case FedeEnum.UFOLEP:
-        return ["Info.", "ex: 150m de D+ ou 58kms"];
+        return ["Distance totale", "ex: 58kms"];
         break;
       case FedeEnum.FFVELO:
         return ["Dénivelé", "ex: 1500m de D+"];
@@ -288,6 +288,7 @@ const HorairesRace = (props: IRaceProps) => {
           inputProps={{ name: "course", ref: { register } }}
           InputLabelProps={{ shrink: true }}
         />
+        <Tooltip title={"Si l'engagement/l'inscription à l'épreuve est sur place, donner l'heure d'engagement. S'il est en ligne, précisez du texte indiquant qu'il est en ligne."}>
         <TextField
           required={true}
           label={wordingInscriptionOfFede(props.competition.fede)[0]}
@@ -299,6 +300,8 @@ const HorairesRace = (props: IRaceProps) => {
           margin="normal"
           InputLabelProps={{ shrink: true }}
         />
+        </Tooltip>
+        <Tooltip title={"Correspond à l'heure du départ de l'épreuve"}>
         <TextField
           required={true}
           label="Heure du départ"
@@ -310,6 +313,7 @@ const HorairesRace = (props: IRaceProps) => {
           margin="normal"
           InputLabelProps={{ shrink: true }}
         />
+        </Tooltip>
       </div>
       <div
         style={{
@@ -342,6 +346,7 @@ const HorairesRace = (props: IRaceProps) => {
           margin="normal"
           InputLabelProps={{ shrink: true }}
         />
+        <Tooltip title={"Attention à bien vérifier que le lien OpenRunner fonctionne, le profil du circuit sur Dossardeur est extrait à l'aide de ce lien"}>
         <TextField
           label="Lien OpenRunner"
           className={classes.textField}
@@ -352,6 +357,7 @@ const HorairesRace = (props: IRaceProps) => {
           margin="normal"
           InputLabelProps={{ shrink: true }}
         />
+        </Tooltip>
       </div>
       {isEditing ? (
         <Button
