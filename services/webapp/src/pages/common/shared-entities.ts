@@ -5,6 +5,7 @@ export const CATEV = [
   { label: 'Catégorie 3', value: '3' },
   { label: 'Catégorie 4', value: '4' },
   { label: 'Catégorie 5', value: '5' },
+  { label: 'Junior', value: 'J' },
   { label: 'Cadet', value: 'C' },
   { label: 'Minime', value: 'M' },
   { label: 'Benjamin', value: 'B' },

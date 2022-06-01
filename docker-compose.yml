@@ -26,8 +26,12 @@ services:
     container_name: api
     image: node:12-alpine
     working_dir: "/app"
-    env_file:
-      - ./config/dev.env
+    environment:
+      - POSTGRES_HOST
+      - POSTGRES_PORT
+      - POSTGRES_DB
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
     volumes:
       - ./services/api:/app
     command: "npm run start:debug"
