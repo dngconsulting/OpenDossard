@@ -1,12 +1,11 @@
 import * as React from 'react';
-import { forwardRef, useEffect, useRef, useState } from 'react';
+import { forwardRef, useContext, useEffect, useRef, useState } from 'react';
 import MaterialTable, { Query, QueryResult } from 'material-table';
 import { AppText as T } from '../../util/text';
 import { apiLicences } from '../../util/api';
 import { LicenceEntity, LicenceEntity as Licence, Search as SearchEntity } from '../../sdk';
 import { cadtheme } from '../../theme/theme';
-import { Button, Paper, Tooltip } from '@material-ui/core';
-import { useContext } from 'react';
+import { Button, Tooltip } from '@material-ui/core';
 import { NotificationContext } from '../../components/CadSnackbar';
 import { store } from '../../store/Store';
 import { setVar } from '../../actions/App.Actions';
@@ -32,9 +31,7 @@ import {
 import jsPDF from 'jspdf';
 import moment from 'moment';
 import { useWindowDimensions } from '../../util';
-import * as _ from 'lodash';
 import { Link } from 'react-router-dom';
-import { ScrollPanel } from 'primereact/scrollpanel';
 
 interface ILicencesProps {
   items: any[];
@@ -326,9 +323,11 @@ const LicencesPage = (props: ILicencesProps) => {
           toolbar: true,
           padding: 'dense',
           actionsColumnIndex: -1,
+          emptyRowsWhenPaging: true,
           maxBodyHeight: windowDimensions.height - 200,
           pageSizeOptions: [5, 10, 17, 20, 100],
           search: true,
+          selection: true,
           searchFieldStyle: { width: 320 },
           exportButton: true,
           exportFileName: 'licences',
