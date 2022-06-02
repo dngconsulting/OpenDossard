@@ -227,213 +227,214 @@ const LicencesPage = (props: ILicencesProps) => {
     doc.save(filename);
   };
   return (
-    <MaterialTable
-      onChangePage={(pageNumber: number) => {
-        try {
-          const el = document.querySelectorAll('[class^=Component-horizontalScrollContainer]')[0].firstChild
-            .firstChild as Element;
-          el && el.scrollTo(0, 0);
-        } catch (err) {
-          // Lets ignore if it fails
-        }
-      }}
-      key={tableKey}
-      title={T.LICENCES.TITLE}
-      tableRef={tableRef}
-      columns={[
-        {
-          title: 'ID',
-          field: 'id',
-          headerStyle: { maxWidth: 20, minWidth: 20 },
-          filterPlaceholder: id
-        },
-        {
-          title: 'Lic. N°',
-          field: 'licenceNumber',
-          headerStyle: { width: 20, minWidth: 20 }
-        },
-        {
-          title: 'Nom',
-          field: 'name',
-          headerStyle: { width: 150, minWidth: 150, maxWidth: 150 },
-          render: (data, type) => {
-            return (
-              <Tooltip title="Pour accéder au palmarès du coureur, dans une nouvelle fenêtre: Ctrl+click">
-                <Link style={{ cursor: 'pointer' }} to={`/palmares/${data.id}`}>
-                  {data.name}
-                </Link>
-              </Tooltip>
-            );
-          }
-        },
-        {
-          title: 'Prénom',
-          field: 'firstName',
-          headerStyle: { width: 100, minWidth: 100, maxWidth: 100 }
-        },
-        { title: 'Club', field: 'club', headerStyle: { minWidth: 380 } },
-        {
-          title: 'H/F',
-          field: 'gender',
-          headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
-        },
-        {
-          title: 'Dept',
-          field: 'dept',
-          headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
-        },
-        {
-          title: 'Année',
-          field: 'birthYear',
-          headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
-        },
-        {
-          title: 'Caté.A',
-          field: 'catea',
-          headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
-        },
-        {
-          title: 'Caté.V',
-          field: 'catev',
-          headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
-        },
-        {
-          title: 'Caté.CX',
-          field: 'catevCX',
-          headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
-        },
-        {
-          title: 'Fédé',
-          field: 'fede',
-          headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
-          sorting: false
-        },
-        {
-          title: 'Saison',
-          field: 'saison',
-          headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
-          sorting: false
-        }
-      ]}
-      data={fetchLicences}
-      icons={tableIcons}
-      options={{
-        filterCellStyle: { padding: 0, margin: 0 },
-        rowStyle: { maxHeight: 20, fontSize: 8, padding: 0, margin: 0 },
-        filtering: true,
-        debounceInterval: 1000,
-        pageSize: psize,
-        toolbar: true,
-        padding: 'dense',
-        actionsColumnIndex: -1,
-        maxBodyHeight: windowDimensions.height - 200,
-        pageSizeOptions: [5, 10, 17, 20, 100],
-        search: true,
-        searchFieldStyle: { width: 320 },
-        exportButton: true,
-        exportFileName: 'licences',
-        headerStyle: {
-          backgroundColor: cadtheme.palette.primary.main,
-          color: '#FFF',
-          fontSize: 15,
-          padding: 5,
-          zIndex: 'auto'
-        }
-      }}
-      editable={{
-        onRowDelete: async oldData => {
+    <div id={'mydiv'}>
+      <MaterialTable
+        onChangePage={(pageNumber: number) => {
           try {
-            store.dispatch(setVar({ showLoading: true }));
-            await apiLicences._delete({ id: `${oldData.id}` });
-          } catch (ex) {
-            setNotification({
-              message: `Le coureur ${oldData.firstName} ${oldData.name} n'a pas été supprimé (pb réseau ou coureur déjà engagé sur une course)`,
-              open: true,
-              type: 'error'
-            });
-          } finally {
-            store.dispatch(setVar({ showLoading: false }));
+            const el = document.querySelectorAll('div[style*=overflow-y]')[0];
+            el && el.scrollTo(0, 0);
+          } catch (err) {
+            // Lets ignore if it fails
           }
-        }
-      }}
-      actions={[
-        {
-          icon: () => (
-            <Button variant={'contained'} color={'primary'}>
-              Ajouter une licence
-            </Button>
-          ),
-          tooltip: T.LICENCES.ADD_NEW_LICENCE,
-          isFreeAction: true,
-          onClick: () => {
-            props.history.push('/licence/new');
-          }
-        },
-        {
-          icon: () => (
-            <Button variant={'contained'} color={'secondary'}>
-              Tout Afficher
-            </Button>
-          ),
-          tooltip: 'Afficher tous les enregistrements',
-          isFreeAction: true,
-          onClick: () => {
-            setTableKey(Math.random());
-            props.history.push('/licences/');
-          }
-        },
-        {
-          icon: 'edit',
-          iconProps: { fontSize: 'small' },
-          tooltip: T.LICENCES.EDIT_TOOL_TIP,
-          onClick: (event, rowData: any) => {
-            props.history.push('/licence/' + rowData.id);
-          }
-        },
-        {
-          icon: () => (
-            <ActionButton color={'primary'}>
-              <span style={{ color: 'white' }}>
-                <PictureAsPdf style={{ verticalAlign: 'middle' }} />
-                Export PDF
-              </span>
-            </ActionButton>
-          ),
-          tooltip: 'Exporter la page courante en PDF',
-          isFreeAction: true,
-          onClick: () => {
-            exportPDF();
-          }
-        }
-      ]}
-      localization={{
-        body: {
-          editRow: {
-            saveTooltip: T.LICENCES.EDIT_ROW.SAVE_TOOL_TIP,
-            cancelTooltip: T.LICENCES.EDIT_ROW.CANCEL_TOOL_TIP,
-            deleteText: T.LICENCES.EDIT_ROW.DELETE_TEXT
+        }}
+        key={tableKey}
+        title={T.LICENCES.TITLE}
+        tableRef={tableRef}
+        columns={[
+          {
+            title: 'ID',
+            field: 'id',
+            headerStyle: { maxWidth: 20, minWidth: 20 },
+            filterPlaceholder: id
           },
-          deleteTooltip: T.LICENCES.DELETE_TOOL_TIP,
-          editTooltip: T.LICENCES.EDIT_TOOL_TIP,
-          emptyDataSourceMessage: T.LICENCES.EMPTY_DATA_SOURCE_MESSAGE,
-          filterRow: {
-            filterTooltip: T.LICENCES.FILTER_TOOL_TIP
+          {
+            title: 'Lic. N°',
+            field: 'licenceNumber',
+            headerStyle: { width: 20, minWidth: 20 }
+          },
+          {
+            title: 'Nom',
+            field: 'name',
+            headerStyle: { width: 150, minWidth: 150, maxWidth: 150 },
+            render: (data, type) => {
+              return (
+                <Tooltip title="Pour accéder au palmarès du coureur, dans une nouvelle fenêtre: Ctrl+click">
+                  <Link style={{ cursor: 'pointer' }} to={`/palmares/${data.id}`}>
+                    {data.name}
+                  </Link>
+                </Tooltip>
+              );
+            }
+          },
+          {
+            title: 'Prénom',
+            field: 'firstName',
+            headerStyle: { width: 100, minWidth: 100, maxWidth: 100 }
+          },
+          { title: 'Club', field: 'club', headerStyle: { minWidth: 380 } },
+          {
+            title: 'H/F',
+            field: 'gender',
+            headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
+          },
+          {
+            title: 'Dept',
+            field: 'dept',
+            headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
+          },
+          {
+            title: 'Année',
+            field: 'birthYear',
+            headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
+          },
+          {
+            title: 'Caté.A',
+            field: 'catea',
+            headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
+          },
+          {
+            title: 'Caté.V',
+            field: 'catev',
+            headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
+          },
+          {
+            title: 'Caté.CX',
+            field: 'catevCX',
+            headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
+          },
+          {
+            title: 'Fédé',
+            field: 'fede',
+            headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
+            sorting: false
+          },
+          {
+            title: 'Saison',
+            field: 'saison',
+            headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
+            sorting: false
           }
-        },
-        pagination: {
-          labelRowsSelect: T.LICENCES.PAGINATION.LABEL_ROWS_SELECT,
-          firstTooltip: T.LICENCES.PAGINATION.FIRST_TOOL_TIP,
-          previousTooltip: T.LICENCES.PAGINATION.PREVIOUS_TOOL_TIP,
-          nextTooltip: T.LICENCES.PAGINATION.NEXT_TOOL_TIP,
-          lastTooltip: T.LICENCES.PAGINATION.LAST_TOOL_TIP,
-          labelDisplayedRows: T.LICENCES.PAGINATION.LABEL_DISPLAYED_ROWS
-        },
-        toolbar: {
-          searchTooltip: T.LICENCES.TOOLBAR.SEARCH_TOOL_TIP,
-          searchPlaceholder: 'Nom Prenom Fédé N° Licence'
-        }
-      }}
-    />
+        ]}
+        data={fetchLicences}
+        icons={tableIcons}
+        options={{
+          filterCellStyle: { padding: 0, margin: 0 },
+          rowStyle: { maxHeight: 20, fontSize: 8, padding: 0, margin: 0 },
+          filtering: true,
+          debounceInterval: 1000,
+          pageSize: psize,
+          toolbar: true,
+          padding: 'dense',
+          actionsColumnIndex: -1,
+          maxBodyHeight: windowDimensions.height - 200,
+          pageSizeOptions: [5, 10, 17, 20, 100],
+          search: true,
+          searchFieldStyle: { width: 320 },
+          exportButton: true,
+          exportFileName: 'licences',
+          headerStyle: {
+            backgroundColor: cadtheme.palette.primary.main,
+            color: '#FFF',
+            fontSize: 15,
+            padding: 5,
+            zIndex: 'auto'
+          }
+        }}
+        editable={{
+          onRowDelete: async oldData => {
+            try {
+              store.dispatch(setVar({ showLoading: true }));
+              await apiLicences._delete({ id: `${oldData.id}` });
+            } catch (ex) {
+              setNotification({
+                message: `Le coureur ${oldData.firstName} ${oldData.name} n'a pas été supprimé (pb réseau ou coureur déjà engagé sur une course)`,
+                open: true,
+                type: 'error'
+              });
+            } finally {
+              store.dispatch(setVar({ showLoading: false }));
+            }
+          }
+        }}
+        actions={[
+          {
+            icon: () => (
+              <Button variant={'contained'} color={'primary'}>
+                Ajouter une licence
+              </Button>
+            ),
+            tooltip: T.LICENCES.ADD_NEW_LICENCE,
+            isFreeAction: true,
+            onClick: () => {
+              props.history.push('/licence/new');
+            }
+          },
+          {
+            icon: () => (
+              <Button variant={'contained'} color={'secondary'}>
+                Tout Afficher
+              </Button>
+            ),
+            tooltip: 'Afficher tous les enregistrements',
+            isFreeAction: true,
+            onClick: () => {
+              setTableKey(Math.random());
+              props.history.push('/licences/');
+            }
+          },
+          {
+            icon: 'edit',
+            iconProps: { fontSize: 'small' },
+            tooltip: T.LICENCES.EDIT_TOOL_TIP,
+            onClick: (event, rowData: any) => {
+              props.history.push('/licence/' + rowData.id);
+            }
+          },
+          {
+            icon: () => (
+              <ActionButton color={'primary'}>
+                <span style={{ color: 'white' }}>
+                  <PictureAsPdf style={{ verticalAlign: 'middle' }} />
+                  Export PDF
+                </span>
+              </ActionButton>
+            ),
+            tooltip: 'Exporter la page courante en PDF',
+            isFreeAction: true,
+            onClick: () => {
+              exportPDF();
+            }
+          }
+        ]}
+        localization={{
+          body: {
+            editRow: {
+              saveTooltip: T.LICENCES.EDIT_ROW.SAVE_TOOL_TIP,
+              cancelTooltip: T.LICENCES.EDIT_ROW.CANCEL_TOOL_TIP,
+              deleteText: T.LICENCES.EDIT_ROW.DELETE_TEXT
+            },
+            deleteTooltip: T.LICENCES.DELETE_TOOL_TIP,
+            editTooltip: T.LICENCES.EDIT_TOOL_TIP,
+            emptyDataSourceMessage: T.LICENCES.EMPTY_DATA_SOURCE_MESSAGE,
+            filterRow: {
+              filterTooltip: T.LICENCES.FILTER_TOOL_TIP
+            }
+          },
+          pagination: {
+            labelRowsSelect: T.LICENCES.PAGINATION.LABEL_ROWS_SELECT,
+            firstTooltip: T.LICENCES.PAGINATION.FIRST_TOOL_TIP,
+            previousTooltip: T.LICENCES.PAGINATION.PREVIOUS_TOOL_TIP,
+            nextTooltip: T.LICENCES.PAGINATION.NEXT_TOOL_TIP,
+            lastTooltip: T.LICENCES.PAGINATION.LAST_TOOL_TIP,
+            labelDisplayedRows: T.LICENCES.PAGINATION.LABEL_DISPLAYED_ROWS
+          },
+          toolbar: {
+            searchTooltip: T.LICENCES.TOOLBAR.SEARCH_TOOL_TIP,
+            searchPlaceholder: 'Nom Prenom Fédé N° Licence'
+          }
+        }}
+      />
+    </div>
   );
 };
 
