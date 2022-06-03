@@ -34,6 +34,7 @@ const previousRowEmpty = (index: number, transformedRows: any) => {
 };
 type ListOfDNF = 'DSQ' | 'ABD' | 'NC' | 'NP' | 'CHT' | null;
 const EditResultsPage = (gprops: any) => {
+  const [selectedRows, setSelectedRows] = useState([]);
   const { height, width } = useWindowDimensions();
   const competitionId = gprops.match.params.id;
   const isEdit = gprops.match.params.mode === 'edit';
@@ -68,6 +69,7 @@ const EditResultsPage = (gprops: any) => {
         classementToDisplay = modeDNFActivated ?? String(index + 1);
       }
       return {
+        uid: index,
         classement: classementToDisplay,
         ...(item.rankingScratch !== null || item.comment !== null ? { ...item } : {})
       };
@@ -77,10 +79,10 @@ const EditResultsPage = (gprops: any) => {
   const dossardEditor = (allprops: any, rows: RaceRow[], transformedRows: any, currentRace: string, fetchRows: any) => {
     return (
       <InputText
-        value={currentDossard}
+        defaultValue={allprops.rowData.riderNumber ? _.padStart(allprops.rowData.riderNumber, 3, '0') : ''}
         keyfilter="pint"
         type="text"
-        style={{ height: '1.5em' }}
+        style={{ height: '1.5em', textAlign: 'center' }}
         onChange={async (e: any) => {
           setCurrentDossard(e.target.value);
         }}
@@ -172,7 +174,9 @@ const EditResultsPage = (gprops: any) => {
           onClick={async () => {
             try {
               setLoading(true);
-              await apiRaces.removeRanking({ raceRow: row });
+              selectedRows.map(async row => {
+                await apiRaces.removeRanking({ raceRow: row });
+              });
               await fetchRows();
             } finally {
               setLoading(false);
@@ -706,7 +710,6 @@ const EditResultsPage = (gprops: any) => {
                       value={modeDNFActivated}
                       exclusive
                       onChange={(event, newValue) => {
-                        console.log('SetModeDNF ' + newValue);
                         setModeDNFActivated(newValue);
                       }}
                       aria-label="text alignment"
@@ -860,6 +863,28 @@ const EditResultsPage = (gprops: any) => {
                     {'Classements CSV Uniquement Course ' + currentRace}
                   </DropdownMenuItem>
                 </DropdownMenu>
+                {selectedRows?.length > 0 && isEdit && (
+                  <ActionButton color="primary" title="Supprimer du classement les coureurs">
+                    <Tooltip title="Supprimer définitivement ces coureurs du classement">
+                      <Delete
+                        fontSize={'small'}
+                        onClick={async () => {
+                          try {
+                            setLoading(true);
+                            const promises = selectedRows.map(async row => {
+                              return await apiRaces.removeRanking({ raceRow: row });
+                            });
+                            await Promise.all(promises);
+                            await fetchRows();
+                            setSelectedRows([]);
+                          } finally {
+                            setLoading(false);
+                          }
+                        }}
+                      />
+                    </Tooltip>
+                  </ActionButton>
+                )}
               </div>
               <div
                 style={{
@@ -902,6 +927,8 @@ const EditResultsPage = (gprops: any) => {
             </div>
             <DataTable
               ref={dg}
+              selectionMode="multiple"
+              selection={selectedRows}
               scrollHeight={height - 300 + 'px'}
               scrollable={true}
               reorderableColumns={true}
@@ -912,9 +939,13 @@ const EditResultsPage = (gprops: any) => {
               emptyMessage="Aucune donnée ne correspond à la recherche"
               {...(isEdit ? { onRowReorder: reorder } : undefined)}
               loading={loading}
+              onSelectionChange={e => setSelectedRows(e.value)}
               columnResizeMode="expand"
               {...(isEdit ? { editMode: 'cell' } : undefined)}
             >
+              {isEdit && (
+                <Column selectionMode="multiple" bodyStyle={{ textAlign: 'center' }} headerStyle={{ width: '3em' }} />
+              )}
               {isEdit && (
                 <Column
                   columnKey={'1'}
@@ -938,12 +969,14 @@ const EditResultsPage = (gprops: any) => {
                 header="Clt."
                 filterMatchMode="contains"
                 body={(rowdata: RaceRow, column: any) => displayRank(rowdata)}
-                style={{ overflow: 'visible', width: '60px' }}
+                style={{ width: '60px' }}
               />
               <Column
                 columnKey={'3'}
                 field="riderNumber"
-                body={(row: RaceRow) => row.riderNumber && displayDossard(row.riderNumber.toString())}
+                body={(row: RaceRow) => {
+                  return row.riderNumber && displayDossard(row.riderNumber.toString());
+                }}
                 header="Dossard"
                 filter={showFilters}
                 style={{ width: '5%', textAlign: 'center' }}
@@ -1026,7 +1059,7 @@ const EditResultsPage = (gprops: any) => {
                   body={(raceRow: RaceRow) => flagchallenge(raceRow)}
                 />
               )}
-              {isEdit && (
+              {isEdit && selectedRows.length === 0 && (
                 <Column
                   columnKey={'11'}
                   style={{ width: '5%', textAlign: 'center' }}
