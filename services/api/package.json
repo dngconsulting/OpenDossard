@@ -55,7 +55,11 @@
     "rxjs": "6.5.3",
     "swagger-stats": "0.95.17",
     "swagger-ui-express": "4.1.4",
-    "typeorm": "0.2.19"
+    "typeorm": "0.2.19",
+    "@types/geojson": "^7946.0.8",
+    "togeojson": "0.16.0",
+    "leaflet": "1.7.1",
+    "node-fetch": "2.1.2"
   },
   "devDependencies": {
     "@nestjs/cli": "6.12.9",

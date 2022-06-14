@@ -31,7 +31,11 @@ import { ClubEntity } from "src/entity/club.entity";
 import { plainToClass } from "class-transformer";
 import * as _ from "lodash";
 import { CompetitionService } from "../services/competition.service";
-
+import { GeoJSON } from "geojson";
+import fetch from "node-fetch";
+import toGeoJSON from "togeojson";
+import { buildLatLng } from "../util";
+import geoDataExchange from "../util/geo-data";
 const MAX_COMPETITION_TO_DISPLAY = 5000;
 /**
  * Competition Controller handles all competitions operation ('Epreuve' in french)
@@ -279,7 +283,8 @@ export class CompetitionController {
     );
     competitionUpserted.clubId = updatedCompetitionEntity.club.id;
     competitionUpserted.latitude = dto.latitude;
-    competitionUpserted.circuitLength = updatedCompetitionEntity.longueurCircuit;
+    competitionUpserted.circuitLength =
+      updatedCompetitionEntity.longueurCircuit;
     competitionUpserted.longitude = dto.longitude;
     competitionUpserted.gpsCoordinates = dto.gpsCoordinates;
     return competitionUpserted;
@@ -298,5 +303,47 @@ export class CompetitionController {
       throw new BadRequestException(`Competition ${id} not found`);
     }
     await this.entityManager.remove(competition);
+  }
+
+  @Get("/elevationProfile/:openRunnerId")
+  @Roles(ROLES.MOBILE, ROLES.ADMIN, ROLES.ORGANISATEUR)
+  @ApiOperation({
+    operationId: "getElevationProfile",
+    summary: "Récupère le profil pour une course donnée hébergée sur OpenRunner"
+  })
+  public async getElevationProfile(
+    @Param("openRunnerId") openRunnerId: string
+  ): Promise<GeoJSON> {
+    const res = await fetch(
+      "https://api.openrunner.com/api/v2/routes/14187821/export/gpx-track"
+    );
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(await res.text(), "application/xml");
+    const geojson = toGeoJSON.gpx(doc);
+    if (geojson.length !== 0) {
+      var latLngs = [];
+      geojson.features.forEach(function(feature) {
+        if (feature.geometry.type === "MultiLineString") {
+          feature.geometry.coordinates.forEach(function(lineString) {
+            lineString.forEach(function(coord) {
+              var latLng = buildLatLng(coord);
+              if (latLng !== undefined) {
+                latLngs.push(latLng);
+              }
+            });
+          });
+        } else if (feature.geometry.type === "LineString") {
+          feature.geometry.coordinates.forEach(function(coord) {
+            var latLng = buildLatLng(coord);
+            if (latLng !== undefined) {
+              latLngs.push(latLng);
+            }
+          });
+        }
+      });
+      const elevationFeatures = geoDataExchange.buildGeojsonFeatures(latLngs);
+      Logger.debug("GPX " + JSON.stringify(elevationFeatures));
+    }
+    return null;
   }
 }
