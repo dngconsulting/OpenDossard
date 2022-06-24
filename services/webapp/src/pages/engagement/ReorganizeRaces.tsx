@@ -1,89 +1,84 @@
-import {
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle
-} from "@material-ui/core";
-import Button from "@material-ui/core/Button";
-import React, { useContext, useEffect, useState } from "react";
-import TextField from "@material-ui/core/TextField";
-import { CompetitionEntity as Competition, RaceRow } from "../../sdk";
-import makeStyles from "@material-ui/core/styles/makeStyles";
-import Fab from "@material-ui/core/Fab";
-import { Add, Delete, ThreeSixty } from "@material-ui/icons";
-import Typography from "@material-ui/core/Typography";
-import Box from "@material-ui/core/Box";
-import Badge from "@material-ui/core/Badge/Badge";
-import { apiCompetitions } from "../../util/api";
-import { NotificationContext } from "../../components/CadSnackbar";
-import { ActionButton } from "../../components/ActionButton";
-import { cadtheme } from "../../theme/theme";
-import Tooltip from "@material-ui/core/Tooltip";
+import { Dialog, DialogActions, DialogContent, DialogTitle } from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import React, { useContext, useEffect, useState } from 'react';
+import TextField from '@material-ui/core/TextField';
+import { CompetitionEntity as Competition, RaceRow } from '../../sdk';
+import makeStyles from '@material-ui/core/styles/makeStyles';
+import Fab from '@material-ui/core/Fab';
+import { Add, Delete, ThreeSixty } from '@material-ui/icons';
+import Typography from '@material-ui/core/Typography';
+import Box from '@material-ui/core/Box';
+import Badge from '@material-ui/core/Badge/Badge';
+import { apiCompetitions } from '../../util/api';
+import { NotificationContext } from '../../components/CadSnackbar';
+import { ActionButton } from '../../components/ActionButton';
+import { cadtheme } from '../../theme/theme';
+import Tooltip from '@material-ui/core/Tooltip';
 
 const styles = makeStyles(theme => ({
   button: {
-    textTransform: "none",
-    textDecoration: "underline"
+    textTransform: 'none',
+    textDecoration: 'underline'
   },
   dialogContent: {
-    display: "flex",
-    flexDirection: "column",
-    "& [data-cp=field] input": {
-      textAlign: "center"
+    display: 'flex',
+    flexDirection: 'column',
+    '& [data-cp=field] input': {
+      textAlign: 'center'
     },
-    "& [data-cp=icon]": {
-      zoom: "57%",
+    '& [data-cp=icon]': {
+      zoom: '57%',
       marginTop: 10,
       marginLeft: 10
     }
   },
   races: {
     flex: 1,
-    display: "flex",
-    flexDirection: "column",
+    display: 'flex',
+    flexDirection: 'column',
     minHeight: 200,
-    justifyContent: "center",
+    justifyContent: 'center',
     paddingLeft: 10
   },
   categories: {
-    display: "flex",
-    alignSelf: "center",
+    display: 'flex',
+    alignSelf: 'center',
     flex: 1,
-    flexDirection: "column",
+    flexDirection: 'column',
     color: theme.palette.grey[600],
-    "& table": {
-      borderCollapse: "collapse",
-      justifySelf: "center",
-      alignSelf: "center"
+    '& table': {
+      borderCollapse: 'collapse',
+      justifySelf: 'center',
+      alignSelf: 'center'
     },
-    "& th": {
-      textAlign: "left",
+    '& th': {
+      textAlign: 'left',
       paddingRight: 10
     },
-    "& td": {
-      border: "1px solid grey",
-      textAlign: "center",
-      padding: "0 10px 0 10px"
+    '& td': {
+      border: '1px solid grey',
+      textAlign: 'center',
+      padding: '0 10px 0 10px'
     },
-    "& span": {
-      justifySelf: "center",
-      alignSelf: "center"
+    '& span': {
+      justifySelf: 'center',
+      alignSelf: 'center'
     }
   },
   badges: {
-    "& span": {
+    '& span': {
       top: 14,
       right: 22
     }
   },
   errors: {
     color: theme.palette.error.main,
-    alignSelf: "center"
+    alignSelf: 'center'
   }
 }));
 
 const computeByRace = (rows: RaceRow[], categories: string[]): number => {
-  return rows.filter(row => categories.indexOf("" + row.catev) >= 0).length;
+  return rows.filter(row => categories.indexOf('' + row.catev) >= 0).length;
 };
 
 const computeByCate = (rows: RaceRow[]) => {
@@ -108,18 +103,12 @@ const computeErrors = (races: string[], categories: string[]) => {
     return messages;
   }
 
-  const flatCategories = races
-    .map(race => race.split("/"))
-    .reduce((acc, cate) => [...acc, ...cate], []);
+  const flatCategories = races.map(race => race.split('/')).reduce((acc, cate) => [...acc, ...cate], []);
   const uniqueCategories = Array.from(new Set(flatCategories));
   const remaining = categories.filter(c => uniqueCategories.indexOf(c) < 0);
 
   if (remaining.length) {
-    return [
-      `Les inscrits en catégories ${remaining.join(
-        ","
-      )} n'ont pas été pris en charge`
-    ];
+    return [`Les inscrits en catégories ${remaining.join(',')} n'existent pas dans votre nouvelle organisation`];
   }
 
   if (flatCategories.length !== uniqueCategories.length) {
@@ -164,7 +153,7 @@ export const Reorganizer = ({
       });
       setNotification({
         message: `La compétition a été réorganisée avec succès`,
-        type: "info",
+        type: 'info',
         open: true
       });
       setOpen(false);
@@ -172,7 +161,7 @@ export const Reorganizer = ({
     } catch (e) {
       setNotification({
         message: `Une erreur s'est produite`,
-        type: "error",
+        type: 'error',
         open: true
       });
     }
@@ -187,16 +176,12 @@ export const Reorganizer = ({
     <div>
       <Tooltip title={tooltip}>
         <span>
-          <ActionButton
-            color="primary"
-            disabled={disabled}
-            onClick={() => setOpen(true)}
-          >
-            <span style={{ color: "white" }}>
+          <ActionButton color="primary" disabled={disabled} onClick={() => setOpen(true)}>
+            <span style={{ color: 'white' }}>
               <ThreeSixty
                 style={{
-                  color: "white",
-                  verticalAlign: "middle"
+                  color: 'white',
+                  verticalAlign: 'middle'
                 }}
               />
               Réorganiser la course
@@ -205,18 +190,18 @@ export const Reorganizer = ({
         </span>
       </Tooltip>
       <Dialog
+        maxWidth={false}
         open={open}
         onClose={() => setOpen(false)}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">
-          Réorganiser les départs
-        </DialogTitle>
+        <DialogTitle id="alert-dialog-title">Réorganiser les départs</DialogTitle>
         <DialogContent className={classes.dialogContent}>
           <Typography variant="body2">
-            Ici, vous pouvez revoir les catégories de chaque courses, ajouter ou
-            supprimer des courses...
+            Ici, vous pouvez revoir les catégories de chaque course, ajouter ou supprimer des courses...{' '}
+            <b>ATTENTION:</b> Le caractère "/" est spécial, il sert à grouper plusieurs catégories dans une même course.
+            Ex: 2/3
           </Typography>
           <Box display="flex">
             <Races races={races} setRaces={setRaces} rows={rows} />
@@ -233,19 +218,10 @@ export const Reorganizer = ({
           )}
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={() => setOpen(false)}
-            variant="contained"
-            color="secondary"
-          >
+          <Button onClick={() => setOpen(false)} variant="contained" color="secondary">
             Annuler
           </Button>
-          <Button
-            onClick={() => save()}
-            variant="contained"
-            color="primary"
-            disabled={errors.length > 0}
-          >
+          <Button onClick={() => save()} variant="contained" color="primary" disabled={errors.length > 0}>
             Réorganiser
           </Button>
         </DialogActions>
@@ -268,39 +244,36 @@ const Races = ({
   return (
     <Box className={classes.races}>
       {races.map((raceCode, i) => (
-        <Box key={i} justifySelf="center" alignSelf="center">
+        <Box key={i} justifySelf="center" alignSelf="center" minWidth={600}>
           <Badge
-            badgeContent={computeByRace(rows, raceCode.split("/"))}
+            badgeContent={computeByRace(rows, raceCode.split('/'))}
             max={999}
             className={classes.badges}
             color="secondary"
           >
             <TextField
+              style={{ width: 500 }}
               data-cp="field"
               value={raceCode}
               onChange={e => {
                 const newOne = [...races];
-                newOne[i] = e.target.value;
+                newOne[i] = e.target.value.replace(/\s/g, '');
                 setRaces(newOne);
               }}
             />
           </Badge>
           {races.length > 1 && (
-            <Fab
-              color="primary"
-              data-cp="icon"
-              onClick={() => setRaces(races.filter((item, j) => i !== j))}
-            >
+            <Fab color="primary" data-cp="icon" onClick={() => setRaces(races.filter((item, j) => i !== j))}>
               <Delete />
             </Fab>
           )}
           <Fab
             style={{
-              visibility: i === races.length - 1 ? "visible" : "hidden"
+              visibility: i === races.length - 1 ? 'visible' : 'hidden'
             }}
             color="primary"
             data-cp="icon"
-            onClick={() => setRaces([...races, ""])}
+            onClick={() => setRaces([...races, ''])}
           >
             <Add />
           </Fab>
@@ -310,11 +283,7 @@ const Races = ({
   );
 };
 
-const Categories = ({
-  byCate
-}: {
-  byCate: Array<{ catev: string; participants: number }>;
-}) => {
+const Categories = ({ byCate }: { byCate: Array<{ catev: string; participants: number }> }) => {
   const classes = styles({});
 
   return (
@@ -339,4 +308,3 @@ const Categories = ({
     </Box>
   );
 };
-

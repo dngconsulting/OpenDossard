@@ -37,7 +37,7 @@ const EditResultsPage = (gprops: any) => {
   const [selectedRows, setSelectedRows] = useState([]);
   const { height, width } = useWindowDimensions();
   const competitionId = gprops.match.params.id;
-  const isEdit = gprops.match.params.mode === 'edit';
+  const isEdit = true;
   const fromPalmaresLicenceId = new URLSearchParams(gprops.location.search).get('palmares');
   const dg = useRef(null);
   const [showDNFDialog, setShowDNFDialog] = useState(false);
@@ -165,26 +165,6 @@ const EditResultsPage = (gprops: any) => {
     }
     return true;
   };
-
-  const deleteAction = (row: RaceRow, fetchRows: any) =>
-    row.riderNumber && (
-      <Tooltip title="Supprimer définitivement ce coureur du classement">
-        <Delete
-          fontSize={'small'}
-          onClick={async () => {
-            try {
-              setLoading(true);
-              selectedRows.map(async row => {
-                await apiRaces.removeRanking({ raceRow: row });
-              });
-              await fetchRows();
-            } finally {
-              setLoading(false);
-            }
-          }}
-        />
-      </Tooltip>
-    );
 
   const getMedalColorForRank = (ranking: number | string, rankingScratch: number): string => {
     return ranking <= 3 || rankingScratch <= 3
@@ -690,19 +670,6 @@ const EditResultsPage = (gprops: any) => {
               }}
             >
               <div style={{ display: 'flex', flexDirection: 'row' }}>
-                <ActionButton color="primary" title="Visualiser ou éditer les classements">
-                  {isEdit ? (
-                    <PageviewSharp style={{ color: 'white', verticalAlign: 'middle' }} />
-                  ) : (
-                    <Edit style={{ color: 'white', verticalAlign: 'middle' }} />
-                  )}
-                  <Link
-                    style={{ color: 'white' }}
-                    to={'/competition/' + competition?.id + '/results/' + (isEdit ? 'view' : 'edit')}
-                  >
-                    {isEdit ? 'Passer en visualisation' : 'Passer en edition'}
-                  </Link>
-                </ActionButton>
                 {isEdit && (
                   <>
                     <ToggleButtonGroup
@@ -715,6 +682,7 @@ const EditResultsPage = (gprops: any) => {
                       aria-label="text alignment"
                     >
                       <ToggleButton
+                        title={'Lorsque ce bouton poussoir est sélectionné, tout dossard saisi est noté ABD (abandon)'}
                         style={{
                           color: 'white',
                           backgroundColor:
@@ -730,6 +698,7 @@ const EditResultsPage = (gprops: any) => {
                         ABD
                       </ToggleButton>
                       <ToggleButton
+                        title={'Lorsque ce bouton poussoir est sélectionné, tout dossard saisi est noté CHT (chute)'}
                         style={{
                           color: 'white',
                           backgroundColor:
@@ -745,6 +714,9 @@ const EditResultsPage = (gprops: any) => {
                         CHT
                       </ToggleButton>
                       <ToggleButton
+                        title={
+                          'Lorsque ce bouton poussoir est sélectionné, tout dossard saisi est noté NC (Non classé)'
+                        }
                         style={{
                           color: 'white',
                           backgroundColor:
@@ -758,6 +730,9 @@ const EditResultsPage = (gprops: any) => {
                         NC
                       </ToggleButton>
                       <ToggleButton
+                        title={
+                          'Lorsque ce bouton poussoir est sélectionné, tout dossard saisi est noté NP (Non partant)'
+                        }
                         style={{
                           color: 'white',
                           backgroundColor:
@@ -771,6 +746,9 @@ const EditResultsPage = (gprops: any) => {
                         NP
                       </ToggleButton>
                       <ToggleButton
+                        title={
+                          'Lorsque ce bouton poussoir est sélectionné, tout dossard saisi est noté DSQ (Disqualifié)'
+                        }
                         style={{
                           color: 'white',
                           backgroundColor:
@@ -1057,13 +1035,6 @@ const EditResultsPage = (gprops: any) => {
                   columnKey={'10'}
                   style={{ width: '5%', textAlign: 'center' }}
                   body={(raceRow: RaceRow) => flagchallenge(raceRow)}
-                />
-              )}
-              {isEdit && selectedRows.length === 0 && (
-                <Column
-                  columnKey={'11'}
-                  style={{ width: '5%', textAlign: 'center' }}
-                  body={(raceRow: RaceRow) => deleteAction(raceRow, fetchRows)}
                 />
               )}
             </DataTable>
