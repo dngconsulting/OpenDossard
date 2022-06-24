@@ -1,5 +1,5 @@
-import LeafletMap, { DEFAULT_LAT, DEFAULT_LNG } from "components/LeafletMap";
-import React, { useContext, useEffect, useState } from "react";
+import LeafletMap, { DEFAULT_LAT, DEFAULT_LNG } from 'components/LeafletMap';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   AppBar,
   Box,
@@ -12,25 +12,25 @@ import {
   Tabs,
   Theme,
   Typography
-} from "@material-ui/core";
-import InfoRace from "pages/raceform/InfoRace";
-import HorairesRace from "pages/raceform/HorairesRace";
-import PriceRace from "pages/raceform/PriceRace";
-import { CompetitionEntity, CompetitionInfo, LinkInfo, PricingInfo } from "sdk";
-import { NotificationContext } from "components/CadSnackbar";
-import { apiCompetitions } from "util/api";
+} from '@material-ui/core';
+import InfoRace from 'pages/raceform/InfoRace';
+import HorairesRace from 'pages/raceform/HorairesRace';
+import PriceRace from 'pages/raceform/PriceRace';
+import { CompetitionEntity, CompetitionInfo, LinkInfo, PricingInfo } from 'sdk';
+import { NotificationContext } from 'components/CadSnackbar';
+import { apiCompetitions } from 'util/api';
 import {
   CompetitionCreate,
   CompetitionCreateCategoriesEnum,
   CompetitionCreateCompetitionTypeEnum
-} from "sdk/models/CompetitionCreate";
-import { withStyles } from "@material-ui/core/styles";
-import { styles } from "../../navigation/styles";
-import { LatLng } from "leaflet";
-import { LoaderIndicator } from "../../components/LoaderIndicator";
-import { saveCompetition } from "../common/Competition";
-import MediaRace from "../raceform/MediaRace";
-import _ from "lodash";
+} from 'sdk/models/CompetitionCreate';
+import { withStyles } from '@material-ui/core/styles';
+import { styles } from '../../navigation/styles';
+import { LatLng } from 'leaflet';
+import { LoaderIndicator } from '../../components/LoaderIndicator';
+import { saveCompetition } from '../common/Competition';
+import MediaRace from '../raceform/MediaRace';
+import _ from 'lodash';
 
 interface ITabPanelProps {
   children?: React.ReactNode;
@@ -83,16 +83,16 @@ interface IErrorsForm {
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     Tab: {
-      "&:hover": {
-        backgroundColor: "#004f04",
-        color: "#ffffff"
+      '&:hover': {
+        backgroundColor: '#004f04',
+        color: '#ffffff'
       }
     },
     button: {
-      display: "block",
-      width: "206px",
-      marginLeft: "auto",
-      marginRight: "auto",
+      display: 'block',
+      width: '206px',
+      marginLeft: 'auto',
+      marginRight: 'auto',
       marginBottom: 10
     }
   })
@@ -131,9 +131,7 @@ function TabPanel(props: ITabPanelProps) {
 const CompetNavBar = (props: ICompetNavBar) => {
   const id = props.match.params.id;
   const classes = useStyles();
-  const [communeLocalisationForMap, setCommuneLocalisationForMap] = useState<
-    string
-  >();
+  const [communeLocalisationForMap, setCommuneLocalisationForMap] = useState<string>();
   const [, setNotification] = useContext(NotificationContext);
   const [isSubmitted, setIsSubmited] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -145,35 +143,36 @@ const CompetNavBar = (props: ICompetNavBar) => {
   });
   const [newCompetition, setNewCompetition] = useState<CompetitionCreate>({
     fede: null,
-    name: "",
+    name: '',
     competitionType: null,
+    avecChrono: false,
     categories: [CompetitionCreateCategoriesEnum.Toutes],
-    races: ["2,3,4,5"],
+    races: ['2,3,4,5'],
     eventDate: new Date(),
-    zipCode: "",
+    zipCode: '',
     clubId: null,
     photoUrls: [],
-    info: "",
+    info: '',
     competitionInfo: [],
-    circuitLength: "",
-    contactPhone: "",
-    contactEmail: "",
-    website: "",
-    facebook: "",
+    circuitLength: '',
+    contactPhone: '',
+    contactEmail: '',
+    website: '',
+    facebook: '',
     latitude: DEFAULT_LAT,
     longitude: DEFAULT_LNG,
     pricing: [],
     isOpenedToOtherFede: false,
     isOpenedToNL: false,
-    observations: "",
-    localisation: "",
-    gpsCoordinates: "",
-    contactName: "",
-    commissaires: "",
-    speaker: "",
-    aboyeur: "",
-    feedback: "",
-    dept: "",
+    observations: '',
+    localisation: '',
+    gpsCoordinates: '',
+    contactName: '',
+    commissaires: '',
+    speaker: '',
+    aboyeur: '',
+    feedback: '',
+    dept: '',
     isValidResults: false
   });
 
@@ -187,6 +186,7 @@ const CompetNavBar = (props: ICompetNavBar) => {
         const toUpdateCompetition: CompetitionCreate = {
           ...newCompetition,
           fede: res.fede,
+          avecChrono: res.avecChrono,
           id: res.id,
           name: res.name,
           competitionType: compareType(res.competitionType),
@@ -227,9 +227,7 @@ const CompetNavBar = (props: ICompetNavBar) => {
     loadCompetition();
   }, []);
 
-  const compareType = (
-    competitionType: string
-  ): CompetitionCreateCompetitionTypeEnum => {
+  const compareType = (competitionType: string): CompetitionCreateCompetitionTypeEnum => {
     let type: CompetitionCreateCompetitionTypeEnum = null;
     switch (competitionType) {
       case CompetitionCreateCompetitionTypeEnum.CX:
@@ -251,13 +249,13 @@ const CompetNavBar = (props: ICompetNavBar) => {
   };
 
   const convertGPSCoordinates = (gpsCoordinates: LatLng): string => {
-    return String(gpsCoordinates.lat + ", " + gpsCoordinates.lng);
+    return String(gpsCoordinates.lat + ', ' + gpsCoordinates.lng);
   };
 
   const getGPSCoordinates = (gpsCoordinates: string): number[] => {
     let coordinates = [DEFAULT_LAT, DEFAULT_LNG];
-    if (gpsCoordinates && gpsCoordinates !== "") {
-      const coordinatesTab: string[] = gpsCoordinates.split(",");
+    if (gpsCoordinates && gpsCoordinates !== '') {
+      const coordinatesTab: string[] = gpsCoordinates.split(',');
       const lat: number = parseFloat(coordinatesTab[0]);
       const lng: number = parseFloat(coordinatesTab[1]);
       coordinates = [lat, lng];
@@ -269,36 +267,23 @@ const CompetNavBar = (props: ICompetNavBar) => {
     setValue(newValue);
   };
 
-  const setMainInfos = (
-    competition: CompetitionCreate,
-    errorInfo: boolean
-  ): void => {
+  const setMainInfos = (competition: CompetitionCreate, errorInfo: boolean): void => {
     setErrors({ ...errors, info: errorInfo });
     setNewCompetition(competition);
-    if (!_.isEmpty(competition.localisation))
-      setCommuneLocalisationForMap(competition.localisation);
+    if (!_.isEmpty(competition.localisation)) setCommuneLocalisationForMap(competition.localisation);
   };
 
-  const setPricesInfo = (
-    pricesInfos: PricingInfo[],
-    errorPrice: boolean
-  ): void => {
+  const setPricesInfo = (pricesInfos: PricingInfo[], errorPrice: boolean): void => {
     setErrors({ ...errors, price: errorPrice });
     setNewCompetition({ ...newCompetition, pricing: pricesInfos });
   };
 
-  const setCompetitionInfos = (
-    infos: CompetitionInfo[],
-    errorProp: boolean
-  ): void => {
+  const setCompetitionInfos = (infos: CompetitionInfo[], errorProp: boolean): void => {
     setErrors({ ...errors, horaires: errorProp });
     setNewCompetition({ ...newCompetition, competitionInfo: infos });
   };
 
-  const setMediasInfo = (
-    mediasInfos: LinkInfo[],
-    errorMedia: boolean
-  ): void => {
+  const setMediasInfo = (mediasInfos: LinkInfo[], errorMedia: boolean): void => {
     setNewCompetition({ ...newCompetition, photoUrls: mediasInfos });
   };
   const setGPSCoordinates = (gpsCoordinates: LatLng): void => {
@@ -313,15 +298,15 @@ const CompetNavBar = (props: ICompetNavBar) => {
   return (
     <>
       <LoaderIndicator visible={isLoading} />
-      <div style={{ display: "block", border: 0 }}>
-        <AppBar position="static" style={{ backgroundColor: "#60ac5d" }}>
+      <div style={{ display: 'block', border: 0 }}>
+        <AppBar position="static" style={{ backgroundColor: '#60ac5d' }}>
           <Tabs
-            TabIndicatorProps={{ style: { background: "white", height: 4 } }}
+            TabIndicatorProps={{ style: { background: 'white', height: 4 } }}
             value={value}
             onChange={handleChange}
-            style={{ backgroundColor: "#2e7c31" }}
+            style={{ backgroundColor: '#2e7c31' }}
             centered={true}
-            indicatorColor={"primary"}
+            indicatorColor={'primary'}
           >
             <Tab className={classes.Tab} label="Informations Générales" />
             <Tab className={classes.Tab} label="Horaires & Circuit" />
@@ -390,25 +375,25 @@ const CompetNavBar = (props: ICompetNavBar) => {
             />
             <div
               style={{
-                width: "70%",
-                marginRight: "auto",
-                marginLeft: "auto"
+                width: '70%',
+                marginRight: 'auto',
+                marginLeft: 'auto'
               }}
             >
-              Veuillez utiliser le clic droit de la souris pour positionner la
-              localisation exacte de la course (ou du retrait des dossards)
+              Veuillez utiliser le clic droit de la souris pour positionner la localisation exacte de la course (ou du
+              retrait des dossards)
             </div>
             <Button
               style={{
-                display: "block",
-                marginLeft: "auto",
-                marginRight: "auto",
-                width: "256px",
-                marginTop: "30px"
+                display: 'block',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                width: '256px',
+                marginTop: '30px'
               }}
-              variant={"contained"}
+              variant={'contained'}
               value={1}
-              color={"primary"}
+              color={'primary'}
               onClick={async () => {
                 await saveCompetition({
                   competition: newCompetition,
@@ -446,6 +431,4 @@ const CompetNavBar = (props: ICompetNavBar) => {
   );
 };
 
-export default withStyles(styles as any, { withTheme: true })(
-  CompetNavBar as any
-);
+export default withStyles(styles as any, { withTheme: true })(CompetNavBar as any);

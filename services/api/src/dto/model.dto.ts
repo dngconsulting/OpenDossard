@@ -48,6 +48,7 @@ export class RaceRow {
   @ApiPropertyOptional({ type: "string", format: "date-time" })
   public competitionDate?: Date;
   public sprintchallenge?: boolean;
+  public chrono?: string;
 }
 
 export class RaceCreate {
@@ -136,6 +137,7 @@ export class CompetitionCreate {
   startDate?: string;
   isOpenedToOtherFede?: boolean;
   isOpenedToNL?: boolean;
+  avecChrono?: boolean;
   observations?: string;
   localisation?: string;
   gpsCoordinates?: string;

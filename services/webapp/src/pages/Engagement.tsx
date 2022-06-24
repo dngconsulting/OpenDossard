@@ -295,12 +295,12 @@ const EngagementPage = (props: any) => {
                 fontStyle: 'bold'
               },
               1: { cellWidth: 55 },
-              2: { cellWidth: 55 },
+              2: { cellWidth: 40 },
               3: { cellWidth: 10 },
               4: { cellWidth: 10 },
               5: { cellWidth: 12 },
               6: { cellWidth: 10 },
-              7: { cellWidth: 10 },
+              7: { cellWidth: 20 },
               8: { cellWidth: 12 }
             },
             body: rowstoDisplay,

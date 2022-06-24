@@ -272,6 +272,16 @@ export const CreationForm = ({
               setForm({ ...form, catev: e.target.value as string });
             }}
           >
+            {race?.split('/')?.map(
+              r =>
+                competition &&
+                competition.fede &&
+                !FEDERATIONS[competition.fede].catev.find(v => v.value === r) && (
+                  <MenuItem key={r} value={r}>
+                    {r}
+                  </MenuItem>
+                )
+            )}
             {competition &&
               competition.fede &&
               FEDERATIONS[competition.fede].catev.map((value: ICategory, index: number) => (
@@ -279,11 +289,6 @@ export const CreationForm = ({
                   {value.label}
                 </MenuItem>
               ))}
-            {race?.split('/')?.map(r => (
-              <MenuItem key={r} value={r}>
-                {r}
-              </MenuItem>
-            ))}
             ))
           </Select>
         </FormControl>

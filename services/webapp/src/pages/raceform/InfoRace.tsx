@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Button,
   Checkbox,
@@ -7,27 +7,21 @@ import {
   FormControlLabel,
   makeStyles,
   TextField,
-  Theme, Tooltip
+  Theme,
+  Tooltip
 } from '@material-ui/core';
-import Editor from "components/Editor";
-import moment from "moment";
-import ClubSelect, { IOptionType } from "components/ClubSelect";
-import {
-  CompetitionCreate,
-  CompetitionCreateCompetitionTypeEnum,
-  CompetitionEntityCompetitionTypeEnum
-} from "sdk";
-import { FedeEnum } from "sdk/models/FedeEnum";
-import { IErrorInfo } from "../competition/CompetitionForm";
-import Autocomplete from "@material-ui/lab/Autocomplete";
-import Grid from "@material-ui/core/Grid";
-import _ from "lodash";
+import Editor from 'components/Editor';
+import moment from 'moment';
+import ClubSelect, { IOptionType } from 'components/ClubSelect';
+import { CompetitionCreate, CompetitionCreateCompetitionTypeEnum, CompetitionEntityCompetitionTypeEnum } from 'sdk';
+import { FedeEnum } from 'sdk/models/FedeEnum';
+import { IErrorInfo } from '../competition/CompetitionForm';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import Grid from '@material-ui/core/Grid';
+import _ from 'lodash';
 
 const isSafari = () => {
-  return (
-    navigator.userAgent.indexOf("Safari") != -1 &&
-    navigator.userAgent.indexOf("Chrome") == -1
-  );
+  return navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1;
 };
 interface IInfoRaceProps {
   competition: CompetitionCreate;
@@ -38,24 +32,22 @@ interface IInfoRaceProps {
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     Tab: {
-      "&:hover": {
-        backgroundColor: "#004f04",
-        color: "#ffffff"
+      '&:hover': {
+        backgroundColor: '#004f04',
+        color: '#ffffff'
       }
     },
     button: {
-      display: "block",
-      width: "206px",
-      marginLeft: "auto",
-      marginRight: "auto",
+      display: 'block',
+      width: '206px',
+      marginLeft: 'auto',
+      marginRight: 'auto',
       marginBottom: 10
     }
   })
 );
 const InfoRace = (props: IInfoRaceProps) => {
-  const date: string = moment(props.competition.eventDate ?? new Date()).format(
-    moment.HTML5_FMT.DATETIME_LOCAL
-  );
+  const date: string = moment(props.competition.eventDate ?? new Date()).format(moment.HTML5_FMT.DATETIME_LOCAL);
 
   const classes = useStyles();
   const [error, setError] = useState<IErrorInfo>({
@@ -87,6 +79,7 @@ const InfoRace = (props: IInfoRaceProps) => {
   };
 
   const handleChangeBox = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('Update ' + event.target.name);
     const mainInfoError = showEmptyFields();
     props.updateMainInfos(
       {
@@ -100,16 +93,13 @@ const InfoRace = (props: IInfoRaceProps) => {
   const updateObservations = (data: string): void => {
     if (_.isEmpty(data)) return;
     const mainInfoError = showEmptyFields();
-    props.updateMainInfos(
-      { ...props.competition, observations: data },
-      mainInfoError
-    );
+    props.updateMainInfos({ ...props.competition, observations: data }, mainInfoError);
   };
 
   const handleFormDate = (event: any): void => {
     const label = event.currentTarget.name;
     const value = event.currentTarget.value;
-    if (label === "eventDate") {
+    if (label === 'eventDate') {
       setError({
         ...error,
         eventDate: !value
@@ -128,7 +118,7 @@ const InfoRace = (props: IInfoRaceProps) => {
   const handleForm = (event: any): void => {
     const label = event.target.name;
     const value = event.target.value;
-    if (label === "name" || label === "zipCode") {
+    if (label === 'name' || label === 'zipCode') {
       setError({
         ...error,
         [label]: !value
@@ -151,10 +141,7 @@ const InfoRace = (props: IInfoRaceProps) => {
       ...error,
       club: !value
     });
-    props.updateMainInfos(
-      { ...props.competition, clubId: value },
-      mainInfoError
-    );
+    props.updateMainInfos({ ...props.competition, clubId: value }, mainInfoError);
   };
 
   const handleFEDEChange = (event: any, target: string | any) => {
@@ -170,7 +157,7 @@ const InfoRace = (props: IInfoRaceProps) => {
             ...props.competition,
             fede: target.value,
             clubId: null,
-            races: ["2,3,4,5"]
+            races: ['2,3,4,5']
           },
           mainInfoError
         );
@@ -180,7 +167,7 @@ const InfoRace = (props: IInfoRaceProps) => {
             ...props.competition,
             fede: target.value,
             clubId: null,
-            races: ["Toutes"]
+            races: ['Toutes']
           },
           mainInfoError
         );
@@ -211,85 +198,70 @@ const InfoRace = (props: IInfoRaceProps) => {
       error.contactEmail &&
       error.facebook &&
       error.website;
-    if (label === "contactPhone") {
-      if (value.length <= 9 && value !== "") {
+    if (label === 'contactPhone') {
+      if (value.length <= 9 && value !== '') {
         setError({
           ...error,
           contactPhone: true
         });
         mainInfoError = mainInfoError && error.contactPhone;
-        props.updateMainInfos(
-          { ...props.competition, isValidResults: false },
-          mainInfoError
-        );
+        props.updateMainInfos({ ...props.competition, isValidResults: false }, mainInfoError);
       } else {
         setError({
           ...error,
           contactPhone: false
         });
       }
-    } else if (label === "contactEmail") {
-      if (value.includes("@", null) === false && value !== "") {
+    } else if (label === 'contactEmail') {
+      if (value.includes('@', null) === false && value !== '') {
         setError({
           ...error,
           contactEmail: true
         });
         mainInfoError = mainInfoError && error.contactPhone;
-        props.updateMainInfos(
-          { ...props.competition, isValidResults: false },
-          mainInfoError
-        );
+        props.updateMainInfos({ ...props.competition, isValidResults: false }, mainInfoError);
       } else {
         setError({
           ...error,
           contactEmail: false
         });
       }
-    } else if (label === "zipCode") {
+    } else if (label === 'zipCode') {
       if (value.length < 5) {
         setError({
           ...error,
           zipCode: true
         });
         mainInfoError = mainInfoError && error.contactPhone;
-        props.updateMainInfos(
-          { ...props.competition, isValidResults: false },
-          mainInfoError
-        );
+        props.updateMainInfos({ ...props.competition, isValidResults: false }, mainInfoError);
       } else {
         setError({
           ...error,
           zipCode: false
         });
       }
-    } else if (label === "facebook") {
-      if (value.includes("http", 0) === false && value !== "") {
+    } else if (label === 'facebook') {
+      if (value.includes('http', 0) === false && value !== '') {
         setError({
           ...error,
           facebook: true
         });
         mainInfoError = mainInfoError && error.contactPhone;
-        props.updateMainInfos(
-          { ...props.competition, isValidResults: false },
-          mainInfoError
-        );
+        props.updateMainInfos({ ...props.competition, isValidResults: false }, mainInfoError);
       } else {
         setError({
           ...error,
           facebook: false
         });
       }
-    } else if (label === "website") {
-      if (value.includes("http", 0) === false && value !== "") {
+    } else if (label === 'website') {
+      if (value.includes('http', 0) === false && value !== '') {
         setError({
           ...error,
           website: true
         });
         mainInfoError = mainInfoError && error.contactPhone;
-        props.updateMainInfos(
-          { ...props.competition, isValidResults: false },
-          mainInfoError
-        );
+        props.updateMainInfos({ ...props.competition, isValidResults: false }, mainInfoError);
       } else {
         setError({
           ...error,
@@ -301,26 +273,24 @@ const InfoRace = (props: IInfoRaceProps) => {
 
   return (
     <>
-      <Container style={{ marginLeft: 0, marginTop: "2rem" }}>
-        <Grid container={true} spacing={2} alignItems={"center"}>
+      <Container style={{ marginLeft: 0, marginTop: '2rem' }}>
+        <Grid container={true} spacing={2} alignItems={'center'}>
           <Grid item={true} xs={4}>
             <Tooltip title={"Correspond au nom de l'épreuve, éviter le tout en Majuscule"}>
-            <TextField
-              required={true}
-              label="Nom de l'épreuve"
-              value={props.competition.name}
-              error={error.name}
-              helperText={
-                error.name && "Le nom de l'épreuve doit être renseigné"
-              }
-              type="text"
-              name="name"
-              onSelect={handleForm}
-              onChange={handleForm}
-              InputLabelProps={{ shrink: true }}
-              style={{ width: "80%" }}
-            />
-          </Tooltip>
+              <TextField
+                required={true}
+                label="Nom de l'épreuve"
+                value={props.competition.name}
+                error={error.name}
+                helperText={error.name && "Le nom de l'épreuve doit être renseigné"}
+                type="text"
+                name="name"
+                onSelect={handleForm}
+                onChange={handleForm}
+                InputLabelProps={{ shrink: true }}
+                style={{ width: '80%' }}
+              />
+            </Tooltip>
           </Grid>
           <Grid item={true} xs={4}>
             <TextField
@@ -333,87 +303,77 @@ const InfoRace = (props: IInfoRaceProps) => {
               onChange={handleFormDate}
               onSelect={handleFormDate}
               name="eventDate"
-              helperText={
-                error.eventDate && "la date de l'épreuve doit être renseignée"
-              }
+              helperText={error.eventDate && "la date de l'épreuve doit être renseignée"}
               InputLabelProps={{ shrink: true }}
-              style={{ width: "80%" }}
+              style={{ width: '80%' }}
             />
           </Grid>
           <Grid item={true} xs={4}>
-            <Tooltip title={"Une fois enregistrée, le type ne peut être changé car il impacte d'autres données du formulaire"}>
-            <Autocomplete
-              disabled={!!props.competition.id}
-              value={{
-                label: props.competition.competitionType || "",
-                value: props.competition.competitionType || ""
-              }}
-              getOptionLabel={option => option.label}
-              getOptionSelected={(option, target) =>
-                option.value === target.value
-              }
-              autoComplete={true}
-              autoSelect={true}
-              autoHighlight={true}
-              renderInput={params => (
-                <TextField
-                  {...params}
-                  required={true}
-                  label="Type"
-                  variant="standard"
-                  error={error.competitionType}
-                  helperText={
-                    error.competitionType
-                      ? "Le type de l'épreuve doit être renseigné"
-                      : ""
-                  }
-                />
-              )}
-              style={{ width: "80%" }}
-              onChange={(event: any, target: string | any) => {
-                setError({ ...error, competitionType: !target });
+            <Tooltip
+              title={"Une fois enregistrée, le type ne peut être changé car il impacte d'autres données du formulaire"}
+            >
+              <Autocomplete
+                disabled={!!props.competition.id}
+                value={{
+                  label: props.competition.competitionType || '',
+                  value: props.competition.competitionType || ''
+                }}
+                getOptionLabel={option => option.label}
+                getOptionSelected={(option, target) => option.value === target.value}
+                autoComplete={true}
+                autoSelect={true}
+                autoHighlight={true}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    required={true}
+                    label="Type"
+                    variant="standard"
+                    error={error.competitionType}
+                    helperText={error.competitionType ? "Le type de l'épreuve doit être renseigné" : ''}
+                  />
+                )}
+                style={{ width: '80%' }}
+                onChange={(event: any, target: string | any) => {
+                  setError({ ...error, competitionType: !target });
 
-                const mainInfoError = showEmptyFields();
-                if (target) {
-                  props.updateMainInfos(
-                    {
-                      ...props.competition,
-                      competitionType: target.value,
-                      ...(target.value ==
-                      CompetitionCreateCompetitionTypeEnum.CX
-                        ? { info: "Cyclo-Cross" }
-                        : { info: "" })
-                    },
-                    mainInfoError
-                  );
-                } else {
-                  props.updateMainInfos(
-                    { ...props.competition, competitionType: null },
-                    mainInfoError
-                  );
-                }
-              }}
-              options={Object.keys(CompetitionEntityCompetitionTypeEnum).map(
-                key => ({
+                  const mainInfoError = showEmptyFields();
+                  if (target) {
+                    props.updateMainInfos(
+                      {
+                        ...props.competition,
+                        competitionType: target.value,
+                        ...(target.value == CompetitionCreateCompetitionTypeEnum.CX
+                          ? { info: 'Cyclo-Cross' }
+                          : { info: '' })
+                      },
+                      mainInfoError
+                    );
+                  } else {
+                    props.updateMainInfos({ ...props.competition, competitionType: null }, mainInfoError);
+                  }
+                }}
+                options={Object.keys(CompetitionEntityCompetitionTypeEnum).map(key => ({
                   value: CompetitionEntityCompetitionTypeEnum[key],
                   label: CompetitionEntityCompetitionTypeEnum[key]
-                })
-              )}
-            />
+                }))}
+              />
             </Tooltip>
           </Grid>
           <Grid item={true} xs={4}>
-            <Tooltip title={"Correspond à la longueur la plus longue du ou des circuits, insérer l'unité en kms ou mètres"}>
-            <TextField
-              label="Longueur circuit"
-              value={props.competition.circuitLength}
-              type="text"
-              name="circuitLength"
-              onSelect={handleForm}
-              onChange={handleForm}
-              InputLabelProps={{ shrink: true }}
-              style={{ width: "80%" }}
-            />
+            <Tooltip
+              title={"Correspond à la longueur la plus longue du ou des circuits, insérer l'unité en kms ou mètres"}
+            >
+              <TextField
+                label="Longueur circuit"
+                value={props.competition.circuitLength}
+                type="text"
+                name="circuitLength"
+                onSelect={handleForm}
+                onChange={handleForm}
+                InputLabelProps={{ shrink: true }}
+                style={{ width: '80%' }}
+              />
             </Tooltip>
           </Grid>
           <Grid item={true} xs={4}>
@@ -426,16 +386,13 @@ const InfoRace = (props: IInfoRaceProps) => {
               onSelect={handleForm}
               onChange={handleForm}
               error={error.zipCode}
-              helperText={
-                error.zipCode &&
-                "Le code postal doit être renseigné en 5 chiffres"
-              }
+              helperText={error.zipCode && 'Le code postal doit être renseigné en 5 chiffres'}
               onInput={(event: any) => {
-                event.target.value = event.target.value.replace(/[^0-9]/g, "");
+                event.target.value = event.target.value.replace(/[^0-9]/g, '');
               }}
               InputLabelProps={{ shrink: true }}
-              inputProps={{ type: "text", maxLength: 5 }}
-              style={{ width: "80%" }}
+              inputProps={{ type: 'text', maxLength: 5 }}
+              style={{ width: '80%' }}
             />
           </Grid>
           <Grid item={true} xs={4}>
@@ -446,69 +403,55 @@ const InfoRace = (props: IInfoRaceProps) => {
               autoComplete={true}
               autoSelect={true}
               autoHighlight={true}
-              renderInput={params => (
-                <TextField {...params} label="Profil" variant="standard" />
-              )}
-              style={{ width: "80%" }}
+              renderInput={params => <TextField {...params} label="Profil" variant="standard" />}
+              style={{ width: '80%' }}
               onChange={(event: any, target: string | any) => {
                 const mainInfoError = showEmptyFields();
-                props.updateMainInfos(
-                  { ...props.competition, info: target },
-                  mainInfoError
-                );
+                props.updateMainInfos({ ...props.competition, info: target }, mainInfoError);
               }}
               options={
-                props.competition.competitionType ===
-                CompetitionCreateCompetitionTypeEnum.CX
-                  ? ["Cyclo Cross"]
-                  : [
-                      "Montagne",
-                      "Moy-Montagne",
-                      "Vallonné",
-                      "Circuit Plat",
-                      "NC"
-                    ]
+                props.competition.competitionType === CompetitionCreateCompetitionTypeEnum.CX
+                  ? ['Cyclo Cross']
+                  : ['Montagne', 'Moy-Montagne', 'Vallonné', 'Circuit Plat', 'NC']
               }
             />
           </Grid>
           <Grid item={true} xs={4}>
-            <Tooltip title={"Une fois enregistrée, la fédération ne peut être changée car elle impacte d'autres données du formulaire"}>
-            <Autocomplete
-              value={{
-                label: props.competition.fede || "",
-                value: props.competition.fede || ""
-              }}
-              getOptionLabel={option => option.label}
-              getOptionSelected={(option, target) =>
-                option.value === target.value
+            <Tooltip
+              title={
+                "Une fois enregistrée, la fédération ne peut être changée car elle impacte d'autres données du formulaire"
               }
-              autoComplete={true}
-              autoSelect={true}
-              disabled={!!props.competition.id}
-              autoHighlight={true}
-              renderInput={params => (
-                <TextField
-                  {...params}
-                  required={true}
-                  label="Fédération"
-                  variant="standard"
-                  error={error.fede}
-                  helperText={
-                    error.fede
-                      ? "La fédération de l'épreuve doit être renseignée"
-                      : ""
-                  }
-                />
-              )}
-              style={{ width: "80%" }}
-              onChange={handleFEDEChange}
-              options={Object.keys(FedeEnum)
-                .filter(fede => fede != "NL" && fede != "FFTRI")
-                .map(key => ({
-                  value: FedeEnum[key],
-                  label: FedeEnum[key]
-                }))}
-            />
+            >
+              <Autocomplete
+                value={{
+                  label: props.competition.fede || '',
+                  value: props.competition.fede || ''
+                }}
+                getOptionLabel={option => option.label}
+                getOptionSelected={(option, target) => option.value === target.value}
+                autoComplete={true}
+                autoSelect={true}
+                disabled={!!props.competition.id}
+                autoHighlight={true}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    required={true}
+                    label="Fédération"
+                    variant="standard"
+                    error={error.fede}
+                    helperText={error.fede ? "La fédération de l'épreuve doit être renseignée" : ''}
+                  />
+                )}
+                style={{ width: '80%' }}
+                onChange={handleFEDEChange}
+                options={Object.keys(FedeEnum)
+                  .filter(fede => fede != 'NL' && fede != 'FFTRI')
+                  .map(key => ({
+                    value: FedeEnum[key],
+                    label: FedeEnum[key]
+                  }))}
+              />
             </Tooltip>
           </Grid>
           <Grid item={true} xs={8}>
@@ -521,7 +464,7 @@ const InfoRace = (props: IInfoRaceProps) => {
                 defaultChosenClub={
                   {
                     value: props.competition.clubId,
-                    label: "default"
+                    label: 'default'
                   } as IOptionType
                 }
               />
@@ -537,7 +480,7 @@ const InfoRace = (props: IInfoRaceProps) => {
               onSelect={handleForm}
               onChange={handleForm}
               InputLabelProps={{ shrink: true }}
-              style={{ width: "80%" }}
+              style={{ width: '80%' }}
             />
           </Grid>
           <Grid item={true} xs={4}>
@@ -549,16 +492,13 @@ const InfoRace = (props: IInfoRaceProps) => {
               onSelect={handleForm}
               onChange={handleForm}
               error={error.contactPhone}
-              helperText={
-                error.contactPhone &&
-                "le numéro de téléphone doit comporter 10 chiffres"
-              }
+              helperText={error.contactPhone && 'le numéro de téléphone doit comporter 10 chiffres'}
               onInput={(event: any) => {
-                event.target.value = event.target.value.replace(/[^0-9]/g, "");
+                event.target.value = event.target.value.replace(/[^0-9]/g, '');
               }}
               InputLabelProps={{ shrink: true }}
-              inputProps={{ type: "tel", maxLength: 10 }}
-              style={{ width: "80%" }}
+              inputProps={{ type: 'tel', maxLength: 10 }}
+              style={{ width: '80%' }}
             />
           </Grid>
           <Grid item={true} xs={4}>
@@ -569,14 +509,11 @@ const InfoRace = (props: IInfoRaceProps) => {
               name="contactEmail"
               type="email"
               error={error.contactEmail}
-              helperText={
-                error.contactEmail === true &&
-                "l'email n'est pas au bon format xyz@mail.com'"
-              }
+              helperText={error.contactEmail === true && "l'email n'est pas au bon format xyz@mail.com'"}
               onSelect={handleForm}
               onChange={handleForm}
               InputLabelProps={{ shrink: true }}
-              style={{ width: "80%" }}
+              style={{ width: '80%' }}
             />
           </Grid>
           <Grid item={true} xs={4}>
@@ -587,13 +524,11 @@ const InfoRace = (props: IInfoRaceProps) => {
               name="facebook"
               type="url"
               error={error.facebook}
-              helperText={
-                error.facebook && "le nom du site doit commencer par http"
-              }
+              helperText={error.facebook && 'le nom du site doit commencer par http'}
               onSelect={handleForm}
               onChange={handleForm}
               InputLabelProps={{ shrink: true }}
-              style={{ width: "80%" }}
+              style={{ width: '80%' }}
             />
           </Grid>
           <Grid item={true} xs={4}>
@@ -606,47 +541,45 @@ const InfoRace = (props: IInfoRaceProps) => {
               onSelect={handleForm}
               onChange={handleForm}
               error={error.website}
-              helperText={
-                error.website && "le nom du site doit commencer par http"
-              }
+              helperText={error.website && 'le nom du site doit commencer par http'}
               InputLabelProps={{ shrink: true }}
-              style={{ width: "80%" }}
+              style={{ width: '80%' }}
             />
           </Grid>
         </Grid>
         {props.competition.id ? (
-          <Grid container={true} spacing={2} alignItems={"center"}>
+          <Grid container={true} spacing={2} alignItems={'center'}>
             <Grid item={true} xs={4}>
               <Tooltip title={"Cette information est falcutative et apparait dans l'application Dossardeur"}>
-              <TextField
-                label="Commissaires"
-                value={props.competition.commissaires}
-                placeholder="Prénom NOM"
-                name="commissaires"
-                type="text"
-                onSelect={handleForm}
-                onChange={handleForm}
-                InputLabelProps={{ shrink: true }}
-                style={{ width: "80%" }}
-              />
+                <TextField
+                  label="Commissaires"
+                  value={props.competition.commissaires}
+                  placeholder="Prénom NOM"
+                  name="commissaires"
+                  type="text"
+                  onSelect={handleForm}
+                  onChange={handleForm}
+                  InputLabelProps={{ shrink: true }}
+                  style={{ width: '80%' }}
+                />
               </Tooltip>
             </Grid>
             <Grid item={true} xs={4}>
               <Tooltip title={"Cette information est falcutative et apparait dans l'application Dossardeur"}>
-              <TextField
-                label="Speaker"
-                value={props.competition.speaker}
-                placeholder="Prénom NOM"
-                name="speaker"
-                type="text"
-                onSelect={handleForm}
-                onChange={handleForm}
-                InputLabelProps={{ shrink: true }}
-                style={{ width: "80%" }}
-              /></Tooltip>
+                <TextField
+                  label="Speaker"
+                  value={props.competition.speaker}
+                  placeholder="Prénom NOM"
+                  name="speaker"
+                  type="text"
+                  onSelect={handleForm}
+                  onChange={handleForm}
+                  InputLabelProps={{ shrink: true }}
+                  style={{ width: '80%' }}
+                />
+              </Tooltip>
             </Grid>
-            {props.competition.competitionType ===
-            CompetitionCreateCompetitionTypeEnum.CX ? (
+            {props.competition.competitionType === CompetitionCreateCompetitionTypeEnum.CX ? (
               <Grid item={true} xs={4}>
                 <TextField
                   label="Aboyeur"
@@ -657,7 +590,7 @@ const InfoRace = (props: IInfoRaceProps) => {
                   onSelect={handleForm}
                   onChange={handleForm}
                   placeholder="Prénom NOM"
-                  style={{ width: "80%" }}
+                  style={{ width: '80%' }}
                 />
               </Grid>
             ) : null}
@@ -670,58 +603,80 @@ const InfoRace = (props: IInfoRaceProps) => {
                 onSelect={handleForm}
                 onChange={handleForm}
                 InputLabelProps={{ shrink: true }}
-                style={{ width: "80%" }}
+                style={{ width: '80%' }}
               />
             </Grid>
           </Grid>
         ) : null}
-        <Grid container={true} spacing={2} alignItems={"center"}>
+        <Grid container={true} spacing={2} alignItems={'center'}>
           {props.competition.fede !== FedeEnum.CYCLOS && (
             <React.Fragment>
               <Grid item={true} xs={4}>
-                <Tooltip title={"Cochez cette case si votre épreuve est ouverte à d'autres fédérations que " + props.competition.fede}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={props.competition.isOpenedToOtherFede}
-                      onSelect={handleChangeBox}
-                      onChange={handleChangeBox}
-                      name="isOpenedToOtherFede"
-                      color="primary"
-                    />
+                <Tooltip
+                  title={
+                    "Cochez cette case si votre épreuve est ouverte à d'autres fédérations que " +
+                    props.competition.fede
                   }
-                  label="Ouvert aux licenciés des autres fédérations"
-                />
+                >
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={props.competition.isOpenedToOtherFede}
+                        onSelect={handleChangeBox}
+                        onChange={handleChangeBox}
+                        name="isOpenedToOtherFede"
+                        color="primary"
+                      />
+                    }
+                    label="Ouvert aux licenciés des autres fédérations"
+                  />
                 </Tooltip>
               </Grid>
               <Grid item={true} xs={4}>
-                <Tooltip title={"Cochez cette case uniquement si votre épreuve est ouverte aux non licenciés porteur d'un certificat médical"}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={props.competition.isOpenedToNL}
-                      onSelect={handleChangeBox}
-                      onChange={handleChangeBox}
-                      name="isOpenedToNL"
-                      color="primary"
-                    />
+                <Tooltip
+                  title={
+                    "Cochez cette case uniquement si votre épreuve est ouverte aux non licenciés porteur d'un certificat médical"
                   }
-                  label="Ouvert aux non licenciés"
-                />
+                >
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={props.competition.isOpenedToNL}
+                        onSelect={handleChangeBox}
+                        onChange={handleChangeBox}
+                        name="isOpenedToNL"
+                        color="primary"
+                      />
+                    }
+                    label="Ouvert aux non licenciés"
+                  />
+                </Tooltip>
+              </Grid>
+              <Grid item={true} xs={4}>
+                <Tooltip title={'Cocher cette case si vous souhaitez saisir des temps chronométrés'}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={props.competition.avecChrono}
+                        onSelect={handleChangeBox}
+                        onChange={handleChangeBox}
+                        name="avecChrono"
+                        color="primary"
+                      />
+                    }
+                    label="Compétition chronométrée"
+                  />
                 </Tooltip>
               </Grid>
             </React.Fragment>
           )}
           <Grid item={true} xs={12}>
-            <Editor
-              updateObservations={updateObservations}
-              observations={props.competition.observations}
-            />
+            <Editor updateObservations={updateObservations} observations={props.competition.observations} />
           </Grid>
         </Grid>
       </Container>
       <Container>
-        <Grid container={true} spacing={4} alignItems={"center"}>
+        <Grid container={true} spacing={4} alignItems={'center'}>
           <Grid item={true} xs={6}>
             <Button
               variant="contained"
@@ -734,12 +689,7 @@ const InfoRace = (props: IInfoRaceProps) => {
               Retour
             </Button>
           </Grid>
-          <Button
-            onClick={props.onSaveCompetition}
-            variant={"contained"}
-            color={"primary"}
-            className={classes.button}
-          >
+          <Button onClick={props.onSaveCompetition} variant={'contained'} color={'primary'} className={classes.button}>
             Sauvegarder
           </Button>
         </Grid>

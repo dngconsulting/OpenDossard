@@ -34,7 +34,7 @@ const previousRowEmpty = (index: number, transformedRows: any) => {
 };
 type ListOfDNF = 'DSQ' | 'ABD' | 'NC' | 'NP' | 'CHT' | null;
 const EditResultsPage = (gprops: any) => {
-  const [selectedRows, setSelectedRows] = useState([]);
+  const [selectedRows, setSelectedRows] = useState<RaceRow[]>([]);
   const { height, width } = useWindowDimensions();
   const competitionId = gprops.match.params.id;
   const isEdit = true;
@@ -44,6 +44,7 @@ const EditResultsPage = (gprops: any) => {
   const [modeDNFActivated, setModeDNFActivated] = useState<ListOfDNF>(null);
   const [, setNotification] = useContext(NotificationContext);
   const [currentDossard, setCurrentDossard] = useState('');
+  const [currentChrono, setCurrentChrono] = useState('');
   const [openInfoGen, setOpenInfoGen] = useState(false);
   const [showFilters, setShowFilters] = React.useState(false);
 
@@ -75,7 +76,6 @@ const EditResultsPage = (gprops: any) => {
       };
     });
   };
-
   const dossardEditor = (allprops: any, rows: RaceRow[], transformedRows: any, currentRace: string, fetchRows: any) => {
     return (
       <InputText
@@ -85,6 +85,20 @@ const EditResultsPage = (gprops: any) => {
         style={{ height: '1.5em', textAlign: 'center' }}
         onChange={async (e: any) => {
           setCurrentDossard(e.target.value);
+        }}
+      />
+    );
+  };
+
+  const chronoEditor = (allprops: any, rows: RaceRow[], transformedRows: any, currentRace: string, fetchRows: any) => {
+    return (
+      <InputText
+        defaultValue={allprops.rowData.chrono}
+        type="time"
+        step="1"
+        style={{ height: '1.5em', textAlign: 'center' }}
+        onChange={async (e: any) => {
+          setCurrentChrono(e.target.value);
         }}
       />
     );
@@ -162,6 +176,41 @@ const EditResultsPage = (gprops: any) => {
         setCurrentDossard('');
         return false;
       }
+    }
+    return true;
+  };
+
+  const chronoValidator = async (
+    allprops: any,
+    fetchRows: any,
+    currentRace: string,
+    transformedRows: any,
+    rows: RaceRow[]
+  ): Promise<boolean> => {
+    try {
+      if (currentChrono === '') return false;
+      setLoading(true);
+      await apiRaces.updateChrono({
+        raceId: allprops.rowData.id,
+        chrono: currentChrono
+      });
+      const lrows = await fetchRows();
+      setNotification({
+        message: `Le chrono du coureur vient d'etre mis à jour  `,
+        type: 'info',
+        open: true
+      });
+      setCurrentChrono('');
+    } catch (response) {
+      const jsonError = await response.json();
+      setNotification({
+        message: `La mise à jour a échouée ${jsonError.message ? jsonError.message : ''}`,
+        type: 'error',
+        open: true
+      });
+      setCurrentChrono('');
+    } finally {
+      setLoading(false);
     }
     return true;
   };
@@ -395,9 +444,9 @@ const EditResultsPage = (gprops: any) => {
                     1: { margin: 0, cellWidth: 10 },
                     2: { margin: 0, cellWidth: 10 },
                     3: { margin: 0, cellWidth: 50 },
-                    4: { margin: 0, cellWidth: 65 },
+                    4: { margin: 0, cellWidth: 58 },
                     5: { margin: 0, cellWidth: 10 },
-                    6: { margin: 0, cellWidth: 12 },
+                    6: { margin: 0, cellWidth: 20 },
                     7: { margin: 0, cellWidth: 12 },
                     8: { margin: 0, cellWidth: 20 }
                   },
@@ -478,12 +527,26 @@ const EditResultsPage = (gprops: any) => {
                   r.gender,
                   r.catev,
                   r.catea,
-                  r.fede
+                  r.fede,
+                  competition.avecChrono ? r.chrono : ''
                 ]);
             });
             // @ts-ignore
             doc.autoTable({
-              head: [['Scrat.', 'Cat.', 'Doss', 'Coureur', 'Club', 'H/F', 'Caté.V', 'Caté.A', 'Fédé']],
+              head: [
+                [
+                  'Scrat.',
+                  'Cat.',
+                  'Doss',
+                  'Coureur',
+                  'Club',
+                  'H/F',
+                  'Caté.V',
+                  'Caté.A',
+                  'Fédé',
+                  competition.avecChrono ? 'Temps' : ''
+                ]
+              ],
               headStyles: {
                 fontSize: 9,
                 fontStyle: 'bold',
@@ -500,12 +563,13 @@ const EditResultsPage = (gprops: any) => {
                 0: { margin: 0, cellWidth: 10 },
                 1: { margin: 0, cellWidth: 10 },
                 2: { margin: 0, cellWidth: 10 },
-                3: { margin: 0, cellWidth: 50 },
-                4: { margin: 0, cellWidth: 65 },
-                5: { margin: 0, cellWidth: 10 },
-                6: { margin: 0, cellWidth: 12 },
+                3: { margin: 0, cellWidth: 40 },
+                4: { margin: 0, cellWidth: 45 },
+                5: { margin: 0, cellWidth: 12 },
+                6: { margin: 0, cellWidth: 20 },
                 7: { margin: 0, cellWidth: 12 },
-                8: { margin: 0, cellWidth: 20 }
+                8: { margin: 0, cellWidth: 20 },
+                9: { margin: 0, cellWidth: competition.avecChrono ? 20 : 0 }
               },
               body: rowstoDisplay,
               didDrawPage: (data: any) => {
@@ -524,7 +588,7 @@ const EditResultsPage = (gprops: any) => {
                   );
                 }
                 doc.setFontSize(10);
-                doc.text('Résultats générés avec Open Dossard (http://www.opendossard.com)', 50, 7);
+                doc.text('Résultats générés avec Open Dossard (https://www.opendossard.com)', 50, 7);
                 doc.setFontSize(13);
                 doc.text('Epreuve : ' + competition.name, data.settings.margin.left + 50, 15);
                 doc.text(
@@ -849,12 +913,11 @@ const EditResultsPage = (gprops: any) => {
                         onClick={async () => {
                           try {
                             setLoading(true);
-                            const promises = selectedRows.map(async row => {
-                              return await apiRaces.removeRanking({ raceRow: row });
-                            });
-                            await Promise.all(promises);
-                            await fetchRows();
+                            for (const rrow of selectedRows) {
+                              await apiRaces.removeRanking({ raceRow: { ...rrow, riderNumber: null } });
+                            }
                             setSelectedRows([]);
+                            await fetchRows();
                           } finally {
                             setLoading(false);
                           }
@@ -905,7 +968,6 @@ const EditResultsPage = (gprops: any) => {
             </div>
             <DataTable
               ref={dg}
-              selectionMode="multiple"
               selection={selectedRows}
               scrollHeight={height - 300 + 'px'}
               scrollable={true}
@@ -957,7 +1019,8 @@ const EditResultsPage = (gprops: any) => {
                 }}
                 header="Dossard"
                 filter={showFilters}
-                style={{ width: '5%', textAlign: 'center' }}
+                bodyStyle={{ textAlign: 'center' }}
+                style={{ width: '6%', textAlign: 'left' }}
                 {...(isEdit
                   ? {
                       editor: allprops => {
@@ -973,6 +1036,24 @@ const EditResultsPage = (gprops: any) => {
                 }}
                 filterMatchMode="contains"
               />
+              {competition?.avecChrono && (
+                <Column
+                  body={(row: RaceRow) => {
+                    return row.chrono;
+                  }}
+                  columnKey={'12'}
+                  editor={allprops => {
+                    return chronoEditor(allprops, rows, transformedRows, currentRace, fetchRows);
+                  }}
+                  editorValidator={allprops => {
+                    chronoValidator(allprops, fetchRows, currentRace, transformedRows, rows);
+                    return true;
+                  }}
+                  field="chrono"
+                  style={{ width: '9%', textAlign: 'center' }}
+                  header="Chrono"
+                />
+              )}
               <Column
                 columnKey={'4'}
                 field="name"
@@ -1012,7 +1093,7 @@ const EditResultsPage = (gprops: any) => {
                 header="Caté.V"
                 filter={showFilters}
                 filterMatchMode="contains"
-                style={{ width: '5%', textAlign: 'center' }}
+                style={{ width: '6%', textAlign: 'center' }}
               />
               <Column
                 columnKey={'10'}

@@ -248,6 +248,12 @@ export interface CompetitionCreate {
      * @memberof CompetitionCreate
      */
     dept?: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CompetitionCreate
+     */
+    avecChrono?: boolean;
 }
 
 export function CompetitionCreateFromJSON(json: any): CompetitionCreate {
@@ -295,6 +301,7 @@ export function CompetitionCreateFromJSONTyped(json: any, ignoreDiscriminator: b
         'rankingUrls': !exists(json, 'rankingUrls') ? undefined : ((json['rankingUrls'] as Array<any>).map(LinkInfoFromJSON)),
         'isValidResults': !exists(json, 'isValidResults') ? undefined : json['isValidResults'],
         'dept': !exists(json, 'dept') ? undefined : json['dept'],
+        'avecChrono': !exists(json, 'avecChrono') ? undefined : json['avecChrono'],
     };
 }
 
@@ -342,6 +349,7 @@ export function CompetitionCreateToJSON(value?: CompetitionCreate | null): any {
         'rankingUrls': value.rankingUrls === undefined ? undefined : ((value.rankingUrls as Array<any>).map(LinkInfoToJSON)),
         'isValidResults': value.isValidResults,
         'dept': value.dept,
+        'avecChrono': value.avecChrono,
     };
 }
 

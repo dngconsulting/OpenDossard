@@ -250,6 +250,7 @@ export class CompetitionController {
       competition.openedNL = dto.isOpenedToNL;
       competition.openedToOtherFede = dto.isOpenedToOtherFede;
     }
+    competition.avecChrono = dto.avecChrono;
     competition.pricing = dto.pricing;
     competition.speaker = dto.speaker;
     competition.aboyeur = dto.aboyeur;
@@ -279,7 +280,8 @@ export class CompetitionController {
     );
     competitionUpserted.clubId = updatedCompetitionEntity.club.id;
     competitionUpserted.latitude = dto.latitude;
-    competitionUpserted.circuitLength = updatedCompetitionEntity.longueurCircuit;
+    competitionUpserted.circuitLength =
+      updatedCompetitionEntity.longueurCircuit;
     competitionUpserted.longitude = dto.longitude;
     competitionUpserted.gpsCoordinates = dto.gpsCoordinates;
     return competitionUpserted;

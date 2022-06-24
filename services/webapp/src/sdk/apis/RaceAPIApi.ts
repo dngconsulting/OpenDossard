@@ -18,6 +18,9 @@ import {
     CompetitionFilter,
     CompetitionFilterFromJSON,
     CompetitionFilterToJSON,
+    LicenceEntity,
+    LicenceEntityFromJSON,
+    LicenceEntityToJSON,
     RaceCreate,
     RaceCreateFromJSON,
     RaceCreateToJSON,
@@ -45,6 +48,10 @@ export interface GetCompetitionRacesRequest {
     id: number;
 }
 
+export interface GetLicencesWithPalmaresRequest {
+    query: string;
+}
+
 export interface GetPalmaresRequest {
     id: number;
 }
@@ -64,6 +71,11 @@ export interface RemoveRankingRequest {
 
 export interface ReorderRankingRequest {
     raceRow: Array<RaceRow>;
+}
+
+export interface UpdateChronoRequest {
+    raceId: number;
+    chrono: string;
 }
 
 export interface UpdateRankingRequest {
@@ -227,6 +239,44 @@ export class RaceAPIApi extends runtime.BaseAPI {
      */
     async getCompetitionRaces(requestParameters: GetCompetitionRacesRequest): Promise<Array<RaceRow>> {
         const response = await this.getCompetitionRacesRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Rechercher le palmares d\'un coureur qui a fait au moins une course
+     */
+    async getLicencesWithPalmaresRaw(requestParameters: GetLicencesWithPalmaresRequest): Promise<runtime.ApiResponse<Array<LicenceEntity>>> {
+        if (requestParameters.query === null || requestParameters.query === undefined) {
+            throw new runtime.RequiredError('query','Required parameter requestParameters.query was null or undefined when calling getLicencesWithPalmares.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/races/withpalmares/{query}`.replace(`{${"query"}}`, encodeURIComponent(String(requestParameters.query))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(LicenceEntityFromJSON));
+    }
+
+    /**
+     * Rechercher le palmares d\'un coureur qui a fait au moins une course
+     */
+    async getLicencesWithPalmares(requestParameters: GetLicencesWithPalmaresRequest): Promise<Array<LicenceEntity>> {
+        const response = await this.getLicencesWithPalmaresRaw(requestParameters);
         return await response.value();
     }
 
@@ -462,6 +512,47 @@ export class RaceAPIApi extends runtime.BaseAPI {
      */
     async reorderRanking(requestParameters: ReorderRankingRequest): Promise<void> {
         await this.reorderRankingRaw(requestParameters);
+    }
+
+    /**
+     * Met à jour le chrono d\'un coureur
+     */
+    async updateChronoRaw(requestParameters: UpdateChronoRequest): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.raceId === null || requestParameters.raceId === undefined) {
+            throw new runtime.RequiredError('raceId','Required parameter requestParameters.raceId was null or undefined when calling updateChrono.');
+        }
+
+        if (requestParameters.chrono === null || requestParameters.chrono === undefined) {
+            throw new runtime.RequiredError('chrono','Required parameter requestParameters.chrono was null or undefined when calling updateChrono.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/races/chrono/{raceId}/{chrono}`.replace(`{${"raceId"}}`, encodeURIComponent(String(requestParameters.raceId))).replace(`{${"chrono"}}`, encodeURIComponent(String(requestParameters.chrono))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Met à jour le chrono d\'un coureur
+     */
+    async updateChrono(requestParameters: UpdateChronoRequest): Promise<void> {
+        await this.updateChronoRaw(requestParameters);
     }
 
     /**

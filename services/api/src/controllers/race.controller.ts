@@ -72,7 +72,8 @@ export class RacesCtrl {
 
     const query = `select r.id,
                               r.race_code as "raceCode",
-                              r.catev,                             
+                              r.catev,          
+                              r.chrono,  
                               r.rider_dossard as "riderNumber",
                               r.ranking_scratch as "rankingScratch",
                               r.number_min as "numberMin",
@@ -108,7 +109,8 @@ export class RacesCtrl {
   public async getPalmares(@Param("id") licenceId: number): Promise<RaceRow[]> {
     const query = `select r.id,
                               r.race_code as "raceCode",
-                              r.catev,                             
+                              r.catev,
+                              r.chrono,  
                               r.rider_dossard as "riderNumber",
                               r.ranking_scratch as "rankingScratch",
                               r.number_min as "numberMin",
@@ -181,7 +183,8 @@ export class RacesCtrl {
   ): Promise<RaceRow[]> {
     const query = `select r.id,
                               r.race_code as "raceCode",
-                              r.catev,                             
+                              r.catev,
+                              r.chrono,
                               r.rider_dossard as "riderNumber",
                               r.ranking_scratch as "rankingScratch",
                               r.number_min as "numberMin",
@@ -407,6 +410,7 @@ export class RacesCtrl {
       );
       racerowToUpdate.rankingScratch = null;
     }
+    racerowToUpdate.chrono = null;
     await this.entityManager.save(racerowToUpdate);
 
     // Retrieve all ranks for this race ...
@@ -433,6 +437,23 @@ export class RacesCtrl {
         await this.entityManager.save(item);
       }
     }
+  }
+
+  @Post("/chrono/:raceId/:chrono")
+  @ApiOperation({
+    operationId: "updateChrono",
+    summary: "Met à jour le chrono d'un coureur"
+  })
+  @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
+  public async updateChrono(
+    @Param("raceId") raceId: number,
+    @Param("chrono") chrono: string
+  ): Promise<void> {
+    const r = await this.entityManager.findOne<RaceEntity>(RaceEntity, {
+      id: raceId
+    });
+    r.chrono = chrono;
+    await this.entityManager.save(r);
   }
 
   @Put("/update")

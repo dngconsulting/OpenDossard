@@ -234,6 +234,12 @@ export interface CompetitionEntity {
      * @memberof CompetitionEntity
      */
     rankingUrls?: Array<LinkInfo>;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CompetitionEntity
+     */
+    avecChrono?: boolean;
 }
 
 export function CompetitionEntityFromJSON(json: any): CompetitionEntity {
@@ -278,6 +284,7 @@ export function CompetitionEntityFromJSONTyped(json: any, ignoreDiscriminator: b
         'resultsValidated': !exists(json, 'resultsValidated') ? undefined : json['resultsValidated'],
         'photoUrls': !exists(json, 'photoUrls') ? undefined : ((json['photoUrls'] as Array<any>).map(LinkInfoFromJSON)),
         'rankingUrls': !exists(json, 'rankingUrls') ? undefined : ((json['rankingUrls'] as Array<any>).map(LinkInfoFromJSON)),
+        'avecChrono': !exists(json, 'avecChrono') ? undefined : json['avecChrono'],
     };
 }
 
@@ -322,6 +329,7 @@ export function CompetitionEntityToJSON(value?: CompetitionEntity | null): any {
         'resultsValidated': value.resultsValidated,
         'photoUrls': value.photoUrls === undefined ? undefined : ((value.photoUrls as Array<any>).map(LinkInfoToJSON)),
         'rankingUrls': value.rankingUrls === undefined ? undefined : ((value.rankingUrls as Array<any>).map(LinkInfoToJSON)),
+        'avecChrono': value.avecChrono,
     };
 }
 

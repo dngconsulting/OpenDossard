@@ -178,4 +178,7 @@ export class CompetitionEntity {
 
   @Column({ type: "json", nullable: true, name: "ranking_urls" })
   rankingUrls?: LinkInfo[];
+
+  @Column({ nullable: true, name: "avec_chrono", default: false })
+  avecChrono?: boolean;
 }
