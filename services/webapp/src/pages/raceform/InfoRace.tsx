@@ -79,7 +79,6 @@ const InfoRace = (props: IInfoRaceProps) => {
   };
 
   const handleChangeBox = (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('Update ' + event.target.name);
     const mainInfoError = showEmptyFields();
     props.updateMainInfos(
       {

@@ -284,6 +284,9 @@ export class CompetitionController {
       updatedCompetitionEntity.longueurCircuit;
     competitionUpserted.longitude = dto.longitude;
     competitionUpserted.gpsCoordinates = dto.gpsCoordinates;
+    competitionUpserted.isOpenedToNL = dto.isOpenedToNL;
+    competitionUpserted.isOpenedToOtherFede = dto.isOpenedToOtherFede;
+
     return competitionUpserted;
   }
 

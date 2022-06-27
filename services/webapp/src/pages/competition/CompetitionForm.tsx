@@ -222,6 +222,7 @@ const CompetNavBar = (props: ICompetNavBar) => {
           setCommuneLocalisationForMap(toUpdateCompetition.localisation);
         setNewCompetition(toUpdateCompetition);
       }
+
       setIsLoading(false);
     };
     loadCompetition();
