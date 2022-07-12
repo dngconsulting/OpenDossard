@@ -1,29 +1,29 @@
-import * as React from "react";
-import { useContext, useEffect, useState } from "react";
+import * as React from 'react';
+import { useContext, useEffect, useState } from 'react';
 
-import { withStyles } from "@material-ui/core";
-import Grid from "@material-ui/core/Grid";
-import Container from "@material-ui/core/Container";
-import TextField from "@material-ui/core/TextField";
-import FormHelperText from "@material-ui/core/FormHelperText";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
-import Select from "@material-ui/core/Select";
-import Radio from "@material-ui/core/Radio";
-import RadioGroup from "@material-ui/core/RadioGroup";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import FormControl from "@material-ui/core/FormControl";
-import Button from "@material-ui/core/Button";
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Autocomplete from "@material-ui/lab/Autocomplete";
-import ClubSelect, { IOptionType } from "../../components/ClubSelect";
-import { FedeEnum, LicenceEntity, LicenceEntity as Licence } from "../../sdk";
-import { apiLicences, apiRaces } from "../../util/api";
-import { FEDERATIONS } from "../common/shared-entities";
-import { NotificationContext } from "../../components/CadSnackbar";
+import { withStyles } from '@material-ui/core';
+import Grid from '@material-ui/core/Grid';
+import Container from '@material-ui/core/Container';
+import TextField from '@material-ui/core/TextField';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormControl from '@material-ui/core/FormControl';
+import Button from '@material-ui/core/Button';
+import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import ClubSelect, { IOptionType } from '../../components/ClubSelect';
+import { FedeEnum, LicenceEntity, LicenceEntity as Licence } from '../../sdk';
+import { apiLicences, apiRaces } from '../../util/api';
+import { FEDERATIONS } from '../common/shared-entities';
+import { NotificationContext } from '../../components/CadSnackbar';
 
-import { ConfirmDialog } from "../../util";
-import { LoaderIndicator } from "../../components/LoaderIndicator";
+import { ConfirmDialog } from '../../util';
+import { LoaderIndicator } from '../../components/LoaderIndicator';
 
 interface ILicencesProps {
   items: any[];
@@ -60,7 +60,7 @@ interface IValidationForm {
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     formControl: {
-      width: "90%",
+      width: '90%',
       minWidth: 167
     },
     button: {
@@ -78,18 +78,18 @@ const LicencesPage = (props: ILicencesProps) => {
   const [loading, showLoading] = useState(false);
   const [newLicence, setNewLicence] = useState<Licence>({
     id: null,
-    name: "",
-    firstName: "",
-    licenceNumber: "",
+    name: '',
+    firstName: '',
+    licenceNumber: '',
     gender: null,
     fede: null,
-    birthYear: "",
-    dept: "",
-    club: "",
-    catea: "",
-    catev: "",
-    catevCX: "",
-    saison: !isNaN(parseInt(id)) ? "" : new Date().getFullYear().toString()
+    birthYear: '',
+    dept: '',
+    club: '',
+    catea: '',
+    catev: '',
+    catevCX: '',
+    saison: !isNaN(parseInt(id)) ? '' : new Date().getFullYear().toString()
   });
   const [validation, setValidation] = useState<IValidationForm>({
     name: false,
@@ -120,13 +120,13 @@ const LicencesPage = (props: ILicencesProps) => {
           licenceNumber: res.licenceNumber,
           saison: res.saison,
           gender: res.gender,
-          birthYear: res.birthYear ? res.birthYear : "",
+          birthYear: res.birthYear ? res.birthYear : '',
           fede: res.fede,
           dept: res.dept,
           club: res.club,
           catea: res.catea.toUpperCase(),
           catev: res.catev.toUpperCase(),
-          catevCX: res.catevCX ? res.catevCX.toUpperCase() : ""
+          catevCX: res.catevCX ? res.catevCX.toUpperCase() : ''
         };
         setNewLicence(toUpdateLicence);
       });
@@ -138,34 +138,34 @@ const LicencesPage = (props: ILicencesProps) => {
 
   const autoSelectCateA = (year: string) => {
     const age = new Date().getFullYear() - parseInt(year);
-    let catea = "";
-    if (newLicence.gender === "F") {
-      catea += "F";
+    let catea = '';
+    if (newLicence.gender === 'F') {
+      catea += 'F';
     }
     if (age >= 5 && age <= 6) {
-      catea += "M";
+      catea += 'MO';
     } else if (age >= 7 && age <= 8) {
-      catea += "P";
+      catea += 'PO';
     } else if (age >= 9 && age <= 10) {
-      catea += "P";
+      catea += 'PU';
     } else if (age >= 11 && age <= 12) {
-      catea += "B";
+      catea += 'B';
     } else if (age >= 13 && age <= 14) {
-      catea += "M";
+      catea += 'M';
     } else if (age >= 15 && age <= 16) {
-      catea += "C";
+      catea += 'C';
     } else if (age >= 17 && age <= 18) {
-      catea += "J";
+      catea += 'J';
     } else if (age >= 19 && age <= 22) {
-      catea += "E";
+      catea += 'E';
     } else if (age >= 23 && age <= 39) {
-      catea += "S";
+      catea += 'S';
     } else if (age >= 40 && age <= 49) {
-      catea += "V";
+      catea += 'V';
     } else if (age >= 50 && age <= 59) {
-      catea += "SV";
+      catea += 'SV';
     } else if (age >= 60) {
-      catea += "A";
+      catea += 'A';
     }
     return catea;
   };
@@ -185,9 +185,9 @@ const LicencesPage = (props: ILicencesProps) => {
       const newLicenceToUpdate = {
         ...newLicence,
         fede: target.value,
-        catev: "",
-        catevCX: "",
-        club: ""
+        catev: '',
+        catevCX: '',
+        club: ''
       };
       setNewLicence(newLicenceToUpdate);
     } else {
@@ -198,9 +198,9 @@ const LicencesPage = (props: ILicencesProps) => {
   const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setNewLicence(oldValues => ({
       ...oldValues,
-      catea: "",
-      catev: "",
-      catevCX: "",
+      catea: '',
+      catev: '',
+      catevCX: '',
       gender: (event.target as HTMLInputElement).value
     }));
   };
@@ -219,8 +219,7 @@ const LicencesPage = (props: ILicencesProps) => {
     const isDeptValid = !newLicence.dept;
     const isBirthYearValid = !newLicence.birthYear;
     const isSeasonValid = newLicence.saison
-      ? newLicence.saison.length !== 4 ||
-        parseInt(newLicence.saison) > new Date().getFullYear()
+      ? newLicence.saison.length !== 4 || parseInt(newLicence.saison) > new Date().getFullYear()
       : false;
 
     setValidation({
@@ -253,7 +252,7 @@ const LicencesPage = (props: ILicencesProps) => {
       setNotification({
         message: "Veuillez remplir l'ensemble des champs obligatoires.",
         open: true,
-        type: "error"
+        type: 'error'
       });
     } else {
       showLoading(true);
@@ -269,7 +268,7 @@ const LicencesPage = (props: ILicencesProps) => {
       } catch (err) {
         setNotification({
           message: `Le coureur ${newLicence.firstName} ${newLicence.name} n'a pu être créé ou modifié`,
-          type: "error",
+          type: 'error',
           open: true
         });
       } finally {
@@ -281,7 +280,7 @@ const LicencesPage = (props: ILicencesProps) => {
 
   const competitionId =
     props.history.location.hash && props.history.location.hash.length > 0
-      ? props.history.location.hash.toString().split("_")[1]
+      ? props.history.location.hash.toString().split('_')[1]
       : null;
 
   const updateEngagement = async (key: number, licenceId: number) => {
@@ -296,13 +295,13 @@ const LicencesPage = (props: ILicencesProps) => {
       openDialog(true);
     } else {
       props.history.push({
-        pathname: "/licences/",
-        search: "id=" + licenceUpdated.id
+        pathname: '/licences/',
+        search: 'id=' + licenceUpdated.id
       });
       setNotification({
-        message: "La licence a bien été enregistrée.",
+        message: 'La licence a bien été enregistrée.',
         open: true,
-        type: "success"
+        type: 'success'
       });
     }
   };
@@ -313,49 +312,42 @@ const LicencesPage = (props: ILicencesProps) => {
   return (
     <div
       style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexDirection: "column",
-        width: "60%",
-        marginLeft: "auto",
-        marginRight: "auto"
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        width: '60%',
+        marginLeft: 'auto',
+        marginRight: 'auto'
       }}
     >
       <LoaderIndicator visible={loading} />
       <ConfirmDialog
-        title={"Attention "}
+        title={'Attention '}
         question={`Vous venez de modifier la licence du coureur ${newLicence.firstName} ${newLicence.name}, souhaitez-vous actualiser son engagement avec ces dernières informations ?`}
         open={open}
-        confirmMessage={"Oui"}
-        cancelMessage={"Non"}
+        confirmMessage={'Oui'}
+        cancelMessage={'Non'}
         handleClose={() => {
           openDialog(false);
           props.history.goBack();
         }}
         handleOk={async () => {
           openDialog(false);
-          await updateEngagement(
-            parseInt(competitionId),
-            parseInt(updatedLicence.id)
-          );
+          await updateEngagement(parseInt(competitionId), parseInt(updatedLicence.id));
           props.history.goBack();
         }}
       />
       <Grid item={true} xs={12}>
-        <h1 style={{ backgroundColor: "transparent" }}>
-          {editMode ? "Modifier" : "Ajouter"} une licence
-        </h1>
+        <h1 style={{ backgroundColor: 'transparent' }}>{editMode ? 'Modifier' : 'Ajouter'} une licence</h1>
       </Grid>
-      <Grid container={true} spacing={2} alignItems={"center"}>
+      <Grid container={true} spacing={2} alignItems={'center'}>
         <Grid item={true} xs={4}>
           <FormControl className={classes.formControl}>
             <Autocomplete
               value={fedeDetails ? fedeDetails.name : null}
               getOptionLabel={option => option.label}
-              getOptionSelected={(option, target) =>
-                option.value === target.value
-              }
+              getOptionSelected={(option, target) => option.value === target.value}
               autoComplete={true}
               autoSelect={true}
               autoHighlight={true}
@@ -366,12 +358,10 @@ const LicencesPage = (props: ILicencesProps) => {
                   label="Fédération"
                   variant="standard"
                   error={validation.fede}
-                  helperText={
-                    validation.fede ? "Veuillez compléter la fédération" : ""
-                  }
+                  helperText={validation.fede ? 'Veuillez compléter la fédération' : ''}
                 />
               )}
-              style={{ width: "100%" }}
+              style={{ width: '100%' }}
               onChange={(event: any, target: string | any) => {
                 handleFEDEChange(target);
               }}
@@ -392,11 +382,7 @@ const LicencesPage = (props: ILicencesProps) => {
                   label="Numéro Licence"
                   error={validation.licenceNumber}
                   value={newLicence.licenceNumber}
-                  helperText={
-                    validation.licenceNumber
-                      ? "Veuillez indiquer le numéro de licence."
-                      : ""
-                  }
+                  helperText={validation.licenceNumber ? 'Veuillez indiquer le numéro de licence.' : ''}
                   onChange={e =>
                     setNewLicence({
                       ...newLicence,
@@ -407,10 +393,7 @@ const LicencesPage = (props: ILicencesProps) => {
               </FormControl>
             </Grid>
             <Grid item={true} xs={4}>
-              <FormControl
-                className={classes.formControl}
-                error={validation.saison}
-              >
+              <FormControl className={classes.formControl} error={validation.saison}>
                 <TextField
                   required={true}
                   style={{ width: 100 }}
@@ -424,12 +407,8 @@ const LicencesPage = (props: ILicencesProps) => {
                   }}
                   error={validation.saison}
                 />
-                <FormHelperText
-                  id="component-error-text"
-                  hidden={!validation.saison}
-                >
-                  Veuillez saisir une saison correspondant à la saison actuelle
-                  ou antérieure.
+                <FormHelperText id="component-error-text" hidden={!validation.saison}>
+                  Veuillez saisir une saison correspondant à la saison actuelle ou antérieure.
                 </FormHelperText>
               </FormControl>
             </Grid>
@@ -446,9 +425,7 @@ const LicencesPage = (props: ILicencesProps) => {
               margin="none"
               error={validation.name}
               value={newLicence.name}
-              onChange={e =>
-                setNewLicence({ ...newLicence, name: e.target.value })
-              }
+              onChange={e => setNewLicence({ ...newLicence, name: e.target.value })}
             />
             <FormHelperText id="component-error-text" hidden={!validation.name}>
               Veuillez compléter le nom
@@ -456,10 +433,7 @@ const LicencesPage = (props: ILicencesProps) => {
           </FormControl>
         </Grid>
         <Grid item={true} xs={6}>
-          <FormControl
-            className={classes.formControl}
-            error={validation.firstName}
-          >
+          <FormControl className={classes.formControl} error={validation.firstName}>
             <TextField
               required={true}
               label="Prénom"
@@ -467,21 +441,16 @@ const LicencesPage = (props: ILicencesProps) => {
               margin="none"
               error={validation.firstName}
               value={newLicence.firstName}
-              onChange={e =>
-                setNewLicence({ ...newLicence, firstName: e.target.value })
-              }
+              onChange={e => setNewLicence({ ...newLicence, firstName: e.target.value })}
             />
-            <FormHelperText
-              id="component-error-text"
-              hidden={!validation.firstName}
-            >
+            <FormHelperText id="component-error-text" hidden={!validation.firstName}>
               Veuillez compléter le prénom
             </FormHelperText>
           </FormControl>
         </Grid>
-        <Grid item={true} xs={6} style={{ display: "flex" }}>
+        <Grid item={true} xs={6} style={{ display: 'flex' }}>
           <div>
-            <span style={{ position: "relative", top: "11px" }}>Genre</span>
+            <span style={{ position: 'relative', top: '11px' }}>Genre</span>
           </div>
           <RadioGroup
             aria-label="position"
@@ -490,25 +459,12 @@ const LicencesPage = (props: ILicencesProps) => {
             onChange={handleRadioChange}
             row={true}
           >
-            <FormControlLabel
-              value="H"
-              control={<Radio color="primary" />}
-              label="H"
-              labelPlacement="start"
-            />
-            <FormControlLabel
-              value="F"
-              control={<Radio color="primary" />}
-              label="F"
-              labelPlacement="start"
-            />
+            <FormControlLabel value="H" control={<Radio color="primary" />} label="H" labelPlacement="start" />
+            <FormControlLabel value="F" control={<Radio color="primary" />} label="F" labelPlacement="start" />
           </RadioGroup>
         </Grid>
         <Grid item={true} xs={6}>
-          <FormControl
-            className={classes.formControl}
-            error={validation.birthYear}
-          >
+          <FormControl className={classes.formControl} error={validation.birthYear}>
             <TextField
               required={true}
               error={validation.birthYear}
@@ -522,7 +478,7 @@ const LicencesPage = (props: ILicencesProps) => {
                   new Date().getFullYear() - parseInt(e.target.value) > 130 ||
                   new Date().getFullYear() - parseInt(e.target.value) < 4
                 ) {
-                  setNewLicence({ ...newLicence, birthYear: "" });
+                  setNewLicence({ ...newLicence, birthYear: '' });
                   setValidation({ ...validation, birthYear: true });
                 } else {
                   setValidation({ ...validation, birthYear: false });
@@ -536,42 +492,27 @@ const LicencesPage = (props: ILicencesProps) => {
                 });
               }}
             />
-            <FormHelperText
-              id="component-error-text"
-              hidden={!validation.birthYear}
-            >
-              Veuillez indiquer une année entre {new Date().getFullYear() - 4}{" "}
-              et {new Date().getFullYear() - 130}
+            <FormHelperText id="component-error-text" hidden={!validation.birthYear}>
+              Veuillez indiquer une année entre {new Date().getFullYear() - 4} et {new Date().getFullYear() - 130}
             </FormHelperText>
           </FormControl>
         </Grid>
       </Grid>
 
       {newLicence.fede && (
-        <Grid
-          container={true}
-          spacing={2}
-          alignItems={"center"}
-          style={{ marginTop: "1em" }}
-        >
+        <Grid container={true} spacing={2} alignItems={'center'} style={{ marginTop: '1em' }}>
           <Grid item={true} xs={4}>
             <FormControl className={classes.formControl}>
               <Autocomplete
                 noOptionsText={
                   !newLicence.gender || !newLicence.birthYear
                     ? "N'oubliez pas de saisir un genre et une année de naissance"
-                    : "Aucune valeur"
+                    : 'Aucune valeur'
                 }
                 options={cateAOptions}
-                value={
-                  cateAOptions.find(
-                    (option: ICategory) => option.value === newLicence.catea
-                  ) || null
-                }
+                value={cateAOptions.find((option: ICategory) => option.value === newLicence.catea) || null}
                 getOptionLabel={option => option.label}
-                getOptionSelected={(option, target) =>
-                  option.value === target.value
-                }
+                getOptionSelected={(option, target) => option.value === target.value}
                 autoComplete={true}
                 autoSelect={true}
                 autoHighlight={true}
@@ -582,17 +523,13 @@ const LicencesPage = (props: ILicencesProps) => {
                     label="Catégorie Age"
                     variant="standard"
                     error={validation.catea}
-                    helperText={
-                      validation.catea
-                        ? "Veuillez compléter la Catégorie âge"
-                        : ""
-                    }
+                    helperText={validation.catea ? 'Veuillez compléter la Catégorie âge' : ''}
                   />
                 )}
                 onChange={(event: any, target: string | any) => {
                   setNewLicence(oldValues => ({
                     ...oldValues,
-                    catea: target ? target.value : ""
+                    catea: target ? target.value : ''
                   }));
                 }}
               />
@@ -602,16 +539,11 @@ const LicencesPage = (props: ILicencesProps) => {
             <FormControl className={classes.formControl}>
               <Autocomplete
                 value={
-                  (newLicence.fede &&
-                    fedeDetails.catev.find(
-                      (catev: ICategory) => catev.value === newLicence.catev
-                    )) ||
+                  (newLicence.fede && fedeDetails.catev.find((catev: ICategory) => catev.value === newLicence.catev)) ||
                   null
                 }
                 getOptionLabel={option => option.label}
-                getOptionSelected={(option, target) =>
-                  option.value === target.value
-                }
+                getOptionSelected={(option, target) => option.value === target.value}
                 autoComplete={true}
                 autoSelect={true}
                 autoHighlight={true}
@@ -622,17 +554,13 @@ const LicencesPage = (props: ILicencesProps) => {
                     label="Catégorie Valeur"
                     variant="standard"
                     error={validation.catev}
-                    helperText={
-                      validation.catev
-                        ? "Veuillez compléter la Catégorie valeur"
-                        : ""
-                    }
+                    helperText={validation.catev ? 'Veuillez compléter la Catégorie valeur' : ''}
                   />
                 )}
                 onChange={(event: any, target: string | any) => {
                   setNewLicence(oldValues => ({
                     ...oldValues,
-                    catev: target ? target.value : ""
+                    catev: target ? target.value : ''
                   }));
                 }}
                 options={
@@ -650,29 +578,19 @@ const LicencesPage = (props: ILicencesProps) => {
               <Autocomplete
                 value={
                   (newLicence.fede &&
-                    fedeDetails.catev.find(
-                      (catev: ICategory) => catev.value === newLicence.catevCX
-                    )) ||
+                    fedeDetails.catev.find((catev: ICategory) => catev.value === newLicence.catevCX)) ||
                   null
                 }
                 getOptionLabel={option => option.label}
-                getOptionSelected={(option, target) =>
-                  option.value === target.value
-                }
+                getOptionSelected={(option, target) => option.value === target.value}
                 autoComplete={true}
                 autoSelect={true}
                 autoHighlight={true}
-                renderInput={params => (
-                  <TextField
-                    {...params}
-                    label="Catégorie CX"
-                    variant="standard"
-                  />
-                )}
+                renderInput={params => <TextField {...params} label="Catégorie CX" variant="standard" />}
                 onChange={(event: any, target: string | any) => {
                   setNewLicence(oldValues => ({
                     ...oldValues,
-                    catevCX: target ? target.value : ""
+                    catevCX: target ? target.value : ''
                   }));
                 }}
                 options={
@@ -682,13 +600,13 @@ const LicencesPage = (props: ILicencesProps) => {
                     label: catev.label
                   }))
                 }
-                style={{ width: "87%" }}
+                style={{ width: '87%' }}
               />
             </FormControl>
           </Grid>
         </Grid>
       )}
-      <Grid style={{ marginTop: "2em" }} container={true} item={true} xs={12}>
+      <Grid style={{ marginTop: '2em' }} container={true} item={true} xs={12}>
         <FormControl className={classes.formControl} error={validation.dept}>
           <TextField
             required={true}
@@ -697,14 +615,11 @@ const LicencesPage = (props: ILicencesProps) => {
             label="Département"
             type="number"
             margin="none"
-            style={{ width: "50%" }}
+            style={{ width: '50%' }}
             value={newLicence.dept}
             onBlur={e => {
-              if (
-                parseInt(e.target.value) < 1 ||
-                parseInt(e.target.value) > 99
-              ) {
-                setNewLicence({ ...newLicence, dept: "" });
+              if (parseInt(e.target.value) < 1 || parseInt(e.target.value) > 99) {
+                setNewLicence({ ...newLicence, dept: '' });
                 setValidation({ dept: true });
                 return;
               }
@@ -720,12 +635,7 @@ const LicencesPage = (props: ILicencesProps) => {
         </FormControl>
       </Grid>
       {newLicence.fede && newLicence.fede !== FedeEnum.NL && (
-        <Grid
-          container={true}
-          spacing={2}
-          alignItems={"center"}
-          style={{ marginTop: "2em" }}
-        >
+        <Grid container={true} spacing={2} alignItems={'center'} style={{ marginTop: '2em' }}>
           <Grid item={true} xs={12}>
             <ClubSelect
               isError={validation.club}
@@ -734,19 +644,17 @@ const LicencesPage = (props: ILicencesProps) => {
               onSelectClubName={value => {
                 setNewLicence({ ...newLicence, club: value });
               }}
-              defaultChosenClub={
-                { value: null, label: newLicence.club } as IOptionType
-              }
+              defaultChosenClub={{ value: null, label: newLicence.club } as IOptionType}
             />
           </Grid>
         </Grid>
       )}
       <div
         style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "center",
-          alignItems: "flex-end",
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'flex-end',
           marginTop: 24
         }}
       >
@@ -763,12 +671,7 @@ const LicencesPage = (props: ILicencesProps) => {
           </Button>
         </Grid>
         <Grid item={true} xs={6}>
-          <Button
-            variant="contained"
-            color="primary"
-            className={classes.button}
-            onClick={onSubmit}
-          >
+          <Button variant="contained" color="primary" className={classes.button} onClick={onSubmit}>
             Sauvegarder
           </Button>
         </Grid>
