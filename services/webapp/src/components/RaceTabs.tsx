@@ -1,9 +1,9 @@
-import * as React from "react";
-import Tabs from "@material-ui/core/Tabs";
-import Badge from "@material-ui/core/Badge";
-import Tab from "@material-ui/core/Tab";
-import { createStyles, Theme } from "@material-ui/core";
-import makeStyles from "@material-ui/core/styles/makeStyles";
+import * as React from 'react';
+import Tabs from '@material-ui/core/Tabs';
+import Badge from '@material-ui/core/Badge';
+import Tab from '@material-ui/core/Tab';
+import { createStyles, Theme } from '@material-ui/core';
+import makeStyles from '@material-ui/core/styles/makeStyles';
 
 export interface IRaceStat {
   [code: string]: number;
@@ -21,12 +21,12 @@ const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     tabs: {
       minHeight: 0,
-      color: "black",
-      "& button": {
+      color: 'black',
+      '& button': {
         marginRight: 5,
-        color: "white",
-        fontSize: "20px",
-        fontWeight: "bolder",
+        color: 'grey',
+        fontSize: '20px',
+        fontWeight: 'bolder',
         minHeight: 0,
         paddingBottom: 3,
         paddingTop: 13,
@@ -37,9 +37,9 @@ const useStyles = makeStyles((theme: Theme) =>
         backgroundColor: theme.palette.grey[300],
         '&[aria-selected="true"]': {
           backgroundColor: theme.palette.secondary.light,
-          color: "white",
-          fontSize: "20px",
-          fontWeight: "bolder"
+          color: 'white',
+          fontSize: '20px',
+          fontWeight: 'bolder'
         }
       }
     },
@@ -54,6 +54,8 @@ const RaceTabs = ({ tabs, value, onChange, selected, ranking }: IRaceTabs) => {
 
   return (
     <Tabs
+      scrollButtons={'auto'}
+      variant={'scrollable'}
       value={value || Object.keys(tabs)[0]}
       onChange={(e, v) => onChange(v)}
       className={classes.tabs}
@@ -71,9 +73,7 @@ const RaceTabs = ({ tabs, value, onChange, selected, ranking }: IRaceTabs) => {
             label={
               <Badge
                 badgeContent={`${
-                  ranking.get(code)
-                    ? ranking.get(code) + "-" + (tabs[code] - ranking.get(code))
-                    : tabs[code]
+                  ranking.get(code) ? ranking.get(code) + '-' + (tabs[code] - ranking.get(code)) : tabs[code]
                 }`}
                 max={999}
                 className={classes.badge}
