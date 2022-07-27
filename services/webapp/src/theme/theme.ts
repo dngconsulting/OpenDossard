@@ -1,23 +1,24 @@
-import { createMuiTheme, Theme } from "@material-ui/core";
-import { Shadows } from "@material-ui/core/styles/shadows";
+import { createTheme } from '@material-ui/core/styles';
+import { Shadows } from '@material-ui/core/styles/shadows';
+import { Theme } from '@material-ui/core';
 
 const palette = {
   primary: {
-    light: "#5f73b9",
-    main: "#2d4889",
-    dark: "#00215b",
-    contrastText: "#fff"
+    light: '#5f73b9',
+    main: '#2d4889',
+    dark: '#00215b',
+    contrastText: '#fff'
   },
   secondary: {
-    light: "#60ac5d",
-    main: "#2e7c31",
-    dark: "#004f04",
-    contrastText: "#fff"
+    light: '#60ac5d',
+    main: '#2e7c31',
+    dark: '#004f04',
+    contrastText: '#fff'
   }
 };
 
-export const cadtheme = createMuiTheme({
-  shadows: Array<string>(25).fill("none") as Theme["shadows"],
+export const cadtheme = createTheme({
+  shadows: Array<string>(25).fill('none') as Theme['shadows'],
   palette,
   overrides: {
     MuiContainer: {
@@ -27,66 +28,66 @@ export const cadtheme = createMuiTheme({
       root: { width: 250 }
     },
     MuiPaper: {
-      root: { backgroundColor: "white" },
+      root: { backgroundColor: 'white' },
       rounded: { borderRadius: 0 }
     },
     MuiDrawer: {},
     MuiTabs: {
       root: {
-        borderBottomStyle: "solid",
-        borderBottomWidth: "1px",
+        borderBottomStyle: 'solid',
+        borderBottomWidth: '1px',
         borderBottomColor: palette.secondary.dark
       }
     },
     MuiTab: {
       root: {
-        "&:hover": {
+        '&:hover': {
           backgroundColor: palette.secondary.light,
-          color: "#000"
+          color: '#000'
         },
         selected: {
           backgroundColor: palette.secondary.light,
-          color: "#000",
-          "&:hover": {
+          color: '#000',
+          '&:hover': {
             backgroundColor: palette.secondary.light,
-            color: "#000"
+            color: '#000'
           }
         }
       }
     },
     MuiButton: {
       label: {
-        justifyItems: "center",
-        alignItems: "center"
+        justifyItems: 'center',
+        alignItems: 'center'
       },
       containedPrimary: {
-        color: "#fff",
+        color: '#fff',
         fontSize: 13,
         backgroundColor: palette.primary.main
       },
       containedSecondary: {
-        color: "#fff",
+        color: '#fff',
         fontSize: 13,
         backgroundColor: palette.secondary.main
       },
       textPrimary: {
-        color: "#fff",
+        color: '#fff',
         fontSize: 13,
         backgroundColor: palette.primary.main
       },
       textSecondary: {
-        color: "#fff",
+        color: '#fff',
         fontSize: 13,
         backgroundColor: palette.secondary.main
       }
     },
     MuiTableRow: {
       root: {
-        "&$hover:hover": {
-          backgroundColor: "rgba(0, 0, 0, 0.07)"
+        '&$hover:hover': {
+          backgroundColor: 'rgba(0, 0, 0, 0.07)'
         },
-        "&$selected": {
-          backgroundColor: "#e5f3ff"
+        '&$selected': {
+          backgroundColor: '#e5f3ff'
         }
       }
     },
@@ -96,15 +97,15 @@ export const cadtheme = createMuiTheme({
         zIndex: 2000
       },
       body: {
-        color: "black",
+        color: 'black',
         fontSize: 15
       },
       sizeSmall: {
-        padding: "0px 0px 0px 0px",
-        height: "20px"
+        padding: '0px 0px 0px 0px',
+        height: '20px'
       },
       head: {
-        color: "white",
+        color: 'white',
         padding: 3,
         fontSize: 15,
         backgroundColor: palette.primary.light
@@ -115,24 +116,24 @@ export const cadtheme = createMuiTheme({
     },
     MuiTableSortLabel: {
       root: {
-        color: "white"
+        color: 'white'
       },
       icon: {
-        color: "white"
+        color: 'white'
       },
       active: {
-        color: "white"
+        color: 'white'
       },
       iconDirectionAsc: {
-        color: "white"
+        color: 'white'
       },
       iconDirectionDesc: {
-        color: "white"
+        color: 'white'
       }
     }
   },
   typography: {
-    fontFamily: ["Hind Siliguri", "Helvetica", "Arial"].join(","),
+    fontFamily: ['Hind Siliguri', 'Helvetica', 'Arial'].join(','),
     fontSize: 15,
     fontWeightLight: 300,
     fontWeightRegular: 400,

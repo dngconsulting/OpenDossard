@@ -19,7 +19,8 @@ interface IRaceTabs {
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
-    tabs: {
+    root: {
+      justifyContent: 'center',
       minHeight: 0,
       color: 'black',
       '& button': {
@@ -43,6 +44,9 @@ const useStyles = makeStyles((theme: Theme) =>
         }
       }
     },
+    scroller: {
+      flexGrow: 0
+    },
     badge: {
       padding: theme.spacing(0, 2)
     }
@@ -51,15 +55,14 @@ const useStyles = makeStyles((theme: Theme) =>
 
 const RaceTabs = ({ tabs, value, onChange, selected, ranking }: IRaceTabs) => {
   const classes = useStyles({});
-
   return (
     <Tabs
       scrollButtons={'auto'}
       variant={'scrollable'}
       value={value || Object.keys(tabs)[0]}
+      classes={{ root: classes.root, scroller: classes.scroller }}
       onChange={(e, v) => onChange(v)}
-      className={classes.tabs}
-      centered={true}
+      className={classes.root}
       TabIndicatorProps={{ style: { height: 0 } }}
     >
       {Object.keys(tabs)
