@@ -1,41 +1,29 @@
-import {
-  Button,
-  FormControl,
-  FormControlLabel,
-  Radio,
-  TextField
-} from "@material-ui/core";
-import Popover from "@material-ui/core/Popover";
-import { Add, ArrowDownward } from "@material-ui/icons";
-import moment from "moment";
-import Select, { components } from "react-select";
-import _ from "lodash";
-import { FEDERATIONS } from "../pages/common/shared-entities";
-import { CompetitionType } from "../sdk/models/CompetitionType";
-import { LOCATION, LocationType } from "../util/LOCATION";
-import React, { useContext, useEffect, useState } from "react";
-import {
-  CompetitionEntity,
-  CompetitionFilter,
-  Departement,
-  RaceRow
-} from "../sdk";
-import { apiRaces } from "../util/api";
-import { NotificationContext } from "./CadSnackbar";
-import { fetchCompetitions } from "../services/competition";
-import { cadtheme } from "../theme/theme";
+import { Button, FormControl, FormControlLabel, Radio, TextField, useMediaQuery } from '@material-ui/core';
+import Popover from '@material-ui/core/Popover';
+import { Add, ArrowDownward } from '@material-ui/icons';
+import moment from 'moment';
+import Select, { components } from 'react-select';
+import _ from 'lodash';
+import { FEDERATIONS } from '../pages/common/shared-entities';
+import { CompetitionType } from '../sdk/models/CompetitionType';
+import { LOCATION, LocationType } from '../util/LOCATION';
+import React, { useContext, useEffect, useState } from 'react';
+import { CompetitionEntity, CompetitionFilter, Departement, RaceRow } from '../sdk';
+import { apiRaces } from '../util/api';
+import { NotificationContext } from './CadSnackbar';
+import { fetchCompetitions } from '../services/competition';
+import { BREAK_POINT_MOBILE_TABLET, cadtheme } from '../theme/theme';
+import { useTheme } from '@material-ui/core/styles';
 
 const allFedes = () => {
   return Object.keys(FEDERATIONS)
-    .filter(f => f != "NL")
+    .filter(f => f != 'NL')
     .map(fede => FEDERATIONS[fede].name);
 };
 const CHIPS_LIMIT = 1;
 
 export const MoreChips = ({ title, chips }: { title: string; chips: any }) => {
-  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
-    null
-  );
+  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -47,7 +35,7 @@ export const MoreChips = ({ title, chips }: { title: string; chips: any }) => {
   };
 
   const open = Boolean(anchorEl);
-  const id = open ? "popover" : undefined;
+  const id = open ? 'popover' : undefined;
 
   return (
     <div
@@ -60,7 +48,7 @@ export const MoreChips = ({ title, chips }: { title: string; chips: any }) => {
       <Button
         style={{
           zIndex: 9000,
-          overflow: "visible",
+          overflow: 'visible',
           marginLeft: 5,
           marginRight: 5,
           paddingTop: 3,
@@ -80,23 +68,23 @@ export const MoreChips = ({ title, chips }: { title: string; chips: any }) => {
         anchorEl={anchorEl}
         onClose={handleClose}
         anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "center"
+          vertical: 'bottom',
+          horizontal: 'center'
         }}
         transformOrigin={{
-          vertical: "top",
-          horizontal: "center"
+          vertical: 'top',
+          horizontal: 'center'
         }}
       >
         <div
           style={{
-            display: "flex",
-            alignItems: "stretch",
-            justifyContent: "center",
-            flexDirection: "column",
+            display: 'flex',
+            alignItems: 'stretch',
+            justifyContent: 'center',
+            flexDirection: 'column',
             padding: 5,
             border: 1,
-            borderStyle: "solid",
+            borderStyle: 'solid',
             borderColor: cadtheme.palette.grey.A100
           }}
         >
@@ -111,9 +99,7 @@ const LimitedChipsContainer = ({ children, hasValue, getValue, ...props }) => {
   if (!hasValue) {
     return (
       // @ts-ignore
-      <components.ValueContainer {...props}>
-        {children}
-      </components.ValueContainer>
+      <components.ValueContainer {...props}>{children}</components.ValueContainer>
     );
   }
 
@@ -126,20 +112,15 @@ const LimitedChipsContainer = ({ children, hasValue, getValue, ...props }) => {
     // @ts-ignore
     <components.ValueContainer {...props}>
       {displayChips}
-      {overflowCounter > CHIPS_LIMIT && (
-        <MoreChips
-          title={`+${overflowCounter - CHIPS_LIMIT}`}
-          chips={otherChips}
-        />
-      )}
+      {overflowCounter > CHIPS_LIMIT && <MoreChips title={`+${overflowCounter - CHIPS_LIMIT}`} chips={otherChips} />}
       {otherChildren}
     </components.ValueContainer>
   );
 };
 
 const defaultCompetitionFilter = {
-  competitionTypes: ["ROUTE", "CX", "VTT"],
-  fedes: ["FSGT"],
+  competitionTypes: ['ROUTE', 'CX', 'VTT'],
+  fedes: ['FSGT'],
   depts: Array<Departement>(),
   displayFuture: true,
   displayPast: true
@@ -158,10 +139,9 @@ export const CompetitionFilterPanel = ({
   setRaceRows: (raceRows: RaceRow[]) => void;
 }) => {
   const [, setNotification] = useContext(NotificationContext);
-  const [competitionFilter, setCompetitionFilter] = useState<
-    Partial<CompetitionFilter>
-  >(undefined);
-
+  const [competitionFilter, setCompetitionFilter] = useState<Partial<CompetitionFilter>>(undefined);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down(BREAK_POINT_MOBILE_TABLET));
   const fetchAllRaces = async () => {
     try {
       const results = await apiRaces.getRaces({
@@ -172,7 +152,7 @@ export const CompetitionFilterPanel = ({
       setNotification({
         message: `Impossible de récupérer la liste des participations`,
         open: true,
-        type: "error"
+        type: 'error'
       });
     }
   };
@@ -186,10 +166,7 @@ export const CompetitionFilterPanel = ({
           setData
         });
         await fetchAllRaces();
-        localStorage.setItem(
-          "competitionFilter",
-          JSON.stringify(competitionFilter)
-        );
+        localStorage.setItem('competitionFilter', JSON.stringify(competitionFilter));
       } finally {
         setLoading(false);
       }
@@ -203,26 +180,18 @@ export const CompetitionFilterPanel = ({
   }, [competitionFilter]);
   useEffect(() => {
     try {
-      const c = localStorage.getItem("competitionFilter");
+      const c = localStorage.getItem('competitionFilter');
       if (c) {
         const parsedCompFilter = JSON.parse(c);
         setCompetitionFilter(parsedCompFilter);
       } else {
-        console.log(
-          "[LocalStorage] No competitionFilter in storage, lets create one"
-        );
-        localStorage.setItem(
-          "competitionFilter",
-          JSON.stringify(defaultCompetitionFilter)
-        );
+        console.log('[LocalStorage] No competitionFilter in storage, lets create one');
+        localStorage.setItem('competitionFilter', JSON.stringify(defaultCompetitionFilter));
         setCompetitionFilter(defaultCompetitionFilter);
       }
     } catch (error) {
-      console.log("[LocalStorage] Parsing Error RESET competitionFilter !");
-      localStorage.setItem(
-        "competitionFilter",
-        JSON.stringify(defaultCompetitionFilter)
-      );
+      console.log('[LocalStorage] Parsing Error RESET competitionFilter !');
+      localStorage.setItem('competitionFilter', JSON.stringify(defaultCompetitionFilter));
       setCompetitionFilter(defaultCompetitionFilter);
     }
   }, [refreshData]);
@@ -231,34 +200,32 @@ export const CompetitionFilterPanel = ({
     <>
       <div
         style={{
-          justifyContent: "center",
-          alignItems: "flex-end",
-          display: "flex",
+          justifyContent: 'center',
+          alignItems: 'flex-end',
+          display: isMobile ? 'block' : 'flex',
           marginTop: -5,
           paddingTop: 5,
           paddingBottom: 5,
           marginLeft: -5,
           marginRight: -5,
-          backgroundColor: "#F5F5F5"
+          backgroundColor: '#F5F5F5'
         }}
       >
         <TextField
-          style={{ marginRight: 10 }}
+          style={{ marginRight: 10, width: isMobile ? '100%' : '200px' }}
           id="date"
           value={
             competitionFilter.startDate
-              ? moment(competitionFilter.startDate, "MM/DD/YYYY").format(
-                  moment.HTML5_FMT.DATE
-                )
-              : ""
+              ? moment(competitionFilter.startDate, 'MM/DD/YYYY').format(moment.HTML5_FMT.DATE)
+              : ''
           }
           label="Date de début"
           type="date"
           onChange={dateChanged => {
             const d1 = moment(dateChanged.target.value, moment.HTML5_FMT.DATE)
-              .locale("fr")
-              .format("MM/DD/YYYY");
-            if (d1.includes("Invalid date")) return;
+              .locale('fr')
+              .format('MM/DD/YYYY');
+            if (d1.includes('Invalid date')) return;
 
             setCompetitionFilter({
               ...competitionFilter,
@@ -270,22 +237,20 @@ export const CompetitionFilterPanel = ({
           }}
         />
         <TextField
-          style={{ marginRight: 10 }}
+          style={{ marginRight: 10, width: isMobile ? '100%' : '200px' }}
           value={
             competitionFilter.endDate
-              ? moment(competitionFilter.endDate, "MM/DD/YYYY").format(
-                  moment.HTML5_FMT.DATE
-                )
-              : ""
+              ? moment(competitionFilter.endDate, 'MM/DD/YYYY').format(moment.HTML5_FMT.DATE)
+              : ''
           }
           id="date"
           label="Date de fin"
           type="date"
           onChange={dateChanged => {
             const d2 = moment(dateChanged.target.value, moment.HTML5_FMT.DATE)
-              .locale("fr")
-              .format("MM/DD/YYYY");
-            if (d2.includes("Invalid date")) return;
+              .locale('fr')
+              .format('MM/DD/YYYY');
+            if (d2.includes('Invalid date')) return;
             setCompetitionFilter({
               ...competitionFilter,
               endDate: d2
@@ -297,15 +262,15 @@ export const CompetitionFilterPanel = ({
         />
         <div
           style={{
-            justifySelf: "center",
+            justifySelf: 'center',
             fontSize: 20,
-            fontWeight: "bolder",
+            fontWeight: 'bolder',
             color: cadtheme.palette.primary.dark,
             marginLeft: 10,
             marginRight: 10,
             paddingTop: 10,
-            marginTop: "auto",
-            marginBottom: "auto"
+            marginTop: 'auto',
+            marginBottom: 'auto'
           }}
         >
           OU
@@ -315,10 +280,7 @@ export const CompetitionFilterPanel = ({
           label="Epreuves passées"
           control={
             <Radio
-              checked={
-                competitionFilter.displayPast &&
-                !competitionFilter.displayFuture
-              }
+              checked={competitionFilter.displayPast && !competitionFilter.displayFuture}
               onChange={(event, change) => {
                 setCompetitionFilter({
                   ...competitionFilter,
@@ -338,10 +300,7 @@ export const CompetitionFilterPanel = ({
           label="Epreuves à venir"
           control={
             <Radio
-              checked={
-                competitionFilter.displayFuture &&
-                !competitionFilter.displayPast
-              }
+              checked={competitionFilter.displayFuture && !competitionFilter.displayPast}
               value="future"
               onChange={(event, change) => {
                 setCompetitionFilter({
@@ -361,9 +320,7 @@ export const CompetitionFilterPanel = ({
           label="Toutes les épreuves"
           control={
             <Radio
-              checked={
-                competitionFilter.displayFuture && competitionFilter.displayPast
-              }
+              checked={competitionFilter.displayFuture && competitionFilter.displayPast}
               onChange={(event, change) => {
                 setCompetitionFilter({
                   ...competitionFilter,
@@ -381,11 +338,11 @@ export const CompetitionFilterPanel = ({
       </div>
       <FormControl
         style={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#e9e9e9",
+          display: isMobile ? 'contents' : 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#e9e9e9',
           marginLeft: -5,
           marginRight: -5,
           height: 60
@@ -393,10 +350,10 @@ export const CompetitionFilterPanel = ({
         component="fieldset"
       >
         <Select
-          menuPlacement={"bottom"}
+          menuPlacement={'bottom'}
           menuPortalTarget={document.body}
           width={250}
-          styles={{ container: () => ({ minWidth: 200, marginRight: 10 }) }}
+          styles={{ container: () => ({ marginLeft: isMobile ? 0 : 10, width: '100%', marginRight: 10 }) }}
           defaultValue={
             _.isEmpty(competitionFilter.fedes)
               ? undefined
@@ -409,14 +366,12 @@ export const CompetitionFilterPanel = ({
           }
           isMulti
           noOptionsMessage={m => m?.inputValue + " n'existe pas"}
-          placeholder={"Toutes fédés"}
+          placeholder={'Toutes fédés'}
           options={allFedes()}
           className="basic-multi-select"
           classNamePrefix="select"
           onChange={selectedFedes => {
-            const onlyValues = selectedFedes?.map(
-              (fede: { label: string; value: string }) => fede.value
-            );
+            const onlyValues = selectedFedes?.map((fede: { label: string; value: string }) => fede.value);
             setCompetitionFilter({
               ...competitionFilter,
               fedes: _.isEmpty(onlyValues) ? undefined : onlyValues
@@ -425,11 +380,11 @@ export const CompetitionFilterPanel = ({
         />
         <Select
           width={250}
-          menuPlacement={"bottom"}
+          menuPlacement={'bottom'}
           menuPortalTarget={document.body}
-          styles={{ container: () => ({ minWidth: 200, marginRight: 10 }) }}
+          styles={{ container: () => ({ width: '100%', marginRight: 10 }) }}
           noOptionsMessage={m => m?.inputValue + " n'existe pas"}
-          placeholder={"Toutes disciplines"}
+          placeholder={'Toutes disciplines'}
           defaultValue={
             _.isEmpty(competitionFilter.competitionTypes)
               ? undefined
@@ -450,9 +405,7 @@ export const CompetitionFilterPanel = ({
           className="basic-multi-select"
           classNamePrefix="select"
           onChange={(selectedCompetitionTypes: any) => {
-            const onlyValues = selectedCompetitionTypes?.map(
-              (cp: { label: string; value: string }) => cp.value
-            );
+            const onlyValues = selectedCompetitionTypes?.map((cp: { label: string; value: string }) => cp.value);
             setCompetitionFilter({
               ...competitionFilter,
               competitionTypes: _.isEmpty(onlyValues) ? undefined : onlyValues
@@ -461,23 +414,31 @@ export const CompetitionFilterPanel = ({
         />
 
         <Select
-          width={250}
-          styles={{ container: () => ({ minWidth: 200 }) }}
+          menuPlacement={'bottom'}
+          {...(!isMobile
+            ? {
+                styles: {
+                  container: () => ({
+                    width: '100%'
+                  })
+                }
+              }
+            : {})}
           noOptionsMessage={m => m?.inputValue + " n'existe pas"}
-          placeholder={"Tous départements"}
+          placeholder={'Tous départements'}
           isMulti
           hideSelectedOptions={true}
           components={{
-            ValueContainer: LimitedChipsContainer
+            ValueContainer: props => <LimitedChipsContainer {...props} />
           }}
           value={competitionFilter?.depts?.map(dept => ({
             value: dept.departmentCode,
-            label: dept.departmentCode + "-" + dept.departmentName
+            label: dept.departmentCode + '-' + dept.departmentName
           }))}
           options={LOCATION.map((l: LocationType) => {
             return {
               value: l.code,
-              label: l.code + "-" + l.name
+              label: l.code + '-' + l.name
             };
           })}
           className="basic-multi-select"
@@ -488,8 +449,7 @@ export const CompetitionFilterPanel = ({
               depts: deptsSelected
                 ? [
                     ...deptsSelected.map((d: any) => ({
-                      departmentName: LOCATION.find(l => l.code === d.value)
-                        .name,
+                      departmentName: LOCATION.find(l => l.code === d.value).name,
                       departmentCode: d.value
                     }))
                   ]
@@ -498,13 +458,13 @@ export const CompetitionFilterPanel = ({
           }}
         />
         <Button
-          style={{ alignItems: "center", marginLeft: 10 }}
-          variant={"contained"}
-          color={"primary"}
+          style={{ alignItems: 'center', marginLeft: 10, marginTop: isMobile ? 10 : 0, minWidth: 200 }}
+          variant={'contained'}
+          color={'primary'}
           onClick={() => {
             history.push({
-              pathname: "/competition/create",
-              state: { title: "Création épreuve" }
+              pathname: '/competition/create',
+              state: { title: 'Création épreuve' }
             });
           }}
         >

@@ -37,6 +37,7 @@ interface IAppDrawer {
   utility: Utility;
   classes?: any;
   theme?: Theme;
+  isMobile?: boolean;
   handleDrawer?: (open: boolean) => void;
 }
 
@@ -92,11 +93,11 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
   ];
 
   public render(): JSX.Element {
-    const { authentication, classes, utility, theme } = this.props;
+    const { authentication, classes, utility, theme, isMobile } = this.props;
     return (
       <Drawer
         hidden={!authentication}
-        variant="permanent"
+        variant={isMobile ? 'temporary' : 'permanent'}
         classes={{
           paper: classNames(classes.drawerPaper, !utility.drawerOpen && classes.drawerPaperClose)
         }}

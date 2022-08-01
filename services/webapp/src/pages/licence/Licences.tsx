@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { forwardRef, useContext, useEffect, useRef, useState } from 'react';
 import MaterialTable, { Query, QueryResult } from 'material-table';
+import { MTableToolbar } from 'material-table';
 import { AppText as T } from '../../util/text';
 import { apiLicences } from '../../util/api';
 import { LicenceEntity, LicenceEntity as Licence, Search as SearchEntity } from '../../sdk';
-import { cadtheme } from '../../theme/theme';
-import { Button, Tooltip } from '@material-ui/core';
+import { BREAK_POINT_MOBILE_TABLET, cadtheme } from '../../theme/theme';
+import { Button, Tooltip, useMediaQuery, withStyles } from '@material-ui/core';
 import { NotificationContext } from '../../components/CadSnackbar';
 import { store } from '../../store/Store';
 import { setVar } from '../../actions/App.Actions';
@@ -32,6 +33,7 @@ import jsPDF from 'jspdf';
 import moment from 'moment';
 import { useWindowDimensions } from '../../util';
 import { Link } from 'react-router-dom';
+import { useTheme } from '@material-ui/core/styles';
 
 interface ILicencesProps {
   items: any[];
@@ -74,6 +76,8 @@ const LicencesPage = (props: ILicencesProps) => {
   const [psize, setPSize] = useState(17);
   const windowDimensions = useWindowDimensions();
   const tableRef = useRef(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down(BREAK_POINT_MOBILE_TABLET));
   useEffect(() => {
     const queryParams = new URLSearchParams(props.location.search);
     if (queryParams.has('id')) {
@@ -91,6 +95,12 @@ const LicencesPage = (props: ILicencesProps) => {
     const d = res.data;
     return { data: d, page: res.page, totalCount: res.totalCount };
   };
+
+  const StyledMTableToolbar = withStyles({
+    root: {
+      display: isMobile ? 'block' : 'flex'
+    }
+  })(MTableToolbar);
 
   const prepareFilter = (query: Query<Licence>): SearchEntity => {
     const filters: any = [];
@@ -226,6 +236,11 @@ const LicencesPage = (props: ILicencesProps) => {
   return (
     <div id={'mydiv'}>
       <MaterialTable
+        components={{
+          Toolbar: props => {
+            return <StyledMTableToolbar {...props} />;
+          }
+        }}
         onChangePage={(pageNumber: number) => {
           try {
             const el = document.querySelectorAll('div[style*=overflow-y]')[0];

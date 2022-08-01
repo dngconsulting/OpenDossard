@@ -1,7 +1,7 @@
 import { createTheme } from '@material-ui/core/styles';
-import { Shadows } from '@material-ui/core/styles/shadows';
 import { Theme } from '@material-ui/core';
 
+export const BREAK_POINT_MOBILE_TABLET = 800;
 const palette = {
   primary: {
     light: '#5f73b9',

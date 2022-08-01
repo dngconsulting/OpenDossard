@@ -35,6 +35,7 @@ interface IAppProps extends IApplicationProps {
   theme?: any;
   title: any;
   showLoading: boolean;
+  isMobile: boolean;
 }
 
 interface IState {
@@ -164,11 +165,12 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
   };
 
   private renderDrawer() {
-    const { utility, authentication } = this.props;
+    const { utility, authentication, isMobile } = this.props;
     return (
       <Hidden mdDown={!utility.drawerOpen && true}>
         <AppDrawer
           utility={utility}
+          isMobile={isMobile}
           authentication={authentication}
           handleDrawer={() => this.handleDrawer(utility.drawerOpen)}
         />

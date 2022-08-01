@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useContext, useEffect, useState } from 'react';
 
-import { withStyles } from '@material-ui/core';
+import { useMediaQuery, withStyles } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import Container from '@material-ui/core/Container';
 import TextField from '@material-ui/core/TextField';
@@ -14,7 +14,7 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Button from '@material-ui/core/Button';
-import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
+import { createStyles, makeStyles, Theme, useTheme } from '@material-ui/core/styles';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import ClubSelect, { IOptionType } from '../../components/ClubSelect';
 import { FedeEnum, LicenceEntity, LicenceEntity as Licence } from '../../sdk';
@@ -24,6 +24,7 @@ import { NotificationContext } from '../../components/CadSnackbar';
 
 import { ConfirmDialog } from '../../util';
 import { LoaderIndicator } from '../../components/LoaderIndicator';
+import { BREAK_POINT_MOBILE_TABLET } from '../../theme/theme';
 
 interface ILicencesProps {
   items: any[];
@@ -105,6 +106,8 @@ const LicencesPage = (props: ILicencesProps) => {
     saison: false
   });
   const [updatedLicence, setUpdatedLicence] = useState(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down(BREAK_POINT_MOBILE_TABLET));
 
   const fedeDetails = FEDERATIONS[newLicence.fede];
 
@@ -312,7 +315,7 @@ const LicencesPage = (props: ILicencesProps) => {
   return (
     <div
       style={{
-        display: 'flex',
+        display: isMobile ? 'block' : 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'column',
@@ -341,7 +344,7 @@ const LicencesPage = (props: ILicencesProps) => {
       <Grid item={true} xs={12}>
         <h1 style={{ backgroundColor: 'transparent' }}>{editMode ? 'Modifier' : 'Ajouter'} une licence</h1>
       </Grid>
-      <Grid container={true} spacing={2} alignItems={'center'}>
+      <Grid direction={isMobile ? 'column' : 'row'} container={true} spacing={2} alignItems={'center'}>
         <Grid item={true} xs={4}>
           <FormControl className={classes.formControl}>
             <Autocomplete
@@ -500,7 +503,13 @@ const LicencesPage = (props: ILicencesProps) => {
       </Grid>
 
       {newLicence.fede && (
-        <Grid container={true} spacing={2} alignItems={'center'} style={{ marginTop: '1em' }}>
+        <Grid
+          direction={isMobile ? 'column' : 'row'}
+          container={true}
+          spacing={2}
+          alignItems={'center'}
+          style={{ marginTop: '1em' }}
+        >
           <Grid item={true} xs={4}>
             <FormControl className={classes.formControl}>
               <Autocomplete
