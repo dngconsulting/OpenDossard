@@ -17,7 +17,7 @@ jobs:
     environment: ${{github.event.inputs.envname}}
     steps:
       - name: executing remote ssh commands using password
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v0.1.4
         env:
           POSTGRES_HOST: ${{secrets.POSTGRES_HOST}}
           POSTGRES_PORT: ${{secrets.POSTGRES_PORT}}
@@ -34,7 +34,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           envs: POSTGRES_HOST,POSTGRES_PORT,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,JWT_EXPIRE,MONITORING_PASSWORD,MONITORING_USER
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
             export POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}
             export POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
