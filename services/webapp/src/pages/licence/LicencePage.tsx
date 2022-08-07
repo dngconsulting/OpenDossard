@@ -3,12 +3,8 @@ import { useContext, useEffect, useState } from 'react';
 
 import { useMediaQuery, withStyles } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
-import Container from '@material-ui/core/Container';
 import TextField from '@material-ui/core/TextField';
 import FormHelperText from '@material-ui/core/FormHelperText';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -81,7 +77,7 @@ const LicencesPage = (props: ILicencesProps) => {
     id: null,
     name: '',
     firstName: '',
-    licenceNumber: '',
+    licenceNumber: 'NC',
     gender: null,
     fede: null,
     birthYear: '',

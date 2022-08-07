@@ -1,12 +1,11 @@
 import * as React from 'react';
 import { forwardRef, useContext, useEffect, useRef, useState } from 'react';
-import MaterialTable, { Query, QueryResult } from 'material-table';
-import { MTableToolbar } from 'material-table';
+import MaterialTable, { MTableToolbar, Query, QueryResult } from 'material-table';
 import { AppText as T } from '../../util/text';
 import { apiLicences } from '../../util/api';
 import { LicenceEntity, LicenceEntity as Licence, Search as SearchEntity } from '../../sdk';
 import { BREAK_POINT_MOBILE_TABLET, cadtheme } from '../../theme/theme';
-import { Button, Tooltip, useMediaQuery, withStyles } from '@material-ui/core';
+import { Button, FormControlLabel, Switch, Tooltip, useMediaQuery, withStyles } from '@material-ui/core';
 import { NotificationContext } from '../../components/CadSnackbar';
 import { store } from '../../store/Store';
 import { setVar } from '../../actions/App.Actions';
@@ -33,7 +32,7 @@ import jsPDF from 'jspdf';
 import moment from 'moment';
 import { useWindowDimensions } from '../../util';
 import { Link } from 'react-router-dom';
-import { useTheme } from '@material-ui/core/styles';
+import { makeStyles, useTheme } from '@material-ui/core/styles';
 
 interface ILicencesProps {
   items: any[];
@@ -70,6 +69,7 @@ const tableIcons = {
 
 const LicencesPage = (props: ILicencesProps) => {
   const [id, setId] = useState(null);
+  const [licencesSansNumeroFilter, setLicencesSansNumeroFilter] = useState<boolean>(false);
   const [tableKey, setTableKey] = useState(1);
   const [name, setName] = useState(null);
   const [, setNotification] = useContext(NotificationContext);
@@ -98,12 +98,21 @@ const LicencesPage = (props: ILicencesProps) => {
 
   const StyledMTableToolbar = withStyles({
     root: {
-      display: isMobile ? 'block' : 'flex'
+      display: isMobile ? 'block' : 'flex',
+      '& .MuiToolbar-gutters': {
+        paddingLeft: 0,
+        paddingRight: 0
+      }
+    },
+    spacer: {
+      flex: '0 0 0%',
+      backgroundColor: 'red'
     }
   })(MTableToolbar);
 
   const prepareFilter = (query: Query<Licence>): SearchEntity => {
     const filters: any = [];
+    if (licencesSansNumeroFilter) filters.push({ name: 'licenceNumber', value: 'NC' });
     if (name) {
       filters.push({ name: 'name', value: name });
     }
@@ -112,7 +121,8 @@ const LicencesPage = (props: ILicencesProps) => {
     } else {
       if (query.filters.length > 0) {
         query.filters.forEach((col: any) => {
-          filters.push({ name: col.column.field, value: col.value });
+          if ((licencesSansNumeroFilter && col != 'licenceNumber') || !licencesSansNumeroFilter)
+            filters.push({ name: col.column.field, value: col.value });
         });
       }
     }
@@ -233,6 +243,15 @@ const LicencesPage = (props: ILicencesProps) => {
     doc.putTotalPages(totalPagesExp);
     doc.save(filename);
   };
+  const useStyles = makeStyles(theme => ({
+    toolbarWrapper: {
+      '& .MuiToolbar-gutters': {
+        paddingLeft: 0,
+        paddingRight: 0
+      }
+    }
+  }));
+  const classes = useStyles();
   return (
     <div id={'mydiv'}>
       <MaterialTable
@@ -250,7 +269,6 @@ const LicencesPage = (props: ILicencesProps) => {
           }
         }}
         key={tableKey}
-        title={T.LICENCES.TITLE}
         tableRef={tableRef}
         columns={[
           {
@@ -330,6 +348,7 @@ const LicencesPage = (props: ILicencesProps) => {
         data={fetchLicences}
         icons={tableIcons}
         options={{
+          showEmptyDataSourceMessage: true,
           filterCellStyle: { padding: 0, margin: 0 },
           rowStyle: { maxHeight: 20, fontSize: 8, padding: 0, margin: 0 },
           filtering: true,
@@ -342,6 +361,7 @@ const LicencesPage = (props: ILicencesProps) => {
           pageSizeOptions: [5, 10, 17, 20, 100],
           search: true,
           selection: false,
+          showTitle: false,
           searchFieldStyle: { width: 320 },
           exportButton: true,
           exportFileName: 'licences',
@@ -370,6 +390,27 @@ const LicencesPage = (props: ILicencesProps) => {
           }
         }}
         actions={[
+          {
+            icon: () => (
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={licencesSansNumeroFilter}
+                    onChange={() => {
+                      setLicencesSansNumeroFilter(!licencesSansNumeroFilter);
+                      tableRef.current.onQueryChange();
+                    }}
+                    name="checkedB"
+                    color="primary"
+                  />
+                }
+                label="Licences sans numéro"
+              />
+            ),
+            tooltip: 'Afficher uniquement les licences avec le numéro non renseigné',
+            isFreeAction: true,
+            onClick: () => {}
+          },
           {
             icon: () => (
               <Button variant={'contained'} color={'primary'}>
