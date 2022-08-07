@@ -10,7 +10,7 @@ import { Column } from 'primereact/column';
 import { toMMDDYYYY } from '../../util/date';
 import { NotificationContext } from '../../components/CadSnackbar';
 import { styles } from '../../navigation/styles';
-import { Delete, EditRounded } from '@material-ui/icons';
+import { Delete, EditRounded, FileCopyRounded } from '@material-ui/icons';
 import { ConfirmDialog } from '../../util';
 import { CompetitionFilterPanel } from '../../components/CompetitionFilterPanel';
 
@@ -49,6 +49,7 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
   const [raceRows, setRaceRows] = useState<RaceRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshData, setRefreshData] = useState(false);
+  const [duplicateConfirm, setDuplicateConfirm] = useState<{ show: boolean; id?: number }>({ show: false });
   const classes = useStyles(cadtheme);
 
   const goToPage = (competitionId: number, resultsPage?: string) => {
@@ -58,9 +59,9 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
     });
   };
 
-  const goToPageUpdate = (competitionId: number) => {
+  const goToPageUpdate = (competitionId: number, duplicate?: boolean) => {
     props.history.push({
-      pathname: `/competition/update/${competitionId}`,
+      pathname: duplicate ? `/competition/create/${competitionId}` : `/competition/update/${competitionId}`,
       state: { title: 'Modification épreuve' }
     });
   };
@@ -125,6 +126,20 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
     );
   };
 
+  const duplicateIcon = (compRow: CompetitionEntity): JSX.Element => {
+    return (
+      <Tooltip title="Dupliquer cette épreuve">
+        <FileCopyRounded
+          onClick={async (event: any) => {
+            event.stopPropagation();
+            setDuplicateConfirm({ show: true, id: compRow.id });
+          }}
+          fontSize={'default'}
+        />
+      </Tooltip>
+    );
+  };
+
   const deleteIcon = (compRow: CompetitionEntity): JSX.Element => {
     return (
       <Tooltip title="Supprimer définitivement cette épreuve">
@@ -167,6 +182,18 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
           } finally {
             setLoading(false);
           }
+        }}
+      />
+      <ConfirmDialog
+        question={'Êtes-vous sûr de vouloir dupliquer cette épreuve ?'}
+        title={'Dupliquer une épreuve'}
+        open={duplicateConfirm.show}
+        confirmMessage={'Oui'}
+        cancelMessage={'Non'}
+        handleClose={() => setDuplicateConfirm({ show: false })}
+        handleOk={() => {
+          setDuplicateConfirm({ show: false });
+          goToPageUpdate(duplicateConfirm.id, true);
         }}
       />
       <CompetitionFilterPanel
@@ -239,6 +266,10 @@ const CompetitionChooser = (props: ICompetitionChooserProps) => {
         />
         <Column
           body={(compRow: CompetitionEntity) => editIcon(compRow)}
+          style={{ textAlign: 'center', minWidth: '2%' }}
+        />
+        <Column
+          body={(compRow: CompetitionEntity) => duplicateIcon(compRow)}
           style={{ textAlign: 'center', minWidth: '2%' }}
         />
         <Column

@@ -1,18 +1,6 @@
 import LeafletMap, { DEFAULT_LAT, DEFAULT_LNG } from 'components/LeafletMap';
 import React, { useContext, useEffect, useState } from 'react';
-import {
-  AppBar,
-  Box,
-  Button,
-  Container,
-  createStyles,
-  Grid,
-  makeStyles,
-  Tab,
-  Tabs,
-  Theme,
-  Typography
-} from '@material-ui/core';
+import { AppBar, Box, Button, createStyles, makeStyles, Tab, Tabs, Theme, Typography } from '@material-ui/core';
 import InfoRace from 'pages/raceform/InfoRace';
 import HorairesRace from 'pages/raceform/HorairesRace';
 import PriceRace from 'pages/raceform/PriceRace';
@@ -31,6 +19,7 @@ import { LoaderIndicator } from '../../components/LoaderIndicator';
 import { saveCompetition } from '../common/Competition';
 import MediaRace from '../raceform/MediaRace';
 import _ from 'lodash';
+import { matchPath } from 'react-router';
 
 interface ITabPanelProps {
   children?: React.ReactNode;
@@ -129,6 +118,11 @@ function TabPanel(props: ITabPanelProps) {
 }
 
 const CompetNavBar = (props: ICompetNavBar) => {
+  const isDuplication = matchPath(props.history.location.pathname, {
+    path: '/competition/create/:id',
+    exact: true,
+    strict: false
+  })?.isExact;
   const id = props.match.params.id;
   const classes = useStyles();
   const [communeLocalisationForMap, setCommuneLocalisationForMap] = useState<string>();
@@ -148,7 +142,7 @@ const CompetNavBar = (props: ICompetNavBar) => {
     avecChrono: false,
     categories: [CompetitionCreateCategoriesEnum.Toutes],
     races: ['2,3,4,5'],
-    eventDate: new Date(),
+    eventDate: null,
     zipCode: '',
     clubId: null,
     photoUrls: [],
@@ -218,11 +212,23 @@ const CompetNavBar = (props: ICompetNavBar) => {
           dept: res.dept,
           isValidResults: res.resultsValidated
         };
-        if (!_.isEmpty(toUpdateCompetition.localisation))
+        if (!_.isEmpty(toUpdateCompetition.localisation)) {
           setCommuneLocalisationForMap(toUpdateCompetition.localisation);
+        }
+        if (isDuplication) {
+          // We clean obsolete data that can be associated to previous event
+          delete toUpdateCompetition.id;
+          delete toUpdateCompetition.eventDate;
+          delete toUpdateCompetition.photoUrls;
+          delete toUpdateCompetition.feedback;
+          setNotification({
+            message: `L'épreuve ${toUpdateCompetition.name} a bien été dupliquée mais seule sa sauvegarde rendra celle-ci définitive`,
+            type: 'success',
+            open: true
+          });
+        }
         setNewCompetition(toUpdateCompetition);
       }
-
       setIsLoading(false);
     };
     loadCompetition();
@@ -319,6 +325,7 @@ const CompetNavBar = (props: ICompetNavBar) => {
 
         <TabPanel value={value} index={0}>
           <InfoRace
+            isDuplication={isDuplication}
             history={props.history}
             competition={newCompetition}
             updateMainInfos={setMainInfos}
@@ -328,7 +335,8 @@ const CompetNavBar = (props: ICompetNavBar) => {
                 setIsLoading: setIsLoading,
                 setIsSubmited: setIsSubmited,
                 setNotification: setNotification,
-                setNewCompetition: setNewCompetition
+                setNewCompetition: setNewCompetition,
+                history: props.history
               })
             }
           />
@@ -344,7 +352,8 @@ const CompetNavBar = (props: ICompetNavBar) => {
                 setIsLoading: setIsLoading,
                 setIsSubmited: setIsSubmited,
                 setNotification: setNotification,
-                setNewCompetition: setNewCompetition
+                setNewCompetition: setNewCompetition,
+                history: props.history
               })
             }
           />
@@ -360,7 +369,8 @@ const CompetNavBar = (props: ICompetNavBar) => {
                 setIsLoading: setIsLoading,
                 setIsSubmited: setIsSubmited,
                 setNotification: setNotification,
-                setNewCompetition: setNewCompetition
+                setNewCompetition: setNewCompetition,
+                history: props.history
               })
             }
           />
@@ -401,7 +411,8 @@ const CompetNavBar = (props: ICompetNavBar) => {
                   setIsLoading: setIsLoading,
                   setIsSubmited: setIsSubmited,
                   setNotification: setNotification,
-                  setNewCompetition: setNewCompetition
+                  setNewCompetition: setNewCompetition,
+                  history: props.history
                 });
               }}
             >
@@ -422,7 +433,8 @@ const CompetNavBar = (props: ICompetNavBar) => {
                 setIsLoading: setIsLoading,
                 setIsSubmited: setIsSubmited,
                 setNotification: setNotification,
-                setNewCompetition: setNewCompetition
+                setNewCompetition: setNewCompetition,
+                history: props.history
               });
             }}
           />

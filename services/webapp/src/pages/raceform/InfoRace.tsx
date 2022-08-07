@@ -25,6 +25,7 @@ const isSafari = () => {
 };
 interface IInfoRaceProps {
   competition: CompetitionCreate;
+  isDuplication: boolean;
   history: any;
   onSaveCompetition: any;
   updateMainInfos: (competition: CompetitionCreate, errors: boolean) => void;
@@ -47,8 +48,6 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 const InfoRace = (props: IInfoRaceProps) => {
-  const date: string = moment(props.competition.eventDate ?? new Date()).format(moment.HTML5_FMT.DATETIME_LOCAL);
-
   const classes = useStyles();
   const [error, setError] = useState<IErrorInfo>({
     fede: false,
@@ -108,7 +107,7 @@ const InfoRace = (props: IInfoRaceProps) => {
     props.updateMainInfos(
       {
         ...props.competition,
-        [label]: moment(value, moment.HTML5_FMT.DATETIME_LOCAL)
+        [label]: moment(value, 'YYYY-MM-DDTHH:mm').toDate()
       },
       mainInfoError
     );
@@ -269,7 +268,6 @@ const InfoRace = (props: IInfoRaceProps) => {
       }
     }
   };
-
   return (
     <>
       <Container style={{ marginLeft: 0, marginTop: '2rem' }}>
@@ -295,7 +293,9 @@ const InfoRace = (props: IInfoRaceProps) => {
             <TextField
               id="datetime-local"
               type="datetime-local"
-              value={date}
+              value={
+                props.competition.eventDate ? moment(props.competition.eventDate).format('YYYY-MM-DDTHH:mm') : null
+              }
               required={true}
               label="Date et heure de l'épreuve"
               error={error.eventDate}
@@ -304,7 +304,7 @@ const InfoRace = (props: IInfoRaceProps) => {
               name="eventDate"
               helperText={error.eventDate && "la date de l'épreuve doit être renseignée"}
               InputLabelProps={{ shrink: true }}
-              style={{ width: '80%' }}
+              style={{ width: '80%', backgroundColor: props.isDuplication ? 'yellow' : 'transparent' }}
             />
           </Grid>
           <Grid item={true} xs={4}>

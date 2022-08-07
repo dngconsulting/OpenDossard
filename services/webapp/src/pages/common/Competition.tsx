@@ -1,27 +1,23 @@
-import { apiCompetitions } from "../../util/api";
-import { CompetitionCreate } from "../../sdk";
-import _ from "lodash";
+import { apiCompetitions } from '../../util/api';
+import { CompetitionCreate } from '../../sdk';
 
 const isCompetitionValid = (competition: CompetitionCreate): boolean => {
-  return (
-    !!competition.name &&
-    !!competition?.eventDate &&
-    !!competition?.zipCode &&
-    !!competition?.races
-  );
+  return !!competition.name && !!competition?.eventDate && !!competition?.zipCode && !!competition?.races;
 };
 export const saveCompetition = async ({
   competition,
   setIsSubmited,
   setIsLoading,
   setNewCompetition,
-  setNotification
+  setNotification,
+  history
 }: {
   setNotification: any;
   competition: CompetitionCreate;
   setIsSubmited: any;
   setIsLoading: any;
   setNewCompetition: any;
+  history: any;
 }): Promise<any> => {
   setIsSubmited(true);
   if (competition !== null) {
@@ -33,25 +29,28 @@ export const saveCompetition = async ({
             competitionCreate: competition
           });
           setNewCompetition(updatedCompetition);
+          history.push({
+            pathname: `/competition/update/${updatedCompetition.id}`,
+            state: { title: 'Modification épreuve' }
+          });
           setNotification({
             message: `L'épreuve ${competition.name} a bien été modifiée`,
-            type: "success",
+            type: 'success',
             open: true
           });
         } catch (err) {
-          let er = { message: "" };
+          let er = { message: '' };
           if (err.json) er = await err.json();
           setNotification({
             message: `L'épreuve ${competition.name} n'a pas pu être créée ou modifiée ${er?.message}`,
-            type: "error",
+            type: 'error',
             open: true
           });
         }
       } else {
         setNotification({
-          message:
-            "Veuillez remplir l'ensemble des champs obligatoires de chaque onglet.",
-          type: "error",
+          message: "Veuillez remplir l'ensemble des champs obligatoires de chaque onglet.",
+          type: 'error',
           open: true
         });
       }
