@@ -527,7 +527,7 @@ const InfoRace = (props: IInfoRaceProps) => {
               onSelect={handleForm}
               onChange={handleForm}
               InputLabelProps={{ shrink: true }}
-              style={{ width: '80%' }}
+              style={{ width: '80%', backgroundColor: props.isDuplication ? 'yellow' : 'transparent' }}
             />
           </Grid>
           <Grid item={true} xs={4}>
@@ -542,7 +542,7 @@ const InfoRace = (props: IInfoRaceProps) => {
               error={error.website}
               helperText={error.website && 'le nom du site doit commencer par http'}
               InputLabelProps={{ shrink: true }}
-              style={{ width: '80%' }}
+              style={{ width: '80%', backgroundColor: props.isDuplication ? 'yellow' : 'transparent' }}
             />
           </Grid>
         </Grid>
