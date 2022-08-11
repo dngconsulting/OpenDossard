@@ -89,7 +89,6 @@ const InfoRace = (props: IInfoRaceProps) => {
   };
 
   const updateObservations = (data: string): void => {
-    if (_.isEmpty(data)) return;
     const mainInfoError = showEmptyFields();
     props.updateMainInfos({ ...props.competition, observations: data }, mainInfoError);
   };
