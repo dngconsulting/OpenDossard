@@ -265,7 +265,8 @@ export class CompetitionController {
     for (const propertyName in competition) {
       if (!competition[propertyName] || _.isEmpty(competition[propertyName]))
         if (
-          (propertyName !== "gpsCoordinates" &&
+          (propertyName !== "observations" &&
+            propertyName !== "gpsCoordinates" &&
             typeof competition[propertyName] === "string") ||
           Array.isArray(competition[propertyName])
         ) {
