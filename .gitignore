@@ -1,6 +1,7 @@
 
 *.iml
 config/prod.env
+config/dev.env
 prod.env
 var
 
