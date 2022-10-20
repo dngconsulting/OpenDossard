@@ -28,6 +28,7 @@ import { cadtheme } from '../../theme/theme';
 import { DropdownMenu, DropdownMenuItem } from '../../components/DropdownMenu';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
+import { exportCsv } from '../../util/csv';
 
 const previousRowEmpty = (index: number, transformedRows: any) => {
   return index > 0 && transformedRows[index - 1].riderNumber === undefined;
@@ -355,11 +356,28 @@ const EditResultsPage = (gprops: any) => {
         const exportCSV = async () => {
           dg && dg.current && dg.current.exportCSV();
         };
-        const colorize = (data: any, color: number[]) => {
-          for (let key in data.row.cells) {
-            data.row.cells[key].styles.fillColor = color;
-          }
+        const exportCSVAll = async () => {
+          await exportCsv(
+            [
+              { header: 'Course', field: 'raceCode' },
+              ...(competition.avecChrono ? [{ header: 'Chrono', field: 'chrono' }] : []),
+              { header: 'Cl.Scratch', field: 'classement' },
+              { header: 'Dossard', field: 'riderNumber' },
+              { header: 'Nom', field: 'name' },
+              { header: 'Club', field: 'club' },
+              { header: 'Dept', field: 'dept' },
+              { header: 'Num. Licence', field: 'licenceNumber' },
+              { header: 'Année Naiss.', field: 'birthYear' },
+              { header: 'CateV', field: 'catev' },
+              { header: 'CateA', field: 'catea' },
+              { header: 'Fede', field: 'fede' },
+              { header: 'Sexe', field: 'gender' }
+            ],
+            _.orderBy(transformRows(rows), ['raceCode'], ['asc']),
+            `${competition.name}-${competition.eventDate.toISOString()}.csv`
+          );
         };
+
         const getChallengeWinners = (filteredRows: any) => {
           const winners = filteredRows.filter((r: RaceRow) => r.sprintchallenge).map((r: RaceRow) => r.name);
           if (winners.length === 0) return 'NC';
@@ -883,7 +901,7 @@ const EditResultsPage = (gprops: any) => {
                     }}
                   >
                     <PictureAsPdf style={{ verticalAlign: 'middle', marginRight: 5 }} />{' '}
-                    {'Classement PDF Uniquement course ' + currentRace}
+                    {'Classement PDF Uniquement course : ' + currentRace}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     title="Télécharger les podiums en PDF"
@@ -902,7 +920,17 @@ const EditResultsPage = (gprops: any) => {
                     }}
                   >
                     <CloudDownload style={{ verticalAlign: 'middle', marginRight: 5 }} />{' '}
-                    {'Classements CSV Uniquement Course ' + currentRace}
+                    {'Classements CSV Uniquement course : ' + currentRace}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    title="Classements CSV de TOUTES les courses"
+                    onClick={() => {
+                      exportCSVAll();
+                      setDownloadMenuAnchorEl(null);
+                    }}
+                  >
+                    <CloudDownload style={{ verticalAlign: 'middle', marginRight: 5 }} />{' '}
+                    {'Classements CSV de TOUTES les courses'}
                   </DropdownMenuItem>
                 </DropdownMenu>
                 {selectedRows?.length > 0 && isEdit && (

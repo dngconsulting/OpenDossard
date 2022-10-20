@@ -221,6 +221,9 @@ const CompetNavBar = (props: ICompetNavBar) => {
           delete toUpdateCompetition.eventDate;
           delete toUpdateCompetition.photoUrls;
           delete toUpdateCompetition.feedback;
+          delete toUpdateCompetition.commissaires;
+          delete toUpdateCompetition.speaker;
+          delete toUpdateCompetition.aboyeur;
           setNotification({
             message: `L'épreuve ${toUpdateCompetition.name} a bien été dupliquée mais seule sa sauvegarde rendra celle-ci définitive`,
             type: 'success',
