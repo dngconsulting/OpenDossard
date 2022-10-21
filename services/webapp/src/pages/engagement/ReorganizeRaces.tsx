@@ -12,7 +12,6 @@ import Badge from '@material-ui/core/Badge/Badge';
 import { apiCompetitions } from '../../util/api';
 import { NotificationContext } from '../../components/CadSnackbar';
 import { ActionButton } from '../../components/ActionButton';
-import { cadtheme } from '../../theme/theme';
 import Tooltip from '@material-ui/core/Tooltip';
 
 const styles = makeStyles(theme => ({

@@ -3,7 +3,7 @@ import { forwardRef, useContext, useEffect, useRef, useState } from 'react';
 import MaterialTable, { MTableToolbar, Query, QueryResult } from 'material-table';
 import { AppText as T } from '../../util/text';
 import { apiLicences } from '../../util/api';
-import { LicenceEntity, LicenceEntity as Licence, Search as SearchEntity } from '../../sdk';
+import { LicenceEntity as Licence, Search as SearchEntity } from '../../sdk';
 import { BREAK_POINT_MOBILE_TABLET, cadtheme } from '../../theme/theme';
 import { Button, FormControlLabel, Switch, Tooltip, useMediaQuery, withStyles } from '@material-ui/core';
 import { NotificationContext } from '../../components/CadSnackbar';
@@ -28,11 +28,10 @@ import {
   Search,
   ViewColumn
 } from '@material-ui/icons';
-import jsPDF from 'jspdf';
-import moment from 'moment';
 import { useWindowDimensions } from '../../util';
 import { Link } from 'react-router-dom';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
+import { licencesPDF } from '../../reports';
 
 interface ILicencesProps {
   items: any[];
@@ -137,112 +136,6 @@ const LicencesPage = (props: ILicencesProps) => {
     };
   };
 
-  const exportPDF = async () => {
-    const rowstoDisplay: any[][] = [];
-    const filename = 'Licences.pdf';
-    tableRef.current.state.data.forEach((r: LicenceEntity) => {
-      rowstoDisplay.push([
-        r.id,
-        r.licenceNumber,
-        r.name,
-        r.firstName,
-        r.club,
-        r.gender,
-        r.dept,
-        r.birthYear,
-        r.catea,
-        r.catev,
-        r.catevCX,
-        r.fede,
-        r.saison
-      ]);
-    });
-    const doc = new jsPDF('p', 'mm', 'a4');
-    // @ts-ignore
-    const totalPagesExp = '{total_pages_count_string}';
-    // @ts-ignore
-    doc.autoTable({
-      head: [
-        [
-          'ID',
-          'Licence N°',
-          'Nom',
-          'Prenom',
-          'Club',
-          'H/F',
-          'Dept',
-          'Année',
-          'Cat.A',
-          'Cat.V',
-          'Caté.CX',
-          'Fédé.',
-          'Saison'
-        ]
-      ],
-      bodyStyles: {
-        minCellHeight: 3,
-        cellHeight: 3,
-        cellPadding: 0.5
-      },
-      columnStyles: {
-        0: { cellWidth: 10 },
-        1: { cellWidth: 20 },
-        2: { cellWidth: 20 },
-        3: { cellWidth: 20 },
-        4: { cellWidth: 40 },
-        5: { cellWidth: 10 },
-        6: { cellWidth: 10 },
-        7: { cellWidth: 10 },
-        8: { cellWidth: 6 },
-        9: { cellWidth: 6 },
-        10: { cellWidth: 15 },
-        11: { cellWidth: 12 },
-        12: { cellWidth: 10 }
-      },
-      body: rowstoDisplay,
-      didDrawPage: (data: any) => {
-        // Header
-        doc.setFontSize(14);
-        doc.setTextColor(40);
-        doc.setFontStyle('normal');
-        doc.setFontSize(10);
-        doc.text('Open Dossard - Listing de ' + rowstoDisplay.length + ' Licences', data.settings.margin.left + 70, 10);
-
-        // Footer
-        const str = 'Page ' + doc.internal.getNumberOfPages() + '/' + totalPagesExp;
-        doc.setFontSize(8);
-
-        // jsPDF 1.4+ uses getWidth, <1.4 uses .width
-        const pageSize = doc.internal.pageSize;
-        const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
-        doc.text(str, data.settings.margin.left, pageHeight - 10);
-        doc.text(
-          'Fichier : ' + filename + ' Imprimé le : ' + moment().format('DD/MM/YYYY HH:mm:ss'),
-          70,
-          pageHeight - 5
-        );
-      },
-      headStyles: {
-        fontSize: 9,
-        fontStyle: 'bold',
-        halign: 'left',
-        cellPadding: 0.5,
-        minCellHeight: 8
-      },
-      margin: { top: 14, left: 10 },
-      styles: {
-        valign: 'middle',
-        fontSize: 7,
-        minCellHeight: 5,
-        maxCellHeight: 5,
-        margin: 0
-      }
-    });
-    // @ts-ignore
-    const finalY = doc.lastAutoTable.finalY;
-    doc.putTotalPages(totalPagesExp);
-    doc.save(filename);
-  };
   const useStyles = makeStyles(theme => ({
     toolbarWrapper: {
       '& .MuiToolbar-gutters': {
@@ -358,7 +251,7 @@ const LicencesPage = (props: ILicencesProps) => {
           padding: 'dense',
           actionsColumnIndex: -1,
           maxBodyHeight: windowDimensions.height - 200,
-          pageSizeOptions: [5, 10, 17, 20, 100],
+          pageSizeOptions: [5, 10, 17, 20, 100, 500, 1000],
           search: true,
           selection: false,
           showTitle: false,
@@ -456,7 +349,7 @@ const LicencesPage = (props: ILicencesProps) => {
             tooltip: 'Exporter la page courante en PDF',
             isFreeAction: true,
             onClick: () => {
-              exportPDF();
+              licencesPDF(tableRef.current.state.data);
             }
           }
         ]}
