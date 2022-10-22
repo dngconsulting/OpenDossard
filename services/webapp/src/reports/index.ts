@@ -402,7 +402,7 @@ export const listeEngagesPDF = async (filterByRace, currentRace, rows, competiti
   let rowstoDisplay: any[][] = [];
   const lrows = filterByRace(rows, currentRace);
   const filename =
-    (emargement ? 'Engagement_' : 'Emargement_') +
+    (emargement ? 'Emargement_' : 'Engagement_') +
     competition.name.replace(/\s/g, '') +
     '_cate_' +
     currentRace +
