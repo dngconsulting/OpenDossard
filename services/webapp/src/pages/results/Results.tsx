@@ -352,20 +352,23 @@ const EditResultsPage = (gprops: any) => {
             </span>
           );
         };
-        const exportCSV = async () => {
-          dg && dg.current && dg.current.exportCSV();
-        };
-        const exportCSVAll = async () => {
-          const r = transformedRows.map(row => {
-            return {
-              ...row,
-              ...{
-                bycate: rankOfCate(
-                  { id: row.id, gender: row.gender, catev: row.catev, fede: row.fede },
-                  transformedRows
-                )
-              }
-            };
+
+        const exportCSV = async races => {
+          const allRows: any[][] = [];
+          races.forEach((currentRace: string) => {
+            const filteredRowsByRace = transformRows(filterByRace(rows, currentRace));
+            const r = filteredRowsByRace.map(row => {
+              return {
+                ...row,
+                ...{
+                  bycate: rankOfCate(
+                    { id: row.id, gender: row.gender, catev: row.catev, fede: row.fede },
+                    filteredRowsByRace
+                  )
+                }
+              };
+            });
+            allRows.push(...r);
           });
           await exportCsv(
             [
@@ -384,7 +387,7 @@ const EditResultsPage = (gprops: any) => {
               { header: 'Fede', field: 'fede' },
               { header: 'Sexe', field: 'gender' }
             ],
-            _.orderBy(r, ['raceCode'], ['asc']),
+            _.orderBy(allRows, ['raceCode'], ['asc']),
             `${competition.name}-${competition.eventDate.toISOString()}.csv`
           );
         };
@@ -626,7 +629,7 @@ const EditResultsPage = (gprops: any) => {
                   <DropdownMenuItem
                     title="Exporter les classements en CSV"
                     onClick={() => {
-                      exportCSV();
+                      exportCSV([currentRace]);
                       setDownloadMenuAnchorEl(null);
                     }}
                   >
@@ -636,7 +639,7 @@ const EditResultsPage = (gprops: any) => {
                   <DropdownMenuItem
                     title="Classements CSV de TOUTES les courses"
                     onClick={() => {
-                      exportCSVAll();
+                      exportCSV(competition.races);
                       setDownloadMenuAnchorEl(null);
                     }}
                   >
