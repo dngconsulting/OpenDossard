@@ -358,7 +358,7 @@ const EngagementPage = (props: any) => {
                       setDownloadMenuAnchorEl(null);
                     }}
                   >
-                    <PictureAsPdf style={{ verticalAlign: 'middle' }} /> Engagements PDF
+                    <PictureAsPdf style={{ verticalAlign: 'middle', marginRight:5 }} /> Engagements PDF
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     title={"Télécharger les feuilles d'émargement"}
@@ -367,7 +367,7 @@ const EngagementPage = (props: any) => {
                       setDownloadMenuAnchorEl(null);
                     }}
                   >
-                    <PictureAsPdf style={{ verticalAlign: 'middle' }} /> Feuilles d'émargement PDF
+                    <PictureAsPdf style={{ verticalAlign: 'middle',marginRight:5 }} /> Feuilles d'émargement PDF
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     title={'Télécharger les engagement en CSV'}
@@ -376,7 +376,7 @@ const EngagementPage = (props: any) => {
                       setDownloadMenuAnchorEl(null);
                     }}
                   >
-                    <CloudDownload style={{ verticalAlign: 'middle' }} /> Engagements CSV
+                    <CloudDownload style={{ verticalAlign: 'middle',marginRight:5 }} /> Engagements CSV
                   </DropdownMenuItem>
                 </DropdownMenu>
               </div>

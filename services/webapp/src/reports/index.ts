@@ -16,7 +16,7 @@ export const resultsPDF = (
 ) => {
   const filename =
     'Clt_' + competition.name.toString().replace(/\s/g, '') + '_cate_' + races.toString().replace(/\s/g, '') + '.pdf';
-  const doc = new jsPDF('p', 'mm', 'a4');
+  const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
   races.forEach((currentRace: string, pageIndex: number) => {
     const rowstoDisplay: any[][] = [];
     const filteredRowsByRace = transformRows(filterByRace(rows, currentRace));
@@ -165,7 +165,7 @@ export const resultsPDF = (
 
 export const podiumsPDF = async (rows, competition, transformRows, rankOfCate) => {
   const filename = 'Podiums_' + competition.name.replace(/\s/g, '') + '.pdf';
-  let doc = new jsPDF('p', 'mm', 'a4');
+  let doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
   competition.races
     .join(',')
     .replace(/\//g, ',')
@@ -315,7 +315,7 @@ export const licencesPDF = async (data: LicenceEntity[]) => {
       r.saison
     ]);
   });
-  const doc = new jsPDF('p', 'mm', 'a4');
+  const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
   // @ts-ignore
   const totalPagesExp = '{total_pages_count_string}';
   // @ts-ignore
@@ -427,7 +427,7 @@ export const listeEngagesPDF = async (filterByRace, currentRace, rows, competiti
       r.club,
       r.gender,
       _.padStart(r.dept.toString(), 2, '0'),
-      ...[!emargement ? r.birthYear : []],
+      r.birthYear,
       r.catea,
       r.catev,
       r.fede
@@ -438,41 +438,33 @@ export const listeEngagesPDF = async (filterByRace, currentRace, rows, competiti
       rowstoDisplay.push(Array(5).fill(''));
     }
   }
-  let doc = new jsPDF('p', 'mm', 'a4');
+  // Emargement ? imprimer en paysage
+  let doc = new jsPDF({ orientation: emargement ? 'landscape' : 'p', unit: 'mm', format: 'a4', compress: true });
   // @ts-ignore
   var totalPagesExp = '{total_pages_count_string}';
   // @ts-ignore
   doc.autoTable({
     head: [
-      [
-        'Doss',
-        'Coureur',
-        'Club',
-        'H/F',
-        'Dept',
-        ...[!emargement ? 'Année' : []],
-        'Cat.A',
-        'Cat.V',
-        'Fédé.',
-        ...[emargement ? 'Signature' : []]
-      ]
+      ['Doss', 'Coureur', 'Club', 'H/F', 'Dept', 'Année', 'Cat.A', 'Cat.V', 'Fédé.', ...[emargement ? 'Signature' : []]]
     ],
     bodyStyles: {
       minCellHeight: emargement ? 10 : 3,
       cellPadding: 0.5
     },
+    rowPageBreak: 'avoid',
     columnStyles: {
       0: {
         cellWidth: 10,
         fillColor: [253, 238, 115],
         halign: 'center',
-        fontStyle: 'bold'
+        fontStyle: 'bold',
+        fontSize:13,
       },
       1: { cellWidth: emargement ? 30 : 55 },
       2: { cellWidth: 40 },
       3: { cellWidth: 10 },
       4: { cellWidth: 10 },
-      5: { cellWidth: emargement ? 0 : 12 },
+      5: { cellWidth: 12 },
       6: { cellWidth: 10 },
       7: { cellWidth: 20 },
       8: {

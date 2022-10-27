@@ -361,7 +361,7 @@ const EditResultsPage = (gprops: any) => {
               return {
                 ...row,
                 ...{
-                  bycate: rankOfCate(
+                  bycate: isNaN(row.classement) ? row.classement: rankOfCate(
                     { id: row.id, gender: row.gender, catev: row.catev, fede: row.fede },
                     filteredRowsByRace
                   )
