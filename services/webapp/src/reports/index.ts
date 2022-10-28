@@ -418,6 +418,7 @@ export const listeEngagesPDF = async (filterByRace, currentRace, rows, competiti
         '',
         _.uniqBy(lrows, 'catea').length,
         _.uniqBy(lrows, 'catev').length,
+        '',
         _.uniqBy(lrows, 'fede').length
       ]);
     }
@@ -430,12 +431,13 @@ export const listeEngagesPDF = async (filterByRace, currentRace, rows, competiti
       r.birthYear,
       r.catea,
       r.catev,
+        ...[emargement ? r.licenceNumber:[]],
       r.fede
     ]);
   });
   if (emargement) {
     for (let i = 0; i < 10; i++) {
-      rowstoDisplay.push(Array(5).fill(''));
+      rowstoDisplay.push(Array(6).fill(''));
     }
   }
   // Emargement ? imprimer en paysage
@@ -445,32 +447,40 @@ export const listeEngagesPDF = async (filterByRace, currentRace, rows, competiti
   // @ts-ignore
   doc.autoTable({
     head: [
-      ['Doss', 'Coureur', 'Club', 'H/F', 'Dept', 'Année', 'Cat.A', 'Cat.V', 'Fédé.', ...[emargement ? 'Signature' : []]]
+      ['Doss', 'Coureur', 'Club', 'H/F', 'Dept', 'Année', 'Cat.A', 'Cat.V', ...[emargement ? 'Licence N°' : []],'Fédé.', ...[emargement ? 'Signature' : []]]
     ],
     bodyStyles: {
       minCellHeight: emargement ? 10 : 3,
       cellPadding: 0.5
     },
     rowPageBreak: 'avoid',
+    headStyles: {
+      fontSize: 8,
+      fontStyle: 'bold',
+      halign: 'left',
+    },
     columnStyles: {
       0: {
-        cellWidth: 10,
+        cellWidth: 15,
         fillColor: [253, 238, 115],
         halign: 'center',
         fontStyle: 'bold',
         fontSize:13,
       },
-      1: { cellWidth: emargement ? 30 : 55 },
+      1: { cellWidth: 55 },
       2: { cellWidth: 40 },
       3: { cellWidth: 10 },
       4: { cellWidth: 10 },
       5: { cellWidth: 12 },
-      6: { cellWidth: 10 },
-      7: { cellWidth: 20 },
-      8: {
-        cellWidth: emargement ? 20 : 12
+      6: { cellWidth: 13 },
+      7: { cellWidth: 12 },
+      [emargement ? 8 : 9]: {
+        cellWidth: 20
       },
       [emargement ? 9 : undefined]: {
+        cellWidth: 20
+      },
+      [emargement ? 10 : undefined]: {
         lineWidth: 0.2,
         lineColor: [73, 138, 159]
       }
@@ -485,7 +495,7 @@ export const listeEngagesPDF = async (filterByRace, currentRace, rows, competiti
       // Header
       doc.setFontSize(14);
       doc.setTextColor(40);
-      //doc.setFontStyle('normal');
+
       if (competition.fede === 'FSGT') {
         const img = new Image();
         img.src = process.env.PUBLIC_URL + '/images/logos/fsgt.png';
@@ -522,7 +532,7 @@ export const listeEngagesPDF = async (filterByRace, currentRace, rows, competiti
     margin: { top: 14, left: 10 },
     styles: {
       valign: 'middle',
-      fontSize: 7,
+      fontSize: 10,
       minCellHeight: 5,
       maxCellHeight: 5,
       margin: 0
