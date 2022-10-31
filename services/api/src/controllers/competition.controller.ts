@@ -9,28 +9,21 @@ import {
   Param,
   Post,
   UseGuards
-} from "@nestjs/common";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
-import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
-import { EntityManager, Repository } from "typeorm";
-import {
-  CompetitionEntity,
-  CompetitionType
-} from "../entity/competition.entity";
-import { RaceEntity } from "../entity/race.entity";
-import { AuthGuard } from "@nestjs/passport";
-import {
-  CompetitionCreate,
-  CompetitionFilter,
-  CompetitionReorganize
-} from "../dto/model.dto";
-import { TooMuchResults } from "../exception/TooMuchResults";
-import { ROLES, RolesGuard } from "../guards/roles.guard";
-import { Roles } from "../decorators/roles.decorator";
-import { ClubEntity } from "src/entity/club.entity";
-import { plainToClass } from "class-transformer";
-import * as _ from "lodash";
-import { CompetitionService } from "../services/competition.service";
+} from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import { EntityManager, Repository } from 'typeorm';
+import { CompetitionEntity, CompetitionType } from '../entity/competition.entity';
+import { RaceEntity } from '../entity/race.entity';
+import { AuthGuard } from '@nestjs/passport';
+import { CompetitionCreate, CompetitionFilter, CompetitionReorganize } from '../dto/model.dto';
+import { TooMuchResults } from '../exception/TooMuchResults';
+import { ROLES, RolesGuard } from '../guards/roles.guard';
+import { Roles } from '../decorators/roles.decorator';
+import { ClubEntity } from 'src/entity/club.entity';
+import { plainToClass } from 'class-transformer';
+import * as _ from 'lodash';
+import { CompetitionService } from '../services/competition.service';
 
 const MAX_COMPETITION_TO_DISPLAY = 5000;
 /**
@@ -286,6 +279,7 @@ export class CompetitionController {
     competitionUpserted.longitude = dto.longitude;
     competitionUpserted.gpsCoordinates = dto.gpsCoordinates;
     competitionUpserted.isOpenedToNL = dto.isOpenedToNL;
+    competitionUpserted.website = updatedCompetitionEntity.siteweb;
     competitionUpserted.isOpenedToOtherFede = dto.isOpenedToOtherFede;
 
     return competitionUpserted;

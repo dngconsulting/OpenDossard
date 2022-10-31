@@ -26,7 +26,8 @@ import {
   CompetitionFilter,
   RaceCreate,
   RaceNbRider,
-  RaceRow
+  RaceRow,
+  UpdateToursParams
 } from "../dto/model.dto";
 import { ROLES, RolesGuard } from "../guards/roles.guard";
 import { Roles } from "../decorators/roles.decorator";
@@ -185,6 +186,7 @@ export class RacesCtrl {
                               r.race_code as "raceCode",
                               r.catev,
                               r.chrono,
+                              r.tours,
                               r.rider_dossard as "riderNumber",
                               r.ranking_scratch as "rankingScratch",
                               r.number_min as "numberMin",
@@ -453,6 +455,19 @@ export class RacesCtrl {
       id: raceId
     });
     r.chrono = chrono;
+    await this.entityManager.save(r);
+  }
+
+  @Post("/tours")
+  @ApiOperation({
+    operationId: "updateTours",
+    summary: "Met à jour le nombre de tours d'un coureur"
+  })
+  public async updateTours(@Body() body: UpdateToursParams): Promise<void> {
+    const r = await this.entityManager.findOne<RaceEntity>(RaceEntity, {
+      id: body.raceId
+    });
+    r.tours = body.tours ? body.tours : null;
     await this.entityManager.save(r);
   }
 

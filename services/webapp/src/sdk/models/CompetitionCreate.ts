@@ -178,6 +178,12 @@ export interface CompetitionCreate {
     isOpenedToNL?: boolean;
     /**
      * 
+     * @type {boolean}
+     * @memberof CompetitionCreate
+     */
+    avecChrono?: boolean;
+    /**
+     * 
      * @type {string}
      * @memberof CompetitionCreate
      */
@@ -248,12 +254,6 @@ export interface CompetitionCreate {
      * @memberof CompetitionCreate
      */
     dept?: string;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof CompetitionCreate
-     */
-    avecChrono?: boolean;
 }
 
 export function CompetitionCreateFromJSON(json: any): CompetitionCreate {
@@ -289,6 +289,7 @@ export function CompetitionCreateFromJSONTyped(json: any, ignoreDiscriminator: b
         'startDate': !exists(json, 'startDate') ? undefined : json['startDate'],
         'isOpenedToOtherFede': !exists(json, 'isOpenedToOtherFede') ? undefined : json['isOpenedToOtherFede'],
         'isOpenedToNL': !exists(json, 'isOpenedToNL') ? undefined : json['isOpenedToNL'],
+        'avecChrono': !exists(json, 'avecChrono') ? undefined : json['avecChrono'],
         'observations': !exists(json, 'observations') ? undefined : json['observations'],
         'localisation': !exists(json, 'localisation') ? undefined : json['localisation'],
         'gpsCoordinates': !exists(json, 'gpsCoordinates') ? undefined : json['gpsCoordinates'],
@@ -301,7 +302,6 @@ export function CompetitionCreateFromJSONTyped(json: any, ignoreDiscriminator: b
         'rankingUrls': !exists(json, 'rankingUrls') ? undefined : ((json['rankingUrls'] as Array<any>).map(LinkInfoFromJSON)),
         'isValidResults': !exists(json, 'isValidResults') ? undefined : json['isValidResults'],
         'dept': !exists(json, 'dept') ? undefined : json['dept'],
-        'avecChrono': !exists(json, 'avecChrono') ? undefined : json['avecChrono'],
     };
 }
 
@@ -337,6 +337,7 @@ export function CompetitionCreateToJSON(value?: CompetitionCreate | null): any {
         'startDate': value.startDate,
         'isOpenedToOtherFede': value.isOpenedToOtherFede,
         'isOpenedToNL': value.isOpenedToNL,
+        'avecChrono': value.avecChrono,
         'observations': value.observations,
         'localisation': value.localisation,
         'gpsCoordinates': value.gpsCoordinates,
@@ -349,7 +350,6 @@ export function CompetitionCreateToJSON(value?: CompetitionCreate | null): any {
         'rankingUrls': value.rankingUrls === undefined ? undefined : ((value.rankingUrls as Array<any>).map(LinkInfoToJSON)),
         'isValidResults': value.isValidResults,
         'dept': value.dept,
-        'avecChrono': value.avecChrono,
     };
 }
 

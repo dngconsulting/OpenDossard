@@ -163,6 +163,12 @@ export interface RaceRow {
      * @memberof RaceRow
      */
     chrono?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof RaceRow
+     */
+    tours?: number;
 }
 
 export function RaceRowFromJSON(json: any): RaceRow {
@@ -199,6 +205,7 @@ export function RaceRowFromJSONTyped(json: any, ignoreDiscriminator: boolean): R
         'competitionRaces': !exists(json, 'competitionRaces') ? undefined : json['competitionRaces'],
         'sprintchallenge': !exists(json, 'sprintchallenge') ? undefined : json['sprintchallenge'],
         'chrono': !exists(json, 'chrono') ? undefined : json['chrono'],
+        'tours': !exists(json, 'tours') ? undefined : json['tours'],
     };
 }
 
@@ -235,6 +242,7 @@ export function RaceRowToJSON(value?: RaceRow | null): any {
         'competitionRaces': value.competitionRaces,
         'sprintchallenge': value.sprintchallenge,
         'chrono': value.chrono,
+        'tours': value.tours,
     };
 }
 

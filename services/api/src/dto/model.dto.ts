@@ -1,15 +1,10 @@
-import { LicenceEntity } from "../entity/licence.entity";
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { ClubEntity } from "src/entity/club.entity";
-import { FederationEntity } from "src/entity/federation.entity";
-import {
-  Category,
-  CompetitionEntity,
-  CompetitionType
-} from "src/entity/competition.entity";
-import { PricingInfo } from "src/entity/pricing-info";
-import { CompetitionInfo } from "src/entity/competition-info";
-import { LinkInfo } from "../entity/link-info";
+import { LicenceEntity } from '../entity/licence.entity';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { FederationEntity } from 'src/entity/federation.entity';
+import { Category, CompetitionType } from 'src/entity/competition.entity';
+import { PricingInfo } from 'src/entity/pricing-info';
+import { CompetitionInfo } from 'src/entity/competition-info';
+import { LinkInfo } from '../entity/link-info';
 
 export class ClubRow {
   public id?: number;
@@ -49,6 +44,7 @@ export class RaceRow {
   public competitionDate?: Date;
   public sprintchallenge?: boolean;
   public chrono?: string;
+  public tours?: number;
 }
 
 export class RaceCreate {
@@ -103,6 +99,11 @@ export class CompetitionFilter {
   displaySince?: number;
   startDate?: string;
   endDate?: string;
+}
+
+export class UpdateToursParams {
+  raceId: number;
+  tours?:number;
 }
 
 export class Departement {

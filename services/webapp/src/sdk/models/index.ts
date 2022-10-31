@@ -16,4 +16,5 @@ export * from './RaceCreate';
 export * from './RaceNbRider';
 export * from './RaceRow';
 export * from './Search';
+export * from './UpdateToursParams';
 export * from './UserEntity';

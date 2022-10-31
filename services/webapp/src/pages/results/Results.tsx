@@ -2,7 +2,7 @@ import React, { Fragment, useContext, useRef, useState } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { InputText } from 'primereact/inputtext';
 import { CompetitionLayout } from '../competition/CompetitionLayout';
-import { RaceRow } from '../../sdk/models';
+import { CompetitionEntityCompetitionTypeEnum, RaceRow } from '../../sdk/models';
 import _ from 'lodash';
 import SearchIcon from '@material-ui/icons/Search';
 import { NotificationContext } from '../../components/CadSnackbar';
@@ -28,10 +28,19 @@ import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import { exportCsv } from '../../util/csv';
 import { podiumsPDF, resultsPDF } from '../../reports';
+import AwesomeDebouncePromise from 'awesome-debounce-promise';
 
 const previousRowEmpty = (index: number, transformedRows: any) => {
   return index > 0 && transformedRows[index - 1].riderNumber === undefined;
 };
+
+const currentToursValue = allprops => {
+  return parseInt(allprops.value[allprops.rowIndex][allprops.field]);
+};
+const previousToursValues = allprops => {
+  return allprops.rowIndex > 0 && parseInt(allprops.value[allprops.rowIndex - 1][allprops.field]);
+};
+
 type ListOfDNF = 'DSQ' | 'ABD' | 'NC' | 'NP' | 'CHT' | null;
 const EditResultsPage = (gprops: any) => {
   const [selectedRows, setSelectedRows] = useState<RaceRow[]>([]);
@@ -215,6 +224,63 @@ const EditResultsPage = (gprops: any) => {
     return true;
   };
 
+  const debUpdateTours = async (value, allprops, fetchRows) =>
+    await updateTours(isNaN(parseInt(value)) ? undefined : parseInt(value), allprops, fetchRows);
+  const debouncedUpdateTours = AwesomeDebouncePromise(debUpdateTours, 500);
+
+  const toursEditor = (allprops: any, rows: RaceRow[], transformedRows: any, currentRace: string, fetchRows: any) => {
+    return (
+      <InputText
+        defaultValue={
+          !isNaN(currentToursValue(allprops))
+            ? currentToursValue(allprops)
+            : !isNaN(previousToursValues(allprops))
+            ? previousToursValues(allprops)
+            : null
+        }
+        type="number"
+        step="1"
+        style={{ height: '1.5em', textAlign: 'center' }}
+        onKeyDown={async (e: any) => {
+          if (e.keyCode == 13) {
+            debUpdateTours(e.target.value, allprops, fetchRows);
+          }
+        }}
+        onBlur={async (e: any) => {
+          if (e.target.value.trim() === '' && isNaN(currentToursValue(allprops))) return;
+          debouncedUpdateTours(e.target.value, allprops, fetchRows);
+        }}
+      />
+    );
+  };
+
+  const updateTours = async (tours: number | undefined, allprops: any, fetchRows: any) => {
+    try {
+      setLoading(true);
+      await apiRaces.updateTours({
+        updateToursParams: {
+          raceId: allprops.rowData.id,
+          tours: tours
+        }
+      });
+      const lrows = await fetchRows();
+      setNotification({
+        message: `Le nombre de tours du coureur vient d'etre mis à jour  `,
+        type: 'info',
+        open: true
+      });
+    } catch (response) {
+      const jsonError = await response.json();
+      setNotification({
+        message: `La mise à jour a échouée ${jsonError.message ? jsonError.message : ''}`,
+        type: 'error',
+        open: true
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getMedalColorForRank = (ranking: number | string, rankingScratch: number): string => {
     return ranking <= 3 || rankingScratch <= 3
       ? ['#efd807', '#D7D7D7', '#6A3805'][Math.min(rankingScratch, ranking as number) - 1]
@@ -361,19 +427,23 @@ const EditResultsPage = (gprops: any) => {
               return {
                 ...row,
                 ...{
-                  bycate: isNaN(row.classement) ? row.classement: rankOfCate(
-                    { id: row.id, gender: row.gender, catev: row.catev, fede: row.fede },
-                    filteredRowsByRace
-                  )
+                  bycate: isNaN(row.classement)
+                    ? row.classement
+                    : rankOfCate(
+                        { id: row.id, gender: row.gender, catev: row.catev, fede: row.fede },
+                        filteredRowsByRace
+                      )
                 }
               };
             });
             allRows.push(...r);
           });
+          const avecTours = allRows.filter((r: any) => r.tours).length > 0;
           await exportCsv(
             [
               { header: 'Course', field: 'raceCode' },
               ...(competition.avecChrono ? [{ header: 'Chrono', field: 'chrono' }] : []),
+              ...(avecTours ? [{ header: 'Tours', field: 'tours' }] : []),
               { header: 'Cl.Scratch', field: 'classement' },
               { header: 'Cl. Caté', field: 'bycate' },
               { header: 'Dossard', field: 'riderNumber' },
@@ -794,6 +864,20 @@ const EditResultsPage = (gprops: any) => {
                   field="chrono"
                   style={{ width: '9%', textAlign: 'center' }}
                   header="Chrono"
+                />
+              )}
+              {competition?.competitionType === CompetitionEntityCompetitionTypeEnum.CX && (
+                <Column
+                  body={(row: RaceRow) => {
+                    return row.tours;
+                  }}
+                  columnKey={'13'}
+                  editor={allprops => {
+                    return toursEditor(allprops, rows, transformedRows, currentRace, fetchRows);
+                  }}
+                  field="tours"
+                  style={{ width: '5%', textAlign: 'center' }}
+                  header="Tours"
                 />
               )}
               <Column

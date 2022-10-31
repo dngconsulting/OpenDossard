@@ -30,6 +30,9 @@ import {
     RaceRow,
     RaceRowFromJSON,
     RaceRowToJSON,
+    UpdateToursParams,
+    UpdateToursParamsFromJSON,
+    UpdateToursParamsToJSON,
 } from '../models';
 
 export interface DeleteRaceRequest {
@@ -80,6 +83,10 @@ export interface UpdateChronoRequest {
 
 export interface UpdateRankingRequest {
     raceRow: RaceRow;
+}
+
+export interface UpdateToursRequest {
+    updateToursParams: UpdateToursParams;
 }
 
 /**
@@ -593,6 +600,46 @@ export class RaceAPIApi extends runtime.BaseAPI {
      */
     async updateRanking(requestParameters: UpdateRankingRequest): Promise<void> {
         await this.updateRankingRaw(requestParameters);
+    }
+
+    /**
+     * Met à jour le nombre de tours d\'un coureur
+     */
+    async updateToursRaw(requestParameters: UpdateToursRequest): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.updateToursParams === null || requestParameters.updateToursParams === undefined) {
+            throw new runtime.RequiredError('updateToursParams','Required parameter requestParameters.updateToursParams was null or undefined when calling updateTours.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/races/tours`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UpdateToursParamsToJSON(requestParameters.updateToursParams),
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Met à jour le nombre de tours d\'un coureur
+     */
+    async updateTours(requestParameters: UpdateToursRequest): Promise<void> {
+        await this.updateToursRaw(requestParameters);
     }
 
 }

@@ -17,6 +17,7 @@ export const resultsPDF = (
   const filename =
     'Clt_' + competition.name.toString().replace(/\s/g, '') + '_cate_' + races.toString().replace(/\s/g, '') + '.pdf';
   const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
+  const avecTours = rows.filter(row => row.tours).length > 0;
   races.forEach((currentRace: string, pageIndex: number) => {
     const rowstoDisplay: any[][] = [];
     const filteredRowsByRace = transformRows(filterByRace(rows, currentRace));
@@ -33,7 +34,8 @@ export const resultsPDF = (
           r.catev,
           r.catea,
           r.fede,
-          competition.avecChrono ? r.chrono : ''
+          ...[competition.avecChrono ? r.chrono : []],
+          ...[avecTours ? r.tours && r.tours + 'T' : []]
         ]);
     });
     // @ts-ignore
@@ -49,7 +51,8 @@ export const resultsPDF = (
           'Caté.V',
           'Caté.A',
           'Fédé',
-          competition.avecChrono ? 'Temps' : ''
+          ...[competition.avecChrono ? 'Temps' : []],
+          ...[avecTours ? 'Tours' : []]
         ]
       ],
       headStyles: {
@@ -64,16 +67,17 @@ export const resultsPDF = (
         cellPadding: 0.5
       },
       columnStyles: {
-        0: { cellWidth: 10 },
-        1: { cellWidth: 10 },
-        2: { cellWidth: 10 },
-        3: { cellWidth: 40 },
-        4: { cellWidth: 45 },
-        5: { cellWidth: 12 },
-        6: { cellWidth: 20 },
-        7: { cellWidth: 12 },
-        8: { cellWidth: 20 },
-        9: { cellWidth: competition.avecChrono ? 20 : 0 }
+        0: { cellWidth: 'auto' },
+        1: { cellWidth: 'auto' },
+        2: { cellWidth: 'auto' },
+        3: { cellWidth: 'auto' },
+        4: { cellWidth: 'auto' },
+        5: { cellWidth: 'auto' },
+        6: { cellWidth: 'auto' },
+        7: { cellWidth: 'auto' },
+        8: { cellWidth: 'auto' },
+        9: { cellWidth: competition.avecChrono ? 'auto' : 0 },
+        10: { halign: 'left', cellWidth: avecTours ? 'auto' : 0 }
       },
       body: rowstoDisplay,
       didDrawPage: (data: any) => {
@@ -135,7 +139,7 @@ export const resultsPDF = (
         '\nSPEAKER : ' +
         (competition.speaker ? competition.speaker : 'NC') +
         (competition.competitionType === 'CX'
-          ? 'ABOYEUR : ' + (competition.aboyeur ? competition.aboyeur : 'NC')
+          ? '\nABOYEUR : ' + (competition.aboyeur ? competition.aboyeur : 'NC')
           : '') +
         '\nREMARQUES : ' +
         (competition.feedback ? competition.feedback : 'NC') +
@@ -431,7 +435,7 @@ export const listeEngagesPDF = async (filterByRace, currentRace, rows, competiti
       r.birthYear,
       r.catea,
       r.catev,
-        ...[emargement ? r.licenceNumber:[]],
+      ...[emargement ? r.licenceNumber : []],
       r.fede
     ]);
   });
@@ -447,7 +451,19 @@ export const listeEngagesPDF = async (filterByRace, currentRace, rows, competiti
   // @ts-ignore
   doc.autoTable({
     head: [
-      ['Doss', 'Coureur', 'Club', 'H/F', 'Dept', 'Année', 'Cat.A', 'Cat.V', ...[emargement ? 'Licence N°' : []],'Fédé.', ...[emargement ? 'Signature' : []]]
+      [
+        'Doss',
+        'Coureur',
+        'Club',
+        'H/F',
+        'Dept',
+        'Année',
+        'Cat.A',
+        'Cat.V',
+        ...[emargement ? 'Licence N°' : []],
+        'Fédé.',
+        ...[emargement ? 'Signature' : []]
+      ]
     ],
     bodyStyles: {
       minCellHeight: emargement ? 10 : 3,
@@ -457,7 +473,7 @@ export const listeEngagesPDF = async (filterByRace, currentRace, rows, competiti
     headStyles: {
       fontSize: 8,
       fontStyle: 'bold',
-      halign: 'left',
+      halign: 'left'
     },
     columnStyles: {
       0: {
@@ -465,7 +481,7 @@ export const listeEngagesPDF = async (filterByRace, currentRace, rows, competiti
         fillColor: [253, 238, 115],
         halign: 'center',
         fontStyle: 'bold',
-        fontSize:13,
+        fontSize: 13
       },
       1: { cellWidth: 55 },
       2: { cellWidth: 40 },

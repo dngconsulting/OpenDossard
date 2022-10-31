@@ -1,13 +1,6 @@
-import {
-  Column,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn
-} from "typeorm";
-import { CompetitionEntity } from "./competition.entity";
-import { LicenceEntity } from "./licence.entity";
+import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { CompetitionEntity } from './competition.entity';
+import { LicenceEntity } from './licence.entity';
 
 @Entity({ name: "race" })
 export class RaceEntity {
@@ -58,4 +51,7 @@ export class RaceEntity {
 
   @Column({ nullable: true })
   public chrono: string;
+
+  @Column({ nullable: true })
+  public tours: number;
 }

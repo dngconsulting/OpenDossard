@@ -18,7 +18,6 @@ import { FedeEnum } from 'sdk/models/FedeEnum';
 import { IErrorInfo } from '../competition/CompetitionForm';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import Grid from '@material-ui/core/Grid';
-import _ from 'lodash';
 
 const isSafari = () => {
   return navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1;
