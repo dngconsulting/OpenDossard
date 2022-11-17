@@ -337,17 +337,10 @@ const EditResultsPage = (gprops: any) => {
                 .filter((v: RaceRow) => v.gender === 'F')
                 .findIndex((item: RaceRow) => item.id === rowdata.id) + 1;
           } else {
-            if (rowdata.fede !== competition.fede) {
-              rankToReturn =
-                transformedRows
-                  .filter((v: RaceRow) => v.fede !== competition.fede && v.catev === rowdata.catev)
-                  .findIndex((item: RaceRow) => item.id === rowdata.id) + 1;
-            } else {
-              rankToReturn =
-                transformedRows
-                  .filter((v: RaceRow) => v.fede === competition.fede && v.catev === rowdata.catev)
-                  .findIndex((item: RaceRow) => item.id === rowdata.id) + 1;
-            }
+            rankToReturn =
+              transformedRows
+                .filter((v: RaceRow) => v.catev === rowdata.catev)
+                .findIndex((item: RaceRow) => item.id === rowdata.id) + 1;
           }
 
           return rankToReturn === 0 ? '' : rankToReturn;
