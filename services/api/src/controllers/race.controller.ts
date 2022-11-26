@@ -17,7 +17,9 @@ import {
   Param,
   Post,
   Put,
-  UseGuards
+  UploadedFile,
+  UseGuards,
+  UseInterceptors
 } from "@nestjs/common";
 import { InjectEntityManager } from "@nestjs/typeorm";
 import * as _ from "lodash";
@@ -32,6 +34,10 @@ import {
 import { ROLES, RolesGuard } from "../guards/roles.guard";
 import { Roles } from "../decorators/roles.decorator";
 import { CompetitionService } from "../services/competition.service";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { Readable } from "stream";
+
+const csv = require("csv-parser");
 
 /***
  * Races Controller manages races inside Competitions
@@ -58,6 +64,76 @@ export class RacesCtrl {
     return null;
   }
 
+  @UseInterceptors(FileInterceptor("file"))
+  @Post("results/upload/:id")
+  @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
+  public uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Param("id") id
+  ): Promise<string> {
+    const results = Array<{
+      Dossard: string;
+      Chrono: string;
+      Tours: number;
+      Classement: number;
+    }>();
+    let message = "<br>------------ Résultats du traitement ----------------";
+    const promises = [];
+    return new Promise(resolve => {
+      Readable.from(file.buffer)
+        .pipe(csv({ separator: ";" }))
+        .on("data", data => {
+          results.push(data);
+        })
+        .on("end", () => {
+          results.forEach(async (result, index) => {
+            // Récupération du dossard à partir du competitionId
+            promises.push(
+              this.entityManager
+                .findOne(RaceEntity, {
+                  where: {
+                    riderNumber: result.Dossard,
+                    competition: id
+                  }
+                })
+                .then(raceRow => {
+                  message +=
+                    "<br>Sauvegarde Dossard " +
+                    (result?.Dossard ?? "NC") +
+                    " chrono=" +
+                    (result?.Chrono ?? "NC") +
+                    " class.=" +
+                    (result?.Classement ?? "NC") +
+                    " tours=" +
+                    (result?.Tours ?? "NC");
+                  if (raceRow) {
+                    raceRow.chrono = result.Chrono;
+                    raceRow.tours = result.Tours;
+                    raceRow.rankingScratch = result.Classement;
+                    promises.push(
+                      this.entityManager.save(raceRow).then(() => {
+                        message += " OK";
+                      })
+                    );
+                  } else {
+                    message += "<span style='color:red'> Non trouvé !</span>";
+                  }
+                })
+            );
+          });
+          Promise.all(promises).then(() => {
+            message +=
+              "<br>Enregistrement terminée, " +
+              results.length +
+              " lignes traitées";
+            message +=
+              "<br>--------------------- Fin du traitement ----------------------";
+            resolve(message);
+          });
+        });
+    });
+  }
+
   @Post("/getRaces")
   @ApiOperation({
     operationId: "getRaces",
@@ -73,8 +149,8 @@ export class RacesCtrl {
 
     const query = `select r.id,
                               r.race_code as "raceCode",
-                              r.catev,          
-                              r.chrono,  
+                              r.catev,
+                              r.chrono,
                               r.rider_dossard as "riderNumber",
                               r.ranking_scratch as "rankingScratch",
                               r.number_min as "numberMin",
@@ -111,7 +187,7 @@ export class RacesCtrl {
     const query = `select r.id,
                               r.race_code as "raceCode",
                               r.catev,
-                              r.chrono,  
+                              r.chrono,
                               r.rider_dossard as "riderNumber",
                               r.ranking_scratch as "rankingScratch",
                               r.number_min as "numberMin",
@@ -167,7 +243,7 @@ export class RacesCtrl {
                                        l.birth_year as "birthYear",
                                        l.saison,
                                        l.catea from licence l join race r on r.licence_id=l.id
-                       where REPLACE(CONCAT(UPPER(l.name),UPPER(unaccent(l.first_name))),' ','') like $1 or REPLACE(CONCAT(UPPER(unaccent(l.first_name)),UPPER(l.name)),' ','') like $1 
+                       where REPLACE(CONCAT(UPPER(l.name),UPPER(unaccent(l.first_name))),' ','') like $1 or REPLACE(CONCAT(UPPER(unaccent(l.first_name)),UPPER(l.name)),' ','') like $1
                        order by l.name  fetch first 30 rows only`;
     return await this.entityManager.query(q, [filterParam]);
   }

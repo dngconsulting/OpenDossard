@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React from 'react';
 
-import AsyncSelect from "react-select/async";
-import { components } from "react-select";
+import AsyncSelect from 'react-select/async';
 
 /**
  *

@@ -92,9 +92,6 @@ export const CreationForm = ({
       open: true,
       type: 'error'
     });
-  const sleep = (ms: number) => {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  };
 
   const refresh = async () => {
     try {
@@ -262,7 +259,7 @@ export const CreationForm = ({
             {displayCategory()}
           </InputLabel>
           <Select
-            value={form.catev as string}
+            value={(form?.catev as string) ?? ''}
             style={{ color: catecolor, minWidth: '100px' }}
             inputProps={{
               name: 'Catégorie',
@@ -285,8 +282,8 @@ export const CreationForm = ({
             {competition &&
               competition.fede &&
               FEDERATIONS[competition.fede].catev.map((value: ICategory, index: number) => (
-                <MenuItem key={index} value={value.value}>
-                  {value.label}
+                <MenuItem key={index} value={value?.value}>
+                  {value?.label}
                 </MenuItem>
               ))}
             ))

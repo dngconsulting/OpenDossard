@@ -167,25 +167,28 @@ export const resultsPDF = (
   doc.save(filename);
 };
 
-export const podiumsPDF = async (rows, competition, transformRows, rankOfCate) => {
+export const podiumsPDF = async (rows, competition, transformRows, rankOfCate, filterByRace) => {
   const filename = 'Podiums_' + competition.name.replace(/\s/g, '') + '.pdf';
   let doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
   competition.races
     .join(',')
     .replace(/\//g, ',')
     .split(',')
-    .forEach((currCategory: string, index: number) => {
+    .forEach((race: string, index: number) => {
       const podiumsForCurrentRace: any[][] = [];
       const allRankRows = transformRows(rows);
       let sprintChallenge: RaceRow = null;
       // Put all main federation first
       allRankRows.forEach((r: RaceRow) => {
         // TODO this r.catev===1 is ugly but cate 1 can race in cate 2 races
-        if (rankOfCate(r, allRankRows) <= 3 && (r.catev === currCategory || (currCategory === '2' && r.catev === '1')))
+        if (
+          rankOfCate(r, filterByRace(filterByRace(allRankRows, race))) <= 3 &&
+          (r.catev === race || (race === '2' && r.catev === '1'))
+        )
           r.rankingScratch &&
             r.comment == null &&
             podiumsForCurrentRace.push([
-              rankOfCate(r, allRankRows),
+              rankOfCate(r, filterByRace(allRankRows, race)),
               r.rankingScratch,
               displayDossard(r.riderNumber.toString()),
               r.name,
@@ -195,7 +198,7 @@ export const podiumsPDF = async (rows, competition, transformRows, rankOfCate) =
               r.catea,
               r.fede
             ]);
-        if (r.sprintchallenge && r.catev === currCategory) sprintChallenge = r;
+        if (r.sprintchallenge && r.catev === race) sprintChallenge = r;
       });
       const otherFedes = _.remove(podiumsForCurrentRace, (item: any) => item[8] !== competition.fede);
       const agregatedPodiums = podiumsForCurrentRace.concat(_.orderBy(otherFedes, item => item[1], ['asc']));
@@ -206,7 +209,7 @@ export const podiumsPDF = async (rows, competition, transformRows, rankOfCate) =
       agregatedPodiums.length > 0 &&
         doc.text(
           'Catégorie ' +
-            currCategory +
+            race +
             (sprintChallenge
               ? '  - Challenge : ' +
                 sprintChallenge.name +

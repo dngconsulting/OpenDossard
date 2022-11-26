@@ -29,6 +29,8 @@ import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import { exportCsv } from '../../util/csv';
 import { podiumsPDF, resultsPDF } from '../../reports';
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
+import '../../theme/global.css';
+import { FileUpload } from 'primereact/fileupload';
 
 const previousRowEmpty = (index: number, transformedRows: any) => {
   return index > 0 && transformedRows[index - 1].riderNumber === undefined;
@@ -683,7 +685,7 @@ const EditResultsPage = (gprops: any) => {
                   <DropdownMenuItem
                     title="Télécharger les podiums en PDF"
                     onClick={() => {
-                      podiumsPDF(rows, competition, transformRows, rankOfCate);
+                      podiumsPDF(rows, competition, transformRows, rankOfCate, filterByRace);
                       setDownloadMenuAnchorEl(null);
                     }}
                   >
@@ -731,6 +733,29 @@ const EditResultsPage = (gprops: any) => {
                     </Tooltip>
                   </ActionButton>
                 )}
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <FileUpload
+                    mode="basic"
+                    name="file"
+                    url={'/api/races/results/upload/' + competitionId}
+                    onBeforeSend={event => {
+                      event.xhr.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem('token'));
+                    }}
+                    onUpload={async event => {
+                      setLoading(true);
+                      await fetchRows();
+                      setLoading(false);
+                      setNotification({
+                        message: event.xhr.response,
+                        open: true,
+                        type: 'info'
+                      });
+                    }}
+                    accept="text/csv"
+                    maxFileSize={100000}
+                    chooseLabel="Classement par fichier"
+                  />
+                </div>
               </div>
               <div
                 style={{
@@ -773,6 +798,7 @@ const EditResultsPage = (gprops: any) => {
             </div>
             <DataTable
               ref={dg}
+              csvSeparator={';'}
               selection={selectedRows}
               scrollHeight={height - 300 + 'px'}
               scrollable={true}
