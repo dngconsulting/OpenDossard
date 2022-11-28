@@ -436,21 +436,21 @@ const EditResultsPage = (gprops: any) => {
           const avecTours = allRows.filter((r: any) => r.tours).length > 0;
           await exportCsv(
             [
-              { header: 'Course', field: 'raceCode' },
-              ...(competition.avecChrono ? [{ header: 'Chrono', field: 'chrono' }] : []),
-              ...(avecTours ? [{ header: 'Tours', field: 'tours' }] : []),
               { header: 'Cl.Scratch', field: 'classement' },
-              { header: 'Cl. Caté', field: 'bycate' },
               { header: 'Dossard', field: 'riderNumber' },
               { header: 'Nom', field: 'name' },
               { header: 'Club', field: 'club' },
+              { header: 'Sexe', field: 'gender' },
               { header: 'Dept', field: 'dept' },
-              { header: 'Num. Licence', field: 'licenceNumber' },
               { header: 'Année Naiss.', field: 'birthYear' },
               { header: 'CateV', field: 'catev' },
               { header: 'CateA', field: 'catea' },
+              ...(competition.avecChrono ? [{ header: 'Chrono', field: 'chrono' }] : []),
+              ...(avecTours ? [{ header: 'Tours', field: 'tours' }] : []),
+              { header: 'Cl. Caté', field: 'bycate' },
+              { header: 'Num. Licence', field: 'licenceNumber' },
               { header: 'Fede', field: 'fede' },
-              { header: 'Sexe', field: 'gender' }
+              { header: 'Course', field: 'raceCode' }
             ],
             _.orderBy(allRows, ['raceCode'], ['asc']),
             `${competition.name}-${competition.eventDate.toISOString()}.csv`
@@ -739,10 +739,18 @@ const EditResultsPage = (gprops: any) => {
                     name="file"
                     url={'/api/races/results/upload/' + competitionId}
                     onBeforeSend={event => {
+                      setLoading(true);
                       event.xhr.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem('token'));
                     }}
+                    onError={async event => {
+                      setLoading(false);
+                      setNotification({
+                        message: event.xhr.response,
+                        open: true,
+                        type: 'error'
+                      });
+                    }}
                     onUpload={async event => {
-                      setLoading(true);
                       await fetchRows();
                       setLoading(false);
                       setNotification({

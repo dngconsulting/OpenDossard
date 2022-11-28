@@ -67,7 +67,7 @@ export class RacesCtrl {
   @UseInterceptors(FileInterceptor("file"))
   @Post("results/upload/:id")
   @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
-  public uploadFile(
+  public async uploadFile(
     @UploadedFile() file: Express.Multer.File,
     @Param("id") id
   ): Promise<string> {
@@ -75,53 +75,84 @@ export class RacesCtrl {
       Dossard: string;
       Chrono: string;
       Tours: number;
-      Classement: number;
+      Classement: string;
     }>();
     let message = "<br>------------ Résultats du traitement ----------------";
-    const promises = [];
-    return new Promise(resolve => {
+
+    const asyncGetRaceRows = results => {
+      return Promise.all(
+        results.map(async (result, index) => {
+          // Récupération du dossard à partir du competitionId
+          return {
+            raceRow: await this.entityManager.findOne(RaceEntity, {
+              where: {
+                riderNumber: result.Dossard,
+                competition: id
+              }
+            }),
+            result: result
+          };
+        })
+      );
+    };
+
+    const asyncSaveRows = async resultRaceRows => {
+      return Promise.all(
+        resultRaceRows.map(resultRaceRow => {
+          message +=
+            "<br>Sauvegarde Dossard " +
+            (resultRaceRow.result?.Dossard ?? "NC") +
+            " chrono=" +
+            (resultRaceRow.result?.Chrono ?? "NC") +
+            " class.=" +
+            (resultRaceRow.result?.Classement ?? "NC") +
+            " tours=" +
+            (resultRaceRow.result?.Tours ?? "NC");
+          if (resultRaceRow.raceRow) {
+            let canSave = true;
+            resultRaceRow.raceRow.chrono = resultRaceRow.result.Chrono;
+            if (Number.isNaN(parseInt(resultRaceRow.result.Tours))) {
+              canSave = false;
+            } else {
+              resultRaceRow.raceRow.tours = resultRaceRow.result.Tours;
+            }
+            if (isNaN(parseInt(resultRaceRow.result.Classement))) {
+              if (
+                ["ABD", "DSQ", "ABD", "NC", "NP", "CHT"].includes(
+                  resultRaceRow.result.Classement
+                )
+              )
+                resultRaceRow.raceRow.comment = resultRaceRow.result.Classement;
+              else canSave = false;
+            } else
+              resultRaceRow.raceRow.rankingScratch = parseInt(
+                resultRaceRow.result.Classement
+              );
+
+            if (canSave) {
+              const r = this.entityManager.save(resultRaceRow.raceRow);
+              message += " OK";
+              return r;
+            } else {
+              message += "<span style='color:red'> NOK</span>";
+            }
+          } else {
+            message += "<span style='color:red'> Non trouvé !</span>";
+          }
+        })
+      );
+    };
+
+    return new Promise((resolve, reject) => {
       Readable.from(file.buffer)
         .pipe(csv({ separator: ";" }))
         .on("data", data => {
           results.push(data);
         })
-        .on("end", () => {
-          results.forEach(async (result, index) => {
-            // Récupération du dossard à partir du competitionId
-            promises.push(
-              this.entityManager
-                .findOne(RaceEntity, {
-                  where: {
-                    riderNumber: result.Dossard,
-                    competition: id
-                  }
-                })
-                .then(raceRow => {
-                  message +=
-                    "<br>Sauvegarde Dossard " +
-                    (result?.Dossard ?? "NC") +
-                    " chrono=" +
-                    (result?.Chrono ?? "NC") +
-                    " class.=" +
-                    (result?.Classement ?? "NC") +
-                    " tours=" +
-                    (result?.Tours ?? "NC");
-                  if (raceRow) {
-                    raceRow.chrono = result.Chrono;
-                    raceRow.tours = result.Tours;
-                    raceRow.rankingScratch = result.Classement;
-                    promises.push(
-                      this.entityManager.save(raceRow).then(() => {
-                        message += " OK";
-                      })
-                    );
-                  } else {
-                    message += "<span style='color:red'> Non trouvé !</span>";
-                  }
-                })
-            );
-          });
-          Promise.all(promises).then(() => {
+        .on("end", async () => {
+          try {
+            const raceRows = await asyncGetRaceRows(results);
+            await asyncSaveRows(raceRows);
             message +=
               "<br>Enregistrement terminée, " +
               results.length +
@@ -129,7 +160,9 @@ export class RacesCtrl {
             message +=
               "<br>--------------------- Fin du traitement ----------------------";
             resolve(message);
-          });
+          } catch (err) {
+            reject(new BadRequestException(err.message));
+          }
         });
     });
   }
