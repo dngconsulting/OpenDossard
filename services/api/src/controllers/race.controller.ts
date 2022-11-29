@@ -112,7 +112,8 @@ export class RacesCtrl {
             let canSave = true;
             resultRaceRow.raceRow.chrono = resultRaceRow.result.Chrono;
             if (Number.isNaN(parseInt(resultRaceRow.result.Tours))) {
-              canSave = false;
+              resultRaceRow.raceRow.tours = undefined;
+              resultRaceRow.result.Tours = undefined;
             } else {
               resultRaceRow.raceRow.tours = resultRaceRow.result.Tours;
             }
