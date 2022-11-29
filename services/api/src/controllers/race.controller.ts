@@ -152,6 +152,21 @@ export class RacesCtrl {
         })
         .on("end", async () => {
           try {
+            // Check de la consécutivité des classements avant de faire quoique ce soit
+            results.forEach((result, index) => {
+              if (
+                !isNaN(parseInt(result.Classement)) &&
+                parseInt(result.Classement) != index + 1
+              )
+                throw new BadRequestException(
+                  "Le classement du Dossard " +
+                    result.Dossard +
+                    " n'est pas consécutif ! classement=>" +
+                    parseInt(result.Classement) +
+                    " doit être " +
+                    (index + 1)
+                );
+            });
             const raceRows = await asyncGetRaceRows(results);
             await asyncSaveRows(raceRows);
             message +=
