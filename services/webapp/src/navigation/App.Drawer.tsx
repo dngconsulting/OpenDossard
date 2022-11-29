@@ -64,17 +64,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
       title: 'Épreuves',
       icon: () => <AssignmentIcon />
     },
-    ...(props && props.authentication && props.authentication.roles && props.authentication.roles.includes('ADMIN')
-      ? [
-          {
-            key: '999',
-            path: '/competitions/engagementresultats',
-            state: { title: 'Gestion des Engagements' },
-            title: 'Saisie Rapide résultats',
-            icon: () => <AssignmentIcon color={'error'} />
-          }
-        ]
-      : []),
+
     {
       key: '5',
       path: '/palmares',

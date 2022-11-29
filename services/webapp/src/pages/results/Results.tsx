@@ -31,6 +31,8 @@ import { podiumsPDF, resultsPDF } from '../../reports';
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import '../../theme/global.css';
 import { FileUpload } from 'primereact/fileupload';
+import { ReduxState } from '../../state/ReduxState';
+import { connect } from 'react-redux';
 
 const previousRowEmpty = (index: number, transformedRows: any) => {
   return index > 0 && transformedRows[index - 1].riderNumber === undefined;
@@ -733,37 +735,39 @@ const EditResultsPage = (gprops: any) => {
                     </Tooltip>
                   </ActionButton>
                 )}
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <FileUpload
-                    mode="basic"
-                    name="file"
-                    url={'/api/races/results/upload/' + competitionId}
-                    onBeforeSend={event => {
-                      setLoading(true);
-                      event.xhr.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem('token'));
-                    }}
-                    onError={async event => {
-                      setLoading(false);
-                      setNotification({
-                        message: event.xhr.response,
-                        open: true,
-                        type: 'error'
-                      });
-                    }}
-                    onUpload={async event => {
-                      await fetchRows();
-                      setLoading(false);
-                      setNotification({
-                        message: event.xhr.response,
-                        open: true,
-                        type: 'info'
-                      });
-                    }}
-                    accept="text/csv"
-                    maxFileSize={100000}
-                    chooseLabel="Classement par fichier"
-                  />
-                </div>
+                {gprops.authentication.roles.includes('ADMIN') && (
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <FileUpload
+                      mode="basic"
+                      name="file"
+                      url={'/api/races/results/upload/' + competitionId}
+                      onBeforeSend={event => {
+                        setLoading(true);
+                        event.xhr.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem('token'));
+                      }}
+                      onError={async event => {
+                        setLoading(false);
+                        setNotification({
+                          message: event.xhr.response,
+                          open: true,
+                          type: 'error'
+                        });
+                      }}
+                      onUpload={async event => {
+                        await fetchRows();
+                        setLoading(false);
+                        setNotification({
+                          message: event.xhr.response,
+                          open: true,
+                          type: 'info'
+                        });
+                      }}
+                      accept="text/csv"
+                      maxFileSize={100000}
+                      chooseLabel="Classement par fichier"
+                    />
+                  </div>
+                )}
               </div>
               <div
                 style={{
@@ -978,4 +982,12 @@ const EditResultsPage = (gprops: any) => {
     </CompetitionLayout>
   );
 };
-export default withStyles(null, { withTheme: true })(withRouter(EditResultsPage) as any) as any;
+
+const mapStateToProps = (state: ReduxState) => ({
+  authentication: state.authentication
+});
+
+export default connect(
+  mapStateToProps,
+  {}
+)(withStyles(null, { withTheme: true })(withRouter(EditResultsPage) as any) as any);
