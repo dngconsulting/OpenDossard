@@ -735,8 +735,8 @@ const EditResultsPage = (gprops: any) => {
                     </Tooltip>
                   </ActionButton>
                 )}
-                {gprops.authentication.roles.includes('ADMIN') && (
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  {gprops.authentication.roles.includes('ADMIN') ? (
                     <FileUpload
                       mode="basic"
                       name="file"
@@ -764,10 +764,18 @@ const EditResultsPage = (gprops: any) => {
                       }}
                       accept="text/csv"
                       maxFileSize={100000}
-                      chooseLabel="Classement par fichier"
+                      chooseLabel="Classement via fichier CSV"
                     />
-                  </div>
-                )}
+                  ) : (
+                    <ActionButton
+                      disabled={true}
+                      color="primary"
+                      title="Classement par fichier CSV (activé pour les administrateurs)"
+                    >
+                      <span style={{ color: 'white' }}>Classement via fichier CSV</span>
+                    </ActionButton>
+                  )}
+                </div>
               </div>
               <div
                 style={{
