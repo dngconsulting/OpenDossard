@@ -423,6 +423,10 @@ const LicencesPage = (props: ILicencesProps) => {
               label="Nom"
               margin="none"
               error={validation.name}
+              {...(!validation.name && {
+                helperText:
+                  'En majuscule, ne pas utiliser de caractères accentués, pour les noms composés, mettre un tiret sans espace'
+              })}
               value={newLicence.name}
               onChange={e => setNewLicence({ ...newLicence, name: e.target.value })}
             />
@@ -437,6 +441,12 @@ const LicencesPage = (props: ILicencesProps) => {
               required={true}
               label="Prénom"
               id="firstName"
+              {...(!validation.name && {
+                helperText:
+                  newLicence.fede === 'FSGT'
+                    ? 'Première lettre du prénom en majuscule, puis le reste en minuscule (Ex: Jean-Paul)'
+                    : 'Tout en majuscule, ne pas utiliser les caractères accentués en majuscule (Ex: JEAN-PAUL)'
+              })}
               margin="none"
               error={validation.firstName}
               value={newLicence.firstName}
