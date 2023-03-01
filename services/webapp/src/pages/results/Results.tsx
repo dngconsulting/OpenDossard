@@ -618,12 +618,46 @@ const EditResultsPage = (gprops: any) => {
                             modeDNFActivated === 'DSQ'
                               ? cadtheme.palette.primary.main
                               : cadtheme.palette.secondary.main,
-                          height: 34
+                          height: 34,
+                          marginRight: 5
                         }}
                         value="DSQ"
                         aria-label="centered"
                       >
                         DSQ
+                      </ToggleButton>
+                      <ToggleButton
+                        title={
+                          'Lorsque ce bouton poussoir est sélectionné, tout dossard saisi est noté HD (Hors Délais)'
+                        }
+                        style={{
+                          color: 'white',
+                          backgroundColor:
+                            modeDNFActivated === 'HD' ? cadtheme.palette.primary.main : cadtheme.palette.secondary.main,
+                          height: 34,
+                          marginRight: 5
+                        }}
+                        value="HD"
+                        aria-label="centered"
+                      >
+                        HD
+                      </ToggleButton>
+                      <ToggleButton
+                        title={
+                          'Lorsque ce bouton poussoir est sélectionné, tout dossard saisi est noté DNV (Dossard Non Visible)'
+                        }
+                        style={{
+                          color: 'white',
+                          backgroundColor:
+                            modeDNFActivated === 'DNV'
+                              ? cadtheme.palette.primary.main
+                              : cadtheme.palette.secondary.main,
+                          height: 34
+                        }}
+                        value="DNV"
+                        aria-label="centered"
+                      >
+                        DNV
                       </ToggleButton>
                     </ToggleButtonGroup>
                   </>
