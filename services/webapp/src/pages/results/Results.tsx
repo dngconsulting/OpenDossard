@@ -45,7 +45,7 @@ const previousToursValues = allprops => {
   return allprops.rowIndex > 0 && parseInt(allprops.value[allprops.rowIndex - 1][allprops.field]);
 };
 
-type ListOfDNF = 'DSQ' | 'ABD' | 'NC' | 'NP' | 'CHT' | null;
+type ListOfDNF = 'DSQ' | 'ABD' | 'NC' | 'NP' | 'CHT' | 'HD' | 'DNV' | null;
 const EditResultsPage = (gprops: any) => {
   const [selectedRows, setSelectedRows] = useState<RaceRow[]>([]);
   const { height, width } = useWindowDimensions();
