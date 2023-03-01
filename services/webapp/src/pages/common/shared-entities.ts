@@ -13,7 +13,7 @@ export const CATEV = [
   { label: 'Poussin', value: 'PO' },
   { label: 'Moustic', value: 'MO' }
 ];
-
+// Nouvelles catégories UFOLEP
 export const CATEV_UFOLEP = [
   { label: 'Catégorie 1', value: '1' },
   { label: 'Catégorie 2', value: '2' },
