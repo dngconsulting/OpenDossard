@@ -14,6 +14,21 @@ export const CATEV = [
   { label: 'Moustic', value: 'MO' }
 ];
 
+export const CATEV_UFOLEP = [
+  { label: 'Catégorie 1', value: '1' },
+  { label: 'Catégorie 2', value: '2' },
+  { label: 'Catégorie 3', value: '3' },
+  { label: 'Catégorie 4A', value: '4' },
+  { label: 'Catégorie 4B', value: '5' },
+  { label: 'Junior', value: 'J' },
+  { label: 'Cadet', value: 'C' },
+  { label: 'Minime', value: 'M' },
+  { label: 'Benjamin', value: 'B' },
+  { label: 'Pupille', value: 'PU' },
+  { label: 'Poussin', value: 'PO' },
+  { label: 'Moustic', value: 'MO' }
+];
+
 export const CATEA_FSGT: Array<{
   label: string;
   value: string;
@@ -83,12 +98,21 @@ export const FEDERATIONS = {
   },
   UFOLEP: {
     name: { label: 'UFOLEP', value: 'UFOLEP' },
-    catev: [...CATEV],
+    catev: [...CATEV_UFOLEP],
     catea: [...CATEA_UFOLEP, { label: 'FNC', value: 'FNC' }, { label: 'FFS', value: 'FFS' }]
   },
   FFC: {
     name: { label: 'FFC', value: 'FFC' },
-    catev: [...CATEV, { label: 'Pass Open', value: 'PASSOPEN' }, { label: 'Pass Cyclisme', value: 'PASSCYCLISME' }],
+    catev: [
+      ...CATEV,
+      { label: 'Open 1', value: 'OPEN1' },
+      { label: 'Open 2', value: 'OPEN2' },
+      { label: 'Open 3', value: 'OPEN3' },
+      { label: 'Access 1', value: 'ACCESS1' },
+      { label: 'Access 2', value: 'ACCESS2' },
+      { label: 'Access 3', value: 'ACCESS3' },
+      { label: 'Access 4', value: 'ACCESS4' }
+    ],
     catea: CATEA_FSGT
   },
   NL: {
