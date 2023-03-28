@@ -2,7 +2,7 @@ import React, { Fragment, useContext, useRef, useState } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { InputText } from 'primereact/inputtext';
 import { CompetitionLayout } from '../competition/CompetitionLayout';
-import { CompetitionEntityCompetitionTypeEnum, RaceRow } from '../../sdk/models';
+import { RaceRow } from '../../sdk/models';
 import _ from 'lodash';
 import SearchIcon from '@material-ui/icons/Search';
 import { NotificationContext } from '../../components/CadSnackbar';
@@ -939,7 +939,7 @@ const EditResultsPage = (gprops: any) => {
                   header="Chrono"
                 />
               )}
-              {competition?.competitionType === CompetitionEntityCompetitionTypeEnum.CX && (
+              {competition?.avecChrono && (
                 <Column
                   body={(row: RaceRow) => {
                     return row.tours;
