@@ -170,25 +170,26 @@ export const resultsPDF = (
 export const podiumsPDF = async (rows, competition, transformRows, rankOfCate, filterByRace) => {
   const filename = 'Podiums_' + competition.name.replace(/\s/g, '') + '.pdf';
   let doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
+  const allRankRows = transformRows(rows);
   competition.races
     .join(',')
     .replace(/\//g, ',')
     .split(',')
     .forEach((race: string, index: number) => {
       const podiumsForCurrentRace: any[][] = [];
-      const allRankRows = transformRows(rows);
       let sprintChallenge: RaceRow = null;
+
       // Put all main federation first
       allRankRows.forEach((r: RaceRow) => {
-        // TODO this r.catev===1 is ugly but cate 1 can race in cate 2 races
-        if (
-          rankOfCate(r, filterByRace(filterByRace(allRankRows, race))) <= 3 &&
-          (r.catev === race || (race === '2' && r.catev === '1'))
-        )
+        const rank = rankOfCate(
+          r,
+          allRankRows.filter(rows => rows.catev === race)
+        );
+        if (rank <= 3 && r.catev === race)
           r.rankingScratch &&
             r.comment == null &&
             podiumsForCurrentRace.push([
-              rankOfCate(r, filterByRace(allRankRows, race)),
+              rank,
               r.rankingScratch,
               displayDossard(r.riderNumber.toString()),
               r.name,
@@ -200,13 +201,12 @@ export const podiumsPDF = async (rows, competition, transformRows, rankOfCate, f
             ]);
         if (r.sprintchallenge && r.catev === race) sprintChallenge = r;
       });
-      const otherFedes = _.remove(podiumsForCurrentRace, (item: any) => item[8] !== competition.fede);
-      const agregatedPodiums = podiumsForCurrentRace.concat(_.orderBy(otherFedes, item => item[1], ['asc']));
+
       doc.setTextColor(40);
       doc.setFontSize(11);
 
       const previousFinalY = (doc as any).lastAutoTable.finalY;
-      agregatedPodiums.length > 0 &&
+      podiumsForCurrentRace.length > 0 &&
         doc.text(
           'Catégorie ' +
             race +
@@ -224,7 +224,7 @@ export const podiumsPDF = async (rows, competition, transformRows, rankOfCate, f
         );
       // @ts-ignore
       // tslint:disable-next-line:no-unused-expression
-      agregatedPodiums.length > 0 &&
+      podiumsForCurrentRace.length > 0 &&
         // @ts-ignore
         autoTable(doc, {
           head: [['Cl.', 'Scrat.', 'Doss', 'Coureur', 'Club', 'H/F', 'Caté.V', 'Caté.A', 'Fédé']],
@@ -250,7 +250,7 @@ export const podiumsPDF = async (rows, competition, transformRows, rankOfCate, f
             7: { cellWidth: 12 },
             8: { cellWidth: 20 }
           },
-          body: agregatedPodiums,
+          body: podiumsForCurrentRace,
           didDrawPage: (data: any) => {
             // Header
             doc.setFontSize(13);
@@ -267,7 +267,7 @@ export const podiumsPDF = async (rows, competition, transformRows, rankOfCate, f
               );
             }
             doc.setFontSize(10);
-            doc.text('Podiums', 90, 7);
+            doc.text('Podiums (Open Dossard)', 90, 7);
             doc.setFontSize(13);
             doc.text('Epreuve : ' + competition.name, data.settings.margin.left + 50, 15);
             doc.text(

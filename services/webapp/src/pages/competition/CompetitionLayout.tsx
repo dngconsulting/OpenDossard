@@ -116,7 +116,7 @@ export const CompetitionLayout = ({
             setCurrentRace(race);
           }}
         />
-        {children({ competition, currentRace, rows, fetchRows, fetchCompetition })}
+        {currentRace && children({ competition, currentRace, rows, fetchRows, fetchCompetition })}
       </div>
     </Paper>
   );
