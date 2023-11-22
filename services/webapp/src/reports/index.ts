@@ -220,7 +220,7 @@ export const podiumsPDF = async (rows, competition, transformRows, rankOfCate, f
                 ')'
               : ''),
           5,
-          index === 0 ? 35 : previousFinalY + 5
+            previousFinalY === undefined ? 35 : ~~previousFinalY + 5
         );
       // @ts-ignore
       // tslint:disable-next-line:no-unused-expression

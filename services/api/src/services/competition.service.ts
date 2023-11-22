@@ -42,7 +42,7 @@ export class CompetitionService {
       ) {
         // If display since is not passed we set it by default to one year => 365 days
         startDate = moment(new Date()).subtract(
-          competitionFilter.displaySince ?? 3000,
+          competitionFilter.displaySince ?? 1000,
           "d"
         );
       } else {
