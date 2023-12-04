@@ -20,6 +20,7 @@ export const CATEV_UFOLEP = [
   { label: 'Catégorie 3', value: '3' },
   { label: 'Catégorie 4A', value: '4A' },
   { label: 'Catégorie 4B', value: '4B' },
+  { label: 'Féminines', value: 'FEM' },
   { label: 'Junior', value: 'J' },
   { label: 'Cadet', value: 'C' },
   { label: 'Minime', value: 'M' },

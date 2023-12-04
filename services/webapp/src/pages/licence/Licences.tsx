@@ -148,6 +148,7 @@ const LicencesPage = (props: ILicencesProps) => {
   return (
     <div id={'mydiv'}>
       <MaterialTable
+        style={{ margin: 5, padding: 10 }}
         components={{
           Toolbar: props => {
             return <StyledMTableToolbar {...props} />;
@@ -194,7 +195,7 @@ const LicencesPage = (props: ILicencesProps) => {
             field: 'firstName',
             headerStyle: { width: 100, minWidth: 100, maxWidth: 100 }
           },
-          { title: 'Club', field: 'club', headerStyle: { minWidth: 380 } },
+          { title: 'Club', field: 'club', width: '20%' },
           {
             title: 'H/F',
             field: 'gender',
@@ -243,7 +244,7 @@ const LicencesPage = (props: ILicencesProps) => {
         options={{
           showEmptyDataSourceMessage: true,
           filterCellStyle: { padding: 0, margin: 0 },
-          rowStyle: { maxHeight: 20, fontSize: 8, padding: 0, margin: 0 },
+          rowStyle: { maxHeight: 20, fontSize: 'unset', padding: 0, margin: 0 },
           filtering: true,
           debounceInterval: 1000,
           pageSize: psize,

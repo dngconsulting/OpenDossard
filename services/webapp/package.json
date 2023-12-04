@@ -35,7 +35,7 @@
     "jspdf-autotable": "^3.5.25",
     "leaflet": "1.7.1",
     "lodash": "4.17.15",
-    "material-table": "1.57.2",
+    "material-table": "1.69.3",
     "moment": "2.24.0",
     "portable-fetch": "3.0.0",
     "primeicons": "3.0.0-rc.1",

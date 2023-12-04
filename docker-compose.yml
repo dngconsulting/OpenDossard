@@ -18,11 +18,10 @@ services:
     container_name: webapp
     environment:
       - NODE_ENV=development
-      - CHOKIDAR_USEPOLLING=true
-    image: node:12-alpine
+    image: node:18-alpine
     working_dir: "/app"
     volumes:
-      - ./services/webapp:/app:delegated
+      - ./services/webapp:/app
     command: "npm start"
     ports:
       - "3000:3000"

@@ -34,6 +34,12 @@ export interface LicenceEntity {
     fede: FedeEnum;
     /**
      * 
+     * @type {Date}
+     * @memberof LicenceEntity
+     */
+    lastChanged: Date;
+    /**
+     * 
      * @type {number}
      * @memberof LicenceEntity
      */
@@ -104,6 +110,18 @@ export interface LicenceEntity {
      * @memberof LicenceEntity
      */
     saison: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LicenceEntity
+     */
+    author: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LicenceEntity
+     */
+    comment: string;
 }
 
 export function LicenceEntityFromJSON(json: any): LicenceEntity {
@@ -117,6 +135,7 @@ export function LicenceEntityFromJSONTyped(json: any, ignoreDiscriminator: boole
     return {
         
         'fede': FedeEnumFromJSON(json['fede']),
+        'lastChanged': (new Date(json['lastChanged'])),
         'id': json['id'],
         'licenceNumber': json['licenceNumber'],
         'name': json['name'],
@@ -129,6 +148,8 @@ export function LicenceEntityFromJSONTyped(json: any, ignoreDiscriminator: boole
         'catev': json['catev'],
         'catevCX': json['catevCX'],
         'saison': json['saison'],
+        'author': json['author'],
+        'comment': json['comment'],
     };
 }
 
@@ -142,6 +163,7 @@ export function LicenceEntityToJSON(value?: LicenceEntity | null): any {
     return {
         
         'fede': FedeEnumToJSON(value.fede),
+        'lastChanged': (value.lastChanged.toISOString()),
         'id': value.id,
         'licenceNumber': value.licenceNumber,
         'name': value.name,
@@ -154,6 +176,8 @@ export function LicenceEntityToJSON(value?: LicenceEntity | null): any {
         'catev': value.catev,
         'catevCX': value.catevCX,
         'saison': value.saison,
+        'author': value.author,
+        'comment': value.comment,
     };
 }
 

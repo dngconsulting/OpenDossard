@@ -5,10 +5,13 @@ import {
   Controller,
   Delete,
   Get,
+  Inject,
+  Injectable,
   Logger,
   Param,
   Post,
   Put,
+  Scope,
   UseGuards
 } from "@nestjs/common";
 import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
@@ -19,6 +22,9 @@ import { ROLES, RolesGuard } from "../guards/roles.guard";
 import { Roles } from "../decorators/roles.decorator";
 import { mappingLicenceFields } from "../util";
 import { CompetitionType } from "../entity/competition.entity";
+import { REQUEST } from "@nestjs/core";
+import { Request } from "express";
+import { UserEntity } from "../entity/user.entity";
 
 /**
  * Licence Controler is in charge of handling rider licences
@@ -27,12 +33,14 @@ import { CompetitionType } from "../entity/competition.entity";
 @Controller("/api/licences")
 @ApiTags("LicenceAPI")
 @UseGuards(AuthGuard("jwt"), RolesGuard)
+@Injectable({ scope: Scope.REQUEST })
 export class LicenceController {
   constructor(
     @InjectRepository(LicenceEntity)
     private readonly repository: Repository<LicenceEntity>,
     @InjectEntityManager()
-    private readonly entityManager: EntityManager
+    private readonly entityManager: EntityManager,
+    @Inject(REQUEST) private readonly request: Request
   ) {}
 
   @Get("/search/:param/:competitionType")
@@ -61,22 +69,26 @@ export class LicenceController {
         .replace(/[\u0300-\u036f]/g, "") +
       "%";
     const query: string = `select l.licence_number as "licenceNumber",
-                              l.id,
-                              l.club,
-                              l.gender,
-                              l.name,
-                              l.dept,
-                              l.fede,
-                              l.first_name as "firstName",
-                              l.birth_year as "birthYear",
-                              ${
-                                competitionType === CompetitionType.CX
-                                  ? 'l.catev_cx as "catev"'
-                                  : 'l.catev as "catev"'
-                              },
-                              l.saison,
-                              l.catea from licence l where REPLACE(CONCAT(UPPER(l.name),UPPER(unaccent(l.first_name)),UPPER(CAST(l.fede AS VARCHAR)),UPPER(l.licence_number)),' ','') like $1 
-                              order by (l.name,l.first_name) fetch first 30 rows only`;
+                                      l.id,
+                                      l.club,
+                                      l.gender,
+                                      l.name,
+                                      l.dept,
+                                      l.fede,
+                                      l.first_name     as "firstName",
+                                      l.birth_year     as "birthYear",
+                                      ${
+                                        competitionType === CompetitionType.CX
+                                          ? 'l.catev_cx as "catev"'
+                                          : 'l.catev as "catev"'
+                                      },
+                                      l.saison,
+                                      l.catea
+                               from licence l
+                               where REPLACE(CONCAT(UPPER(l.name), UPPER(unaccent(l.first_name)),
+                                                    UPPER(CAST(l.fede AS VARCHAR)), UPPER(l.licence_number)), ' ',
+                                             '') like $1
+                               order by (l.name, l.first_name) fetch first 30 rows only`;
     return await this.entityManager.query(query, [filterParam]);
   }
 
@@ -183,6 +195,7 @@ export class LicenceController {
   })
   @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
   public async create(@Body() licence: LicenceEntity): Promise<LicenceEntity> {
+    const currentUser: UserEntity = this.request["user"] as UserEntity;
     const newLicence = new LicenceEntity();
     newLicence.licenceNumber = licence.licenceNumber;
     newLicence.name = licence.name;
@@ -196,7 +209,15 @@ export class LicenceController {
     if (licence.catevCX && licence.catevCX.length > 0)
       newLicence.catevCX = licence.catevCX.toUpperCase();
     newLicence.fede = licence.fede;
+    newLicence.comment = licence.comment;
     newLicence.saison = licence.saison;
+    newLicence.author =
+      currentUser.email +
+      "/" +
+      currentUser.firstName +
+      "/" +
+      currentUser.lastName;
+    newLicence.lastChanged = new Date();
     const licenceInserted = await this.entityManager.save(newLicence);
     return licenceInserted;
   }
@@ -208,6 +229,7 @@ export class LicenceController {
   })
   @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
   public async update(@Body() licence: LicenceEntity): Promise<void> {
+    const currentUser: UserEntity = this.request["user"] as UserEntity;
     const toUpdate = await this.entityManager.findOne(
       LicenceEntity,
       licence.id
@@ -222,10 +244,19 @@ export class LicenceController {
     toUpdate.dept = licence.dept;
     toUpdate.catea = licence.catea;
     toUpdate.catev = licence.catev;
+    toUpdate.comment = licence.comment;
     if (licence.catevCX && licence.catevCX.length > 0)
       toUpdate.catevCX = licence.catevCX;
     else toUpdate.catevCX = null;
     toUpdate.saison = licence.saison;
+    toUpdate.author =
+      currentUser.email +
+      "/" +
+      currentUser.firstName +
+      "/" +
+      currentUser.lastName;
+
+    toUpdate.lastChanged = new Date();
     await this.entityManager.save(toUpdate);
   }
 

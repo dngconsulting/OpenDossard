@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useContext, useEffect, useState } from 'react';
 
-import { useMediaQuery, withStyles } from '@material-ui/core';
+import { TextareaAutosize, useMediaQuery, withStyles } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import FormHelperText from '@material-ui/core/FormHelperText';
@@ -86,7 +86,10 @@ const LicencesPage = (props: ILicencesProps) => {
     catea: '',
     catev: '',
     catevCX: '',
-    saison: !isNaN(parseInt(id)) ? '' : new Date().getFullYear().toString()
+    saison: !isNaN(parseInt(id)) ? '' : new Date().getFullYear().toString(),
+    author: undefined,
+    lastChanged: undefined,
+    comment: ''
   });
   const [validation, setValidation] = useState<IValidationForm>({
     name: false,
@@ -125,7 +128,8 @@ const LicencesPage = (props: ILicencesProps) => {
           club: res.club,
           catea: res.catea.toUpperCase(),
           catev: res.catev.toUpperCase(),
-          catevCX: res.catevCX ? res.catevCX.toUpperCase() : ''
+          catevCX: res.catevCX ? res.catevCX.toUpperCase() : '',
+          comment: res.comment
         };
         setNewLicence(toUpdateLicence);
       });
@@ -217,9 +221,7 @@ const LicencesPage = (props: ILicencesProps) => {
     const isClubValid = newLicence.fede !== FedeEnum.NL && !newLicence.club;
     const isDeptValid = !newLicence.dept;
     const isBirthYearValid = !newLicence.birthYear;
-    const isSeasonValid = newLicence.saison
-      ? newLicence.saison.length !== 4 || parseInt(newLicence.saison) > new Date().getFullYear()
-      : false;
+    const isSeasonValid = newLicence.saison ? newLicence.saison.length !== 4 : false;
 
     setValidation({
       name: isNameValid,
@@ -258,6 +260,7 @@ const LicencesPage = (props: ILicencesProps) => {
       returnedLicence = newLicence;
       try {
         if (key) {
+          newLicence.lastChanged = new Date();
           await apiLicences.update({ licenceEntity: newLicence });
         } else {
           returnedLicence = await apiLicences.create({
@@ -288,6 +291,7 @@ const LicencesPage = (props: ILicencesProps) => {
 
   const onSubmit = async () => {
     const licenceUpdated = await createOrUpdateLicence(newLicence.id);
+
     if (licenceUpdated === null) return;
     if (props.history.location.hash && props.history.location.hash.length > 0) {
       setUpdatedLicence(licenceUpdated);
@@ -315,9 +319,8 @@ const LicencesPage = (props: ILicencesProps) => {
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'column',
-        width: '60%',
-        marginLeft: 'auto',
-        marginRight: 'auto'
+        marginLeft: '50px',
+        marginRight: '50px'
       }}
     >
       <LoaderIndicator visible={loading} />
@@ -337,9 +340,10 @@ const LicencesPage = (props: ILicencesProps) => {
           props.history.goBack();
         }}
       />
-      <Grid item={true} xs={12}>
-        <h1 style={{ backgroundColor: 'transparent' }}>{editMode ? 'Modifier' : 'Ajouter'} une licence</h1>
-      </Grid>
+
+      <h1 style={{ color: 'black', textAlign: 'left', width: '100%' }}>
+        {editMode ? 'Modifier' : 'Ajouter'} une licence
+      </h1>
       <Grid direction={isMobile ? 'column' : 'row'} container={true} spacing={2} alignItems={'center'}>
         <Grid item={true} xs={4}>
           <FormControl className={classes.formControl}>
@@ -402,7 +406,11 @@ const LicencesPage = (props: ILicencesProps) => {
                   type="number"
                   value={newLicence.saison}
                   onChange={e => {
-                    setNewLicence({ ...newLicence, saison: e.target.value });
+                    setNewLicence({
+                      ...newLicence,
+                      saison: e.target.value,
+                      ...(newLicence.birthYear ? { catea: autoSelectCateA(newLicence.birthYear) } : {})
+                    });
                   }}
                   error={validation.saison}
                 />
@@ -664,6 +672,18 @@ const LicencesPage = (props: ILicencesProps) => {
           </Grid>
         </Grid>
       )}
+      <Grid style={{ marginTop: '2em' }} container={true} item={true} xs={12}>
+        <TextareaAutosize
+          minRows={5}
+          defaultValue=""
+          value={newLicence?.comment}
+          style={{ width: '90%' }}
+          onChange={evt => {
+            setNewLicence({ ...newLicence, comment: evt.target.value });
+          }}
+          placeholder={'Commentaires'}
+        />
+      </Grid>
       <div
         style={{
           display: 'flex',

@@ -401,6 +401,38 @@ export class RaceAPIApi extends runtime.BaseAPI {
     }
 
     /**
+     */
+    async racesCtrlUploadFileRaw(): Promise<runtime.ApiResponse<string>> {
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/races/results/upload/{id}`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.TextApiResponse(response) as any;
+    }
+
+    /**
+     */
+    async racesCtrlUploadFile(): Promise<string> {
+        const response = await this.racesCtrlUploadFileRaw();
+        return await response.value();
+    }
+
+    /**
      * Met à jour l\'engagement du coureur licenceId sur la competition competitionId
      */
     async refreshEngagementRaw(requestParameters: RefreshEngagementRequest): Promise<runtime.ApiResponse<void>> {
