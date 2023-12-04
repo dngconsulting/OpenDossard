@@ -7,7 +7,7 @@ var
 
 .idea/
 .idea/*
-.DS_Store
+**/.DS_Store
 /services/api/src/coverage/
 /node_modules/
 services/webapp/debug.log
