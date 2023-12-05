@@ -21,6 +21,7 @@ import { NotificationContext } from '../../components/CadSnackbar';
 import { ConfirmDialog } from '../../util';
 import { LoaderIndicator } from '../../components/LoaderIndicator';
 import { BREAK_POINT_MOBILE_TABLET } from '../../theme/theme';
+import { toMMDDYYYY, toTime } from '../../util/date';
 
 interface ILicencesProps {
   items: any[];
@@ -87,8 +88,8 @@ const LicencesPage = (props: ILicencesProps) => {
     catev: '',
     catevCX: '',
     saison: !isNaN(parseInt(id)) ? '' : new Date().getFullYear().toString(),
-    author: undefined,
-    lastChanged: undefined,
+    author: null,
+    lastChanged: null,
     comment: ''
   });
   const [validation, setValidation] = useState<IValidationForm>({
@@ -129,7 +130,9 @@ const LicencesPage = (props: ILicencesProps) => {
           catea: res.catea.toUpperCase(),
           catev: res.catev.toUpperCase(),
           catevCX: res.catevCX ? res.catevCX.toUpperCase() : '',
-          comment: res.comment
+          comment: res.comment,
+          lastChanged: res.lastChanged,
+          author: res.author
         };
         setNewLicence(toUpdateLicence);
       });
@@ -260,9 +263,9 @@ const LicencesPage = (props: ILicencesProps) => {
       returnedLicence = newLicence;
       try {
         if (key) {
-          newLicence.lastChanged = new Date();
           await apiLicences.update({ licenceEntity: newLicence });
         } else {
+          newLicence.lastChanged = new Date();
           returnedLicence = await apiLicences.create({
             licenceEntity: newLicence
           });
@@ -684,6 +687,12 @@ const LicencesPage = (props: ILicencesProps) => {
           placeholder={'Commentaires'}
         />
       </Grid>
+      {newLicence.lastChanged && (
+        <div>
+          Dernière modification réalisée le {toMMDDYYYY(newLicence?.lastChanged)} à {toTime(newLicence?.lastChanged)}{' '}
+          par {newLicence?.author}
+        </div>
+      )}
       <div
         style={{
           display: 'flex',
