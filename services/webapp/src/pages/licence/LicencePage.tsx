@@ -347,7 +347,7 @@ const LicencesPage = (props: ILicencesProps) => {
       <h1 style={{ color: 'black', textAlign: 'left', width: '100%' }}>
         {editMode ? 'Modifier' : 'Ajouter'} une licence
       </h1>
-      <Grid direction={isMobile ? 'column' : 'row'} container={true} spacing={2} alignItems={'center'}>
+      <Grid direction={isMobile ? 'column' : 'row'} container={true} spacing={2}>
         <Grid item={true} xs={4}>
           <FormControl className={classes.formControl}>
             <Autocomplete
@@ -520,13 +520,7 @@ const LicencesPage = (props: ILicencesProps) => {
       </Grid>
 
       {newLicence.fede && (
-        <Grid
-          direction={isMobile ? 'column' : 'row'}
-          container={true}
-          spacing={2}
-          alignItems={'center'}
-          style={{ marginTop: '1em' }}
-        >
+        <Grid direction={isMobile ? 'column' : 'row'} container={true} spacing={2} style={{ marginTop: '1em' }}>
           <Grid item={true} xs={4}>
             <FormControl className={classes.formControl}>
               <Autocomplete
@@ -630,48 +624,46 @@ const LicencesPage = (props: ILicencesProps) => {
               />
             </FormControl>
           </Grid>
-        </Grid>
-      )}
-      <Grid style={{ marginTop: '2em' }} container={true} item={true} xs={12}>
-        <FormControl className={classes.formControl} error={validation.dept}>
-          <TextField
-            required={true}
-            error={validation.dept}
-            id="department"
-            label="Département"
-            type="number"
-            margin="none"
-            style={{ width: '50%' }}
-            value={newLicence.dept}
-            onBlur={e => {
-              if (parseInt(e.target.value) < 1 || parseInt(e.target.value) > 99) {
-                setNewLicence({ ...newLicence, dept: '' });
-                setValidation({ dept: true });
-                return;
-              }
-              setValidation({ dept: false });
-            }}
-            onChange={e => {
-              setNewLicence({ ...newLicence, dept: e.target.value });
-            }}
-          />
-          <FormHelperText id="component-error-text" hidden={!validation.dept}>
-            Veuillez saisir un département dont la valeur est entre 01 et 99.
-          </FormHelperText>
-        </FormControl>
-      </Grid>
-      {newLicence.fede && newLicence.fede !== FedeEnum.NL && (
-        <Grid container={true} spacing={2} alignItems={'center'} style={{ marginTop: '2em' }}>
-          <Grid item={true} xs={12}>
-            <ClubSelect
-              isError={validation.club}
-              dept={newLicence.dept}
-              fede={newLicence.fede}
-              onSelectClubName={value => {
-                setNewLicence({ ...newLicence, club: value });
-              }}
-              defaultChosenClub={{ value: null, label: newLicence.club } as IOptionType}
-            />
+
+          <Grid item={true} xs={2}>
+            <FormControl className={classes.formControl} error={validation.dept}>
+              <TextField
+                required={true}
+                error={validation.dept}
+                id="department"
+                label="Département"
+                type="number"
+                margin="none"
+                value={newLicence.dept}
+                onBlur={e => {
+                  if (parseInt(e.target.value) < 1 || parseInt(e.target.value) > 99) {
+                    setNewLicence({ ...newLicence, dept: '' });
+                    setValidation({ dept: true });
+                    return;
+                  }
+                  setValidation({ dept: false });
+                }}
+                onChange={e => {
+                  setNewLicence({ ...newLicence, dept: e.target.value });
+                }}
+              />
+              <FormHelperText id="component-error-text" hidden={!validation.dept}>
+                Veuillez saisir un département dont la valeur est entre 01 et 99.
+              </FormHelperText>
+            </FormControl>
+          </Grid>
+          <Grid item={true} xs={10}>
+            {newLicence.fede && newLicence.fede !== FedeEnum.NL && (
+              <ClubSelect
+                isError={validation.club}
+                dept={newLicence.dept}
+                fede={newLicence.fede}
+                onSelectClubName={value => {
+                  setNewLicence({ ...newLicence, club: value });
+                }}
+                defaultChosenClub={{ value: null, label: newLicence.club } as IOptionType}
+              />
+            )}
           </Grid>
         </Grid>
       )}
