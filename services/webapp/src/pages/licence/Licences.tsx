@@ -195,7 +195,14 @@ const LicencesPage = (props: ILicencesProps) => {
             field: 'firstName',
             headerStyle: { width: 100, minWidth: 100, maxWidth: 100 }
           },
-          { title: 'Club', field: 'club', width: '20%' },
+          {
+            title: 'Club',
+            field: 'club',
+            headerStyle: { minWidth: 200 },
+            render: (data, type) => {
+              return <div style={{ minWidth: 300 }}>{data.club}</div>;
+            }
+          },
           {
             title: 'H/F',
             field: 'gender',
