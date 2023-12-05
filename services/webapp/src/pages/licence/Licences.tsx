@@ -259,7 +259,7 @@ const LicencesPage = (props: ILicencesProps) => {
           padding: 'dense',
           actionsColumnIndex: -1,
           maxBodyHeight: windowDimensions.height - 200,
-          pageSizeOptions: [5, 10, 17, 20, 100, 500, 1000],
+          pageSizeOptions: [20, 50, 75, 100, 200, 300, 500, 1000, 1500],
           search: true,
           selection: false,
           showTitle: false,
