@@ -130,24 +130,34 @@ export const CompetitionFilterPanel = ({
   history,
   refreshData,
   setRaceRows,
-  setLoading
+  setLoading,
+  showClubs = false
 }: {
   history: any;
   setLoading: (b: boolean) => void;
   refreshData: boolean;
   setData: (data: CompetitionEntity[]) => void;
   setRaceRows: (raceRows: RaceRow[]) => void;
+  showClubs?: boolean;
 }) => {
   const [, setNotification] = useContext(NotificationContext);
-  const [competitionFilter, setCompetitionFilter] = useState<Partial<CompetitionFilter>>(undefined);
+  const [competitionFilter, setCompetitionFilter] = useState<
+    Partial<CompetitionFilter & { selectedClubs: Array<String> }>
+  >(undefined);
   const theme = useTheme();
+  const [selectedClub, setSelectedClub] = useState<{ label: string; value: string } | undefined>();
+  const [allClubs, setAllClubs] = useState<string[]>();
   const isMobile = useMediaQuery(theme.breakpoints.down(BREAK_POINT_MOBILE_TABLET));
+  const [localRaceRows, setLocalRaceRows] = useState<RaceRow[]>();
+
   const fetchAllRaces = async () => {
     try {
       const results = await apiRaces.getRaces({
         competitionFilter
       });
+      setLocalRaceRows(results);
       setRaceRows(results);
+      setAllClubs(_.uniq(_.map(results, 'club')));
     } catch (ex) {
       setNotification({
         message: `Impossible de récupérer la liste des participations`,
@@ -372,6 +382,7 @@ export const CompetitionFilterPanel = ({
           classNamePrefix="select"
           onChange={selectedFedes => {
             const onlyValues = selectedFedes?.map((fede: { label: string; value: string }) => fede.value);
+            setSelectedClub(null);
             setCompetitionFilter({
               ...competitionFilter,
               fedes: _.isEmpty(onlyValues) ? undefined : onlyValues
@@ -406,6 +417,7 @@ export const CompetitionFilterPanel = ({
           classNamePrefix="select"
           onChange={(selectedCompetitionTypes: any) => {
             const onlyValues = selectedCompetitionTypes?.map((cp: { label: string; value: string }) => cp.value);
+            setSelectedClub(null);
             setCompetitionFilter({
               ...competitionFilter,
               competitionTypes: _.isEmpty(onlyValues) ? undefined : onlyValues
@@ -419,7 +431,8 @@ export const CompetitionFilterPanel = ({
             ? {
                 styles: {
                   container: () => ({
-                    width: '100%'
+                    width: '100%',
+                    marginRight: 10
                   })
                 }
               }
@@ -444,6 +457,7 @@ export const CompetitionFilterPanel = ({
           className="basic-multi-select"
           classNamePrefix="select"
           onChange={(deptsSelected: any) => {
+            setSelectedClub(null);
             setCompetitionFilter({
               ...competitionFilter,
               depts: deptsSelected
@@ -457,6 +471,37 @@ export const CompetitionFilterPanel = ({
             });
           }}
         />
+        {showClubs && (
+          <Select
+            menuPlacement={'bottom'}
+            {...(!isMobile
+              ? {
+                  styles: {
+                    container: () => ({
+                      width: '100%'
+                    })
+                  }
+                }
+              : {})}
+            placeholder={'Tous les clubs'}
+            escapeClearsValue={true}
+            isClearable={true}
+            isMulti={false}
+            hideSelectedOptions={true}
+            value={selectedClub}
+            options={allClubs?.map(club => ({
+              value: club,
+              label: club
+            }))}
+            className="basic-multi-select"
+            classNamePrefix="select"
+            onChange={(currentSelected: any) => {
+              setSelectedClub(currentSelected);
+              if (currentSelected === null) setRaceRows(localRaceRows);
+              else setRaceRows(localRaceRows.filter(rr => rr.club === currentSelected.value));
+            }}
+          />
+        )}
         <Button
           style={{ alignItems: 'center', marginLeft: 10, marginTop: isMobile ? 10 : 0, minWidth: 200 }}
           variant={'contained'}
@@ -469,7 +514,7 @@ export const CompetitionFilterPanel = ({
           }}
         >
           <Add style={{ marginRight: 5 }} />
-          CRÉER UNE EPREUVE
+          CRÉER EPREUVE
         </Button>
       </FormControl>
     </>

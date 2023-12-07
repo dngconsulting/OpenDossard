@@ -1,13 +1,13 @@
-import * as React from "react";
-import { useEffect, useState } from "react";
-import { Grid, Paper, Theme, withStyles } from "@material-ui/core";
-import * as Highcharts from "highcharts";
-import { CompetitionEntity, RaceRow } from "../sdk";
-import _ from "lodash";
-import HighchartsReact from "highcharts-react-official";
-import { CATEA_FSGT, CATEA_UFOLEP } from "../pages/common/shared-entities";
-import { CompetitionFilterPanel } from "../components/CompetitionFilterPanel";
-import { LoaderIndicator } from "../components/LoaderIndicator";
+import * as React from 'react';
+import { useEffect, useState } from 'react';
+import { Grid, Paper, Theme, withStyles } from '@material-ui/core';
+import * as Highcharts from 'highcharts';
+import { CompetitionEntity, RaceRow } from '../sdk';
+import _ from 'lodash';
+import HighchartsReact from 'highcharts-react-official';
+import { CATEA_FSGT, CATEA_UFOLEP } from '../pages/common/shared-entities';
+import { CompetitionFilterPanel } from '../components/CompetitionFilterPanel';
+import { LoaderIndicator } from '../components/LoaderIndicator';
 
 interface IDashboardProps {
   classes?: any;
@@ -18,29 +18,19 @@ interface IDashboardProps {
 }
 
 const cateLabelFrom = (cate: string) => {
-  const catea = CATEA_FSGT.concat(CATEA_UFOLEP).filter(
-    item => item.value.toUpperCase() === cate.toUpperCase()
-  )[0];
+  const catea = CATEA_FSGT.concat(CATEA_UFOLEP).filter(item => item.value.toUpperCase() === cate.toUpperCase())[0];
   return catea === undefined ? cate : catea.label;
 };
 const HomePage = (props: IDashboardProps) => {
   const { classes } = props;
-  const [optionNbRidersChartClub, setOptionNbRidersChartClub] = useState<
-    Highcharts.Options
-  >();
+  const [optionNbRidersChartClub, setOptionNbRidersChartClub] = useState<Highcharts.Options>();
   const [data, setData] = useState<CompetitionEntity[]>([]);
   const [loading, setLoading] = useState(false);
   const [raceRows, setRaceRows] = useState<RaceRow[]>([]);
   const [refreshData, setRefreshData] = useState(false);
-  const [optionNbRidersChartRiders, setOptionNbRidersChartRiders] = useState<
-    Highcharts.Options
-  >();
-  const [
-    optionNbLicencesChartRiders,
-    setOptionNbLicencesChartRiders
-  ] = useState<Highcharts.Options>();
+  const [optionNbRidersChartRiders, setOptionNbRidersChartRiders] = useState<Highcharts.Options>();
+  const [optionNbLicencesChartRiders, setOptionNbLicencesChartRiders] = useState<Highcharts.Options>();
   const [optionParCateA, setOptionParCateA] = useState<Highcharts.Options>();
-
   const fillRiderByCateaChart = (rows: RaceRow[]) => {
     const options: Highcharts.Options = {
       title: {
@@ -51,15 +41,12 @@ const HomePage = (props: IDashboardProps) => {
       },
       series: [
         {
-          type: "pie",
-          name: "Taux"
+          type: 'pie',
+          name: 'Taux'
         }
       ]
     };
-    const groupByNbRidersByCatea = _.groupBy(
-      rows,
-      (item: RaceRow) => item.catea
-    );
+    const groupByNbRidersByCatea = _.groupBy(rows, (item: RaceRow) => item.catea);
     const cateaNb = Object.keys(groupByNbRidersByCatea).map(item => {
       return {
         name: cateLabelFrom(groupByNbRidersByCatea[item][0].catea),
@@ -75,27 +62,24 @@ const HomePage = (props: IDashboardProps) => {
   const fillRiderParticipationChart = (rows: RaceRow[]) => {
     const options: Highcharts.Options = {
       title: {
-        text: "Nombre de coureurs par course"
+        text: 'Nombre de coureurs par course'
       },
       xAxis: {
         categories: []
       },
       yAxis: {
         title: {
-          text: "nb coureurs"
+          text: 'nb coureurs'
         }
       },
       series: [
         {
-          type: "column",
-          name: "Nombre de coureurs"
+          type: 'column',
+          name: 'Nombre de coureurs'
         }
       ]
     };
-    const nbRidersByCourse = _.groupBy(
-      rows,
-      (item: RaceRow) => item.competitionId
-    );
+    const nbRidersByCourse = _.groupBy(rows, (item: RaceRow) => item.competitionId);
     // @ts-ignore
     const allCourses = Object.keys(nbRidersByCourse).map(item => {
       return {
@@ -103,7 +87,7 @@ const HomePage = (props: IDashboardProps) => {
         name: nbRidersByCourse[item][0].name
       };
     });
-    const allCourseOrdered = _.orderBy(allCourses, ["nb"], ["desc"]);
+    const allCourseOrdered = _.orderBy(allCourses, ['nb'], ['desc']);
     // @ts-ignore
     options.series[0].data = allCourseOrdered.map(item => item.nb);
     // @ts-ignore
@@ -114,7 +98,7 @@ const HomePage = (props: IDashboardProps) => {
   const fillRiderOnlyParticipationChart = (rows: RaceRow[]) => {
     const options: Highcharts.Options = {
       title: {
-        text: "Coureurs les plus assidus"
+        text: 'Coureurs les plus assidus'
       },
       xAxis: {
         categories: [],
@@ -122,27 +106,24 @@ const HomePage = (props: IDashboardProps) => {
       },
       yAxis: {
         title: {
-          text: "nb participations"
+          text: 'nb participations'
         }
       },
       series: [
         {
-          type: "column",
-          name: "Participations"
+          type: 'column',
+          name: 'Participations'
         }
       ]
     };
-    const groupByLicenceNumber = _.groupBy(
-      rows,
-      (item: RaceRow) => item.riderName
-    );
+    const groupByLicenceNumber = _.groupBy(rows, (item: RaceRow) => item.riderName);
     const licenceAndNbPart = Object.keys(groupByLicenceNumber).map(item => {
       return {
         riderName: groupByLicenceNumber[item][0].riderName,
         nb: groupByLicenceNumber[item].length
       };
     });
-    const licenceAndNbOrdered = _.orderBy(licenceAndNbPart, ["nb"], ["desc"]);
+    const licenceAndNbOrdered = _.orderBy(licenceAndNbPart, ['nb'], ['desc']);
     // @ts-ignore
     options.series[0].data = licenceAndNbOrdered.map(item => item.nb);
     // @ts-ignore
@@ -153,7 +134,7 @@ const HomePage = (props: IDashboardProps) => {
   const fillClubParticipationChart = (rows: RaceRow[]) => {
     const options: Highcharts.Options = {
       title: {
-        text: "Participation des clubs"
+        text: 'Participation des clubs'
       },
       xAxis: {
         categories: [],
@@ -161,13 +142,13 @@ const HomePage = (props: IDashboardProps) => {
       },
       yAxis: {
         title: {
-          text: "nb de participations"
+          text: 'nb de participations'
         }
       },
       series: [
         {
-          type: "column",
-          name: "Nombre de participations par club"
+          type: 'column',
+          name: 'Nombre de participations par club'
         }
       ]
     };
@@ -175,13 +156,11 @@ const HomePage = (props: IDashboardProps) => {
     const clubAndNb = Object.keys(riders).map(item => {
       return { club: riders[item][0].club, nb: riders[item].length };
     });
-    const clubAndNbOrdered = _.orderBy(clubAndNb, ["nb"], ["desc"]);
+    const clubAndNbOrdered = _.orderBy(clubAndNb, ['nb'], ['desc']);
     // @ts-ignore
     options.series[0].data = clubAndNbOrdered.map(item => item.nb);
     // @ts-ignore
-    options.xAxis.categories = clubAndNbOrdered.map(item =>
-      item.club === "" ? "Non Licenciés" : item.club
-    );
+    options.xAxis.categories = clubAndNbOrdered.map(item => (item.club === '' ? 'Non Licenciés' : item.club));
     setOptionNbRidersChartClub(options);
   };
 
@@ -198,9 +177,10 @@ const HomePage = (props: IDashboardProps) => {
   }, [raceRows]);
 
   return (
-    <div style={{ width: "100%", height: "100%", padding: 10 }}>
+    <div style={{ width: '100%', height: '100%', padding: 10 }}>
       <LoaderIndicator visible={loading} />
       <CompetitionFilterPanel
+        showClubs={true}
         history={props.history}
         refreshData={refreshData}
         setData={setData}
@@ -209,23 +189,19 @@ const HomePage = (props: IDashboardProps) => {
       />
       {raceRows?.length > 0 ? (
         <Grid container={true}>
-          {[
-            optionNbRidersChartRiders,
-            optionNbRidersChartClub,
-            optionParCateA,
-            optionNbLicencesChartRiders
-          ].map((item, index) => (
-            <Grid key={index} style={{ padding: 5 }} item={true} xs={12} md={6}>
-              <Paper className={classes.paper}>
-                <HighchartsReact highcharts={Highcharts} options={item} />
-              </Paper>
-            </Grid>
-          ))}
+          {[optionNbRidersChartRiders, optionNbRidersChartClub, optionParCateA, optionNbLicencesChartRiders].map(
+            (item, index) => (
+              <Grid key={index} style={{ padding: 5 }} item={true} xs={12} md={6}>
+                <Paper className={classes.paper}>
+                  <HighchartsReact highcharts={Highcharts} options={item} />
+                </Paper>
+              </Grid>
+            )
+          )}
         </Grid>
       ) : (
-        <div style={{ textAlign: "center" }}>
-          Aucune participation à des épreuves disponible pour les critères de
-          recherche
+        <div style={{ textAlign: 'center' }}>
+          Aucune participation à des épreuves disponible pour les critères de recherche
         </div>
       )}
     </div>
@@ -238,14 +214,14 @@ const styles = (theme: Theme) => ({
     marginBottom: 24
   },
   paper: {
-    textAlign: "center",
+    textAlign: 'center',
     color: theme.palette.text.secondary
   },
   headerTiles: {
-    overflowX: "hidden",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
+    overflowX: 'hidden',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRight: `5px solid ${theme.palette.secondary.main}`
   },
   headerTileIcon: {
@@ -255,13 +231,13 @@ const styles = (theme: Theme) => ({
   },
   tileText: {
     fontSize: 20,
-    color: theme.palette.grey["400"]
+    color: theme.palette.grey['400']
   },
   sectionTitle: {
     paddingLeft: theme.spacing(2)
   },
   chart: {
-    width: "100%"
+    width: '100%'
   },
   textField: {
     marginLeft: theme.spacing(1),
@@ -269,8 +245,8 @@ const styles = (theme: Theme) => ({
     width: 200
   },
   container: {
-    display: "flex",
-    flexWrap: "wrap"
+    display: 'flex',
+    flexWrap: 'wrap'
   }
 });
 
