@@ -454,6 +454,7 @@ const InfoRace = (props: IInfoRaceProps) => {
           <Grid item={true} xs={8}>
             {props.competition.fede && props.competition.fede !== FedeEnum.NL && (
               <ClubSelect
+                helperText={''}
                 isError={error.club}
                 dept={props.competition.dept}
                 fede={props.competition.fede}

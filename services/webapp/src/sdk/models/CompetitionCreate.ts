@@ -360,8 +360,7 @@ export function CompetitionCreateToJSON(value?: CompetitionCreate | null): any {
 export enum CompetitionCreateCompetitionTypeEnum {
     CX = 'CX',
     ROUTE = 'ROUTE',
-    VTT = 'VTT',
-    AUTRE = 'AUTRE'
+    VTT = 'VTT'
 }
 /**
 * @export

@@ -249,9 +249,6 @@ const CompetNavBar = (props: ICompetNavBar) => {
       case CompetitionCreateCompetitionTypeEnum.VTT:
         type = CompetitionCreateCompetitionTypeEnum.VTT;
         break;
-      case CompetitionCreateCompetitionTypeEnum.AUTRE:
-        type = CompetitionCreateCompetitionTypeEnum.AUTRE;
-        break;
       default:
         setNewCompetition({ ...newCompetition, isValidResults: false });
     }

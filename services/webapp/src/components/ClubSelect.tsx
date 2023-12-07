@@ -1,19 +1,14 @@
-import React, { HTMLAttributes, useEffect, useState } from "react";
-import CreatableSelect from "react-select/creatable";
-import {
-  createStyles,
-  makeStyles,
-  Theme,
-  useTheme
-} from "@material-ui/core/styles";
-import TextField, { BaseTextFieldProps } from "@material-ui/core/TextField";
-import Paper from "@material-ui/core/Paper";
-import { ControlProps } from "react-select/src/components/Control";
-import { MenuProps } from "react-select/src/components/Menu";
-import { ValueType } from "react-select/src/types";
-import { apiClubs } from "../util/api";
-import { FedeEnum, ClubRow } from "../sdk/models";
-import { Button, FormControl, FormHelperText } from "@material-ui/core";
+import React, { HTMLAttributes, useEffect, useState } from 'react';
+import CreatableSelect from 'react-select/creatable';
+import { createStyles, makeStyles, Theme, useTheme } from '@material-ui/core/styles';
+import TextField, { BaseTextFieldProps } from '@material-ui/core/TextField';
+import Paper from '@material-ui/core/Paper';
+import { ControlProps } from 'react-select/src/components/Control';
+import { MenuProps } from 'react-select/src/components/Menu';
+import { ValueType } from 'react-select/src/types';
+import { apiClubs } from '../util/api';
+import { ClubRow, FedeEnum } from '../sdk/models';
+import { Button, FormControl, FormHelperText } from '@material-ui/core';
 
 export interface IOptionType {
   label: string;
@@ -22,6 +17,7 @@ export interface IOptionType {
 
 interface IClubSelect {
   dept: string;
+  helperText: string;
   onSelectClubName?: (value: string) => void;
   onSelectClubId?: (value: number) => void;
   defaultChosenClub: IOptionType;
@@ -32,24 +28,24 @@ interface IClubSelect {
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     formControl: {
-      width: "90%",
-      marginRight: "50px",
-      marginTop: "0px",
+      width: '90%',
+      marginRight: '50px',
+      marginTop: '0px',
       zIndex: 1
     },
     input: {
-      display: "flex",
+      display: 'flex',
       padding: 0,
-      height: "auto"
+      height: 'auto'
     },
     placeholder: {
-      position: "absolute",
+      position: 'absolute',
       left: 2,
       bottom: 6,
       fontSize: 16
     },
     paper: {
-      position: "absolute",
+      position: 'absolute',
       zIndex: 1,
       marginTop: theme.spacing(1),
       left: 0,
@@ -58,8 +54,7 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-type InputComponentProps = Pick<BaseTextFieldProps, "inputRef"> &
-  HTMLAttributes<HTMLDivElement>;
+type InputComponentProps = Pick<BaseTextFieldProps, 'inputRef'> & HTMLAttributes<HTMLDivElement>;
 
 function inputComponent({ inputRef, ...props }: InputComponentProps) {
   return <div ref={inputRef} {...props} />;
@@ -92,11 +87,7 @@ function Control(props: ControlProps<IOptionType>) {
 
 function Menu(props: MenuProps<IOptionType>) {
   return (
-    <Paper
-      square={true}
-      className={props.selectProps.classes.paper}
-      {...props.innerProps}
-    >
+    <Paper square={true} className={props.selectProps.classes.paper} {...props.innerProps}>
       {props.children}
     </Paper>
   );
@@ -114,14 +105,13 @@ export default function ClubSelect({
   onSelectClubName,
   defaultChosenClub,
   fede,
+  helperText,
   isError
 }: IClubSelect) {
   // @ts-ignore
   const classes = useStyles();
   const theme = useTheme();
-  const [selectedClub, setSelectedClub] = React.useState<
-    ValueType<IOptionType>
-  >(null);
+  const [selectedClub, setSelectedClub] = React.useState<ValueType<IOptionType>>(null);
   const [clubsOptionType, setClubsOptionType] = useState<IOptionType[]>([]);
   const [clubs, setClubs] = useState<ClubRow[]>([]);
   const [isLoading, setLoading] = useState<boolean>(false);
@@ -134,27 +124,18 @@ export default function ClubSelect({
 
     const loptionType = lclubs.map((clubOption: ClubRow) => ({
       value: clubOption.id,
-      label:
-        clubOption.longName +
-        (clubOption.dept ? " (" + clubOption.dept + ")" : "")
+      label: clubOption.longName + (clubOption.dept ? ' (' + clubOption.dept + ')' : '')
     }));
     setClubsOptionType(loptionType);
     // empty chosen club should display "blank" item the list
     // empty chosen club should display "blank" item the list
-    if (defaultChosenClub.label === "" || defaultChosenClub.label === null) {
+    if (defaultChosenClub.label === '' || defaultChosenClub.label === null) {
       setSelectedClub(null);
       return;
     }
     if (defaultChosenClub.value !== null) {
-      setSelectedClub(
-        loptionType.find(option => option.value === defaultChosenClub.value)
-      );
-    } else
-      setSelectedClub(
-        loptionType.filter(club =>
-          club.label.includes(defaultChosenClub.label)
-        )[0]
-      );
+      setSelectedClub(loptionType.find(option => option.value === defaultChosenClub.value));
+    } else setSelectedClub(loptionType.filter(club => club.label.includes(defaultChosenClub.label))[0]);
   };
 
   useEffect(() => {
@@ -166,14 +147,10 @@ export default function ClubSelect({
     const selected = value as IOptionType;
     if (selected && selected.label) {
       onSelectClubName
-        ? onSelectClubName(
-            clubs.filter(club => club.id === selected.value)[0].longName
-          )
-        : onSelectClubId(
-            clubs.filter(club => club.id === selected.value)[0].id
-          );
+        ? onSelectClubName(clubs.filter(club => club.id === selected.value)[0].longName)
+        : onSelectClubId(clubs.filter(club => club.id === selected.value)[0].id);
     } else if (value === null) {
-      onSelectClubName ? onSelectClubName("") : onSelectClubId(null);
+      onSelectClubName ? onSelectClubName('') : onSelectClubId(null);
     }
   };
 
@@ -184,13 +161,11 @@ export default function ClubSelect({
     });
     const newClubOption = {
       value: newClub.id,
-      label: newClub.longName + (dept ? " (" + dept + ")" : "")
+      label: newClub.longName + (dept ? ' (' + dept + ')' : '')
     };
     setClubsOptionType(prevState => prevState.concat([newClubOption]));
     setSelectedClub(newClubOption);
-    onSelectClubName
-      ? onSelectClubName(newClub.longName)
-      : onSelectClubId(newClub.id);
+    onSelectClubName ? onSelectClubName(newClub.longName) : onSelectClubId(newClub.id);
     setLoading(false);
   };
 
@@ -198,8 +173,8 @@ export default function ClubSelect({
     input: (base: any) => ({
       ...base,
       color: theme.palette.text.primary,
-      "& input": {
-        font: "inherit"
+      '& input': {
+        font: 'inherit'
       }
     })
   };
@@ -213,7 +188,7 @@ export default function ClubSelect({
         value={selectedClub}
         onChange={handleChangeSingle}
         onCreateOption={handleCreate}
-        noOptionsMessage={() => "Aucune valeur correspondante"}
+        noOptionsMessage={() => 'Aucune valeur correspondante'}
         isDisabled={isLoading}
         isLoading={isLoading}
         components={components}
@@ -221,11 +196,12 @@ export default function ClubSelect({
         styles={selectStyles}
         inputId="react-select-single"
         TextFieldProps={{
-          label: "Club",
+          helperText: helperText,
+          label: 'Club',
           InputLabelProps: {
             required: true,
             error: isError,
-            htmlFor: "react-select-single",
+            htmlFor: 'react-select-single',
             shrink: true
           }
         }}
@@ -233,29 +209,21 @@ export default function ClubSelect({
           <div
             style={{
               flex: 1,
-              flexDirection: "row",
+              flexDirection: 'row',
               padding: 5,
-              backgroundColor: "transparent"
+              backgroundColor: 'transparent'
             }}
           >
-            <div style={{ alignSelf: "flex-start", paddingBottom: 10 }}>
+            <div style={{ alignSelf: 'flex-start', paddingBottom: 10 }}>
               Le club "<i>{value}</i>" n'existe pas
             </div>
-            <Button
-              style={{ alignSelf: "flex-end" }}
-              variant="contained"
-              color="primary"
-            >
+            <Button style={{ alignSelf: 'flex-end' }} variant="contained" color="primary">
               Créer ce club
             </Button>
           </div>
         )}
       />
-      {isError && !selectedClub && (
-        <FormHelperText error={true}>
-          Le club doit être renseigné
-        </FormHelperText>
-      )}
+      {isError && !selectedClub && <FormHelperText error={true}>Le club doit être renseigné</FormHelperText>}
     </FormControl>
   );
 }

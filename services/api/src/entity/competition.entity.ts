@@ -31,8 +31,7 @@ export enum Category {
 export enum CompetitionType {
   CX = "CX",
   ROUTE = "ROUTE",
-  VTT = "VTT",
-  AUTRE = "AUTRE"
+  VTT = "VTT"
 }
 
 /**

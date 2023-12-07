@@ -45,7 +45,7 @@ const tableIcons = {
   Check: forwardRef((props, ref: React.Ref<SVGSVGElement>) => <Check {...props} ref={ref} />),
   Clear: forwardRef((props, ref: React.Ref<SVGSVGElement>) => <Clear {...props} ref={ref} />),
   Delete: forwardRef((props, ref: React.Ref<SVGSVGElement>) => (
-    <DeleteOutline style={{ fontSize: '20px' }} {...props} ref={ref} />
+    <DeleteOutline style={{ fontSize: '20px', color: 'red' }} {...props} ref={ref} />
   )),
   DetailPanel: forwardRef((props, ref: React.Ref<SVGSVGElement>) => <ChevronRight {...props} ref={ref} />),
   Edit: forwardRef((props, ref: React.Ref<SVGSVGElement>) => (
@@ -244,6 +244,31 @@ const LicencesPage = (props: ILicencesProps) => {
             field: 'saison',
             headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
             sorting: false
+          },
+          {
+            title: 'Auteur',
+            field: 'author',
+            headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
+            sorting: false,
+            hidden: true,
+            export: true
+          },
+          {
+            title: 'Date MAJ',
+            field: 'lastChanged',
+            headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
+            sorting: false,
+            hidden: true,
+            export: true,
+            render: data => data.lastChanged?.toString()
+          },
+          {
+            title: 'Comment.',
+            field: 'comment',
+            headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
+            sorting: false,
+            hidden: true,
+            export: true
           }
         ]}
         data={fetchLicences}
@@ -337,14 +362,16 @@ const LicencesPage = (props: ILicencesProps) => {
               props.history.push('/licences/');
             }
           },
-          {
-            icon: 'edit',
+          rowData => ({
+            icon: () => (
+              <Link to={'/licence/' + rowData.id}>
+                <Edit style={{ fontSize: '20px' }} />
+              </Link>
+            ),
             iconProps: { fontSize: 'small' },
             tooltip: T.LICENCES.EDIT_TOOL_TIP,
-            onClick: (event, rowData: any) => {
-              props.history.push('/licence/' + rowData.id);
-            }
-          },
+            onClick: () => {}
+          }),
           {
             icon: () => (
               <ActionButton color={'primary'}>
@@ -385,7 +412,9 @@ const LicencesPage = (props: ILicencesProps) => {
           },
           toolbar: {
             searchTooltip: T.LICENCES.TOOLBAR.SEARCH_TOOL_TIP,
-            searchPlaceholder: 'Nom Prenom Fédé N° Licence'
+            searchPlaceholder: 'Nom Prenom Fédé N° Licence',
+            exportCSVName: 'Exporter en CSV',
+            exportPDFName: 'Exporter en PDF'
           }
         }}
       />

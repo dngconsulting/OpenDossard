@@ -5,7 +5,7 @@ import moment from 'moment';
 import Select, { components } from 'react-select';
 import _ from 'lodash';
 import { FEDERATIONS } from '../pages/common/shared-entities';
-import { CompetitionType } from '../sdk/models/CompetitionType';
+import { CompetitionEntityCompetitionTypeEnum } from '../sdk/models/CompetitionEntityCompetitionTypeEnum';
 import { LOCATION, LocationType } from '../util/LOCATION';
 import React, { useContext, useEffect, useState } from 'react';
 import { CompetitionEntity, CompetitionFilter, Departement, RaceRow } from '../sdk';
@@ -396,7 +396,7 @@ export const CompetitionFilterPanel = ({
                 })
           }
           isMulti
-          options={Object.keys(CompetitionType).map(c => {
+          options={Object.keys(CompetitionEntityCompetitionTypeEnum).map(c => {
             return {
               value: c,
               label: c

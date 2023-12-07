@@ -340,8 +340,7 @@ export function CompetitionEntityToJSON(value?: CompetitionEntity | null): any {
 export enum CompetitionEntityCompetitionTypeEnum {
     CX = 'CX',
     ROUTE = 'ROUTE',
-    VTT = 'VTT',
-    AUTRE = 'AUTRE'
+    VTT = 'VTT'
 }
 /**
 * @export

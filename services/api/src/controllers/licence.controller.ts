@@ -83,6 +83,7 @@ export class LicenceController {
                                           : 'l.catev as "catev"'
                                       },
                                       l.saison,
+                                      l.comment,
                                       l.catea
                                from licence l
                                where REPLACE(CONCAT(UPPER(l.name), UPPER(unaccent(l.first_name)),

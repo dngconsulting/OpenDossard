@@ -56,6 +56,7 @@ interface IForm {
     catea: string;
     club: string;
     fede: string;
+    comment: string;
   };
   riderNumber: string;
   catev: string;
@@ -154,8 +155,6 @@ export const CreationForm = ({
   const displayCategory = () => {
     if (!competition) return '';
     switch (competition.competitionType) {
-      case CompetitionEntityCompetitionTypeEnum.AUTRE:
-        return 'Caté.';
       case CompetitionEntityCompetitionTypeEnum.ROUTE:
         return 'Caté. Route';
       case CompetitionEntityCompetitionTypeEnum.VTT:
@@ -281,11 +280,13 @@ export const CreationForm = ({
             )}
             {competition &&
               competition.fede &&
-              FEDERATIONS[competition.fede].catev.map((value: ICategory, index: number) => (
-                <MenuItem key={index} value={value?.value}>
-                  {value?.label}
-                </MenuItem>
-              ))}
+              FEDERATIONS[competition.fede].catev
+                .filter(catev => catev.competitionTypes.includes(competition.competitionType))
+                .map((value: ICategory, index: number) => (
+                  <MenuItem key={index} value={value?.value}>
+                    {value?.label}
+                  </MenuItem>
+                ))}
             ))
           </Select>
         </FormControl>

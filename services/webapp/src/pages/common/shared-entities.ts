@@ -1,33 +1,41 @@
 // TODO: all those entities can be shared between front & back
+import { CompetitionEntityCompetitionTypeEnum } from '../../sdk/models/CompetitionEntity';
+
+const ALL_COMPETITION_TYPES = [
+  CompetitionEntityCompetitionTypeEnum.CX,
+  CompetitionEntityCompetitionTypeEnum.ROUTE,
+  CompetitionEntityCompetitionTypeEnum.VTT
+];
 export const CATEV = [
-  { label: 'Catégorie 1', value: '1' },
-  { label: 'Catégorie 2', value: '2' },
-  { label: 'Catégorie 3', value: '3' },
-  { label: 'Catégorie 4', value: '4' },
-  { label: 'Catégorie 5', value: '5' },
-  { label: 'Junior', value: 'J' },
-  { label: 'Cadet', value: 'C' },
-  { label: 'Minime', value: 'M' },
-  { label: 'Benjamin', value: 'B' },
-  { label: 'Pupille', value: 'PU' },
-  { label: 'Poussin', value: 'PO' },
-  { label: 'Moustic', value: 'MO' }
+  { label: 'Catégorie 1', value: '1', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Catégorie 2', value: '2', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Catégorie 3', value: '3', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Catégorie 4', value: '4', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Catégorie 5', value: '5', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Dames', value: 'DAMES', competitionTypes: [CompetitionEntityCompetitionTypeEnum.CX] },
+  { label: 'Junior', value: 'J', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Cadet', value: 'C', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Minime', value: 'M', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Benjamin', value: 'B', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Pupille', value: 'PU', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Poussin', value: 'PO', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Moustic', value: 'MO', competitionTypes: ALL_COMPETITION_TYPES }
 ];
 // Nouvelles catégories UFOLEP
 export const CATEV_UFOLEP = [
-  { label: 'Catégorie 1', value: '1' },
-  { label: 'Catégorie 2', value: '2' },
-  { label: 'Catégorie 3', value: '3' },
-  { label: 'Catégorie 4A', value: '4A' },
-  { label: 'Catégorie 4B', value: '4B' },
-  { label: 'Féminines', value: 'FEM' },
-  { label: 'Junior', value: 'J' },
-  { label: 'Cadet', value: 'C' },
-  { label: 'Minime', value: 'M' },
-  { label: 'Benjamin', value: 'B' },
-  { label: 'Pupille', value: 'PU' },
-  { label: 'Poussin', value: 'PO' },
-  { label: 'Moustic', value: 'MO' }
+  { label: 'Catégorie 1', value: '1', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Catégorie 2', value: '2', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Catégorie 3', value: '3', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Catégorie 4A', value: '4A', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Catégorie 4B', value: '4B', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Féminines', value: 'FEM', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Junior', value: 'J', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Cadet', value: 'C', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Minime', value: 'M', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Benjamin', value: 'B', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Pupille', value: 'PU', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Poussin', value: 'PO', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Moustic', value: 'MO', competitionTypes: ALL_COMPETITION_TYPES }
 ];
 
 export const CATEA_FSGT: Array<{

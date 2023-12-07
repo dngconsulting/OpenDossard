@@ -22,6 +22,7 @@ import { ConfirmDialog } from '../../util';
 import { LoaderIndicator } from '../../components/LoaderIndicator';
 import { BREAK_POINT_MOBILE_TABLET } from '../../theme/theme';
 import { toMMDDYYYY, toTime } from '../../util/date';
+import { CompetitionEntityCompetitionTypeEnum } from '../../sdk/models/CompetitionEntity';
 
 interface ILicencesProps {
   items: any[];
@@ -33,6 +34,7 @@ interface ILicencesProps {
 interface ICategory {
   label: string;
   value: string;
+  competitionType: CompetitionEntityCompetitionTypeEnum | undefined;
 }
 
 interface IAgeCategory {
@@ -142,8 +144,9 @@ const LicencesPage = (props: ILicencesProps) => {
     return () => setEditMode(false);
   }, []);
 
-  const autoSelectCateA = (year: string) => {
-    const age = new Date().getFullYear() - parseInt(year);
+  const autoSelectCateA = (saison: string, birthyear: string) => {
+    const age = saison ? parseInt(saison) - parseInt(birthyear) : new Date().getFullYear() - parseInt(birthyear);
+    console.log('age ' + parseInt(saison));
     let catea = '';
     if (newLicence.gender === 'F') {
       catea += 'F';
@@ -412,7 +415,7 @@ const LicencesPage = (props: ILicencesProps) => {
                     setNewLicence({
                       ...newLicence,
                       saison: e.target.value,
-                      ...(newLicence.birthYear ? { catea: autoSelectCateA(newLicence.birthYear) } : {})
+                      ...(newLicence.birthYear ? { catea: autoSelectCateA(e.target.value, newLicence.birthYear) } : {})
                     });
                   }}
                   error={validation.saison}
@@ -508,7 +511,7 @@ const LicencesPage = (props: ILicencesProps) => {
                 setNewLicence({
                   ...newLicence,
                   birthYear: e.target.value,
-                  catea: autoSelectCateA(e.target.value)
+                  catea: autoSelectCateA(newLicence.saison, e.target.value)
                 });
               }}
             />
@@ -585,10 +588,17 @@ const LicencesPage = (props: ILicencesProps) => {
                 }}
                 options={
                   newLicence.fede &&
-                  fedeDetails.catev.map((catev: ICategory) => ({
-                    value: catev.value,
-                    label: catev.label
-                  }))
+                  fedeDetails.catev
+                    .filter(catev =>
+                      catev.competitionTypes.includes(
+                        CompetitionEntityCompetitionTypeEnum.ROUTE,
+                        CompetitionEntityCompetitionTypeEnum.VTT
+                      )
+                    )
+                    .map((catev: ICategory) => ({
+                      value: catev.value,
+                      label: catev.label
+                    }))
                 }
               />
             </FormControl>
@@ -615,10 +625,12 @@ const LicencesPage = (props: ILicencesProps) => {
                 }}
                 options={
                   newLicence.fede &&
-                  fedeDetails.catev.map((catev: ICategory) => ({
-                    value: catev.value,
-                    label: catev.label
-                  }))
+                  fedeDetails.catev
+                    .filter(catev => catev.competitionTypes.includes(CompetitionEntityCompetitionTypeEnum.CX))
+                    .map((catev: ICategory) => ({
+                      value: catev.value,
+                      label: catev.label
+                    }))
                 }
                 style={{ width: '87%' }}
               />
@@ -655,6 +667,11 @@ const LicencesPage = (props: ILicencesProps) => {
           <Grid item={true} xs={10}>
             {newLicence.fede && newLicence.fede !== FedeEnum.NL && (
               <ClubSelect
+                helperText={
+                  newLicence.fede === FedeEnum.UFOLEP || newLicence.fede === FedeEnum.FFC
+                    ? 'En majuscule, ne pas utiliser de caractères accentués'
+                    : 'Première lettre du club en majuscule, puis le reste en minuscule (Ex: Jean-Paul)'
+                }
                 isError={validation.club}
                 dept={newLicence.dept}
                 fede={newLicence.fede}
