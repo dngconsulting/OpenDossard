@@ -291,6 +291,7 @@ const LicencesPage = (props: ILicencesProps) => {
           searchFieldStyle: { width: 320 },
           exportButton: true,
           exportFileName: 'licences',
+          exportDelimiter: ';',
           headerStyle: {
             backgroundColor: cadtheme.palette.primary.main,
             color: '#FFF',
