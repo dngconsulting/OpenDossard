@@ -695,7 +695,7 @@ const LicencesPage = (props: ILicencesProps) => {
           placeholder={'Commentaires'}
         />
       </Grid>
-      {newLicence.lastChanged && (
+      {newLicence.author && (
         <div>
           Dernière modification réalisée le {toMMDDYYYY(newLicence?.lastChanged)} à {toTime(newLicence?.lastChanged)}{' '}
           par {newLicence?.author}
