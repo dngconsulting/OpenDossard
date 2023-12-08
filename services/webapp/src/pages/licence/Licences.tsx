@@ -300,7 +300,10 @@ const LicencesPage = (props: ILicencesProps) => {
           selection: false,
           showTitle: false,
           searchFieldStyle: { width: 320 },
-          exportButton: true,
+          exportButton: {
+            csv: true,
+            pdf: false
+          },
           exportFileName: 'licences',
           exportDelimiter: ';',
           headerStyle: {
@@ -426,8 +429,7 @@ const LicencesPage = (props: ILicencesProps) => {
           toolbar: {
             searchTooltip: T.LICENCES.TOOLBAR.SEARCH_TOOL_TIP,
             searchPlaceholder: 'Nom Prenom Fédé N° Licence',
-            exportCSVName: 'Exporter en CSV',
-            exportPDFName: 'Exporter en PDF'
+            exportCSVName: 'Exporter en CSV'
           }
         }}
       />
