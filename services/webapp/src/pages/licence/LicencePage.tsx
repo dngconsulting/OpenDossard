@@ -146,7 +146,6 @@ const LicencesPage = (props: ILicencesProps) => {
 
   const autoSelectCateA = (saison: string, birthyear: string) => {
     const age = saison ? parseInt(saison) - parseInt(birthyear) : new Date().getFullYear() - parseInt(birthyear);
-    console.log('age ' + parseInt(saison));
     let catea = '';
     if (newLicence.gender === 'F') {
       catea += 'F';

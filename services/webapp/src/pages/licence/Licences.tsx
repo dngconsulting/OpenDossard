@@ -32,6 +32,7 @@ import { useWindowDimensions } from '../../util';
 import { Link } from 'react-router-dom';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { licencesPDF } from '../../reports';
+import _ from 'lodash';
 
 interface ILicencesProps {
   items: any[];
@@ -168,7 +169,7 @@ const LicencesPage = (props: ILicencesProps) => {
           {
             title: 'ID',
             field: 'id',
-            headerStyle: { maxWidth: 20, minWidth: 20 },
+            headerStyle: { paddingLeft: 5, maxWidth: 20, minWidth: 20 },
             filterPlaceholder: id
           },
           {
@@ -269,6 +270,16 @@ const LicencesPage = (props: ILicencesProps) => {
             sorting: false,
             hidden: true,
             export: true
+          },
+          {
+            title: 'Com.',
+            field: 'comment',
+            filterCellStyle: { width: 10 },
+            sorting: true,
+            filtering: true,
+            hidden: false,
+            export: false,
+            render: data => (_.isEmpty(data.comment) ? 'N' : 'O')
           }
         ]}
         data={fetchLicences}
@@ -296,7 +307,8 @@ const LicencesPage = (props: ILicencesProps) => {
             backgroundColor: cadtheme.palette.primary.main,
             color: '#FFF',
             fontSize: 15,
-            padding: 5,
+            paddingTop: 5,
+            paddingBottom: 5,
             zIndex: 'auto'
           }
         }}

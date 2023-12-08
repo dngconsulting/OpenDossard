@@ -152,10 +152,18 @@ export class LicenceController {
         qb.andWhere("id=:id", { id: fid.pop().value });
       } else {
         search.filters.forEach((filter: Filter) => {
-          qb.andWhere(
-            mappingLicenceFields[filter.name] + " ilike :" + filter.name,
-            { [filter.name]: "%" + filter.value + "%" }
-          );
+          if (mappingLicenceFields[filter.name] === "comment") {
+            qb.andWhere(
+              mappingLicenceFields[filter.name] +
+                " = '' is " +
+                (filter.value.toLowerCase() === "o" ? "" : "not") +
+                " false"
+            );
+          } else
+            qb.andWhere(
+              mappingLicenceFields[filter.name] + " ilike :" + filter.name,
+              { [filter.name]: "%" + filter.value + "%" }
+            );
         });
 
         if (typeof search.orderBy !== "undefined") {
