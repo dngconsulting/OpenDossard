@@ -114,13 +114,13 @@ export const FEDERATIONS = {
     name: { label: 'FFC', value: 'FFC' },
     catev: [
       ...CATEV,
-      { label: 'Open 1', value: 'OPEN1' },
-      { label: 'Open 2', value: 'OPEN2' },
-      { label: 'Open 3', value: 'OPEN3' },
-      { label: 'Access 1', value: 'ACCESS1' },
-      { label: 'Access 2', value: 'ACCESS2' },
-      { label: 'Access 3', value: 'ACCESS3' },
-      { label: 'Access 4', value: 'ACCESS4' }
+      { label: 'Open 1', value: 'OPEN1', competitionTypes: ALL_COMPETITION_TYPES },
+      { label: 'Open 2', value: 'OPEN2', competitionTypes: ALL_COMPETITION_TYPES },
+      { label: 'Open 3', value: 'OPEN3', competitionTypes: ALL_COMPETITION_TYPES },
+      { label: 'Access 1', value: 'ACCESS1', competitionTypes: ALL_COMPETITION_TYPES },
+      { label: 'Access 2', value: 'ACCESS2', competitionTypes: ALL_COMPETITION_TYPES },
+      { label: 'Access 3', value: 'ACCESS3', competitionTypes: ALL_COMPETITION_TYPES },
+      { label: 'Access 4', value: 'ACCESS4', competitionTypes: ALL_COMPETITION_TYPES }
     ],
     catea: CATEA_FSGT
   },

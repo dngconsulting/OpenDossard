@@ -21,6 +21,7 @@ import {
   Edit,
   FilterList,
   FirstPage,
+  GetApp,
   LastPage,
   PictureAsPdf,
   Remove,
@@ -33,6 +34,7 @@ import { Link } from 'react-router-dom';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { licencesPDF } from '../../reports';
 import _ from 'lodash';
+import { exportCsv } from '../../util/csv';
 
 interface ILicencesProps {
   items: any[];
@@ -146,6 +148,113 @@ const LicencesPage = (props: ILicencesProps) => {
     }
   }));
   const classes = useStyles();
+  const columnsProps = [
+    {
+      title: 'ID',
+      field: 'id',
+      headerStyle: { paddingLeft: 5, maxWidth: 20, minWidth: 20 },
+      filterPlaceholder: id
+    },
+    {
+      title: 'Lic. N°',
+      field: 'licenceNumber',
+      headerStyle: { width: 20, minWidth: 20 }
+    },
+    {
+      title: 'Nom',
+      field: 'name',
+      headerStyle: { width: 150, minWidth: 150, maxWidth: 150 },
+      render: (data, type) => {
+        return (
+          <Tooltip title="Pour accéder au palmarès du coureur, dans une nouvelle fenêtre: Ctrl+click">
+            <Link style={{ cursor: 'pointer' }} to={`/palmares/${data.id}`}>
+              {data.name}
+            </Link>
+          </Tooltip>
+        );
+      }
+    },
+    {
+      title: 'Prénom',
+      field: 'firstName',
+      headerStyle: { width: 100, minWidth: 100, maxWidth: 100 }
+    },
+    {
+      title: 'Club',
+      field: 'club',
+      headerStyle: { minWidth: 200 },
+      render: (data, type) => {
+        return <div style={{ minWidth: 300 }}>{data.club}</div>;
+      }
+    },
+    {
+      title: 'H/F',
+      field: 'gender',
+      headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
+    },
+    {
+      title: 'Dept',
+      field: 'dept',
+      headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
+    },
+    {
+      title: 'Année',
+      field: 'birthYear',
+      headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
+    },
+    {
+      title: 'Caté.A',
+      field: 'catea',
+      headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
+    },
+    {
+      title: 'Caté.V',
+      field: 'catev',
+      headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
+    },
+    {
+      title: 'Caté.CX',
+      field: 'catevCX',
+      headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
+    },
+    {
+      title: 'Fédé',
+      field: 'fede',
+      headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
+      sorting: false
+    },
+    {
+      title: 'Saison',
+      field: 'saison',
+      headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
+      sorting: false
+    },
+    {
+      title: 'Auteur',
+      field: 'author',
+      headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
+      sorting: false,
+      hidden: true
+    },
+    {
+      title: 'Date MAJ',
+      field: 'lastChanged',
+      headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
+      sorting: false,
+      hidden: true,
+      render: data => data.lastChanged?.toString()
+    },
+
+    {
+      title: 'Com.',
+      field: 'comment',
+      filterCellStyle: { width: 10 },
+      sorting: true,
+      filtering: true,
+      hidden: false,
+      render: data => (_.isEmpty(data.comment) ? 'N' : 'O')
+    }
+  ];
   return (
     <div id={'mydiv'}>
       <MaterialTable
@@ -165,123 +274,7 @@ const LicencesPage = (props: ILicencesProps) => {
         }}
         key={tableKey}
         tableRef={tableRef}
-        columns={[
-          {
-            title: 'ID',
-            field: 'id',
-            headerStyle: { paddingLeft: 5, maxWidth: 20, minWidth: 20 },
-            filterPlaceholder: id
-          },
-          {
-            title: 'Lic. N°',
-            field: 'licenceNumber',
-            headerStyle: { width: 20, minWidth: 20 }
-          },
-          {
-            title: 'Nom',
-            field: 'name',
-            headerStyle: { width: 150, minWidth: 150, maxWidth: 150 },
-            render: (data, type) => {
-              return (
-                <Tooltip title="Pour accéder au palmarès du coureur, dans une nouvelle fenêtre: Ctrl+click">
-                  <Link style={{ cursor: 'pointer' }} to={`/palmares/${data.id}`}>
-                    {data.name}
-                  </Link>
-                </Tooltip>
-              );
-            }
-          },
-          {
-            title: 'Prénom',
-            field: 'firstName',
-            headerStyle: { width: 100, minWidth: 100, maxWidth: 100 }
-          },
-          {
-            title: 'Club',
-            field: 'club',
-            headerStyle: { minWidth: 200 },
-            render: (data, type) => {
-              return <div style={{ minWidth: 300 }}>{data.club}</div>;
-            }
-          },
-          {
-            title: 'H/F',
-            field: 'gender',
-            headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
-          },
-          {
-            title: 'Dept',
-            field: 'dept',
-            headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
-          },
-          {
-            title: 'Année',
-            field: 'birthYear',
-            headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
-          },
-          {
-            title: 'Caté.A',
-            field: 'catea',
-            headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
-          },
-          {
-            title: 'Caté.V',
-            field: 'catev',
-            headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
-          },
-          {
-            title: 'Caté.CX',
-            field: 'catevCX',
-            headerStyle: { width: 10, minWidth: 10, maxWidth: 10 }
-          },
-          {
-            title: 'Fédé',
-            field: 'fede',
-            headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
-            sorting: false
-          },
-          {
-            title: 'Saison',
-            field: 'saison',
-            headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
-            sorting: false
-          },
-          {
-            title: 'Auteur',
-            field: 'author',
-            headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
-            sorting: false,
-            hidden: true,
-            export: true
-          },
-          {
-            title: 'Date MAJ',
-            field: 'lastChanged',
-            headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
-            sorting: false,
-            hidden: true,
-            export: true,
-            render: data => data.lastChanged?.toString()
-          },
-          {
-            title: 'Comment.',
-            field: 'comment',
-            headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
-            sorting: false,
-            hidden: true,
-            export: true
-          },
-          {
-            title: 'Com.',
-            field: 'comment',
-            filterCellStyle: { width: 10 },
-            sorting: true,
-            filtering: true,
-            hidden: false,
-            export: false,
-            render: data => (_.isEmpty(data.comment) ? 'N' : 'O')
-          }
-        ]}
+        columns={columnsProps}
         data={fetchLicences}
         icons={tableIcons}
         options={{
@@ -300,12 +293,8 @@ const LicencesPage = (props: ILicencesProps) => {
           selection: false,
           showTitle: false,
           searchFieldStyle: { width: 320 },
-          exportButton: {
-            csv: true,
-            pdf: false
-          },
-          exportFileName: 'licences',
-          exportDelimiter: ';',
+          exportAllData: false,
+          exportButton: false,
           headerStyle: {
             backgroundColor: cadtheme.palette.primary.main,
             color: '#FFF',
@@ -402,6 +391,19 @@ const LicencesPage = (props: ILicencesProps) => {
             onClick: () => {
               licencesPDF(tableRef.current.state.data);
             }
+          },
+          {
+            icon: () => (
+              <ActionButton color={'primary'}>
+                <GetApp style={{ verticalAlign: 'middle' }} />
+                <span style={{ color: 'white' }}>Export CSV</span>
+              </ActionButton>
+            ),
+            tooltip: 'Export la page en CSV',
+            isFreeAction: true,
+            onClick: () => {
+              exportCsv(columnsProps, tableRef.current.state.data, 'licences.csv');
+            }
           }
         ]}
         localization={{
@@ -428,8 +430,7 @@ const LicencesPage = (props: ILicencesProps) => {
           },
           toolbar: {
             searchTooltip: T.LICENCES.TOOLBAR.SEARCH_TOOL_TIP,
-            searchPlaceholder: 'Nom Prenom Fédé N° Licence',
-            exportCSVName: 'Exporter en CSV'
+            searchPlaceholder: 'Nom Prenom Fédé N° Licence'
           }
         }}
       />
