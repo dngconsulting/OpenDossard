@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { forwardRef, useContext, useEffect, useRef, useState } from 'react';
-import MaterialTable, { MTableToolbar, Query, QueryResult } from 'material-table';
+import MaterialTable, { Column, MTableToolbar, Query, QueryResult } from 'material-table';
 import { AppText as T } from '../../util/text';
 import { apiLicences } from '../../util/api';
 import { LicenceEntity as Licence, Search as SearchEntity } from '../../sdk';
@@ -35,6 +35,7 @@ import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { licencesPDF } from '../../reports';
 import _ from 'lodash';
 import { exportCsv } from '../../util/csv';
+import { toMMDDYYYY, toTime } from '../../util/date';
 
 interface ILicencesProps {
   items: any[];
@@ -148,7 +149,7 @@ const LicencesPage = (props: ILicencesProps) => {
     }
   }));
   const classes = useStyles();
-  const columnsProps = [
+  const columnsProps: Column<Licence>[] = [
     {
       title: 'ID',
       field: 'id',
@@ -237,14 +238,38 @@ const LicencesPage = (props: ILicencesProps) => {
       hidden: true
     },
     {
+      title: 'Identifiant',
+      field: 'authorLogin',
+      headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
+      sorting: false,
+      hidden: true
+    },
+    {
+      title: 'Nom et Prénom',
+      field: 'authorNomPrenom',
+      headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
+      sorting: false,
+      hidden: true
+    },
+
+    {
       title: 'Date MAJ',
       field: 'lastChanged',
       headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
       sorting: false,
       hidden: true,
+      export: true,
       render: data => data.lastChanged?.toString()
     },
-
+    {
+      title: 'Heure MAJ',
+      field: 'time',
+      headerStyle: { width: 20, minWidth: 20, maxWidth: 20 },
+      sorting: false,
+      hidden: true,
+      export: true,
+      render: data => data.lastChanged?.toString()
+    },
     {
       title: 'Com.',
       field: 'comment',
@@ -402,7 +427,22 @@ const LicencesPage = (props: ILicencesProps) => {
             tooltip: 'Export la page en CSV',
             isFreeAction: true,
             onClick: () => {
-              exportCsv(columnsProps, tableRef.current.state.data, 'licences.csv');
+              const dataChanged = tableRef.current.state.data.map(row => {
+                const res = {
+                  ...row,
+                  lastChanged: row.author ? toMMDDYYYY(row.lastChanged) : '',
+                  authorNomPrenom: row.author ? `${row.author.split('/')[1]} ${row.author.split('/')[2]}` : '',
+                  time: row.author ? toTime(row.lastChanged) : '',
+                  authorLogin: row.author ? `${row.author.split('/')[0]}` : ''
+                };
+                delete res.author;
+                return res;
+              });
+              exportCsv(
+                columnsProps.filter(column => column.field !== 'author'),
+                dataChanged,
+                'licences'
+              );
             }
           }
         ]}
