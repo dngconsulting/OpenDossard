@@ -12,6 +12,7 @@ export const CATEV = [
   { label: 'Catégorie 3', value: '3', competitionTypes: ALL_COMPETITION_TYPES },
   { label: 'Catégorie 4', value: '4', competitionTypes: ALL_COMPETITION_TYPES },
   { label: 'Catégorie 5', value: '5', competitionTypes: ALL_COMPETITION_TYPES },
+  { label: 'Catégorie 6', value: '6', competitionTypes: ALL_COMPETITION_TYPES },
   { label: 'Dames', value: 'DAMES', competitionTypes: [CompetitionEntityCompetitionTypeEnum.CX] },
   { label: 'Junior', value: 'J', competitionTypes: ALL_COMPETITION_TYPES },
   { label: 'Cadet', value: 'C', competitionTypes: ALL_COMPETITION_TYPES },
@@ -43,6 +44,7 @@ export const CATEA_FSGT: Array<{
   value: string;
   gender: string;
 }> = [
+  { label: 'Super Ancien', value: 'SA', gender: 'H' },
   { label: 'Ancien', value: 'A', gender: 'H' },
   { label: 'Super Vétéran', value: 'SV', gender: 'H' },
   { label: 'Vétéran', value: 'V', gender: 'H' },
@@ -56,6 +58,7 @@ export const CATEA_FSGT: Array<{
   { label: 'Poussin', value: 'PO', gender: 'H' },
   { label: 'Moustic', value: 'MO', gender: 'H' },
   { label: 'NC', value: 'NC', gender: 'H' },
+  { label: 'Féminine super ancien', value: 'SFA', gender: 'F' },
   { label: 'Féminine ancien', value: 'FA', gender: 'F' },
   { label: 'Féminine super vétéran', value: 'FSV', gender: 'F' },
   { label: 'Féminine vétéran', value: 'FV', gender: 'F' },
