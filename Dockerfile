@@ -11,7 +11,7 @@ RUN npm install -g react-scripts
 RUN npm ci
 RUN npm install workbox-cli --global
 COPY services/webapp/ ./
-RUN npx workbox generateSW
+RUN npx workbox-cli generateSW
 ARG MAX_OLD_SPACE_SIZE=3048
 ENV NODE_OPTIONS=--max_old_space_size=${MAX_OLD_SPACE_SIZE}
 ENV GENERATE_SOURCEMAP=false
