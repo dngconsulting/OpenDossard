@@ -2,6 +2,7 @@ import { CompetitionEntityCompetitionTypeEnum, FedeEnum, LicenceEntity as Licenc
 import { apiLicences } from '../../util/api';
 import * as React from 'react';
 import _ from 'lodash';
+import { Tooltip } from '@material-ui/core';
 
 export const filterLicences = async (
   inputValue: string,
@@ -48,28 +49,32 @@ export const filterLicences = async (
           >
             {hightlightNC(licence.catev)} {hightlightNC(licence.catea)} {hightlightNC(licence.fede)}
           </div>
-          <div
-            style={{
-              position: 'absolute',
-              right: 25,
-              bottom: 5,
-              backgroundColor: activeColor,
-              clipPath: 'circle(50%)',
-              width: '10px',
-              height: '10px'
-            }}
-          ></div>
-          <div
-            style={{
-              position: 'absolute',
-              right: 10,
-              bottom: 5,
-              backgroundColor: commentColor,
-              clipPath: 'circle(50%)',
-              width: '10px',
-              height: '10px'
-            }}
-          />
+          <Tooltip title={<h2>Année de licence : {licence?.saison ?? 'non renseignée'}</h2>}>
+            <div
+              style={{
+                position: 'absolute',
+                right: 25,
+                bottom: 5,
+                backgroundColor: activeColor,
+                clipPath: 'circle(50%)',
+                width: '10px',
+                height: '10px'
+              }}
+            ></div>
+          </Tooltip>
+          <Tooltip title={<h2>{licence?.comment}</h2>}>
+            <div
+              style={{
+                position: 'absolute',
+                right: 10,
+                bottom: 5,
+                backgroundColor: commentColor,
+                clipPath: 'circle(50%)',
+                width: '10px',
+                height: '10px'
+              }}
+            />
+          </Tooltip>
           <div style={{ fontSize: 'small' }}>
             {' '}
             Lic. N°: {hightlightNC(licence.licenceNumber)},Année : {hightlightNC(licence.birthYear)},Dept :{' '}
