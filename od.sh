@@ -3,20 +3,20 @@
 goprod() {
     env > fic
     echo "Pulling des images"
-    docker-compose -f docker-compose.prod.yml pull
+    docker compose -f docker-compose.prod.yml pull
     echo "Lancement des conteneurs"
-    docker-compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
+    docker compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
     echo "Verification du conteneur api_webpp"
     docker inspect api_webapp
     docker image prune --all --force &
 }
 
 start() {
-    docker-compose up --remove-orphans -d
+    docker compose up --remove-orphans --force-recreate -d
 }
 
 stop() {
-    docker-compose down --remove-orphans
+    docker compose down --remove-orphans
 }
 
 restart() {

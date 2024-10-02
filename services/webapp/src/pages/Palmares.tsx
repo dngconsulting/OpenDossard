@@ -152,7 +152,7 @@ const PalmaresPage = (props: IStatsPageProps) => {
                 <h4 className="vertical-timeline-element-title">{raceRow.name}</h4>
                 <h5 className="vertical-timeline-element-subtitle">Course {raceRow.raceCode}</h5>
                 <p style={{ margin: 0 }}>
-                  Classement scratch : <strong>{getClassement(raceRow) + getIeme(raceRow)}</strong>
+                  Classement par catégorie : <strong>{getClassement(raceRow) + getIeme(raceRow)}</strong>
                   <br />
                   <a>Consulter classement complet</a>
                 </p>

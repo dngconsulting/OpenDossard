@@ -233,34 +233,42 @@ export class RacesCtrl {
   })
   @ApiResponse({ status: 200, type: RaceRow, isArray: true })
   public async getPalmares(@Param("id") licenceId: number): Promise<RaceRow[]> {
-    const query = `select r.id,
-                              r.race_code as "raceCode",
-                              r.catev,
-                              r.chrono,
-                              r.rider_dossard as "riderNumber",
-                              r.ranking_scratch as "rankingScratch",
-                              r.number_min as "numberMin",
-                              r.number_max as "numberMax",
-                              r.licence_id as "licenceId",
-                              r.sprintchallenge,
-                              r.comment,
-                              r.competition_id as "competitionId",
-                              concat(l.name, ' ', l.first_name) as "riderName",
-                              c.name,
-                              c.event_date  as "competitionDate",
-                              c.competition_type as "competitionType",
-                              c.races as "competitionRaces",
-                              l.licence_number as "licenceNumber",
-                              r.club,
-                              l.gender,
-                              c.fede,
-                              l.birth_year as "birthYear",
-                              r.catea
-                       from race r
-                                join licence l on r.licence_id = l.id
-                                join competition c on r.competition_id = c.id
-                       where r.licence_id = $1
-                       order by r.id desc`;
+    const query = `SELECT R.ID,
+                          R.RACE_CODE                                                AS "raceCode",
+                          R.CATEV,
+                          R.CHRONO,
+                          R.RIDER_DOSSARD                                            AS "riderNumber",
+                          NULLIF((SELECT COUNT(*)
+                                  FROM RACE RR
+                                         JOIN LICENCE LL ON RR.LICENCE_ID = LL.ID
+                                  WHERE RR.COMPETITION_ID = R.COMPETITION_ID
+                                    AND RR.CATEV = R.CATEV
+                                    AND RR.RANKING_SCRATCH <= R.RANKING_SCRATCH), 0) as "rankingScratch",
+                          R.NUMBER_MIN                                               AS "numberMin",
+                          R.NUMBER_MAX                                               AS "numberMax",
+                          R.LICENCE_ID                                               AS "licenceId",
+                          R.SPRINTCHALLENGE,
+                          R.COMMENT,
+                          R.COMPETITION_ID                                           AS "competitionId",
+                          CONCAT(L.NAME,
+                                 ' ',
+                                 L.FIRST_NAME)                                       AS "riderName",
+                          C.NAME,
+                          C.EVENT_DATE                                               AS "competitionDate",
+                          C.COMPETITION_TYPE                                         AS "competitionType",
+                          C.RACES                                                    AS "competitionRaces",
+                          L.LICENCE_NUMBER                                           AS "licenceNumber",
+                          R.CLUB,
+                          L.GENDER,
+                          C.FEDE,
+                          L.BIRTH_YEAR                                               AS "birthYear",
+                          R.CATEA
+                   FROM RACE R
+                          JOIN LICENCE L ON R.LICENCE_ID = L.ID
+                          JOIN COMPETITION C ON R.COMPETITION_ID = C.ID
+                   WHERE R.LICENCE_ID = $1
+                     AND (R.COMMENT is NULL OR R.COMMENT <> 'NC')
+                   ORDER BY R.ID DESC`;
     return await this.entityManager.query(query, [licenceId]);
   }
   @Get("withpalmares/:query")
