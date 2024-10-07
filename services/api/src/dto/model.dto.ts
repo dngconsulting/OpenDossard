@@ -1,10 +1,10 @@
-import { LicenceEntity } from '../entity/licence.entity';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { FederationEntity } from 'src/entity/federation.entity';
-import { Category, CompetitionType } from 'src/entity/competition.entity';
-import { PricingInfo } from 'src/entity/pricing-info';
-import { CompetitionInfo } from 'src/entity/competition-info';
-import { LinkInfo } from '../entity/link-info';
+import { LicenceEntity } from "../entity/licence.entity";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { FederationEntity } from "src/entity/federation.entity";
+import { Category, CompetitionType } from "src/entity/competition.entity";
+import { PricingInfo } from "src/entity/pricing-info";
+import { CompetitionInfo } from "src/entity/competition-info";
+import { LinkInfo } from "../entity/link-info";
 
 export class ClubRow {
   public id?: number;
@@ -47,6 +47,41 @@ export class RaceRow {
   public tours?: number;
 }
 
+export class ChallengeRaceRow {
+  public name?: string;
+  public firstName?: string;
+  public competitionName?: string;
+  public club?: string;
+  public catev?: string;
+  public catea?: string;
+  public dept?: string;
+  public fede?: string;
+  public gender?: string;
+  public rankingScratch?: number;
+  public competitionId?: number;
+  public comment?: string;
+  public eventDate?: string;
+  public sprintchallenge?: boolean;
+  public licenceId?: string;
+  public ptsRace?: number;
+}
+
+export class ChallengeRider {
+  public licenceId?: string;
+  public name?: string;
+  public firstName?: string;
+  public catev?: string;
+  public challengeRaceRows?: ChallengeRaceRow[];
+  public ptsAllRaces?: number;
+  public currentLicenceCatev?: string;
+}
+
+export class Challenge {
+  public id?: number;
+  public name?: string;
+  public riders?: ChallengeRider[];
+}
+
 export class RaceCreate {
   public competitionId?: number;
   public licenceId?: number;
@@ -70,6 +105,12 @@ export class RaceNbRider {
 export class Filter {
   name?: string;
   value?: string;
+}
+
+export class RaceFilter {
+  competitionIds?: number[];
+  gender?: string;
+  catev?: string;
 }
 
 export class LicencesPage {
@@ -103,7 +144,7 @@ export class CompetitionFilter {
 
 export class UpdateToursParams {
   raceId: number;
-  tours?:number;
+  tours?: number;
 }
 
 export class Departement {

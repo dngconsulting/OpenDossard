@@ -1,3 +1,5 @@
+export * from './ChallengeRaceRow';
+export * from './ChallengeRider';
 export * from './ClubEntity';
 export * from './ClubRow';
 export * from './CompetitionCreate';
@@ -13,6 +15,7 @@ export * from './LicencesPage';
 export * from './LinkInfo';
 export * from './PricingInfo';
 export * from './RaceCreate';
+export * from './RaceFilter';
 export * from './RaceNbRider';
 export * from './RaceRow';
 export * from './Search';

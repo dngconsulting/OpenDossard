@@ -2,6 +2,7 @@ import * as React from 'react';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import PeopleIcon from '@material-ui/icons/People';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
+import FormatListIcon from '@material-ui/icons/FormatListBulleted';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 import {
@@ -29,6 +30,7 @@ import PalmaresPage from '../pages/Palmares';
 import { UserEntity as User } from '../sdk';
 import { grey } from '@material-ui/core/colors';
 import { cadtheme } from '../theme/theme';
+import { ChallengePage } from '../pages/challenge/Challenge';
 
 const classNames = require('classnames');
 
@@ -67,6 +69,14 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
 
     {
       key: '5',
+      path: '/challenge',
+      component: ChallengePage,
+      state: { title: 'Challenges du comité FSGT Haute Garonne' },
+      title: 'Challenges FSGT 31',
+      icon: () => <FormatListIcon />
+    },
+    {
+      key: '6',
       path: '/palmares',
       component: PalmaresPage,
       state: { title: 'Palmarès coureurs' },
@@ -74,7 +84,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
       icon: () => <ShowChartIcon />
     },
     {
-      key: '6',
+      key: '7',
       path: '/account',
       state: { title: 'Profile' },
       title: 'Mon compte',

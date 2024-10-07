@@ -25,8 +25,10 @@ import { InjectEntityManager } from "@nestjs/typeorm";
 import * as _ from "lodash";
 import { AuthGuard } from "@nestjs/passport";
 import {
+  ChallengeRider,
   CompetitionFilter,
   RaceCreate,
+  RaceFilter,
   RaceNbRider,
   RaceRow,
   UpdateToursParams
@@ -36,6 +38,7 @@ import { Roles } from "../decorators/roles.decorator";
 import { CompetitionService } from "../services/competition.service";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Readable } from "stream";
+import { ChallengeService } from "../services/challenge.service";
 
 const csv = require("csv-parser");
 
@@ -271,6 +274,7 @@ export class RacesCtrl {
                    ORDER BY R.ID DESC`;
     return await this.entityManager.query(query, [licenceId]);
   }
+
   @Get("withpalmares/:query")
   @ApiOperation({
     operationId: "getLicencesWithPalmares",
@@ -341,6 +345,53 @@ export class RacesCtrl {
                        where r.competition_id = $1
                        order by r.id desc`;
     return await this.entityManager.query(query, [competitionId]);
+  }
+
+  @Post("/filter")
+  @ApiOperation({
+    operationId: "getCompetitionRacesByFilter",
+    summary:
+      "Rechercher tous les coureurs participants à une course en fonction de critères "
+  })
+  @ApiResponse({ status: 200, type: ChallengeRider, isArray: true })
+  @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
+  public async getCompetitionRacesByFilter(
+    @Body() raceFilter: RaceFilter
+  ): Promise<ChallengeRider[]> {
+    const query = `
+      SELECT 
+             LICENCE.NAME as "name",
+             LICENCE.first_name as "firstName",
+             LICENCE.catev as "currentLicenceCatev",
+             COMPETITION.NAME as "competitionName",
+             NULLIF(
+                 (SELECT COUNT(*)
+                  FROM RACE RR
+                         JOIN LICENCE LL ON RR.LICENCE_ID = LL.ID
+                  WHERE RR.COMPETITION_ID = R.COMPETITION_ID
+                    AND RR.CATEV = R.CATEV
+                    AND LL.GENDER = 'H'
+                    AND RR.RANKING_SCRATCH <= R.RANKING_SCRATCH), 0) AS "rankingScratch",
+             R.catev as "catev",
+             R.comment as "comment",
+             R.sprintchallenge as "sprintchallenge",
+             R.competition_id as "competitionId",
+             R.licence_id as "licenceId",
+             COMPETITION.event_date as "eventDate"
+             
+      FROM PUBLIC.RACE R
+             JOIN COMPETITION ON COMPETITION.ID = R.COMPETITION_ID
+             JOIN LICENCE ON LICENCE.ID = R.LICENCE_ID
+      WHERE COMPETITION_ID = ANY($1) AND LICENCE.GENDER = $2
+
+      ORDER BY R.LICENCE_ID,
+               COMPETITION.EVENT_DATE`;
+    const rows = await this.entityManager.query(query, [
+      raceFilter.competitionIds,
+      raceFilter.gender
+    ]);
+    const c = ChallengeService.CalculChallengeFSGT31(rows);
+    return _.orderBy(c, "ptsAllRaces", "desc");
   }
 
   @Post()
