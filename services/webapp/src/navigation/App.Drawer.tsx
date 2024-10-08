@@ -30,7 +30,7 @@ import PalmaresPage from '../pages/Palmares';
 import { UserEntity as User } from '../sdk';
 import { grey } from '@material-ui/core/colors';
 import { cadtheme } from '../theme/theme';
-import { ChallengePage } from '../pages/challenge/Challenge';
+import { ChallengesPage } from '../pages/challenge/Challenges';
 
 const classNames = require('classnames');
 
@@ -69,8 +69,8 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
 
     {
       key: '5',
-      path: '/challenge',
-      component: ChallengePage,
+      path: '/challenges',
+      component: ChallengesPage,
       state: { title: 'Challenges du comité FSGT Haute Garonne' },
       title: 'Challenges FSGT 31',
       icon: () => <FormatListIcon />

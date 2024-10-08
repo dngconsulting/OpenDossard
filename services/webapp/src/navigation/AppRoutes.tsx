@@ -10,6 +10,7 @@ import EngagementPage from '../pages/Engagement';
 import HomePage from '../pages/Home';
 import EditResultsPage from '../pages/results/Results';
 import CompetNavBar from '../pages/competition/CompetitionForm';
+import { ChallengesPage } from '../pages/challenge/Challenges';
 import { ChallengePage } from '../pages/challenge/Challenge';
 
 const WrappedHomepage = isAuthenticated(HomePage);
@@ -21,6 +22,7 @@ const WrappedLicencePage = isAuthenticated(LicencePage);
 const WrappedCompetitionPage = isAuthenticated(CompetNavBar);
 const WrappedLicencesPage = isAuthenticated(LicencesPage);
 const WrappedChallengePage = isAuthenticated(ChallengePage);
+const WrappedChallengesPage = isAuthenticated(ChallengesPage);
 
 export default ({ renderAccount }: { renderAccount: () => ReactElement }) => {
   return (
@@ -29,7 +31,8 @@ export default ({ renderAccount }: { renderAccount: () => ReactElement }) => {
       <Route path="/licences" title="Les licences" component={WrappedLicencesPage} />
       <Route path="/licence/:id" component={WrappedLicencePage} />
       <Route path="/palmares/:id?" title="Palmares" component={WrappedPalmaresPage} />
-      <Route path="/challenge" title="Challenge" component={WrappedChallengePage} />
+      <Route path="/challenges" title="List des challenges" component={WrappedChallengesPage} />
+      <Route path="/challenge/:id" title="Détail d'un challenge" component={WrappedChallengePage} />
       <Route path="/account" title="Mon compte" render={renderAccount} />
       <Route path="/competitions" title="Sélection d'une épreuve" component={WrappedCompetitionChooser} />
       <Route path="/competition/create/:id?" title="Création d'une épreuve" component={WrappedCompetitionPage} />

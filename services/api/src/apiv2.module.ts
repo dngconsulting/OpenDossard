@@ -22,6 +22,8 @@ import { jwtConstants } from "./util/constants";
 import { JwtStrategy } from "./services/jwt.strategy";
 import config from "./config";
 import { CompetitionService } from "./services/competition.service";
+import { ChallengeController } from "./controllers/challenge.controller";
+import { ChallengeEntity } from "./entity/challenge.entity";
 
 const RLog: FactoryProvider = {
   provide: APP_INTERCEPTOR,
@@ -35,6 +37,7 @@ const RLog: FactoryProvider = {
   imports: [
     TypeOrmModule.forFeature([
       LicenceEntity,
+      ChallengeEntity,
       ClubEntity,
       CompetitionEntity,
       RaceEntity,
@@ -60,7 +63,8 @@ const RLog: FactoryProvider = {
     AuthenticationController,
     RacesCtrl,
     CompetitionController,
-    ClubController
+    ClubController,
+    ChallengeController
   ]
 })
 export class Apiv2Module {}

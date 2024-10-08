@@ -363,6 +363,8 @@ export class RacesCtrl {
              LICENCE.NAME as "name",
              LICENCE.first_name as "firstName",
              LICENCE.catev as "currentLicenceCatev",
+             LICENCE.catea as "currentLicenceCatea",
+             LICENCE.club as "currentClub",
              COMPETITION.NAME as "competitionName",
              NULLIF(
                  (SELECT COUNT(*)
@@ -382,16 +384,23 @@ export class RacesCtrl {
       FROM PUBLIC.RACE R
              JOIN COMPETITION ON COMPETITION.ID = R.COMPETITION_ID
              JOIN LICENCE ON LICENCE.ID = R.LICENCE_ID
-      WHERE COMPETITION_ID = ANY($1) AND LICENCE.GENDER = $2
+      WHERE COMPETITION_ID = ANY($1) AND LICENCE.GENDER = $2 ${
+        raceFilter.catev ? "AND LICENCE.catev = $3" : ""
+      }
 
       ORDER BY R.LICENCE_ID,
-               COMPETITION.EVENT_DATE`;
+               COMPETITION.EVENT_DATE, "currentLicenceCatev"`;
     const rows = await this.entityManager.query(query, [
       raceFilter.competitionIds,
-      raceFilter.gender
+      raceFilter.gender,
+      ...(raceFilter.catev ? raceFilter.catev : [])
     ]);
     const c = ChallengeService.CalculChallengeFSGT31(rows);
-    return _.orderBy(c, "ptsAllRaces", "desc");
+    return _.orderBy(
+      c,
+      ["currentLicenceCatev", "ptsAllRaces"],
+      ["asc", "desc"]
+    );
   }
 
   @Post()

@@ -13,6 +13,15 @@ export class ClubRow {
   public shortName?: string;
 }
 
+export class ChallengeDTO {
+  public id?: number;
+  public name?: string;
+  public description?: string;
+  public competitionIds?: number[];
+  public active?: boolean;
+  public reglement?: string;
+}
+
 export class CompetitionReorganize {
   public competitionId?: number;
   public races?: string[];
@@ -71,15 +80,12 @@ export class ChallengeRider {
   public name?: string;
   public firstName?: string;
   public catev?: string;
+  public catea?: string;
   public challengeRaceRows?: ChallengeRaceRow[];
   public ptsAllRaces?: number;
   public currentLicenceCatev?: string;
-}
-
-export class Challenge {
-  public id?: number;
-  public name?: string;
-  public riders?: ChallengeRider[];
+  public currentLicenceCatea?: string;
+  public currentClub?: string;
 }
 
 export class RaceCreate {

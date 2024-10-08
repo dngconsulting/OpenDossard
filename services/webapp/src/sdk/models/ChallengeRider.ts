@@ -46,6 +46,18 @@ export interface ChallengeRider {
     firstName?: string;
     /**
      * 
+     * @type {string}
+     * @memberof ChallengeRider
+     */
+    catev?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ChallengeRider
+     */
+    catea?: string;
+    /**
+     * 
      * @type {Array<ChallengeRaceRow>}
      * @memberof ChallengeRider
      */
@@ -61,19 +73,19 @@ export interface ChallengeRider {
      * @type {string}
      * @memberof ChallengeRider
      */
-    catev?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ChallengeRider
-     */
-    currentLicenceCate?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ChallengeRider
-     */
     currentLicenceCatev?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ChallengeRider
+     */
+    currentLicenceCatea?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ChallengeRider
+     */
+    currentClub?: string;
 }
 
 export function ChallengeRiderFromJSON(json: any): ChallengeRider {
@@ -89,11 +101,13 @@ export function ChallengeRiderFromJSONTyped(json: any, ignoreDiscriminator: bool
         'licenceId': !exists(json, 'licenceId') ? undefined : json['licenceId'],
         'name': !exists(json, 'name') ? undefined : json['name'],
         'firstName': !exists(json, 'firstName') ? undefined : json['firstName'],
+        'catev': !exists(json, 'catev') ? undefined : json['catev'],
+        'catea': !exists(json, 'catea') ? undefined : json['catea'],
         'challengeRaceRows': !exists(json, 'challengeRaceRows') ? undefined : ((json['challengeRaceRows'] as Array<any>).map(ChallengeRaceRowFromJSON)),
         'ptsAllRaces': !exists(json, 'ptsAllRaces') ? undefined : json['ptsAllRaces'],
-        'catev': !exists(json, 'catev') ? undefined : json['catev'],
-        'currentLicenceCate': !exists(json, 'currentLicenceCate') ? undefined : json['currentLicenceCate'],
         'currentLicenceCatev': !exists(json, 'currentLicenceCatev') ? undefined : json['currentLicenceCatev'],
+        'currentLicenceCatea': !exists(json, 'currentLicenceCatea') ? undefined : json['currentLicenceCatea'],
+        'currentClub': !exists(json, 'currentClub') ? undefined : json['currentClub'],
     };
 }
 
@@ -109,11 +123,13 @@ export function ChallengeRiderToJSON(value?: ChallengeRider | null): any {
         'licenceId': value.licenceId,
         'name': value.name,
         'firstName': value.firstName,
+        'catev': value.catev,
+        'catea': value.catea,
         'challengeRaceRows': value.challengeRaceRows === undefined ? undefined : ((value.challengeRaceRows as Array<any>).map(ChallengeRaceRowToJSON)),
         'ptsAllRaces': value.ptsAllRaces,
-        'catev': value.catev,
-        'currentLicenceCate': value.currentLicenceCate,
         'currentLicenceCatev': value.currentLicenceCatev,
+        'currentLicenceCatea': value.currentLicenceCatea,
+        'currentClub': value.currentClub,
     };
 }
 

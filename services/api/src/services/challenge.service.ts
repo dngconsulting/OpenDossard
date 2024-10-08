@@ -10,6 +10,8 @@ export class ChallengeService {
         licenceId: rowRace.licenceId,
         name: rowRace.name,
         currentLicenceCatev: rowRace.currentLicenceCatev,
+        currentClub: rowRace.currentClub,
+        currentLicenceCatea: rowRace.currentLicenceCatea,
         firstName: rowRace.firstName,
         challengeRaceRows: []
       }))
@@ -20,7 +22,6 @@ export class ChallengeService {
         r => r.licenceId === riderRace.licenceId
       );
       // for each rider, compute ranking
-
       riderRaces.forEach((riderRace, index) => {
         const bareme = baremeByCateFSGT31.find(
           b => b.catev === riderRace.catev

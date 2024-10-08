@@ -1,3 +1,4 @@
+export * from './ChallengeDTO';
 export * from './ChallengeRaceRow';
 export * from './ChallengeRider';
 export * from './ClubEntity';
