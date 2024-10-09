@@ -55,6 +55,12 @@ export interface ChallengeDTO {
      * @memberof ChallengeDTO
      */
     reglement?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ChallengeDTO
+     */
+    competitionType?: string;
 }
 
 export function ChallengeDTOFromJSON(json: any): ChallengeDTO {
@@ -73,6 +79,7 @@ export function ChallengeDTOFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'competitionIds': !exists(json, 'competitionIds') ? undefined : json['competitionIds'],
         'active': !exists(json, 'active') ? undefined : json['active'],
         'reglement': !exists(json, 'reglement') ? undefined : json['reglement'],
+        'competitionType': !exists(json, 'competitionType') ? undefined : json['competitionType'],
     };
 }
 
@@ -91,6 +98,7 @@ export function ChallengeDTOToJSON(value?: ChallengeDTO | null): any {
         'competitionIds': value.competitionIds,
         'active': value.active,
         'reglement': value.reglement,
+        'competitionType': value.competitionType,
     };
 }
 

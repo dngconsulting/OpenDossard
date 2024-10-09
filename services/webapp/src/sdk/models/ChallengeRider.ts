@@ -86,6 +86,12 @@ export interface ChallengeRider {
      * @memberof ChallengeRider
      */
     currentClub?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ChallengeRider
+     */
+    gender?: string;
 }
 
 export function ChallengeRiderFromJSON(json: any): ChallengeRider {
@@ -108,6 +114,7 @@ export function ChallengeRiderFromJSONTyped(json: any, ignoreDiscriminator: bool
         'currentLicenceCatev': !exists(json, 'currentLicenceCatev') ? undefined : json['currentLicenceCatev'],
         'currentLicenceCatea': !exists(json, 'currentLicenceCatea') ? undefined : json['currentLicenceCatea'],
         'currentClub': !exists(json, 'currentClub') ? undefined : json['currentClub'],
+        'gender': !exists(json, 'gender') ? undefined : json['gender'],
     };
 }
 
@@ -130,6 +137,7 @@ export function ChallengeRiderToJSON(value?: ChallengeRider | null): any {
         'currentLicenceCatev': value.currentLicenceCatev,
         'currentLicenceCatea': value.currentLicenceCatea,
         'currentClub': value.currentClub,
+        'gender': value.gender,
     };
 }
 

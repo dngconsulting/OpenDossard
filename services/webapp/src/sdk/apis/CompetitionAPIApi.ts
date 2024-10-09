@@ -24,6 +24,9 @@ import {
     CompetitionFilter,
     CompetitionFilterFromJSON,
     CompetitionFilterToJSON,
+    CompetitionIdsDTO,
+    CompetitionIdsDTOFromJSON,
+    CompetitionIdsDTOToJSON,
     CompetitionReorganize,
     CompetitionReorganizeFromJSON,
     CompetitionReorganizeToJSON,
@@ -35,6 +38,10 @@ export interface DeleteCompetitionRequest {
 
 export interface GetCompetitionRequest {
     id: string;
+}
+
+export interface GetCompetitionByIdsRequest {
+    competitionIdsDTO: CompetitionIdsDTO;
 }
 
 export interface GetCompetitionsByFilterRequest {
@@ -132,6 +139,49 @@ export class CompetitionAPIApi extends runtime.BaseAPI {
      */
     async getCompetition(requestParameters: GetCompetitionRequest): Promise<CompetitionEntity> {
         const response = await this.getCompetitionRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Recherche plusieurs épreuves par leur identifiant
+     * Recherche plusieurs épreuves par IDs
+     */
+    async getCompetitionByIdsRaw(requestParameters: GetCompetitionByIdsRequest): Promise<runtime.ApiResponse<Array<CompetitionEntity>>> {
+        if (requestParameters.competitionIdsDTO === null || requestParameters.competitionIdsDTO === undefined) {
+            throw new runtime.RequiredError('competitionIdsDTO','Required parameter requestParameters.competitionIdsDTO was null or undefined when calling getCompetitionByIds.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/competition/ids/{ids}`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CompetitionIdsDTOToJSON(requestParameters.competitionIdsDTO),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(CompetitionEntityFromJSON));
+    }
+
+    /**
+     * Recherche plusieurs épreuves par leur identifiant
+     * Recherche plusieurs épreuves par IDs
+     */
+    async getCompetitionByIds(requestParameters: GetCompetitionByIdsRequest): Promise<Array<CompetitionEntity>> {
+        const response = await this.getCompetitionByIdsRaw(requestParameters);
         return await response.value();
     }
 

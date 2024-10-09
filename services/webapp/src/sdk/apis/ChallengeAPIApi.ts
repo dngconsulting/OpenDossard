@@ -18,7 +18,14 @@ import {
     ChallengeDTO,
     ChallengeDTOFromJSON,
     ChallengeDTOToJSON,
+    ChallengeRider,
+    ChallengeRiderFromJSON,
+    ChallengeRiderToJSON,
 } from '../models';
+
+export interface CalculChallengeRequest {
+    id: number;
+}
 
 export interface GetChallengeByIdRequest {
     id: number;
@@ -28,6 +35,44 @@ export interface GetChallengeByIdRequest {
  * no description
  */
 export class ChallengeAPIApi extends runtime.BaseAPI {
+
+    /**
+     * Calculer les challenges 
+     */
+    async calculChallengeRaw(requestParameters: CalculChallengeRequest): Promise<runtime.ApiResponse<Array<ChallengeRider>>> {
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling calculChallenge.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/challenge/calcul/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ChallengeRiderFromJSON));
+    }
+
+    /**
+     * Calculer les challenges 
+     */
+    async calculChallenge(requestParameters: CalculChallengeRequest): Promise<Array<ChallengeRider>> {
+        const response = await this.calculChallengeRaw(requestParameters);
+        return await response.value();
+    }
 
     /**
      * Renvoie la liste de tous les challenges

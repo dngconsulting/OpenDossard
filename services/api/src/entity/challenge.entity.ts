@@ -15,4 +15,8 @@ export class ChallengeEntity {
   public active: boolean;
   @Column({ type: "integer", name: "competition_ids", array: true })
   public competitionIds: number[];
+  @Column({ nullable: false, name: "bareme" })
+  public bareme: string;
+  @Column({ nullable: false, name: "competition_type" })
+  public competitionType: string;
 }

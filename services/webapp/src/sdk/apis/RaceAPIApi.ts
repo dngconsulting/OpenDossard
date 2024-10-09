@@ -15,9 +15,6 @@
 
 import * as runtime from '../runtime';
 import {
-    ChallengeRider,
-    ChallengeRiderFromJSON,
-    ChallengeRiderToJSON,
     CompetitionFilter,
     CompetitionFilterFromJSON,
     CompetitionFilterToJSON,
@@ -27,9 +24,6 @@ import {
     RaceCreate,
     RaceCreateFromJSON,
     RaceCreateToJSON,
-    RaceFilter,
-    RaceFilterFromJSON,
-    RaceFilterToJSON,
     RaceNbRider,
     RaceNbRiderFromJSON,
     RaceNbRiderToJSON,
@@ -55,10 +49,6 @@ export interface FlagChallengeRequest {
 
 export interface GetCompetitionRacesRequest {
     id: number;
-}
-
-export interface GetCompetitionRacesByFilterRequest {
-    raceFilter: RaceFilter;
 }
 
 export interface GetLicencesWithPalmaresRequest {
@@ -256,47 +246,6 @@ export class RaceAPIApi extends runtime.BaseAPI {
      */
     async getCompetitionRaces(requestParameters: GetCompetitionRacesRequest): Promise<Array<RaceRow>> {
         const response = await this.getCompetitionRacesRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     * Rechercher tous les coureurs participants à une course en fonction de critères 
-     */
-    async getCompetitionRacesByFilterRaw(requestParameters: GetCompetitionRacesByFilterRequest): Promise<runtime.ApiResponse<Array<ChallengeRider>>> {
-        if (requestParameters.raceFilter === null || requestParameters.raceFilter === undefined) {
-            throw new runtime.RequiredError('raceFilter','Required parameter requestParameters.raceFilter was null or undefined when calling getCompetitionRacesByFilter.');
-        }
-
-        const queryParameters: runtime.HTTPQuery = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/api/races/filter`,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: RaceFilterToJSON(requestParameters.raceFilter),
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ChallengeRiderFromJSON));
-    }
-
-    /**
-     * Rechercher tous les coureurs participants à une course en fonction de critères 
-     */
-    async getCompetitionRacesByFilter(requestParameters: GetCompetitionRacesByFilterRequest): Promise<Array<ChallengeRider>> {
-        const response = await this.getCompetitionRacesByFilterRaw(requestParameters);
         return await response.value();
     }
 

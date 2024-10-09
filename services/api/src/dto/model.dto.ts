@@ -20,11 +20,16 @@ export class ChallengeDTO {
   public competitionIds?: number[];
   public active?: boolean;
   public reglement?: string;
+  public competitionType?: string;
 }
 
 export class CompetitionReorganize {
   public competitionId?: number;
   public races?: string[];
+}
+
+export class CompetitionIdsDTO {
+  public ids?: number[];
 }
 
 export class RaceRow {
@@ -73,11 +78,13 @@ export class ChallengeRaceRow {
   public sprintchallenge?: boolean;
   public licenceId?: string;
   public ptsRace?: number;
+  public nbParticipants?: number;
 }
 
 export class ChallengeRider {
   public licenceId?: string;
   public name?: string;
+  public gender?: string;
   public firstName?: string;
   public catev?: string;
   public catea?: string;

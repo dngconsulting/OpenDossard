@@ -9,21 +9,29 @@ import {
   Param,
   Post,
   UseGuards
-} from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
-import { CompetitionEntity, CompetitionType } from '../entity/competition.entity';
-import { RaceEntity } from '../entity/race.entity';
-import { AuthGuard } from '@nestjs/passport';
-import { CompetitionCreate, CompetitionFilter, CompetitionReorganize } from '../dto/model.dto';
-import { TooMuchResults } from '../exception/TooMuchResults';
-import { ROLES, RolesGuard } from '../guards/roles.guard';
-import { Roles } from '../decorators/roles.decorator';
-import { ClubEntity } from 'src/entity/club.entity';
-import { plainToClass } from 'class-transformer';
-import * as _ from 'lodash';
-import { CompetitionService } from '../services/competition.service';
+} from "@nestjs/common";
+import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
+import { EntityManager, In, Repository } from "typeorm";
+import {
+  CompetitionEntity,
+  CompetitionType
+} from "../entity/competition.entity";
+import { RaceEntity } from "../entity/race.entity";
+import { AuthGuard } from "@nestjs/passport";
+import {
+  CompetitionCreate,
+  CompetitionFilter,
+  CompetitionIdsDTO,
+  CompetitionReorganize
+} from "../dto/model.dto";
+import { TooMuchResults } from "../exception/TooMuchResults";
+import { ROLES, RolesGuard } from "../guards/roles.guard";
+import { Roles } from "../decorators/roles.decorator";
+import { ClubEntity } from "src/entity/club.entity";
+import { plainToClass } from "class-transformer";
+import * as _ from "lodash";
+import { CompetitionService } from "../services/competition.service";
 
 const MAX_COMPETITION_TO_DISPLAY = 5000;
 /**
@@ -71,6 +79,37 @@ export class CompetitionController {
     }
 
     return response[0];
+  }
+
+  @Post("/ids/:ids")
+  @ApiOperation({
+    operationId: "getCompetitionByIds",
+    summary: "Recherche plusieurs épreuves par IDs",
+    description: "Recherche plusieurs épreuves par leur identifiant"
+  })
+  @ApiResponse({
+    status: 200,
+    type: CompetitionEntity,
+    isArray: true,
+    description: "Renvoie un tableau d'épreuves"
+  })
+  @Roles(ROLES.MOBILE, ROLES.ORGANISATEUR, ROLES.ADMIN)
+  public async getByIds(
+    @Body() cids: CompetitionIdsDTO
+  ): Promise<CompetitionEntity[]> {
+    const response = await this.repository.find({
+      order: {
+        eventDate: "ASC"
+      },
+      where: { id: In(cids.ids) },
+      relations: ["club"]
+    });
+
+    if (response.length === 0) {
+      throw new BadRequestException(`Competition ${cids.ids} not found`);
+    }
+
+    return response;
   }
 
   @ApiOperation({
