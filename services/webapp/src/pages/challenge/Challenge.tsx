@@ -193,7 +193,7 @@ export const ChallengePage = (props: any) => {
       <ChallengeTabs />
       {currentCate ? (
         <DataTable
-          paginator={true}
+          paginator={false}
           rowExpansionTemplate={rowExpansionTemplate}
           expandedRows={expandedRows}
           onRowToggle={e => setExpandedRows(e.data)}
