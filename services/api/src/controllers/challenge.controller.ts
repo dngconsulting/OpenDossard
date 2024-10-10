@@ -55,6 +55,14 @@ export class ChallengeController {
     @Param("id") id: number
   ): Promise<ChallengeRider[]> {
     const challenge = await this.repositoryChallenge.findOne(id);
+    const nbParticipants =
+      challenge.bareme === "BAREME_AU_POINTS"
+        ? `(SELECT COUNT(*) FROM RACE RR                   JOIN LICENCE LL ON RR.LICENCE_ID = LL.ID
+              WHERE RR.COMPETITION_ID = R.COMPETITION_ID
+                AND RR.CATEV = R.CATEV
+                AND LL.gender = $2) AS "nbParticipants",`
+        : "";
+
     const query = `
       SELECT 
              LICENCE.NAME as "name",
@@ -64,12 +72,7 @@ export class ChallengeController {
              LICENCE.catea as "currentLicenceCatea",
              LICENCE.club as "currentClub",
              COMPETITION.NAME as "competitionName",
-             (SELECT COUNT(*)
-              FROM RACE RR
-                       JOIN LICENCE LL ON RR.LICENCE_ID = LL.ID
-              WHERE RR.COMPETITION_ID = R.COMPETITION_ID
-                AND RR.CATEV = R.CATEV
-                AND LL.gender = $2) AS "nbParticipants",
+             ${nbParticipants}
              NULLIF(
                  (SELECT COUNT(*)
                   FROM RACE RR
