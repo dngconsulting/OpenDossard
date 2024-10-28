@@ -152,12 +152,15 @@ export const CompetitionFilterPanel = ({
 
   const fetchAllRaces = async () => {
     try {
-      const results = await apiRaces.getRaces({
-        competitionFilter
-      });
-      setLocalRaceRows(results);
-      setRaceRows(results);
-      setAllClubs(_.uniq(_.map(results, 'club')));
+      const results = apiRaces
+        .getRaces({
+          competitionFilter
+        })
+        .then(results => {
+          setLocalRaceRows(results);
+          setRaceRows(results);
+          setAllClubs(_.uniq(_.map(results, 'club')));
+        });
     } catch (ex) {
       setNotification({
         message: `Impossible de récupérer la liste des participations`,
@@ -170,12 +173,12 @@ export const CompetitionFilterPanel = ({
     const initData = async () => {
       try {
         setLoading(true);
-        await fetchCompetitions({
+        fetchCompetitions({
           competitionFilter,
           setNotification,
           setData
         });
-        await fetchAllRaces();
+        fetchAllRaces();
         localStorage.setItem('competitionFilter', JSON.stringify(competitionFilter));
       } finally {
         setLoading(false);

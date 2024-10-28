@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { Grid, Paper, Theme, withStyles } from '@material-ui/core';
+import { Theme, withStyles } from '@material-ui/core';
 import * as Highcharts from 'highcharts';
 import { CompetitionEntity, RaceRow } from '../sdk';
 import _ from 'lodash';
@@ -64,8 +64,18 @@ const HomePage = (props: IDashboardProps) => {
       title: {
         text: 'Nombre de coureurs par course'
       },
+      chart: {
+        height: 800
+      },
       xAxis: {
-        categories: []
+        categories: [],
+        labels: {
+          style: {
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            'word-wrap': 'break-word'
+          }
+        }
       },
       yAxis: {
         title: {
@@ -177,7 +187,7 @@ const HomePage = (props: IDashboardProps) => {
   }, [raceRows]);
 
   return (
-    <div style={{ width: '100%', height: '100%', padding: 10 }}>
+    <div style={{ padding: 10 }}>
       <LoaderIndicator visible={loading} />
       <CompetitionFilterPanel
         showClubs={true}
@@ -188,17 +198,16 @@ const HomePage = (props: IDashboardProps) => {
         setLoading={setLoading}
       />
       {raceRows?.length > 0 ? (
-        <Grid container={true}>
+        <div style={{ padding: 0 }}>
           {[optionNbRidersChartRiders, optionNbRidersChartClub, optionParCateA, optionNbLicencesChartRiders].map(
             (item, index) => (
-              <Grid key={index} style={{ padding: 5 }} item={true} xs={12} md={6}>
-                <Paper className={classes.paper}>
-                  <HighchartsReact highcharts={Highcharts} options={item} />
-                </Paper>
-              </Grid>
+              <React.Fragment key={index}>
+                <HighchartsReact highcharts={Highcharts} options={item} />
+                <br />
+              </React.Fragment>
             )
           )}
-        </Grid>
+        </div>
       ) : (
         <div style={{ textAlign: 'center' }}>
           Aucune participation à des épreuves disponible pour les critères de recherche
@@ -236,9 +245,7 @@ const styles = (theme: Theme) => ({
   sectionTitle: {
     paddingLeft: theme.spacing(2)
   },
-  chart: {
-    width: '100%'
-  },
+
   textField: {
     marginLeft: theme.spacing(1),
     marginRight: theme.spacing(1),
