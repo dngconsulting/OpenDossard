@@ -148,5 +148,5 @@ export const exportPdf = (challenge: ChallengeDTO, rowRaces: ChallengeRider[]) =
     if (index < allCatesF.length) doc.addPage();
   }
 
-  doc.save();
+  doc.save(`Clt_${challenge.name.replace(/\s/g, '')}.pdf`);
 };
