@@ -30,6 +30,7 @@ jobs:
           MONITORING_USER: ${{secrets.MONITORING_USER}}
         with:
           host: ${{ secrets.HOSTNAME }}
+          debug: true
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
