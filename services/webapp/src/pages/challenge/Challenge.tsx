@@ -13,6 +13,9 @@ import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { Checkbox, FormControlLabel, Tooltip } from '@material-ui/core';
 import EmojiEventsIcon from '@material-ui/icons/EmojiEvents';
 import { LoaderIndicator } from '../../components/LoaderIndicator';
+import Button from '@material-ui/core/Button';
+import { PictureAsPdf } from '@material-ui/icons';
+import { exportPdf, getAllCates, getAllGenders } from './challenge-utils';
 
 const rowClass = data => {
   return { 'ui-state-highlight': true };
@@ -23,19 +26,6 @@ const useStyles = makeStyles(theme => ({
     minWidth: 500
   }
 }));
-const getAllCates = rRaces =>
-  _.uniqBy(
-    _.flatMap(rRaces, rr => rr.challengeRaceRows),
-    'catev'
-  )
-    .map(c => c.catev)
-    .sort();
-
-const getAllGenders = rRaces =>
-  _.uniqBy(
-    _.flatMap(rRaces, rr => rr.challengeRaceRows),
-    'gender'
-  ).map(c => c.gender);
 
 export const ChallengePage = (props: any) => {
   const [rowRaces, setRowRaces] = useState<ChallengeRider[]>([]);
@@ -49,6 +39,9 @@ export const ChallengePage = (props: any) => {
   const classes = useStyles();
   const allGendersCate = getAllGenders(rowRaces);
   const allCates = getAllCates(rowRaces.filter(rr => rr.gender === currentGender));
+  const data = _.uniqBy(rowRaces, 'licenceId').filter(
+    rr => rr.currentLicenceCatev === currentCate && rr.gender === currentGender
+  );
 
   useLayoutEffect(() => {
     const f = async () => {
@@ -64,7 +57,6 @@ export const ChallengePage = (props: any) => {
           const rowRaces = await apiChallenge.calculChallenge({ id: challenge.id });
           setRowRaces(rowRaces);
           const cates = getAllCates(rowRaces);
-          const genders = getAllGenders(rowRaces);
           if (cates.length > 0) setCurrentCate(cates[0]);
         }
       } finally {
@@ -74,7 +66,7 @@ export const ChallengePage = (props: any) => {
     f();
   }, []);
 
-  const ChallengeTabs = () => {
+  const ChallengeTabs = ({ rowRaces }) => {
     return (
       <div
         style={{
@@ -85,6 +77,18 @@ export const ChallengePage = (props: any) => {
           marginBottom: 10
         }}
       >
+        {rowRaces?.length > 0 && (
+          <Button
+            style={{ marginRight: 10 }}
+            variant="contained"
+            color="primary"
+            onClick={() => exportPdf(challenge, rowRaces)}
+          >
+            <PictureAsPdf style={{ verticalAlign: 'middle', marginRight: 5 }} />
+            Export PDF
+          </Button>
+        )}
+
         {allCates.map((catev, index) => {
           return (
             <Tab
@@ -190,7 +194,8 @@ export const ChallengePage = (props: any) => {
         </h4>
       </Tooltip>
 
-      <ChallengeTabs />
+      <ChallengeTabs rowRaces={rowRaces} />
+
       {currentCate ? (
         <DataTable
           paginator={false}
@@ -202,9 +207,7 @@ export const ChallengePage = (props: any) => {
           loading={isLoading}
           resizableColumns
           autoLayout={true}
-          value={_.uniqBy(rowRaces, 'licenceId').filter(
-            rr => rr.currentLicenceCatev === currentCate && rr.gender === currentGender
-          )}
+          value={data}
           emptyMessage="Aucune épreuve ne correspond à la recherche"
           selectionMode="single"
         >
