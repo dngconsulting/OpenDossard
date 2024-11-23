@@ -31,6 +31,7 @@ const HomePage = (props: IDashboardProps) => {
   const [optionNbRidersChartRiders, setOptionNbRidersChartRiders] = useState<Highcharts.Options>();
   const [optionNbLicencesChartRiders, setOptionNbLicencesChartRiders] = useState<Highcharts.Options>();
   const [optionParCateA, setOptionParCateA] = useState<Highcharts.Options>();
+  const [optionParCateV, setOptionParCateV] = useState<Highcharts.Options>();
   const fillRiderByCateaChart = (rows: RaceRow[]) => {
     const options: Highcharts.Options = {
       title: {
@@ -59,13 +60,50 @@ const HomePage = (props: IDashboardProps) => {
     setOptionParCateA(options);
   };
 
+  const fillRiderByCatevChart = (rows: RaceRow[]) => {
+    const options: Highcharts.Options = {
+      title: {
+        text: 'Répartition par catégorie de valeur'
+      },
+      xAxis: {
+        categories: []
+      },
+      series: [
+        {
+          type: 'pie',
+          name: 'Taux'
+        }
+      ]
+    };
+    const groupByNbRidersByCatev = _.groupBy(rows, (item: RaceRow) => item.catev);
+    const catevNb = Object.keys(groupByNbRidersByCatev).map(item => {
+      return {
+        name: cateLabelFrom(groupByNbRidersByCatev[item][0].catev),
+        y: groupByNbRidersByCatev[item].length
+      };
+    });
+    // @ts-ignore
+    options.series[0].data = catevNb;
+    // @ts-ignore
+    setOptionParCateV(options);
+  };
+
   const fillRiderParticipationChart = (rows: RaceRow[]) => {
+    const nbRidersByCourse = _.groupBy(rows, (item: RaceRow) => item.competitionId);
+    // @ts-ignore
+    const allCourses = Object.keys(nbRidersByCourse).map(item => {
+      return {
+        nb: nbRidersByCourse[item].length,
+        name: nbRidersByCourse[item][0].name
+      };
+    });
+    const allCourseOrdered = _.orderBy(allCourses, ['nb'], ['desc']);
     const options: Highcharts.Options = {
       title: {
         text: 'Nombre de coureurs par course'
       },
       chart: {
-        height: 800
+        height: 600
       },
       xAxis: {
         categories: [],
@@ -85,19 +123,10 @@ const HomePage = (props: IDashboardProps) => {
       series: [
         {
           type: 'column',
-          name: 'Nombre de coureurs'
+          name: `Nombre de coureurs sur les ${allCourses?.length} épreuves (${rows.length} participations)`
         }
       ]
     };
-    const nbRidersByCourse = _.groupBy(rows, (item: RaceRow) => item.competitionId);
-    // @ts-ignore
-    const allCourses = Object.keys(nbRidersByCourse).map(item => {
-      return {
-        nb: nbRidersByCourse[item].length,
-        name: nbRidersByCourse[item][0].name
-      };
-    });
-    const allCourseOrdered = _.orderBy(allCourses, ['nb'], ['desc']);
     // @ts-ignore
     options.series[0].data = allCourseOrdered.map(item => item.nb);
     // @ts-ignore
@@ -106,26 +135,6 @@ const HomePage = (props: IDashboardProps) => {
     setOptionNbRidersChartRiders(options);
   };
   const fillRiderOnlyParticipationChart = (rows: RaceRow[]) => {
-    const options: Highcharts.Options = {
-      title: {
-        text: 'Coureurs les plus assidus'
-      },
-      xAxis: {
-        categories: [],
-        max: 19
-      },
-      yAxis: {
-        title: {
-          text: 'nb participations'
-        }
-      },
-      series: [
-        {
-          type: 'column',
-          name: 'Participations'
-        }
-      ]
-    };
     const groupByLicenceNumber = _.groupBy(rows, (item: RaceRow) => item.riderName);
     const licenceAndNbPart = Object.keys(groupByLicenceNumber).map(item => {
       return {
@@ -134,10 +143,31 @@ const HomePage = (props: IDashboardProps) => {
       };
     });
     const licenceAndNbOrdered = _.orderBy(licenceAndNbPart, ['nb'], ['desc']);
+    const options: Highcharts.Options = {
+      title: {
+        text: 'Coureurs les plus assidus'
+      },
+      xAxis: {
+        categories: [],
+        max: 20
+      },
+      yAxis: {
+        title: {
+          text: `participations`
+        }
+      },
+      series: [
+        {
+          type: 'column',
+          name: `${Object.keys(groupByLicenceNumber)?.length} coureurs uniques`
+        }
+      ]
+    };
     // @ts-ignore
     options.series[0].data = licenceAndNbOrdered.map(item => item.nb);
     // @ts-ignore
     options.xAxis.categories = licenceAndNbOrdered.map(item => item.riderName);
+
     setOptionNbLicencesChartRiders(options);
   };
 
@@ -148,7 +178,7 @@ const HomePage = (props: IDashboardProps) => {
       },
       xAxis: {
         categories: [],
-        max: 10
+        max: 20
       },
       yAxis: {
         title: {
@@ -181,6 +211,7 @@ const HomePage = (props: IDashboardProps) => {
       fillClubParticipationChart(raceRows);
       fillRiderOnlyParticipationChart(raceRows);
       fillRiderByCateaChart(raceRows);
+      fillRiderByCatevChart(raceRows);
     } finally {
       setLoading(false);
     }
@@ -196,17 +227,22 @@ const HomePage = (props: IDashboardProps) => {
         setData={setData}
         setRaceRows={setRaceRows}
         setLoading={setLoading}
+        showFilterRiderDepts={true}
       />
       {raceRows?.length > 0 ? (
         <div style={{ padding: 0 }}>
-          {[optionNbRidersChartRiders, optionNbRidersChartClub, optionParCateA, optionNbLicencesChartRiders].map(
-            (item, index) => (
-              <React.Fragment key={index}>
-                <HighchartsReact highcharts={Highcharts} options={item} />
-                <br />
-              </React.Fragment>
-            )
-          )}
+          {[
+            optionNbRidersChartRiders,
+            optionNbRidersChartClub,
+            optionParCateA,
+            optionParCateV,
+            optionNbLicencesChartRiders
+          ].map((item, index) => (
+            <React.Fragment key={index}>
+              <HighchartsReact highcharts={Highcharts} options={item} />
+              <br />
+            </React.Fragment>
+          ))}
         </div>
       ) : (
         <div style={{ textAlign: 'center' }}>

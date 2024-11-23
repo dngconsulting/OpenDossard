@@ -7,7 +7,7 @@ import _ from 'lodash';
 import { FEDERATIONS } from '../pages/common/shared-entities';
 import { CompetitionEntityCompetitionTypeEnum } from '../sdk/models/CompetitionEntityCompetitionTypeEnum';
 import { LOCATION, LocationType } from '../util/LOCATION';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { CompetitionEntity, CompetitionFilter, Departement, RaceRow } from '../sdk';
 import { apiRaces } from '../util/api';
 import { NotificationContext } from './CadSnackbar';
@@ -131,7 +131,8 @@ export const CompetitionFilterPanel = ({
   refreshData,
   setRaceRows,
   setLoading,
-  showClubs = false
+  showClubs = false,
+  showFilterRiderDepts = false
 }: {
   history: any;
   setLoading: (b: boolean) => void;
@@ -139,16 +140,19 @@ export const CompetitionFilterPanel = ({
   setData: (data: CompetitionEntity[]) => void;
   setRaceRows: (raceRows: RaceRow[]) => void;
   showClubs?: boolean;
+  showFilterRiderDepts?: boolean;
 }) => {
   const [, setNotification] = useContext(NotificationContext);
   const [competitionFilter, setCompetitionFilter] = useState<
     Partial<CompetitionFilter & { selectedClubs: Array<String> }>
   >(undefined);
+  const [riderDeptsFilter, setRiderDeptsFilter] = useState<Departement[]>(undefined);
   const theme = useTheme();
   const [selectedClub, setSelectedClub] = useState<{ label: string; value: string } | undefined>();
   const [allClubs, setAllClubs] = useState<string[]>();
   const isMobile = useMediaQuery(theme.breakpoints.down(BREAK_POINT_MOBILE_TABLET));
   const [localRaceRows, setLocalRaceRows] = useState<RaceRow[]>();
+  const riderDeptsRef = useRef<any>();
 
   const fetchAllRaces = async () => {
     try {
@@ -158,7 +162,13 @@ export const CompetitionFilterPanel = ({
         })
         .then(results => {
           setLocalRaceRows(results);
-          setRaceRows(results);
+          let filteredResults;
+          const riderDeptsSelected = riderDeptsFilter?.map(dept => dept.departmentCode);
+          filteredResults = _.isEmpty(riderDeptsSelected)
+            ? results
+            : results.filter(raceRows => riderDeptsSelected.includes(raceRows.dept));
+          if (selectedClub) filteredResults = filteredResults.filter(rr => rr.club === selectedClub.value);
+          setRaceRows(filteredResults);
           setAllClubs(_.uniq(_.map(results, 'club')));
         });
     } catch (ex) {
@@ -190,7 +200,7 @@ export const CompetitionFilterPanel = ({
         (!competitionFilter.startDate && !competitionFilter.endDate))
     )
       initData();
-  }, [competitionFilter]);
+  }, [competitionFilter, riderDeptsFilter, selectedClub]);
   useEffect(() => {
     try {
       const c = localStorage.getItem('competitionFilter');
@@ -441,7 +451,7 @@ export const CompetitionFilterPanel = ({
               }
             : {})}
           noOptionsMessage={m => m?.inputValue + " n'existe pas"}
-          placeholder={'Tous départements'}
+          placeholder={'Epreuves ts dépt.'}
           isMulti
           hideSelectedOptions={true}
           components={{
@@ -474,6 +484,54 @@ export const CompetitionFilterPanel = ({
             });
           }}
         />
+        {showFilterRiderDepts && (
+          <Select
+            ref={riderDeptsRef}
+            menuPlacement={'bottom'}
+            {...(!isMobile
+              ? {
+                  styles: {
+                    container: () => ({
+                      width: '100%',
+                      marginRight: 10
+                    })
+                  }
+                }
+              : {})}
+            noOptionsMessage={m => m?.inputValue + " n'existe pas"}
+            placeholder={'Coureurs ts dépt.'}
+            isMulti
+            hideSelectedOptions={true}
+            components={{
+              ValueContainer: props => <LimitedChipsContainer {...props} />
+            }}
+            value={riderDeptsFilter?.map(dept => ({
+              value: dept.departmentCode,
+              label: dept.departmentCode + '-' + dept.departmentName
+            }))}
+            options={LOCATION.map((l: LocationType) => {
+              return {
+                value: l.code,
+                label: l.code + '-' + l.name
+              };
+            })}
+            className="basic-multi-select"
+            classNamePrefix="select"
+            onChange={(deptsSelected: any) => {
+              setSelectedClub(null);
+              setRiderDeptsFilter(
+                deptsSelected
+                  ? [
+                      ...deptsSelected.map((d: any) => ({
+                        departmentName: LOCATION.find(l => l.code === d.value).name,
+                        departmentCode: d.value
+                      }))
+                    ]
+                  : []
+              );
+            }}
+          />
+        )}
         {showClubs && (
           <Select
             menuPlacement={'bottom'}
@@ -499,9 +557,8 @@ export const CompetitionFilterPanel = ({
             className="basic-multi-select"
             classNamePrefix="select"
             onChange={(currentSelected: any) => {
+              setRiderDeptsFilter([]);
               setSelectedClub(currentSelected);
-              if (currentSelected === null) setRaceRows(localRaceRows);
-              else setRaceRows(localRaceRows.filter(rr => rr.club === currentSelected.value));
             }}
           />
         )}

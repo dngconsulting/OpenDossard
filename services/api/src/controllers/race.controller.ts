@@ -212,6 +212,7 @@ export class RacesCtrl {
                               l.licence_number,
                               r.club,
                               l.gender,
+                              l.dept as "dept",
                               l.fede,
                               l.birth_year,
                               r.catea,
