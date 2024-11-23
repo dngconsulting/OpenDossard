@@ -144,10 +144,14 @@ const HomePage = (props: IDashboardProps) => {
     });
     const licenceAndNbOrdered = _.orderBy(licenceAndNbPart, ['nb'], ['desc']);
     const options: Highcharts.Options = {
+      chart: {
+        height: 1000
+      },
       title: {
-        text: 'Coureurs les plus assidus'
+        text: 'Panel de 50 coureurs les plus assidus'
       },
       xAxis: {
+        max: 50,
         categories: []
       },
       yAxis: {
@@ -157,7 +161,7 @@ const HomePage = (props: IDashboardProps) => {
       },
       series: [
         {
-          type: 'column',
+          type: 'bar',
           name: `${Object.keys(groupByLicenceNumber)?.length} coureurs uniques`
         }
       ]
