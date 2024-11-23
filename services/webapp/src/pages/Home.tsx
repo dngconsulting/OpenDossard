@@ -148,8 +148,7 @@ const HomePage = (props: IDashboardProps) => {
         text: 'Coureurs les plus assidus'
       },
       xAxis: {
-        categories: [],
-        max: 20
+        categories: []
       },
       yAxis: {
         title: {
