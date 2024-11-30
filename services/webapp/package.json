@@ -1,6 +1,6 @@
 {
   "name": "OpenDossard",
-  "version": "2.2.94",
+  "version": "2.2.95",
   "priprimevate": true,
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "22.0.0",
