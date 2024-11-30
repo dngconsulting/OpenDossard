@@ -15,6 +15,7 @@ export class ChallengeService {
         currentClub: rowRace.currentClub,
         currentLicenceCatea: rowRace.currentLicenceCatea,
         firstName: rowRace.firstName,
+        sprintchallenge: rowRace.sprintchallenge,
         challengeRaceRows: []
       }))
     ];
@@ -75,7 +76,6 @@ export class ChallengeService {
       // for each rider, compute ranking
       rider.challengeRaceRows.forEach((riderRace, index) => {
         // si le coureur a changé de catégorie on remet à zéro son total points
-
         if (
           index > 0 &&
           rider.challengeRaceRows[index].catev !=
@@ -89,6 +89,10 @@ export class ChallengeService {
                 baremeAuPoints.coef(riderRace.nbParticipants)) *
               100
           ) / 100;
+        if (riderRace.sprintchallenge) {
+          rider.challengeRaceRows[index].ptsRace =
+            rider.challengeRaceRows[index].ptsRace + 10;
+        }
         ptsAllRaces = ptsAllRaces + rider.challengeRaceRows[index].ptsRace;
       });
       if (

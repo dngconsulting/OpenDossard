@@ -87,6 +87,7 @@ export class ChallengeController {
              R.sprintchallenge as "sprintchallenge",
              R.competition_id as "competitionId",
              R.licence_id as "licenceId",
+             R.sprintchallenge as "sprintchallenge",
              COMPETITION.event_date as "eventDate"
              
       FROM PUBLIC.RACE R
