@@ -86,7 +86,7 @@ export class ChallengeService {
           Math.round(
             (rider.challengeRaceRows[index].ptsRace +
               (baremeAuPoints.ptsBareme(riderRace.rankingScratch) ?? 0) *
-                baremeAuPoints.coef(riderRace.nbParticipants)) *
+                baremeAuPoints.coef(Number(riderRace.nbParticipants))) *
               100
           ) / 100;
         if (riderRace.sprintchallenge) {
