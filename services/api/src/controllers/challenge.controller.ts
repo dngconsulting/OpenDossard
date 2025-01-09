@@ -55,46 +55,52 @@ export class ChallengeController {
     @Param("id") id: number
   ): Promise<ChallengeRider[]> {
     const challenge = await this.repositoryChallenge.findOne(id);
-    const nbParticipants =
-      challenge.bareme === "BAREME_AU_POINTS"
-        ? `(SELECT COUNT(*) FROM RACE RR                   JOIN LICENCE LL ON RR.LICENCE_ID = LL.ID
-              WHERE RR.COMPETITION_ID = R.COMPETITION_ID
-                AND RR.CATEV = R.CATEV
-                AND LL.gender = $2) AS "nbParticipants",`
-        : "";
 
     const query = `
-      SELECT 
-             LICENCE.NAME as "name",
-             LICENCE.first_name as "firstName",
-             LICENCE.gender as "gender",
-             LICENCE.catev as "currentLicenceCatev",
-             LICENCE.catea as "currentLicenceCatea",
-             LICENCE.club as "currentClub",
-             COMPETITION.NAME as "competitionName",
-             ${nbParticipants}
-             NULLIF(
-                 (SELECT COUNT(*)
-                  FROM RACE RR
-                         JOIN LICENCE LL ON RR.LICENCE_ID = LL.ID
-                  WHERE RR.COMPETITION_ID = R.COMPETITION_ID
-                    AND RR.CATEV = R.CATEV
-                    AND LL.gender = $2
-                    AND RR.RANKING_SCRATCH <= R.RANKING_SCRATCH), 0) AS "rankingScratch",
-             R.catev as "catev",
-             R.comment as "comment",
-             R.sprintchallenge as "sprintchallenge",
-             R.competition_id as "competitionId",
-             R.licence_id as "licenceId",
-             R.sprintchallenge as "sprintchallenge",
-             COMPETITION.event_date as "eventDate"
-             
-      FROM PUBLIC.RACE R
-             JOIN COMPETITION ON COMPETITION.ID = R.COMPETITION_ID
-             JOIN LICENCE ON LICENCE.ID = R.LICENCE_ID
-      WHERE COMPETITION_ID = ANY($1) AND LICENCE.GENDER = $2 AND COMPETITION_TYPE=$3  AND LICENCE.FEDE = 'FSGT'
-      ORDER BY R.LICENCE_ID,
-               COMPETITION.EVENT_DATE, "currentLicenceCatev"`;
+      WITH ranked_race AS (SELECT competition_id,
+                                  race.catev as "rankedCatev",
+                                  licence_id,
+                                  ranking_scratch,
+                                  race.comment,
+                                  sprintchallenge,
+                                  COUNT(*) OVER (PARTITION BY competition_id,race.catev) as "nbParticipants",
+                             CASE
+                                    WHEN race.comment IS NOT NULL THEN NULL
+                                    ELSE ROW_NUMBER()
+                                         OVER (PARTITION BY competition_id,race.catev ORDER BY ranking_scratch)
+                                    END      AS "rankingScratch"
+                           FROM race
+                                  join LICENCE ON LICENCE.ID = licence_id
+                                  JOIN COMPETITION ON COMPETITION.ID = competition_id
+                           where LICENCE.GENDER = $2
+                             AND COMPETITION.fede = 'FSGT')
+      SELECT LICENCE.NAME                AS "name",
+             LICENCE.FIRST_NAME          AS "firstName",
+             LICENCE.GENDER              AS "gender",
+             LICENCE.CATEV               AS "currentLicenceCatev",
+             LICENCE.CATEA               AS "currentLicenceCatea",
+             LICENCE.CLUB                AS "currentClub",
+             COMPETITION.NAME            AS "competitionName",
+             ranked_race."rankedCatev"   AS "catev",
+             ranked_race."nbParticipants" AS "nbParticipants",
+             ranked_race.COMMENT         AS "comment",
+             ranked_race.SPRINTCHALLENGE AS "sprintchallenge",
+             ranked_race.COMPETITION_ID  AS "competitionId",
+             ranked_race.LICENCE_ID      AS "licenceId",
+             ranked_race.SPRINTCHALLENGE AS "sprintchallenge",
+             ranked_race."rankingScratch",
+             COMPETITION.EVENT_DATE      AS "eventDate"
+
+      FROM ranked_race
+             JOIN COMPETITION ON COMPETITION.ID = ranked_race.COMPETITION_ID
+             JOIN LICENCE ON LICENCE.ID = ranked_race.LICENCE_ID
+      WHERE COMPETITION_ID  = ANY($1)
+        AND LICENCE.GENDER = $2
+        AND COMPETITION_TYPE = $3
+        AND LICENCE.FEDE = 'FSGT'
+      ORDER BY ranked_race.LICENCE_ID,
+               COMPETITION.EVENT_DATE,
+               "currentLicenceCatev" `;
     let allGenderRows = [];
     for (const gender of ["H", "F"]) {
       const rowRaces = await this.entityManager.query(query, [
