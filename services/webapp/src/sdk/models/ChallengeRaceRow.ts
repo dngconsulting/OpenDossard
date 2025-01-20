@@ -121,6 +121,12 @@ export interface ChallengeRaceRow {
      * @memberof ChallengeRaceRow
      */
     nbParticipants?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ChallengeRaceRow
+     */
+    explanation?: string;
 }
 
 export function ChallengeRaceRowFromJSON(json: any): ChallengeRaceRow {
@@ -150,6 +156,7 @@ export function ChallengeRaceRowFromJSONTyped(json: any, ignoreDiscriminator: bo
         'licenceId': !exists(json, 'licenceId') ? undefined : json['licenceId'],
         'ptsRace': !exists(json, 'ptsRace') ? undefined : json['ptsRace'],
         'nbParticipants': !exists(json, 'nbParticipants') ? undefined : json['nbParticipants'],
+        'explanation': !exists(json, 'explanation') ? undefined : json['explanation'],
     };
 }
 
@@ -179,6 +186,7 @@ export function ChallengeRaceRowToJSON(value?: ChallengeRaceRow | null): any {
         'licenceId': value.licenceId,
         'ptsRace': value.ptsRace,
         'nbParticipants': value.nbParticipants,
+        'explanation': value.explanation,
     };
 }
 
