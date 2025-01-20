@@ -48,6 +48,11 @@ export class ChallengeService {
             rider.challengeRaceRows[index].ptsRace +
             (bareme.ptsBareme(riderRace.rankingScratch) ?? 0) +
             bareme.ptsParticipation;
+          rider.challengeRaceRows[
+            index
+          ].explanation = `Class. ${bareme.ptsBareme(
+            riderRace.rankingScratch
+          ) ?? 0} pts + Part. ${bareme.ptsParticipation} pts`;
         }
       });
       rider.ptsAllRaces = _.sumBy(rider.challengeRaceRows, "ptsRace");
@@ -62,6 +67,9 @@ export class ChallengeService {
       rider.challengeRaceRows.forEach((riderRace, index) => {
         rider.challengeRaceRows[index].ptsRace =
           rider.challengeRaceRows[index].ptsRace + 1;
+        rider.challengeRaceRows[
+          index
+        ].explanation = `Présent et marque ${rider.challengeRaceRows[index].ptsRace} pts`;
       });
       rider.ptsAllRaces = _.sumBy(rider.challengeRaceRows, "ptsRace");
     });
@@ -71,11 +79,14 @@ export class ChallengeService {
 
   static Bareme_AU_POINTS(riderChallenge: ChallengeRider[]) {
     let ptsAllRaces = 0;
+    let nbRaces = 0;
     riderChallenge.forEach(rider => {
       ptsAllRaces = 0;
+      nbRaces = 0;
       // for each rider, compute ranking
       rider.challengeRaceRows.forEach((riderRace, index) => {
         // si le coureur a changé de catégorie on remet à zéro son total points
+        nbRaces++;
         if (
           index > 0 &&
           rider.challengeRaceRows[index].catev !=
@@ -94,6 +105,11 @@ export class ChallengeService {
             rider.challengeRaceRows[index].ptsRace + 10;
         }
         ptsAllRaces = ptsAllRaces + rider.challengeRaceRows[index].ptsRace;
+        rider.challengeRaceRows[index].explanation = `nb part. épreuve => ${
+          riderRace.nbParticipants
+        } et pts classement : ${(
+          baremeAuPoints.ptsBareme(riderRace.rankingScratch) ?? 0
+        ).toFixed(1)}`;
       });
       if (
         !rider.challengeRaceRows.find(
@@ -101,7 +117,16 @@ export class ChallengeService {
         )
       )
         rider.ptsAllRaces = 0;
-      else rider.ptsAllRaces = Math.round(ptsAllRaces);
+      else {
+        // On applique le coef d'assiduité en fonction du nb de courses
+        const coef = 1 + ((nbRaces > 12 ? 12 : nbRaces) - 1) * 0.2;
+        rider.ptsAllRaces = Math.round(ptsAllRaces / coef);
+        rider.explanation = `Assiduité de ${coef.toFixed(
+          1
+        )}, total pts ${Math.round(
+          ptsAllRaces / coef
+        )} => ${ptsAllRaces.toFixed(1)}/${coef.toFixed(1)}`;
+      }
     });
     return riderChallenge;
   }

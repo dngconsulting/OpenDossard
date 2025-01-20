@@ -169,6 +169,7 @@ export const ChallengePage = (props: any) => {
           <Column field="catev" header="Catégorie"></Column>
           <Column field="rankingScratch" header="Classement"></Column>
           <Column field="ptsRace" header="Points par épreuve"></Column>
+          <Column field="explanation" header="Explications"></Column>
         </DataTable>
       </div>
     );
@@ -249,6 +250,7 @@ export const ChallengePage = (props: any) => {
             filterMatchMode={'contains'}
           />
           <Column field="ptsAllRaces" header="Points acquis" filter={true} filterMatchMode={'contains'} />
+          <Column field="explanation" header="Explications" />
         </DataTable>
       ) : !isLoading ? (
         <h2 style={{ textAlign: 'center', color: 'red' }}>

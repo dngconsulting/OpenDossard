@@ -43,6 +43,12 @@ export interface ChallengeRider {
      * @type {string}
      * @memberof ChallengeRider
      */
+    gender?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ChallengeRider
+     */
     firstName?: string;
     /**
      * 
@@ -91,7 +97,7 @@ export interface ChallengeRider {
      * @type {string}
      * @memberof ChallengeRider
      */
-    gender?: string;
+    explanation?: string;
 }
 
 export function ChallengeRiderFromJSON(json: any): ChallengeRider {
@@ -106,6 +112,7 @@ export function ChallengeRiderFromJSONTyped(json: any, ignoreDiscriminator: bool
         
         'licenceId': !exists(json, 'licenceId') ? undefined : json['licenceId'],
         'name': !exists(json, 'name') ? undefined : json['name'],
+        'gender': !exists(json, 'gender') ? undefined : json['gender'],
         'firstName': !exists(json, 'firstName') ? undefined : json['firstName'],
         'catev': !exists(json, 'catev') ? undefined : json['catev'],
         'catea': !exists(json, 'catea') ? undefined : json['catea'],
@@ -114,7 +121,7 @@ export function ChallengeRiderFromJSONTyped(json: any, ignoreDiscriminator: bool
         'currentLicenceCatev': !exists(json, 'currentLicenceCatev') ? undefined : json['currentLicenceCatev'],
         'currentLicenceCatea': !exists(json, 'currentLicenceCatea') ? undefined : json['currentLicenceCatea'],
         'currentClub': !exists(json, 'currentClub') ? undefined : json['currentClub'],
-        'gender': !exists(json, 'gender') ? undefined : json['gender'],
+        'explanation': !exists(json, 'explanation') ? undefined : json['explanation'],
     };
 }
 
@@ -129,6 +136,7 @@ export function ChallengeRiderToJSON(value?: ChallengeRider | null): any {
         
         'licenceId': value.licenceId,
         'name': value.name,
+        'gender': value.gender,
         'firstName': value.firstName,
         'catev': value.catev,
         'catea': value.catea,
@@ -137,7 +145,7 @@ export function ChallengeRiderToJSON(value?: ChallengeRider | null): any {
         'currentLicenceCatev': value.currentLicenceCatev,
         'currentLicenceCatea': value.currentLicenceCatea,
         'currentClub': value.currentClub,
-        'gender': value.gender,
+        'explanation': value.explanation,
     };
 }
 

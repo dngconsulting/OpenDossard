@@ -80,6 +80,7 @@ export class ChallengeRaceRow {
   public licenceId?: string;
   public ptsRace?: number;
   public nbParticipants?: number;
+  public explanation?: string;
 }
 
 export class ChallengeRider {
@@ -94,6 +95,7 @@ export class ChallengeRider {
   public currentLicenceCatev?: string;
   public currentLicenceCatea?: string;
   public currentClub?: string;
+  public explanation?: string;
 }
 
 export class RaceCreate {
