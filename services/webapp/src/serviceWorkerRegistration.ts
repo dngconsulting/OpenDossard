@@ -87,11 +87,10 @@ function registerValidSW(swUrl: string, config?: Config) {
               // At this point, the updated precached content has been fetched,
               // but the previous service worker will still serve the older
               // content until all client tabs are closed.
-              console.log(
-                'New content is available and will be used when all ' +
-                  'tabs for this page are closed. See https://cra.link/PWA.'
-              );
-
+              window.alert("Une nouvelle version de l'application vient d'être installée");
+              registration.update().then(() => {
+                console.log('Version mise à jour ...');
+              });
               // Execute callback
               if (config && config.onUpdate) {
                 config.onUpdate(registration);
