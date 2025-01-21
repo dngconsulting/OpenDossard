@@ -32,12 +32,9 @@ export const ChallengesPage = (props: any) => {
         <Typography variant="body2" style={{ marginTop: 10 }}>
           {challenge.description}
         </Typography>
-        <Typography variant="body2" style={{ marginTop: 10 }}>
-          Type : {challenge.competitionType}
-        </Typography>
-        <Typography variant="h6" component="div">
-          {challenge.reglement && <a href={challenge.reglement}>Lien vers le règlement</a>}
-        </Typography>
+        <div style={{ marginTop: 10 }}>
+          {challenge.reglement && <a href={challenge.reglement}>Détail du règlement</a>}
+        </div>
       </CardContent>
     </React.Fragment>
   );
