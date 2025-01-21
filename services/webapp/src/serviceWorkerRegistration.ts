@@ -81,20 +81,16 @@ function registerValidSW(swUrl: string, config?: Config) {
           return;
         }
         installingWorker.onstatechange = () => {
-          console.log('OnStage changed V2' + installingWorker.state);
           if (installingWorker.state === 'installed') {
             if (navigator.serviceWorker.controller) {
               // At this point, the updated precached content has been fetched,
               // but the previous service worker will still serve the older
               // content until all client tabs are closed.
-              window.alert("Une nouvelle version de l'application vient d'être installée");
               registration.update().then(() => {
-                console.log('Version mise à jour ...');
+                registration.unregister().then(() => {
+                  window.location.reload();
+                });
               });
-              // Execute callback
-              if (config && config.onUpdate) {
-                config.onUpdate(registration);
-              }
             } else {
               // At this point, everything has been precached.
               // It's the perfect time to display a
