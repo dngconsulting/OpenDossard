@@ -10,6 +10,7 @@ export * from './CompetitionIdsDTO';
 export * from './CompetitionInfo';
 export * from './CompetitionReorganize';
 export * from './Departement';
+export * from './FedeDeptParamDTO';
 export * from './FedeEnum';
 export * from './Filter';
 export * from './LicenceEntity';

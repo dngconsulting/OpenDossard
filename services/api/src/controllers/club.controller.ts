@@ -12,7 +12,7 @@ import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { ClubEntity } from "../entity/club.entity";
 import { AuthGuard } from "@nestjs/passport";
-import { ClubRow } from "../dto/model.dto";
+import { ClubRow, FedeDeptParamDTO } from "../dto/model.dto";
 import { ROLES, RolesGuard } from "../guards/roles.guard";
 import { Roles } from "../decorators/roles.decorator";
 
@@ -53,9 +53,11 @@ export class ClubController {
     isArray: true,
     description: "Liste des clubs"
   })
-  @Get("byfede/:fede")
-  public async getClubByFede(@Param("fede") fede: string): Promise<ClubRow[]> {
-    return this.repository.find({ where: { fede: fede } });
+  @Post("byfede/")
+  public async getClubByFede(
+    @Body() fedeAndDept: FedeDeptParamDTO
+  ): Promise<ClubRow[]> {
+    return this.repository.find({ where: { ...fedeAndDept } });
   }
   @ApiOperation({
     operationId: "getClubsById",

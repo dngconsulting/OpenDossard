@@ -21,6 +21,9 @@ import {
     ClubRow,
     ClubRowFromJSON,
     ClubRowToJSON,
+    FedeDeptParamDTO,
+    FedeDeptParamDTOFromJSON,
+    FedeDeptParamDTOToJSON,
 } from '../models';
 
 export interface CreateClubRequest {
@@ -28,7 +31,7 @@ export interface CreateClubRequest {
 }
 
 export interface GetClubsByFedeRequest {
-    fede: string;
+    fedeDeptParamDTO: FedeDeptParamDTO;
 }
 
 export interface GetClubsByIdRequest {
@@ -122,13 +125,15 @@ export class ClubAPIApi extends runtime.BaseAPI {
      * Rechercher tous les clubs de la federation en paramètre
      */
     async getClubsByFedeRaw(requestParameters: GetClubsByFedeRequest): Promise<runtime.ApiResponse<Array<ClubRow>>> {
-        if (requestParameters.fede === null || requestParameters.fede === undefined) {
-            throw new runtime.RequiredError('fede','Required parameter requestParameters.fede was null or undefined when calling getClubsByFede.');
+        if (requestParameters.fedeDeptParamDTO === null || requestParameters.fedeDeptParamDTO === undefined) {
+            throw new runtime.RequiredError('fedeDeptParamDTO','Required parameter requestParameters.fedeDeptParamDTO was null or undefined when calling getClubsByFede.');
         }
 
         const queryParameters: runtime.HTTPQuery = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && this.configuration.accessToken) {
             const token = this.configuration.accessToken;
@@ -139,10 +144,11 @@ export class ClubAPIApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/api/clubs/byfede/{fede}`.replace(`{${"fede"}}`, encodeURIComponent(String(requestParameters.fede))),
-            method: 'GET',
+            path: `/api/clubs/byfede/`,
+            method: 'POST',
             headers: headerParameters,
             query: queryParameters,
+            body: FedeDeptParamDTOToJSON(requestParameters.fedeDeptParamDTO),
         });
 
         return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ClubRowFromJSON));

@@ -209,3 +209,8 @@ export class CompetitionCreate {
   isValidResults?: boolean;
   dept?: string;
 }
+
+export class FedeDeptParamDTO {
+  fede?: string;
+  dept?: string;
+}

@@ -119,7 +119,7 @@ export default function ClubSelect({
   const fetchData = async () => {
     let club: IOptionType = null;
 
-    const lclubs = await apiClubs.getClubsByFede({ fede });
+    const lclubs = await apiClubs.getClubsByFede({ fedeDeptParamDTO: { fede, dept } });
     setClubs(lclubs);
 
     const loptionType = lclubs.map((clubOption: ClubRow) => ({
@@ -140,7 +140,7 @@ export default function ClubSelect({
 
   useEffect(() => {
     fetchData();
-  }, [fede]);
+  }, [fede, dept]);
 
   const handleChangeSingle = (value: ValueType<IOptionType>) => {
     setSelectedClub(value);

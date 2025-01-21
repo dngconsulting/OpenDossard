@@ -664,7 +664,7 @@ const LicencesPage = (props: ILicencesProps) => {
             </FormControl>
           </Grid>
           <Grid item={true} xs={10}>
-            {newLicence.fede && newLicence.fede !== FedeEnum.NL && (
+            {newLicence.dept && newLicence.fede && newLicence.fede !== FedeEnum.NL && (
               <ClubSelect
                 helperText={
                   newLicence.fede === FedeEnum.UFOLEP || newLicence.fede === FedeEnum.FFC
