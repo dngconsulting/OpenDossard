@@ -82,12 +82,11 @@ function registerValidSW(swUrl: string, config?: Config) {
         }
         installingWorker.onstatechange = () => {
           if (installingWorker.state === 'installed') {
+            console.log('Nouvelle version détectée');
             if (navigator.serviceWorker.controller) {
-              // force reload
-              navigator.serviceWorker.addEventListener('controllerchange', () => {
-                window.location.reload(); // Reload the current page
-              });
-              registration.update();
+              if (config && config.onSuccess) {
+                config.onSuccess(registration);
+              }
             } else {
               // At this point, everything has been precached.
               // It's the perfect time to display a
