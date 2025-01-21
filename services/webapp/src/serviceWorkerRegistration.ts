@@ -83,14 +83,10 @@ function registerValidSW(swUrl: string, config?: Config) {
         installingWorker.onstatechange = () => {
           if (installingWorker.state === 'installed') {
             if (navigator.serviceWorker.controller) {
-              // At this point, the updated precached content has been fetched,
-              // but the previous service worker will still serve the older
-              // content until all client tabs are closed.
-              registration.update().then(() => {
-                registration.unregister().then(() => {
-                  window.location.reload();
-                });
+              navigator.serviceWorker.addEventListener('controllerchange', () => {
+                window.location.reload(); // Reload the current page
               });
+              registration.update();
             } else {
               // At this point, everything has been precached.
               // It's the perfect time to display a
