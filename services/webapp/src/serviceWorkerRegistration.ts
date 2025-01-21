@@ -71,6 +71,7 @@ function registerValidSW(swUrl: string, config?: Config) {
     .register(swUrl)
     .then(registration => {
       registration.onupdatefound = () => {
+        console.log('On Update Found executed, lets handle ');
         if (registration.waiting) {
           console.log('New service worker is waiting, skipping ......');
           registration.waiting.postMessage({ type: 'SKIP_WAITING' });
@@ -80,6 +81,7 @@ function registerValidSW(swUrl: string, config?: Config) {
           return;
         }
         installingWorker.onstatechange = () => {
+          console.log('OnStage changed ' + installingWorker.state);
           if (installingWorker.state === 'installed') {
             if (navigator.serviceWorker.controller) {
               // At this point, the updated precached content has been fetched,
