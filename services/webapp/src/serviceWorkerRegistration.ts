@@ -81,7 +81,7 @@ function registerValidSW(swUrl: string, config?: Config) {
           return;
         }
         installingWorker.onstatechange = () => {
-          console.log('OnStage changed ' + installingWorker.state);
+          console.log('OnStage changed V2' + installingWorker.state);
           if (installingWorker.state === 'installed') {
             if (navigator.serviceWorker.controller) {
               // At this point, the updated precached content has been fetched,
