@@ -72,7 +72,7 @@ function registerValidSW(swUrl: string, config?: Config) {
     .then(registration => {
       registration.onupdatefound = () => {
         if (registration.waiting) {
-          console.log('New service worker is waiting, skipping ....');
+          console.log('New service worker is waiting, skipping ......');
           registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         }
         const installingWorker = registration.installing;
