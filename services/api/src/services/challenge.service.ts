@@ -102,14 +102,16 @@ export class ChallengeService {
           ) / 100;
         if (riderRace.sprintchallenge) {
           rider.challengeRaceRows[index].ptsRace =
-            rider.challengeRaceRows[index].ptsRace + 10;
+            rider.challengeRaceRows[index].ptsRace + 50;
         }
         ptsAllRaces = ptsAllRaces + rider.challengeRaceRows[index].ptsRace;
         rider.challengeRaceRows[index].explanation = `nb part. épreuve => ${
           riderRace.nbParticipants
         } et pts classement : ${(
           baremeAuPoints.ptsBareme(riderRace.rankingScratch) ?? 0
-        ).toFixed(1)}`;
+        ).toFixed(1)} ${
+          riderRace.sprintchallenge ? " + 50 pts sprint/gpm" : ""
+        }`;
       });
       if (
         !rider.challengeRaceRows.find(

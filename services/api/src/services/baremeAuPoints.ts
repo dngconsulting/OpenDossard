@@ -1,6 +1,6 @@
 export const baremeAuPoints = {
   ptsBareme: (ranking: number): number =>
-    ranking <= 10 ? [20, 16, 13, 10, 8, 6, 4, 3, 2, 1][ranking - 1] : 0,
+    ranking <= 5 ? [100, 50, 30, 20, 10][ranking - 1] : 0,
   coef: (nbParticipants: number) => {
     if (nbParticipants === 1) return 1;
     if (nbParticipants > 0 && nbParticipants <= 9) {
