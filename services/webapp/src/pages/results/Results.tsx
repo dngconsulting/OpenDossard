@@ -770,45 +770,35 @@ const EditResultsPage = (gprops: any) => {
                   </ActionButton>
                 )}
                 <div style={{ display: 'flex', alignItems: 'center' }}>
-                  {gprops.authentication.roles.includes('ADMIN') ? (
-                    <FileUpload
-                      mode="basic"
-                      name="file"
-                      url={'/api/races/results/upload/' + competitionId}
-                      onBeforeSend={event => {
-                        setLoading(true);
-                        event.xhr.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem('token'));
-                      }}
-                      onError={async event => {
-                        setLoading(false);
-                        setNotification({
-                          message: event.xhr.response,
-                          open: true,
-                          type: 'error'
-                        });
-                      }}
-                      onUpload={async event => {
-                        await fetchRows();
-                        setLoading(false);
-                        setNotification({
-                          message: event.xhr.response,
-                          open: true,
-                          type: 'info'
-                        });
-                      }}
-                      accept="text/csv"
-                      maxFileSize={100000}
-                      chooseLabel="Classement via fichier CSV"
-                    />
-                  ) : (
-                    <ActionButton
-                      disabled={true}
-                      color="primary"
-                      title="Classement par fichier CSV (activé pour les administrateurs)"
-                    >
-                      <span style={{ color: 'white' }}>Classement via fichier CSV</span>
-                    </ActionButton>
-                  )}
+                  <FileUpload
+                    mode="basic"
+                    name="file"
+                    url={'/api/races/results/upload/' + competitionId}
+                    onBeforeSend={event => {
+                      setLoading(true);
+                      event.xhr.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem('token'));
+                    }}
+                    onError={async event => {
+                      setLoading(false);
+                      setNotification({
+                        message: event.xhr.response,
+                        open: true,
+                        type: 'error'
+                      });
+                    }}
+                    onUpload={async event => {
+                      await fetchRows();
+                      setLoading(false);
+                      setNotification({
+                        message: event.xhr.response,
+                        open: true,
+                        type: 'info'
+                      });
+                    }}
+                    accept="text/csv"
+                    maxFileSize={100000}
+                    chooseLabel="Fichier CSV"
+                  />
                 </div>
               </div>
               <div
