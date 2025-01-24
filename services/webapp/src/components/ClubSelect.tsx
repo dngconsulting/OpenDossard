@@ -157,7 +157,7 @@ export default function ClubSelect({
   const handleCreate = async (inputValue: string) => {
     setLoading(true);
     const newClub = await apiClubs.createClub({
-      clubEntity: { id: 0, shortName: null, dept, longName: inputValue, fede }
+      clubEntity: { id: 0, shortName: null, dept, longName: inputValue, fede, elicenceName: null }
     });
     const newClubOption = {
       value: newClub.id,

@@ -17,6 +17,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Clear,
+  CloudUpload,
   DeleteOutline,
   Edit,
   FilterList,
@@ -36,12 +37,16 @@ import { licencesPDF } from '../../reports';
 import _ from 'lodash';
 import { exportCsv } from '../../util/csv';
 import { toMMDDYYYY, toTime } from '../../util/date';
+import { FileUpload } from 'primereact/fileupload';
+import { ReduxState } from '../../state/ReduxState';
+import { connect } from 'react-redux';
 
 interface ILicencesProps {
   items: any[];
   classes: any;
   history: any;
   location: any;
+  authentication: any;
 }
 
 const tableIcons = {
@@ -81,6 +86,8 @@ const LicencesPage = (props: ILicencesProps) => {
   const tableRef = useRef(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down(BREAK_POINT_MOBILE_TABLET));
+  const [isLoading, setLoading] = useState<boolean>(false);
+  const fileUploadRef = useRef(null);
   useEffect(() => {
     const queryParams = new URLSearchParams(props.location.search);
     if (queryParams.has('id')) {
@@ -444,6 +451,19 @@ const LicencesPage = (props: ILicencesProps) => {
                 'licences'
               );
             }
+          },
+          {
+            icon: () => (
+              <ActionButton disabled={!props.authentication.roles.includes('ADMIN')} color={'primary'}>
+                <CloudUpload style={{ verticalAlign: 'middle' }} />
+                <span style={{ color: 'white', marginLeft: 5 }}>e-Licences</span>
+              </ActionButton>
+            ),
+            tooltip: 'Téléverser un export CSV elicence',
+            isFreeAction: true,
+            onClick: () => {
+              if (props.authentication.roles.includes('ADMIN')) fileUploadRef.current.fileInput.click();
+            }
           }
         ]}
         localization={{
@@ -474,8 +494,43 @@ const LicencesPage = (props: ILicencesProps) => {
           }
         }}
       />
+      <div id="upload-elicences" style={{ visibility: 'hidden' }}>
+        <FileUpload
+          ref={fileUploadRef}
+          mode="basic"
+          auto={true}
+          name="file"
+          url={'/api/licences/upload/elicence/'}
+          onBeforeSend={event => {
+            setLoading(true);
+            event.xhr.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem('token'));
+          }}
+          onError={async event => {
+            setLoading(false);
+            setNotification({
+              message: event.xhr.response,
+              open: true,
+              type: 'error'
+            });
+          }}
+          onUpload={async event => {
+            setLoading(false);
+            setNotification({
+              message: event.xhr.response,
+              open: true,
+              type: 'info'
+            });
+          }}
+          accept="text/csv"
+          chooseLabel="Fichier CSV"
+        />
+      </div>
     </div>
   );
 };
 
-export default LicencesPage;
+const mapStateToProps = (state: ReduxState) => ({
+  authentication: state.authentication
+});
+
+export default connect(mapStateToProps, {})(LicencesPage);

@@ -56,6 +56,12 @@ export interface ClubEntity {
      * @memberof ClubEntity
      */
     longName: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ClubEntity
+     */
+    elicenceName: string;
 }
 
 export function ClubEntityFromJSON(json: any): ClubEntity {
@@ -73,6 +79,7 @@ export function ClubEntityFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'shortName': json['shortName'],
         'dept': json['dept'],
         'longName': json['longName'],
+        'elicenceName': json['elicenceName'],
     };
 }
 
@@ -90,6 +97,7 @@ export function ClubEntityToJSON(value?: ClubEntity | null): any {
         'shortName': value.shortName,
         'dept': value.dept,
         'longName': value.longName,
+        'elicenceName': value.elicenceName,
     };
 }
 

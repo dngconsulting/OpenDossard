@@ -24,6 +24,7 @@ import config from "./config";
 import { CompetitionService } from "./services/competition.service";
 import { ChallengeController } from "./controllers/challenge.controller";
 import { ChallengeEntity } from "./entity/challenge.entity";
+import { LicenceService } from "./services/licence.service";
 
 const RLog: FactoryProvider = {
   provide: APP_INTERCEPTOR,
@@ -54,6 +55,7 @@ const RLog: FactoryProvider = {
     AuthService,
     LocalStrategy,
     CompetitionService,
+    LicenceService,
     JwtStrategy,
     RLog
   ],

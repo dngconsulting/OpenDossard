@@ -298,6 +298,38 @@ export class LicenceAPIApi extends runtime.BaseAPI {
     }
 
     /**
+     */
+    async licenceControllerUploadFileRaw(): Promise<runtime.ApiResponse<string>> {
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = typeof token === 'function' ? token("bearerAuth", []) : token;
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/licences/upload/elicence`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.TextApiResponse(response) as any;
+    }
+
+    /**
+     */
+    async licenceControllerUploadFile(): Promise<string> {
+        const response = await this.licenceControllerUploadFileRaw();
+        return await response.value();
+    }
+
+    /**
      * Met à jour une licence existante
      */
     async updateRaw(requestParameters: UpdateRequest): Promise<runtime.ApiResponse<void>> {
