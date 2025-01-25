@@ -40,6 +40,7 @@ import { toMMDDYYYY, toTime } from '../../util/date';
 import { FileUpload } from 'primereact/fileupload';
 import { ReduxState } from '../../state/ReduxState';
 import { connect } from 'react-redux';
+import { LoaderIndicator } from '../../components/LoaderIndicator';
 
 interface ILicencesProps {
   items: any[];
@@ -289,6 +290,7 @@ const LicencesPage = (props: ILicencesProps) => {
   ];
   return (
     <div id={'mydiv'}>
+      <LoaderIndicator visible={isLoading} />
       <MaterialTable
         style={{ margin: 5, padding: 10 }}
         components={{
