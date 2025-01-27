@@ -48,8 +48,10 @@ export const getCateaFromBirthYear = (birthyear: string, gender: string) => {
     catea += "V";
   } else if (age >= 50 && age <= 59) {
     catea += "SV";
-  } else if (age >= 60) {
+  } else if (age >= 60 && age <= 69) {
     catea += "A";
+  } else if (age >= 70) {
+    catea += "SA";
   }
   return catea;
 };
