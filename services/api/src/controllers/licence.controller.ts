@@ -482,6 +482,14 @@ export class LicenceController {
                   changed = true;
                 }
               }
+              // On met à jour le dept au cas où
+              if (
+                csvRider.dept &&
+                formatDepartement(csvRider.dept) !== existingRider.dept
+              ) {
+                existingRider.dept = formatDepartement(csvRider.dept);
+                changed = true;
+              }
               if (changed) {
                 existingRider.lastChanged = new Date();
                 existingRider.author =
