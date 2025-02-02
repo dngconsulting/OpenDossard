@@ -57,7 +57,10 @@ export class ClubController {
   public async getClubByFede(
     @Body() fedeAndDept: FedeDeptParamDTO
   ): Promise<ClubRow[]> {
-    return this.repository.find({ where: { ...fedeAndDept } });
+    return this.repository.find({
+      where: { ...fedeAndDept },
+      order: { ["longName"]: "ASC" }
+    });
   }
   @ApiOperation({
     operationId: "getClubsById",
