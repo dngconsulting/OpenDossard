@@ -452,11 +452,11 @@ const InfoRace = (props: IInfoRaceProps) => {
             </Tooltip>
           </Grid>
           <Grid item={true} xs={8}>
-            {props.competition.fede && props.competition.fede !== FedeEnum.NL && (
+            {props.competition.fede && props.competition.zipCode && props.competition.fede !== FedeEnum.NL && (
               <ClubSelect
                 helperText={''}
                 isError={error.club}
-                dept={props.competition.dept}
+                dept={props.competition.zipCode.substring(0, 2)}
                 fede={props.competition.fede}
                 onSelectClubId={onSelectClub}
                 defaultChosenClub={
