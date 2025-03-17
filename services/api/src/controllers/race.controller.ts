@@ -268,7 +268,7 @@ export class RacesCtrl {
                           JOIN LICENCE L ON R.LICENCE_ID = L.ID
                           JOIN COMPETITION C ON R.COMPETITION_ID = C.ID
                    WHERE R.LICENCE_ID = $1
-                     AND (R.COMMENT is NULL OR R.COMMENT <> 'NC')
+                     AND (R.COMMENT is not NULL OR R.RANKING_SCRATCH is not NULL)
                    ORDER BY R.ID DESC`;
     return await this.entityManager.query(query, [licenceId]);
   }
