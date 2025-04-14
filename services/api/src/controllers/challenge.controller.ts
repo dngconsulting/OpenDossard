@@ -73,7 +73,7 @@ export class ChallengeController {
                                   join LICENCE ON LICENCE.ID = licence_id
                                   JOIN COMPETITION ON COMPETITION.ID = competition_id
                            where LICENCE.GENDER = $2
-                             AND COMPETITION.fede = 'FSGT' AND ranking_scratch is not null)
+                             AND COMPETITION.fede = 'FSGT' AND (ranking_scratch is not null OR race.comment is not null))
       SELECT LICENCE.NAME                AS "name",
              LICENCE.FIRST_NAME          AS "firstName",
              LICENCE.GENDER              AS "gender",
