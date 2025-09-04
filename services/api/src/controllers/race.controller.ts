@@ -1,12 +1,13 @@
-import { EntityManager } from "typeorm";
+import { EntityManager } from 'typeorm';
+import * as csv from 'csv-parser';
 
-import { RaceEntity } from "../entity/race.entity";
-import { LicenceEntity } from "../entity/licence.entity";
+import { RaceEntity } from '../entity/race.entity';
+import { LicenceEntity } from '../entity/licence.entity';
 import {
   CompetitionEntity,
-  CompetitionType
-} from "../entity/competition.entity";
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+  CompetitionType,
+} from '../entity/competition.entity';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   BadRequestException,
   Body,
@@ -19,44 +20,44 @@ import {
   Put,
   UploadedFile,
   UseGuards,
-  UseInterceptors
-} from "@nestjs/common";
-import { InjectEntityManager } from "@nestjs/typeorm";
-import * as _ from "lodash";
-import { AuthGuard } from "@nestjs/passport";
+  UseInterceptors,
+} from '@nestjs/common';
+import { InjectEntityManager } from '@nestjs/typeorm';
+import * as _ from 'lodash';
+import { AuthGuard } from '@nestjs/passport';
 import {
   CompetitionFilter,
   RaceCreate,
   RaceNbRider,
   RaceRow,
-  UpdateToursParams
-} from "../dto/model.dto";
-import { ROLES, RolesGuard } from "../guards/roles.guard";
-import { Roles } from "../decorators/roles.decorator";
-import { CompetitionService } from "../services/competition.service";
-import { FileInterceptor } from "@nestjs/platform-express";
-import { Readable } from "stream";
-
-const csv = require("csv-parser");
+  UpdateToursParams,
+} from '../dto/model.dto';
+import { ROLES, RolesGuard } from '../guards/roles.guard';
+import { Roles } from '../decorators/roles.decorator';
+import { CompetitionService } from '../services/competition.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Readable } from 'stream';
+import { parseInt10 } from '../util/numberUtils';
+import {ResultsRow} from '../types/csv.types';
 
 /***
  * Races Controller manages races inside Competitions
  * Races a generally organized by category
  */
-@Controller("/api/races")
-@ApiTags("RaceAPI")
-@UseGuards(AuthGuard("jwt"), RolesGuard)
+@Controller('/api/races')
+@ApiTags('RaceAPI')
+@UseGuards(AuthGuard('jwt'), RolesGuard)
 export class RacesCtrl {
   constructor(
     @InjectEntityManager()
     private readonly entityManager: EntityManager,
-    private readonly competitionService: CompetitionService
+    private readonly competitionService: CompetitionService,
   ) {}
 
-  @Get("/nbRider")
+  @Get('/nbRider')
   @ApiOperation({
-    operationId: "getNumberRider",
-    summary: "Rechercher le nombre de coureur par course "
+    operationId: 'getNumberRider',
+    summary: 'Rechercher le nombre de coureur par course ',
   })
   @ApiResponse({ status: 200, type: RaceNbRider, isArray: true })
   @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
@@ -64,35 +65,31 @@ export class RacesCtrl {
     return null;
   }
 
-  @UseInterceptors(FileInterceptor("file"))
-  @Post("results/upload/:id")
+  @UseInterceptors(FileInterceptor('file'))
+  @Post('results/upload/:id')
   @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
   public async uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    @Param("id") id
+    @Param('id') id,
   ): Promise<string> {
-    const results = Array<{
-      Dossard: string;
-      Chrono: string;
-      Tours: number;
-      Classement: string;
-    }>();
-    let message = "<br>------------ Résultats du traitement ----------------";
 
-    const asyncGetRaceRows = results => {
+    const results: ResultsRow[] = [];
+    let message = '<br>------------ Résultats du traitement ----------------';
+
+    const asyncGetRaceRows = resultsInput => {
       return Promise.all(
-        results.map(async (result, index) => {
+        resultsInput.map(async (result) => {
           // Récupération du dossard à partir du competitionId
           return {
             raceRow: await this.entityManager.findOne(RaceEntity, {
               where: {
                 riderNumber: result.Dossard,
-                competition: id
-              }
+                competition: id,
+              },
             }),
-            result: result
+            result,
           };
-        })
+        }),
       );
     };
 
@@ -100,81 +97,85 @@ export class RacesCtrl {
       return Promise.all(
         resultRaceRows.map(resultRaceRow => {
           message +=
-            "<br>Sauvegarde Dossard " +
-            (resultRaceRow.result?.Dossard ?? "NC") +
-            " chrono=" +
-            (resultRaceRow.result?.Chrono ?? "NC") +
-            " class.=" +
-            (resultRaceRow.result?.Classement ?? "NC") +
-            " tours=" +
-            (resultRaceRow.result?.Tours ?? "NC");
+            '<br>Sauvegarde Dossard ' +
+            (resultRaceRow.result?.Dossard ?? 'NC') +
+            ' chrono=' +
+            (resultRaceRow.result?.Chrono ?? 'NC') +
+            ' class.=' +
+            (resultRaceRow.result?.Classement ?? 'NC') +
+            ' tours=' +
+            (resultRaceRow.result?.Tours ?? 'NC');
           if (resultRaceRow.raceRow) {
             let canSave = true;
             resultRaceRow.raceRow.chrono = resultRaceRow.result.Chrono;
-            if (Number.isNaN(parseInt(resultRaceRow.result.Tours))) {
+            if (Number.isNaN(parseInt10(resultRaceRow.result.Tours))) {
               resultRaceRow.raceRow.tours = undefined;
               resultRaceRow.result.Tours = undefined;
             } else {
               resultRaceRow.raceRow.tours = resultRaceRow.result.Tours;
             }
-            if (isNaN(parseInt(resultRaceRow.result.Classement))) {
+            if (isNaN(parseInt10(resultRaceRow.result.Classement))) {
               if (
-                ["ABD", "DSQ", "ABD", "NC", "NP", "CHT"].includes(
-                  resultRaceRow.result.Classement
+                ['ABD', 'DSQ', 'ABD', 'NC', 'NP', 'CHT'].includes(
+                  resultRaceRow.result.Classement,
                 )
-              )
+              ) {
                 resultRaceRow.raceRow.comment = resultRaceRow.result.Classement;
-              else canSave = false;
-            } else
-              resultRaceRow.raceRow.rankingScratch = parseInt(
-                resultRaceRow.result.Classement
+              } else {
+                canSave = false;
+              }
+            } else {
+              resultRaceRow.raceRow.rankingScratch = parseInt10(
+                resultRaceRow.result.Classement,
               );
+            }
 
             if (canSave) {
               const r = this.entityManager.save(resultRaceRow.raceRow);
-              message += " OK";
+              message += ' OK';
               return r;
             } else {
-              message += "<span style='color:red'> NOK</span>";
+              message += '<span style=\'color:red\'> NOK</span>';
             }
           } else {
-            message += "<span style='color:red'> Non trouvé !</span>";
+            message += '<span style=\'color:red\'> Non trouvé !</span>';
           }
-        })
+        }),
       );
     };
 
     return new Promise((resolve, reject) => {
       Readable.from(file.buffer)
-        .pipe(csv({ separator: ";" }))
-        .on("data", data => {
+        .pipe(csv({ separator: ';' }))
+        .on('data', data => {
           results.push(data);
         })
-        .on("end", async () => {
+        .on('end', async () => {
           try {
             // Check de la consécutivité des classements avant de faire quoique ce soit
             results.forEach((result, index) => {
               if (
-                !isNaN(parseInt(result.Classement)) &&
-                parseInt(result.Classement) != index + 1
-              )
+                !isNaN(parseInt10(result.Classement)) &&
+                parseInt10(result.Classement) !== index + 1
+              ) {
                 throw new BadRequestException(
-                  "Le classement du Dossard " +
+                  'Le classement du Dossard ' +
                     result.Dossard +
-                    " n'est pas consécutif ! classement=>" +
-                    parseInt(result.Classement) +
-                    " doit être " +
-                    (index + 1)
+                    ' n\'est pas consécutif ! classement=>' +
+                    parseInt10(result.Classement) +
+                    ' doit être ' +
+                    (index + 1),
                 );
+              }
             });
             const raceRows = await asyncGetRaceRows(results);
             await asyncSaveRows(raceRows);
             message +=
-              "<br>Enregistrement terminée, " +
+              '<br>Enregistrement terminée, ' +
               results.length +
-              " lignes traitées";
+              ' lignes traitées';
             message +=
-              "<br>--------------------- Fin du traitement ----------------------";
+              '<br>--------------------- Fin du traitement ----------------------';
             resolve(message);
           } catch (err) {
             reject(new BadRequestException(err.message));
@@ -183,17 +184,17 @@ export class RacesCtrl {
     });
   }
 
-  @Post("/getRaces")
+  @Post('/getRaces')
   @ApiOperation({
-    operationId: "getRaces",
+    operationId: 'getRaces',
     summary:
-      "Rechercher les participations aux courses de MM/JJ/AAAA à MM/JJ/AAAA"
+      'Rechercher les participations aux courses de MM/JJ/AAAA à MM/JJ/AAAA',
   })
   @ApiResponse({ status: 200, type: RaceRow, isArray: true })
   @Roles(ROLES.MOBILE, ROLES.ORGANISATEUR, ROLES.ADMIN)
   public async getRaces(@Body() filter: CompetitionFilter): Promise<RaceRow[]> {
     const competitions = await this.competitionService.findCompetitionByFilter(
-      filter
+      filter,
     );
 
     const query = `select r.id,
@@ -223,17 +224,17 @@ export class RacesCtrl {
                                 join competition c on r.competition_id = c.id
                    where r.competition_id = ANY($1) `;
     return await this.entityManager.query(query, [
-      competitions.map(competition => competition.id)
+      competitions.map(competition => competition.id),
     ]);
   }
 
-  @Get("palmares/:id")
+  @Get('palmares/:id')
   @ApiOperation({
-    operationId: "getPalmares",
-    summary: "Rechercher le palmares d'un coureur par son id coureur"
+    operationId: 'getPalmares',
+    summary: 'Rechercher le palmares d\'un coureur par son id coureur',
   })
   @ApiResponse({ status: 200, type: RaceRow, isArray: true })
-  public async getPalmares(@Param("id") licenceId: number): Promise<RaceRow[]> {
+  public async getPalmares(@Param('id') licenceId: number): Promise<RaceRow[]> {
     const query = `SELECT R.ID,
                           R.RACE_CODE                                                AS "raceCode",
                           R.CATEV,
@@ -273,24 +274,24 @@ export class RacesCtrl {
     return await this.entityManager.query(query, [licenceId]);
   }
 
-  @Get("withpalmares/:query")
+  @Get('withpalmares/:query')
   @ApiOperation({
-    operationId: "getLicencesWithPalmares",
+    operationId: 'getLicencesWithPalmares',
     summary:
-      "Rechercher le palmares d'un coureur qui a fait au moins une course"
+      'Rechercher le palmares d\'un coureur qui a fait au moins une course',
   })
   @ApiResponse({ status: 200, type: LicenceEntity, isArray: true })
   @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN, ROLES.MOBILE)
   public async getLicencesWithPalmares(
-    @Param("query") query: string
+    @Param('query') query: string,
   ): Promise<LicenceEntity[]> {
     const filterParam =
-      "%" +
+      '%' +
       query
-        .replace(/\s+/g, "")
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "") +
-      "%";
+        .replace(/\s+/g, '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') +
+      '%';
     const q: string = `select distinct l.licence_number ,
                                        l.id,
                                        l.club,
@@ -307,15 +308,15 @@ export class RacesCtrl {
     return await this.entityManager.query(q, [filterParam]);
   }
 
-  @Get("/:id")
+  @Get('/:id')
   @ApiOperation({
-    operationId: "getCompetitionRaces",
-    summary: "Rechercher tous les coureurs participants à une course "
+    operationId: 'getCompetitionRaces',
+    summary: 'Rechercher tous les coureurs participants à une course ',
   })
   @ApiResponse({ status: 200, type: RaceRow, isArray: true })
   @Roles(ROLES.MOBILE, ROLES.ORGANISATEUR, ROLES.ADMIN)
   public async getCompetitionRaces(
-    @Param("id") competitionId: number
+    @Param('id') competitionId: number,
   ): Promise<RaceRow[]> {
     const query = `select r.id,
                               r.race_code as "raceCode",
@@ -347,73 +348,73 @@ export class RacesCtrl {
 
   @Post()
   @ApiOperation({
-    operationId: "engage",
-    summary: "Engage un nouveau coureur "
+    operationId: 'engage',
+    summary: 'Engage un nouveau coureur ',
   })
   @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
   public async create(@Body() race: RaceCreate): Promise<void> {
     if (!race.licenceId) {
-      throw new BadRequestException("Veuillez renseigner un coureur");
+      throw new BadRequestException('Veuillez renseigner un coureur');
     }
 
     if (!race.riderNumber) {
-      throw new BadRequestException("Veuillez renseigner un numéro de dossard");
+      throw new BadRequestException('Veuillez renseigner un numéro de dossard');
     }
 
     if (!race.catev) {
       throw new BadRequestException(
-        "Veuillez renseigner la catégorie dans laquelle le coureur participe"
+        'Veuillez renseigner la catégorie dans laquelle le coureur participe',
       );
     }
 
     const licence = await this.entityManager.findOne(
       LicenceEntity,
-      race.licenceId
+      race.licenceId,
     );
 
     if (!licence) {
-      throw new BadRequestException("Licence inconnue");
+      throw new BadRequestException('Licence inconnue');
     }
 
     const numberConflict = await this.entityManager
-      .createQueryBuilder(RaceEntity, "race")
+      .createQueryBuilder(RaceEntity, 'race')
       .where(
-        "race.competition_id = :cid and race.rider_dossard = :riderNumber and race.race_code= :raceCode",
+        'race.competition_id = :cid and race.rider_dossard = :riderNumber and race.race_code= :raceCode',
         {
           cid: race.competitionId,
           riderNumber: race.riderNumber,
-          raceCode: race.raceCode
-        }
+          raceCode: race.raceCode,
+        },
       )
       .getOne();
 
     if (numberConflict) {
       throw new BadRequestException(
-        `Le numéro de dossard ${race.riderNumber} est déjà pris`
+        `Le numéro de dossard ${race.riderNumber} est déjà pris`,
       );
     }
 
     const licenceConflict = await this.entityManager
-      .createQueryBuilder(RaceEntity, "race")
+      .createQueryBuilder(RaceEntity, 'race')
       .where(
-        "race.competition_id = :cid and race.licence_id = :licenceId and race.race_code= :raceCode",
+        'race.competition_id = :cid and race.licence_id = :licenceId and race.race_code= :raceCode',
         {
           cid: race.competitionId,
           licenceId: licence.id,
-          raceCode: race.raceCode
-        }
+          raceCode: race.raceCode,
+        },
       )
       .getOne();
 
     if (licenceConflict) {
       throw new BadRequestException(
-        `Ce licencié est déjà inscrit sur cette épreuve`
+        `Ce licencié est déjà inscrit sur cette épreuve`,
       );
     }
 
     const competition = await this.entityManager.findOne(
       CompetitionEntity,
-      race.competitionId
+      race.competitionId,
     );
 
     const newRace = new RaceEntity();
@@ -431,38 +432,38 @@ export class RacesCtrl {
     await this.entityManager.save(newRace);
   }
 
-  @Post("/refreshEngagement/:licenceId/:competitionId")
+  @Post('/refreshEngagement/:licenceId/:competitionId')
   @ApiOperation({
-    operationId: "refreshEngagement",
+    operationId: 'refreshEngagement',
     summary:
-      "Met à jour l'engagement du coureur licenceId sur la competition competitionId"
+      'Met à jour l\'engagement du coureur licenceId sur la competition competitionId',
   })
   @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
   public async refreshEngagement(
-    @Param("competitionId") competitionId: number,
-    @Param("licenceId") licenceId: number
+    @Param('competitionId') competitionId: number,
+    @Param('licenceId') licenceId: number,
   ): Promise<void> {
     Logger.debug(
-      "[RefreshEngagement] licenceId =" +
+      '[RefreshEngagement] licenceId =' +
         licenceId +
-        " competitionId=" +
-        competitionId
+        ' competitionId=' +
+        competitionId,
     );
     const licence = await this.entityManager.findOne<LicenceEntity>(
       LicenceEntity,
       {
-        id: licenceId
-      }
+        id: licenceId,
+      },
     );
     const racerowToUpdate = await this.entityManager.findOne<RaceEntity>(
       RaceEntity,
       {
         where: {
           competition: { id: competitionId },
-          licence: { id: licenceId }
+          licence: { id: licenceId },
         },
-        relations: ["competition"]
-      }
+        relations: ['competition'],
+      },
     );
     racerowToUpdate.club = licence.club;
     racerowToUpdate.catea = licence.catea;
@@ -473,67 +474,67 @@ export class RacesCtrl {
     await this.entityManager.save(racerowToUpdate);
   }
 
-  @Put("/flagChallenge")
+  @Put('/flagChallenge')
   @ApiOperation({
-    summary: "Classe le vainqueur du challenge",
-    operationId: "flagChallenge"
+    summary: 'Classe le vainqueur du challenge',
+    operationId: 'flagChallenge',
   })
   @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
   public async flagChallenge(@Body() raceRow: RaceRow): Promise<void> {
     const racerowToUpdate = await this.entityManager.findOne<RaceEntity>(
       RaceEntity,
       {
-        id: raceRow.id
-      }
+        id: raceRow.id,
+      },
     );
     racerowToUpdate.sprintchallenge = !racerowToUpdate.sprintchallenge;
     await this.entityManager.save(racerowToUpdate);
   }
 
-  @Put("/reorderRank")
+  @Put('/reorderRank')
   @ApiOperation({
-    summary: "Réordonne le classement",
-    operationId: "reorderRanking"
+    summary: 'Réordonne le classement',
+    operationId: 'reorderRanking',
   })
   @ApiBody({ type: [RaceRow] })
   @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
   public async reorderRanking(@Body() racesrows: RaceRow[]): Promise<void> {
     // Lets remove non ranked riders and DSQ/ABD
-    Logger.debug("Reorder ranking");
+    Logger.debug('Reorder ranking');
     const rows = _.remove(racesrows, item => item.id && !item.comment);
     for (let index = 1; index <= rows.length; index++) {
       const item = rows[index - 1];
       // TODO Warning n+1 Select here
       const raceRowToSave: RaceEntity = await this.entityManager.findOne(
         RaceEntity,
-        { id: item.id }
+        { id: item.id },
       );
       if (raceRowToSave.rankingScratch !== index && !raceRowToSave.comment) {
         raceRowToSave.rankingScratch = index;
         Logger.debug(
-          "Update Ranking of rider number " +
+          'Update Ranking of rider number ' +
             raceRowToSave.riderNumber +
-            " with rank " +
-            index
+            ' with rank ' +
+            index,
         );
         await this.entityManager.save(raceRowToSave);
       }
     }
   }
 
-  @Put("/removeRanking")
+  @Put('/removeRanking')
   @ApiOperation({
-    summary: "Supprime un coureur du classement",
-    operationId: "removeRanking"
+    summary: 'Supprime un coureur du classement',
+    operationId: 'removeRanking',
   })
   @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
   public async removeRanking(@Body() raceRow: RaceRow): Promise<void> {
-    Logger.debug("RemoveRanking with raceRow=" + JSON.stringify(raceRow));
+    Logger.debug('RemoveRanking with raceRow=' + JSON.stringify(raceRow));
     const racerowToUpdate = await this.entityManager.findOne<RaceEntity>(
       RaceEntity,
       {
-        id: raceRow.id
-      }
+        id: raceRow.id,
+      },
     );
     if (!racerowToUpdate) {
       return;
@@ -543,7 +544,7 @@ export class RacesCtrl {
       racerowToUpdate.comment = null;
     } else {
       Logger.debug(
-        "Remove Ranking for rider number " + racerowToUpdate.riderNumber
+        'Remove Ranking for rider number ' + racerowToUpdate.riderNumber,
       );
       racerowToUpdate.rankingScratch = null;
     }
@@ -553,9 +554,9 @@ export class RacesCtrl {
     // Retrieve all ranks for this race ...
     const races = await this.entityManager.find(RaceEntity, {
       raceCode: raceRow.raceCode,
-      competition: { id: raceRow.competitionId }
+      competition: { id: raceRow.competitionId },
     });
-    const existingRankedRaces = _.orderBy(races, ["rankingScratch"], ["asc"]);
+    const existingRankedRaces = _.orderBy(races, ['rankingScratch'], ['asc']);
     // ... And  reorder them because of potential "holes" after deleting
     for (let index = 1; index <= existingRankedRaces.length; index++) {
       const item = existingRankedRaces[index - 1];
@@ -566,85 +567,85 @@ export class RacesCtrl {
       ) {
         item.rankingScratch = index;
         Logger.debug(
-          "Update Ranking of rider number " +
+          'Update Ranking of rider number ' +
             item.riderNumber +
-            " with rank " +
-            index
+            ' with rank ' +
+            index,
         );
         await this.entityManager.save(item);
       }
     }
   }
 
-  @Post("/chrono/:raceId/:chrono")
+  @Post('/chrono/:raceId/:chrono')
   @ApiOperation({
-    operationId: "updateChrono",
-    summary: "Met à jour le chrono d'un coureur"
+    operationId: 'updateChrono',
+    summary: 'Met à jour le chrono d\'un coureur',
   })
   @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
   public async updateChrono(
-    @Param("raceId") raceId: number,
-    @Param("chrono") chrono: string
+    @Param('raceId') raceId: number,
+    @Param('chrono') chrono: string,
   ): Promise<void> {
     const r = await this.entityManager.findOne<RaceEntity>(RaceEntity, {
-      id: raceId
+      id: raceId,
     });
     r.chrono = chrono;
     await this.entityManager.save(r);
   }
 
-  @Post("/tours")
+  @Post('/tours')
   @ApiOperation({
-    operationId: "updateTours",
-    summary: "Met à jour le nombre de tours d'un coureur"
+    operationId: 'updateTours',
+    summary: 'Met à jour le nombre de tours d\'un coureur',
   })
   public async updateTours(@Body() body: UpdateToursParams): Promise<void> {
     const r = await this.entityManager.findOne<RaceEntity>(RaceEntity, {
-      id: body.raceId
+      id: body.raceId,
     });
     r.tours = body.tours ? body.tours : null;
     await this.entityManager.save(r);
   }
 
-  @Put("/update")
+  @Put('/update')
   @ApiOperation({
-    summary: "Met à jour le classement du coureur ",
-    operationId: "updateRanking"
+    summary: 'Met à jour le classement du coureur ',
+    operationId: 'updateRanking',
   })
   @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
   public async updateRanking(@Body() raceRow: RaceRow): Promise<void> {
-    Logger.debug("Update Rank for rider " + JSON.stringify(raceRow));
+    Logger.debug('Update Rank for rider ' + JSON.stringify(raceRow));
     // Lets find first the corresponding Race row rider
     const requestedRankedRider = await this.entityManager.findOne<RaceEntity>(
       RaceEntity,
       {
         riderNumber: raceRow.riderNumber,
         raceCode: raceRow.raceCode,
-        competition: { id: raceRow.competitionId }
-      }
+        competition: { id: raceRow.competitionId },
+      },
     );
     if (!requestedRankedRider) {
       Logger.warn(
-        "Impossible de classer ce coureur, " +
+        'Impossible de classer ce coureur, ' +
           JSON.stringify(requestedRankedRider) +
-          " il n'existe pas"
+          ' il n\'existe pas',
       );
       throw new BadRequestException(
-        "Impossible de classer ce coureur, il n'existe pas en base de données"
+        'Impossible de classer ce coureur, il n\'existe pas en base de données',
       );
     }
 
     // Check if this rider has already a rank or is ABD
     if (requestedRankedRider.rankingScratch || requestedRankedRider.comment) {
       Logger.warn(
-        "Impossible de classer ce coureur, " +
+        'Impossible de classer ce coureur, ' +
           JSON.stringify(requestedRankedRider) +
-          " il existe déjà dans le classement"
+          ' il existe déjà dans le classement',
       );
       throw new BadRequestException(
-        "Impossible de classer le coureur au dossard " +
+        'Impossible de classer le coureur au dossard ' +
           requestedRankedRider.riderNumber +
-          " il existe déjà dans le classement"
+          ' il existe déjà dans le classement',
       );
     }
     // Check if there is existing rider with this rank in this race with the same dossard only for real Ranked update
@@ -652,21 +653,21 @@ export class RacesCtrl {
       const rankRiderToChange = await this.entityManager.findOne(RaceEntity, {
         rankingScratch: raceRow.rankingScratch,
         raceCode: raceRow.raceCode,
-        competition: { id: raceRow.competitionId }
+        competition: { id: raceRow.competitionId },
       });
       // If a rider already exist, it depends on the existing ranking
       // if the ranking is the one we want to change, its and edit, no problem, we remove him
       if (rankRiderToChange) {
         Logger.debug(
-          "A rider exist with this rank " +
+          'A rider exist with this rank ' +
             JSON.stringify(rankRiderToChange) +
-            " New Rank to update =" +
-            raceRow.rankingScratch
+            ' New Rank to update =' +
+            raceRow.rankingScratch,
         );
         if (rankRiderToChange.rankingScratch === raceRow.rankingScratch) {
           Logger.debug(
-            "Existing rider will be removed from ranking " +
-              JSON.stringify(rankRiderToChange)
+            'Existing rider will be removed from ranking ' +
+              JSON.stringify(rankRiderToChange),
           );
           rankRiderToChange.rankingScratch = null;
           rankRiderToChange.comment = null;
@@ -679,13 +680,13 @@ export class RacesCtrl {
     await this.entityManager.save(requestedRankedRider);
   }
 
-  @Delete("/:id")
+  @Delete('/:id')
   @ApiOperation({
-    summary: "Supprime une course",
-    operationId: "deleteRace"
+    summary: 'Supprime une course',
+    operationId: 'deleteRace',
   })
   @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
-  public async delete(@Param("id") id: string): Promise<void> {
+  public async delete(@Param('id') id: string): Promise<void> {
     this.entityManager.delete(RaceEntity, id);
   }
 }

@@ -44,6 +44,4 @@ describe('LicencesController', () => {
             expect(await licencesCtrl.getAllLicences()).toBe(result);
         });
     });
-
-
 });

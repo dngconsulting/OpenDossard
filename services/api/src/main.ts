@@ -20,9 +20,9 @@ async function bootstrap() {
         apdexThreshold: 100,
         authentication: true,
         sessionMaxAge: 20000,
-        onAuthenticate: function(req,username,password){
-            return((username===config.app.monitoringUser) && (password===config.app.monitoringPassword) );
-        }
+        onAuthenticate(req, username, password) {
+            return((username === config.app.monitoringUser) && (password === config.app.monitoringPassword) );
+        },
     }));
     if (config.app.env !== 'DEV') {
         app.useStaticAssets(join(__dirname, '../..', 'client/build'), {index: 'index.html'});

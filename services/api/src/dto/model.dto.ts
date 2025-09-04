@@ -1,10 +1,10 @@
-import { LicenceEntity } from "../entity/licence.entity";
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { FederationEntity } from "src/entity/federation.entity";
-import { Category, CompetitionType } from "src/entity/competition.entity";
-import { PricingInfo } from "src/entity/pricing-info";
-import { CompetitionInfo } from "src/entity/competition-info";
-import { LinkInfo } from "../entity/link-info";
+import { LicenceEntity } from '../entity/licence.entity';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { FederationEntity } from 'src/entity/federation.entity';
+import { Category, CompetitionType } from 'src/entity/competition.entity';
+import { PricingInfo } from 'src/entity/pricing-info';
+import { CompetitionInfo } from 'src/entity/competition-info';
+import { LinkInfo } from '../entity/link-info';
 
 export class ClubRow {
   public id?: number;
@@ -55,7 +55,7 @@ export class RaceRow {
   public competitionName?: string;
   public competitionType?: string;
   public competitionRaces?: string[];
-  @ApiPropertyOptional({ type: "string", format: "date-time" })
+  @ApiPropertyOptional({ type: 'string', format: 'date-time' })
   public competitionDate?: Date;
   public sprintchallenge?: boolean;
   public chrono?: string;
@@ -113,7 +113,7 @@ export class RaceNbRider {
   public count?: number;
   public raceCode?: string;
   public name?: string;
-  @ApiProperty({ type: "string", format: "date-time" })
+  @ApiProperty({ type: 'string', format: 'date-time' })
   public date?: Date;
   public fede?: string;
 }
@@ -138,8 +138,8 @@ export class LicencesPage {
 export class Search {
   currentPage?: number;
   pageSize?: number;
-  @ApiProperty({ type: "string" })
-  orderDirection?: "ASC" | "DESC";
+  @ApiProperty({ type: 'string' })
+  orderDirection?: 'ASC' | 'DESC';
   orderBy?: string;
   search?: string;
   filters?: Filter[];
@@ -174,7 +174,7 @@ export class CompetitionCreate {
   id?: number;
   name: string;
   competitionType?: CompetitionType;
-  @ApiProperty({ enum: FederationEntity, enumName: "FedeEnum" })
+  @ApiProperty({ enum: FederationEntity, enumName: 'FedeEnum' })
   fede?: FederationEntity;
   categories?: Category[];
   races?: string[];
