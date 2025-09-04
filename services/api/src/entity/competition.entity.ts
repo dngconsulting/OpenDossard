@@ -4,56 +4,56 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
-  PrimaryGeneratedColumn
-} from "typeorm";
-import { FederationEntity } from "./federation.entity";
-import { ClubEntity } from "./club.entity";
-import { ApiProperty } from "@nestjs/swagger";
-import { CompetitionInfo } from "./competition-info";
-import { PricingInfo } from "./pricing-info";
-import { LinkInfo } from "./link-info";
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { FederationEntity } from './federation.entity';
+import { ClubEntity } from './club.entity';
+import { ApiProperty } from '@nestjs/swagger';
+import { CompetitionInfo } from './competition-info';
+import { PricingInfo } from './pricing-info';
+import { LinkInfo } from './link-info';
 
 /**
  * Cette énum représente les catégories gérées par une épreuve
  */
 export enum Category {
-  PREMIERE = "1ere",
-  SECONDE = "2eme",
-  TROISIEME = "3eme",
-  QUATRIEME = "4eme",
-  CINQUIEME = "5eme",
-  CADETS = "Cadets",
-  MINIMES = "Minimes",
-  FEMININES = "Feminines",
-  TOUTES = "Toutes"
+  PREMIERE = '1ere',
+  SECONDE = '2eme',
+  TROISIEME = '3eme',
+  QUATRIEME = '4eme',
+  CINQUIEME = '5eme',
+  CADETS = 'Cadets',
+  MINIMES = 'Minimes',
+  FEMININES = 'Feminines',
+  TOUTES = 'Toutes',
 }
 
 export enum CompetitionType {
-  CX = "CX",
-  ROUTE = "ROUTE",
-  VTT = "VTT"
+  CX = 'CX',
+  ROUTE = 'ROUTE',
+  VTT = 'VTT',
 }
 
 /**
  * Entité représentant une fichier épreuve.
  * Une épreuve contient ensuite une ou plusieurs courses
  */
-@Entity({ name: "competition" })
+@Entity({ name: 'competition' })
 export class CompetitionEntity {
   @PrimaryGeneratedColumn()
   public id: number;
   /**
    * La eventDate de l'épreuve au format JS
    */
-  @Column({ nullable: false, name: "event_date" })
-  @ApiProperty({ type: "string", format: "date-time" })
+  @Column({ nullable: false, name: 'event_date' })
+  @ApiProperty({ type: 'string', format: 'date-time' })
   @Index()
   public eventDate: Date;
   /**
    * La référence du club organisateur
    */
   @ManyToOne(type => ClubEntity)
-  @JoinColumn({ name: "club_id" })
+  @JoinColumn({ name: 'club_id' })
   public club: ClubEntity;
   /**
    * Le nom de l'épreuve
@@ -63,7 +63,7 @@ export class CompetitionEntity {
   /**
    * Le code postal correspondant à la commune
    */
-  @Column({ nullable: false, name: "zip_code" })
+  @Column({ nullable: false, name: 'zip_code' })
   public zipCode: string;
   /**
    * L'identifiant OpenRunner du circuit, plat/vallonné/montagneux
@@ -74,7 +74,7 @@ export class CompetitionEntity {
    * La liste des catégories de valeurs concernées par l'épreuve
    * [PREMIERES, SECONDES, QUATRIEMES, CADETS, ...]
    */
-  @Column("simple-array")
+  @Column('simple-array')
   public categories: Category[];
 
   /**
@@ -88,67 +88,67 @@ export class CompetitionEntity {
    * Les différents tarifs au format JSON de la manière suivante :
    *  {'Non Licenciés' : 10, 'FSGT' : 7, 'UFOLEP' : 9}
    */
-  @Column({ type: "json", nullable: true })
+  @Column({ type: 'json', nullable: true })
   public pricing?: PricingInfo[];
 
   /**
    * Liste des courses ['1/2/3','4/5']
    */
   @Column({ nullable: true })
-  @Column("simple-array")
+  @Column('simple-array')
   public races?: string[];
 
   @Column({
-    type: "enum",
-    name: "fede",
+    type: 'enum',
+    name: 'fede',
     enum: FederationEntity,
     nullable: true,
-    default: FederationEntity.FSGT
+    default: FederationEntity.FSGT,
   })
-  @ApiProperty({ enum: FederationEntity, enumName: "FedeEnum" })
+  @ApiProperty({ enum: FederationEntity, enumName: 'FedeEnum' })
   fede: FederationEntity;
 
   @Column({
-    type: "enum",
-    name: "competition_type",
+    type: 'enum',
+    name: 'competition_type',
     nullable: true,
     enum: CompetitionType,
-    default: CompetitionType.ROUTE
+    default: CompetitionType.ROUTE,
   })
   @ApiProperty({ enum: CompetitionType })
   competitionType: CompetitionType;
 
-  @Column({ type: "json", nullable: true, name: "competition_info" })
+  @Column({ type: 'json', nullable: true, name: 'competition_info' })
   competitionInfo?: CompetitionInfo[];
 
-  @Column({ nullable: true, name: "lieu_dossard" })
+  @Column({ nullable: true, name: 'lieu_dossard' })
   lieuDossard?: string;
 
-  @Column({ nullable: true, name: "lieu_dossard_gps" })
+  @Column({ nullable: true, name: 'lieu_dossard_gps' })
   lieuDossardGPS: string;
 
-  @Column({ nullable: true, name: "longueur_circuit" })
+  @Column({ nullable: true, name: 'longueur_circuit' })
   longueurCircuit?: string;
 
-  @Column({ nullable: true, name: "siteweb" })
+  @Column({ nullable: true, name: 'siteweb' })
   siteweb?: string;
 
   @Column({ nullable: true })
   facebook?: string;
 
-  @Column({ nullable: true, name: "contact_email" })
+  @Column({ nullable: true, name: 'contact_email' })
   contactEmail?: string;
 
-  @Column({ nullable: true, name: "contact_phone" })
+  @Column({ nullable: true, name: 'contact_phone' })
   contactPhone?: string;
 
-  @Column({ nullable: true, name: "contact_name" })
+  @Column({ nullable: true, name: 'contact_name' })
   contactName?: string;
 
-  @Column({ nullable: true, name: "opened_to_other_fede" })
+  @Column({ nullable: true, name: 'opened_to_other_fede' })
   openedToOtherFede?: boolean;
 
-  @Column({ nullable: true, name: "opened_nl" })
+  @Column({ nullable: true, name: 'opened_nl' })
   openedNL?: boolean;
 
   @Column({ length: 2, nullable: true })
@@ -169,15 +169,15 @@ export class CompetitionEntity {
   @Column({ nullable: true })
   feedback?: string;
 
-  @Column({ nullable: true, name: "results_validated" })
+  @Column({ nullable: true, name: 'results_validated' })
   resultsValidated?: boolean;
 
-  @Column({ type: "json", nullable: true, name: "photo_urls" })
+  @Column({ type: 'json', nullable: true, name: 'photo_urls' })
   photoUrls?: LinkInfo[];
 
-  @Column({ type: "json", nullable: true, name: "ranking_urls" })
+  @Column({ type: 'json', nullable: true, name: 'ranking_urls' })
   rankingUrls?: LinkInfo[];
 
-  @Column({ nullable: true, name: "avec_chrono", default: false })
+  @Column({ nullable: true, name: 'avec_chrono', default: false })
   avecChrono?: boolean;
 }

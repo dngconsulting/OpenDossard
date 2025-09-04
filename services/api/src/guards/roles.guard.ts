@@ -2,9 +2,9 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
 export enum ROLES {
-    ADMIN='ADMIN',
-    ORGANISATEUR='ORGANISATEUR',
-    MOBILE="MOBILE"
+    ADMIN= 'ADMIN',
+    ORGANISATEUR= 'ORGANISATEUR',
+    MOBILE= 'MOBILE',
 }
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -20,7 +20,7 @@ export class RolesGuard implements CanActivate {
 
         const hasRole = () => {
             return user.roles.some(role => !!roles.find(item => item === role));
-        }
+        };
         return user && user.roles && hasRole();
     }
 }

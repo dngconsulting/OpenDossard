@@ -1,13 +1,13 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
-import { FederationEntity } from "./federation.entity";
-import { ApiProperty } from "@nestjs/swagger";
+import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import { FederationEntity } from './federation.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
-@Entity({ name: "licence" })
+@Entity({ name: 'licence' })
 export class LicenceEntity {
   @PrimaryGeneratedColumn()
   public id: number;
 
-  @Column({ nullable: true, name: "licence_number" })
+  @Column({ nullable: true, name: 'licence_number' })
   @Index()
   licenceNumber: string;
 
@@ -15,7 +15,7 @@ export class LicenceEntity {
   @Index()
   name: string;
 
-  @Column({ nullable: true, name: "first_name" })
+  @Column({ nullable: true, name: 'first_name' })
   @Index()
   firstName: string;
 
@@ -28,7 +28,7 @@ export class LicenceEntity {
   @Column({ nullable: true })
   dept: string;
 
-  @Column({ nullable: true, name: "birth_year" })
+  @Column({ nullable: true, name: 'birth_year' })
   birthYear: string;
 
   @Column({ nullable: true })
@@ -37,17 +37,17 @@ export class LicenceEntity {
   @Column({ nullable: true })
   catev: string;
 
-  @Column({ nullable: true, name: "catev_cx" })
+  @Column({ nullable: true, name: 'catev_cx' })
   catevCX: string;
 
   @Column({
-    type: "enum",
-    name: "fede",
+    type: 'enum',
+    name: 'fede',
     enum: FederationEntity,
     nullable: true,
-    default: FederationEntity.NL
+    default: FederationEntity.NL,
   })
-  @ApiProperty({ enum: FederationEntity, enumName: "FedeEnum" })
+  @ApiProperty({ enum: FederationEntity, enumName: 'FedeEnum' })
   fede: FederationEntity;
 
   @Column({ nullable: true })
@@ -56,8 +56,8 @@ export class LicenceEntity {
   @Column({ nullable: true })
   author: string;
 
-  @Column({ nullable: true, name: "last_changed" })
-  @ApiProperty({ type: "string", format: "date-time" })
+  @Column({ nullable: true, name: 'last_changed' })
+  @ApiProperty({ type: 'string', format: 'date-time' })
   lastChanged: Date;
 
   @Column({ nullable: true })

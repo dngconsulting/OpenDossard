@@ -10,10 +10,10 @@ export class UserEntity {
     @PrimaryGeneratedColumn()
     public id: number;
 
-    @Column({nullable: true,name:'first_name'})
+    @Column({nullable: true, name: 'first_name'})
     public firstName?: string;
 
-    @Column({nullable: true,name:'last_name'})
+    @Column({nullable: true, name: 'last_name'})
     public lastName?: string;
 
     @Column({nullable: true})
@@ -22,7 +22,7 @@ export class UserEntity {
     @Column({nullable: false})
     public email: string;
 
-    @Column({type:'simple-array',nullable: true})
+    @Column({type: 'simple-array', nullable: true})
     public roles?: string[];
 
     @Column({nullable: true})

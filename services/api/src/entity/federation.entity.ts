@@ -5,5 +5,5 @@ export enum FederationEntity {
     CYCLOS = 'CYCLOS',
     FFVELO = 'FFVELO',
     NL = 'NL',
-    FFTRI = 'FFTRI'
+    FFTRI = 'FFTRI',
 }

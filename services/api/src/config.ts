@@ -79,8 +79,8 @@ export interface IConfig {
         jwtSecret: string;
         jwtExpires: string;
         env: string;
-        monitoringPassword:string;
-        monitoringUser:string;
+        monitoringPassword: string;
+        monitoringUser: string;
     };
 }
 

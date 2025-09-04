@@ -1,11 +1,10 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
-import { UserEntity } from "../entity/user.entity";
-import { Any, Between, EntityManager, Repository } from "typeorm";
-import { CompetitionEntity } from "../entity/competition.entity";
-import { CompetitionFilter, Departement } from "../dto/model.dto";
-import * as moment from "moment";
-import { FindManyOptions } from "typeorm/find-options/FindManyOptions";
+import { Injectable, Logger } from '@nestjs/common';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import { Any, Between, EntityManager, Repository } from 'typeorm';
+import { CompetitionEntity } from '../entity/competition.entity';
+import { CompetitionFilter, Departement } from '../dto/model.dto';
+import * as moment from 'moment';
+import { FindManyOptions } from 'typeorm/find-options/FindManyOptions';
 
 @Injectable()
 export class CompetitionService {
@@ -13,21 +12,23 @@ export class CompetitionService {
     @InjectRepository(CompetitionEntity)
     private readonly repository: Repository<CompetitionEntity>,
     @InjectEntityManager()
-    private readonly entityManager: EntityManager
+    private readonly entityManager: EntityManager,
   ) {}
   async findCompetitionByFilter(
-    competitionFilter: CompetitionFilter
+    competitionFilter: CompetitionFilter,
   ): Promise<CompetitionEntity[] | undefined> {
     let startDate;
     let endDate;
-    if (competitionFilter?.startDate)
-      startDate = moment(competitionFilter?.startDate, "MM/DD/YYYY").locale(
-        "fr"
+    if (competitionFilter?.startDate) {
+      startDate = moment(competitionFilter?.startDate, 'MM/DD/YYYY').locale(
+        'fr',
       );
-    if (competitionFilter?.endDate)
-      endDate = moment(competitionFilter?.endDate, "MM/DD/YYYY").locale("fr");
+    }
+    if (competitionFilter?.endDate) {
+      endDate = moment(competitionFilter?.endDate, 'MM/DD/YYYY').locale('fr');
+    }
     Logger.debug(
-      "[CompetitionController] Filtre => " + JSON.stringify(competitionFilter)
+      '[CompetitionController] Filtre => ' + JSON.stringify(competitionFilter),
     );
     const competFilter = competitionFilter.competitionTypes
       ? { competitionType: Any(Array.from(competitionFilter.competitionTypes)) }
@@ -43,21 +44,21 @@ export class CompetitionService {
         // If display since is not passed we set it by default to one year => 365 days
         startDate = moment(new Date()).subtract(
           competitionFilter.displaySince ?? 1000,
-          "d"
+          'd',
         );
       } else {
         // First minute of the current day
-        startDate = moment(new Date()).startOf("day");
+        startDate = moment(new Date()).startOf('day');
       }
       if (
         competitionFilter.displayFuture &&
         competitionFilter.displayFuture === true
       ) {
         // Future is always set to 1 year, it has no sense to scope events planned in 2 or 3 years
-        endDate = moment(new Date()).add(1, "y");
+        endDate = moment(new Date()).add(1, 'y');
       } else {
         // Last minute of the current day
-        endDate = moment(new Date()).endOf("day");
+        endDate = moment(new Date()).endOf('day');
       }
     }
     const query: FindManyOptions<CompetitionEntity> = {
@@ -75,16 +76,16 @@ export class CompetitionService {
           ? {
               dept: Any(
                 competitionFilter.depts.map(
-                  (dept: Departement) => dept.departmentCode
-                )
-              )
+                  (dept: Departement) => dept.departmentCode,
+                ),
+              ),
             }
-          : null)
+          : null),
       },
       order: {
-        eventDate: "DESC"
+        eventDate: 'DESC',
       },
-      relations: ["club"]
+      relations: ['club'],
     };
     return await this.repository.find(query);
   }
