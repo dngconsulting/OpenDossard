@@ -105,7 +105,9 @@
       "tag": true
     },
     "github": {
-      "release": true
+      "release": true,
+      "draft": false,
+      "prerelease": false
     },
     "npm": {
       "ignoreVersion": false,
