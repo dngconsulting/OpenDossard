@@ -23,6 +23,11 @@ jobs:
         working-directory: ./services/webapp
         run: npm ci
 
+      - name: Setup git identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
       - name: Run release-it with defaults
         working-directory: ./services/webapp
         run: npx release-it
