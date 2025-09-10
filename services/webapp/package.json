@@ -101,7 +101,8 @@
   "release-it": {
     "git": {
       "commitMessage": "Release v${version}",
-      "tagName": "v${version}"
+      "tagName": "v${version}",
+      "tag": true
     },
     "github": {
       "release": true
