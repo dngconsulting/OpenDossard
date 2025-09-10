@@ -1,0 +1,26 @@
+name: Release OD
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        working-directory: ./services/webapp
+        run: npm ci
+
+      - name: Run release-it with defaults
+        working-directory: ./services/webapp
+        run: npx release-it
