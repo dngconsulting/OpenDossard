@@ -98,6 +98,20 @@
       "react-app"
     ]
   },
+  "release-it": {
+    "git": {
+      "commitMessage": "Release v${version}",
+      "tagName": "v${version}"
+    },
+    "github": {
+      "release": true
+    },
+    "npm": {
+      "ignoreVersion": false,
+      "publish": false,
+      "skipChecks": true
+    }
+  },
   "browserslist": {
     "production": [
       ">0.2%",
