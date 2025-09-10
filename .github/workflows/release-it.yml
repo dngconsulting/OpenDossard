@@ -30,4 +30,6 @@ jobs:
 
       - name: Run release-it with defaults
         working-directory: ./services/webapp
-        run: npx release-it
+        run: npx release-it --no-git.push
+      - name: Push tags
+        run: git push origin --tags
