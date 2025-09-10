@@ -1,8 +1,9 @@
 name: Build Images and publish
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_run:
+    workflows: ["Release"]
+    types:
+      - completed
 jobs:
   build-opendossard:
     runs-on: ubuntu-latest
