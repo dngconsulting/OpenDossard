@@ -1,7 +1,7 @@
 name: Build Images and publish
 on:
   workflow_run:
-    workflows: ["Release"]
+    workflows: ["Release OD"]
     types:
       - completed
 jobs:
