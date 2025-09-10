@@ -1,4 +1,4 @@
-name: Deploy on server
+name: Deploy to environment
 on:
   workflow_dispatch:
     inputs:

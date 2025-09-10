@@ -1,4 +1,4 @@
-name: Release OD
+name: Release OD version
 
 on:
   workflow_dispatch:
