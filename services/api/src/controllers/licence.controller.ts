@@ -244,7 +244,11 @@ export class LicenceController {
     const currentUser: UserEntity = this.request.user as UserEntity;
     const toUpdate = await this.entityManager.findOne(
       LicenceEntity,
-      licence.id,
+      {
+        where: {
+          id: licence.id
+        }
+      },
     );
     toUpdate.licenceNumber = licence.licenceNumber;
     toUpdate.fede = licence.fede;
@@ -396,7 +400,9 @@ export class LicenceController {
                   'On recherche le club ' + csvRider.elicenceClubName,
                 );
                 const club = await this.repositoryClub.findOne({
-                  elicenceName: csvRider.elicenceClubName,
+                  where: {
+                    elicenceName: csvRider.elicenceClubName
+                  }
                 });
                 if (!club) {
                   console.log(`Club ${csvRider.elicenceClubName} non trouvé `);
@@ -524,7 +530,9 @@ export class LicenceController {
               newLicence.name = csvRider.name;
               newLicence.gender = csvRider.gender;
               const club = await this.repositoryClub.findOne({
-                elicenceName: csvRider.elicenceClubName,
+                where: {
+                  elicenceName: csvRider.elicenceClubName
+                }
               });
               if (!club) {
                 console.log(`Club ${csvRider.elicenceClubName} non trouvé `);

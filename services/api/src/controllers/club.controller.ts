@@ -58,9 +58,12 @@ export class ClubController {
     @Body() fedeAndDept: FedeDeptParamDTO,
   ): Promise<ClubRow[]> {
     return this.repository.find({
-      where: { ...fedeAndDept },
+      where: {
+        fede: fedeAndDept.fede,
+        dept: fedeAndDept.dept,
+      },
       order: { ['longName']: 'ASC' },
-    });
+    })
   }
   @ApiOperation({
     operationId: 'getClubsById',
@@ -78,7 +81,7 @@ export class ClubController {
     if (!id) {
       throw new BadRequestException(`Competition ${id} not found`);
     }
-    return this.repository.findOne({ id });
+    return this.repository.findOne({ where: { id } });
   }
   @Post()
   @ApiOperation({

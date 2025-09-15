@@ -1,10 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { Any, Between, EntityManager, Repository } from 'typeorm';
-import { CompetitionEntity } from '../entity/competition.entity';
+import { CompetitionEntity, findCompetitionEntityByValue } from '../entity/competition.entity';
 import { CompetitionFilter, Departement } from '../dto/model.dto';
 import * as moment from 'moment';
 import { FindManyOptions } from 'typeorm/find-options/FindManyOptions';
+import { findFederationEntityByValue } from '../entity/federation.entity';
 
 @Injectable()
 export class CompetitionService {
@@ -31,10 +32,10 @@ export class CompetitionService {
       '[CompetitionController] Filtre => ' + JSON.stringify(competitionFilter),
     );
     const competFilter = competitionFilter.competitionTypes
-      ? { competitionType: Any(Array.from(competitionFilter.competitionTypes)) }
+      ? { competitionType: Any(Array.from(competitionFilter.competitionTypes).map(findCompetitionEntityByValue)) }
       : null;
     const fedeFilter = competitionFilter.fedes
-      ? { fede: Any(Array.from(competitionFilter.fedes)) }
+      ? { fede: Any(Array.from(competitionFilter.fedes).map(findFederationEntityByValue)) }
       : null;
     if (!startDate || !endDate) {
       if (

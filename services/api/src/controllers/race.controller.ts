@@ -369,7 +369,11 @@ export class RacesCtrl {
 
     const licence = await this.entityManager.findOne(
       LicenceEntity,
-      race.licenceId,
+      {
+        where: {
+          id: race.licenceId
+        }
+      },
     );
 
     if (!licence) {
@@ -414,7 +418,11 @@ export class RacesCtrl {
 
     const competition = await this.entityManager.findOne(
       CompetitionEntity,
-      race.competitionId,
+      {
+        where: {
+          id: race.competitionId
+        }
+      }
     );
 
     const newRace = new RaceEntity();
@@ -452,7 +460,9 @@ export class RacesCtrl {
     const licence = await this.entityManager.findOne<LicenceEntity>(
       LicenceEntity,
       {
-        id: licenceId,
+        where: {
+          id: licenceId,
+        }
       },
     );
     const racerowToUpdate = await this.entityManager.findOne<RaceEntity>(
@@ -484,7 +494,9 @@ export class RacesCtrl {
     const racerowToUpdate = await this.entityManager.findOne<RaceEntity>(
       RaceEntity,
       {
-        id: raceRow.id,
+        where: {
+          id: raceRow.id,
+        }
       },
     );
     racerowToUpdate.sprintchallenge = !racerowToUpdate.sprintchallenge;
@@ -507,7 +519,11 @@ export class RacesCtrl {
       // TODO Warning n+1 Select here
       const raceRowToSave: RaceEntity = await this.entityManager.findOne(
         RaceEntity,
-        { id: item.id },
+        {
+          where: {
+            id: item.id
+          }
+        },
       );
       if (raceRowToSave.rankingScratch !== index && !raceRowToSave.comment) {
         raceRowToSave.rankingScratch = index;
@@ -533,7 +549,9 @@ export class RacesCtrl {
     const racerowToUpdate = await this.entityManager.findOne<RaceEntity>(
       RaceEntity,
       {
-        id: raceRow.id,
+        where: {
+          id: raceRow.id,
+        }
       },
     );
     if (!racerowToUpdate) {
@@ -553,8 +571,10 @@ export class RacesCtrl {
 
     // Retrieve all ranks for this race ...
     const races = await this.entityManager.find(RaceEntity, {
-      raceCode: raceRow.raceCode,
-      competition: { id: raceRow.competitionId },
+      where: {
+        raceCode: raceRow.raceCode,
+        competition: { id: raceRow.competitionId },
+      }
     });
     const existingRankedRaces = _.orderBy(races, ['rankingScratch'], ['asc']);
     // ... And  reorder them because of potential "holes" after deleting
@@ -588,7 +608,9 @@ export class RacesCtrl {
     @Param('chrono') chrono: string,
   ): Promise<void> {
     const r = await this.entityManager.findOne<RaceEntity>(RaceEntity, {
-      id: raceId,
+      where: {
+        id: raceId,
+      }
     });
     r.chrono = chrono;
     await this.entityManager.save(r);
@@ -601,7 +623,9 @@ export class RacesCtrl {
   })
   public async updateTours(@Body() body: UpdateToursParams): Promise<void> {
     const r = await this.entityManager.findOne<RaceEntity>(RaceEntity, {
-      id: body.raceId,
+      where: {
+        id: body.raceId,
+      }
     });
     r.tours = body.tours ? body.tours : null;
     await this.entityManager.save(r);
@@ -619,9 +643,11 @@ export class RacesCtrl {
     const requestedRankedRider = await this.entityManager.findOne<RaceEntity>(
       RaceEntity,
       {
-        riderNumber: raceRow.riderNumber,
-        raceCode: raceRow.raceCode,
-        competition: { id: raceRow.competitionId },
+        where: {
+          riderNumber: raceRow.riderNumber,
+          raceCode: raceRow.raceCode,
+          competition: { id: raceRow.competitionId },
+        }
       },
     );
     if (!requestedRankedRider) {
@@ -651,9 +677,11 @@ export class RacesCtrl {
     // Check if there is existing rider with this rank in this race with the same dossard only for real Ranked update
     if (raceRow.rankingScratch) {
       const rankRiderToChange = await this.entityManager.findOne(RaceEntity, {
-        rankingScratch: raceRow.rankingScratch,
-        raceCode: raceRow.raceCode,
-        competition: { id: raceRow.competitionId },
+        where: {
+          rankingScratch: raceRow.rankingScratch,
+          raceCode: raceRow.raceCode,
+          competition: { id: raceRow.competitionId },
+        }
       });
       // If a rider already exist, it depends on the existing ranking
       // if the ranking is the one we want to change, its and edit, no problem, we remove him
