@@ -54,7 +54,7 @@ export class ChallengeController {
   public async calculChallenge(
     @Param('id') id: number,
   ): Promise<ChallengeRider[]> {
-    const challenge = await this.repositoryChallenge.findOne(id);
+    const challenge = await this.repositoryChallenge.findOne({ where: { id } });
 
     const query = `
       WITH ranked_race AS (SELECT competition_id,

@@ -211,6 +211,6 @@ export class CompetitionCreate {
 }
 
 export class FedeDeptParamDTO {
-  fede?: string;
+  fede?: FederationEntity;
   dept?: string;
 }

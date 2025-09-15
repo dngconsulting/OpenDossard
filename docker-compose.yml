@@ -23,7 +23,7 @@ services:
       - "3000:3000"
   api:
     container_name: api
-    image: node:12-alpine
+    image: node:20-alpine
     working_dir: "/app"
     environment:
       POSTGRES_DB: dossarddb

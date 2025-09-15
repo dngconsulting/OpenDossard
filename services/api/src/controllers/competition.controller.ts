@@ -65,12 +65,14 @@ export class CompetitionController {
     description: 'Renvoie une épreuve',
   })
   @Roles(ROLES.MOBILE, ROLES.ORGANISATEUR, ROLES.ADMIN)
-  public async get(@Param('id') id: string): Promise<CompetitionEntity> {
+  public async get(@Param('id') id: number): Promise<CompetitionEntity> {
     const response = await this.repository.find({
       order: {
         eventDate: 'ASC',
       },
-      where: { id },
+      where: {
+        id
+      },
       relations: ['club'],
     });
 
@@ -148,7 +150,9 @@ export class CompetitionController {
   @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
   public async reorganize(@Body() dto: CompetitionReorganize): Promise<void> {
     const start = new Date().getTime();
-    const competition = await this.repository.findOne(dto.competitionId);
+    const competition = await this.repository.findOne({ where: {
+      id: dto.competitionId
+    }});
     if (!competition) {
       throw new BadRequestException(
         `Competition ${dto.competitionId} not found`,
@@ -157,7 +161,11 @@ export class CompetitionController {
     dto.races = dto.races.filter(race => race.trim().length);
 
     const rows = await this.entityManager.find<RaceEntity>(RaceEntity, {
-      competition: { id: dto.competitionId },
+      where: {
+        competition: {
+          id: dto.competitionId
+        }
+      }
     });
     Logger.debug('Rows to update found = ' + JSON.stringify(rows));
     let end = new Date().getTime();
@@ -191,7 +199,11 @@ export class CompetitionController {
   public async saveInfoGen(
     @Body() competitionToSave: CompetitionEntity,
   ): Promise<CompetitionEntity> {
-    const competition = await this.repository.findOne(competitionToSave.id);
+    const competition = await this.repository.findOne({
+      where: {
+        id: competitionToSave.id,
+      }
+    });
     if (!competition) {
       throw new NotFoundException(
         'Epreuve ' + competitionToSave.name + ' Introuvable',
@@ -256,7 +268,11 @@ export class CompetitionController {
 
     const competition = new CompetitionEntity();
 
-    const club = await this.clubRepository.findOne(dto.clubId);
+    const club = await this.clubRepository.findOne({
+      where: {
+        id: dto.clubId
+      }
+    });
     competition.id = dto.id;
     competition.name = dto.name;
     competition.eventDate = dto.eventDate;
@@ -335,7 +351,7 @@ export class CompetitionController {
   @ApiResponse({ status: 204, isArray: false })
   @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
   public async deleteCompetition(@Param('id') id: number): Promise<void> {
-    const competition = await this.repository.findOne(id);
+    const competition = await this.repository.findOne({ where: { id } });
     if (!competition) {
       throw new BadRequestException(`Competition ${id} not found`);
     }

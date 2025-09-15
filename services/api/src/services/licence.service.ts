@@ -43,8 +43,10 @@ export class LicenceService {
 
   async getLicenceByNumber(licenceNumber: string) {
     return this.repository.findOne({
-      licenceNumber,
-      fede: FederationEntity.FSGT,
+      where: {
+        licenceNumber,
+        fede: FederationEntity.FSGT
+      }
     });
   }
 

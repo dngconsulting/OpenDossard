@@ -34,6 +34,13 @@ export enum CompetitionType {
   VTT = 'VTT',
 }
 
+export const findCompetitionEntityByValue = (value: string) => {
+  if (Object.values(CompetitionType).includes(value as CompetitionType)) {
+    return value as CompetitionType;
+  }
+  return null;
+}
+
 /**
  * Entité représentant une fichier épreuve.
  * Une épreuve contient ensuite une ou plusieurs courses
