@@ -318,6 +318,7 @@ export class CompetitionController {
           (
             propertyName !== 'observations' &&
             propertyName !== 'gpsCoordinates' &&
+            propertyName !== 'siteweb' &&
             typeof competition[propertyName] === 'string'
           ) ||
           (Array.isArray(competition[propertyName]) && propertyName !== 'photoUrls') // fixme: refaire le système d'édition d'une compétition
