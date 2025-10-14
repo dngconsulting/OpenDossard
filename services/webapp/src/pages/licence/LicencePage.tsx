@@ -22,7 +22,7 @@ import { ConfirmDialog } from '../../util';
 import { LoaderIndicator } from '../../components/LoaderIndicator';
 import { BREAK_POINT_MOBILE_TABLET } from '../../theme/theme';
 import { toMMDDYYYY, toTime } from '../../util/date';
-import { CompetitionEntityCompetitionTypeEnum } from '../../sdk/models/CompetitionEntity';
+import { CompetitionEntityCompetitionTypeEnum } from '../../sdk';
 
 interface ILicencesProps {
   items: any[];
@@ -172,8 +172,10 @@ const LicencesPage = (props: ILicencesProps) => {
       catea += 'V';
     } else if (age >= 50 && age <= 59) {
       catea += 'SV';
-    } else if (age >= 60) {
+    } else if (age >= 60 && age <= 69) {
       catea += 'A';
+    } else if (age >= 70) {
+      catea += 'SA';
     }
     return catea;
   };
@@ -297,7 +299,7 @@ const LicencesPage = (props: ILicencesProps) => {
   const onSubmit = async () => {
     const licenceUpdated = await createOrUpdateLicence(newLicence.id);
 
-    if (licenceUpdated === null) return;
+    if (licenceUpdated === null) { return; }
     if (props.history.location.hash && props.history.location.hash.length > 0) {
       setUpdatedLicence(licenceUpdated);
       openDialog(true);
@@ -426,7 +428,7 @@ const LicencesPage = (props: ILicencesProps) => {
             </Grid>
           </>
         ) : (
-          <Grid item={true} xs={8}></Grid>
+          <Grid item={true} xs={8}/>
         )}
         <Grid item={true} xs={6}>
           <FormControl className={classes.formControl} error={validation.name}>
