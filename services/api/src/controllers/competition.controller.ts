@@ -315,12 +315,14 @@ export class CompetitionController {
     for (const propertyName in competition) {
       if (!competition[propertyName] || _.isEmpty(competition[propertyName])) {
         if (
-          (propertyName !== 'observations' &&
+          (
+            propertyName !== 'observations' &&
             propertyName !== 'gpsCoordinates' &&
-            typeof competition[propertyName] === 'string') ||
-          Array.isArray(competition[propertyName])
+            typeof competition[propertyName] === 'string'
+          ) ||
+          (Array.isArray(competition[propertyName]) && propertyName !== 'photoUrls') // fixme: refaire le système d'édition d'une compétition
         ) {
-          Logger.debug('Delete propertyName');
+          Logger.debug(`Delete ${propertyName}`);
           delete competition[propertyName];
         }
       }
