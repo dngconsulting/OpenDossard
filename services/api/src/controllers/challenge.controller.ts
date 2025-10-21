@@ -118,6 +118,9 @@ export class ChallengeController {
         case "CHALLENGE_FSGT_31":
           calculatedRows = ChallengeService.Bareme_CHALLENGE_FSGT_31(riders);
           break;
+        case "CHALLENGE_FSGT_31_CX":
+          calculatedRows = ChallengeService.Bareme_CHALLENGE_FSGT_31_CX(riders);
+          break;
         case "BAREME_AU_POINTS":
           calculatedRows = ChallengeService.Bareme_AU_POINTS(riders);
           break;

@@ -1,13 +1,14 @@
-import { ChallengeRaceRow, ChallengeRider } from '../dto/model.dto';
-import * as _ from 'lodash';
-import { baremeByCateFSGT31 } from './baremeFSGT31';
-import { baremeAuPoints } from './baremeAuPoints';
+import { ChallengeRaceRow, ChallengeRider } from "../dto/model.dto";
+import * as _ from "lodash";
+import { baremeByCateFSGT31 } from "./baremeFSGT31";
+import { baremeAuPoints } from "./baremeAuPoints";
+import { baremeByCateFSGT31CX } from "./baremeFSGT31CX";
 
 export class ChallengeService {
   static transformInRiderRaces(rowRaces: ChallengeRaceRow[]) {
-    const rowRacesByLicence = _.uniqBy(rowRaces, 'licenceId');
+    const rowRacesByLicence = _.uniqBy(rowRaces, "licenceId");
     const challengeRiders: ChallengeRider[] = [
-      ...rowRacesByLicence.map(rowRace => ({
+      ...rowRacesByLicence.map((rowRace) => ({
         licenceId: rowRace.licenceId,
         name: rowRace.name,
         gender: rowRace.gender,
@@ -19,16 +20,16 @@ export class ChallengeService {
         challengeRaceRows: [],
       })),
     ];
-    rowRacesByLicence.forEach(riderRace => {
+    rowRacesByLicence.forEach((riderRace) => {
       const riderRaces = rowRaces.filter(
-        r => r.licenceId === riderRace.licenceId,
+        (r) => r.licenceId === riderRace.licenceId,
       );
       // for each rider, compute ranking
       riderRaces.forEach((challengeRaceRow, index) => {
         riderRaces[index].ptsRace = 0;
       });
       const challengeRider = challengeRiders.find(
-        cr => cr.licenceId === riderRace.licenceId,
+        (cr) => cr.licenceId === riderRace.licenceId,
       );
       challengeRider.challengeRaceRows = riderRaces;
       challengeRider.ptsAllRaces = 0;
@@ -37,41 +38,61 @@ export class ChallengeService {
   }
 
   static Bareme_CHALLENGE_FSGT_31(riderChallenge: ChallengeRider[]) {
-    riderChallenge.forEach(rider => {
+    riderChallenge.forEach((rider) => {
       // for each rider, compute ranking
       rider.challengeRaceRows.forEach((riderRace, index) => {
         const bareme = baremeByCateFSGT31.find(
-          b => b.catev === riderRace.catev,
+          (b) => b.catev === riderRace.catev,
         );
         if (bareme) {
           rider.challengeRaceRows[index].ptsRace =
             rider.challengeRaceRows[index].ptsRace +
             (bareme.ptsBareme(riderRace.rankingScratch) ?? 0) +
             bareme.ptsParticipation;
-          rider.challengeRaceRows[
-            index
-          ].explanation = `Class. ${bareme.ptsBareme(
-            riderRace.rankingScratch,
-          ) ?? 0} pts + Part. ${bareme.ptsParticipation} pts`;
+          rider.challengeRaceRows[index].explanation = `Class. ${
+            bareme.ptsBareme(riderRace.rankingScratch) ?? 0
+          } pts + Part. ${bareme.ptsParticipation} pts`;
         }
       });
-      rider.ptsAllRaces = _.sumBy(rider.challengeRaceRows, 'ptsRace');
+      rider.ptsAllRaces = _.sumBy(rider.challengeRaceRows, "ptsRace");
+    });
+
+    return riderChallenge;
+  }
+
+  static Bareme_CHALLENGE_FSGT_31_CX(riderChallenge: ChallengeRider[]) {
+    riderChallenge.forEach((rider) => {
+      // for each rider, compute ranking
+      rider.challengeRaceRows.forEach((riderRace, index) => {
+        const bareme = baremeByCateFSGT31CX.find(
+          (b) => b.catev === riderRace.catev,
+        );
+        if (bareme) {
+          rider.challengeRaceRows[index].ptsRace =
+            rider.challengeRaceRows[index].ptsRace +
+            (bareme.ptsBareme(riderRace.rankingScratch) ?? 0) +
+            bareme.ptsParticipation;
+          rider.challengeRaceRows[index].explanation = `Class. ${
+            bareme.ptsBareme(riderRace.rankingScratch) ?? 0
+          } pts + Part. ${bareme.ptsParticipation} pts`;
+        }
+      });
+      rider.ptsAllRaces = _.sumBy(rider.challengeRaceRows, "ptsRace");
     });
 
     return riderChallenge;
   }
 
   static Bareme_CHALLENGE_ASSIDUITE(riderChallenge: ChallengeRider[]) {
-    riderChallenge.forEach(rider => {
+    riderChallenge.forEach((rider) => {
       // for each rider, compute ranking
       rider.challengeRaceRows.forEach((riderRace, index) => {
         rider.challengeRaceRows[index].ptsRace =
           rider.challengeRaceRows[index].ptsRace + 1;
-        rider.challengeRaceRows[
-          index
-        ].explanation = `Présent et marque ${rider.challengeRaceRows[index].ptsRace} pts`;
+        rider.challengeRaceRows[index].explanation =
+          `Présent et marque ${rider.challengeRaceRows[index].ptsRace} pts`;
       });
-      rider.ptsAllRaces = _.sumBy(rider.challengeRaceRows, 'ptsRace');
+      rider.ptsAllRaces = _.sumBy(rider.challengeRaceRows, "ptsRace");
     });
 
     return riderChallenge;
@@ -80,7 +101,7 @@ export class ChallengeService {
   static Bareme_AU_POINTS(riderChallenge: ChallengeRider[]) {
     let ptsAllRaces = 0;
     let nbRaces = 0;
-    riderChallenge.forEach(rider => {
+    riderChallenge.forEach((rider) => {
       ptsAllRaces = 0;
       nbRaces = 0;
       // for each rider, compute ranking
@@ -111,12 +132,12 @@ export class ChallengeService {
         } et pts classement : ${(
           baremeAuPoints.ptsBareme(riderRace.rankingScratch) ?? 0
         ).toFixed(1)} ${
-          riderRace.sprintchallenge ? ' + 50 pts sprint/gpm' : ''
+          riderRace.sprintchallenge ? " + 50 pts sprint/gpm" : ""
         }`;
       });
       if (
         !rider.challengeRaceRows.find(
-          r => r.catev === rider.currentLicenceCatev,
+          (r) => r.catev === rider.currentLicenceCatev,
         )
       ) {
         rider.ptsAllRaces = 0;
