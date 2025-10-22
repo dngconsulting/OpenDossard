@@ -38,7 +38,17 @@ export class ChallengeService {
   }
 
   static Bareme_CHALLENGE_FSGT_31(riderChallenge: ChallengeRider[]) {
-    riderChallenge.forEach((rider) => {
+    const catesOfChallenge = baremeByCateFSGT31.map((b) => b.catev);
+    // On filtre d'abord les catégories correspondants au challenge
+    const riderChallengeFiltered = riderChallenge
+      .filter((rc) => catesOfChallenge.includes(rc.currentLicenceCatev))
+      .map((rc) => ({
+        ...rc,
+        challengeRaceRows: rc.challengeRaceRows.filter((r) =>
+          catesOfChallenge.includes(r.catev),
+        ),
+      }));
+    riderChallengeFiltered.forEach((rider) => {
       // for each rider, compute ranking
       rider.challengeRaceRows.forEach((riderRace, index) => {
         const bareme = baremeByCateFSGT31.find(
@@ -56,12 +66,21 @@ export class ChallengeService {
       });
       rider.ptsAllRaces = _.sumBy(rider.challengeRaceRows, "ptsRace");
     });
-
-    return riderChallenge;
+    return riderChallengeFiltered;
   }
 
   static Bareme_CHALLENGE_FSGT_31_CX(riderChallenge: ChallengeRider[]) {
-    riderChallenge.forEach((rider) => {
+    const catesOfChallenge = baremeByCateFSGT31CX.map((b) => b.catev);
+    // On filtre d'abord les catégories correspondants au challenge
+    const riderChallengeFiltered = riderChallenge
+      .filter((rc) => catesOfChallenge.includes(rc.currentLicenceCatev))
+      .map((rc) => ({
+        ...rc,
+        challengeRaceRows: rc.challengeRaceRows.filter((r) =>
+          catesOfChallenge.includes(r.catev),
+        ),
+      }));
+    riderChallengeFiltered.forEach((rider) => {
       // for each rider, compute ranking
       rider.challengeRaceRows.forEach((riderRace, index) => {
         const bareme = baremeByCateFSGT31CX.find(
@@ -79,8 +98,7 @@ export class ChallengeService {
       });
       rider.ptsAllRaces = _.sumBy(rider.challengeRaceRows, "ptsRace");
     });
-
-    return riderChallenge;
+    return riderChallengeFiltered;
   }
 
   static Bareme_CHALLENGE_ASSIDUITE(riderChallenge: ChallengeRider[]) {

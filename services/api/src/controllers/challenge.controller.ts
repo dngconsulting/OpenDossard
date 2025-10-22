@@ -103,7 +103,7 @@ export class ChallengeController {
       ORDER BY ranked_race.LICENCE_ID,
                COMPETITION.EVENT_DATE,
                "currentLicenceCatev" `;
-    const allGenderRows = [];
+    const allGenderRows: ChallengeRider[] = [];
     for (const gender of ["H", "F"]) {
       const rowRaces = await this.entityManager.query(query, [
         challenge.competitionIds,
