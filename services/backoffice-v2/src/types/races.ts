@@ -1,3 +1,13 @@
+export type RaceCategory = {
+    id: string
+    name: string
+    startTime: string
+    registerTime: string
+    gpx: string
+    laps?: number
+    totalDistance: number
+}
+
 export type RaceType = {
     id: string
     engagedCount: number
@@ -5,7 +15,7 @@ export type RaceType = {
     name: string
     zip: string
     club: string
-    categories: string[]
+    categories: RaceCategory[]
     federation: 'FSGT' | 'FFTRI' | 'FFVELO' | 'UFOLEP' | 'FFCYCLISME' | 'FFC'
     podiumGPS?: string
 }

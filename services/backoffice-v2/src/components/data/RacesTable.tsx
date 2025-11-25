@@ -24,7 +24,10 @@ const columns: ColumnDef<RaceType>[] = [
   {
     accessorKey: 'categories',
     header: 'Catégories',
-    cell: (info: CellContext<RaceType, unknown>) => (info.getValue() as string[]).join(', '),
+    cell: (info: CellContext<RaceType, unknown>) => {
+      const categories = info.getValue() as RaceType['categories'];
+      return categories.map(cat => cat.name).join(', ');
+    },
   },
   {
     accessorKey: 'federation',
