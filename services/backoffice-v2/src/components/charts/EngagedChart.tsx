@@ -22,7 +22,7 @@ import {
     ToggleGroup,
     ToggleGroupItem,
 } from "@/components/ui/toggle-group"
-import {useEngagementChart} from '@/hooks/useCharts'
+import type { EngagementChartData } from '@/types/dashboard'
 
 const chartConfig = {
     fsgt: {
@@ -39,13 +39,12 @@ const chartConfig = {
     }
 } satisfies ChartConfig;
 
-export function EngagedChart() {
-    const [fede, setFede] = useState('fsgt');
-    const { data: chartData, isLoading, error } = useEngagementChart();
+type EngagedChartProps = {
+    data: EngagementChartData[]
+}
 
-    if (isLoading) {return <div>Loading...</div>;}
-    if (error) {return <div>Error loading chart data</div>;}
-    if (!chartData) {return null;}
+export function EngagedChart({ data: chartData }: EngagedChartProps) {
+    const [fede, setFede] = useState('fsgt')
 
     return (
         <Card className="@container/card">
