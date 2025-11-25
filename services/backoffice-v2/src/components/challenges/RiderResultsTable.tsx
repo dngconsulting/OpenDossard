@@ -1,9 +1,20 @@
 import type { RaceResultType } from '@/components/data/ChallengeTable';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatRaceDate, getPositionBadgeStyle } from '@/utils/styleHelpers';
+import { formatRaceDate } from '@/utils/styleHelpers';
 
 interface RiderResultsTableProps {
   results: RaceResultType[];
+}
+
+function getPositionBadgeClass(position: number): string {
+  if (position <= 3) {
+    return 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-700/50';
+  }
+  if (position <= 10) {
+    return 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700/50';
+  }
+  return 'bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-800/30 dark:text-gray-400 dark:border-gray-700/50';
 }
 
 export function RiderResultsTable({ results }: RiderResultsTableProps) {
@@ -36,16 +47,12 @@ export function RiderResultsTable({ results }: RiderResultsTableProps) {
                   <td className="p-3">{formatRaceDate(result.raceDate)}</td>
                   <td className="p-3 font-medium">{result.raceName}</td>
                   <td className="p-3">
-                    <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                      {result.raceType}
-                    </span>
+                    <Badge variant="default">{result.raceType}</Badge>
                   </td>
                   <td className="p-3 text-center">
-                    <span
-                      className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${getPositionBadgeStyle(result.position)}`}
-                    >
+                    <Badge className={getPositionBadgeClass(result.position)}>
                       {result.position}e
-                    </span>
+                    </Badge>
                   </td>
                   <td className="p-3 text-center text-muted-foreground">
                     {result.participants}

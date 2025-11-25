@@ -3,6 +3,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import { ProtectedRoute } from '@/components/navigation/ProtectedRoute.tsx';
+import { ThemeProvider } from '@/components/theme-provider';
 import AccountPage from '@/pages/AccountPage.tsx';
 import AchievementsPage from '@/pages/AchievementsPage.tsx';
 import ChallengesPage from '@/pages/ChallengesPage.tsx';
@@ -23,23 +24,25 @@ const queryClient = new QueryClient({
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
+    <ThemeProvider defaultTheme="system" storageKey="backoffice-ui-theme">
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
 
-          <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/challenges" element={<ChallengesPage />} />
-            <Route path="/licences" element={<LicencesPage />} />
-            <Route path="/races" element={<RacesPage />} />
-            <Route path="/achievements" element={<AchievementsPage />} />
-            <Route path="/users" element={<UsersPage />} />
-            <Route path="/account" element={<AccountPage />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+            <Route element={<ProtectedRoute />}>
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/challenges" element={<ChallengesPage />} />
+              <Route path="/licences" element={<LicencesPage />} />
+              <Route path="/races" element={<RacesPage />} />
+              <Route path="/achievements" element={<AchievementsPage />} />
+              <Route path="/users" element={<UsersPage />} />
+              <Route path="/account" element={<AccountPage />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
