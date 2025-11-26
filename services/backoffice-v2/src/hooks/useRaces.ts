@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { racesApi } from '@/api/races.api';
-import type { RaceType } from '@/types/races.ts';
+import type { RaceType, EngagedRider } from '@/types/races.ts';
 
 export const racesKeys = {
   all: ['races'] as const,
@@ -57,5 +57,35 @@ export function useDeleteRace() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: racesKeys.all });
     },
+  });
+}
+
+export function useAddEngagedRider() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      raceId: string
+      categoryId: string
+      rider: Omit<EngagedRider, 'id'>
+    }) => racesApi.addEngagedRider(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: racesKeys.all });
+    }
+  });
+}
+
+export function useRemoveEngagedRider() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      raceId: string
+      categoryId: string
+      riderId: string
+    }) => racesApi.removeEngagedRider(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: racesKeys.all });
+    }
   });
 }
