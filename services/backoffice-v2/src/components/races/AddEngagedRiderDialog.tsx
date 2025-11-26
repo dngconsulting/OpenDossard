@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { Check } from 'lucide-react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -14,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { StringField } from '@/components/ui/field';
 import { Form } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { useLicences } from '@/hooks/useLicences';
 import type { LicenceType } from '@/types/licences';
 import type { EngagedRider } from '@/types/races';
@@ -31,7 +33,10 @@ type Props = {
 
 export const AddEngagedRiderDialog = ({ open, onClose, onAdd }: Props) => {
   const [selectedLicence, setSelectedLicence] = useState<LicenceType | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
   const { data: licences } = useLicences();
+  const autocompleteRef = useRef<HTMLDivElement>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -40,6 +45,19 @@ export const AddEngagedRiderDialog = ({ open, onClose, onAdd }: Props) => {
       licenceSearch: '',
     },
   });
+
+  const filteredLicences = useMemo(() => {
+    if (!licences || !searchQuery) {
+      return licences || [];
+    }
+    const query = searchQuery.toLowerCase();
+    return licences.filter((licence) => {
+      const fullName = `${licence.lastName} ${licence.firstName}`.toLowerCase();
+      const club = licence.club.toLowerCase();
+      const licenceNumber = licence.licenceNumber.toLowerCase();
+      return fullName.includes(query) || club.includes(query) || licenceNumber.includes(query);
+    });
+  }, [licences, searchQuery]);
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
     if (!selectedLicence) {
@@ -59,16 +77,29 @@ export const AddEngagedRiderDialog = ({ open, onClose, onAdd }: Props) => {
     onAdd(rider);
     form.reset();
     setSelectedLicence(null);
+    setSearchQuery('');
     onClose();
   };
 
-  const handleLicenceSelect = (licenceId: string) => {
-    const licence = licences?.find(l => l.id === licenceId);
-    if (licence) {
-      setSelectedLicence(licence);
-      form.setValue('licenceSearch', `${licence.lastName} ${licence.firstName} - ${licence.club}`);
-    }
+  const handleLicenceSelect = (licence: LicenceType) => {
+    setSelectedLicence(licence);
+    setSearchQuery(`${licence.lastName} ${licence.firstName} - ${licence.club} (${licence.licenceNumber})`);
+    setShowDropdown(false);
+    form.setValue('licenceSearch', `${licence.lastName} ${licence.firstName} - ${licence.club}`);
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (autocompleteRef.current && !autocompleteRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
@@ -83,20 +114,49 @@ export const AddEngagedRiderDialog = ({ open, onClose, onAdd }: Props) => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="licence-select" className="text-sm font-medium">Rechercher une licence</label>
-              <select
-                id="licence-select"
-                className="w-full rounded-md border p-2"
-                onChange={(e) => handleLicenceSelect(e.target.value)}
-                value={selectedLicence?.id || ''}
-              >
-                <option value="">Sélectionner une licence...</option>
-                {licences?.map((licence) => (
-                  <option key={licence.id} value={licence.id}>
-                    {licence.lastName} {licence.firstName} - {licence.club} ({licence.licenceNumber})
-                  </option>
-                ))}
-              </select>
+              <label htmlFor="licence-search" className="text-sm font-medium">Rechercher une licence</label>
+              <div className="relative" ref={autocompleteRef}>
+                <Input
+                  id="licence-search"
+                  type="text"
+                  placeholder="Rechercher par nom, club ou numéro de licence..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowDropdown(true);
+                  }}
+                  onFocus={() => setShowDropdown(true)}
+                  className="w-full"
+                />
+                {showDropdown && searchQuery && filteredLicences.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-background border rounded-md shadow-md max-h-60 overflow-auto">
+                    {filteredLicences.map((licence) => (
+                      <button
+                        key={licence.id}
+                        type="button"
+                        onClick={() => handleLicenceSelect(licence)}
+                        className="w-full px-3 py-2 text-left hover:bg-muted flex items-center justify-between"
+                      >
+                        <span className="text-sm">
+                          <span className="font-medium">{licence.lastName} {licence.firstName}</span>
+                          {' - '}
+                          <span className="text-muted-foreground">{licence.club}</span>
+                          {' '}
+                          <span className="text-xs text-muted-foreground">({licence.licenceNumber})</span>
+                        </span>
+                        {selectedLicence?.id === licence.id && (
+                          <Check className="h-4 w-4" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {showDropdown && searchQuery && filteredLicences.length === 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-background border rounded-md shadow-md p-3">
+                    <p className="text-sm text-muted-foreground">Aucune licence trouvée</p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {selectedLicence && (
