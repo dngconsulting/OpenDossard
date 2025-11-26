@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import { RacesTable } from '@/components/data/RacesTable.tsx';
 import { RaceGeneralForm } from '@/components/forms/RaceForms.tsx';
+import { RaceDetailsDialog } from '@/components/races/RaceDetailsDialog';
 import Layout from '@/components/layout/Layout.tsx';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -21,6 +22,7 @@ import type { RaceType } from '@/types/races.ts';
 export default function RacesPage() {
   const [race, setRace] = useState<RaceType>();
   const [deleteRace, setDeleteRace] = useState<RaceType>();
+  const [selectedRace, setSelectedRace] = useState<RaceType | undefined>();
 
   const EditRace = () => (
     <Dialog open={!!race} onOpenChange={(open: boolean) => !open && setRace(undefined)}>
@@ -60,6 +62,10 @@ export default function RacesPage() {
 
   return (
     <Layout title="Epreuves">
+      <RaceDetailsDialog
+        race={selectedRace}
+        onClose={() => setSelectedRace(undefined)}
+      />
       <div className="flex">
         <Alert variant="default" className="w-full">
           <Info />
@@ -82,7 +88,11 @@ export default function RacesPage() {
         <EditRace />
         <DeleteRace />
       </div>
-      <RacesTable onEditRow={setRace} onDeleteRow={setDeleteRace} />
+      <RacesTable
+        onEditRow={setRace}
+        onDeleteRow={setDeleteRace}
+        onOpenRow={setSelectedRace}
+      />
     </Layout>
   );
 }
