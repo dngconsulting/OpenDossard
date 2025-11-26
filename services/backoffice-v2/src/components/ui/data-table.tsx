@@ -8,7 +8,7 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { Edit2, Trash2, Eye } from 'lucide-react';
+import { Edit2, Trash2, Trophy } from 'lucide-react';
 import * as React from 'react';
 
 import { Button } from '@/components/ui/button.tsx';
@@ -130,8 +130,9 @@ export function DataTable<TData, TValue>({
                       variant="outline"
                       size="icon-sm"
                       onClick={() => onOpenRow(row.original)}
+                      title="Voir le palmarès"
                     >
-                      <Eye />
+                      <Trophy />
                     </Button>
                   </TableCell>
                 )}
