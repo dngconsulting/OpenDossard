@@ -1,5 +1,5 @@
 import { races as initialRaces } from '@/mocks/races.mocks';
-import type { RaceType } from '@/types/races.ts';
+import type { RaceType, EngagedRider } from '@/types/races.ts';
 
 let racesData: RaceType[] = [...initialRaces];
 
@@ -37,4 +37,49 @@ export const mockRacesService = {
     await delay();
     racesData = racesData.filter(r => r.id !== id);
   },
+};
+
+export const addEngagedRiderMock = (
+  raceId: string,
+  categoryId: string,
+  rider: Omit<EngagedRider, 'id'>
+): Promise<EngagedRider> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const newRider: EngagedRider = {
+        ...rider,
+        id: `er${Date.now()}`
+      };
+
+      const race = racesData.find(r => r.id === raceId);
+      const category = race?.categories.find(c => c.id === categoryId);
+      if (category) {
+        category.engagedRiders.push(newRider);
+        race!.engagedCount = race!.engagedCount + 1;
+      }
+
+      resolve(newRider);
+    }, 500);
+  });
+};
+
+export const removeEngagedRiderMock = (
+  raceId: string,
+  categoryId: string,
+  riderId: string
+): Promise<void> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const race = racesData.find(r => r.id === raceId);
+      const category = race?.categories.find(c => c.id === categoryId);
+      if (category) {
+        const index = category.engagedRiders.findIndex(r => r.id === riderId);
+        if (index !== -1) {
+          category.engagedRiders.splice(index, 1);
+          race!.engagedCount = race!.engagedCount - 1;
+        }
+      }
+      resolve();
+    }, 500);
+  });
 };
