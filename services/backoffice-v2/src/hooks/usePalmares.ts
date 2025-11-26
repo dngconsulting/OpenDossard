@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
 
 import { palmaresApi } from '@/api/palmares.api'
-import type { LicenceType } from '@/types/licences'
 
 export const palmaresKeys = {
   all: ['palmares'] as const,
@@ -37,6 +36,8 @@ export function useFilteredResults(
   results: { competitionType: string }[] | undefined,
   type: 'ROUTE' | 'CX'
 ) {
-  if (!results) return []
+  if (!results) {
+    return []
+  }
   return results.filter(r => r.competitionType === type)
 }

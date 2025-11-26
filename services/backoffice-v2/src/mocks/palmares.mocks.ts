@@ -1,4 +1,5 @@
-import type { PalmaresData, PalmaresRaceResult, CategoryChange } from '@/types/palmares'
+import type { CategoryChange, PalmaresData, PalmaresRaceResult } from '@/types/palmares'
+
 import { licences } from './licences.mocks'
 
 const generateResults = (licenceId: string): PalmaresRaceResult[] => {

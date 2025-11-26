@@ -8,7 +8,9 @@ const delay = () => new Promise(resolve => setTimeout(resolve, 300))
 export const mockPalmaresService = {
   searchLicences: async (query: string): Promise<LicenceType[]> => {
     await delay()
-    if (!query || query.length < 2) return []
+    if (!query || query.length < 2) {
+      return []
+    }
 
     const lowerQuery = query.toLowerCase()
     return licences.filter(

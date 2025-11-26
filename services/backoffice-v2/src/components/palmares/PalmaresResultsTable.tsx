@@ -1,10 +1,11 @@
-import type { ColumnDef } from '@tanstack/react-table'
 import { useNavigate } from 'react-router-dom'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DataTable } from '@/components/ui/data-table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { PalmaresRaceResult } from '@/types/palmares'
+
+import type { ColumnDef } from '@tanstack/react-table'
 
 type Props = {
   results: PalmaresRaceResult[]
