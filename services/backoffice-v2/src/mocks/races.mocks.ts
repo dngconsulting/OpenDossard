@@ -16,7 +16,77 @@ export const races: RaceType[] = [
         registerTime: '08:00',
         gpx: 'https://example.com/gpx/elite-hommes.gpx',
         laps: 10,
-        totalDistance: 120
+        totalDistance: 120,
+        engagedRiders: [
+          {
+            id: 'er1',
+            licenceId: '1241',
+            bibNumber: '101',
+            name: 'HOUIS Guillaume',
+            club: 'CCC31',
+            gender: 'H',
+            dept: '44',
+            category: '1'
+          },
+          {
+            id: 'er2',
+            licenceId: '1240',
+            bibNumber: '102',
+            name: 'MABLET Steven',
+            club: 'CCC31',
+            gender: 'H',
+            dept: '44',
+            category: '1'
+          },
+          {
+            id: 'er3',
+            licenceId: '1239',
+            bibNumber: '103',
+            name: 'AUBANIAC Clement',
+            club: 'CCC31',
+            gender: 'H',
+            dept: '44',
+            category: '1'
+          }
+        ],
+        results: [
+          {
+            id: 'res1',
+            engagedRiderId: 'er1',
+            bibNumber: '101',
+            rank: 1,
+            chrono: '02:34:15',
+            name: 'HOUIS Guillaume',
+            club: 'CCC31',
+            gender: 'H',
+            dept: '44',
+            category: '1'
+          },
+          {
+            id: 'res2',
+            engagedRiderId: 'er2',
+            bibNumber: '102',
+            rank: 2,
+            chrono: '02:35:42',
+            name: 'MABLET Steven',
+            club: 'CCC31',
+            gender: 'H',
+            dept: '44',
+            category: '1'
+          },
+          {
+            id: 'res3',
+            engagedRiderId: 'er3',
+            bibNumber: '103',
+            rank: 3,
+            chrono: '02:36:18',
+            name: 'AUBANIAC Clement',
+            club: 'CCC31',
+            gender: 'H',
+            dept: '44',
+            category: '1'
+          }
+        ]
       },
       {
         id: '2',
@@ -25,7 +95,9 @@ export const races: RaceType[] = [
         registerTime: '10:00',
         gpx: 'https://example.com/gpx/elite-femmes.gpx',
         laps: 8,
-        totalDistance: 96
+        totalDistance: 96,
+        engagedRiders: [],
+        results: []
       },
       {
         id: '3',
@@ -34,7 +106,9 @@ export const races: RaceType[] = [
         registerTime: '12:00',
         gpx: 'https://example.com/gpx/espoirs.gpx',
         laps: 6,
-        totalDistance: 72
+        totalDistance: 72,
+        engagedRiders: [],
+        results: []
       }
     ],
     federation: 'FSGT',
@@ -53,7 +127,9 @@ export const races: RaceType[] = [
         startTime: '08:30',
         registerTime: '07:30',
         gpx: 'https://example.com/gpx/course-longue.gpx',
-        totalDistance: 150
+        totalDistance: 150,
+        engagedRiders: [],
+        results: []
       },
       {
         id: '2',
@@ -61,7 +137,9 @@ export const races: RaceType[] = [
         startTime: '10:30',
         registerTime: '09:30',
         gpx: 'https://example.com/gpx/course-courte.gpx',
-        totalDistance: 75
+        totalDistance: 75,
+        engagedRiders: [],
+        results: []
       }
     ],
     federation: 'FFVELO',
@@ -81,7 +159,9 @@ export const races: RaceType[] = [
         registerTime: '08:00',
         gpx: 'https://example.com/gpx/pro.gpx',
         laps: 12,
-        totalDistance: 144
+        totalDistance: 144,
+        engagedRiders: [],
+        results: []
       },
       {
         id: '2',
@@ -90,7 +170,9 @@ export const races: RaceType[] = [
         registerTime: '10:00',
         gpx: 'https://example.com/gpx/elite.gpx',
         laps: 10,
-        totalDistance: 120
+        totalDistance: 120,
+        engagedRiders: [],
+        results: []
       },
       {
         id: '3',
@@ -99,7 +181,9 @@ export const races: RaceType[] = [
         registerTime: '12:00',
         gpx: 'https://example.com/gpx/master.gpx',
         laps: 8,
-        totalDistance: 96
+        totalDistance: 96,
+        engagedRiders: [],
+        results: []
       },
       {
         id: '4',
@@ -108,7 +192,9 @@ export const races: RaceType[] = [
         registerTime: '14:00',
         gpx: 'https://example.com/gpx/jeunes.gpx',
         laps: 5,
-        totalDistance: 60
+        totalDistance: 60,
+        engagedRiders: [],
+        results: []
       }
     ],
     federation: 'FFC',
