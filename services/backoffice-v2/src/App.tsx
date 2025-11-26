@@ -10,6 +10,7 @@ import ChallengesPage from '@/pages/ChallengesPage.tsx';
 import DashboardPage from '@/pages/DashboardPage.tsx';
 import LicencesPage from '@/pages/LicencesPage.tsx';
 import LoginPage from '@/pages/LoginPage.tsx';
+import PalmaresPage from '@/pages/PalmaresPage.tsx';
 import RacesPage from '@/pages/RacesPage.tsx';
 import UsersPage from '@/pages/UsersPage.tsx';
 
@@ -36,6 +37,7 @@ export default function App() {
               <Route path="/licences" element={<LicencesPage />} />
               <Route path="/races" element={<RacesPage />} />
               <Route path="/achievements" element={<AchievementsPage />} />
+              <Route path="/palmares/:licenceId?" element={<PalmaresPage />} />
               <Route path="/users" element={<UsersPage />} />
               <Route path="/account" element={<AccountPage />} />
             </Route>

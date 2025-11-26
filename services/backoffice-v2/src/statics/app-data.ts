@@ -122,7 +122,7 @@ export const appData = {
         },
         {
             name: "Palmarès",
-            url: "/achievements",
+            url: "/palmares",
             icon: ListOrdered,
         },
         {
