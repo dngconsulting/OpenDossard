@@ -1,5 +1,6 @@
 import { DataTable } from '@/components/ui/data-table';
 import type { EngagedRider } from '@/types/races';
+
 import type { ColumnDef } from '@tanstack/react-table';
 
 const columns: ColumnDef<EngagedRider>[] = [

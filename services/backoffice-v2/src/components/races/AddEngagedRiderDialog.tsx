@@ -42,7 +42,9 @@ export const AddEngagedRiderDialog = ({ open, onClose, onAdd }: Props) => {
   });
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    if (!selectedLicence) return;
+    if (!selectedLicence) {
+      return;
+    }
 
     const rider: Omit<EngagedRider, 'id'> = {
       licenceId: selectedLicence.id,
@@ -81,8 +83,9 @@ export const AddEngagedRiderDialog = ({ open, onClose, onAdd }: Props) => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Rechercher une licence</label>
+              <label htmlFor="licence-select" className="text-sm font-medium">Rechercher une licence</label>
               <select
+                id="licence-select"
                 className="w-full rounded-md border p-2"
                 onChange={(e) => handleLicenceSelect(e.target.value)}
                 value={selectedLicence?.id || ''}
