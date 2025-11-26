@@ -42,9 +42,10 @@ const columns: ColumnDef<RaceType>[] = [
 type Props = {
   onDeleteRow: (row: RaceType) => void;
   onEditRow: (row: RaceType) => void;
+  onOpenRow?: (row: RaceType) => void;
 };
 
-export const RacesTable = ({ onDeleteRow, onEditRow }: Props) => {
+export const RacesTable = ({ onDeleteRow, onEditRow, onOpenRow }: Props) => {
   const { data: races, isLoading, error } = useRaces();
 
   if (error) {
@@ -57,6 +58,7 @@ export const RacesTable = ({ onDeleteRow, onEditRow }: Props) => {
       data={races || []}
       onDeleteRow={onDeleteRow}
       onEditRow={onEditRow}
+      onOpenRow={onOpenRow}
       isLoading={isLoading}
     />
   );
