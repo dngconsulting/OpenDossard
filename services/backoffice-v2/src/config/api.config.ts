@@ -7,6 +7,7 @@ export interface ApiConfig {
   challenges: ApiMode
   charts: ApiMode
   dashboard: ApiMode
+  palmares: ApiMode
 }
 
 export const apiConfig: ApiConfig = {
@@ -16,6 +17,7 @@ export const apiConfig: ApiConfig = {
   challenges: 'mock',
   charts: 'mock',
   dashboard: 'mock',
+  palmares: 'mock',
 }
 
 export const isMockMode = (entity: keyof ApiConfig): boolean => {
