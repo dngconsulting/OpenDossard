@@ -25,7 +25,7 @@ export default function UsersPage() {
                         Ici, vous pouvez créer / modifier un utilisateur OpenDossard
                     </DialogDescription>
                 </DialogHeader>
-                <UserForm />
+                <UserForm user={user} />
             </DialogContent>
         </Dialog>
     )

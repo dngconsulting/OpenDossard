@@ -1,48 +1,49 @@
-import {zodResolver} from '@hookform/resolvers/zod';
-import {useForm} from 'react-hook-form';
-import {z} from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
-import {Button} from '@/components/ui/button.tsx';
-import {FieldGroup, FieldSet, StringField} from '@/components/ui/field.tsx';
-import {Form} from '@/components/ui/form.tsx';
+import { Button } from '@/components/ui/button.tsx';
+import { FieldGroup, FieldSet, StringField } from '@/components/ui/field.tsx';
+import { Form } from '@/components/ui/form.tsx';
+import type { UserType } from '@/types/users.ts';
 
 const formSchema = z.object({
-    firstName: z.string(),
-    lastName: z.string(),
-    email: z.email()
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.email(),
+  phoneNumber: z.string().optional(),
 });
 
-export const UserForm = () => {
-    const userForm = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
-    });
+type UserFormProps = {
+  user?: Partial<UserType>;
+};
 
-    return (
-        <Form {...userForm}>
-            <form className="grid grid-cols-1 gap-4">
-                <FieldGroup>
-                    <FieldSet>
-                        <StringField
-                            field="lastName"
-                            form={userForm}
-                            label="Nom"
-                        />
-                        <StringField
-                            field="firstName"
-                            form={userForm}
-                            label="Prénom"
-                        />
-                        <StringField
-                            field="email"
-                            form={userForm}
-                            label="Email"
-                        />
-                    </FieldSet>
-                    <FieldSet>
-                        <Button type="submit">Enregistrer</Button>
-                    </FieldSet>
-                </FieldGroup>
-            </form>
-        </Form>
-    )
-}
+export const UserForm = ({ user }: UserFormProps) => {
+  const userForm = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      firstName: user?.firstName ?? '',
+      lastName: user?.lastName ?? '',
+      email: user?.email ?? '',
+      phoneNumber: user?.phoneNumber ?? '',
+    },
+  });
+
+  return (
+    <Form {...userForm}>
+      <form className="grid grid-cols-1 gap-4">
+        <FieldGroup>
+          <FieldSet>
+            <StringField field="lastName" form={userForm} label="Nom" />
+            <StringField field="firstName" form={userForm} label="Prénom" />
+            <StringField field="email" form={userForm} label="Email" />
+            <StringField field="phoneNumber" form={userForm} label="Téléphone" />
+          </FieldSet>
+          <FieldSet>
+            <Button type="submit">Enregistrer</Button>
+          </FieldSet>
+        </FieldGroup>
+      </form>
+    </Form>
+  );
+};
