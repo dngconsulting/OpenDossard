@@ -1,6 +1,6 @@
-import type { CategoryChange, PalmaresData, PalmaresRaceResult } from '@/types/palmares'
+import type { CategoryChange, PalmaresData, PalmaresRaceResult } from '@/types/palmares';
 
-import { licences } from './licences.mocks'
+import { licences } from './licences.mocks';
 
 const generateResults = (licenceId: string): PalmaresRaceResult[] => {
   const results: PalmaresRaceResult[] = [
@@ -119,9 +119,9 @@ const generateResults = (licenceId: string): PalmaresRaceResult[] => {
       ranking: 3,
       totalParticipants: 35,
     },
-  ]
-  return results
-}
+  ];
+  return results;
+};
 
 const generateCategoryHistory = (): CategoryChange[] => [
   {
@@ -142,26 +142,25 @@ const generateCategoryHistory = (): CategoryChange[] => [
     fromCategory: null,
     toCategory: '3ème catégorie',
   },
-]
+];
 
 const calculateStats = (results: PalmaresRaceResult[]) => {
-  const totalRaces = results.length
-  const wins = results.filter(r => r.ranking === 1).length
-  const podiums = results.filter(r => r.ranking <= 3).length
-  const winRate = totalRaces > 0 ? Math.round((wins / totalRaces) * 100) : 0
-  const avgRanking = totalRaces > 0
-    ? Math.round((results.reduce((sum, r) => sum + r.ranking, 0) / totalRaces) * 10) / 10
-    : 0
-  const bestRanking = totalRaces > 0
-    ? Math.min(...results.map(r => r.ranking))
-    : 0
+  const totalRaces = results.length;
+  const wins = results.filter(r => r.ranking === 1).length;
+  const podiums = results.filter(r => r.ranking <= 3).length;
+  const winRate = totalRaces > 0 ? Math.round((wins / totalRaces) * 100) : 0;
+  const avgRanking =
+    totalRaces > 0
+      ? Math.round((results.reduce((sum, r) => sum + r.ranking, 0) / totalRaces) * 10) / 10
+      : 0;
+  const bestRanking = totalRaces > 0 ? Math.min(...results.map(r => r.ranking)) : 0;
 
-  return { totalRaces, wins, podiums, winRate, avgRanking, bestRanking }
-}
+  return { totalRaces, wins, podiums, winRate, avgRanking, bestRanking };
+};
 
 export const palmaresData: Map<string, PalmaresData> = new Map(
-  licences.slice(0, 5).map(licence => {
-    const results = generateResults(licence.id)
+  licences.slice(0, 50).map(licence => {
+    const results = generateResults(licence.id);
     return [
       licence.id,
       {
@@ -170,6 +169,6 @@ export const palmaresData: Map<string, PalmaresData> = new Map(
         categoryHistory: generateCategoryHistory(),
         results,
       },
-    ]
+    ];
   })
-)
+);
