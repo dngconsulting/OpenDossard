@@ -89,3 +89,18 @@ export function useRemoveEngagedRider() {
     }
   });
 }
+
+export function useUpdateResultsRankings() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      raceId: string
+      categoryId: string
+      resultIds: string[]
+    }) => racesApi.updateResultsRankings(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: racesKeys.all });
+    }
+  });
+}

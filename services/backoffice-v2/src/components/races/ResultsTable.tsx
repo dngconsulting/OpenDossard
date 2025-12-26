@@ -41,14 +41,17 @@ const columns: ColumnDef<RaceResult>[] = [
 type Props = {
   results: RaceResult[];
   isLoading?: boolean;
+  onResultsReorder?: (reorderedResults: RaceResult[]) => void;
 };
 
-export const ResultsTable = ({ results, isLoading }: Props) => {
+export const ResultsTable = ({ results, isLoading, onResultsReorder }: Props) => {
   return (
     <DataTable
       columns={columns}
       data={results}
       isLoading={isLoading}
+      enableDragDrop
+      onRowReorder={onResultsReorder}
     />
   );
 };

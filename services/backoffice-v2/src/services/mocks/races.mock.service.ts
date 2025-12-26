@@ -1,5 +1,5 @@
 import { races as initialRaces } from '@/mocks/races.mocks';
-import type { RaceType, EngagedRider } from '@/types/races.ts';
+import type { RaceType, EngagedRider, RaceResult } from '@/types/races.ts';
 
 let racesData: RaceType[] = [...initialRaces];
 
@@ -80,6 +80,34 @@ export const removeEngagedRiderMock = (
         }
       }
       resolve();
+    }, 500);
+  });
+};
+
+export const updateResultsRankingsMock = (
+  raceId: string,
+  categoryId: string,
+  resultIds: string[]
+): Promise<RaceResult[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const race = racesData.find(r => r.id === raceId);
+      const category = race?.categories.find(c => c.id === categoryId);
+      if (category) {
+        // Reorder results based on the new order and update ranks
+        const reorderedResults = resultIds.map((id, index) => {
+          const result = category.results.find(r => r.id === id);
+          if (result) {
+            result.rank = index + 1;
+          }
+          return result;
+        }).filter((r): r is RaceResult => r !== undefined);
+
+        category.results = reorderedResults;
+        resolve(reorderedResults);
+      } else {
+        resolve([]);
+      }
     }, 500);
   });
 };
