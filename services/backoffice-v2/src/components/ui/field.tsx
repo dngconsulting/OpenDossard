@@ -308,7 +308,7 @@ const ControlledSelectField = ({
             <FieldError errors={[fieldState.error]} />
         )}
       </FieldContent>
-      <Select {...field} >
+      <Select value={field.value} onValueChange={field.onChange}>
         <SelectTrigger
             aria-invalid={fieldState.invalid}
         >
