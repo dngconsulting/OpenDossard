@@ -1,10 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button.tsx';
 import {
+  ComboboxField,
   Field,
   FieldDescription,
   FieldGroup,
@@ -16,6 +17,8 @@ import {
 } from '@/components/ui/field.tsx';
 import { Form } from '@/components/ui/form.tsx';
 import { Textarea } from '@/components/ui/textarea.tsx';
+import { useClubsByDepartment, useCreateClub } from '@/hooks/useClubs.ts';
+import { useDepartments } from '@/hooks/useDepartments.ts';
 import type { LicenceType } from '@/types/licences.ts';
 import { computeAgeCategory } from '@/utils/licence.ts';
 
@@ -39,6 +42,9 @@ const formSchema = z.object({
 });
 
 export const LicencesForm = ({ updatingLicence }: Props) => {
+  const { data: departments, isLoading: isLoadingDepartments } = useDepartments();
+  const createClub = useCreateClub();
+
   const licenceForm = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { ...updatingLicence, licenceNumber: updatingLicence?.licenceNumber ?? 'NC' },
@@ -47,6 +53,32 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
   const gender = licenceForm.watch('gender');
   const birthYear = licenceForm.watch('birthYear');
   const season = licenceForm.watch('season');
+  const selectedDepartment = licenceForm.watch('state');
+
+  const { data: clubs, isLoading: isLoadingClubs } = useClubsByDepartment(selectedDepartment);
+
+  const departmentOptions = useMemo(
+    () =>
+      departments?.map(dept => ({ value: dept.code, label: `${dept.code} - ${dept.name}` })) ?? [],
+    [departments]
+  );
+
+  const clubOptions = useMemo(
+    () => clubs?.map(club => ({ value: club.id, label: club.name })) ?? [],
+    [clubs]
+  );
+
+  const handleCreateClub = async (name: string) => {
+    const newClub = await createClub.mutateAsync({ name, department: selectedDepartment });
+    licenceForm.setValue('club', newClub.id);
+  };
+
+  // Reset club when department changes
+  useEffect(() => {
+    if (!updatingLicence) {
+      licenceForm.setValue('club', '');
+    }
+  }, [selectedDepartment, updatingLicence, licenceForm]);
 
   useEffect(() => {
     const forceUpdate: boolean = !!gender && !!birthYear && !!season;
@@ -98,11 +130,12 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
                 label="Saison"
                 options={[{ value: '2024' }, { value: '2025' }]}
               />
-              <SelectField
+              <ComboboxField
                 form={licenceForm}
                 field="state"
                 label="Département"
-                options={[{ value: '44' }, { value: '31' }]}
+                options={departmentOptions}
+                isLoading={isLoadingDepartments}
               />
               <StringField field="ageCategory" form={licenceForm} label="Catégorie d'âge" />
               <SelectField
@@ -116,6 +149,16 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
                 field="cxCategory"
                 label="Catégorie CX"
                 options={[{ value: '1' }, { value: '2' }]}
+              />
+              <ComboboxField
+                form={licenceForm}
+                field="club"
+                label="Club"
+                options={clubOptions}
+                onCreateNew={handleCreateClub}
+                placeholder="Rechercher..."
+                isLoading={isLoadingClubs}
+                disabled={!selectedDepartment}
               />
             </div>
             <Field>
