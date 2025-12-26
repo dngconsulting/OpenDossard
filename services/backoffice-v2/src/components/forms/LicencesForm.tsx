@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -16,6 +17,7 @@ import {
 import { Form } from '@/components/ui/form.tsx';
 import { Textarea } from '@/components/ui/textarea.tsx';
 import type { LicenceType } from '@/types/licences.ts';
+import { computeAgeCategory } from '@/utils/licence.ts';
 
 type Props = {
   updatingLicence?: LicenceType;
@@ -29,6 +31,7 @@ const formSchema = z.object({
   gender: z.string(),
   state: z.string(),
   birthYear: z.number().max(2020).min(1900),
+  ageCategory: z.string(),
   category: z.string(),
   cxCategory: z.string(),
   federation: z.string(),
@@ -40,6 +43,18 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
     resolver: zodResolver(formSchema),
     defaultValues: { ...updatingLicence, licenceNumber: updatingLicence?.licenceNumber ?? 'NC' },
   });
+
+  const gender = licenceForm.watch('gender');
+  const birthYear = licenceForm.watch('birthYear');
+  const season = licenceForm.watch('season');
+
+  useEffect(() => {
+    const forceUpdate: boolean = !!gender && !!birthYear && !!season;
+    if (forceUpdate) {
+      const newAgeCategory = computeAgeCategory(gender, birthYear, season);
+      licenceForm.setValue('ageCategory', newAgeCategory);
+    }
+  }, [gender, birthYear, season, updatingLicence?.ageCategory, licenceForm]);
 
   return (
     <Form {...licenceForm}>
@@ -89,6 +104,7 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
                 label="Département"
                 options={[{ value: '44' }, { value: '31' }]}
               />
+              <StringField field="ageCategory" form={licenceForm} label="Catégorie d'âge" />
               <SelectField
                 form={licenceForm}
                 field="category"
