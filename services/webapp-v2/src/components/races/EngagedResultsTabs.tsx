@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAddEngagedRider, useRemoveEngagedRider } from '@/hooks/useRaces';
-import type { EngagedRider, RaceCategory } from '@/types/races';
+import { useAddEngagedRider, useRemoveEngagedRider, useUpdateResultsRankings } from '@/hooks/useRaces';
+import type { EngagedRider, RaceCategory, RaceResult } from '@/types/races';
 
 import { AddEngagedRiderDialog } from './AddEngagedRiderDialog';
 import { EngagedRidersTable } from './EngagedRidersTable';
@@ -20,6 +20,7 @@ export const EngagedResultsTabs = ({ raceId, category }: Props) => {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const addEngagedRider = useAddEngagedRider();
   const removeEngagedRider = useRemoveEngagedRider();
+  const updateResultsRankings = useUpdateResultsRankings();
 
   const handleAddRider = (rider: Omit<EngagedRider, 'id'>) => {
     addEngagedRider.mutate({
@@ -34,6 +35,14 @@ export const EngagedResultsTabs = ({ raceId, category }: Props) => {
       raceId,
       categoryId: category.id,
       riderId: rider.id,
+    });
+  };
+
+  const handleResultsReorder = (reorderedResults: RaceResult[]) => {
+    updateResultsRankings.mutate({
+      raceId,
+      categoryId: category.id,
+      resultIds: reorderedResults.map(r => r.id),
     });
   };
 
@@ -97,7 +106,11 @@ export const EngagedResultsTabs = ({ raceId, category }: Props) => {
               </div>
             </CardHeader>
             <CardContent>
-              <ResultsTable results={category.results} />
+              <ResultsTable
+                results={category.results}
+                onResultsReorder={handleResultsReorder}
+                isLoading={updateResultsRankings.isPending}
+              />
             </CardContent>
           </Card>
         </TabsContent>

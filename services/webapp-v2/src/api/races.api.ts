@@ -1,6 +1,6 @@
 import { isMockMode } from '@/config/api.config';
-import { mockRacesService, addEngagedRiderMock, removeEngagedRiderMock } from '@/services/mocks/races.mock.service';
-import type { RaceType, EngagedRider } from '@/types/races.ts';
+import { mockRacesService, addEngagedRiderMock, removeEngagedRiderMock, updateResultsRankingsMock } from '@/services/mocks/races.mock.service';
+import type { RaceType, EngagedRider, RaceResult } from '@/types/races.ts';
 
 import { apiClient } from './client';
 
@@ -44,6 +44,16 @@ const realRacesService = {
     apiClient<void>(`/races/${data.raceId}/categories/${data.categoryId}/engaged/${data.riderId}`, {
       method: 'DELETE',
     }),
+
+  updateResultsRankings: (data: {
+    raceId: string
+    categoryId: string
+    resultIds: string[]
+  }): Promise<RaceResult[]> =>
+    apiClient<RaceResult[]>(`/races/${data.raceId}/categories/${data.categoryId}/results/rankings`, {
+      method: 'PUT',
+      body: JSON.stringify({ resultIds: data.resultIds }),
+    }),
 };
 
 const mockServiceWithEngagedRiders = {
@@ -59,6 +69,12 @@ const mockServiceWithEngagedRiders = {
     categoryId: string
     riderId: string
   }) => removeEngagedRiderMock(data.raceId, data.categoryId, data.riderId),
+
+  updateResultsRankings: (data: {
+    raceId: string
+    categoryId: string
+    resultIds: string[]
+  }) => updateResultsRankingsMock(data.raceId, data.categoryId, data.resultIds),
 };
 
 export const racesApi = isMockMode('races') ? mockServiceWithEngagedRiders : realRacesService;
