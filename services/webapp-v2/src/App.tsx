@@ -13,6 +13,7 @@ import LoginPage from '@/pages/LoginPage.tsx';
 import PalmaresPage from '@/pages/PalmaresPage.tsx';
 import RacesPage from '@/pages/RacesPage.tsx';
 import UsersPage from '@/pages/UsersPage.tsx';
+import WelcomePage from '@/pages/WelcomePage.tsx';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,7 +33,8 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
 
             <Route element={<ProtectedRoute />}>
-              <Route path="/" element={<DashboardPage />} />
+              <Route path="/" element={<WelcomePage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/challenges" element={<ChallengesPage />} />
               <Route path="/licences" element={<LicencesPage />} />
               <Route path="/races" element={<RacesPage />} />
