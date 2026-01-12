@@ -1,4 +1,4 @@
-import {Bike, BookOpen, Bot, IdCard, LayoutDashboard, ListOrdered, Settings2, SquareTerminal, Trophy, User2} from 'lucide-react';
+import {Bike, BookOpen, Bot, Home, IdCard, LayoutDashboard, ListOrdered, Settings2, SquareTerminal, Trophy, User2} from 'lucide-react';
 
 export const appData = {
     user: {
@@ -8,8 +8,8 @@ export const appData = {
         avatar: "/avatars/shadcn.jpg",
     },
     app: {
-        name: "Open dossard",
-        logoUrl: "logood.png",
+        name: "Open Dossard",
+        logoUrl: "/logood.png",
         version: "2.0.0",
     },
     navMain: [
@@ -101,8 +101,13 @@ export const appData = {
     ],
     pages: [
         {
-            name: "Tableau de bord",
+            name: "Accueil",
             url: "/",
+            icon: Home,
+        },
+        {
+            name: "Tableau de bord",
+            url: "/dashboard",
             icon: LayoutDashboard,
         },
         {

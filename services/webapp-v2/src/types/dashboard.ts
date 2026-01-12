@@ -11,6 +11,7 @@ export type DashboardStats = {
   fsgtLicenses: number
   fsgtLicensesTrend: number
   totalCompetitions: number
+  totalClubs?: number
 }
 
 export type DashboardData = {
