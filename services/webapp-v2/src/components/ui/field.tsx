@@ -1,10 +1,13 @@
 import { cva, type VariantProps } from "class-variance-authority"
-import {type HTMLInputAutoCompleteAttribute, type HTMLInputTypeAttribute, useMemo} from 'react';
+import { Check, ChevronsUpDown, Plus } from 'lucide-react';
+import {type HTMLInputAutoCompleteAttribute, type HTMLInputTypeAttribute, useMemo, useState} from 'react';
 import {Controller, type ControllerFieldState, type ControllerRenderProps, type FieldValues, type Path, type UseFormReturn} from 'react-hook-form';
 
+import { Button } from '@/components/ui/button.tsx';
 import {Checkbox} from '@/components/ui/checkbox.tsx';
 import {Input} from '@/components/ui/input';
 import { Label } from "@/components/ui/label"
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
@@ -308,7 +311,7 @@ const ControlledSelectField = ({
             <FieldError errors={[fieldState.error]} />
         )}
       </FieldContent>
-      <Select {...field} >
+      <Select value={field.value} onValueChange={field.onChange}>
         <SelectTrigger
             aria-invalid={fieldState.invalid}
         >
@@ -403,6 +406,167 @@ export function CheckboxField<T extends FieldValues>({form, label, field}: Check
             )}
         />
     );
+}
+
+type ComboboxOption = {
+  value: string;
+  label: string;
+};
+
+type ComboboxFieldProps<T extends FieldValues> = {
+  form: UseFormReturn<T>;
+  label: string;
+  field: Path<T>;
+  options: ComboboxOption[];
+  onCreateNew?: (value: string) => void;
+  placeholder?: string;
+  isLoading?: boolean;
+  disabled?: boolean;
+};
+
+function ControlledComboboxField({
+  field,
+  fieldState,
+  label,
+  options,
+  onCreateNew,
+  placeholder = 'Rechercher...',
+  isLoading,
+  disabled,
+}: {
+  field: ControllerRenderProps<any>;
+  fieldState: ControllerFieldState;
+  label: string;
+  options: ComboboxOption[];
+  onCreateNew?: (value: string) => void;
+  placeholder?: string;
+  isLoading?: boolean;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+
+  const filteredOptions = useMemo(() => {
+    if (!search) return options;
+    const lowerSearch = search.toLowerCase();
+    return options.filter(opt => opt.label.toLowerCase().includes(lowerSearch));
+  }, [options, search]);
+
+  const selectedOption = options.find(opt => opt.value === field.value);
+  const showCreateOption = search && !filteredOptions.some(opt => opt.label.toLowerCase() === search.toLowerCase());
+
+  return (
+    <Field data-invalid={fieldState.invalid}>
+      <FieldContent>
+        <FieldLabel>{label}</FieldLabel>
+        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+      </FieldContent>
+      <Popover open={disabled ? false : open} onOpenChange={disabled ? undefined : setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between font-normal"
+            disabled={disabled}
+          >
+            {selectedOption?.label ?? placeholder}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[--radix-popover-trigger-width] overflow-hidden p-0" align="start">
+          <div className="p-2">
+            <Input
+              placeholder={placeholder}
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="h-8"
+            />
+          </div>
+          <div
+            className="max-h-60 overflow-y-auto overscroll-contain"
+            onWheel={e => e.stopPropagation()}
+          >
+            {isLoading ? (
+              <div className="py-6 text-center text-sm text-muted-foreground">Chargement...</div>
+            ) : filteredOptions.length === 0 && !showCreateOption ? (
+              <div className="py-6 text-center text-sm text-muted-foreground">Aucun résultat</div>
+            ) : (
+              <div className="p-1">
+                {filteredOptions.map(option => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={cn(
+                      'relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground',
+                      field.value === option.value && 'bg-accent'
+                    )}
+                    onClick={() => {
+                      field.onChange(option.value);
+                      setOpen(false);
+                      setSearch('');
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        'mr-2 h-4 w-4',
+                        field.value === option.value ? 'opacity-100' : 'opacity-0'
+                      )}
+                    />
+                    {option.label}
+                  </button>
+                ))}
+                {showCreateOption && onCreateNew && (
+                  <button
+                    type="button"
+                    className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground text-primary"
+                    onClick={() => {
+                      onCreateNew(search);
+                      setOpen(false);
+                      setSearch('');
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Créer "{search}"
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
+    </Field>
+  );
+}
+
+export function ComboboxField<T extends FieldValues>({
+  form,
+  label,
+  field,
+  options,
+  onCreateNew,
+  placeholder,
+  isLoading,
+  disabled,
+}: ComboboxFieldProps<T>) {
+  return (
+    <Controller
+      control={form.control}
+      name={field}
+      render={({ field, fieldState }) => (
+        <ControlledComboboxField
+          field={field}
+          fieldState={fieldState}
+          label={label}
+          options={options}
+          onCreateNew={onCreateNew}
+          placeholder={placeholder}
+          isLoading={isLoading}
+          disabled={disabled}
+        />
+      )}
+    />
+  );
 }
 
 export {

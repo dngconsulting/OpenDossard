@@ -47,6 +47,7 @@ export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
     {
       accessorKey: 'birthYear',
       header: 'Année de naissance',
+      filterFn: 'includesString',
     },
     {
       accessorKey: 'ageCategory',
