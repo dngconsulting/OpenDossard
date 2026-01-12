@@ -2,8 +2,8 @@
 
 import {
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 
 export function AppTitle({
@@ -15,21 +15,35 @@ export function AppTitle({
     version: string
   }
 }) {
+  const { state } = useSidebar()
+  const isCollapsed = state === "collapsed"
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <SidebarMenuButton
-            size="lg"
-            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-        >
-          <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-            <img src={app.logoUrl} alt="logo" className="w-3/4" />
-          </div>
-          <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-medium">{app.name}</span>
-            <span className="truncate text-xs">{app.version}</span>
-          </div>
-        </SidebarMenuButton>
+        <div className={`
+          flex flex-col items-center justify-center transition-all duration-200
+          ${isCollapsed ? 'py-2' : 'py-2'}
+        `}>
+          <img
+            src={app.logoUrl}
+            alt="logo"
+            className={`object-contain transition-all duration-200 ${isCollapsed ? 'w-8 h-8' : 'w-20 h-20'}`}
+          />
+          {!isCollapsed && (
+            <div className="-mt-1 text-center">
+              <span className="block font-normal text-sidebar-foreground tracking-tight text-sm">
+                {app.name}
+              </span>
+              <span
+                className="block text-xs"
+                style={{ color: 'var(--sidebar-foreground-muted)' }}
+              >
+                v{app.version}
+              </span>
+            </div>
+          )}
+        </div>
       </SidebarMenuItem>
     </SidebarMenu>
   )

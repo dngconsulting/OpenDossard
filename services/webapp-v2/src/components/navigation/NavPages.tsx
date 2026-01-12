@@ -1,9 +1,7 @@
 "use client"
 
-import {
-  type LucideIcon,
-} from "lucide-react"
-import {Link} from 'react-router-dom';
+import { type LucideIcon } from "lucide-react"
+import { Link, useLocation } from 'react-router-dom'
 
 import {
   SidebarGroup,
@@ -11,7 +9,13 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 export function NavPages({
   pages,
@@ -22,21 +26,50 @@ export function NavPages({
     icon: LucideIcon
   }[]
 }) {
+  const location = useLocation()
+  const { state } = useSidebar()
+  const isCollapsed = state === "collapsed"
 
   return (
-    <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Sections</SidebarGroupLabel>
+    <SidebarGroup>
+      {!isCollapsed && <SidebarGroupLabel>Navigation</SidebarGroupLabel>}
       <SidebarMenu>
-        {pages.map((item) => (
-          <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton asChild>
-              <Link to={item.url}>
-                <item.icon />
-                <span>{item.name}</span>
+        {pages.map((item) => {
+          const isActive = location.pathname === item.url ||
+            (item.url !== '/' && location.pathname.startsWith(item.url))
+
+          const menuButton = (
+            <SidebarMenuButton asChild isActive={isActive}>
+              <Link to={item.url} className="relative">
+                <div className="nav-icon-wrapper shrink-0">
+                  <item.icon />
+                </div>
+                {!isCollapsed && (
+                  <span className="text-sidebar-foreground">
+                    {item.name}
+                  </span>
+                )}
               </Link>
             </SidebarMenuButton>
-          </SidebarMenuItem>
-        ))}
+          )
+
+          return (
+            <SidebarMenuItem key={item.name}>
+              {isCollapsed ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    {menuButton}
+                  </TooltipTrigger>
+                  <TooltipContent side="right" sideOffset={8}>
+                    {item.name}
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                menuButton
+              )}
+            </SidebarMenuItem>
+          )
+        })}
       </SidebarMenu>
     </SidebarGroup>
   )
