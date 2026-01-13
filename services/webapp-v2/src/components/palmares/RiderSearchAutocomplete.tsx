@@ -59,10 +59,10 @@ export function RiderSearchAutocomplete({ selectedLicence, onClear, isLoading: i
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-medium truncate">
-            {selectedLicence.lastName} {selectedLicence.firstName}
+            {selectedLicence.name} {selectedLicence.firstName}
           </p>
           <p className="text-sm text-muted-foreground truncate">
-            {selectedLicence.club} • {selectedLicence.federation} #{selectedLicence.licenceNumber}
+            {selectedLicence.club} • {selectedLicence.fede} #{selectedLicence.licenceNumber}
           </p>
         </div>
         <Button variant="ghost" size="icon" onClick={handleClear}>
@@ -118,10 +118,10 @@ export function RiderSearchAutocomplete({ selectedLicence, onClear, isLoading: i
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">
-                      {licence.lastName} {licence.firstName}
+                      {licence.name} {licence.firstName}
                     </p>
                     <p className="text-sm text-muted-foreground truncate">
-                      {licence.club} • {licence.federation} #{licence.licenceNumber}
+                      {licence.club} • {licence.fede} #{licence.licenceNumber}
                     </p>
                   </div>
                 </button>

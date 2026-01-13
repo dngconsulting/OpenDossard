@@ -2,7 +2,7 @@ import type { CategoryChange, PalmaresData, PalmaresRaceResult } from '@/types/p
 
 import { licences } from './licences.mocks';
 
-const generateResults = (licenceId: string): PalmaresRaceResult[] => {
+const generateResults = (licenceId: number): PalmaresRaceResult[] => {
   const results: PalmaresRaceResult[] = [
     // 2024 ROUTE results
     {
@@ -162,7 +162,7 @@ export const palmaresData: Map<string, PalmaresData> = new Map(
   licences.slice(0, 50).map(licence => {
     const results = generateResults(licence.id);
     return [
-      licence.id,
+      String(licence.id),
       {
         licence,
         stats: calculateStats(results),

@@ -15,7 +15,7 @@ export const mockPalmaresService = {
     const lowerQuery = query.toLowerCase()
     return licences.filter(
       l =>
-        l.lastName.toLowerCase().includes(lowerQuery) ||
+        l.name.toLowerCase().includes(lowerQuery) ||
         l.firstName.toLowerCase().includes(lowerQuery) ||
         l.licenceNumber.toLowerCase().includes(lowerQuery)
     )

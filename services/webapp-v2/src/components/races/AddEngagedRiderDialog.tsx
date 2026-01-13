@@ -47,12 +47,13 @@ export const AddEngagedRiderDialog = ({ open, onClose, onAdd }: Props) => {
   });
 
   const filteredLicences = useMemo(() => {
-    if (!licences || !searchQuery) {
-      return licences || [];
+    const licencesList = licences?.data || [];
+    if (!licencesList.length || !searchQuery) {
+      return licencesList;
     }
     const query = searchQuery.toLowerCase();
-    return licences.filter((licence) => {
-      const fullName = `${licence.lastName} ${licence.firstName}`.toLowerCase();
+    return licencesList.filter((licence: LicenceType) => {
+      const fullName = `${licence.name} ${licence.firstName}`.toLowerCase();
       const club = licence.club.toLowerCase();
       const licenceNumber = licence.licenceNumber.toLowerCase();
       return fullName.includes(query) || club.includes(query) || licenceNumber.includes(query);
@@ -65,13 +66,13 @@ export const AddEngagedRiderDialog = ({ open, onClose, onAdd }: Props) => {
     }
 
     const rider: Omit<EngagedRider, 'id'> = {
-      licenceId: selectedLicence.id,
+      licenceId: String(selectedLicence.id),
       bibNumber: values.bibNumber,
-      name: `${selectedLicence.lastName} ${selectedLicence.firstName}`,
+      name: `${selectedLicence.name} ${selectedLicence.firstName}`,
       club: selectedLicence.club,
-      gender: selectedLicence.gender,
-      dept: selectedLicence.state,
-      category: selectedLicence.category,
+      gender: selectedLicence.gender as 'H' | 'F',
+      dept: selectedLicence.dept,
+      category: selectedLicence.catev,
     };
 
     onAdd(rider);
@@ -83,9 +84,9 @@ export const AddEngagedRiderDialog = ({ open, onClose, onAdd }: Props) => {
 
   const handleLicenceSelect = (licence: LicenceType) => {
     setSelectedLicence(licence);
-    setSearchQuery(`${licence.lastName} ${licence.firstName} - ${licence.club} (${licence.licenceNumber})`);
+    setSearchQuery(`${licence.name} ${licence.firstName} - ${licence.club} (${licence.licenceNumber})`);
     setShowDropdown(false);
-    form.setValue('licenceSearch', `${licence.lastName} ${licence.firstName} - ${licence.club}`);
+    form.setValue('licenceSearch', `${licence.name} ${licence.firstName} - ${licence.club}`);
   };
 
   useEffect(() => {
@@ -138,7 +139,7 @@ export const AddEngagedRiderDialog = ({ open, onClose, onAdd }: Props) => {
                         className="w-full px-3 py-2 text-left hover:bg-muted flex items-center justify-between"
                       >
                         <span className="text-sm">
-                          <span className="font-medium">{licence.lastName} {licence.firstName}</span>
+                          <span className="font-medium">{licence.name} {licence.firstName}</span>
                           {' - '}
                           <span className="text-muted-foreground">{licence.club}</span>
                           {' '}
@@ -161,11 +162,11 @@ export const AddEngagedRiderDialog = ({ open, onClose, onAdd }: Props) => {
 
             {selectedLicence && (
               <div className="rounded-md border p-4 space-y-2 bg-muted/50">
-                <p className="text-sm"><strong>Nom:</strong> {selectedLicence.lastName} {selectedLicence.firstName}</p>
+                <p className="text-sm"><strong>Nom:</strong> {selectedLicence.name} {selectedLicence.firstName}</p>
                 <p className="text-sm"><strong>Club:</strong> {selectedLicence.club}</p>
                 <p className="text-sm"><strong>Sexe:</strong> {selectedLicence.gender}</p>
-                <p className="text-sm"><strong>Département:</strong> {selectedLicence.state}</p>
-                <p className="text-sm"><strong>Catégorie:</strong> {selectedLicence.category}</p>
+                <p className="text-sm"><strong>Département:</strong> {selectedLicence.dept}</p>
+                <p className="text-sm"><strong>Catégorie:</strong> {selectedLicence.catev}</p>
               </div>
             )}
 
@@ -173,7 +174,6 @@ export const AddEngagedRiderDialog = ({ open, onClose, onAdd }: Props) => {
               form={form}
               label="Numéro de dossard"
               field="bibNumber"
-              placeholder="101"
             />
 
             <DialogFooter>

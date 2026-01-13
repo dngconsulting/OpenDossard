@@ -28,17 +28,17 @@ type Props = {
 
 const formSchema = z.object({
   licenceNumber: z.string(),
-  lastName: z.string(),
+  name: z.string(),
   firstName: z.string(),
   club: z.string(),
   gender: z.string(),
-  state: z.string(),
-  birthYear: z.number().max(2020).min(1900),
-  ageCategory: z.string(),
-  category: z.string(),
-  cxCategory: z.string(),
-  federation: z.string(),
-  season: z.string(),
+  dept: z.string(),
+  birthYear: z.string(),
+  catea: z.string(),
+  catev: z.string(),
+  catevCX: z.string(),
+  fede: z.string(),
+  saison: z.string(),
 });
 
 export const LicencesForm = ({ updatingLicence }: Props) => {
@@ -52,8 +52,8 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
 
   const gender = licenceForm.watch('gender');
   const birthYear = licenceForm.watch('birthYear');
-  const season = licenceForm.watch('season');
-  const selectedDepartment = licenceForm.watch('state');
+  const saison = licenceForm.watch('saison');
+  const selectedDepartment = licenceForm.watch('dept');
 
   const { data: clubs, isLoading: isLoadingClubs } = useClubsByDepartment(selectedDepartment);
 
@@ -81,12 +81,12 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
   }, [selectedDepartment, updatingLicence, licenceForm]);
 
   useEffect(() => {
-    const forceUpdate: boolean = !!gender && !!birthYear && !!season;
+    const forceUpdate: boolean = !!gender && !!birthYear && !!saison;
     if (forceUpdate) {
-      const newAgeCategory = computeAgeCategory(gender, birthYear, season);
-      licenceForm.setValue('ageCategory', newAgeCategory);
+      const newAgeCategory = computeAgeCategory(gender, parseInt(birthYear, 10), saison);
+      licenceForm.setValue('catea', newAgeCategory);
     }
-  }, [gender, birthYear, season, updatingLicence?.ageCategory, licenceForm]);
+  }, [gender, birthYear, saison, updatingLicence?.catea, licenceForm]);
 
   return (
     <Form {...licenceForm}>
@@ -97,7 +97,7 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
             <FieldDescription>Informations sur le licencié</FieldDescription>
           </FieldSet>
           <FieldSet>
-            <StringField field="lastName" form={licenceForm} label="Nom" />
+            <StringField field="name" form={licenceForm} label="Nom" />
             <StringField field="firstName" form={licenceForm} label="Prénom" />
             <div className="grid grid-cols-2 gap-4">
               <StringField field="birthYear" form={licenceForm} label="Année de naissance" />
@@ -118,35 +118,35 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
           <FieldSet>
             <SelectField
               form={licenceForm}
-              field="federation"
+              field="fede"
               label="Fédération"
-              options={[{ value: 'FSGT' }, { value: 'FFC' }, { value: 'UFOLEP' }]}
+              options={[{ value: 'FSGT' }, { value: 'FFC' }, { value: 'UFOLEP' }, { value: 'FFTRI' }, { value: 'FFVELO' }, { value: 'FFCYCLISME' }, { value: 'NL' }]}
             />
             <StringField field="licenceNumber" form={licenceForm} label="Numéro de licence" />
             <div className="grid grid-cols-2 gap-4">
               <SelectField
                 form={licenceForm}
-                field="season"
+                field="saison"
                 label="Saison"
                 options={[{ value: '2024' }, { value: '2025' }]}
               />
               <ComboboxField
                 form={licenceForm}
-                field="state"
+                field="dept"
                 label="Département"
                 options={departmentOptions}
                 isLoading={isLoadingDepartments}
               />
-              <StringField field="ageCategory" form={licenceForm} label="Catégorie d'âge" />
+              <StringField field="catea" form={licenceForm} label="Catégorie d'âge" />
               <SelectField
                 form={licenceForm}
-                field="category"
+                field="catev"
                 label="Catégorie"
                 options={[{ value: '1' }, { value: '2' }]}
               />
               <SelectField
                 form={licenceForm}
-                field="cxCategory"
+                field="catevCX"
                 label="Catégorie CX"
                 options={[{ value: '1' }, { value: '2' }]}
               />

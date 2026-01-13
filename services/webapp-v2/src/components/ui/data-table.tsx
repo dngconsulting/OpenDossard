@@ -186,7 +186,7 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [internalData, setInternalData] = React.useState<TData[]>(data);
   const [localFilters, setLocalFilters] = React.useState<Record<string, string>>({});
-  const debounceTimers = React.useRef<Record<string, NodeJS.Timeout>>({});
+  const debounceTimers = React.useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   // Sync internal data when external data changes
   React.useEffect(() => {

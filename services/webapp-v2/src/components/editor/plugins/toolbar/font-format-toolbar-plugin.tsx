@@ -1,9 +1,8 @@
-import { $isTableSelection } from "@lexical/table"
 import {
   $isRangeSelection,
-  BaseSelection,
+  type BaseSelection,
   FORMAT_TEXT_COMMAND,
-  TextFormatType,
+  type TextFormatType,
 } from "lexical"
 import {
   BoldIcon,
@@ -32,7 +31,7 @@ export function FontFormatToolbarPlugin() {
   const [activeFormats, setActiveFormats] = useState<string[]>([])
 
   const $updateToolbar = useCallback((selection: BaseSelection) => {
-    if ($isRangeSelection(selection) || $isTableSelection(selection)) {
+    if ($isRangeSelection(selection)) {
       const formats: string[] = []
       FORMATS.forEach(({ format }) => {
         if (selection.hasFormat(format as TextFormatType)) {
