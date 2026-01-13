@@ -1,11 +1,10 @@
-import {Table, FileText, Plus, Upload, Info} from 'lucide-react';
+import {Table, FileText, Plus, Upload} from 'lucide-react';
 import {useState} from 'react';
 
 import {OptionsButton} from '@/components/actions/OptionsButton.tsx';
 import {LicencesDataTable} from '@/components/data/LicencesTable.tsx';
 import {LicencesForm} from '@/components/forms/LicencesForm.tsx';
 import Layout from '@/components/layout/Layout.tsx';
-import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert.tsx';
 import {Button} from '@/components/ui/button.tsx';
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger} from '@/components/ui/dialog';
 import {FieldSeparator} from '@/components/ui/field.tsx';
@@ -51,16 +50,7 @@ export default function LicencesPage() {
 
     return (
         <Layout title="Licences">
-            <div className="flex">
-                <Alert variant="default" className="w-full">
-                    <Info />
-                    <AlertTitle>Notice</AlertTitle>
-                    <AlertDescription>
-                        Les licences ne disposant pas de numéro peuvent être retrouvées en rechêrchant les licences ayant pour numéro "N/A"
-                    </AlertDescription>
-                </Alert>
-            </div>
-            <div className="flex gap-2 w-full justify-end">
+            <div className="flex gap-2 w-full justify-start">
 
                 <EditLicence />
                 <DeleteLicence />

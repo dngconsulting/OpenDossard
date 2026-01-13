@@ -31,7 +31,7 @@ function TableFilter({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
       data-slot="table-filter"
-      className={cn("[&_tr]:border-b", className)}
+      className={cn("bg-muted/30 [&_tr]:border-b", className)}
       {...props}
     />
   )
@@ -91,7 +91,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "bg-primary text-white h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold",
+        "bg-primary/10 text-foreground h-10 pl-5 pr-2 text-left align-middle font-semibold text-sm whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className
       )}
       {...props}
@@ -117,7 +117,7 @@ function TableFilterCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        "px-2 py-1.5 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className
       )}
       {...props}

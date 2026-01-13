@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tansta
 import { useState, useCallback } from 'react'
 
 import { licencesApi } from '@/api/licences.api'
+import useUserStore from '@/store/UserStore'
 import type { LicenceType, PaginationParams } from '@/types/licences'
 
 export const licencesKeys = {
@@ -12,11 +13,13 @@ export const licencesKeys = {
 
 export function useLicences(initialParams: PaginationParams = { offset: 0, limit: 20 }) {
   const [params, setParams] = useState<PaginationParams>(initialParams)
+  const isAuthenticated = useUserStore(state => state.isAuthenticated)
 
   const query = useQuery({
     queryKey: licencesKeys.list(params),
     queryFn: () => licencesApi.getAll(params),
     placeholderData: keepPreviousData,
+    enabled: isAuthenticated,
   })
 
   const setOffset = useCallback((offset: number) => {
@@ -65,10 +68,12 @@ export function useLicences(initialParams: PaginationParams = { offset: 0, limit
 }
 
 export function useLicence(id: string) {
+  const isAuthenticated = useUserStore(state => state.isAuthenticated)
+
   return useQuery({
     queryKey: licencesKeys.detail(id),
     queryFn: () => licencesApi.getById(id),
-    enabled: !!id,
+    enabled: !!id && isAuthenticated,
   })
 }
 

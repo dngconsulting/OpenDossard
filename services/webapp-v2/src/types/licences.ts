@@ -1,17 +1,20 @@
 export type LicenceType = {
-    id: string
+    id: number
     licenceNumber: string
-    lastName: string
+    name: string
     firstName: string
     club: string
-    gender: 'H' | 'F'
-    state: string
-    birthYear: number
-    ageCategory: string
-    category: string
-    cxCategory: string
-    federation: 'FSGT' | 'FFTRI' | 'FFVELO' | 'UFOLEP' | 'FFCYCLISME' | 'FFC'
-    season: string
+    gender: string
+    dept: string
+    birthYear: string
+    catea: string
+    catev: string
+    catevCX: string
+    fede: 'FSGT' | 'FFTRI' | 'FFVELO' | 'UFOLEP' | 'FFCYCLISME' | 'FFC' | 'NL'
+    saison: string
+    author?: string
+    lastChanged?: string
+    comment?: string
 }
 
 export type PaginationParams = {

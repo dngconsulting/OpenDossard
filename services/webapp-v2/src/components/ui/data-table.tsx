@@ -27,7 +27,16 @@ import {
   type Row,
   useReactTable,
 } from '@tanstack/react-table';
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Edit2, GripVertical, Trash2, Trophy } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Edit2,
+  GripVertical,
+  Trash2,
+  Trophy,
+} from 'lucide-react';
 import * as React from 'react';
 
 import { Button } from '@/components/ui/button.tsx';
@@ -108,11 +117,7 @@ function SortableRow<TData>({
   };
 
   return (
-    <TableRow
-      ref={setNodeRef}
-      style={style}
-      data-state={row.getIsSelected() && 'selected'}
-    >
+    <TableRow ref={setNodeRef} style={style} data-state={row.getIsSelected() && 'selected'}>
       {enableDragDrop && (
         <TableCell className="w-8">
           <Button
@@ -133,22 +138,14 @@ function SortableRow<TData>({
       ))}
       {onEditRow && (
         <TableCell className="w-8">
-          <Button
-            variant="outline"
-            size="icon-sm"
-            onClick={() => onEditRow(row.original)}
-          >
+          <Button variant="outline" size="icon-sm" onClick={() => onEditRow(row.original)}>
             <Edit2 />
           </Button>
         </TableCell>
       )}
       {onDeleteRow && (
         <TableCell className="w-8">
-          <Button
-            variant="outline"
-            size="icon-sm"
-            onClick={() => onDeleteRow(row.original)}
-          >
+          <Button variant="outline" size="icon-sm" onClick={() => onDeleteRow(row.original)}>
             <Trash2 />
           </Button>
         </TableCell>
@@ -262,7 +259,7 @@ export function DataTable<TData, TValue>({
       <TableFilter>
         {table.getHeaderGroups().map(headerGroup => (
           <TableFilterRow key={headerGroup.id}>
-            {enableDragDrop && <TableFilterCell />}
+            {enableDragDrop && <TableFilterCell className="w-8" />}
             {headerGroup.headers.map(header => {
               return (
                 <TableFilterCell key={header.id}>
@@ -270,26 +267,32 @@ export function DataTable<TData, TValue>({
                     placeholder={header.column.columnDef.header?.toString()}
                     value={header.column.getFilterValue()?.toString()}
                     onChange={event => header.column.setFilterValue(event.target.value)}
+                    className="h-8 text-sm text-left bg-background/80 border-border/50 focus:border-primary/50"
                   />
                 </TableFilterCell>
               );
             })}
+            {onEditRow && <TableFilterCell className="w-8" />}
+            {onDeleteRow && <TableFilterCell className="w-8" />}
+            {onOpenRow && <TableFilterCell className="w-8" />}
           </TableFilterRow>
         ))}
       </TableFilter>
       <TableBody>
         {table.getRowModel().rows?.length ? (
-          table.getRowModel().rows.map(row => (
-            <SortableRow
-              key={row.id}
-              row={row}
-              rowId={getRowId(row.original)}
-              onEditRow={onEditRow}
-              onDeleteRow={onDeleteRow}
-              onOpenRow={onOpenRow}
-              enableDragDrop={enableDragDrop}
-            />
-          ))
+          table
+            .getRowModel()
+            .rows.map(row => (
+              <SortableRow
+                key={row.id}
+                row={row}
+                rowId={getRowId(row.original)}
+                onEditRow={onEditRow}
+                onDeleteRow={onDeleteRow}
+                onOpenRow={onOpenRow}
+                enableDragDrop={enableDragDrop}
+              />
+            ))
         ) : (
           <TableRow>
             <TableCell
@@ -310,13 +313,13 @@ export function DataTable<TData, TValue>({
         <span>Lignes par page</span>
         <Select
           value={String(pagination.meta.limit)}
-          onValueChange={(value) => pagination.onPageSizeChange(Number(value))}
+          onValueChange={value => pagination.onPageSizeChange(Number(value))}
         >
           <SelectTrigger className="h-8 w-[70px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {[10, 20, 50, 100].map((size) => (
+            {[10, 20, 50, 100].map(size => (
               <SelectItem key={size} value={String(size)}>
                 {size}
               </SelectItem>
@@ -326,7 +329,9 @@ export function DataTable<TData, TValue>({
       </div>
       <div className="flex items-center gap-2">
         <span className="text-sm text-muted-foreground">
-          {pagination.meta.offset + 1}-{Math.min(pagination.meta.offset + pagination.meta.limit, pagination.meta.total)} sur {pagination.meta.total}
+          {pagination.meta.offset + 1}-
+          {Math.min(pagination.meta.offset + pagination.meta.limit, pagination.meta.total)} sur{' '}
+          {pagination.meta.total}
         </span>
         <div className="flex items-center gap-1">
           <Button
