@@ -12,14 +12,12 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import {useIsMobile} from '@/hooks/use-mobile.ts';
 import {appData} from '@/statics/app-data.ts';
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-    const isMobile = useIsMobile()
   return (
-    <Sidebar collapsible="icon" {...props} side={isMobile ? "right" : "left"}>
+    <Sidebar collapsible="icon" {...props} side="left">
       <SidebarHeader>
         <AppTitle app={appData.app}/>
       </SidebarHeader>
