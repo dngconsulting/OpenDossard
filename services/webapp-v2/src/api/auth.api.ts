@@ -6,9 +6,8 @@ export interface LoginRequest {
   password: string
 }
 
-export interface TokensResponse {
+export interface LoginResponse {
   accessToken: string
-  refreshToken: string
 }
 
 export interface UserProfile {
@@ -21,7 +20,7 @@ export interface UserProfile {
 }
 
 export const authApi = {
-  async login(credentials: LoginRequest): Promise<TokensResponse> {
+  async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: {
@@ -33,22 +32,6 @@ export const authApi = {
     if (!response.ok) {
       const error = await response.json().catch(() => ({}))
       throw new Error(error.message || 'Identifiant ou mot de passe invalide(s)')
-    }
-
-    return response.json()
-  },
-
-  async refresh(refreshToken: string): Promise<TokensResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${refreshToken}`,
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error('Session expirée')
     }
 
     return response.json()

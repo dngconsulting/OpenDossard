@@ -4,7 +4,7 @@ import { authApi } from '@/api/auth.api'
 import type { UserProfile } from '@/api/auth.api'
 
 const STORAGE_KEYS = {
-  REFRESH_TOKEN: 'od_refresh_token',
+  ACCESS_TOKEN: 'od_access_token',
   REMEMBER_ME: 'od_remember_me',
 } as const
 
@@ -21,18 +21,22 @@ type AuthState = {
 type AuthActions = {
   login: (email: string, password: string, remember: boolean) => Promise<void>
   logout: () => void
-  refreshToken: () => Promise<boolean>
   checkAuth: () => Promise<void>
   clearError: () => void
-  setAccessToken: (token: string) => void
   getAccessToken: () => string | null
 }
 
 type UserStore = AuthState & AuthActions
 
+// Helper to get stored token
+const getStoredToken = (): string | null => {
+  return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) ||
+    sessionStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
+}
+
 const useUserStore = create<UserStore>((set, get) => ({
   user: null,
-  accessToken: null,
+  accessToken: getStoredToken(),
   isAuthenticated: false,
   isLoading: true,
   error: null,
@@ -41,23 +45,23 @@ const useUserStore = create<UserStore>((set, get) => ({
     set({ isLoading: true, error: null })
 
     try {
-      const tokens = await authApi.login({ email, password })
+      const response = await authApi.login({ email, password })
 
-      // Store access token in memory
-      set({ accessToken: tokens.accessToken })
-
-      // Store refresh token in localStorage if remember me is checked
+      // Store access token
       if (remember) {
-        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokens.refreshToken)
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.accessToken)
         localStorage.setItem(STORAGE_KEYS.REMEMBER_ME, 'true')
+        sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
       } else {
-        // Store refresh token in sessionStorage for current session only
-        sessionStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokens.refreshToken)
+        sessionStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.accessToken)
+        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
         localStorage.removeItem(STORAGE_KEYS.REMEMBER_ME)
       }
 
+      set({ accessToken: response.accessToken })
+
       // Fetch user profile
-      const profile = await authApi.getProfile(tokens.accessToken)
+      const profile = await authApi.getProfile(response.accessToken)
 
       set({
         user: profile,
@@ -86,9 +90,9 @@ const useUserStore = create<UserStore>((set, get) => ({
     }
 
     // Clear all stored tokens
-    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
     localStorage.removeItem(STORAGE_KEYS.REMEMBER_ME)
-    sessionStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
+    sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
 
     set({
       user: null,
@@ -99,78 +103,30 @@ const useUserStore = create<UserStore>((set, get) => ({
     })
   },
 
-  refreshToken: async () => {
-    // Try to get refresh token from localStorage or sessionStorage
-    const refreshToken =
-      localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN) ||
-      sessionStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN)
-
-    if (!refreshToken) {
-      return false
-    }
-
-    try {
-      const tokens = await authApi.refresh(refreshToken)
-
-      // Update access token in memory
-      set({ accessToken: tokens.accessToken })
-
-      // Update refresh token in appropriate storage
-      const rememberMe = localStorage.getItem(STORAGE_KEYS.REMEMBER_ME) === 'true'
-      if (rememberMe) {
-        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokens.refreshToken)
-      } else {
-        sessionStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokens.refreshToken)
-      }
-
-      return true
-    } catch {
-      // Clear everything on refresh failure
-      get().logout()
-      return false
-    }
-  },
-
   checkAuth: async () => {
     set({ isLoading: true })
 
-    // Check if we have a refresh token stored
-    const refreshToken =
-      localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN) ||
-      sessionStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN)
+    const token = getStoredToken()
 
-    if (!refreshToken) {
+    if (!token) {
       set({ isLoading: false, isAuthenticated: false })
       return
     }
 
     try {
-      // Try to refresh the token
-      const tokens = await authApi.refresh(refreshToken)
-
-      // Update access token in memory
-      set({ accessToken: tokens.accessToken })
-
-      // Update refresh token in appropriate storage
-      const rememberMe = localStorage.getItem(STORAGE_KEYS.REMEMBER_ME) === 'true'
-      if (rememberMe) {
-        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokens.refreshToken)
-      } else {
-        sessionStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokens.refreshToken)
-      }
-
-      // Fetch user profile
-      const profile = await authApi.getProfile(tokens.accessToken)
+      // Validate token by fetching profile
+      const profile = await authApi.getProfile(token)
 
       set({
         user: profile,
+        accessToken: token,
         isAuthenticated: true,
         isLoading: false,
       })
     } catch {
-      // Clear tokens on failure
-      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
-      sessionStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
+      // Token invalid - clear everything
+      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
+      sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
 
       set({
         user: null,
@@ -182,8 +138,6 @@ const useUserStore = create<UserStore>((set, get) => ({
   },
 
   clearError: () => set({ error: null }),
-
-  setAccessToken: (token: string) => set({ accessToken: token }),
 
   getAccessToken: () => get().accessToken,
 }))
