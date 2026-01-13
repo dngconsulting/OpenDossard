@@ -1,5 +1,5 @@
 import { User, LogOut, Moon, Sun, Monitor, ChevronUp } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { useTheme } from '@/components/theme-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -29,10 +29,16 @@ import {
 import useUserStore from '@/store/UserStore.ts';
 
 export function NavUser() {
+  const navigate = useNavigate();
   const { isMobile, state } = useSidebar();
   const isCollapsed = state === 'collapsed';
   const { logout, user } = useUserStore();
   const { theme, setTheme } = useTheme();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
 
   const menuButton = (
     <SidebarMenuButton
@@ -135,7 +141,7 @@ export function NavUser() {
               </DropdownMenuSub>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={logout} className="cursor-pointer rounded-lg text-destructive focus:text-destructive">
+            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer rounded-lg text-destructive focus:text-destructive">
               <LogOut className="h-4 w-4" />
               Déconnexion
             </DropdownMenuItem>
