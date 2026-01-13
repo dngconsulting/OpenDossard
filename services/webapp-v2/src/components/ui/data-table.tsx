@@ -344,9 +344,9 @@ export function DataTable<TData, TValue>({
   );
 
   const paginationControls = pagination?.enabled && (
-    <div className="flex items-center justify-between px-4 py-3 border-t">
+    <div className="flex items-center justify-between px-2 md:px-4 py-2 md:py-3 border-t">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <span>Lignes par page</span>
+        <span className="hidden md:inline">Lignes par page</span>
         <Select
           value={String(pagination.meta.limit)}
           onValueChange={value => pagination.onPageSizeChange(Number(value))}
@@ -363,8 +363,8 @@ export function DataTable<TData, TValue>({
           </SelectContent>
         </Select>
       </div>
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">
+      <div className="flex items-center gap-1 md:gap-2">
+        <span className="hidden md:inline text-sm text-muted-foreground">
           {pagination.meta.offset + 1}-
           {Math.min(pagination.meta.offset + pagination.meta.limit, pagination.meta.total)} sur{' '}
           {pagination.meta.total}
@@ -386,7 +386,7 @@ export function DataTable<TData, TValue>({
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <span className="text-sm px-2">
+          <span className="hidden md:inline text-sm px-2">
             Page {pagination.currentPage + 1} / {pagination.totalPages || 1}
           </span>
           <Button
