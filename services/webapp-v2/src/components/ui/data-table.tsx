@@ -294,7 +294,7 @@ export function DataTable<TData, TValue>({
               return (
                 <TableFilterCell key={header.id}>
                   <Input
-                    placeholder={header.column.columnDef.header?.toString()}
+                    placeholder={columnId === 'club' ? 'Ex: Castanéen' : ''}
                     value={isServerFiltering ? (localFilters[columnId] || '') : (header.column.getFilterValue()?.toString() || '')}
                     onChange={event => {
                       if (isServerFiltering) {
@@ -303,7 +303,7 @@ export function DataTable<TData, TValue>({
                         header.column.setFilterValue(event.target.value);
                       }
                     }}
-                    className="h-8 text-sm text-left bg-background/80 border-border/50 focus:border-primary/50"
+                    className={`h-8 text-sm text-left bg-background/80 border-border/50 focus:border-primary/50 ${columnId === 'club' ? 'placeholder:italic' : ''}`}
                   />
                 </TableFilterCell>
               );
