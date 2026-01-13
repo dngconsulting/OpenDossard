@@ -50,11 +50,9 @@ export default function DashboardPage() {
           description="Nombre de licenciés"
           subDescription="Toutes fédérations sur la saison en cours"
           tag={
-            <>
-              <Badge variant="outline">
-                <TrendingUp />+{stats.totalLicensesTrend}%
-              </Badge>
-            </>
+            <Badge variant="outline">
+              <TrendingUp />+{stats.totalLicensesTrend}%
+            </Badge>
           }
         />
         <DashboardDataCard
@@ -63,11 +61,9 @@ export default function DashboardPage() {
           description="Nombre de licenciés FSGT"
           subDescription="Sur la saison en cours"
           tag={
-            <>
-              <Badge variant="outline">
-                <TrendingUp />+{stats.fsgtLicensesTrend}%
-              </Badge>
-            </>
+            <Badge variant="outline">
+              <TrendingUp />+{stats.fsgtLicensesTrend}%
+            </Badge>
           }
         />
         <DashboardDataCard

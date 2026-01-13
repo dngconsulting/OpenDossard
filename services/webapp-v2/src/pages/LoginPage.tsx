@@ -1,33 +1,33 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { toast } from 'sonner'
-import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
+import { z } from 'zod';
 
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { appData } from '@/statics/app-data'
-import useUserStore from '@/store/UserStore'
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { appData } from '@/statics/app-data';
+import useUserStore from '@/store/UserStore';
 
 const loginSchema = z.object({
-  email: z.string().email('Adresse email invalide'),
+  email: z.email('Adresse email invalide'),
   password: z.string().min(1, 'Le mot de passe est requis'),
-  rememberMe: z.boolean().default(false),
-})
+  rememberMe: z.boolean(),
+});
 
-type LoginFormData = z.infer<typeof loginSchema>
+type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const [showPassword, setShowPassword] = useState(false)
-  const [isShaking, setIsShaking] = useState(false)
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [showPassword, setShowPassword] = useState(false);
+  const [isShaking, setIsShaking] = useState(false);
 
-  const { login, isLoading, error, clearError } = useUserStore()
+  const { login, isLoading, error, clearError } = useUserStore();
 
   const {
     register,
@@ -42,27 +42,27 @@ export default function LoginPage() {
       password: '',
       rememberMe: false,
     },
-  })
+  });
 
-  const rememberMe = watch('rememberMe')
+  const rememberMe = watch('rememberMe');
 
   const onSubmit = async (data: LoginFormData) => {
-    clearError()
+    clearError();
     try {
-      await login(data.email, data.password, data.rememberMe)
-      const redirectTo = searchParams.get('redirect') || '/'
-      navigate(redirectTo, { replace: true })
+      await login(data.email, data.password, data.rememberMe);
+      const redirectTo = searchParams.get('redirect') || '/';
+      navigate(redirectTo, { replace: true });
     } catch {
-      setIsShaking(true)
-      setTimeout(() => setIsShaking(false), 500)
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
     }
-  }
+  };
 
   const handleForgotPassword = () => {
     toast.info('Fonctionnalité à venir', {
       description: 'La réinitialisation de mot de passe sera bientôt disponible.',
-    })
-  }
+    });
+  };
 
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center p-4 bg-gradient-hero relative overflow-hidden">
@@ -86,9 +86,7 @@ export default function LoginPage() {
             </div>
           </div>
           <div>
-            <h1 className="text-4xl font-bold text-white tracking-tight">
-              {appData.app.name}
-            </h1>
+            <h1 className="text-4xl font-bold text-white tracking-tight">{appData.app.name}</h1>
             <p className="mt-2 text-white/70 text-lg">
               Gestion des licences et compétitions cyclistes
             </p>
@@ -104,9 +102,7 @@ export default function LoginPage() {
         >
           <div className="text-center">
             <h2 className="text-xl font-semibold text-white">Connexion</h2>
-            <p className="text-white/60 text-sm mt-1">
-              Accédez à votre espace de gestion
-            </p>
+            <p className="text-white/60 text-sm mt-1">Accédez à votre espace de gestion</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -131,9 +127,7 @@ export default function LoginPage() {
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-white/40 focus:ring-white/20 h-11"
                 {...register('email')}
               />
-              {errors.email && (
-                <p className="text-sm text-red-300">{errors.email.message}</p>
-              )}
+              {errors.email && <p className="text-sm text-red-300">{errors.email.message}</p>}
             </div>
 
             {/* Password field */}
@@ -166,16 +160,10 @@ export default function LoginPage() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors"
                   tabIndex={-1}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {errors.password && (
-                <p className="text-sm text-red-300">{errors.password.message}</p>
-              )}
+              {errors.password && <p className="text-sm text-red-300">{errors.password.message}</p>}
             </div>
 
             {/* Remember me */}
@@ -183,9 +171,7 @@ export default function LoginPage() {
               <Checkbox
                 id="rememberMe"
                 checked={rememberMe}
-                onCheckedChange={(checked) =>
-                  setValue('rememberMe', checked === true)
-                }
+                onCheckedChange={checked => setValue('rememberMe', checked === true)}
                 disabled={isLoading}
                 className="border-white/30 data-[state=checked]:bg-white data-[state=checked]:text-primary"
               />
@@ -216,10 +202,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <p
-          className="text-center text-white/40 text-sm fade-in"
-          style={{ animationDelay: '0.2s' }}
-        >
+        <p className="text-center text-white/40 text-sm fade-in" style={{ animationDelay: '0.2s' }}>
           &copy; {new Date().getFullYear()} {appData.app.name} &bull; v{appData.app.version}
         </p>
       </div>
@@ -239,5 +222,5 @@ export default function LoginPage() {
         }
       `}</style>
     </div>
-  )
+  );
 }
