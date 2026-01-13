@@ -1,4 +1,4 @@
-import {FileSpreadsheet, FileText, Plus, Upload} from 'lucide-react';
+import {FileSpreadsheet, FileText, MoreHorizontal, Plus, Upload} from 'lucide-react';
 import {useState} from 'react';
 
 import {LicencesDataTable} from '@/components/data/LicencesTable.tsx';
@@ -6,6 +6,7 @@ import {LicencesForm} from '@/components/forms/LicencesForm.tsx';
 import Layout from '@/components/layout/Layout.tsx';
 import {Button} from '@/components/ui/button.tsx';
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger} from '@/components/ui/dialog';
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from '@/components/ui/dropdown-menu';
 import {FieldSeparator} from '@/components/ui/field.tsx';
 import type {LicenceType} from '@/types/licences.ts';
 
@@ -51,9 +52,29 @@ export default function LicencesPage() {
         <>
             <EditLicence />
             <DeleteLicence />
-            <Button variant="action"><FileText /> Export PDF</Button>
-            <Button variant="action"><FileSpreadsheet /> Export CSV</Button>
-            <Button variant="action"><Upload /> Import e-licence</Button>
+            {/* Desktop: boutons visibles */}
+            <Button variant="action" className="hidden md:flex"><FileText /> Export PDF</Button>
+            <Button variant="action" className="hidden md:flex"><FileSpreadsheet /> Export CSV</Button>
+            <Button variant="action" className="hidden md:flex"><Upload /> Import e-licence</Button>
+            {/* Mobile: menu déroulant */}
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild className="md:hidden">
+                    <Button variant="action" size="icon">
+                        <MoreHorizontal />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem>
+                        <FileText className="mr-2 h-4 w-4" /> Export PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                        <FileSpreadsheet className="mr-2 h-4 w-4" /> Export CSV
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                        <Upload className="mr-2 h-4 w-4" /> Import e-licence
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
         </>
     );
 
