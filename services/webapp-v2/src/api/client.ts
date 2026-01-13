@@ -1,3 +1,5 @@
+import { ApiError } from '@/utils/error-handler/error-types'
+
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v2'
 
@@ -28,20 +30,42 @@ export async function apiClient<T>(
     ;(headers as Record<string, string>)['Authorization'] = `Bearer ${token}`
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  })
+  const fullEndpoint = `${options?.method || 'GET'} ${endpoint}`
+
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+    })
+  } catch (error) {
+    // Network error (Failed to fetch, CORS, etc.)
+    throw new ApiError({
+      status: 0,
+      endpoint: fullEndpoint,
+      serverMessage: error instanceof Error ? error.message : 'Network error',
+      stack: error instanceof Error ? error.stack : undefined,
+    })
+  }
 
   // Handle 401 Unauthorized - logout user
   if (response.status === 401) {
     logoutFn?.()
-    throw new Error('Session expirée')
+    throw new ApiError({
+      status: 401,
+      endpoint: fullEndpoint,
+      serverMessage: 'Session expirée',
+    })
   }
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.message || `API Error: ${response.statusText}`)
+    const errorBody = await response.json().catch(() => ({}))
+    throw new ApiError({
+      status: response.status,
+      endpoint: fullEndpoint,
+      serverMessage: errorBody.message || response.statusText,
+      stack: new Error().stack,
+    })
   }
 
   // Handle empty responses (204 No Content)

@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
@@ -19,14 +19,31 @@ import PalmaresPage from '@/pages/PalmaresPage.tsx';
 import RacesPage from '@/pages/RacesPage.tsx';
 import UsersPage from '@/pages/UsersPage.tsx';
 import WelcomePage from '@/pages/WelcomePage.tsx';
+import { ApiError, handleGlobalError } from '@/utils/error-handler';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 1,
+      retry: (failureCount, error) => {
+        // No retry on client errors (4XX)
+        if (error instanceof ApiError && error.category === 'client') {
+          return false;
+        }
+        // No retry on auth errors
+        if (error instanceof ApiError && error.category === 'auth') {
+          return false;
+        }
+        return failureCount < 1;
+      },
     },
   },
+  queryCache: new QueryCache({
+    onError: (error) => handleGlobalError(error),
+  }),
+  mutationCache: new MutationCache({
+    onError: (error) => handleGlobalError(error),
+  }),
 });
 
 export default function App() {
