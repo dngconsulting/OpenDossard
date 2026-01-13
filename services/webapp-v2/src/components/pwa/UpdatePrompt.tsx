@@ -1,6 +1,6 @@
-import { useRegisterSW } from 'virtual:pwa-register/react'
-import { toast } from 'sonner'
-import { useEffect } from 'react'
+import { useRegisterSW } from 'virtual:pwa-register/react';
+import { toast } from 'sonner';
+import { useEffect } from 'react';
 
 export function UpdatePrompt() {
   const {
@@ -10,12 +10,15 @@ export function UpdatePrompt() {
     onRegistered(r) {
       // Vérifie les mises à jour toutes les heures
       if (r) {
-        setInterval(() => {
-          r.update()
-        }, 60 * 60 * 1000)
+        setInterval(
+          () => {
+            r.update();
+          },
+          60 * 60 * 1000
+        );
       }
     },
-  })
+  });
 
   useEffect(() => {
     if (needRefresh) {
@@ -27,9 +30,9 @@ export function UpdatePrompt() {
           onClick: () => updateServiceWorker(true),
         },
         onDismiss: () => setNeedRefresh(false),
-      })
+      });
     }
-  }, [needRefresh, setNeedRefresh, updateServiceWorker])
+  }, [needRefresh, setNeedRefresh, updateServiceWorker]);
 
-  return null
+  return null;
 }

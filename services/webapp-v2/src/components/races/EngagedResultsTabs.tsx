@@ -4,7 +4,11 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAddEngagedRider, useRemoveEngagedRider, useUpdateResultsRankings } from '@/hooks/useRaces';
+import {
+  useAddEngagedRider,
+  useRemoveEngagedRider,
+  useUpdateResultsRankings,
+} from '@/hooks/useRaces';
 import type { EngagedRider, RaceCategory, RaceResult } from '@/types/races';
 
 import { AddEngagedRiderDialog } from './AddEngagedRiderDialog';
@@ -56,12 +60,8 @@ export const EngagedResultsTabs = ({ raceId, category }: Props) => {
 
       <Tabs defaultValue="engaged" className="w-full">
         <TabsList>
-          <TabsTrigger value="engaged">
-            Engagés ({category.engagedRiders.length})
-          </TabsTrigger>
-          <TabsTrigger value="results">
-            Classement ({category.results.length})
-          </TabsTrigger>
+          <TabsTrigger value="engaged">Engagés ({category.engagedRiders.length})</TabsTrigger>
+          <TabsTrigger value="results">Classement ({category.results.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="engaged">
@@ -96,9 +96,7 @@ export const EngagedResultsTabs = ({ raceId, category }: Props) => {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Classement</CardTitle>
-                  <CardDescription>
-                    {category.results.length} résultat(s)
-                  </CardDescription>
+                  <CardDescription>{category.results.length} résultat(s)</CardDescription>
                 </div>
                 <Button disabled variant="outline">
                   Importer CSV (prochainement)

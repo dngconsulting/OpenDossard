@@ -21,11 +21,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import useUserStore from '@/store/UserStore.ts';
 
 export function NavUser() {
@@ -45,7 +41,9 @@ export function NavUser() {
       size="lg"
       className={`data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:cursor-pointer sidebar-card ${isCollapsed ? '!p-2 justify-center' : '!p-3'}`}
     >
-      <Avatar className={`rounded-lg ring-2 ring-sidebar-primary/30 shrink-0 ${isCollapsed ? 'h-8 w-8' : 'h-9 w-9'}`}>
+      <Avatar
+        className={`rounded-lg ring-2 ring-sidebar-primary/30 shrink-0 ${isCollapsed ? 'h-8 w-8' : 'h-9 w-9'}`}
+      >
         <AvatarImage alt={`${user!.firstName} ${user!.lastName}`} />
         <AvatarFallback className="rounded-lg bg-sidebar-primary text-sidebar-primary-foreground font-medium">
           {`${user!.firstName[0]}${user!.lastName[0]}`}
@@ -68,18 +66,14 @@ export function NavUser() {
   const dropdownTrigger = isCollapsed ? (
     <Tooltip>
       <TooltipTrigger asChild>
-        <DropdownMenuTrigger asChild>
-          {menuButton}
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger asChild>{menuButton}</DropdownMenuTrigger>
       </TooltipTrigger>
       <TooltipContent side="right" sideOffset={8}>
         {user!.firstName} {user!.lastName}
       </TooltipContent>
     </Tooltip>
   ) : (
-    <DropdownMenuTrigger asChild>
-      {menuButton}
-    </DropdownMenuTrigger>
+    <DropdownMenuTrigger asChild>{menuButton}</DropdownMenuTrigger>
   );
 
   return (
@@ -125,15 +119,24 @@ export function NavUser() {
                   Thème
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent className="rounded-xl border-sidebar-border bg-card/95 backdrop-blur-xl">
-                  <DropdownMenuItem onClick={() => setTheme('light')} className="cursor-pointer rounded-lg">
+                  <DropdownMenuItem
+                    onClick={() => setTheme('light')}
+                    className="cursor-pointer rounded-lg"
+                  >
                     <Sun className="mr-2 h-4 w-4" />
                     Clair
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTheme('dark')} className="cursor-pointer rounded-lg">
+                  <DropdownMenuItem
+                    onClick={() => setTheme('dark')}
+                    className="cursor-pointer rounded-lg"
+                  >
                     <Moon className="mr-2 h-4 w-4" />
                     Sombre
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTheme('system')} className="cursor-pointer rounded-lg">
+                  <DropdownMenuItem
+                    onClick={() => setTheme('system')}
+                    className="cursor-pointer rounded-lg"
+                  >
                     <Monitor className="mr-2 h-4 w-4" />
                     Système
                   </DropdownMenuItem>
@@ -141,7 +144,10 @@ export function NavUser() {
               </DropdownMenuSub>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer rounded-lg text-destructive focus:text-destructive">
+            <DropdownMenuItem
+              onClick={handleLogout}
+              className="cursor-pointer rounded-lg text-destructive focus:text-destructive"
+            >
               <LogOut className="h-4 w-4" />
               Déconnexion
             </DropdownMenuItem>

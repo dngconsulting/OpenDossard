@@ -1,54 +1,58 @@
-import { Search, X } from 'lucide-react'
-import { useState, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Search, X } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useLicenceSearch } from '@/hooks/usePalmares'
-import type { LicenceType } from '@/types/licences'
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useLicenceSearch } from '@/hooks/usePalmares';
+import type { LicenceType } from '@/types/licences';
 
 type Props = {
-  selectedLicence?: LicenceType
-  onClear?: () => void
-  isLoading?: boolean
-}
+  selectedLicence?: LicenceType;
+  onClear?: () => void;
+  isLoading?: boolean;
+};
 
-export function RiderSearchAutocomplete({ selectedLicence, onClear, isLoading: isPageLoading }: Props) {
-  const navigate = useNavigate()
-  const [query, setQuery] = useState('')
-  const [isOpen, setIsOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
+export function RiderSearchAutocomplete({
+  selectedLicence,
+  onClear,
+  isLoading: isPageLoading,
+}: Props) {
+  const navigate = useNavigate();
+  const [query, setQuery] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const { data: results, isLoading: isSearchLoading } = useLicenceSearch(query)
+  const { data: results, isLoading: isSearchLoading } = useLicenceSearch(query);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
+        setIsOpen(false);
       }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSelect = (licence: LicenceType) => {
-    setQuery('')
-    setIsOpen(false)
-    navigate(`/palmares/${licence.id}`)
-  }
+    setQuery('');
+    setIsOpen(false);
+    navigate(`/palmares/${licence.id}`);
+  };
 
   const handleClear = () => {
-    setQuery('')
-    onClear?.()
-    navigate('/palmares')
-  }
+    setQuery('');
+    onClear?.();
+    navigate('/palmares');
+  };
 
   if (isPageLoading) {
     return (
       <div className="rounded-xl border bg-card p-4">
         <Skeleton className="h-12 w-full" />
       </div>
-    )
+    );
   }
 
   if (selectedLicence) {
@@ -69,7 +73,7 @@ export function RiderSearchAutocomplete({ selectedLicence, onClear, isLoading: i
           <X className="h-5 w-5" />
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -82,8 +86,8 @@ export function RiderSearchAutocomplete({ selectedLicence, onClear, isLoading: i
             placeholder="Rechercher un coureur (nom, prénom ou n° licence)..."
             value={query}
             onChange={e => {
-              setQuery(e.target.value)
-              setIsOpen(true)
+              setQuery(e.target.value);
+              setIsOpen(true);
             }}
             onFocus={() => setIsOpen(true)}
             className="h-12 w-full rounded-lg border border-input bg-background pl-12 pr-4 text-base outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
@@ -128,12 +132,10 @@ export function RiderSearchAutocomplete({ selectedLicence, onClear, isLoading: i
               ))}
             </div>
           ) : (
-            <div className="p-4 text-center text-muted-foreground">
-              Aucun résultat trouvé
-            </div>
+            <div className="p-4 text-center text-muted-foreground">Aucun résultat trouvé</div>
           )}
         </div>
       )}
     </div>
-  )
+  );
 }

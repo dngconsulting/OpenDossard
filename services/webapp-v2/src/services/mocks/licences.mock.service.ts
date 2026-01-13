@@ -9,7 +9,14 @@ const delay = () => new Promise(resolve => setTimeout(resolve, 300));
 export const mockLicencesService = {
   getAll: async (params: PaginationParams = {}): Promise<PaginatedResponse<LicenceType>> => {
     await delay();
-    const { offset = 0, limit = 20, search, orderBy = 'name', orderDirection = 'ASC', filters } = params;
+    const {
+      offset = 0,
+      limit = 20,
+      search,
+      orderBy = 'name',
+      orderDirection = 'ASC',
+      filters,
+    } = params;
 
     let filtered = [...licencesData];
 
@@ -32,7 +39,9 @@ export const mockLicencesService = {
           const filterLower = value.toLowerCase();
           filtered = filtered.filter(l => {
             const fieldValue = l[key as keyof LicenceType];
-            return String(fieldValue || '').toLowerCase().includes(filterLower);
+            return String(fieldValue || '')
+              .toLowerCase()
+              .includes(filterLower);
           });
         }
       });

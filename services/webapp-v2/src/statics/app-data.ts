@@ -1,139 +1,151 @@
-import {Bike, BookOpen, Bot, Home, IdCard, LayoutDashboard, ListOrdered, Settings2, SquareTerminal, Trophy, User2} from 'lucide-react';
+import {
+  Bike,
+  BookOpen,
+  Bot,
+  Home,
+  IdCard,
+  LayoutDashboard,
+  ListOrdered,
+  Settings2,
+  SquareTerminal,
+  Trophy,
+  User2,
+} from 'lucide-react';
 
 export const appData = {
-    user: {
-        firstName: "John",
-        lastName: "Doe",
-        email: "john.doe@dossardeur.com",
-        avatar: "/avatars/shadcn.jpg",
+  user: {
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'john.doe@dossardeur.com',
+    avatar: '/avatars/shadcn.jpg',
+  },
+  app: {
+    name: 'Open Dossard',
+    logoUrl: '/logood.png',
+    version: '2.0.0',
+  },
+  navMain: [
+    {
+      title: 'Playground',
+      url: '#',
+      icon: SquareTerminal,
+      isActive: true,
+      items: [
+        {
+          title: 'History',
+          url: '#',
+        },
+        {
+          title: 'Starred',
+          url: '#',
+        },
+        {
+          title: 'Settings',
+          url: '#',
+        },
+      ],
     },
-    app: {
-        name: "Open Dossard",
-        logoUrl: "/logood.png",
-        version: "2.0.0",
+    {
+      title: 'Models',
+      url: '#',
+      icon: Bot,
+      items: [
+        {
+          title: 'Genesis',
+          url: '#',
+        },
+        {
+          title: 'Explorer',
+          url: '#',
+        },
+        {
+          title: 'Quantum',
+          url: '#',
+        },
+      ],
     },
-    navMain: [
+    {
+      title: 'Documentation',
+      url: '#',
+      icon: BookOpen,
+      items: [
         {
-            title: "Playground",
-            url: "#",
-            icon: SquareTerminal,
-            isActive: true,
-            items: [
-                {
-                    title: "History",
-                    url: "#",
-                },
-                {
-                    title: "Starred",
-                    url: "#",
-                },
-                {
-                    title: "Settings",
-                    url: "#",
-                },
-            ],
+          title: 'Introduction',
+          url: '#',
         },
         {
-            title: "Models",
-            url: "#",
-            icon: Bot,
-            items: [
-                {
-                    title: "Genesis",
-                    url: "#",
-                },
-                {
-                    title: "Explorer",
-                    url: "#",
-                },
-                {
-                    title: "Quantum",
-                    url: "#",
-                },
-            ],
+          title: 'Get Started',
+          url: '#',
         },
         {
-            title: "Documentation",
-            url: "#",
-            icon: BookOpen,
-            items: [
-                {
-                    title: "Introduction",
-                    url: "#",
-                },
-                {
-                    title: "Get Started",
-                    url: "#",
-                },
-                {
-                    title: "Tutorials",
-                    url: "#",
-                },
-                {
-                    title: "Changelog",
-                    url: "#",
-                },
-            ],
+          title: 'Tutorials',
+          url: '#',
         },
         {
-            title: "Settings",
-            url: "#",
-            icon: Settings2,
-            items: [
-                {
-                    title: "General",
-                    url: "#",
-                },
-                {
-                    title: "Team",
-                    url: "#",
-                },
-                {
-                    title: "Billing",
-                    url: "#",
-                },
-                {
-                    title: "Limits",
-                    url: "#",
-                },
-            ],
+          title: 'Changelog',
+          url: '#',
         },
-    ],
-    pages: [
+      ],
+    },
+    {
+      title: 'Settings',
+      url: '#',
+      icon: Settings2,
+      items: [
         {
-            name: "Accueil",
-            url: "/",
-            icon: Home,
+          title: 'General',
+          url: '#',
         },
         {
-            name: "Tableau de bord",
-            url: "/dashboard",
-            icon: LayoutDashboard,
+          title: 'Team',
+          url: '#',
         },
         {
-            name: "Licences",
-            url: "/licences",
-            icon: IdCard,
+          title: 'Billing',
+          url: '#',
         },
         {
-            name: "Epreuves",
-            url: "/races",
-            icon: Bike,
+          title: 'Limits',
+          url: '#',
         },
-        {
-            name: "Challenges",
-            url: "/challenges",
-            icon: Trophy,
-        },
-        {
-            name: "Palmarès",
-            url: "/palmares",
-            icon: ListOrdered,
-        },
-        {
-            name: "Utilisateurs",
-            url: "/users",
-            icon: User2,
-        }
-    ],
-}
+      ],
+    },
+  ],
+  pages: [
+    {
+      name: 'Accueil',
+      url: '/',
+      icon: Home,
+    },
+    {
+      name: 'Tableau de bord',
+      url: '/dashboard',
+      icon: LayoutDashboard,
+    },
+    {
+      name: 'Licences',
+      url: '/licences',
+      icon: IdCard,
+    },
+    {
+      name: 'Epreuves',
+      url: '/races',
+      icon: Bike,
+    },
+    {
+      name: 'Challenges',
+      url: '/challenges',
+      icon: Trophy,
+    },
+    {
+      name: 'Palmarès',
+      url: '/palmares',
+      icon: ListOrdered,
+    },
+    {
+      name: 'Utilisateurs',
+      url: '/users',
+      icon: User2,
+    },
+  ],
+};

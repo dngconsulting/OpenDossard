@@ -112,8 +112,8 @@ export function MapPicker({ value, onChange, className }: MapPickerProps) {
           type="text"
           placeholder="Rechercher une adresse..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={(e) => {
+          onChange={e => setSearchQuery(e.target.value)}
+          onKeyDown={e => {
             if (e.key === 'Enter') {
               e.preventDefault();
               handleSearch();
@@ -158,12 +158,7 @@ export function MapPicker({ value, onChange, className }: MapPickerProps) {
               {position.lat.toFixed(6)}, {position.lng.toFixed(6)}
             </span>
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleClear}
-          >
+          <Button type="button" variant="ghost" size="sm" onClick={handleClear}>
             <X className="h-4 w-4 mr-1" />
             Effacer
           </Button>

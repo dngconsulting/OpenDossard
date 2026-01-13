@@ -1,11 +1,11 @@
-import { Loader2 } from 'lucide-react'
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Loader2 } from 'lucide-react';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
-import useUserStore from '@/store/UserStore'
+import useUserStore from '@/store/UserStore';
 
 export function ProtectedRoute() {
-  const location = useLocation()
-  const { isAuthenticated, isLoading } = useUserStore()
+  const location = useLocation();
+  const { isAuthenticated, isLoading } = useUserStore();
 
   // Show loading spinner while checking authentication
   if (isLoading) {
@@ -16,17 +16,17 @@ export function ProtectedRoute() {
           <p className="text-white/70 text-sm">Chargement...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!isAuthenticated) {
     // Preserve the current URL (including search params) for redirect after login
-    const currentUrl = location.pathname + location.search
-    const loginUrl = `/login?redirect=${encodeURIComponent(currentUrl)}`
+    const currentUrl = location.pathname + location.search;
+    const loginUrl = `/login?redirect=${encodeURIComponent(currentUrl)}`;
 
-    return <Navigate to={loginUrl} replace />
+    return <Navigate to={loginUrl} replace />;
   }
 
   // User is authenticated, render the protected content
-  return <Outlet />
+  return <Outlet />;
 }

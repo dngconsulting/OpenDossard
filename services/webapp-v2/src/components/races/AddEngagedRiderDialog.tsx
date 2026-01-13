@@ -84,7 +84,9 @@ export const AddEngagedRiderDialog = ({ open, onClose, onAdd }: Props) => {
 
   const handleLicenceSelect = (licence: LicenceType) => {
     setSelectedLicence(licence);
-    setSearchQuery(`${licence.name} ${licence.firstName} - ${licence.club} (${licence.licenceNumber})`);
+    setSearchQuery(
+      `${licence.name} ${licence.firstName} - ${licence.club} (${licence.licenceNumber})`
+    );
     setShowDropdown(false);
     form.setValue('licenceSearch', `${licence.name} ${licence.firstName} - ${licence.club}`);
   };
@@ -103,7 +105,7 @@ export const AddEngagedRiderDialog = ({ open, onClose, onAdd }: Props) => {
   }, []);
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Ajouter un engagé</DialogTitle>
@@ -115,14 +117,16 @@ export const AddEngagedRiderDialog = ({ open, onClose, onAdd }: Props) => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="licence-search" className="text-sm font-medium">Rechercher une licence</label>
+              <label htmlFor="licence-search" className="text-sm font-medium">
+                Rechercher une licence
+              </label>
               <div className="relative" ref={autocompleteRef}>
                 <Input
                   id="licence-search"
                   type="text"
                   placeholder="Rechercher par nom, club ou numéro de licence..."
                   value={searchQuery}
-                  onChange={(e) => {
+                  onChange={e => {
                     setSearchQuery(e.target.value);
                     setShowDropdown(true);
                   }}
@@ -131,7 +135,7 @@ export const AddEngagedRiderDialog = ({ open, onClose, onAdd }: Props) => {
                 />
                 {showDropdown && searchQuery && filteredLicences.length > 0 && (
                   <div className="absolute z-50 w-full mt-1 bg-background border rounded-md shadow-md max-h-60 overflow-auto">
-                    {filteredLicences.map((licence) => (
+                    {filteredLicences.map(licence => (
                       <button
                         key={licence.id}
                         type="button"
@@ -139,15 +143,16 @@ export const AddEngagedRiderDialog = ({ open, onClose, onAdd }: Props) => {
                         className="w-full px-3 py-2 text-left hover:bg-muted flex items-center justify-between"
                       >
                         <span className="text-sm">
-                          <span className="font-medium">{licence.name} {licence.firstName}</span>
+                          <span className="font-medium">
+                            {licence.name} {licence.firstName}
+                          </span>
                           {' - '}
-                          <span className="text-muted-foreground">{licence.club}</span>
-                          {' '}
-                          <span className="text-xs text-muted-foreground">({licence.licenceNumber})</span>
+                          <span className="text-muted-foreground">{licence.club}</span>{' '}
+                          <span className="text-xs text-muted-foreground">
+                            ({licence.licenceNumber})
+                          </span>
                         </span>
-                        {selectedLicence?.id === licence.id && (
-                          <Check className="h-4 w-4" />
-                        )}
+                        {selectedLicence?.id === licence.id && <Check className="h-4 w-4" />}
                       </button>
                     ))}
                   </div>
@@ -162,19 +167,25 @@ export const AddEngagedRiderDialog = ({ open, onClose, onAdd }: Props) => {
 
             {selectedLicence && (
               <div className="rounded-md border p-4 space-y-2 bg-muted/50">
-                <p className="text-sm"><strong>Nom:</strong> {selectedLicence.name} {selectedLicence.firstName}</p>
-                <p className="text-sm"><strong>Club:</strong> {selectedLicence.club}</p>
-                <p className="text-sm"><strong>Sexe:</strong> {selectedLicence.gender}</p>
-                <p className="text-sm"><strong>Département:</strong> {selectedLicence.dept}</p>
-                <p className="text-sm"><strong>Catégorie:</strong> {selectedLicence.catev}</p>
+                <p className="text-sm">
+                  <strong>Nom:</strong> {selectedLicence.name} {selectedLicence.firstName}
+                </p>
+                <p className="text-sm">
+                  <strong>Club:</strong> {selectedLicence.club}
+                </p>
+                <p className="text-sm">
+                  <strong>Sexe:</strong> {selectedLicence.gender}
+                </p>
+                <p className="text-sm">
+                  <strong>Département:</strong> {selectedLicence.dept}
+                </p>
+                <p className="text-sm">
+                  <strong>Catégorie:</strong> {selectedLicence.catev}
+                </p>
               </div>
             )}
 
-            <StringField
-              form={form}
-              label="Numéro de dossard"
-              field="bibNumber"
-            />
+            <StringField form={form} label="Numéro de dossard" field="bibNumber" />
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>

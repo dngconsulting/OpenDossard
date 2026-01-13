@@ -44,11 +44,11 @@ export const addEngagedRiderMock = (
   categoryId: string,
   rider: Omit<EngagedRider, 'id'>
 ): Promise<EngagedRider> => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     setTimeout(() => {
       const newRider: EngagedRider = {
         ...rider,
-        id: `er${Date.now()}`
+        id: `er${Date.now()}`,
       };
 
       const race = racesData.find(r => r.id === raceId);
@@ -68,7 +68,7 @@ export const removeEngagedRiderMock = (
   categoryId: string,
   riderId: string
 ): Promise<void> => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     setTimeout(() => {
       const race = racesData.find(r => r.id === raceId);
       const category = race?.categories.find(c => c.id === categoryId);
@@ -89,19 +89,21 @@ export const updateResultsRankingsMock = (
   categoryId: string,
   resultIds: string[]
 ): Promise<RaceResult[]> => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     setTimeout(() => {
       const race = racesData.find(r => r.id === raceId);
       const category = race?.categories.find(c => c.id === categoryId);
       if (category) {
         // Reorder results based on the new order and update ranks
-        const reorderedResults = resultIds.map((id, index) => {
-          const result = category.results.find(r => r.id === id);
-          if (result) {
-            result.rank = index + 1;
-          }
-          return result;
-        }).filter((r): r is RaceResult => r !== undefined);
+        const reorderedResults = resultIds
+          .map((id, index) => {
+            const result = category.results.find(r => r.id === id);
+            if (result) {
+              result.rank = index + 1;
+            }
+            return result;
+          })
+          .filter((r): r is RaceResult => r !== undefined);
 
         category.results = reorderedResults;
         resolve(reorderedResults);

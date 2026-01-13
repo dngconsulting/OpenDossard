@@ -1,11 +1,11 @@
-import { Home, ArrowLeft } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { Home, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-import { Button } from '@/components/ui/button'
-import { appData } from '@/statics/app-data'
+import { Button } from '@/components/ui/button';
+import { appData } from '@/statics/app-data';
 
 export default function NotFoundPage() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center p-4 bg-gradient-hero relative overflow-hidden">
@@ -45,9 +45,7 @@ export default function NotFoundPage() {
 
           {/* Message */}
           <div className="space-y-2">
-            <h1 className="text-2xl font-semibold text-white">
-              Page introuvable
-            </h1>
+            <h1 className="text-2xl font-semibold text-white">Page introuvable</h1>
             <p className="text-white/60">
               Oups ! La page que vous recherchez n'existe pas ou a été déplacée.
             </p>
@@ -74,10 +72,7 @@ export default function NotFoundPage() {
         </div>
 
         {/* Footer */}
-        <p
-          className="text-white/40 text-sm fade-in"
-          style={{ animationDelay: '0.2s' }}
-        >
+        <p className="text-white/40 text-sm fade-in" style={{ animationDelay: '0.2s' }}>
           &copy; {new Date().getFullYear()} {appData.app.name} &bull; v{appData.app.version}
         </p>
       </div>
@@ -89,5 +84,5 @@ export default function NotFoundPage() {
         }
       `}</style>
     </div>
-  )
+  );
 }

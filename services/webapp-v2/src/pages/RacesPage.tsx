@@ -62,10 +62,7 @@ export default function RacesPage() {
 
   return (
     <Layout title="Epreuves">
-      <RaceDetailsDialog
-        race={selectedRace}
-        onClose={() => setSelectedRace(undefined)}
-      />
+      <RaceDetailsDialog race={selectedRace} onClose={() => setSelectedRace(undefined)} />
       <div className="flex">
         <Alert variant="default" className="w-full">
           <Info />
@@ -88,11 +85,7 @@ export default function RacesPage() {
         <EditRace />
         <DeleteRace />
       </div>
-      <RacesTable
-        onEditRow={setRace}
-        onDeleteRow={setDeleteRace}
-        onOpenRow={setSelectedRace}
-      />
+      <RacesTable onEditRow={setRace} onDeleteRow={setDeleteRace} onOpenRow={setSelectedRace} />
     </Layout>
   );
 }

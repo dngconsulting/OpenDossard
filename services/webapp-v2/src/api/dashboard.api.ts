@@ -8,6 +8,4 @@ const realDashboardService = {
   getData: (): Promise<DashboardData> => apiClient<DashboardData>('/dashboard'),
 };
 
-export const dashboardApi = isMockMode('dashboard')
-  ? dashboardMockService
-  : realDashboardService;
+export const dashboardApi = isMockMode('dashboard') ? dashboardMockService : realDashboardService;

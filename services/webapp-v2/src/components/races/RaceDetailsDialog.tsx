@@ -20,10 +20,7 @@ export const RaceDetailsDialog = ({ race, onClose }: Props) => {
     return null;
   }
 
-  const totalEngaged = race.categories.reduce(
-    (sum, cat) => sum + cat.engagedRiders.length,
-    0
-  );
+  const totalEngaged = race.categories.reduce((sum, cat) => sum + cat.engagedRiders.length, 0);
 
   return (
     <Dialog open={!!race} onOpenChange={(open: boolean) => !open && onClose()}>

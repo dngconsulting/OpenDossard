@@ -1,17 +1,17 @@
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom';
 
-import Layout from '@/components/layout/Layout'
-import { PalmaresResultsTable } from '@/components/palmares/PalmaresResultsTable'
-import { RankingHistorySection } from '@/components/palmares/RankingHistorySection'
-import { RiderHeaderCard } from '@/components/palmares/RiderHeaderCard'
-import { RiderSearchAutocomplete } from '@/components/palmares/RiderSearchAutocomplete'
-import { RiderStatsCards } from '@/components/palmares/RiderStatsCards'
-import { Skeleton } from '@/components/ui/skeleton'
-import { usePalmares } from '@/hooks/usePalmares'
+import Layout from '@/components/layout/Layout';
+import { PalmaresResultsTable } from '@/components/palmares/PalmaresResultsTable';
+import { RankingHistorySection } from '@/components/palmares/RankingHistorySection';
+import { RiderHeaderCard } from '@/components/palmares/RiderHeaderCard';
+import { RiderSearchAutocomplete } from '@/components/palmares/RiderSearchAutocomplete';
+import { RiderStatsCards } from '@/components/palmares/RiderStatsCards';
+import { Skeleton } from '@/components/ui/skeleton';
+import { usePalmares } from '@/hooks/usePalmares';
 
 export default function PalmaresPage() {
-  const { licenceId } = useParams<{ licenceId: string }>()
-  const { data: palmares, isLoading } = usePalmares(licenceId)
+  const { licenceId } = useParams<{ licenceId: string }>();
+  const { data: palmares, isLoading } = usePalmares(licenceId);
 
   return (
     <Layout title="Palmarès">
@@ -50,5 +50,5 @@ export default function PalmaresPage() {
         )}
       </div>
     </Layout>
-  )
+  );
 }

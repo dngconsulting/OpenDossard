@@ -42,7 +42,7 @@ export function RiderResultsTable({ results }: RiderResultsTableProps) {
               </tr>
             </thead>
             <tbody>
-              {sortedResults.map((result) => (
+              {sortedResults.map(result => (
                 <tr key={result.id} className="border-b hover:bg-muted/50">
                   <td className="p-3">{formatRaceDate(result.raceDate)}</td>
                   <td className="p-3 font-medium">{result.raceName}</td>
@@ -54,9 +54,7 @@ export function RiderResultsTable({ results }: RiderResultsTableProps) {
                       {result.position}e
                     </Badge>
                   </td>
-                  <td className="p-3 text-center text-muted-foreground">
-                    {result.participants}
-                  </td>
+                  <td className="p-3 text-center text-muted-foreground">{result.participants}</td>
                   <td className="p-3 text-center font-semibold">{result.points}</td>
                 </tr>
               ))}

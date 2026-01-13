@@ -1,10 +1,10 @@
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
-import type { LicenceType } from '@/types/licences'
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import type { LicenceType } from '@/types/licences';
 
 type Props = {
-  licence: LicenceType
-}
+  licence: LicenceType;
+};
 
 export function RiderHeaderCard({ licence }: Props) {
   return (
@@ -18,12 +18,8 @@ export function RiderHeaderCard({ licence }: Props) {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Badge variant="outline">
-            {licence.fede}
-          </Badge>
-          <Badge variant="secondary">
-            #{licence.licenceNumber}
-          </Badge>
+          <Badge variant="outline">{licence.fede}</Badge>
+          <Badge variant="secondary">#{licence.licenceNumber}</Badge>
         </div>
 
         <div className="w-full flex gap-4 mt-2 text-sm">
@@ -38,5 +34,5 @@ export function RiderHeaderCard({ licence }: Props) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

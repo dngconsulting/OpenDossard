@@ -1,23 +1,23 @@
-import { RuntimeError } from './error-types'
-import { handleGlobalError } from './error-handler'
+import { RuntimeError } from './error-types';
+import { handleGlobalError } from './error-handler';
 
-let isInitialized = false
+let isInitialized = false;
 
 export function initErrorListeners(): void {
   if (isInitialized) {
-    return
+    return;
   }
 
   // Handle synchronous errors not caught in try/catch
   window.addEventListener('error', (event: ErrorEvent) => {
     // Ignore errors from scripts loaded from other origins
     if (event.filename && !event.filename.includes(window.location.origin)) {
-      return
+      return;
     }
 
     // Ignore ResizeObserver errors (common and usually harmless)
     if (event.message?.includes('ResizeObserver')) {
-      return
+      return;
     }
 
     handleGlobalError(
@@ -28,17 +28,17 @@ export function initErrorListeners(): void {
         colno: event.colno,
         stack: event.error?.stack,
       })
-    )
-  })
+    );
+  });
 
   // Handle unhandled promise rejections
   window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
-    const reason = event.reason
+    const reason = event.reason;
 
     // If it's already an ApiError, pass it through
     if (reason?.name === 'ApiError') {
-      handleGlobalError(reason)
-      return
+      handleGlobalError(reason);
+      return;
     }
 
     handleGlobalError(
@@ -46,8 +46,8 @@ export function initErrorListeners(): void {
         message: reason?.message || 'Unhandled promise rejection',
         stack: reason?.stack,
       })
-    )
-  })
+    );
+  });
 
-  isInitialized = true
+  isInitialized = true;
 }

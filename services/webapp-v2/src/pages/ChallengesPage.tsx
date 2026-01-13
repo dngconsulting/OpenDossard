@@ -4,13 +4,7 @@ import { ChallengeCategoryTabs } from '@/components/challenges/ChallengeCategory
 import { RiderDetailsDialog } from '@/components/challenges/RiderDetailsDialog';
 import type { ChallengeTableType } from '@/components/data/ChallengeTable';
 import Layout from '@/components/layout/Layout';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FieldSeparator } from '@/components/ui/field';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 

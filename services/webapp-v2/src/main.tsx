@@ -1,15 +1,15 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 
-import './index.css'
-import App from './App.tsx'
-import { initErrorListeners } from '@/utils/error-handler'
+import './index.css';
+import App from './App.tsx';
+import { initErrorListeners } from '@/utils/error-handler';
 
 // Initialize global error listeners for runtime errors
-initErrorListeners()
+initErrorListeners();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
-  </StrictMode>,
-)
+  </StrictMode>
+);

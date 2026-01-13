@@ -1,15 +1,15 @@
-export type ApiMode = 'mock' | 'real'
+export type ApiMode = 'mock' | 'real';
 
 export interface ApiConfig {
-  licences: ApiMode
-  races: ApiMode
-  users: ApiMode
-  challenges: ApiMode
-  charts: ApiMode
-  dashboard: ApiMode
-  palmares: ApiMode
-  clubs: ApiMode
-  departments: ApiMode
+  licences: ApiMode;
+  races: ApiMode;
+  users: ApiMode;
+  challenges: ApiMode;
+  charts: ApiMode;
+  dashboard: ApiMode;
+  palmares: ApiMode;
+  clubs: ApiMode;
+  departments: ApiMode;
 }
 
 export const apiConfig: ApiConfig = {
@@ -22,8 +22,8 @@ export const apiConfig: ApiConfig = {
   palmares: 'mock',
   clubs: 'mock',
   departments: 'mock',
-}
+};
 
 export const isMockMode = (entity: keyof ApiConfig): boolean => {
-  return apiConfig[entity] === 'mock'
-}
+  return apiConfig[entity] === 'mock';
+};

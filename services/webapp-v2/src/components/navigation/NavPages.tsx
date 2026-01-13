@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import { type LucideIcon } from "lucide-react"
-import { Link, useLocation } from 'react-router-dom'
+import { type LucideIcon } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 
 import {
   SidebarGroup,
@@ -10,33 +10,30 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from '@/components/ui/sidebar';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function NavPages({
   pages,
 }: {
   pages: {
-    name: string
-    url: string
-    icon: LucideIcon
-  }[]
+    name: string;
+    url: string;
+    icon: LucideIcon;
+  }[];
 }) {
-  const location = useLocation()
-  const { state } = useSidebar()
-  const isCollapsed = state === "collapsed"
+  const location = useLocation();
+  const { state } = useSidebar();
+  const isCollapsed = state === 'collapsed';
 
   return (
     <SidebarGroup>
       {!isCollapsed && <SidebarGroupLabel>Navigation</SidebarGroupLabel>}
       <SidebarMenu>
-        {pages.map((item) => {
-          const isActive = location.pathname === item.url ||
-            (item.url !== '/' && location.pathname.startsWith(item.url))
+        {pages.map(item => {
+          const isActive =
+            location.pathname === item.url ||
+            (item.url !== '/' && location.pathname.startsWith(item.url));
 
           const menuButton = (
             <SidebarMenuButton asChild isActive={isActive}>
@@ -44,22 +41,16 @@ export function NavPages({
                 <div className="nav-icon-wrapper shrink-0">
                   <item.icon />
                 </div>
-                {!isCollapsed && (
-                  <span className="text-sidebar-foreground">
-                    {item.name}
-                  </span>
-                )}
+                {!isCollapsed && <span className="text-sidebar-foreground">{item.name}</span>}
               </Link>
             </SidebarMenuButton>
-          )
+          );
 
           return (
             <SidebarMenuItem key={item.name}>
               {isCollapsed ? (
                 <Tooltip>
-                  <TooltipTrigger asChild>
-                    {menuButton}
-                  </TooltipTrigger>
+                  <TooltipTrigger asChild>{menuButton}</TooltipTrigger>
                   <TooltipContent side="right" sideOffset={8}>
                     {item.name}
                   </TooltipContent>
@@ -68,9 +59,9 @@ export function NavPages({
                 menuButton
               )}
             </SidebarMenuItem>
-          )
+          );
         })}
       </SidebarMenu>
     </SidebarGroup>
-  )
+  );
 }

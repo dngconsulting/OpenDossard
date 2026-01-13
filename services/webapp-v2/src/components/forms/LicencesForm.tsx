@@ -120,7 +120,15 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
               form={licenceForm}
               field="fede"
               label="Fédération"
-              options={[{ value: 'FSGT' }, { value: 'FFC' }, { value: 'UFOLEP' }, { value: 'FFTRI' }, { value: 'FFVELO' }, { value: 'FFCYCLISME' }, { value: 'NL' }]}
+              options={[
+                { value: 'FSGT' },
+                { value: 'FFC' },
+                { value: 'UFOLEP' },
+                { value: 'FFTRI' },
+                { value: 'FFVELO' },
+                { value: 'FFCYCLISME' },
+                { value: 'NL' },
+              ]}
             />
             <StringField field="licenceNumber" form={licenceForm} label="Numéro de licence" />
             <div className="grid grid-cols-2 gap-4">

@@ -8,12 +8,7 @@ interface RaceEventsPopoverProps {
 }
 
 export function RaceEventsPopover({ events }: RaceEventsPopoverProps) {
-  const defaultEvents = [
-    'Épreuve 1',
-    'Épreuve 2',
-    'Épreuve 3',
-    'Épreuve 4',
-  ];
+  const defaultEvents = ['Épreuve 1', 'Épreuve 2', 'Épreuve 3', 'Épreuve 4'];
 
   const displayEvents = events || defaultEvents;
 

@@ -64,14 +64,11 @@ export function useAddEngagedRider() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: {
-      raceId: string
-      categoryId: string
-      rider: Omit<EngagedRider, 'id'>
-    }) => racesApi.addEngagedRider(data),
+    mutationFn: (data: { raceId: string; categoryId: string; rider: Omit<EngagedRider, 'id'> }) =>
+      racesApi.addEngagedRider(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: racesKeys.all });
-    }
+    },
   });
 }
 
@@ -79,14 +76,11 @@ export function useRemoveEngagedRider() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: {
-      raceId: string
-      categoryId: string
-      riderId: string
-    }) => racesApi.removeEngagedRider(data),
+    mutationFn: (data: { raceId: string; categoryId: string; riderId: string }) =>
+      racesApi.removeEngagedRider(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: racesKeys.all });
-    }
+    },
   });
 }
 
@@ -94,13 +88,10 @@ export function useUpdateResultsRankings() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: {
-      raceId: string
-      categoryId: string
-      resultIds: string[]
-    }) => racesApi.updateResultsRankings(data),
+    mutationFn: (data: { raceId: string; categoryId: string; resultIds: string[] }) =>
+      racesApi.updateResultsRankings(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: racesKeys.all });
-    }
+    },
   });
 }

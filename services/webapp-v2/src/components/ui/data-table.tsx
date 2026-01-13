@@ -213,20 +213,23 @@ export function DataTable<TData, TValue>({
     },
   });
 
-  const handleFilterChange = React.useCallback((columnId: string, value: string) => {
-    setLocalFilters(prev => ({ ...prev, [columnId]: value }));
+  const handleFilterChange = React.useCallback(
+    (columnId: string, value: string) => {
+      setLocalFilters(prev => ({ ...prev, [columnId]: value }));
 
-    if (onFilterChange) {
-      // Clear existing timer for this column
-      if (debounceTimers.current[columnId]) {
-        clearTimeout(debounceTimers.current[columnId]);
+      if (onFilterChange) {
+        // Clear existing timer for this column
+        if (debounceTimers.current[columnId]) {
+          clearTimeout(debounceTimers.current[columnId]);
+        }
+        // Set new debounced call
+        debounceTimers.current[columnId] = setTimeout(() => {
+          onFilterChange(columnId, value);
+        }, 400);
       }
-      // Set new debounced call
-      debounceTimers.current[columnId] = setTimeout(() => {
-        onFilterChange(columnId, value);
-      }, 400);
-    }
-  }, [onFilterChange]);
+    },
+    [onFilterChange]
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -295,7 +298,11 @@ export function DataTable<TData, TValue>({
                 <TableFilterCell key={header.id}>
                   <Input
                     placeholder={columnId === 'club' ? 'Ex: Castanéen' : ''}
-                    value={isServerFiltering ? (localFilters[columnId] || '') : (header.column.getFilterValue()?.toString() || '')}
+                    value={
+                      isServerFiltering
+                        ? localFilters[columnId] || ''
+                        : header.column.getFilterValue()?.toString() || ''
+                    }
                     onChange={event => {
                       if (isServerFiltering) {
                         handleFilterChange(columnId, event.target.value);

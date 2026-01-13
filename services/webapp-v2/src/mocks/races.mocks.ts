@@ -26,7 +26,7 @@ export const races: RaceType[] = [
             club: 'CCC31',
             gender: 'H',
             dept: '44',
-            category: '1'
+            category: '1',
           },
           {
             id: 'er2',
@@ -36,7 +36,7 @@ export const races: RaceType[] = [
             club: 'CCC31',
             gender: 'H',
             dept: '44',
-            category: '1'
+            category: '1',
           },
           {
             id: 'er3',
@@ -46,8 +46,8 @@ export const races: RaceType[] = [
             club: 'CCC31',
             gender: 'H',
             dept: '44',
-            category: '1'
-          }
+            category: '1',
+          },
         ],
         results: [
           {
@@ -60,7 +60,7 @@ export const races: RaceType[] = [
             club: 'CCC31',
             gender: 'H',
             dept: '44',
-            category: '1'
+            category: '1',
           },
           {
             id: 'res2',
@@ -72,7 +72,7 @@ export const races: RaceType[] = [
             club: 'CCC31',
             gender: 'H',
             dept: '44',
-            category: '1'
+            category: '1',
           },
           {
             id: 'res3',
@@ -84,9 +84,9 @@ export const races: RaceType[] = [
             club: 'CCC31',
             gender: 'H',
             dept: '44',
-            category: '1'
-          }
-        ]
+            category: '1',
+          },
+        ],
       },
       {
         id: '2',
@@ -97,7 +97,7 @@ export const races: RaceType[] = [
         laps: 8,
         totalDistance: 96,
         engagedRiders: [],
-        results: []
+        results: [],
       },
       {
         id: '3',
@@ -108,8 +108,8 @@ export const races: RaceType[] = [
         laps: 6,
         totalDistance: 72,
         engagedRiders: [],
-        results: []
-      }
+        results: [],
+      },
     ],
     federation: 'FSGT',
   },
@@ -129,7 +129,7 @@ export const races: RaceType[] = [
         gpx: 'https://example.com/gpx/course-longue.gpx',
         totalDistance: 150,
         engagedRiders: [],
-        results: []
+        results: [],
       },
       {
         id: '2',
@@ -139,8 +139,8 @@ export const races: RaceType[] = [
         gpx: 'https://example.com/gpx/course-courte.gpx',
         totalDistance: 75,
         engagedRiders: [],
-        results: []
-      }
+        results: [],
+      },
     ],
     federation: 'FFVELO',
   },
@@ -161,7 +161,7 @@ export const races: RaceType[] = [
         laps: 12,
         totalDistance: 144,
         engagedRiders: [],
-        results: []
+        results: [],
       },
       {
         id: '2',
@@ -172,7 +172,7 @@ export const races: RaceType[] = [
         laps: 10,
         totalDistance: 120,
         engagedRiders: [],
-        results: []
+        results: [],
       },
       {
         id: '3',
@@ -183,7 +183,7 @@ export const races: RaceType[] = [
         laps: 8,
         totalDistance: 96,
         engagedRiders: [],
-        results: []
+        results: [],
       },
       {
         id: '4',
@@ -194,8 +194,8 @@ export const races: RaceType[] = [
         laps: 5,
         totalDistance: 60,
         engagedRiders: [],
-        results: []
-      }
+        results: [],
+      },
     ],
     federation: 'FFC',
   },

@@ -16,11 +16,7 @@ import { Link } from 'react-router-dom';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { appData } from '@/statics/app-data';
@@ -50,7 +46,7 @@ const features = [
   {
     icon: ListOrdered,
     title: 'Palmarès',
-    description: 'Consultez l\'historique complet des performances',
+    description: "Consultez l'historique complet des performances",
     href: '/palmares',
     color: 'from-purple-500 to-violet-500',
   },
@@ -74,10 +70,7 @@ function StatCard({
   delay: number;
 }) {
   return (
-    <div
-      className="glass rounded-2xl p-6 hover-lift"
-      style={{ animationDelay: `${delay}ms` }}
-    >
+    <div className="glass rounded-2xl p-6 hover-lift" style={{ animationDelay: `${delay}ms` }}>
       <div className="flex items-center gap-4">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-primary text-white">
           <Icon className="h-6 w-6" />
@@ -113,9 +106,7 @@ function FeatureCard({
       style={{ animationDelay: `${index * 100 + 200}ms` }}
     >
       {/* Gradient accent bar */}
-      <div
-        className={`absolute left-0 top-0 h-1 w-full bg-gradient-to-r ${color} opacity-80`}
-      />
+      <div className={`absolute left-0 top-0 h-1 w-full bg-gradient-to-r ${color} opacity-80`} />
 
       {/* Icon */}
       <div
@@ -155,10 +146,7 @@ export default function WelcomePage() {
                 <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   <img src={appData.app.logoUrl} alt="logo" className="w-3/4" />
                 </div>
-                <Separator
-                  orientation="vertical"
-                  className="data-[orientation=vertical]:h-4"
-                />
+                <Separator orientation="vertical" className="data-[orientation=vertical]:h-4" />
               </>
             ) : (
               <>
@@ -184,7 +172,10 @@ export default function WelcomePage() {
 
             {/* Floating shapes */}
             <div className="absolute right-10 top-10 h-20 w-20 animate-pulse rounded-2xl bg-white/10 backdrop-blur-sm" />
-            <div className="absolute bottom-10 right-32 h-12 w-12 animate-pulse rounded-full bg-white/10 backdrop-blur-sm" style={{ animationDelay: '500ms' }} />
+            <div
+              className="absolute bottom-10 right-32 h-12 w-12 animate-pulse rounded-full bg-white/10 backdrop-blur-sm"
+              style={{ animationDelay: '500ms' }}
+            />
 
             <div className="relative z-10 max-w-2xl">
               <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm">
@@ -196,11 +187,7 @@ export default function WelcomePage() {
                 Bienvenue sur{' '}
                 <span className="relative">
                   OpenDossard
-                  <svg
-                    className="absolute -bottom-2 left-0 w-full"
-                    viewBox="0 0 200 8"
-                    fill="none"
-                  >
+                  <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 8" fill="none">
                     <path
                       d="M2 6C50 2 150 2 198 6"
                       stroke="rgba(255,255,255,0.5)"
@@ -212,8 +199,8 @@ export default function WelcomePage() {
               </h1>
 
               <p className="mb-8 text-lg text-white/80">
-                La plateforme complète pour gérer vos compétitions cyclistes.
-                Licences, courses, résultats et classements en un seul endroit.
+                La plateforme complète pour gérer vos compétitions cyclistes. Licences, courses,
+                résultats et classements en un seul endroit.
               </p>
 
               <div className="flex flex-wrap gap-4">
@@ -264,9 +251,7 @@ export default function WelcomePage() {
                 <Zap className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-foreground">
-                  Accès rapide
-                </h2>
+                <h2 className="text-xl font-semibold text-foreground">Accès rapide</h2>
                 <p className="text-sm text-muted-foreground">
                   Naviguez vers les fonctionnalités principales
                 </p>
@@ -288,9 +273,7 @@ export default function WelcomePage() {
                   <Users className="h-6 w-6" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground">
-                    Besoin d'aide ?
-                  </h3>
+                  <h3 className="font-semibold text-foreground">Besoin d'aide ?</h3>
                   <p className="text-sm text-muted-foreground">
                     Consultez la documentation ou contactez le support
                   </p>

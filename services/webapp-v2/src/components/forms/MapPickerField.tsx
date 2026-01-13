@@ -1,4 +1,11 @@
-import { Controller, type ControllerFieldState, type ControllerRenderProps, type FieldValues, type Path, type UseFormReturn } from 'react-hook-form';
+import {
+  Controller,
+  type ControllerFieldState,
+  type ControllerRenderProps,
+  type FieldValues,
+  type Path,
+  type UseFormReturn,
+} from 'react-hook-form';
 
 import { Field, FieldLabel, FieldError } from '@/components/ui/field';
 
@@ -16,10 +23,7 @@ const ControlledMapPickerField = ({
 }) => (
   <Field data-invalid={fieldState.invalid}>
     <FieldLabel htmlFor="map-picker-input">{label}</FieldLabel>
-    <MapPicker
-      value={field.value}
-      onChange={field.onChange}
-    />
+    <MapPicker value={field.value} onChange={field.onChange} />
     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
   </Field>
 );
@@ -40,11 +44,7 @@ export function MapPickerField<T extends FieldValues>({
       control={form.control}
       name={field}
       render={({ field, fieldState }) => (
-        <ControlledMapPickerField
-          field={field}
-          fieldState={fieldState}
-          label={label}
-        />
+        <ControlledMapPickerField field={field} fieldState={fieldState} label={label} />
       )}
     />
   );

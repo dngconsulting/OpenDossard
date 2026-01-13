@@ -19,14 +19,14 @@ export const RaceCategoryTabs = ({ race }: Props) => {
   return (
     <Tabs defaultValue={race.categories[0].id} className="w-full">
       <TabsList>
-        {race.categories.map((category) => (
+        {race.categories.map(category => (
           <TabsTrigger key={category.id} value={category.id}>
             {category.name}
           </TabsTrigger>
         ))}
       </TabsList>
 
-      {race.categories.map((category) => (
+      {race.categories.map(category => (
         <TabsContent key={category.id} value={category.id}>
           <EngagedResultsTabs raceId={race.id} category={category} />
         </TabsContent>

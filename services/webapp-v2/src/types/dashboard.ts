@@ -6,15 +6,15 @@ export type EngagementChartData = {
 };
 
 export type DashboardStats = {
-  totalLicenses: number
-  totalLicensesTrend: number
-  fsgtLicenses: number
-  fsgtLicensesTrend: number
-  totalCompetitions: number
-  totalClubs?: number
-}
+  totalLicenses: number;
+  totalLicensesTrend: number;
+  fsgtLicenses: number;
+  fsgtLicensesTrend: number;
+  totalCompetitions: number;
+  totalClubs?: number;
+};
 
 export type DashboardData = {
-  stats: DashboardStats
-  engagementChart: EngagementChartData[]
-}
+  stats: DashboardStats;
+  engagementChart: EngagementChartData[];
+};

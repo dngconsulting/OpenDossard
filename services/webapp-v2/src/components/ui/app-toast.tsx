@@ -1,15 +1,25 @@
-import { AlertTriangle, Check, ChevronDown, ChevronUp, CircleCheck, CircleX, Copy, Info, X } from 'lucide-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
+import {
+  AlertTriangle,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  CircleCheck,
+  CircleX,
+  Copy,
+  Info,
+  X,
+} from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
 
-export type ToastType = 'error' | 'success' | 'info' | 'warning'
+export type ToastType = 'error' | 'success' | 'info' | 'warning';
 
 interface ToastConfig {
-  bg: string
-  icon: React.ReactNode
-  title: string
+  bg: string;
+  icon: React.ReactNode;
+  title: string;
 }
 
 const toastConfigs: Record<ToastType, ToastConfig> = {
@@ -33,50 +43,48 @@ const toastConfigs: Record<ToastType, ToastConfig> = {
     icon: <AlertTriangle className="h-5 w-5 text-white" />,
     title: 'Attention',
   },
-}
+};
 
 export interface AppToastProps {
-  id: string | number
-  type: ToastType
-  message: string
-  details?: string
+  id: string | number;
+  type: ToastType;
+  message: string;
+  details?: string;
 }
 
 export function AppToast({ id, type, message, details }: AppToastProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [copied, setCopied] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const config = toastConfigs[type]
+  const config = toastConfigs[type];
 
   const handleCopy = async () => {
-    if (!details) return
+    if (!details) return;
     try {
-      await navigator.clipboard.writeText(details)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      await navigator.clipboard.writeText(details);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch {
-      const textArea = document.createElement('textarea')
-      textArea.value = details
-      document.body.appendChild(textArea)
-      textArea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textArea)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      const textArea = document.createElement('textarea');
+      textArea.value = details;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
-  }
+  };
 
   const handleDismiss = () => {
-    toast.dismiss(id)
-  }
+    toast.dismiss(id);
+  };
 
   return (
     <div className={`w-[356px] ${config.bg} rounded-lg shadow-lg overflow-hidden`}>
       <div className="p-4">
         <div className="flex items-start gap-3">
-          <div className="shrink-0 mt-0.5">
-            {config.icon}
-          </div>
+          <div className="shrink-0 mt-0.5">{config.icon}</div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-white">{config.title}</p>
             <p className="text-sm text-white/90 mt-1">{message}</p>
@@ -140,5 +148,5 @@ export function AppToast({ id, type, message, details }: AppToastProps) {
         )}
       </div>
     </div>
-  )
+  );
 }
