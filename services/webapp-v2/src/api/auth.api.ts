@@ -10,12 +10,12 @@ export interface LoginResponse {
 }
 
 export interface UserProfile {
-  id: string;
+  id: number;
   email: string;
   firstName: string;
   lastName: string;
   phone?: string;
-  roles: string;
+  roles: string[];
 }
 
 export const authApi = {

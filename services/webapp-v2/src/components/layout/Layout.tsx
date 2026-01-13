@@ -42,9 +42,10 @@ type LayoutProps = {
   title: string;
   toolbar?: React.ReactNode;
   toolbarLeft?: React.ReactNode;
+  noPadding?: boolean;
 };
 
-export default function Layout({ children, title, toolbar, toolbarLeft }: LayoutProps) {
+export default function Layout({ children, title, toolbar, toolbarLeft, noPadding }: LayoutProps) {
   const isMobile = useIsMobile();
 
   return (
@@ -61,7 +62,7 @@ export default function Layout({ children, title, toolbar, toolbarLeft }: Layout
             <div className="flex items-center gap-2">{toolbar}</div>
           </div>
         )}
-        <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
+        <div className={`flex flex-1 flex-col gap-4 ${noPadding ? '' : 'p-4'}`}>{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );
