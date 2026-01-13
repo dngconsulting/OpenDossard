@@ -25,6 +25,7 @@ export class LicencesService {
       search,
       orderBy = 'name',
       orderDirection = 'ASC',
+      id,
       name,
       firstName,
       licenceNumber,
@@ -32,6 +33,11 @@ export class LicencesService {
       dept,
       fede,
       gender,
+      birthYear,
+      catea,
+      catev,
+      catevCX,
+      saison,
       withoutNumber,
     } = filterDto;
 
@@ -46,7 +52,10 @@ export class LicencesService {
       );
     }
 
-    // Specific filters
+    // Specific filters - all combined with AND
+    if (id) {
+      queryBuilder.andWhere('licence.id = :id', { id });
+    }
     if (name) {
       queryBuilder.andWhere('licence.name ILIKE :name', { name: `%${name}%` });
     }
@@ -64,13 +73,28 @@ export class LicencesService {
       queryBuilder.andWhere('licence.club ILIKE :club', { club: `%${club}%` });
     }
     if (dept) {
-      queryBuilder.andWhere('licence.dept = :dept', { dept });
+      queryBuilder.andWhere('licence.dept ILIKE :dept', { dept: `%${dept}%` });
     }
     if (fede) {
-      queryBuilder.andWhere('licence.fede = :fede', { fede });
+      queryBuilder.andWhere('licence.fede ILIKE :fede', { fede: `%${fede}%` });
     }
     if (gender) {
-      queryBuilder.andWhere('licence.gender = :gender', { gender });
+      queryBuilder.andWhere('licence.gender ILIKE :gender', { gender: `%${gender}%` });
+    }
+    if (birthYear) {
+      queryBuilder.andWhere('licence.birthYear ILIKE :birthYear', { birthYear: `%${birthYear}%` });
+    }
+    if (catea) {
+      queryBuilder.andWhere('licence.catea ILIKE :catea', { catea: `%${catea}%` });
+    }
+    if (catev) {
+      queryBuilder.andWhere('licence.catev ILIKE :catev', { catev: `%${catev}%` });
+    }
+    if (catevCX) {
+      queryBuilder.andWhere('licence.catevCX ILIKE :catevCX', { catevCX: `%${catevCX}%` });
+    }
+    if (saison) {
+      queryBuilder.andWhere('licence.saison ILIKE :saison', { saison: `%${saison}%` });
     }
     if (withoutNumber) {
       queryBuilder.andWhere(
@@ -81,14 +105,19 @@ export class LicencesService {
 
     // Ordering
     const validOrderFields = [
+      'id',
       'name',
       'firstName',
       'licenceNumber',
       'club',
       'dept',
       'fede',
+      'gender',
+      'birthYear',
       'catea',
       'catev',
+      'catevCX',
+      'saison',
     ];
     const orderField = validOrderFields.includes(orderBy) ? orderBy : 'name';
     queryBuilder.orderBy(
