@@ -5,6 +5,8 @@ import { Toaster } from 'sonner';
 
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { ProtectedRoute } from '@/components/navigation/ProtectedRoute.tsx';
+import { OfflineBanner } from '@/components/pwa/OfflineBanner';
+import { UpdatePrompt } from '@/components/pwa/UpdatePrompt';
 import { ThemeProvider } from '@/components/theme-provider';
 import AccountPage from '@/pages/AccountPage.tsx';
 import AchievementsPage from '@/pages/AchievementsPage.tsx';
@@ -54,6 +56,8 @@ export default function App() {
           </AuthProvider>
         </BrowserRouter>
         <Toaster position="top-right" richColors closeButton />
+        <UpdatePrompt />
+        <OfflineBanner />
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </ThemeProvider>
