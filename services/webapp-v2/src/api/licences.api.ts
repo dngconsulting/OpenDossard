@@ -1,11 +1,23 @@
 import { isMockMode } from '@/config/api.config'
 import { mockLicencesService } from '@/services/mocks/licences.mock.service'
-import type { LicenceType } from '@/types/licences'
+import type { LicenceType, PaginatedResponse, PaginationParams } from '@/types/licences'
 
 import { apiClient } from './client'
 
+const buildQueryString = (params: PaginationParams): string => {
+  const searchParams = new URLSearchParams()
+  if (params.offset !== undefined) searchParams.set('offset', String(params.offset))
+  if (params.limit !== undefined) searchParams.set('limit', String(params.limit))
+  if (params.search) searchParams.set('search', params.search)
+  if (params.orderBy) searchParams.set('orderBy', params.orderBy)
+  if (params.orderDirection) searchParams.set('orderDirection', params.orderDirection)
+  const query = searchParams.toString()
+  return query ? `?${query}` : ''
+}
+
 const realLicencesService = {
-  getAll: (): Promise<LicenceType[]> => apiClient<LicenceType[]>('/licences'),
+  getAll: (params: PaginationParams = {}): Promise<PaginatedResponse<LicenceType>> =>
+    apiClient<PaginatedResponse<LicenceType>>(`/licences${buildQueryString(params)}`),
 
   getById: (id: string): Promise<LicenceType> =>
     apiClient<LicenceType>(`/licences/${id}`),

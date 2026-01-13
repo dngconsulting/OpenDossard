@@ -13,3 +13,23 @@ export type LicenceType = {
     federation: 'FSGT' | 'FFTRI' | 'FFVELO' | 'UFOLEP' | 'FFCYCLISME' | 'FFC'
     season: string
 }
+
+export type PaginationParams = {
+    offset?: number
+    limit?: number
+    search?: string
+    orderBy?: string
+    orderDirection?: 'ASC' | 'DESC'
+}
+
+export type PaginationMeta = {
+    offset: number
+    limit: number
+    total: number
+    hasMore: boolean
+}
+
+export type PaginatedResponse<T> = {
+    data: T[]
+    meta: PaginationMeta
+}

@@ -13,12 +13,20 @@ type LicenceTableProps = {
 
 export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
   const navigate = useNavigate();
-  const { data: licences, isLoading, error } = useLicences();
+  const {
+    data,
+    isLoading,
+    error,
+    goToPage,
+    setLimit,
+    currentPage,
+    totalPages,
+  } = useLicences({ offset: 0, limit: 20 });
 
   const columns: ColumnDef<LicenceType>[] = [
     {
       accessorKey: 'licenceNumber',
-      header: 'N Licence',
+      header: 'N° Licence',
     },
     {
       accessorKey: 'lastName',
@@ -66,11 +74,23 @@ export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
   return (
     <DataTable
       columns={columns}
-      data={licences || []}
+      data={data?.data || []}
       onEditRow={onEdit}
       onDeleteRow={onDelete}
       onOpenRow={(row) => navigate(`/palmares/${row.id}`)}
       isLoading={isLoading}
+      pagination={
+        data?.meta
+          ? {
+              enabled: true,
+              meta: data.meta,
+              onPageChange: goToPage,
+              onPageSizeChange: setLimit,
+              currentPage,
+              totalPages,
+            }
+          : undefined
+      }
     />
   );
 };

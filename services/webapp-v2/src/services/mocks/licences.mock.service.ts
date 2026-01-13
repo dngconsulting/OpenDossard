@@ -1,14 +1,49 @@
 import { licences as initialLicences } from '@/mocks/licences.mocks';
-import type { LicenceType } from '@/types/licences';
+import type { LicenceType, PaginatedResponse, PaginationParams } from '@/types/licences';
 
 let licencesData: LicenceType[] = [...initialLicences];
 
-const delay = () => new Promise(resolve => setTimeout(resolve, 1200));
+const delay = () => new Promise(resolve => setTimeout(resolve, 300));
 
 export const mockLicencesService = {
-  getAll: async (): Promise<LicenceType[]> => {
+  getAll: async (params: PaginationParams = {}): Promise<PaginatedResponse<LicenceType>> => {
     await delay();
-    return [...licencesData];
+    const { offset = 0, limit = 20, search, orderBy = 'lastName', orderDirection = 'ASC' } = params;
+
+    let filtered = [...licencesData];
+
+    // Apply search filter
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filtered = filtered.filter(
+        l =>
+          l.lastName?.toLowerCase().includes(searchLower) ||
+          l.firstName?.toLowerCase().includes(searchLower) ||
+          l.licenceNumber?.toLowerCase().includes(searchLower) ||
+          l.club?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      const aVal = String(a[orderBy as keyof LicenceType] || '').toLowerCase();
+      const bVal = String(b[orderBy as keyof LicenceType] || '').toLowerCase();
+      const comparison = aVal.localeCompare(bVal);
+      return orderDirection === 'ASC' ? comparison : -comparison;
+    });
+
+    const total = filtered.length;
+    const data = filtered.slice(offset, offset + limit);
+
+    return {
+      data,
+      meta: {
+        offset,
+        limit,
+        total,
+        hasMore: offset + data.length < total,
+      },
+    };
   },
 
   getById: async (id: string): Promise<LicenceType | undefined> => {

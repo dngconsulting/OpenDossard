@@ -27,11 +27,18 @@ import {
   type Row,
   useReactTable,
 } from '@tanstack/react-table';
-import { Edit2, GripVertical, Trash2, Trophy } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Edit2, GripVertical, Trash2, Trophy } from 'lucide-react';
 import * as React from 'react';
 
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -43,6 +50,22 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import type { PaginationMeta } from '@/types/licences';
+
+interface ServerPaginationProps {
+  enabled: true;
+  meta: PaginationMeta;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (pageSize: number) => void;
+  currentPage: number;
+  totalPages: number;
+}
+
+interface NoPaginationProps {
+  enabled?: false;
+}
+
+type PaginationProps = ServerPaginationProps | NoPaginationProps;
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -54,6 +77,7 @@ interface DataTableProps<TData, TValue> {
   enableDragDrop?: boolean;
   onRowReorder?: (reorderedData: TData[]) => void;
   rowIdAccessor?: keyof TData;
+  pagination?: PaginationProps;
 }
 
 interface SortableRowProps<TData> {
@@ -155,6 +179,7 @@ export function DataTable<TData, TValue>({
   enableDragDrop = false,
   onRowReorder,
   rowIdAccessor = 'id' as keyof TData,
+  pagination,
 }: DataTableProps<TData, TValue> & { filterKey?: string }) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [internalData, setInternalData] = React.useState<TData[]>(data);
@@ -279,6 +304,71 @@ export function DataTable<TData, TValue>({
     </Table>
   );
 
+  const paginationControls = pagination?.enabled && (
+    <div className="flex items-center justify-between px-4 py-3 border-t">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <span>Lignes par page</span>
+        <Select
+          value={String(pagination.meta.limit)}
+          onValueChange={(value) => pagination.onPageSizeChange(Number(value))}
+        >
+          <SelectTrigger className="h-8 w-[70px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {[10, 20, 50, 100].map((size) => (
+              <SelectItem key={size} value={String(size)}>
+                {size}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-muted-foreground">
+          {pagination.meta.offset + 1}-{Math.min(pagination.meta.offset + pagination.meta.limit, pagination.meta.total)} sur {pagination.meta.total}
+        </span>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon-sm"
+            onClick={() => pagination.onPageChange(0)}
+            disabled={pagination.currentPage === 0}
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon-sm"
+            onClick={() => pagination.onPageChange(pagination.currentPage - 1)}
+            disabled={pagination.currentPage === 0}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm px-2">
+            Page {pagination.currentPage + 1} / {pagination.totalPages || 1}
+          </span>
+          <Button
+            variant="outline"
+            size="icon-sm"
+            onClick={() => pagination.onPageChange(pagination.currentPage + 1)}
+            disabled={!pagination.meta.hasMore}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon-sm"
+            onClick={() => pagination.onPageChange(pagination.totalPages - 1)}
+            disabled={!pagination.meta.hasMore}
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="overflow-hidden rounded-md border shadow-xs">
       {enableDragDrop ? (
@@ -295,6 +385,7 @@ export function DataTable<TData, TValue>({
       ) : (
         tableContent
       )}
+      {paginationControls}
     </div>
   );
 }
