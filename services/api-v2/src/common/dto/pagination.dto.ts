@@ -15,14 +15,14 @@ export enum OrderDirection {
 }
 
 export class PaginationDto {
-  @ApiPropertyOptional({ default: 1, minimum: 1 })
+  @ApiPropertyOptional({ default: 0, minimum: 0, description: 'Number of records to skip' })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  @Min(1)
-  page?: number = 1;
+  @Min(0)
+  offset?: number = 0;
 
-  @ApiPropertyOptional({ default: 20, minimum: 1, maximum: 100 })
+  @ApiPropertyOptional({ default: 20, minimum: 1, maximum: 100, description: 'Number of records to return' })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
@@ -30,12 +30,12 @@ export class PaginationDto {
   @Max(100)
   limit?: number = 20;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Global search term' })
   @IsOptional()
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Field to order by' })
   @IsOptional()
   @IsString()
   orderBy?: string;
@@ -47,30 +47,30 @@ export class PaginationDto {
 }
 
 export class PaginationMeta {
-  @ApiProperty()
-  page: number;
+  @ApiProperty({ description: 'Current offset' })
+  offset: number;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Number of records returned' })
   limit: number;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Total number of records' })
   total: number;
 
-  @ApiProperty()
-  totalPages: number;
+  @ApiProperty({ description: 'Whether there are more records' })
+  hasMore: boolean;
 }
 
 export class PaginatedResponseDto<T> {
   data: T[];
   meta: PaginationMeta;
 
-  constructor(data: T[], total: number, page: number, limit: number) {
+  constructor(data: T[], total: number, offset: number, limit: number) {
     this.data = data;
     this.meta = {
-      page,
+      offset,
       limit,
       total,
-      totalPages: Math.ceil(total / limit),
+      hasMore: offset + data.length < total,
     };
   }
 }

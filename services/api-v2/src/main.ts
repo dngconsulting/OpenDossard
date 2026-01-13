@@ -73,7 +73,7 @@ async function bootstrap() {
     },
   });
 
-  const port = process.env.PORT || 9091;
+  const port = process.env.PORT || 3500;
   await app.listen(port);
   console.log(`🚀 API v2 running on http://localhost:${port}/api/v2`);
   console.log(`📚 Swagger docs: http://localhost:${port}/api/v2/docs`);

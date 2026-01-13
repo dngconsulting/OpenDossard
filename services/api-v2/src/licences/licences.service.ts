@@ -20,7 +20,7 @@ export class LicencesService {
     filterDto: FilterLicenceDto,
   ): Promise<PaginatedResponseDto<LicenceEntity>> {
     const {
-      page = 1,
+      offset = 0,
       limit = 20,
       search,
       orderBy = 'name',
@@ -96,13 +96,12 @@ export class LicencesService {
       orderDirection as 'ASC' | 'DESC',
     );
 
-    // Pagination
-    const skip = (page - 1) * limit;
-    queryBuilder.skip(skip).take(limit);
+    // Pagination with offset/limit
+    queryBuilder.skip(offset).take(limit);
 
     const [data, total] = await queryBuilder.getManyAndCount();
 
-    return new PaginatedResponseDto(data, total, page, limit);
+    return new PaginatedResponseDto(data, total, offset, limit);
   }
 
   async findOne(id: number): Promise<LicenceEntity> {
