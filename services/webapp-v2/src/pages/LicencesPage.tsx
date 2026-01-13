@@ -3,6 +3,7 @@ import {useState} from 'react';
 
 import {LicencesDataTable} from '@/components/data/LicencesTable.tsx';
 import {LicencesForm} from '@/components/forms/LicencesForm.tsx';
+import {useLicences} from '@/hooks/useLicences';
 import Layout from '@/components/layout/Layout.tsx';
 import {Button} from '@/components/ui/button.tsx';
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger} from '@/components/ui/dialog';
@@ -13,6 +14,8 @@ import type {LicenceType} from '@/types/licences.ts';
 export default function LicencesPage() {
     const [licence, setLicence] = useState<LicenceType | undefined>(undefined);
     const [deleteLicence, setDeleteLicence] = useState<LicenceType | undefined>(undefined);
+    const { data } = useLicences();
+    const totalLicences = data?.meta?.total ?? 0;
     const EditLicence = () => (
         <Dialog open={!!licence} onOpenChange={(open: boolean) => !open && setLicence(undefined)}>
             <DialogTrigger asChild>
@@ -48,6 +51,12 @@ export default function LicencesPage() {
     )
 
 
+    const toolbarLeft = (
+        <span className="text-sm text-muted-foreground">
+            Nombre de licences : <strong className="text-foreground">{totalLicences}</strong>
+        </span>
+    );
+
     const toolbar = (
         <>
             <EditLicence />
@@ -79,7 +88,7 @@ export default function LicencesPage() {
     );
 
     return (
-        <Layout title="Licences" toolbar={toolbar}>
+        <Layout title="Licences" toolbar={toolbar} toolbarLeft={toolbarLeft}>
             <LicencesDataTable
                 onEdit={(row: LicenceType) => setLicence(row)}
                 onDelete={(row: LicenceType) => setDeleteLicence(row)}

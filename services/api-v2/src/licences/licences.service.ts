@@ -76,7 +76,7 @@ export class LicencesService {
       queryBuilder.andWhere('licence.dept ILIKE :dept', { dept: `%${dept}%` });
     }
     if (fede) {
-      queryBuilder.andWhere('licence.fede ILIKE :fede', { fede: `%${fede}%` });
+      queryBuilder.andWhere('licence.fede::text ILIKE :fede', { fede: `%${fede}%` });
     }
     if (gender) {
       queryBuilder.andWhere('licence.gender ILIKE :gender', { gender: `%${gender}%` });

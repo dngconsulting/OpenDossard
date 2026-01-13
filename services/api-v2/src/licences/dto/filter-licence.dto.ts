@@ -1,8 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsEnum, IsBoolean, IsNumber } from 'class-validator';
+import { IsOptional, IsString, IsBoolean, IsNumber } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { PaginationDto } from '../../common/dto';
-import { Federation } from '../../common/enums';
 
 export class FilterLicenceDto extends PaginationDto {
   @ApiPropertyOptional()
@@ -30,10 +29,10 @@ export class FilterLicenceDto extends PaginationDto {
   @IsString()
   dept?: string;
 
-  @ApiPropertyOptional({ enum: Federation })
+  @ApiPropertyOptional({ description: 'Filter by federation' })
   @IsOptional()
-  @IsEnum(Federation)
-  fede?: Federation;
+  @IsString()
+  fede?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

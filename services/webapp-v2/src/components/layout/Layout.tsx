@@ -51,9 +51,10 @@ type LayoutProps = {
     children: React.ReactNode;
     title: string;
     toolbar?: React.ReactNode;
+    toolbarLeft?: React.ReactNode;
 };
 
-export default function Layout({children, title, toolbar}: LayoutProps) {
+export default function Layout({children, title, toolbar, toolbarLeft}: LayoutProps) {
     const isMobile = useIsMobile();
 
     return (
@@ -64,9 +65,13 @@ export default function Layout({children, title, toolbar}: LayoutProps) {
                     className="header-sidebar flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
                     {isMobile ? <MobileHeader title={title}/> : <DesktopHeader title={title}/>}
                 </header>
-                {toolbar && (
-                    <div className="toolbar-area flex items-center justify-end gap-2 px-4 py-2">
-                        {toolbar}
+                {(toolbar || toolbarLeft) && (
+                    <div className="toolbar-area flex items-center gap-2 px-4 py-2">
+                        {toolbarLeft && <div className="flex-1">{toolbarLeft}</div>}
+                        {!toolbarLeft && <div className="flex-1" />}
+                        <div className="flex items-center gap-2">
+                            {toolbar}
+                        </div>
                     </div>
                 )}
                 <div className="flex flex-1 flex-col gap-4 p-4">
