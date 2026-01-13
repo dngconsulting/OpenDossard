@@ -1,7 +1,6 @@
-import {Table, FileText, Plus, Upload} from 'lucide-react';
+import {FileSpreadsheet, FileText, Plus, Upload} from 'lucide-react';
 import {useState} from 'react';
 
-import {OptionsButton} from '@/components/actions/OptionsButton.tsx';
 import {LicencesDataTable} from '@/components/data/LicencesTable.tsx';
 import {LicencesForm} from '@/components/forms/LicencesForm.tsx';
 import Layout from '@/components/layout/Layout.tsx';
@@ -52,13 +51,9 @@ export default function LicencesPage() {
         <>
             <EditLicence />
             <DeleteLicence />
-            <OptionsButton
-                options={[
-                    {label: 'Export PDF', icon: <Table/>},
-                    {label: 'Export CSV', icon: <FileText/>},
-                    {label: 'Import e-licence', icon: <Upload/>},
-                ]}
-            />
+            <Button variant="action"><FileText /> Export PDF</Button>
+            <Button variant="action"><FileSpreadsheet /> Export CSV</Button>
+            <Button variant="action"><Upload /> Import e-licence</Button>
         </>
     );
 
