@@ -47,7 +47,13 @@ function DesktopHeader({title}: { title: string }) {
     );
 }
 
-export default function Layout({children, title}: { children: React.ReactNode, title: string }) {
+type LayoutProps = {
+    children: React.ReactNode;
+    title: string;
+    toolbar?: React.ReactNode;
+};
+
+export default function Layout({children, title, toolbar}: LayoutProps) {
     const isMobile = useIsMobile();
 
     return (
@@ -58,7 +64,12 @@ export default function Layout({children, title}: { children: React.ReactNode, t
                     className="header-sidebar flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
                     {isMobile ? <MobileHeader title={title}/> : <DesktopHeader title={title}/>}
                 </header>
-                <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+                {toolbar && (
+                    <div className="toolbar-area flex items-center justify-end gap-2 px-4 py-2">
+                        {toolbar}
+                    </div>
+                )}
+                <div className="flex flex-1 flex-col gap-4 p-4">
                     {children}
                 </div>
             </SidebarInset>

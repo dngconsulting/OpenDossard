@@ -16,7 +16,7 @@ export default function LicencesPage() {
     const EditLicence = () => (
         <Dialog open={!!licence} onOpenChange={(open: boolean) => !open && setLicence(undefined)}>
             <DialogTrigger asChild>
-                <Button variant="outline" onClick={() => setLicence({} as LicenceType)}><Plus/> Ajouter une licence</Button>
+                <Button variant="success" onClick={() => setLicence({} as LicenceType)}><Plus/> Ajouter une licence</Button>
             </DialogTrigger>
             <DialogContent className="max-h-[90%] overflow-y-scroll sm:max-w-[calc(100%-2rem)] lg:max-w-[900px]">
                 <DialogHeader>
@@ -48,20 +48,22 @@ export default function LicencesPage() {
     )
 
 
-    return (
-        <Layout title="Licences">
-            <div className="flex gap-2 w-full justify-start">
+    const toolbar = (
+        <>
+            <EditLicence />
+            <DeleteLicence />
+            <OptionsButton
+                options={[
+                    {label: 'Export PDF', icon: <Table/>},
+                    {label: 'Export CSV', icon: <FileText/>},
+                    {label: 'Import e-licence', icon: <Upload/>},
+                ]}
+            />
+        </>
+    );
 
-                <EditLicence />
-                <DeleteLicence />
-                <OptionsButton
-                    options={[
-                        {label: 'Export PDF', icon: <Table/>},
-                        {label: 'Export CSV', icon: <FileText/>},
-                        {label: 'Import e-licence', icon: <Upload/>},
-                    ]}
-                />
-            </div>
+    return (
+        <Layout title="Licences" toolbar={toolbar}>
             <LicencesDataTable
                 onEdit={(row: LicenceType) => setLicence(row)}
                 onDelete={(row: LicenceType) => setDeleteLicence(row)}

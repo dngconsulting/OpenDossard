@@ -445,6 +445,17 @@ html {
   .header-sidebar .header-separator {
     background: var(--sidebar-border);
   }
+
+  /* Toolbar area - connected to header */
+  .toolbar-area {
+    background: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dark .toolbar-area {
+    background: #0f172a;
+    border-bottom-color: #334155;
+  }
 }
 
 /* Modern utility classes */
@@ -623,3 +634,4 @@ html {
   background: rgba(68, 114, 196, 0.2);
   color: var(--foreground);
 }
+
