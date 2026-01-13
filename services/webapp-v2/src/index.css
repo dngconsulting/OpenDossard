@@ -422,6 +422,29 @@ html {
       var(--sidebar-bg-end) 100%
     );
   }
+
+  /* Page header - matches sidebar gradient */
+  .header-sidebar {
+    background: linear-gradient(
+      90deg,
+      var(--sidebar-bg-start) 0%,
+      var(--sidebar-bg-mid) 100%
+    );
+    color: var(--sidebar-foreground);
+  }
+
+  .header-sidebar .header-icon {
+    color: var(--sidebar-foreground);
+  }
+
+  .header-sidebar .header-icon:hover {
+    background: var(--sidebar-accent);
+    color: var(--sidebar-accent-foreground);
+  }
+
+  .header-sidebar .header-separator {
+    background: var(--sidebar-border);
+  }
 }
 
 /* Modern utility classes */
