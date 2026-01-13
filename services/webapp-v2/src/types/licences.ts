@@ -17,12 +17,15 @@ export type LicenceType = {
     comment?: string
 }
 
+export type LicenceFilters = Partial<Record<keyof LicenceType, string>>
+
 export type PaginationParams = {
     offset?: number
     limit?: number
     search?: string
     orderBy?: string
     orderDirection?: 'ASC' | 'DESC'
+    filters?: LicenceFilters
 }
 
 export type PaginationMeta = {

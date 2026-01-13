@@ -87,6 +87,8 @@ interface DataTableProps<TData, TValue> {
   onRowReorder?: (reorderedData: TData[]) => void;
   rowIdAccessor?: keyof TData;
   pagination?: PaginationProps;
+  serverFilters?: Record<string, string>;
+  onFilterChange?: (columnId: string, value: string) => void;
 }
 
 interface SortableRowProps<TData> {
@@ -177,14 +179,26 @@ export function DataTable<TData, TValue>({
   onRowReorder,
   rowIdAccessor = 'id' as keyof TData,
   pagination,
-}: DataTableProps<TData, TValue> & { filterKey?: string }) {
+  serverFilters,
+  onFilterChange,
+}: DataTableProps<TData, TValue>) {
+  const isServerFiltering = !!onFilterChange;
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [internalData, setInternalData] = React.useState<TData[]>(data);
+  const [localFilters, setLocalFilters] = React.useState<Record<string, string>>({});
+  const debounceTimers = React.useRef<Record<string, NodeJS.Timeout>>({});
 
   // Sync internal data when external data changes
   React.useEffect(() => {
     setInternalData(data);
   }, [data]);
+
+  // Sync local filters with server filters
+  React.useEffect(() => {
+    if (serverFilters) {
+      setLocalFilters(serverFilters);
+    }
+  }, [serverFilters]);
 
   const tableData = enableDragDrop ? internalData : data;
 
@@ -193,11 +207,26 @@ export function DataTable<TData, TValue>({
     columns,
     getCoreRowModel: getCoreRowModel(),
     onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
+    ...(isServerFiltering ? {} : { getFilteredRowModel: getFilteredRowModel() }),
     state: {
-      columnFilters,
+      columnFilters: isServerFiltering ? [] : columnFilters,
     },
   });
+
+  const handleFilterChange = React.useCallback((columnId: string, value: string) => {
+    setLocalFilters(prev => ({ ...prev, [columnId]: value }));
+
+    if (onFilterChange) {
+      // Clear existing timer for this column
+      if (debounceTimers.current[columnId]) {
+        clearTimeout(debounceTimers.current[columnId]);
+      }
+      // Set new debounced call
+      debounceTimers.current[columnId] = setTimeout(() => {
+        onFilterChange(columnId, value);
+      }, 400);
+    }
+  }, [onFilterChange]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -261,12 +290,19 @@ export function DataTable<TData, TValue>({
           <TableFilterRow key={headerGroup.id}>
             {enableDragDrop && <TableFilterCell className="w-8" />}
             {headerGroup.headers.map(header => {
+              const columnId = header.column.id;
               return (
                 <TableFilterCell key={header.id}>
                   <Input
                     placeholder={header.column.columnDef.header?.toString()}
-                    value={header.column.getFilterValue()?.toString()}
-                    onChange={event => header.column.setFilterValue(event.target.value)}
+                    value={isServerFiltering ? (localFilters[columnId] || '') : (header.column.getFilterValue()?.toString() || '')}
+                    onChange={event => {
+                      if (isServerFiltering) {
+                        handleFilterChange(columnId, event.target.value);
+                      } else {
+                        header.column.setFilterValue(event.target.value);
+                      }
+                    }}
                     className="h-8 text-sm text-left bg-background/80 border-border/50 focus:border-primary/50"
                   />
                 </TableFilterCell>

@@ -70,9 +70,11 @@ export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
     error,
     goToPage,
     setLimit,
+    setFilter,
+    params,
     currentPage,
     totalPages,
-  } = useLicences({ offset: 0, limit: 20 });
+  } = useLicences();
 
   const columns: ColumnDef<LicenceType>[] = [
     {
@@ -150,6 +152,8 @@ export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
       onDeleteRow={onDelete}
       onOpenRow={(row) => navigate(`/palmares/${row.id}`)}
       isLoading={isLoading}
+      serverFilters={params.filters as Record<string, string> || {}}
+      onFilterChange={(columnId, value) => setFilter(columnId as keyof LicenceType, value)}
       pagination={
         data?.meta
           ? {

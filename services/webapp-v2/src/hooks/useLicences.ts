@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
-import { useState, useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 
 import { licencesApi } from '@/api/licences.api'
 import useUserStore from '@/store/UserStore'
-import type { LicenceType, PaginationParams } from '@/types/licences'
+import type { LicenceType, LicenceFilters, PaginationParams } from '@/types/licences'
 
 export const licencesKeys = {
   all: ['licences'] as const,
@@ -11,9 +12,62 @@ export const licencesKeys = {
   detail: (id: string) => ['licences', id] as const,
 }
 
-export function useLicences(initialParams: PaginationParams = { offset: 0, limit: 20 }) {
-  const [params, setParams] = useState<PaginationParams>(initialParams)
+const FILTER_KEYS: (keyof LicenceType)[] = [
+  'id', 'licenceNumber', 'name', 'firstName', 'club', 'gender',
+  'dept', 'birthYear', 'catea', 'catev', 'catevCX', 'fede', 'saison', 'comment'
+]
+
+function parseUrlParams(searchParams: URLSearchParams): PaginationParams {
+  const offset = searchParams.get('offset')
+  const limit = searchParams.get('limit')
+  const search = searchParams.get('search')
+  const orderBy = searchParams.get('orderBy')
+  const orderDirection = searchParams.get('orderDirection') as 'ASC' | 'DESC' | null
+
+  const filters: LicenceFilters = {}
+  FILTER_KEYS.forEach(key => {
+    const value = searchParams.get(key)
+    if (value) filters[key] = value
+  })
+
+  return {
+    offset: offset ? parseInt(offset, 10) : 0,
+    limit: limit ? parseInt(limit, 10) : 20,
+    search: search || undefined,
+    orderBy: orderBy || undefined,
+    orderDirection: orderDirection || undefined,
+    filters: Object.keys(filters).length > 0 ? filters : undefined,
+  }
+}
+
+function buildUrlParams(params: PaginationParams): URLSearchParams {
+  const searchParams = new URLSearchParams()
+
+  if (params.offset && params.offset > 0) searchParams.set('offset', String(params.offset))
+  if (params.limit && params.limit !== 20) searchParams.set('limit', String(params.limit))
+  if (params.search) searchParams.set('search', params.search)
+  if (params.orderBy) searchParams.set('orderBy', params.orderBy)
+  if (params.orderDirection) searchParams.set('orderDirection', params.orderDirection)
+
+  if (params.filters) {
+    Object.entries(params.filters).forEach(([key, value]) => {
+      if (value) searchParams.set(key, value)
+    })
+  }
+
+  return searchParams
+}
+
+export function useLicences() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const isAuthenticated = useUserStore(state => state.isAuthenticated)
+
+  const params = useMemo(() => parseUrlParams(searchParams), [searchParams])
+
+  const updateParams = useCallback((newParams: Partial<PaginationParams>) => {
+    const merged = { ...params, ...newParams }
+    setSearchParams(buildUrlParams(merged), { replace: true })
+  }, [params, setSearchParams])
 
   const query = useQuery({
     queryKey: licencesKeys.list(params),
@@ -22,48 +76,47 @@ export function useLicences(initialParams: PaginationParams = { offset: 0, limit
     enabled: isAuthenticated,
   })
 
-  const setOffset = useCallback((offset: number) => {
-    setParams(prev => ({ ...prev, offset }))
-  }, [])
-
   const setLimit = useCallback((limit: number) => {
-    setParams(prev => ({ ...prev, offset: 0, limit }))
-  }, [])
+    updateParams({ offset: 0, limit })
+  }, [updateParams])
 
   const setSearch = useCallback((search: string) => {
-    setParams(prev => ({ ...prev, offset: 0, search }))
-  }, [])
+    updateParams({ offset: 0, search: search || undefined })
+  }, [updateParams])
 
-  const nextPage = useCallback(() => {
-    if (query.data?.meta.hasMore) {
-      setParams(prev => ({ ...prev, offset: (prev.offset || 0) + (prev.limit || 20) }))
-    }
-  }, [query.data?.meta.hasMore])
+  const setFilters = useCallback((filters: LicenceFilters) => {
+    const cleanFilters = Object.fromEntries(
+      Object.entries(filters).filter(([, v]) => v)
+    ) as LicenceFilters
+    updateParams({ offset: 0, filters: Object.keys(cleanFilters).length > 0 ? cleanFilters : undefined })
+  }, [updateParams])
 
-  const prevPage = useCallback(() => {
-    setParams(prev => ({
-      ...prev,
-      offset: Math.max(0, (prev.offset || 0) - (prev.limit || 20)),
-    }))
-  }, [])
+  const setFilter = useCallback((key: keyof LicenceType, value: string) => {
+    const newFilters = { ...params.filters, [key]: value || undefined }
+    const cleanFilters = Object.fromEntries(
+      Object.entries(newFilters).filter(([, v]) => v)
+    ) as LicenceFilters
+    updateParams({ offset: 0, filters: Object.keys(cleanFilters).length > 0 ? cleanFilters : undefined })
+  }, [params.filters, updateParams])
 
   const goToPage = useCallback((page: number) => {
     const limit = params.limit || 20
-    setParams(prev => ({ ...prev, offset: page * limit }))
-  }, [params.limit])
+    updateParams({ offset: page * limit })
+  }, [params.limit, updateParams])
+
+  const currentPage = Math.floor((params.offset || 0) / (params.limit || 20))
+  const totalPages = query.data ? Math.ceil(query.data.meta.total / (params.limit || 20)) : 0
 
   return {
     ...query,
     params,
-    setParams,
-    setOffset,
     setLimit,
     setSearch,
-    nextPage,
-    prevPage,
+    setFilters,
+    setFilter,
     goToPage,
-    currentPage: Math.floor((params.offset || 0) / (params.limit || 20)),
-    totalPages: query.data ? Math.ceil(query.data.meta.total / (params.limit || 20)) : 0,
+    currentPage,
+    totalPages,
   }
 }
 
