@@ -241,4 +241,4 @@ export const FIELD_HELPER_TEXTS = {
 /**
  * Vérifie si une fédération est "Non Licencié"
  */
-export const isNonLicencie = (fede: string) => fede === FedeEnum.NL;
+export const isNonLicencie = (fede: string | undefined) => fede === FedeEnum.NL;

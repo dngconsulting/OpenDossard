@@ -9,11 +9,12 @@ import { useLicence } from '@/hooks/useLicences';
 export default function LicenceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const isCreating = !id;
   const licenceId = id ? parseInt(id, 10) : undefined;
   const { data: licence, isLoading } = useLicence(licenceId);
 
   const toolbar = (
-    <Button variant="outline" onClick={() => navigate(-1)}>
+    <Button variant="outline" onClick={() => navigate('/licences')}>
       <ArrowLeft /> Retour
     </Button>
   );
@@ -34,17 +35,22 @@ export default function LicenceDetailPage() {
     </span>
   );
 
-  if (isLoading) {
+  const pageTitle = isCreating ? 'Nouvelle licence' : "Détail d'une licence";
+
+  if (!isCreating && isLoading) {
     return (
-      <Layout title="Détail d'une licence" toolbar={toolbar}>
+      <Layout title={pageTitle} toolbar={toolbar}>
         <div className="flex items-center justify-center p-8">Chargement...</div>
       </Layout>
     );
   }
 
   return (
-    <Layout title="Détail d'une licence" toolbar={toolbar} toolbarLeft={toolbarLeft}>
-      <LicencesForm updatingLicence={licence} />
+    <Layout title={pageTitle} toolbar={toolbar} toolbarLeft={toolbarLeft}>
+      <LicencesForm
+        updatingLicence={licence}
+        onSuccess={() => navigate('/licences')}
+      />
     </Layout>
   );
 }

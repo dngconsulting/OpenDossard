@@ -61,6 +61,7 @@ export default function App() {
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/challenges" element={<ChallengesPage />} />
                 <Route path="/licences" element={<LicencesPage />} />
+                <Route path="/licence/new" element={<LicenceDetailPage />} />
                 <Route path="/licence/:id" element={<LicenceDetailPage />} />
                 <Route path="/races" element={<RacesPage />} />
                 <Route path="/achievements" element={<AchievementsPage />} />

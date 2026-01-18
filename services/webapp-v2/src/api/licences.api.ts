@@ -30,7 +30,7 @@ export type CreateLicenceDto = {
   catea: string;
   catev?: string;
   catevCX?: string;
-  saison: string;
+  saison?: string;
   comment?: string;
 };
 

@@ -34,6 +34,7 @@ import { computeAgeCategory } from '@/utils/licence.ts';
 
 type Props = {
   updatingLicence?: LicenceType;
+  onSuccess?: () => void;
 };
 
 const currentYear = new Date().getFullYear();
@@ -44,7 +45,7 @@ const formSchema = z.object({
   firstName: z.string().min(1, 'Le prénom est requis'),
   club: z.string().optional(),
   gender: z.enum(['H', 'F'], { message: 'Le genre est requis' }),
-  dept: z.string().min(1, 'Le département est requis'),
+  dept: z.string().optional(),
   birthYear: z
     .string()
     .min(4, "L'année de naissance est requise")
@@ -56,17 +57,17 @@ const formSchema = z.object({
       },
       { message: `L'année doit être entre ${currentYear - 130} et ${currentYear - 4}` }
     ),
-  catea: z.string().min(1, "La catégorie d'âge est requise"),
-  catev: z.string().min(1, 'La catégorie de valeur est requise'),
+  catea: z.string().optional(),
+  catev: z.string().optional(),
   catevCX: z.string().optional(),
-  fede: z.string().min(1, 'La fédération est requise'),
-  saison: z.string().min(1, 'La saison est requise'),
+  fede: z.string().optional(),
+  saison: z.string().optional(),
   comment: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-export const LicencesForm = ({ updatingLicence }: Props) => {
+export const LicencesForm = ({ updatingLicence, onSuccess }: Props) => {
   const navigate = useNavigate();
   const { data: departments, isLoading: isLoadingDepartments } = useDepartments();
   const createLicence = useCreateLicence();
@@ -100,7 +101,12 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
   const saison = licenceForm.watch('saison');
   const selectedDepartment = licenceForm.watch('dept');
 
+  // Conditional display flags (v1 rules)
+  const hasFede = !!fede;
   const isNL = isNonLicencie(fede);
+  const showLicenceFields = hasFede && !isNL; // Licence number, Season
+  const showCategorySection = hasFede; // Categories section
+  const showDeptAndClub = hasFede; // Department (and Club if not NL)
 
   const departmentOptions = useMemo(
     () =>
@@ -157,14 +163,16 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
     previousFedeRef.current = fede;
   }, [fede, licenceForm]);
 
-  // Reset catea quand le genre change
+  // Reset catea, catev, catevCX quand le genre change
+  const previousGenderRef = useRef(gender);
   useEffect(() => {
-    if (gender && !updatingLicence) {
+    if (previousGenderRef.current !== gender && previousGenderRef.current !== undefined) {
       licenceForm.setValue('catea', '');
       licenceForm.setValue('catev', '');
       licenceForm.setValue('catevCX', '');
     }
-  }, [gender, updatingLicence, licenceForm]);
+    previousGenderRef.current = gender;
+  }, [gender, licenceForm]);
 
   // Auto-calcul de la catégorie d'âge
   useEffect(() => {
@@ -175,6 +183,34 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
   }, [gender, birthYear, saison, licenceForm]);
 
   const onSubmit = async (data: FormValues) => {
+    // Validation supplémentaire selon les règles v1
+    if (!data.fede) {
+      showErrorToast('Validation', 'La fédération est requise');
+      return;
+    }
+    if (!data.dept) {
+      showErrorToast('Validation', 'Le département est requis');
+      return;
+    }
+    if (!data.catea) {
+      showErrorToast('Validation', "La catégorie d'âge est requise");
+      return;
+    }
+    if (!data.catev) {
+      showErrorToast('Validation', 'La catégorie de valeur est requise');
+      return;
+    }
+    if (!isNonLicencie(data.fede)) {
+      if (!data.saison || data.saison.length !== 4) {
+        showErrorToast('Validation', 'La saison est requise (format YYYY)');
+        return;
+      }
+      if (!data.club) {
+        showErrorToast('Validation', 'Le club est requis');
+        return;
+      }
+    }
+
     try {
       const licenceData = {
         name: data.name,
@@ -188,7 +224,7 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
         catea: data.catea,
         catev: data.catev || undefined,
         catevCX: data.catevCX || undefined,
-        saison: data.saison,
+        saison: data.saison || undefined,
         comment: data.comment || undefined,
       };
 
@@ -198,10 +234,14 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
           updates: licenceData,
         });
         showSuccessToast('Licence mise à jour', `${data.firstName} ${data.name}`);
+        onSuccess?.();
       } else {
         await createLicence.mutateAsync(licenceData);
         showSuccessToast('Licence créée', `${data.firstName} ${data.name}`);
-        navigate('/licences');
+        onSuccess?.();
+        if (!onSuccess) {
+          navigate('/licences');
+        }
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erreur inconnue';
@@ -212,7 +252,7 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
   return (
     <Form {...licenceForm}>
       <form onSubmit={licenceForm.handleSubmit(onSubmit)} className="space-y-6 max-w-4xl">
-        {/* 1) Fédération, Numéro de licence, Saison */}
+        {/* 1) Fédération - toujours visible en premier */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
           <SelectField
             form={licenceForm}
@@ -221,12 +261,14 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
             options={FEDERATION_OPTIONS}
             required
           />
-          {!isNL && (
+          {/* Numéro de licence et Saison - visible si fede && fede !== NL */}
+          {showLicenceFields && (
             <>
               <StringField
                 field="licenceNumber"
                 form={licenceForm}
                 label="Numéro de licence"
+                required
               />
               <StringField
                 field="saison"
@@ -239,7 +281,7 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
           )}
         </div>
 
-        {/* 2) Nom, Prénom */}
+        {/* 2) Nom, Prénom - toujours visible */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
           <StringField
             field="name"
@@ -257,7 +299,7 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
           />
         </div>
 
-        {/* 3) Genre, Année de naissance */}
+        {/* 3) Genre, Année de naissance - toujours visible */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
           <SelectField
             form={licenceForm}
@@ -279,7 +321,7 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
         </div>
 
         {/* 4) Capsule Catégories - visible uniquement si fédération sélectionnée */}
-        {fede && (
+        {showCategorySection && (
           <Card className="bg-muted/30 border-muted">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
@@ -321,37 +363,41 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
           </Card>
         )}
 
-        {/* 5) Département, Club */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-          <ComboboxField
-            form={licenceForm}
-            field="dept"
-            label="Département"
-            options={departmentOptions}
-            isLoading={isLoadingDepartments}
-            description={FIELD_HELPER_TEXTS.dept}
-            required
-          />
-          {!isNL && (
-            <Controller
-              control={licenceForm.control}
-              name="club"
-              render={({ field, fieldState }) => (
-                <ClubAutocomplete
-                  value={field.value ?? ''}
-                  onChange={field.onChange}
-                  fede={fede}
-                  department={selectedDepartment}
-                  disabled={!fede || !selectedDepartment}
-                  error={fieldState.error?.message}
-                  description={clubHelperText}
-                />
-              )}
+        {/* 5) Département, Club - visible si fédération sélectionnée */}
+        {showDeptAndClub && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+            <ComboboxField
+              form={licenceForm}
+              field="dept"
+              label="Département"
+              options={departmentOptions}
+              isLoading={isLoadingDepartments}
+              description={FIELD_HELPER_TEXTS.dept}
+              required
             />
-          )}
-        </div>
+            {/* Club - visible si dept && fede && fede !== NL */}
+            {selectedDepartment && !isNL && (
+              <Controller
+                control={licenceForm.control}
+                name="club"
+                render={({ field, fieldState }) => (
+                  <ClubAutocomplete
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    fede={fede}
+                    department={selectedDepartment}
+                    disabled={!fede || !selectedDepartment}
+                    error={fieldState.error?.message}
+                    description={clubHelperText}
+                    required
+                  />
+                )}
+              />
+            )}
+          </div>
+        )}
 
-        {/* 6) Commentaire pleine largeur */}
+        {/* 6) Commentaire pleine largeur - toujours visible */}
         <Field>
           <FieldLabel htmlFor="comment">Commentaires</FieldLabel>
           <Textarea
@@ -363,7 +409,7 @@ export const LicencesForm = ({ updatingLicence }: Props) => {
           <FieldDescription>Informations complémentaires sur le licencié</FieldDescription>
         </Field>
 
-        {/* Informations de dernière modification */}
+        {/* Informations de dernière modification - mode édition uniquement */}
         {updatingLicence?.lastChanged && updatingLicence?.author && (
           <div className="text-sm text-muted-foreground border-t pt-4">
             Dernière modification le{' '}

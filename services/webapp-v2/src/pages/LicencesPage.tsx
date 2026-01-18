@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { LicencesDataTable } from '@/components/data/LicencesTable.tsx';
-import { LicencesForm } from '@/components/forms/LicencesForm.tsx';
 import { useExportLicencesCSV } from '@/hooks/useExportLicencesCSV';
 import { useExportLicencesPDF } from '@/hooks/useExportLicencesPDF';
 import { useLicences } from '@/hooks/useLicences';
@@ -16,7 +15,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   DropdownMenu,
@@ -24,37 +22,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { FieldSeparator } from '@/components/ui/field.tsx';
 import type { LicenceType } from '@/types/licences.ts';
 
 export default function LicencesPage() {
   const navigate = useNavigate();
-  const [isAddingLicence, setIsAddingLicence] = useState(false);
   const [deleteLicence, setDeleteLicence] = useState<LicenceType | undefined>(undefined);
   const { data, params } = useLicences();
   const totalLicences = data?.meta?.total ?? 0;
   const { exportPDF, isExporting: isExportingPDF } = useExportLicencesPDF(params, totalLicences);
   const { exportCSV, isExporting: isExportingCSV } = useExportLicencesCSV(params, totalLicences);
-
-  const AddLicence = () => (
-    <Dialog open={isAddingLicence} onOpenChange={setIsAddingLicence}>
-      <DialogTrigger asChild>
-        <Button variant="success">
-          <Plus /> Ajouter une licence
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-h-[90%] overflow-y-scroll sm:max-w-[calc(100%-2rem)] lg:max-w-[900px]">
-        <DialogHeader>
-          <DialogTitle>Nouvelle licence</DialogTitle>
-          <DialogDescription>
-            Créer une nouvelle licence OpenDossard
-          </DialogDescription>
-        </DialogHeader>
-        <FieldSeparator />
-        <LicencesForm />
-      </DialogContent>
-    </Dialog>
-  );
 
   const DeleteLicence = () => (
     <Dialog
@@ -83,7 +59,9 @@ export default function LicencesPage() {
 
   const toolbar = (
     <>
-      <AddLicence />
+      <Button variant="success" onClick={() => navigate('/licence/new')}>
+        <Plus /> Ajouter une licence
+      </Button>
       <DeleteLicence />
       {/* Desktop: boutons visibles */}
       <Button
