@@ -21,12 +21,12 @@ import { CSS } from '@dnd-kit/utilities';
 import {
   type ColumnDef,
   type ColumnFiltersState,
+  type ColumnResizeMode,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   type Row,
   useReactTable,
-  type ColumnResizeMode,
 } from '@tanstack/react-table';
 import {
   ArrowDown,
@@ -144,34 +144,8 @@ function SortableRow<TData>({
           </Button>
         </TableCell>
       )}
-      {row.getVisibleCells().map(cell => {
-        return (
-          <TableCell
-            key={cell.id}
-            style={{ width: cell.column.getSize() }}
-          >
-            <div className="truncate">
-              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-            </div>
-          </TableCell>
-        );
-      })}
-      {onEditRow && (
-        <TableCell className="w-8">
-          <Button variant="outline" size="icon-sm" onClick={() => onEditRow(row.original)}>
-            <Edit2 />
-          </Button>
-        </TableCell>
-      )}
-      {onDeleteRow && (
-        <TableCell className="w-8">
-          <Button variant="outline" size="icon-sm" onClick={() => onDeleteRow(row.original)}>
-            <Trash2 />
-          </Button>
-        </TableCell>
-      )}
       {onOpenRow && (
-        <TableCell className="w-8">
+        <TableCell style={{ width: 40 }}>
           <Button
             variant="outline"
             size="icon-sm"
@@ -182,6 +156,33 @@ function SortableRow<TData>({
           </Button>
         </TableCell>
       )}
+      {onEditRow && (
+        <TableCell style={{ width: 40 }}>
+          <Button variant="outline" size="icon-sm" onClick={() => onEditRow(row.original)}>
+            <Edit2 />
+          </Button>
+        </TableCell>
+      )}
+      {onDeleteRow && (
+        <TableCell style={{ width: 56, paddingRight: 16 }}>
+          <Button variant="outline" size="icon-sm" onClick={() => onDeleteRow(row.original)}>
+            <Trash2 />
+          </Button>
+        </TableCell>
+      )}
+      {row.getVisibleCells().map(cell => {
+        const hasFixedSize = cell.column.columnDef.size !== undefined;
+        return (
+          <TableCell
+            key={cell.id}
+            style={hasFixedSize ? { width: cell.column.getSize() } : undefined}
+          >
+            <div className="truncate">
+              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            </div>
+          </TableCell>
+        );
+      })}
     </TableRow>
   );
 }
@@ -247,7 +248,7 @@ export function DataTable<TData, TValue>({
         // Set new debounced call
         debounceTimers.current[columnId] = setTimeout(() => {
           onFilterChange(columnId, value);
-        }, 400);
+        }, 500);
       }
     },
     [onFilterChange]
@@ -323,17 +324,21 @@ export function DataTable<TData, TValue>({
         {table.getHeaderGroups().map(headerGroup => (
           <TableRow key={headerGroup.id}>
             {enableDragDrop && <TableHead className="w-8" />}
+            {onOpenRow && <TableHead style={{ width: 40 }} />}
+            {onEditRow && <TableHead style={{ width: 40 }} />}
+            {onDeleteRow && <TableHead style={{ width: 56, paddingRight: 16 }} />}
             {headerGroup.headers.map(header => {
               const columnId = header.column.id;
               const isSortable = sorting?.onSortChange && !header.isPlaceholder;
+              const hasFixedSize = header.column.columnDef.size !== undefined;
               return (
                 <TableHead
                   key={header.id}
                   className={`relative group ${isSortable ? 'cursor-pointer select-none hover:bg-primary/20' : ''}`}
-                  style={{ width: header.getSize() }}
+                  style={hasFixedSize ? { width: header.getSize() } : undefined}
                   onClick={isSortable ? () => handleSortChange(columnId) : undefined}
                 >
-                  <div className="flex items-center pr-2">
+                  <div className="flex items-center pr-1">
                     <span className="truncate">
                       {header.isPlaceholder
                         ? null
@@ -351,9 +356,6 @@ export function DataTable<TData, TValue>({
                 </TableHead>
               );
             })}
-            {onEditRow && <TableHead />}
-            {onDeleteRow && <TableHead />}
-            {onOpenRow && <TableHead />}
           </TableRow>
         ))}
       </TableHeader>
@@ -361,12 +363,16 @@ export function DataTable<TData, TValue>({
         {table.getHeaderGroups().map(headerGroup => (
           <TableFilterRow key={headerGroup.id}>
             {enableDragDrop && <TableFilterCell className="w-8" />}
+            {onOpenRow && <TableFilterCell style={{ width: 40 }} />}
+            {onEditRow && <TableFilterCell style={{ width: 40 }} />}
+            {onDeleteRow && <TableFilterCell style={{ width: 56, paddingRight: 16 }} />}
             {headerGroup.headers.map(header => {
               const columnId = header.column.id;
+              const hasFixedSize = header.column.columnDef.size !== undefined;
               return (
                 <TableFilterCell
                   key={header.id}
-                  style={{ width: header.getSize() }}
+                  style={hasFixedSize ? { width: header.getSize() } : undefined}
                 >
                   <Input
                     placeholder={columnId === 'club' ? 'Ex: Castan\u00e9en' : ''}
@@ -387,9 +393,6 @@ export function DataTable<TData, TValue>({
                 </TableFilterCell>
               );
             })}
-            {onEditRow && <TableFilterCell className="w-8" />}
-            {onDeleteRow && <TableFilterCell className="w-8" />}
-            {onOpenRow && <TableFilterCell className="w-8" />}
           </TableFilterRow>
         ))}
       </TableFilter>
@@ -414,7 +417,7 @@ export function DataTable<TData, TValue>({
               colSpan={columns.length + (enableDragDrop ? 1 : 0)}
               className="h-24 text-center"
             >
-              {isLoading ? 'Loading...' : 'No Results.'}
+              {isLoading ? 'Chargement...' : 'Aucun résultat'}
             </TableCell>
           </TableRow>
         )}

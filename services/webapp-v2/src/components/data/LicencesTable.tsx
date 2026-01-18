@@ -12,7 +12,7 @@ function TableSkeleton() {
     <div className="overflow-hidden rounded-md border shadow-xs">
       {/* Header */}
       <div className="bg-primary/10 border-b">
-        <div className="flex h-10 items-center gap-2 px-2">
+        <div className="flex h-8 items-center gap-1 px-1">
           {Array.from({ length: 14 }).map((_, i) => (
             <Skeleton key={i} className="h-4 flex-1" />
           ))}
@@ -20,37 +20,37 @@ function TableSkeleton() {
       </div>
       {/* Filter row */}
       <div className="bg-muted/30 border-b">
-        <div className="flex items-center gap-2 px-2 py-1.5">
+        <div className="flex items-center gap-1 px-1 py-1">
           {Array.from({ length: 14 }).map((_, i) => (
-            <Skeleton key={i} className="h-8 flex-1" />
+            <Skeleton key={i} className="h-7 flex-1" />
           ))}
         </div>
       </div>
       {/* Body rows */}
       {Array.from({ length: 10 }).map((_, rowIndex) => (
-        <div key={rowIndex} className="flex items-center gap-2 border-b px-2 py-3">
+        <div key={rowIndex} className="flex items-center gap-1 border-b px-1 py-1">
           {Array.from({ length: 14 }).map((_, colIndex) => (
             <Skeleton key={colIndex} className="h-4 flex-1" />
           ))}
           {/* Action buttons */}
-          <Skeleton className="h-8 w-8" />
-          <Skeleton className="h-8 w-8" />
-          <Skeleton className="h-8 w-8" />
+          <Skeleton className="h-7 w-7" />
+          <Skeleton className="h-7 w-7" />
+          <Skeleton className="h-7 w-7" />
         </div>
       ))}
       {/* Pagination */}
-      <div className="flex items-center justify-between px-4 py-3 border-t">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between px-2 py-2 border-t">
+        <div className="flex items-center gap-1">
           <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-8 w-16" />
+          <Skeleton className="h-7 w-16" />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <Skeleton className="h-4 w-20" />
-          <Skeleton className="h-8 w-8" />
-          <Skeleton className="h-8 w-8" />
+          <Skeleton className="h-7 w-7" />
+          <Skeleton className="h-7 w-7" />
           <Skeleton className="h-4 w-16" />
-          <Skeleton className="h-8 w-8" />
-          <Skeleton className="h-8 w-8" />
+          <Skeleton className="h-7 w-7" />
+          <Skeleton className="h-7 w-7" />
         </div>
       </div>
     </div>
@@ -81,61 +81,72 @@ export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
     {
       accessorKey: 'id',
       header: 'ID',
+      size: 70,
     },
     {
       accessorKey: 'licenceNumber',
       header: 'Lic. N°',
+      size: 90,
     },
     {
       accessorKey: 'name',
       header: 'Nom',
+      size: 90,
     },
     {
       accessorKey: 'firstName',
       header: 'Prénom',
+      size: 90,
     },
     {
       accessorKey: 'club',
       header: 'Club',
+      size: 200,
     },
     {
       accessorKey: 'gender',
-      header: 'H/F',
+      header: 'G',
+      size: 50,
     },
     {
       accessorKey: 'dept',
       header: 'Dept',
+      size: 80,
     },
     {
       accessorKey: 'birthYear',
       header: 'Année',
+      size: 90,
     },
     {
       accessorKey: 'catea',
       header: 'Caté.A',
-      size: 60,
+      size: 90,
     },
     {
       accessorKey: 'catev',
       header: 'Caté.V',
-      size: 60,
+      size: 90,
     },
     {
       accessorKey: 'catevCX',
-      header: 'Caté.CX',
-      size: 70,
+      header: 'CX',
+      size: 90,
     },
     {
       accessorKey: 'fede',
       header: 'Fédé',
+      size: 90,
     },
     {
       accessorKey: 'saison',
       header: 'Saison',
+      size: 90,
     },
     {
       accessorKey: 'comment',
       header: 'Com.',
+      size: 90,
       cell: ({ row }) => (row.original.comment ? 'O' : 'N'),
     },
   ];
