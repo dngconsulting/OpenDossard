@@ -12,6 +12,7 @@ import AccountPage from '@/pages/AccountPage.tsx';
 import AchievementsPage from '@/pages/AchievementsPage.tsx';
 import ChallengesPage from '@/pages/ChallengesPage.tsx';
 import DashboardPage from '@/pages/DashboardPage.tsx';
+import LicenceDetailPage from '@/pages/LicenceDetailPage.tsx';
 import LicencesPage from '@/pages/LicencesPage.tsx';
 import LoginPage from '@/pages/LoginPage.tsx';
 import NotFoundPage from '@/pages/NotFoundPage.tsx';
@@ -60,6 +61,7 @@ export default function App() {
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/challenges" element={<ChallengesPage />} />
                 <Route path="/licences" element={<LicencesPage />} />
+                <Route path="/licence/:id" element={<LicenceDetailPage />} />
                 <Route path="/races" element={<RacesPage />} />
                 <Route path="/achievements" element={<AchievementsPage />} />
                 <Route path="/palmares/:licenceId?" element={<PalmaresPage />} />
