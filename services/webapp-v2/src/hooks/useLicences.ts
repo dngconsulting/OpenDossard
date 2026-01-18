@@ -140,6 +140,13 @@ export function useLicences() {
     [params.limit, updateParams]
   );
 
+  const setSort = useCallback(
+    (column: string, direction: 'ASC' | 'DESC') => {
+      updateParams({ orderBy: column, orderDirection: direction });
+    },
+    [updateParams]
+  );
+
   const currentPage = Math.floor((params.offset || 0) / (params.limit || 20));
   const totalPages = query.data ? Math.ceil(query.data.meta.total / (params.limit || 20)) : 0;
 
@@ -150,6 +157,7 @@ export function useLicences() {
     setSearch,
     setFilters,
     setFilter,
+    setSort,
     goToPage,
     currentPage,
     totalPages,

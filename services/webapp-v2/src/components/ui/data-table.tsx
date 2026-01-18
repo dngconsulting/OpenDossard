@@ -26,8 +26,12 @@ import {
   getFilteredRowModel,
   type Row,
   useReactTable,
+  type ColumnResizeMode,
 } from '@tanstack/react-table';
 import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -76,6 +80,12 @@ interface NoPaginationProps {
 
 type PaginationProps = ServerPaginationProps | NoPaginationProps;
 
+interface SortingProps {
+  sortColumn?: string;
+  sortDirection?: 'ASC' | 'DESC';
+  onSortChange?: (column: string, direction: 'ASC' | 'DESC') => void;
+}
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -89,6 +99,7 @@ interface DataTableProps<TData, TValue> {
   pagination?: PaginationProps;
   serverFilters?: Record<string, string>;
   onFilterChange?: (columnId: string, value: string) => void;
+  sorting?: SortingProps;
 }
 
 interface SortableRowProps<TData> {
@@ -133,11 +144,18 @@ function SortableRow<TData>({
           </Button>
         </TableCell>
       )}
-      {row.getVisibleCells().map(cell => (
-        <TableCell key={cell.id}>
-          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-        </TableCell>
-      ))}
+      {row.getVisibleCells().map(cell => {
+        return (
+          <TableCell
+            key={cell.id}
+            style={{ width: cell.column.getSize() }}
+          >
+            <div className="truncate">
+              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            </div>
+          </TableCell>
+        );
+      })}
       {onEditRow && (
         <TableCell className="w-8">
           <Button variant="outline" size="icon-sm" onClick={() => onEditRow(row.original)}>
@@ -181,6 +199,7 @@ export function DataTable<TData, TValue>({
   pagination,
   serverFilters,
   onFilterChange,
+  sorting,
 }: DataTableProps<TData, TValue>) {
   const isServerFiltering = !!onFilterChange;
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -201,6 +220,7 @@ export function DataTable<TData, TValue>({
   }, [serverFilters]);
 
   const tableData = enableDragDrop ? internalData : data;
+  const columnResizeMode: ColumnResizeMode = 'onChange';
 
   const table = useReactTable({
     data: tableData,
@@ -211,6 +231,8 @@ export function DataTable<TData, TValue>({
     state: {
       columnFilters: isServerFiltering ? [] : columnFilters,
     },
+    columnResizeMode,
+    enableColumnResizing: true,
   });
 
   const handleFilterChange = React.useCallback(
@@ -230,6 +252,34 @@ export function DataTable<TData, TValue>({
     },
     [onFilterChange]
   );
+
+  const handleSortChange = React.useCallback(
+    (columnId: string) => {
+      if (!sorting?.onSortChange) return;
+
+      // Toggle direction: none -> ASC -> DESC -> ASC
+      if (sorting.sortColumn === columnId) {
+        const newDirection = sorting.sortDirection === 'ASC' ? 'DESC' : 'ASC';
+        sorting.onSortChange(columnId, newDirection);
+      } else {
+        sorting.onSortChange(columnId, 'ASC');
+      }
+    },
+    [sorting]
+  );
+
+  const getSortIcon = (columnId: string) => {
+    if (!sorting?.onSortChange) return null;
+
+    if (sorting.sortColumn === columnId) {
+      return sorting.sortDirection === 'ASC' ? (
+        <ArrowUp className="ml-1 h-4 w-4" />
+      ) : (
+        <ArrowDown className="ml-1 h-4 w-4" />
+      );
+    }
+    return <ArrowUpDown className="ml-1 h-4 w-4 opacity-30" />;
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -274,11 +324,30 @@ export function DataTable<TData, TValue>({
           <TableRow key={headerGroup.id}>
             {enableDragDrop && <TableHead className="w-8" />}
             {headerGroup.headers.map(header => {
+              const columnId = header.column.id;
+              const isSortable = sorting?.onSortChange && !header.isPlaceholder;
               return (
-                <TableHead key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
+                <TableHead
+                  key={header.id}
+                  className={`relative group ${isSortable ? 'cursor-pointer select-none hover:bg-primary/20' : ''}`}
+                  style={{ width: header.getSize() }}
+                  onClick={isSortable ? () => handleSortChange(columnId) : undefined}
+                >
+                  <div className="flex items-center pr-2">
+                    <span className="truncate">
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </span>
+                    {isSortable && getSortIcon(columnId)}
+                  </div>
+                  <div
+                    onMouseDown={header.getResizeHandler()}
+                    onTouchStart={header.getResizeHandler()}
+                    onClick={e => e.stopPropagation()}
+                    className={`absolute right-0 top-0 h-full w-2 cursor-col-resize select-none touch-none
+                      ${header.column.getIsResizing() ? 'bg-primary' : 'bg-transparent group-hover:bg-border'}`}
+                  />
                 </TableHead>
               );
             })}
@@ -295,9 +364,12 @@ export function DataTable<TData, TValue>({
             {headerGroup.headers.map(header => {
               const columnId = header.column.id;
               return (
-                <TableFilterCell key={header.id}>
+                <TableFilterCell
+                  key={header.id}
+                  style={{ width: header.getSize() }}
+                >
                   <Input
-                    placeholder={columnId === 'club' ? 'Ex: Castanéen' : ''}
+                    placeholder={columnId === 'club' ? 'Ex: Castan\u00e9en' : ''}
                     value={
                       isServerFiltering
                         ? localFilters[columnId] || ''

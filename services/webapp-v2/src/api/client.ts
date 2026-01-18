@@ -53,10 +53,13 @@ export async function apiClient<T>(endpoint: string, options?: RequestInit): Pro
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
+    // Pass the message as-is (can be string or array from NestJS validation)
+    // Also include error field if message is not available
+    const serverMessage = errorBody.message || errorBody.error || response.statusText;
     throw new ApiError({
       status: response.status,
       endpoint: fullEndpoint,
-      serverMessage: errorBody.message || response.statusText,
+      serverMessage,
       stack: new Error().stack,
     });
   }

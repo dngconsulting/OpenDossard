@@ -48,10 +48,21 @@ export const mockLicencesService = {
     }
 
     // Apply sorting
+    const numericFields = ['id'];
     filtered.sort((a, b) => {
-      const aVal = String(a[orderBy as keyof LicenceType] || '').toLowerCase();
-      const bVal = String(b[orderBy as keyof LicenceType] || '').toLowerCase();
-      const comparison = aVal.localeCompare(bVal);
+      const aVal = a[orderBy as keyof LicenceType];
+      const bVal = b[orderBy as keyof LicenceType];
+
+      let comparison: number;
+      if (numericFields.includes(orderBy)) {
+        // Numeric sort
+        comparison = (Number(aVal) || 0) - (Number(bVal) || 0);
+      } else {
+        // Alphanumeric sort
+        comparison = String(aVal || '')
+          .toLowerCase()
+          .localeCompare(String(bVal || '').toLowerCase());
+      }
       return orderDirection === 'ASC' ? comparison : -comparison;
     });
 

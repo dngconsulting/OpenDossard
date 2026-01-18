@@ -1,8 +1,10 @@
-import { FileSpreadsheet, FileText, MoreHorizontal, Plus, Upload } from 'lucide-react';
+import { FileSpreadsheet, FileText, Loader2, MoreHorizontal, Plus, Upload } from 'lucide-react';
 import { useState } from 'react';
 
 import { LicencesDataTable } from '@/components/data/LicencesTable.tsx';
 import { LicencesForm } from '@/components/forms/LicencesForm.tsx';
+import { useExportLicencesCSV } from '@/hooks/useExportLicencesCSV';
+import { useExportLicencesPDF } from '@/hooks/useExportLicencesPDF';
 import { useLicences } from '@/hooks/useLicences';
 import Layout from '@/components/layout/Layout.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -27,8 +29,10 @@ import type { LicenceType } from '@/types/licences.ts';
 export default function LicencesPage() {
   const [licence, setLicence] = useState<LicenceType | undefined>(undefined);
   const [deleteLicence, setDeleteLicence] = useState<LicenceType | undefined>(undefined);
-  const { data } = useLicences();
+  const { data, params } = useLicences();
   const totalLicences = data?.meta?.total ?? 0;
+  const { exportPDF, isExporting: isExportingPDF } = useExportLicencesPDF(params, totalLicences);
+  const { exportCSV, isExporting: isExportingCSV } = useExportLicencesCSV(params, totalLicences);
   const EditLicence = () => (
     <Dialog open={!!licence} onOpenChange={(open: boolean) => !open && setLicence(undefined)}>
       <DialogTrigger asChild>
@@ -79,11 +83,23 @@ export default function LicencesPage() {
       <EditLicence />
       <DeleteLicence />
       {/* Desktop: boutons visibles */}
-      <Button variant="action" className="hidden md:flex">
-        <FileText /> Export PDF
+      <Button
+        variant="action"
+        className="hidden md:flex"
+        onClick={exportPDF}
+        disabled={isExportingPDF}
+      >
+        {isExportingPDF ? <Loader2 className="animate-spin" /> : <FileText />}
+        Export PDF
       </Button>
-      <Button variant="action" className="hidden md:flex">
-        <FileSpreadsheet /> Export CSV
+      <Button
+        variant="action"
+        className="hidden md:flex"
+        onClick={exportCSV}
+        disabled={isExportingCSV}
+      >
+        {isExportingCSV ? <Loader2 className="animate-spin" /> : <FileSpreadsheet />}
+        Export CSV
       </Button>
       <Button variant="action" className="hidden md:flex">
         <Upload /> Import e-licence
@@ -96,11 +112,21 @@ export default function LicencesPage() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem>
-            <FileText className="mr-2 h-4 w-4" /> Export PDF
+          <DropdownMenuItem onClick={exportPDF} disabled={isExportingPDF}>
+            {isExportingPDF ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <FileText className="mr-2 h-4 w-4" />
+            )}
+            Export PDF
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <FileSpreadsheet className="mr-2 h-4 w-4" /> Export CSV
+          <DropdownMenuItem onClick={exportCSV} disabled={isExportingCSV}>
+            {isExportingCSV ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
+            )}
+            Export CSV
           </DropdownMenuItem>
           <DropdownMenuItem>
             <Upload className="mr-2 h-4 w-4" /> Import e-licence
