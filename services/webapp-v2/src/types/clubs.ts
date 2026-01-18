@@ -1,5 +1,8 @@
 export type ClubType = {
-  id: string;
-  name: string;
-  department: string;
+  id: number;
+  shortName: string | null;
+  longName: string;
+  dept: string | null;
+  elicenceName: string | null;
+  fede: string | null;
 };

@@ -9,7 +9,8 @@ import { useLicence } from '@/hooks/useLicences';
 export default function LicenceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data: licence, isLoading } = useLicence(id || '');
+  const licenceId = id ? parseInt(id, 10) : undefined;
+  const { data: licence, isLoading } = useLicence(licenceId);
 
   const toolbar = (
     <Button variant="outline" onClick={() => navigate(-1)}>

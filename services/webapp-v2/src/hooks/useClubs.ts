@@ -5,8 +5,7 @@ import type { ClubType } from '@/types/clubs';
 
 export const clubsKeys = {
   all: ['clubs'] as const,
-  byDepartment: (department: string) => ['clubs', 'department', department] as const,
-  search: (query: string) => ['clubs', 'search', query] as const,
+  byFedeAndDept: (fede: string, dept: string) => ['clubs', 'fede', fede, 'dept', dept] as const,
   detail: (id: string) => ['clubs', id] as const,
 };
 
@@ -17,19 +16,12 @@ export function useClubs() {
   });
 }
 
-export function useClubsByDepartment(department: string) {
+// V1 style: fetch clubs by fede AND dept
+export function useClubsByFedeAndDept(fede: string, dept: string) {
   return useQuery({
-    queryKey: clubsKeys.byDepartment(department),
-    queryFn: () => clubsApi.getByDepartment(department),
-    enabled: !!department,
-  });
-}
-
-export function useSearchClubs(query: string) {
-  return useQuery({
-    queryKey: clubsKeys.search(query),
-    queryFn: () => clubsApi.search(query),
-    enabled: query.length > 0,
+    queryKey: clubsKeys.byFedeAndDept(fede, dept),
+    queryFn: () => clubsApi.getByFedeAndDept(fede, dept),
+    enabled: !!fede && !!dept,
   });
 }
 
@@ -40,8 +32,10 @@ export function useCreateClub() {
     mutationFn: (club: Omit<ClubType, 'id'>) => clubsApi.create(club),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: clubsKeys.all });
-      if (variables.department) {
-        queryClient.invalidateQueries({ queryKey: clubsKeys.byDepartment(variables.department) });
+      if (variables.fede && variables.dept) {
+        queryClient.invalidateQueries({
+          queryKey: clubsKeys.byFedeAndDept(variables.fede, variables.dept),
+        });
       }
     },
   });

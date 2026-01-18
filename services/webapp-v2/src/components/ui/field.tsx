@@ -246,23 +246,37 @@ const ControlledStringField = ({
   label,
   type,
   autoComplete = 'off',
+  description,
+  required,
+  onBlur,
 }: {
   field: ControllerRenderProps<any>;
   fieldState: ControllerFieldState;
   label: string;
   type: HTMLInputTypeAttribute;
   autoComplete?: HTMLInputAutoCompleteAttribute;
+  description?: string;
+  required?: boolean;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
 }) => (
   <Field data-invalid={fieldState.invalid}>
-    <FieldLabel htmlFor="lastName-input">{label}</FieldLabel>
+    <FieldLabel htmlFor={`${field.name}-input`}>
+      {label}
+      {required && <span className="text-destructive">*</span>}
+    </FieldLabel>
     <Input
       {...field}
-      id="lastName-input"
+      id={`${field.name}-input`}
       aria-invalid={fieldState.invalid}
       autoComplete={autoComplete}
       type={type}
+      onBlur={e => {
+        field.onBlur();
+        onBlur?.(e);
+      }}
     />
     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+    {description && !fieldState.invalid && <FieldDescription>{description}</FieldDescription>}
   </Field>
 );
 
@@ -272,6 +286,9 @@ type StringFieldProps<T extends FieldValues> = {
   field: Path<T>;
   type?: HTMLInputTypeAttribute;
   autoComplete?: HTMLInputAutoCompleteAttribute;
+  description?: string;
+  required?: boolean;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
 };
 
 export function StringField<T extends FieldValues>({
@@ -280,6 +297,9 @@ export function StringField<T extends FieldValues>({
   field,
   type = 'text',
   autoComplete = 'off',
+  description,
+  required,
+  onBlur,
 }: StringFieldProps<T>) {
   return (
     <Controller
@@ -292,6 +312,9 @@ export function StringField<T extends FieldValues>({
           label={label}
           type={type}
           autoComplete={autoComplete}
+          description={description}
+          required={required}
+          onBlur={onBlur}
         />
       )}
     />
@@ -303,16 +326,24 @@ const ControlledSelectField = ({
   fieldState,
   label,
   options,
+  description,
+  required,
 }: {
   field: ControllerRenderProps<any>;
   fieldState: ControllerFieldState;
   label: string;
   options: { value: string | number; label?: string }[];
+  description?: string;
+  required?: boolean;
 }) => (
   <Field data-invalid={fieldState.invalid}>
     <FieldContent>
-      <FieldLabel htmlFor="lastName-input">{label}</FieldLabel>
+      <FieldLabel htmlFor={`${field.name}-select`}>
+        {label}
+        {required && <span className="text-destructive">*</span>}
+      </FieldLabel>
       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+      {description && !fieldState.invalid && <FieldDescription>{description}</FieldDescription>}
     </FieldContent>
     <Select value={field.value} onValueChange={field.onChange}>
       <SelectTrigger aria-invalid={fieldState.invalid}>
@@ -334,6 +365,8 @@ type SelectFieldProps<T extends FieldValues> = {
   label: string;
   field: Path<T>;
   options: { value: string | number; label?: string }[];
+  description?: string;
+  required?: boolean;
 };
 
 export function SelectField<T extends FieldValues>({
@@ -341,6 +374,8 @@ export function SelectField<T extends FieldValues>({
   label,
   field,
   options,
+  description,
+  required,
 }: SelectFieldProps<T>) {
   return (
     <Controller
@@ -352,6 +387,8 @@ export function SelectField<T extends FieldValues>({
           fieldState={fieldState}
           label={label}
           options={options}
+          description={description}
+          required={required}
         />
       )}
     />
@@ -412,6 +449,9 @@ type ComboboxFieldProps<T extends FieldValues> = {
   placeholder?: string;
   isLoading?: boolean;
   disabled?: boolean;
+  description?: string;
+  required?: boolean;
+  onBlur?: () => void;
 };
 
 function ControlledComboboxField({
@@ -423,6 +463,9 @@ function ControlledComboboxField({
   placeholder = 'Rechercher...',
   isLoading,
   disabled,
+  description,
+  required,
+  onBlur,
 }: {
   field: ControllerRenderProps<any>;
   fieldState: ControllerFieldState;
@@ -432,6 +475,9 @@ function ControlledComboboxField({
   placeholder?: string;
   isLoading?: boolean;
   disabled?: boolean;
+  description?: string;
+  required?: boolean;
+  onBlur?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -446,13 +492,25 @@ function ControlledComboboxField({
   const showCreateOption =
     search && !filteredOptions.some(opt => opt.label.toLowerCase() === search.toLowerCase());
 
+  const handleOpenChange = (isOpen: boolean) => {
+    if (disabled) return;
+    setOpen(isOpen);
+    if (!isOpen) {
+      onBlur?.();
+    }
+  };
+
   return (
     <Field data-invalid={fieldState.invalid}>
       <FieldContent>
-        <FieldLabel>{label}</FieldLabel>
+        <FieldLabel>
+          {label}
+          {required && <span className="text-destructive">*</span>}
+        </FieldLabel>
         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+        {description && !fieldState.invalid && <FieldDescription>{description}</FieldDescription>}
       </FieldContent>
-      <Popover open={disabled ? false : open} onOpenChange={disabled ? undefined : setOpen}>
+      <Popover open={disabled ? false : open} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -542,6 +600,9 @@ export function ComboboxField<T extends FieldValues>({
   placeholder,
   isLoading,
   disabled,
+  description,
+  required,
+  onBlur,
 }: ComboboxFieldProps<T>) {
   return (
     <Controller
@@ -557,6 +618,9 @@ export function ComboboxField<T extends FieldValues>({
           placeholder={placeholder}
           isLoading={isLoading}
           disabled={disabled}
+          description={description}
+          required={required}
+          onBlur={onBlur}
         />
       )}
     />

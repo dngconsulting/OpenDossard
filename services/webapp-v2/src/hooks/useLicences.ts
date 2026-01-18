@@ -2,14 +2,14 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tansta
 import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { licencesApi } from '@/api/licences.api';
+import { licencesApi, type CreateLicenceDto, type UpdateLicenceDto } from '@/api/licences.api';
 import useUserStore from '@/store/UserStore';
 import type { LicenceType, LicenceFilters, PaginationParams } from '@/types/licences';
 
 export const licencesKeys = {
   all: ['licences'] as const,
   list: (params: PaginationParams) => ['licences', 'list', params] as const,
-  detail: (id: string) => ['licences', id] as const,
+  detail: (id: number) => ['licences', id] as const,
 };
 
 const FILTER_KEYS: (keyof LicenceType)[] = [
@@ -89,6 +89,8 @@ export function useLicences() {
     queryFn: () => licencesApi.getAll(params),
     placeholderData: keepPreviousData,
     enabled: isAuthenticated,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   const setLimit = useCallback(
@@ -164,12 +166,12 @@ export function useLicences() {
   };
 }
 
-export function useLicence(id: string) {
+export function useLicence(id: number | undefined) {
   const isAuthenticated = useUserStore(state => state.isAuthenticated);
 
   return useQuery({
-    queryKey: licencesKeys.detail(id),
-    queryFn: () => licencesApi.getById(id),
+    queryKey: licencesKeys.detail(id!),
+    queryFn: () => licencesApi.getById(id!),
     enabled: !!id && isAuthenticated,
   });
 }
@@ -178,7 +180,7 @@ export function useCreateLicence() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (licence: Omit<LicenceType, 'id'>) => licencesApi.create(licence),
+    mutationFn: (licence: CreateLicenceDto) => licencesApi.create(licence),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['licences'] });
     },
@@ -189,7 +191,7 @@ export function useUpdateLicence() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<LicenceType> }) =>
+    mutationFn: ({ id, updates }: { id: number; updates: UpdateLicenceDto }) =>
       licencesApi.update(id, updates),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['licences'] });
@@ -204,7 +206,7 @@ export function useDeleteLicence() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => licencesApi.delete(id),
+    mutationFn: (id: number) => licencesApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['licences'] });
     },

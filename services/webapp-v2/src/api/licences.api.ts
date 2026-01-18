@@ -1,5 +1,3 @@
-import { isMockMode } from '@/config/api.config';
-import { mockLicencesService } from '@/services/mocks/licences.mock.service';
 import type { LicenceType, PaginatedResponse, PaginationParams } from '@/types/licences';
 
 import { apiClient } from './client';
@@ -20,28 +18,44 @@ const buildQueryString = (params: PaginationParams): string => {
   return query ? `?${query}` : '';
 };
 
-const realLicencesService = {
+export type CreateLicenceDto = {
+  name: string;
+  firstName: string;
+  licenceNumber?: string;
+  gender: string;
+  birthYear: string;
+  dept: string;
+  fede: string;
+  club?: string;
+  catea: string;
+  catev?: string;
+  catevCX?: string;
+  saison: string;
+  comment?: string;
+};
+
+export type UpdateLicenceDto = Partial<CreateLicenceDto>;
+
+export const licencesApi = {
   getAll: (params: PaginationParams = {}): Promise<PaginatedResponse<LicenceType>> =>
     apiClient<PaginatedResponse<LicenceType>>(`/licences${buildQueryString(params)}`),
 
-  getById: (id: string): Promise<LicenceType> => apiClient<LicenceType>(`/licences/${id}`),
+  getById: (id: number): Promise<LicenceType> => apiClient<LicenceType>(`/licences/${id}`),
 
-  create: (licence: Omit<LicenceType, 'id'>): Promise<LicenceType> =>
+  create: (licence: CreateLicenceDto): Promise<LicenceType> =>
     apiClient<LicenceType>('/licences', {
       method: 'POST',
       body: JSON.stringify(licence),
     }),
 
-  update: (id: string, updates: Partial<LicenceType>): Promise<LicenceType> =>
+  update: (id: number, updates: UpdateLicenceDto): Promise<LicenceType> =>
     apiClient<LicenceType>(`/licences/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(updates),
     }),
 
-  delete: (id: string): Promise<void> =>
-    apiClient<void>(`/licences/${id}`, {
+  delete: (id: number): Promise<{ success: boolean }> =>
+    apiClient<{ success: boolean }>(`/licences/${id}`, {
       method: 'DELETE',
     }),
 };
-
-export const licencesApi = isMockMode('licences') ? mockLicencesService : realLicencesService;
