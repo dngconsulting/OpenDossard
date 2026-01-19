@@ -432,41 +432,41 @@ export default function CompetitionDetailPage() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <Tabs defaultValue="general" className="w-full">
-            <TabsList className="mb-6 flex w-full justify-center gap-1 rounded-xl bg-muted/50 p-1 h-auto">
+            <TabsList className="mb-6 flex w-full justify-center gap-1 rounded-xl bg-muted/50 p-1.5 h-auto">
               <TabsTrigger
                 value="general"
-                className="group flex items-center gap-2 rounded-lg px-4 py-2.5 text-muted-foreground transition-all duration-200 hover:text-[#10B981] data-[state=active]:bg-white data-[state=active]:text-[#10B981] data-[state=active]:shadow-sm dark:data-[state=active]:bg-card"
+                className="group flex items-center gap-2.5 rounded-lg px-5 py-3 text-muted-foreground transition-all duration-200 hover:text-[#047857] data-[state=active]:bg-white data-[state=active]:text-[#047857] data-[state=active]:shadow-sm dark:data-[state=active]:bg-card"
               >
-                <Info className="h-5 w-5" strokeWidth={2.5} />
-                <span className="text-sm font-medium">Infos</span>
+                <Info className="h-6 w-6" strokeWidth={2.5} />
+                <span className="text-base font-bold">Infos</span>
               </TabsTrigger>
               <TabsTrigger
                 value="horaires"
-                className="group flex items-center gap-2 rounded-lg px-4 py-2.5 text-muted-foreground transition-all duration-200 hover:text-[#10B981] data-[state=active]:bg-white data-[state=active]:text-[#10B981] data-[state=active]:shadow-sm dark:data-[state=active]:bg-card"
+                className="group flex items-center gap-2.5 rounded-lg px-5 py-3 text-muted-foreground transition-all duration-200 hover:text-[#047857] data-[state=active]:bg-white data-[state=active]:text-[#047857] data-[state=active]:shadow-sm dark:data-[state=active]:bg-card"
               >
-                <Clock className="h-5 w-5" strokeWidth={2.5} />
-                <span className="text-sm font-medium">Horaires</span>
+                <Clock className="h-6 w-6" strokeWidth={2.5} />
+                <span className="text-base font-bold">Horaires</span>
               </TabsTrigger>
               <TabsTrigger
                 value="tarifs"
-                className="group flex items-center gap-2 rounded-lg px-4 py-2.5 text-muted-foreground transition-all duration-200 hover:text-[#10B981] data-[state=active]:bg-white data-[state=active]:text-[#10B981] data-[state=active]:shadow-sm dark:data-[state=active]:bg-card"
+                className="group flex items-center gap-2.5 rounded-lg px-5 py-3 text-muted-foreground transition-all duration-200 hover:text-[#047857] data-[state=active]:bg-white data-[state=active]:text-[#047857] data-[state=active]:shadow-sm dark:data-[state=active]:bg-card"
               >
-                <Euro className="h-5 w-5" strokeWidth={2.5} />
-                <span className="text-sm font-medium">Tarifs</span>
+                <Euro className="h-6 w-6" strokeWidth={2.5} />
+                <span className="text-base font-bold">Tarifs</span>
               </TabsTrigger>
               <TabsTrigger
                 value="localisation"
-                className="group flex items-center gap-2 rounded-lg px-4 py-2.5 text-muted-foreground transition-all duration-200 hover:text-[#10B981] data-[state=active]:bg-white data-[state=active]:text-[#10B981] data-[state=active]:shadow-sm dark:data-[state=active]:bg-card"
+                className="group flex items-center gap-2.5 rounded-lg px-5 py-3 text-muted-foreground transition-all duration-200 hover:text-[#047857] data-[state=active]:bg-white data-[state=active]:text-[#047857] data-[state=active]:shadow-sm dark:data-[state=active]:bg-card"
               >
-                <MapPin className="h-5 w-5" strokeWidth={2.5} />
-                <span className="text-sm font-medium">Lieu</span>
+                <MapPin className="h-6 w-6" strokeWidth={2.5} />
+                <span className="text-base font-bold">Lieu</span>
               </TabsTrigger>
               <TabsTrigger
                 value="medias"
-                className="group flex items-center gap-2 rounded-lg px-4 py-2.5 text-muted-foreground transition-all duration-200 hover:text-[#10B981] data-[state=active]:bg-white data-[state=active]:text-[#10B981] data-[state=active]:shadow-sm dark:data-[state=active]:bg-card"
+                className="group flex items-center gap-2.5 rounded-lg px-5 py-3 text-muted-foreground transition-all duration-200 hover:text-[#047857] data-[state=active]:bg-white data-[state=active]:text-[#047857] data-[state=active]:shadow-sm dark:data-[state=active]:bg-card"
               >
-                <Image className="h-5 w-5" strokeWidth={2.5} />
-                <span className="text-sm font-medium">Médias</span>
+                <Image className="h-6 w-6" strokeWidth={2.5} />
+                <span className="text-base font-bold">Médias</span>
               </TabsTrigger>
             </TabsList>
 
