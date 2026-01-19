@@ -1,4 +1,10 @@
-import type { CompetitionType, CompetitionPaginationParams, PaginatedCompetitionResponse } from '@/types/competitions';
+import type {
+  CompetitionType,
+  CompetitionDetailType,
+  CompetitionFormData,
+  CompetitionPaginationParams,
+  PaginatedCompetitionResponse,
+} from '@/types/competitions';
 import { apiClient } from './client';
 
 const buildQueryString = (params: CompetitionPaginationParams): string => {
@@ -34,17 +40,17 @@ export const competitionsApi = {
   getAll: (params: CompetitionPaginationParams = {}): Promise<PaginatedCompetitionResponse> =>
     apiClient<PaginatedCompetitionResponse>(`/competitions${buildQueryString(params)}`),
 
-  getById: (id: number): Promise<CompetitionType> =>
-    apiClient<CompetitionType>(`/competitions/${id}`),
+  getById: (id: number): Promise<CompetitionDetailType> =>
+    apiClient<CompetitionDetailType>(`/competitions/${id}`),
 
-  create: (data: Partial<CompetitionType>): Promise<CompetitionType> =>
-    apiClient<CompetitionType>('/competitions', {
+  create: (data: CompetitionFormData): Promise<CompetitionDetailType> =>
+    apiClient<CompetitionDetailType>('/competitions', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
-  update: (id: number, data: Partial<CompetitionType>): Promise<CompetitionType> =>
-    apiClient<CompetitionType>(`/competitions/${id}`, {
+  update: (id: number, data: Partial<CompetitionFormData>): Promise<CompetitionDetailType> =>
+    apiClient<CompetitionDetailType>(`/competitions/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),

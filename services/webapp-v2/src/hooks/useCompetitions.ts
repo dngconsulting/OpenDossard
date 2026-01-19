@@ -4,7 +4,12 @@ import { useSearchParams } from 'react-router-dom';
 
 import { competitionsApi } from '@/api/competitions.api';
 import useUserStore from '@/store/UserStore';
-import type { CompetitionType, CompetitionFilters, CompetitionPaginationParams } from '@/types/competitions';
+import type {
+  CompetitionType,
+  CompetitionFilters,
+  CompetitionPaginationParams,
+  CompetitionFormData,
+} from '@/types/competitions';
 
 export const competitionsKeys = {
   all: ['competitions'] as const,
@@ -197,6 +202,30 @@ export function useDeleteCompetition() {
     mutationFn: (id: number) => competitionsApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['competitions'] });
+    },
+  });
+}
+
+export function useCreateCompetition() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CompetitionFormData) => competitionsApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['competitions'] });
+    },
+  });
+}
+
+export function useUpdateCompetition() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<CompetitionFormData> }) =>
+      competitionsApi.update(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['competitions'] });
+      queryClient.invalidateQueries({ queryKey: competitionsKeys.detail(variables.id) });
     },
   });
 }
