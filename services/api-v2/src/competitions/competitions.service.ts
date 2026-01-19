@@ -1,22 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, In } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CompetitionEntity } from './entities/competition.entity';
 import { PaginatedResponseDto } from '../common/dto';
-import { Federation, CompetitionType } from '../common/enums';
-
-export interface CompetitionFilterDto {
-  page?: number;
-  limit?: number;
-  search?: string;
-  fedes?: Federation[];
-  competitionTypes?: CompetitionType[];
-  depts?: string[];
-  startDate?: Date;
-  endDate?: Date;
-  openedToOtherFede?: boolean;
-  openedNL?: boolean;
-}
+import { FilterCompetitionDto } from './dto/filter-competition.dto';
 
 @Injectable()
 export class CompetitionsService {
@@ -26,25 +13,52 @@ export class CompetitionsService {
   ) {}
 
   async findAll(
-    filterDto: CompetitionFilterDto,
-  ): Promise<PaginatedResponseDto<CompetitionEntity>> {
+    filterDto: FilterCompetitionDto,
+  ): Promise<PaginatedResponseDto<CompetitionEntity & { engagementsCount: number; classementsCount: number }>> {
     const {
-      page = 1,
+      offset = 0,
       limit = 20,
       search,
+      orderBy = 'eventDate',
+      orderDirection = 'DESC',
+      name,
+      zipCode,
+      fede,
+      competitionType,
+      dept,
       fedes,
       competitionTypes,
       depts,
+      displayPast,
+      displayFuture,
       startDate,
       endDate,
-      openedToOtherFede,
-      openedNL,
     } = filterDto;
 
     const queryBuilder = this.competitionRepository
       .createQueryBuilder('competition')
-      .leftJoinAndSelect('competition.club', 'club');
+      .leftJoinAndSelect('competition.club', 'club')
+      // Sous-requête pour compter les engagements
+      .addSelect(
+        (subQuery) =>
+          subQuery
+            .select('COUNT(*)')
+            .from('race', 'r')
+            .where('r.competition_id = competition.id'),
+        'engagementsCount',
+      )
+      // Sous-requête pour compter les classements (avec ranking_scratch non null)
+      .addSelect(
+        (subQuery) =>
+          subQuery
+            .select('COUNT(*)')
+            .from('race', 'r')
+            .where('r.competition_id = competition.id')
+            .andWhere('r.ranking_scratch IS NOT NULL'),
+        'classementsCount',
+      );
 
+    // Global search
     if (search) {
       queryBuilder.andWhere(
         '(competition.name ILIKE :search OR competition.zipCode ILIKE :search)',
@@ -52,47 +66,75 @@ export class CompetitionsService {
       );
     }
 
-    if (fedes && fedes.length > 0) {
-      queryBuilder.andWhere('competition.fede IN (:...fedes)', { fedes });
+    // Column filters
+    if (name) {
+      queryBuilder.andWhere('competition.name ILIKE :name', { name: `%${name}%` });
+    }
+    if (zipCode) {
+      queryBuilder.andWhere('competition.zipCode ILIKE :zipCode', { zipCode: `%${zipCode}%` });
+    }
+    if (fede) {
+      queryBuilder.andWhere('competition.fede::text ILIKE :fede', { fede: `%${fede}%` });
+    }
+    if (competitionType) {
+      queryBuilder.andWhere('competition.competitionType::text ILIKE :competitionType', {
+        competitionType: `%${competitionType}%`,
+      });
+    }
+    if (dept) {
+      queryBuilder.andWhere('competition.dept ILIKE :dept', { dept: `%${dept}%` });
     }
 
-    if (competitionTypes && competitionTypes.length > 0) {
-      queryBuilder.andWhere(
-        'competition.competitionType IN (:...competitionTypes)',
-        { competitionTypes },
-      );
+    // Advanced filters - multiple values
+    if (fedes) {
+      const fedesArray = fedes.split(',');
+      queryBuilder.andWhere('competition.fede IN (:...fedesArray)', { fedesArray });
+    }
+    if (competitionTypes) {
+      const typesArray = competitionTypes.split(',');
+      queryBuilder.andWhere('competition.competitionType IN (:...typesArray)', { typesArray });
+    }
+    if (depts) {
+      const deptsArray = depts.split(',');
+      queryBuilder.andWhere('competition.dept IN (:...deptsArray)', { deptsArray });
     }
 
-    if (depts && depts.length > 0) {
-      queryBuilder.andWhere('competition.dept IN (:...depts)', { depts });
+    // Date filters
+    const now = new Date();
+    if (displayPast === true && displayFuture === false) {
+      queryBuilder.andWhere('competition.eventDate < :now', { now });
+    } else if (displayFuture === true && displayPast === false) {
+      queryBuilder.andWhere('competition.eventDate >= :now', { now });
     }
 
     if (startDate) {
       queryBuilder.andWhere('competition.eventDate >= :startDate', { startDate });
     }
-
     if (endDate) {
       queryBuilder.andWhere('competition.eventDate <= :endDate', { endDate });
     }
 
-    if (openedToOtherFede !== undefined) {
-      queryBuilder.andWhere('competition.openedToOtherFede = :openedToOtherFede', {
-        openedToOtherFede,
-      });
-    }
+    // Ordering
+    const validOrderFields = ['eventDate', 'name', 'zipCode', 'fede', 'competitionType', 'dept'];
+    const orderField = validOrderFields.includes(orderBy) ? orderBy : 'eventDate';
+    queryBuilder.orderBy(`competition.${orderField}`, orderDirection as 'ASC' | 'DESC');
 
-    if (openedNL !== undefined) {
-      queryBuilder.andWhere('competition.openedNL = :openedNL', { openedNL });
-    }
+    // Get total count before pagination
+    const total = await queryBuilder.getCount();
 
-    queryBuilder.orderBy('competition.eventDate', 'DESC');
+    // Pagination
+    queryBuilder.skip(offset).take(limit);
 
-    const skip = (page - 1) * limit;
-    queryBuilder.skip(skip).take(limit);
+    // Execute and map results
+    const rawResults = await queryBuilder.getRawAndEntities();
 
-    const [data, total] = await queryBuilder.getManyAndCount();
+    const data = rawResults.entities.map((entity, index) => ({
+      ...entity,
+      engagementsCount: parseInt(rawResults.raw[index]?.engagementsCount || '0', 10),
+      classementsCount: parseInt(rawResults.raw[index]?.classementsCount || '0', 10),
+    }));
 
-    return new PaginatedResponseDto(data, total, page, limit);
+    return new PaginatedResponseDto(data, total, offset, limit);
   }
 
   async findOne(id: number): Promise<CompetitionEntity> {
@@ -106,17 +148,12 @@ export class CompetitionsService {
     return competition;
   }
 
-  async create(
-    competitionData: Partial<CompetitionEntity>,
-  ): Promise<CompetitionEntity> {
+  async create(competitionData: Partial<CompetitionEntity>): Promise<CompetitionEntity> {
     const competition = this.competitionRepository.create(competitionData);
     return this.competitionRepository.save(competition);
   }
 
-  async update(
-    id: number,
-    competitionData: Partial<CompetitionEntity>,
-  ): Promise<CompetitionEntity> {
+  async update(id: number, competitionData: Partial<CompetitionEntity>): Promise<CompetitionEntity> {
     const competition = await this.findOne(id);
     Object.assign(competition, competitionData);
     return this.competitionRepository.save(competition);

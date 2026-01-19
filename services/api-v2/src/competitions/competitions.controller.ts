@@ -18,7 +18,8 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { CompetitionsService, CompetitionFilterDto } from './competitions.service';
+import { CompetitionsService } from './competitions.service';
+import { FilterCompetitionDto } from './dto/filter-competition.dto';
 import { CompetitionEntity } from './entities/competition.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -38,8 +39,8 @@ export class CompetitionsController {
   @ApiOperation({ summary: 'Get all competitions with filters' })
   @ApiResponse({ status: 200, description: 'Paginated list of competitions' })
   async findAll(
-    @Query() filterDto: CompetitionFilterDto,
-  ): Promise<PaginatedResponseDto<CompetitionEntity>> {
+    @Query() filterDto: FilterCompetitionDto,
+  ): Promise<PaginatedResponseDto<CompetitionEntity & { engagementsCount: number; classementsCount: number }>> {
     return this.competitionsService.findAll(filterDto);
   }
 
