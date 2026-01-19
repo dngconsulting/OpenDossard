@@ -117,17 +117,10 @@ export class CompetitionsService {
       queryBuilder.andWhere('competition.eventDate <= :endDate', { endDate });
     }
 
-    // Ordering - map property names to column names
-    const orderFieldMap: Record<string, string> = {
-      eventDate: 'event_date',
-      name: 'name',
-      zipCode: 'zip_code',
-      fede: 'fede',
-      competitionType: 'competition_type',
-      dept: 'dept',
-    };
-    const columnName = orderFieldMap[orderBy] || 'event_date';
-    queryBuilder.orderBy(`competition.${columnName}`, orderDirection as 'ASC' | 'DESC');
+    // Ordering - TypeORM handles property to column mapping for orderBy
+    const validOrderFields = ['eventDate', 'name', 'zipCode', 'fede', 'competitionType', 'dept'];
+    const orderField = validOrderFields.includes(orderBy) ? orderBy : 'eventDate';
+    queryBuilder.orderBy(`competition.${orderField}`, orderDirection as 'ASC' | 'DESC');
 
     // Get total count before pagination
     const total = await queryBuilder.getCount();
