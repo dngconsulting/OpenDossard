@@ -14,7 +14,9 @@ export class CompetitionsService {
 
   async findAll(
     filterDto: FilterCompetitionDto,
-  ): Promise<PaginatedResponseDto<CompetitionEntity & { engagementsCount: number; classementsCount: number }>> {
+  ): Promise<
+    PaginatedResponseDto<CompetitionEntity & { engagementsCount: number; classementsCount: number }>
+  > {
     const {
       offset = 0,
       limit = 20,
@@ -41,16 +43,13 @@ export class CompetitionsService {
       .leftJoinAndSelect('competition.club', 'club')
       // Sous-requête pour compter les engagements
       .addSelect(
-        (subQuery) =>
-          subQuery
-            .select('COUNT(*)')
-            .from('race', 'r')
-            .where('r.competition_id = competition.id'),
+        subQuery =>
+          subQuery.select('COUNT(*)').from('race', 'r').where('r.competition_id = competition.id'),
         'engagementsCount',
       )
       // Sous-requête pour compter les classements (avec ranking_scratch non null)
       .addSelect(
-        (subQuery) =>
+        subQuery =>
           subQuery
             .select('COUNT(*)')
             .from('race', 'r')
@@ -78,7 +77,7 @@ export class CompetitionsService {
       queryBuilder.andWhere('competition.fede::text ILIKE :fede', { fede: `%${fede}%` });
     }
     if (competitionType) {
-      queryBuilder.andWhere('competition.competitionType::text ILIKE :competitionType', {
+      queryBuilder.andWhere('competition.competition_type::text ILIKE :competitionType', {
         competitionType: `%${competitionType}%`,
       });
     }
@@ -96,7 +95,7 @@ export class CompetitionsService {
     }
     if (competitionTypes) {
       const typesArray = competitionTypes.split(',');
-      queryBuilder.andWhere('competition.competitionType IN (:...typesArray)', { typesArray });
+      queryBuilder.andWhere('competition.competition_type IN (:...typesArray)', { typesArray });
     }
     if (depts) {
       const deptsArray = depts.split(',');
@@ -118,10 +117,17 @@ export class CompetitionsService {
       queryBuilder.andWhere('competition.eventDate <= :endDate', { endDate });
     }
 
-    // Ordering
-    const validOrderFields = ['eventDate', 'name', 'zipCode', 'fede', 'competitionType', 'dept'];
-    const orderField = validOrderFields.includes(orderBy) ? orderBy : 'eventDate';
-    queryBuilder.orderBy(`competition.${orderField}`, orderDirection as 'ASC' | 'DESC');
+    // Ordering - map property names to column names
+    const orderFieldMap: Record<string, string> = {
+      eventDate: 'event_date',
+      name: 'name',
+      zipCode: 'zip_code',
+      fede: 'fede',
+      competitionType: 'competition_type',
+      dept: 'dept',
+    };
+    const columnName = orderFieldMap[orderBy] || 'event_date';
+    queryBuilder.orderBy(`competition.${columnName}`, orderDirection as 'ASC' | 'DESC');
 
     // Get total count before pagination
     const total = await queryBuilder.getCount();
@@ -157,7 +163,10 @@ export class CompetitionsService {
     return this.competitionRepository.save(competition);
   }
 
-  async update(id: number, competitionData: Partial<CompetitionEntity>): Promise<CompetitionEntity> {
+  async update(
+    id: number,
+    competitionData: Partial<CompetitionEntity>,
+  ): Promise<CompetitionEntity> {
     const competition = await this.findOne(id);
     Object.assign(competition, competitionData);
     return this.competitionRepository.save(competition);
