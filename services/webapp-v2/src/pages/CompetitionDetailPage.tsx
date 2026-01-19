@@ -432,51 +432,51 @@ export default function CompetitionDetailPage() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <Tabs defaultValue="general" className="w-full">
-            <TabsList className="mb-6 grid w-full grid-cols-5 gap-2 bg-transparent p-0 h-auto">
+            <TabsList className="mb-8 flex w-full justify-between gap-3 bg-transparent p-0 h-auto">
               <TabsTrigger
                 value="general"
-                className="group flex flex-col items-center gap-2 rounded-xl border-2 border-transparent bg-muted/50 px-4 py-4 transition-all duration-200 hover:bg-muted hover:shadow-md data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-lg"
+                className="group relative flex flex-1 flex-col items-center gap-3 rounded-2xl bg-card px-6 py-5 shadow-sm ring-1 ring-border/50 transition-all duration-300 hover:shadow-lg hover:ring-[#10B981]/30 data-[state=active]:bg-gradient-to-br data-[state=active]:from-[#10B981] data-[state=active]:to-[#059669] data-[state=active]:text-white data-[state=active]:shadow-xl data-[state=active]:shadow-[#10B981]/25 data-[state=active]:ring-0"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-sm transition-all duration-200 group-hover:scale-110 group-data-[state=active]:bg-primary group-data-[state=active]:text-primary-foreground">
-                  <Info className="h-6 w-6" />
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#10B981]/10 ring-2 ring-[#10B981]/20 transition-all duration-300 group-hover:bg-[#10B981]/20 group-hover:ring-[#10B981]/40 group-hover:scale-105 group-data-[state=active]:bg-white/20 group-data-[state=active]:ring-white/30">
+                  <Info className="h-7 w-7 text-[#10B981] transition-colors group-data-[state=active]:text-white" />
                 </div>
-                <span className="text-xs font-medium">Informations</span>
+                <span className="text-sm font-semibold tracking-wide">Informations</span>
               </TabsTrigger>
               <TabsTrigger
                 value="horaires"
-                className="group flex flex-col items-center gap-2 rounded-xl border-2 border-transparent bg-muted/50 px-4 py-4 transition-all duration-200 hover:bg-muted hover:shadow-md data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-lg"
+                className="group relative flex flex-1 flex-col items-center gap-3 rounded-2xl bg-card px-6 py-5 shadow-sm ring-1 ring-border/50 transition-all duration-300 hover:shadow-lg hover:ring-[#10B981]/30 data-[state=active]:bg-gradient-to-br data-[state=active]:from-[#10B981] data-[state=active]:to-[#059669] data-[state=active]:text-white data-[state=active]:shadow-xl data-[state=active]:shadow-[#10B981]/25 data-[state=active]:ring-0"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-sm transition-all duration-200 group-hover:scale-110 group-data-[state=active]:bg-primary group-data-[state=active]:text-primary-foreground">
-                  <Clock className="h-6 w-6" />
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#10B981]/10 ring-2 ring-[#10B981]/20 transition-all duration-300 group-hover:bg-[#10B981]/20 group-hover:ring-[#10B981]/40 group-hover:scale-105 group-data-[state=active]:bg-white/20 group-data-[state=active]:ring-white/30">
+                  <Clock className="h-7 w-7 text-[#10B981] transition-colors group-data-[state=active]:text-white" />
                 </div>
-                <span className="text-xs font-medium">Horaires</span>
+                <span className="text-sm font-semibold tracking-wide">Horaires</span>
               </TabsTrigger>
               <TabsTrigger
                 value="tarifs"
-                className="group flex flex-col items-center gap-2 rounded-xl border-2 border-transparent bg-muted/50 px-4 py-4 transition-all duration-200 hover:bg-muted hover:shadow-md data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-lg"
+                className="group relative flex flex-1 flex-col items-center gap-3 rounded-2xl bg-card px-6 py-5 shadow-sm ring-1 ring-border/50 transition-all duration-300 hover:shadow-lg hover:ring-[#10B981]/30 data-[state=active]:bg-gradient-to-br data-[state=active]:from-[#10B981] data-[state=active]:to-[#059669] data-[state=active]:text-white data-[state=active]:shadow-xl data-[state=active]:shadow-[#10B981]/25 data-[state=active]:ring-0"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-sm transition-all duration-200 group-hover:scale-110 group-data-[state=active]:bg-primary group-data-[state=active]:text-primary-foreground">
-                  <Euro className="h-6 w-6" />
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#10B981]/10 ring-2 ring-[#10B981]/20 transition-all duration-300 group-hover:bg-[#10B981]/20 group-hover:ring-[#10B981]/40 group-hover:scale-105 group-data-[state=active]:bg-white/20 group-data-[state=active]:ring-white/30">
+                  <Euro className="h-7 w-7 text-[#10B981] transition-colors group-data-[state=active]:text-white" />
                 </div>
-                <span className="text-xs font-medium">Tarifs</span>
+                <span className="text-sm font-semibold tracking-wide">Tarifs</span>
               </TabsTrigger>
               <TabsTrigger
                 value="localisation"
-                className="group flex flex-col items-center gap-2 rounded-xl border-2 border-transparent bg-muted/50 px-4 py-4 transition-all duration-200 hover:bg-muted hover:shadow-md data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-lg"
+                className="group relative flex flex-1 flex-col items-center gap-3 rounded-2xl bg-card px-6 py-5 shadow-sm ring-1 ring-border/50 transition-all duration-300 hover:shadow-lg hover:ring-[#10B981]/30 data-[state=active]:bg-gradient-to-br data-[state=active]:from-[#10B981] data-[state=active]:to-[#059669] data-[state=active]:text-white data-[state=active]:shadow-xl data-[state=active]:shadow-[#10B981]/25 data-[state=active]:ring-0"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-sm transition-all duration-200 group-hover:scale-110 group-data-[state=active]:bg-primary group-data-[state=active]:text-primary-foreground">
-                  <MapPin className="h-6 w-6" />
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#10B981]/10 ring-2 ring-[#10B981]/20 transition-all duration-300 group-hover:bg-[#10B981]/20 group-hover:ring-[#10B981]/40 group-hover:scale-105 group-data-[state=active]:bg-white/20 group-data-[state=active]:ring-white/30">
+                  <MapPin className="h-7 w-7 text-[#10B981] transition-colors group-data-[state=active]:text-white" />
                 </div>
-                <span className="text-xs font-medium">Localisation</span>
+                <span className="text-sm font-semibold tracking-wide">Localisation</span>
               </TabsTrigger>
               <TabsTrigger
                 value="medias"
-                className="group flex flex-col items-center gap-2 rounded-xl border-2 border-transparent bg-muted/50 px-4 py-4 transition-all duration-200 hover:bg-muted hover:shadow-md data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-lg"
+                className="group relative flex flex-1 flex-col items-center gap-3 rounded-2xl bg-card px-6 py-5 shadow-sm ring-1 ring-border/50 transition-all duration-300 hover:shadow-lg hover:ring-[#10B981]/30 data-[state=active]:bg-gradient-to-br data-[state=active]:from-[#10B981] data-[state=active]:to-[#059669] data-[state=active]:text-white data-[state=active]:shadow-xl data-[state=active]:shadow-[#10B981]/25 data-[state=active]:ring-0"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-sm transition-all duration-200 group-hover:scale-110 group-data-[state=active]:bg-primary group-data-[state=active]:text-primary-foreground">
-                  <Image className="h-6 w-6" />
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#10B981]/10 ring-2 ring-[#10B981]/20 transition-all duration-300 group-hover:bg-[#10B981]/20 group-hover:ring-[#10B981]/40 group-hover:scale-105 group-data-[state=active]:bg-white/20 group-data-[state=active]:ring-white/30">
+                  <Image className="h-7 w-7 text-[#10B981] transition-colors group-data-[state=active]:text-white" />
                 </div>
-                <span className="text-xs font-medium">Médias</span>
+                <span className="text-sm font-semibold tracking-wide">Médias</span>
               </TabsTrigger>
             </TabsList>
 
