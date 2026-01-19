@@ -435,35 +435,35 @@ export default function CompetitionDetailPage() {
             <TabsList className="mb-0 flex w-full justify-center gap-0 rounded-t-xl rounded-b-none bg-muted/50 p-0 h-auto overflow-hidden">
               <TabsTrigger
                 value="general"
-                className="group flex items-center gap-2.5 rounded-none px-5 py-3 text-muted-foreground transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                className="group flex items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
               >
                 <Info className="h-6 w-6" strokeWidth={2.5} />
                 <span className="text-base font-bold">Infos</span>
               </TabsTrigger>
               <TabsTrigger
                 value="horaires"
-                className="group flex items-center gap-2.5 rounded-none px-5 py-3 text-muted-foreground transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                className="group flex items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
               >
                 <Clock className="h-6 w-6" strokeWidth={2.5} />
                 <span className="text-base font-bold">Horaires</span>
               </TabsTrigger>
               <TabsTrigger
                 value="tarifs"
-                className="group flex items-center gap-2.5 rounded-none px-5 py-3 text-muted-foreground transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                className="group flex items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
               >
                 <Euro className="h-6 w-6" strokeWidth={2.5} />
                 <span className="text-base font-bold">Tarifs</span>
               </TabsTrigger>
               <TabsTrigger
                 value="localisation"
-                className="group flex items-center gap-2.5 rounded-none px-5 py-3 text-muted-foreground transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                className="group flex items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
               >
                 <MapPin className="h-6 w-6" strokeWidth={2.5} />
                 <span className="text-base font-bold">Lieu</span>
               </TabsTrigger>
               <TabsTrigger
                 value="medias"
-                className="group flex items-center gap-2.5 rounded-none px-5 py-3 text-muted-foreground transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                className="group flex items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
               >
                 <Image className="h-6 w-6" strokeWidth={2.5} />
                 <span className="text-base font-bold">Médias</span>
