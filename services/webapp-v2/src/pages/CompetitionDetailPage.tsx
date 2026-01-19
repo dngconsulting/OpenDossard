@@ -432,38 +432,38 @@ export default function CompetitionDetailPage() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <Tabs defaultValue="general" className="w-full gap-0">
-            <TabsList className="mb-0 flex w-full justify-center gap-0 rounded-t-xl rounded-b-none bg-muted/50 p-0 h-auto overflow-hidden">
+            <TabsList className="mb-0 flex w-full justify-start md:justify-center gap-0 rounded-t-xl rounded-b-none bg-muted/50 p-0 h-auto overflow-x-auto scrollbar-none">
               <TabsTrigger
                 value="general"
-                className="group flex items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
               >
                 <Info className="h-6 w-6" strokeWidth={2.5} />
                 <span className="text-base font-bold">Infos</span>
               </TabsTrigger>
               <TabsTrigger
                 value="horaires"
-                className="group flex items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
               >
                 <Clock className="h-6 w-6" strokeWidth={2.5} />
                 <span className="text-base font-bold">Horaires</span>
               </TabsTrigger>
               <TabsTrigger
                 value="tarifs"
-                className="group flex items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
               >
                 <Euro className="h-6 w-6" strokeWidth={2.5} />
                 <span className="text-base font-bold">Tarifs</span>
               </TabsTrigger>
               <TabsTrigger
                 value="localisation"
-                className="group flex items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
               >
                 <MapPin className="h-6 w-6" strokeWidth={2.5} />
                 <span className="text-base font-bold">Lieu</span>
               </TabsTrigger>
               <TabsTrigger
                 value="medias"
-                className="group flex items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
               >
                 <Image className="h-6 w-6" strokeWidth={2.5} />
                 <span className="text-base font-bold">Médias</span>
@@ -893,7 +893,7 @@ export default function CompetitionDetailPage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 bg-muted/50 rounded-lg">
-                    <div>
+                    <div className="space-y-1.5">
                       <Label>Catégorie/Départ</Label>
                       <Input
                         value={horaireForm.course}
@@ -901,7 +901,7 @@ export default function CompetitionDetailPage() {
                         placeholder="ex: Cat 4"
                       />
                     </div>
-                    <div>
+                    <div className="space-y-1.5">
                       <Label>Heure dossard</Label>
                       <Input
                         value={horaireForm.horaireEngagement}
@@ -911,7 +911,7 @@ export default function CompetitionDetailPage() {
                         placeholder="ex: 14h"
                       />
                     </div>
-                    <div>
+                    <div className="space-y-1.5">
                       <Label>Heure départ</Label>
                       <Input
                         value={horaireForm.horaireDepart}
@@ -921,7 +921,7 @@ export default function CompetitionDetailPage() {
                         placeholder="ex: 15h"
                       />
                     </div>
-                    <div>
+                    <div className="space-y-1.5">
                       <Label>Tours</Label>
                       <Input
                         value={horaireForm.info1}
@@ -929,7 +929,7 @@ export default function CompetitionDetailPage() {
                         placeholder="ex: 10"
                       />
                     </div>
-                    <div>
+                    <div className="space-y-1.5">
                       <Label>Distance</Label>
                       <Input
                         value={horaireForm.info2}
@@ -937,7 +937,7 @@ export default function CompetitionDetailPage() {
                         placeholder="ex: 58kms"
                       />
                     </div>
-                    <div>
+                    <div className="space-y-1.5">
                       <Label>Lien OpenRunner</Label>
                       <Input
                         value={horaireForm.info3 || ''}
@@ -952,62 +952,64 @@ export default function CompetitionDetailPage() {
                   </Button>
 
                   {competitionInfoFields.length > 0 ? (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Catégorie</TableHead>
-                          <TableHead>Dossard</TableHead>
-                          <TableHead>Départ</TableHead>
-                          <TableHead>Tours</TableHead>
-                          <TableHead>Distance</TableHead>
-                          <TableHead>OpenRunner</TableHead>
-                          <TableHead className="w-[100px]">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {competitionInfoFields.map((field, index) => (
-                          <TableRow key={field.id}>
-                            <TableCell>{(field as CompetitionInfoItem).course}</TableCell>
-                            <TableCell>{(field as CompetitionInfoItem).horaireEngagement}</TableCell>
-                            <TableCell>{(field as CompetitionInfoItem).horaireDepart}</TableCell>
-                            <TableCell>{(field as CompetitionInfoItem).info1}</TableCell>
-                            <TableCell>{(field as CompetitionInfoItem).info2}</TableCell>
-                            <TableCell>
-                              {(field as CompetitionInfoItem).info3 && (
-                                <a
-                                  href={(field as CompetitionInfoItem).info3}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-primary hover:underline"
-                                >
-                                  <ExternalLink className="h-4 w-4" />
-                                </a>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-1">
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleEditHoraire(index)}
-                                >
-                                  <Edit2 className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => removeCompetitionInfo(index)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
+                    <div className="overflow-x-auto -mx-6 px-6">
+                      <Table className="min-w-[600px] table-fixed [&_td]:whitespace-normal [&_td]:md:whitespace-nowrap">
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[140px]">Catégorie</TableHead>
+                            <TableHead className="w-[100px]">Dossard</TableHead>
+                            <TableHead className="w-[80px]">Départ</TableHead>
+                            <TableHead className="w-[60px]">Tours</TableHead>
+                            <TableHead className="w-[80px]">Distance</TableHead>
+                            <TableHead className="w-[50px]">Lien</TableHead>
+                            <TableHead className="w-[90px]">Actions</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {competitionInfoFields.map((field, index) => (
+                            <TableRow key={field.id}>
+                              <TableCell>{(field as CompetitionInfoItem).course}</TableCell>
+                              <TableCell>{(field as CompetitionInfoItem).horaireEngagement}</TableCell>
+                              <TableCell>{(field as CompetitionInfoItem).horaireDepart}</TableCell>
+                              <TableCell>{(field as CompetitionInfoItem).info1}</TableCell>
+                              <TableCell>{(field as CompetitionInfoItem).info2}</TableCell>
+                              <TableCell>
+                                {(field as CompetitionInfoItem).info3 && (
+                                  <a
+                                    href={(field as CompetitionInfoItem).info3}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary hover:underline"
+                                  >
+                                    <ExternalLink className="h-4 w-4" />
+                                  </a>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex gap-1">
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleEditHoraire(index)}
+                                  >
+                                    <Edit2 className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => removeCompetitionInfo(index)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
                   ) : (
                     <p className="text-muted-foreground text-center py-8">
                       Aucun horaire ou parcours encore ajouté
@@ -1026,7 +1028,7 @@ export default function CompetitionDetailPage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
-                    <div>
+                    <div className="space-y-1.5">
                       <Label>Nom du tarif</Label>
                       <Input
                         value={pricingForm.name}
@@ -1034,7 +1036,7 @@ export default function CompetitionDetailPage() {
                         placeholder="ex: Licencié FFC"
                       />
                     </div>
-                    <div>
+                    <div className="space-y-1.5">
                       <Label>Montant (€)</Label>
                       <Input
                         type="number"
@@ -1054,43 +1056,45 @@ export default function CompetitionDetailPage() {
                   </div>
 
                   {pricingFields.length > 0 ? (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Tarif</TableHead>
-                          <TableHead>Montant</TableHead>
-                          <TableHead className="w-[100px]">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {pricingFields.map((field, index) => (
-                          <TableRow key={field.id}>
-                            <TableCell>{(field as PricingItem).name}</TableCell>
-                            <TableCell>{(field as PricingItem).tarif} €</TableCell>
-                            <TableCell>
-                              <div className="flex gap-1">
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleEditPricing(index)}
-                                >
-                                  <Edit2 className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => removePricing(index)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
+                    <div className="overflow-x-auto -mx-6 px-6">
+                      <Table className="min-w-[400px]">
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Tarif</TableHead>
+                            <TableHead>Montant</TableHead>
+                            <TableHead className="w-[100px]">Actions</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {pricingFields.map((field, index) => (
+                            <TableRow key={field.id}>
+                              <TableCell className="whitespace-nowrap">{(field as PricingItem).name}</TableCell>
+                              <TableCell className="whitespace-nowrap">{(field as PricingItem).tarif} €</TableCell>
+                              <TableCell>
+                                <div className="flex gap-1">
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleEditPricing(index)}
+                                  >
+                                    <Edit2 className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => removePricing(index)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
                   ) : (
                     <p className="text-muted-foreground text-center py-8">
                       Aucun tarif encore ajouté
@@ -1186,53 +1190,55 @@ export default function CompetitionDetailPage() {
                   </div>
 
                   {photoUrlsFields.length > 0 ? (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Nom de l'album</TableHead>
-                          <TableHead>Lien</TableHead>
-                          <TableHead className="w-[100px]">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {photoUrlsFields.map((field, index) => (
-                          <TableRow key={field.id}>
-                            <TableCell>{(field as LinkItem).label}</TableCell>
-                            <TableCell>
-                              <a
-                                href={(field as LinkItem).link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-primary hover:underline flex items-center gap-1"
-                              >
-                                {(field as LinkItem).link}
-                                <ExternalLink className="h-3 w-3" />
-                              </a>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-1">
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleEditMedia(index)}
-                                >
-                                  <Edit2 className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => removePhotoUrl(index)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
+                    <div className="overflow-x-auto -mx-6 px-6">
+                      <Table className="min-w-[500px]">
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Nom de l'album</TableHead>
+                            <TableHead>Lien</TableHead>
+                            <TableHead className="w-[100px]">Actions</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {photoUrlsFields.map((field, index) => (
+                            <TableRow key={field.id}>
+                              <TableCell className="whitespace-nowrap">{(field as LinkItem).label}</TableCell>
+                              <TableCell>
+                                <a
+                                  href={(field as LinkItem).link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-primary hover:underline flex items-center gap-1 max-w-[200px] truncate"
+                                >
+                                  {(field as LinkItem).link}
+                                  <ExternalLink className="h-3 w-3 shrink-0" />
+                                </a>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex gap-1">
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleEditMedia(index)}
+                                  >
+                                    <Edit2 className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => removePhotoUrl(index)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
                   ) : (
                     <p className="text-muted-foreground text-center py-8">
                       Aucun lien encore ajouté
