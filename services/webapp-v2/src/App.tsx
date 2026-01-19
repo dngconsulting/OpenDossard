@@ -11,6 +11,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import AccountPage from '@/pages/AccountPage.tsx';
 import AchievementsPage from '@/pages/AchievementsPage.tsx';
 import ChallengesPage from '@/pages/ChallengesPage.tsx';
+import CompetitionsPage from '@/pages/CompetitionsPage.tsx';
 import DashboardPage from '@/pages/DashboardPage.tsx';
 import LicenceDetailPage from '@/pages/LicenceDetailPage.tsx';
 import LicencesPage from '@/pages/LicencesPage.tsx';
@@ -63,6 +64,9 @@ export default function App() {
                 <Route path="/licences" element={<LicencesPage />} />
                 <Route path="/licence/new" element={<LicenceDetailPage />} />
                 <Route path="/licence/:id" element={<LicenceDetailPage />} />
+                <Route path="/competitions" element={<CompetitionsPage />} />
+                <Route path="/competition/new" element={<CompetitionsPage />} />
+                <Route path="/competition/:id" element={<CompetitionsPage />} />
                 <Route path="/races" element={<RacesPage />} />
                 <Route path="/achievements" element={<AchievementsPage />} />
                 <Route path="/palmares/:licenceId?" element={<PalmaresPage />} />
