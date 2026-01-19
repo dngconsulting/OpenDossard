@@ -432,26 +432,51 @@ export default function CompetitionDetailPage() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <Tabs defaultValue="general" className="w-full">
-            <TabsList className="mb-4">
-              <TabsTrigger value="general">
-                <Info className="mr-2 h-4 w-4" />
-                Informations générales
+            <TabsList className="mb-6 grid w-full grid-cols-5 gap-2 bg-transparent p-0 h-auto">
+              <TabsTrigger
+                value="general"
+                className="group flex flex-col items-center gap-2 rounded-xl border-2 border-transparent bg-muted/50 px-4 py-4 transition-all duration-200 hover:bg-muted hover:shadow-md data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-lg"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-sm transition-all duration-200 group-hover:scale-110 group-data-[state=active]:bg-primary group-data-[state=active]:text-primary-foreground">
+                  <Info className="h-6 w-6" />
+                </div>
+                <span className="text-xs font-medium">Informations</span>
               </TabsTrigger>
-              <TabsTrigger value="horaires">
-                <Clock className="mr-2 h-4 w-4" />
-                Horaires & Circuit
+              <TabsTrigger
+                value="horaires"
+                className="group flex flex-col items-center gap-2 rounded-xl border-2 border-transparent bg-muted/50 px-4 py-4 transition-all duration-200 hover:bg-muted hover:shadow-md data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-lg"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-sm transition-all duration-200 group-hover:scale-110 group-data-[state=active]:bg-primary group-data-[state=active]:text-primary-foreground">
+                  <Clock className="h-6 w-6" />
+                </div>
+                <span className="text-xs font-medium">Horaires</span>
               </TabsTrigger>
-              <TabsTrigger value="tarifs">
-                <Euro className="mr-2 h-4 w-4" />
-                Tarifs
+              <TabsTrigger
+                value="tarifs"
+                className="group flex flex-col items-center gap-2 rounded-xl border-2 border-transparent bg-muted/50 px-4 py-4 transition-all duration-200 hover:bg-muted hover:shadow-md data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-lg"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-sm transition-all duration-200 group-hover:scale-110 group-data-[state=active]:bg-primary group-data-[state=active]:text-primary-foreground">
+                  <Euro className="h-6 w-6" />
+                </div>
+                <span className="text-xs font-medium">Tarifs</span>
               </TabsTrigger>
-              <TabsTrigger value="localisation">
-                <MapPin className="mr-2 h-4 w-4" />
-                Localisation
+              <TabsTrigger
+                value="localisation"
+                className="group flex flex-col items-center gap-2 rounded-xl border-2 border-transparent bg-muted/50 px-4 py-4 transition-all duration-200 hover:bg-muted hover:shadow-md data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-lg"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-sm transition-all duration-200 group-hover:scale-110 group-data-[state=active]:bg-primary group-data-[state=active]:text-primary-foreground">
+                  <MapPin className="h-6 w-6" />
+                </div>
+                <span className="text-xs font-medium">Localisation</span>
               </TabsTrigger>
-              <TabsTrigger value="medias">
-                <Image className="mr-2 h-4 w-4" />
-                Photos/Médias
+              <TabsTrigger
+                value="medias"
+                className="group flex flex-col items-center gap-2 rounded-xl border-2 border-transparent bg-muted/50 px-4 py-4 transition-all duration-200 hover:bg-muted hover:shadow-md data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:shadow-lg"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-sm transition-all duration-200 group-hover:scale-110 group-data-[state=active]:bg-primary group-data-[state=active]:text-primary-foreground">
+                  <Image className="h-6 w-6" />
+                </div>
+                <span className="text-xs font-medium">Médias</span>
               </TabsTrigger>
             </TabsList>
 
