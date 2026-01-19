@@ -2,6 +2,7 @@ import {
   Bike,
   BookOpen,
   Bot,
+  Calendar,
   Home,
   IdCard,
   LayoutDashboard,
@@ -128,7 +129,12 @@ export const appData = {
       icon: IdCard,
     },
     {
-      name: 'Epreuves',
+      name: 'Épreuves',
+      url: '/competitions',
+      icon: Calendar,
+    },
+    {
+      name: 'Courses',
       url: '/races',
       icon: Bike,
     },
