@@ -431,7 +431,7 @@ export default function CompetitionDetailPage() {
     <Layout title={pageTitle} toolbar={toolbar} toolbarLeft={toolbarLeft}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <Tabs defaultValue="general" className="w-full">
+          <Tabs defaultValue="general" className="w-full gap-0">
             <TabsList className="mb-0 flex w-full justify-center gap-0 rounded-t-xl rounded-b-none bg-muted/50 p-0 h-auto overflow-hidden">
               <TabsTrigger
                 value="general"
