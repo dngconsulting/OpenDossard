@@ -432,7 +432,7 @@ export default function CompetitionDetailPage() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <Tabs defaultValue="general" className="w-full">
-            <TabsList className="mb-6 flex w-full justify-center gap-0 rounded-xl bg-muted/50 p-0 h-auto overflow-hidden">
+            <TabsList className="mb-0 flex w-full justify-center gap-0 rounded-t-xl rounded-b-none bg-muted/50 p-0 h-auto overflow-hidden">
               <TabsTrigger
                 value="general"
                 className="group flex items-center gap-2.5 rounded-none px-5 py-3 text-muted-foreground transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
@@ -471,8 +471,8 @@ export default function CompetitionDetailPage() {
             </TabsList>
 
             {/* Tab 1: Informations générales */}
-            <TabsContent value="general">
-              <Card>
+            <TabsContent value="general" className="mt-0">
+              <Card className="rounded-t-none border-t-0">
                 <CardHeader>
                   <CardTitle>Informations générales</CardTitle>
                   <CardDescription>
@@ -883,8 +883,8 @@ export default function CompetitionDetailPage() {
             </TabsContent>
 
             {/* Tab 2: Horaires & Circuit */}
-            <TabsContent value="horaires">
-              <Card>
+            <TabsContent value="horaires" className="mt-0">
+              <Card className="rounded-t-none border-t-0">
                 <CardHeader>
                   <CardTitle>Horaires & Circuit</CardTitle>
                   <CardDescription>
@@ -1018,8 +1018,8 @@ export default function CompetitionDetailPage() {
             </TabsContent>
 
             {/* Tab 3: Tarifs */}
-            <TabsContent value="tarifs">
-              <Card>
+            <TabsContent value="tarifs" className="mt-0">
+              <Card className="rounded-t-none border-t-0">
                 <CardHeader>
                   <CardTitle>Tarifs</CardTitle>
                   <CardDescription>Définissez les différents tarifs d'inscription</CardDescription>
@@ -1101,8 +1101,8 @@ export default function CompetitionDetailPage() {
             </TabsContent>
 
             {/* Tab 4: Localisation */}
-            <TabsContent value="localisation">
-              <Card>
+            <TabsContent value="localisation" className="mt-0">
+              <Card className="rounded-t-none border-t-0">
                 <CardHeader>
                   <CardTitle>Localisation</CardTitle>
                   <CardDescription>
@@ -1153,8 +1153,8 @@ export default function CompetitionDetailPage() {
             </TabsContent>
 
             {/* Tab 5: Photos/Médias */}
-            <TabsContent value="medias">
-              <Card>
+            <TabsContent value="medias" className="mt-0">
+              <Card className="rounded-t-none border-t-0">
                 <CardHeader>
                   <CardTitle>Photos & Médias</CardTitle>
                   <CardDescription>Ajoutez des liens vers les albums photos</CardDescription>
