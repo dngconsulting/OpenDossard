@@ -19,6 +19,7 @@ const FILTER_KEYS: (keyof CompetitionType)[] = [
   'fede',
   'competitionType',
   'dept',
+  'club',
 ];
 
 const ADVANCED_FILTER_KEYS = ['fedes', 'competitionTypes', 'depts', 'displayPast', 'displayFuture', 'startDate', 'endDate'];

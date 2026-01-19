@@ -34,6 +34,11 @@ export class FilterCompetitionDto extends PaginationDto {
   @IsString()
   dept?: string;
 
+  @ApiPropertyOptional({ description: 'Filter by club name (partial match)' })
+  @IsOptional()
+  @IsString()
+  club?: string;
+
   @ApiPropertyOptional({ description: 'Filter by multiple federations (comma-separated)' })
   @IsOptional()
   @IsString()

@@ -26,6 +26,7 @@ export class CompetitionsService {
       fede,
       competitionType,
       dept,
+      club,
       fedes,
       competitionTypes,
       depts,
@@ -83,6 +84,9 @@ export class CompetitionsService {
     }
     if (dept) {
       queryBuilder.andWhere('competition.dept ILIKE :dept', { dept: `%${dept}%` });
+    }
+    if (club) {
+      queryBuilder.andWhere('club.longName ILIKE :club', { club: `%${club}%` });
     }
 
     // Advanced filters - multiple values
