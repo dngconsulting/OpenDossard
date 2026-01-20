@@ -2,15 +2,19 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
   ArrowLeft,
   Clock,
+  Edit2,
   Euro,
+  ExternalLink,
+  Facebook,
+  Globe,
   Image,
   Info,
   Loader2,
+  Mail,
   MapPin,
+  Phone,
   Plus,
   Trash2,
-  Edit2,
-  ExternalLink,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
@@ -22,7 +26,14 @@ import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -50,8 +61,8 @@ import {
 } from '@/hooks/useCompetitions';
 import {
   COMPETITION_TYPE_VALUES,
-  FEDERATION_VALUES,
   type CompetitionInfoItem,
+  FEDERATION_VALUES,
   type LinkItem,
   type PricingItem,
 } from '@/types/competitions';
@@ -71,8 +82,14 @@ const getProfileOptions = (competitionType: string) => {
   ];
 };
 
-// Federation options (exclude NL and FFTRI for competition creation)
-const FEDE_OPTIONS = FEDERATION_VALUES.filter(f => f !== 'NL' && f !== 'FFTRI').map(f => ({
+// Federation options (exclude NL and FFTRI for competition creation only)
+const FEDE_OPTIONS_CREATE = FEDERATION_VALUES.filter(f => f !== 'NL' && f !== 'FFTRI').map(f => ({
+  value: f,
+  label: f,
+}));
+
+// All federation options (for editing)
+const FEDE_OPTIONS_ALL = FEDERATION_VALUES.map(f => ({
   value: f,
   label: f,
 }));
@@ -133,7 +150,7 @@ const competitionSchema = z.object({
         info1: z.string(),
         info2: z.string(),
         info3: z.string().optional(),
-      })
+      }),
     )
     .optional(),
   pricing: z
@@ -141,7 +158,7 @@ const competitionSchema = z.object({
       z.object({
         name: z.string(),
         tarif: z.number(),
-      })
+      }),
     )
     .optional(),
   photoUrls: z
@@ -149,7 +166,7 @@ const competitionSchema = z.object({
       z.object({
         label: z.string(),
         link: z.string(),
-      })
+      }),
     )
     .optional(),
 });
@@ -266,7 +283,7 @@ export default function CompetitionDetailPage() {
   // Profile options based on competition type
   const profileOptions = useMemo(
     () => getProfileOptions(watchedCompetitionType),
-    [watchedCompetitionType]
+    [watchedCompetitionType],
   );
 
   // Load competition data when editing
@@ -329,14 +346,16 @@ export default function CompetitionDetailPage() {
     } catch (error) {
       showErrorToast(
         "Erreur lors de l'enregistrement",
-        error instanceof Error ? error.message : String(error)
+        error instanceof Error ? error.message : String(error),
       );
     }
   };
 
   // Horaires handlers
   const handleAddHoraire = () => {
-    if (!horaireForm.course || !horaireForm.horaireDepart) return;
+    if (!horaireForm.course || !horaireForm.horaireDepart) {
+      return;
+    }
 
     if (editingHoraireIndex !== null) {
       updateCompetitionInfo(editingHoraireIndex, horaireForm);
@@ -361,7 +380,9 @@ export default function CompetitionDetailPage() {
 
   // Pricing handlers
   const handleAddPricing = () => {
-    if (!pricingForm.name) return;
+    if (!pricingForm.name) {
+      return;
+    }
 
     if (editingPricingIndex !== null) {
       updatePricing(editingPricingIndex, pricingForm);
@@ -379,7 +400,9 @@ export default function CompetitionDetailPage() {
 
   // Media handlers
   const handleAddMedia = () => {
-    if (!mediaForm.label || !mediaForm.link) return;
+    if (!mediaForm.label || !mediaForm.link) {
+      return;
+    }
 
     if (editingMediaIndex !== null) {
       updatePhotoUrl(editingMediaIndex, mediaForm);
@@ -480,7 +503,7 @@ export default function CompetitionDetailPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
                     <FormField
                       control={form.control}
                       name="name"
@@ -522,8 +545,9 @@ export default function CompetitionDetailPage() {
                             Type <span className="text-destructive">*</span>
                           </FormLabel>
                           <Select
+                            key={`type-${competition?.id || 'new'}-${competition?.competitionType || ''}`}
                             onValueChange={field.onChange}
-                            value={field.value}
+                            defaultValue={competition?.competitionType || field.value}
                             disabled={!isCreating}
                           >
                             <FormControl>
@@ -546,6 +570,35 @@ export default function CompetitionDetailPage() {
 
                     <FormField
                       control={form.control}
+                      name="info"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Profil</FormLabel>
+                          <Select
+                            key={`info-${competition?.id || 'new'}-${competition?.info || ''}`}
+                            onValueChange={field.onChange}
+                            defaultValue={competition?.info || field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Sélectionner un profil" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {profileOptions.map(opt => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
                       name="fede"
                       render={({ field }) => (
                         <FormItem>
@@ -553,8 +606,9 @@ export default function CompetitionDetailPage() {
                             Fédération <span className="text-destructive">*</span>
                           </FormLabel>
                           <Select
+                            key={`fede-${competition?.id || 'new'}-${competition?.fede || ''}`}
                             onValueChange={field.onChange}
-                            value={field.value}
+                            defaultValue={competition?.fede || field.value}
                             disabled={!isCreating}
                           >
                             <FormControl>
@@ -563,7 +617,7 @@ export default function CompetitionDetailPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {FEDE_OPTIONS.map(opt => (
+                              {(isCreating ? FEDE_OPTIONS_CREATE : FEDE_OPTIONS_ALL).map(opt => (
                                 <SelectItem key={opt.value} value={opt.value}>
                                   {opt.label}
                                 </SelectItem>
@@ -584,15 +638,19 @@ export default function CompetitionDetailPage() {
                             Code postal <span className="text-destructive">*</span>
                           </FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder="ex: 31000"
-                              maxLength={5}
-                              {...field}
-                              onChange={e => {
-                                const value = e.target.value.replace(/\D/g, '');
-                                field.onChange(value);
-                              }}
-                            />
+                            <div className="relative">
+                              <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                              <Input
+                                className="pl-9"
+                                placeholder="ex: 31000"
+                                maxLength={5}
+                                {...field}
+                                onChange={e => {
+                                  const value = e.target.value.replace(/\D/g, '');
+                                  field.onChange(value);
+                                }}
+                              />
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -613,31 +671,6 @@ export default function CompetitionDetailPage() {
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
-                      name="info"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Profil</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || ''}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Sélectionner un profil" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {profileOptions.map(opt => (
-                                <SelectItem key={opt.value} value={opt.value}>
-                                  {opt.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
                     {/* Club - visible when fede and zipCode are set */}
                     {watchedFede && deptFromZip && (
                       <Controller
@@ -650,7 +683,6 @@ export default function CompetitionDetailPage() {
                             fede={watchedFede}
                             department={deptFromZip}
                             error={fieldState.error?.message}
-                            description="Club organisateur de l'épreuve"
                           />
                         )}
                       />
@@ -661,7 +693,7 @@ export default function CompetitionDetailPage() {
 
                   <div className="space-y-4">
                     <h4 className="font-medium">Contact</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
                       <FormField
                         control={form.control}
                         name="contactName"
@@ -683,15 +715,19 @@ export default function CompetitionDetailPage() {
                           <FormItem>
                             <FormLabel>Téléphone</FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="0612345678"
-                                maxLength={10}
-                                {...field}
-                                onChange={e => {
-                                  const value = e.target.value.replace(/\D/g, '');
-                                  field.onChange(value);
-                                }}
-                              />
+                              <div className="relative">
+                                <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  className="pl-9"
+                                  placeholder="0612345678"
+                                  maxLength={10}
+                                  {...field}
+                                  onChange={e => {
+                                    const value = e.target.value.replace(/\D/g, '');
+                                    field.onChange(value);
+                                  }}
+                                />
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -705,7 +741,15 @@ export default function CompetitionDetailPage() {
                           <FormItem>
                             <FormLabel>E-mail</FormLabel>
                             <FormControl>
-                              <Input type="email" placeholder="contact@example.com" {...field} />
+                              <div className="relative">
+                                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  className="pl-9"
+                                  type="email"
+                                  placeholder="contact@example.com"
+                                  {...field}
+                                />
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -719,7 +763,10 @@ export default function CompetitionDetailPage() {
                           <FormItem>
                             <FormLabel>Site web</FormLabel>
                             <FormControl>
-                              <Input placeholder="https://..." {...field} />
+                              <div className="relative">
+                                <Globe className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                <Input className="pl-9" placeholder="https://..." {...field} />
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -733,7 +780,14 @@ export default function CompetitionDetailPage() {
                           <FormItem>
                             <FormLabel>Facebook</FormLabel>
                             <FormControl>
-                              <Input placeholder="https://facebook.com/..." {...field} />
+                              <div className="relative">
+                                <Facebook className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  className="pl-9"
+                                  placeholder="https://facebook.com/..."
+                                  {...field}
+                                />
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -969,7 +1023,9 @@ export default function CompetitionDetailPage() {
                           {competitionInfoFields.map((field, index) => (
                             <TableRow key={field.id}>
                               <TableCell>{(field as CompetitionInfoItem).course}</TableCell>
-                              <TableCell>{(field as CompetitionInfoItem).horaireEngagement}</TableCell>
+                              <TableCell>
+                                {(field as CompetitionInfoItem).horaireEngagement}
+                              </TableCell>
                               <TableCell>{(field as CompetitionInfoItem).horaireDepart}</TableCell>
                               <TableCell>{(field as CompetitionInfoItem).info1}</TableCell>
                               <TableCell>{(field as CompetitionInfoItem).info2}</TableCell>
@@ -1068,8 +1124,12 @@ export default function CompetitionDetailPage() {
                         <TableBody>
                           {pricingFields.map((field, index) => (
                             <TableRow key={field.id}>
-                              <TableCell className="whitespace-nowrap">{(field as PricingItem).name}</TableCell>
-                              <TableCell className="whitespace-nowrap">{(field as PricingItem).tarif} €</TableCell>
+                              <TableCell className="whitespace-nowrap">
+                                {(field as PricingItem).name}
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap">
+                                {(field as PricingItem).tarif} €
+                              </TableCell>
                               <TableCell>
                                 <div className="flex gap-1">
                                   <Button
@@ -1202,7 +1262,9 @@ export default function CompetitionDetailPage() {
                         <TableBody>
                           {photoUrlsFields.map((field, index) => (
                             <TableRow key={field.id}>
-                              <TableCell className="whitespace-nowrap">{(field as LinkItem).label}</TableCell>
+                              <TableCell className="whitespace-nowrap">
+                                {(field as LinkItem).label}
+                              </TableCell>
                               <TableCell>
                                 <a
                                   href={(field as LinkItem).link}
