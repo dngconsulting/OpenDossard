@@ -1,12 +1,30 @@
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   ArrowLeft,
   Clock,
+  Copy,
   Edit2,
   Euro,
   ExternalLink,
   Facebook,
   Globe,
+  GripVertical,
   Image,
   Info,
   Loader2,
@@ -14,11 +32,12 @@ import {
   MapPin,
   Phone,
   Plus,
+  Save,
   Trash2,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
 
 import { ClubAutocomplete } from '@/components/ClubAutocomplete';
@@ -54,6 +73,7 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import {
   useCompetition,
   useCreateCompetition,
@@ -111,7 +131,7 @@ const competitionSchema = z.object({
     .max(5, 'Le code postal doit contenir 5 chiffres')
     .regex(/^\d{5}$/, 'Le code postal doit contenir 5 chiffres'),
   dept: z.string().optional(),
-  club: z.string().optional(),
+  clubId: z.number().nullable().optional(),
   longueurCircuit: z.string().optional(),
   info: z.string().optional(),
   contactName: z.string().optional(),
@@ -157,7 +177,7 @@ const competitionSchema = z.object({
     .array(
       z.object({
         name: z.string(),
-        tarif: z.number(),
+        tarif: z.string(),
       }),
     )
     .optional(),
@@ -173,11 +193,58 @@ const competitionSchema = z.object({
 
 type FormValues = z.infer<typeof competitionSchema>;
 
+// Sortable table row component for drag & drop
+function SortableTableRow({
+  id,
+  children,
+}: {
+  id: string;
+  children: React.ReactNode;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <TableRow ref={setNodeRef} style={style}>
+      <TableCell className="w-[40px] cursor-grab" {...attributes} {...listeners}>
+        <GripVertical className="h-4 w-4 text-muted-foreground" />
+      </TableCell>
+      {children}
+    </TableRow>
+  );
+}
+
+const VALID_TABS = ['general', 'horaires', 'tarifs', 'localisation', 'medias'] as const;
+type TabValue = (typeof VALID_TABS)[number];
+
 export default function CompetitionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isCreating = !id;
   const competitionId = id ? parseInt(id, 10) : undefined;
+
+  // Tab state from URL
+  const tabParam = searchParams.get('tab');
+  const currentTab: TabValue = VALID_TABS.includes(tabParam as TabValue)
+    ? (tabParam as TabValue)
+    : 'general';
+
+  const handleTabChange = (value: string) => {
+    setSearchParams({ tab: value }, { replace: true });
+  };
 
   const { data: competition, isLoading } = useCompetition(competitionId);
   const createCompetition = useCreateCompetition();
@@ -197,7 +264,7 @@ export default function CompetitionDetailPage() {
   const [editingHoraireIndex, setEditingHoraireIndex] = useState<number | null>(null);
 
   // Pricing form state
-  const [pricingForm, setPricingForm] = useState<PricingItem>({ name: '', tarif: 0 });
+  const [pricingForm, setPricingForm] = useState<PricingItem>({ name: '', tarif: '' });
   const [editingPricingIndex, setEditingPricingIndex] = useState<number | null>(null);
 
   // Media form state
@@ -213,7 +280,7 @@ export default function CompetitionDetailPage() {
       fede: '',
       zipCode: '',
       dept: '',
-      club: '',
+      clubId: null,
       longueurCircuit: '',
       info: '',
       contactName: '',
@@ -242,6 +309,7 @@ export default function CompetitionDetailPage() {
     append: appendCompetitionInfo,
     remove: removeCompetitionInfo,
     update: updateCompetitionInfo,
+    move: moveCompetitionInfo,
   } = useFieldArray({
     control: form.control,
     name: 'competitionInfo',
@@ -252,6 +320,7 @@ export default function CompetitionDetailPage() {
     append: appendPricing,
     remove: removePricing,
     update: updatePricing,
+    move: movePricing,
   } = useFieldArray({
     control: form.control,
     name: 'pricing',
@@ -266,6 +335,32 @@ export default function CompetitionDetailPage() {
     control: form.control,
     name: 'photoUrls',
   });
+
+  // Drag & Drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEndHoraires = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = competitionInfoFields.findIndex(f => f.id === active.id);
+      const newIndex = competitionInfoFields.findIndex(f => f.id === over.id);
+      moveCompetitionInfo(oldIndex, newIndex);
+    }
+  };
+
+  const handleDragEndPricing = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = pricingFields.findIndex(f => f.id === active.id);
+      const newIndex = pricingFields.findIndex(f => f.id === over.id);
+      movePricing(oldIndex, newIndex);
+    }
+  };
 
   // Watch form values
   const watchedFede = form.watch('fede');
@@ -289,9 +384,17 @@ export default function CompetitionDetailPage() {
   // Load competition data when editing
   useEffect(() => {
     if (competition) {
-      const eventDateLocal = competition.eventDate
-        ? new Date(competition.eventDate).toISOString().slice(0, 16)
-        : '';
+      // Convert UTC date to local datetime-local format (YYYY-MM-DDTHH:mm)
+      let eventDateLocal = '';
+      if (competition.eventDate) {
+        const date = new Date(competition.eventDate);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        eventDateLocal = `${year}-${month}-${day}T${hours}:${minutes}`;
+      }
 
       form.reset({
         name: competition.name || '',
@@ -300,7 +403,7 @@ export default function CompetitionDetailPage() {
         fede: competition.fede || '',
         zipCode: competition.zipCode || '',
         dept: competition.dept || '',
-        club: competition.club?.longName || '',
+        clubId: competition.club?.id ?? null,
         longueurCircuit: competition.longueurCircuit || '',
         info: competition.info || '',
         contactName: competition.contactName || '',
@@ -342,7 +445,6 @@ export default function CompetitionDetailPage() {
         await updateCompetition.mutateAsync({ id: competitionId!, data: formData as any });
         showSuccessToast('Épreuve mise à jour avec succès');
       }
-      navigate('/competitions');
     } catch (error) {
       showErrorToast(
         "Erreur lors de l'enregistrement",
@@ -390,7 +492,7 @@ export default function CompetitionDetailPage() {
     } else {
       appendPricing(pricingForm);
     }
-    setPricingForm({ name: '', tarif: 0 });
+    setPricingForm({ name: '', tarif: '' });
   };
 
   const handleEditPricing = (index: number) => {
@@ -423,7 +525,13 @@ export default function CompetitionDetailPage() {
       <Button variant="outline" onClick={() => navigate('/competitions')}>
         <ArrowLeft /> Retour
       </Button>
-      <Button onClick={form.handleSubmit(onSubmit)} disabled={isSaving}>
+      <Button
+        onClick={() => {
+          console.log('Button clicked, form values:', form.getValues());
+          form.handleSubmit(onSubmit, errors => console.error('Validation errors:', errors))();
+        }}
+        disabled={isSaving}
+      >
         {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Enregistrer
       </Button>
@@ -454,7 +562,7 @@ export default function CompetitionDetailPage() {
     <Layout title={pageTitle} toolbar={toolbar} toolbarLeft={toolbarLeft}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <Tabs defaultValue="general" className="w-full gap-0">
+          <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full gap-0">
             <TabsList className="mb-0 flex w-full justify-start md:justify-center gap-0 rounded-t-xl rounded-b-none bg-muted/50 p-0 h-auto overflow-x-auto scrollbar-none">
               <TabsTrigger
                 value="general"
@@ -675,11 +783,11 @@ export default function CompetitionDetailPage() {
                     {watchedFede && deptFromZip && (
                       <Controller
                         control={form.control}
-                        name="club"
+                        name="clubId"
                         render={({ field, fieldState }) => (
                           <ClubAutocomplete
-                            value={field.value || ''}
-                            onChange={field.onChange}
+                            value={field.value ?? null}
+                            onChange={clubId => field.onChange(clubId)}
                             fede={watchedFede}
                             department={deptFromZip}
                             error={fieldState.error?.message}
@@ -922,10 +1030,10 @@ export default function CompetitionDetailPage() {
                       <FormItem>
                         <FormLabel>Observations</FormLabel>
                         <FormControl>
-                          <Textarea
+                          <RichTextEditor
+                            value={field.value || ''}
+                            onChange={field.onChange}
                             placeholder="Informations complémentaires..."
-                            className="min-h-[120px]"
-                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1000,72 +1108,127 @@ export default function CompetitionDetailPage() {
                       />
                     </div>
                   </div>
-                  <Button type="button" variant="outline" onClick={handleAddHoraire}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    {editingHoraireIndex !== null ? 'Modifier' : 'Ajouter'}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="default"
+                      onClick={handleAddHoraire}
+                    >
+                      {editingHoraireIndex !== null ? (
+                        <Save className="mr-2 h-4 w-4" />
+                      ) : (
+                        <Plus className="mr-2 h-4 w-4" />
+                      )}
+                      {editingHoraireIndex !== null ? 'Enregistrer' : 'Ajouter'}
+                    </Button>
+                    {editingHoraireIndex !== null && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setEditingHoraireIndex(null);
+                          setHoraireForm({
+                            course: '',
+                            horaireEngagement: '',
+                            horaireDepart: '',
+                            info1: '',
+                            info2: '',
+                            info3: '',
+                          });
+                        }}
+                      >
+                        Annuler
+                      </Button>
+                    )}
+                  </div>
 
                   {competitionInfoFields.length > 0 ? (
-                    <div className="overflow-x-auto -mx-6 px-6">
-                      <Table className="min-w-[600px] table-fixed [&_td]:whitespace-normal [&_td]:md:whitespace-nowrap">
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-[140px]">Catégorie</TableHead>
-                            <TableHead className="w-[100px]">Dossard</TableHead>
-                            <TableHead className="w-[80px]">Départ</TableHead>
-                            <TableHead className="w-[60px]">Tours</TableHead>
-                            <TableHead className="w-[80px]">Distance</TableHead>
-                            <TableHead className="w-[50px]">Lien</TableHead>
-                            <TableHead className="w-[90px]">Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {competitionInfoFields.map((field, index) => (
-                            <TableRow key={field.id}>
-                              <TableCell>{(field as CompetitionInfoItem).course}</TableCell>
-                              <TableCell>
-                                {(field as CompetitionInfoItem).horaireEngagement}
-                              </TableCell>
-                              <TableCell>{(field as CompetitionInfoItem).horaireDepart}</TableCell>
-                              <TableCell>{(field as CompetitionInfoItem).info1}</TableCell>
-                              <TableCell>{(field as CompetitionInfoItem).info2}</TableCell>
-                              <TableCell>
-                                {(field as CompetitionInfoItem).info3 && (
-                                  <a
-                                    href={(field as CompetitionInfoItem).info3}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-primary hover:underline"
-                                  >
-                                    <ExternalLink className="h-4 w-4" />
-                                  </a>
-                                )}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex gap-1">
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleEditHoraire(index)}
-                                  >
-                                    <Edit2 className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => removeCompetitionInfo(index)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </TableCell>
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEndHoraires}
+                    >
+                      <div className="overflow-x-auto -mx-6 px-6">
+                        <Table className="min-w-[600px] table-fixed [&_td]:whitespace-normal [&_td]:md:whitespace-nowrap">
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-[40px]"></TableHead>
+                              <TableHead className="w-[140px]">Catégorie</TableHead>
+                              <TableHead className="w-[100px]">Dossard</TableHead>
+                              <TableHead className="w-[80px]">Départ</TableHead>
+                              <TableHead className="w-[60px]">Tours</TableHead>
+                              <TableHead className="w-[80px]">Distance</TableHead>
+                              <TableHead className="w-[50px]">Lien</TableHead>
+                              <TableHead className="w-[90px]">Actions</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
+                          </TableHeader>
+                          <TableBody>
+                            <SortableContext
+                              items={competitionInfoFields.map(f => f.id)}
+                              strategy={verticalListSortingStrategy}
+                            >
+                              {competitionInfoFields.map((field, index) => (
+                                <SortableTableRow key={field.id} id={field.id}>
+                                  <TableCell>{(field as CompetitionInfoItem).course}</TableCell>
+                                  <TableCell>
+                                    {(field as CompetitionInfoItem).horaireEngagement}
+                                  </TableCell>
+                                  <TableCell>{(field as CompetitionInfoItem).horaireDepart}</TableCell>
+                                  <TableCell>{(field as CompetitionInfoItem).info1}</TableCell>
+                                  <TableCell>{(field as CompetitionInfoItem).info2}</TableCell>
+                                  <TableCell>
+                                    {(field as CompetitionInfoItem).info3 && (
+                                      <a
+                                        href={(field as CompetitionInfoItem).info3}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-primary hover:underline"
+                                      >
+                                        <ExternalLink className="h-4 w-4" />
+                                      </a>
+                                    )}
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex gap-1">
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handleEditHoraire(index)}
+                                        title="Modifier"
+                                      >
+                                        <Edit2 className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => {
+                                          const item = competitionInfoFields[index] as CompetitionInfoItem;
+                                          appendCompetitionInfo({ ...item });
+                                        }}
+                                        title="Dupliquer"
+                                      >
+                                        <Copy className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => removeCompetitionInfo(index)}
+                                        title="Supprimer"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </SortableTableRow>
+                              ))}
+                            </SortableContext>
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </DndContext>
                   ) : (
                     <p className="text-muted-foreground text-center py-8">
                       Aucun horaire ou parcours encore ajouté
@@ -1097,64 +1260,104 @@ export default function CompetitionDetailPage() {
                       <Input
                         type="number"
                         value={pricingForm.tarif}
-                        onChange={e =>
-                          setPricingForm({ ...pricingForm, tarif: Number(e.target.value) })
-                        }
+                        onChange={e => setPricingForm({ ...pricingForm, tarif: e.target.value })}
                         placeholder="ex: 7"
                       />
                     </div>
-                    <div className="flex items-end">
-                      <Button type="button" variant="outline" onClick={handleAddPricing}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        {editingPricingIndex !== null ? 'Modifier' : 'Ajouter'}
+                    <div className="flex items-end gap-2">
+                      <Button type="button" variant="default" onClick={handleAddPricing}>
+                        {editingPricingIndex !== null ? (
+                          <Save className="mr-2 h-4 w-4" />
+                        ) : (
+                          <Plus className="mr-2 h-4 w-4" />
+                        )}
+                        {editingPricingIndex !== null ? 'Enregistrer' : 'Ajouter'}
                       </Button>
+                      {editingPricingIndex !== null && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingPricingIndex(null);
+                            setPricingForm({ name: '', tarif: '' });
+                          }}
+                        >
+                          Annuler
+                        </Button>
+                      )}
                     </div>
                   </div>
 
                   {pricingFields.length > 0 ? (
-                    <div className="overflow-x-auto -mx-6 px-6">
-                      <Table className="min-w-[400px]">
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Tarif</TableHead>
-                            <TableHead>Montant</TableHead>
-                            <TableHead className="w-[100px]">Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {pricingFields.map((field, index) => (
-                            <TableRow key={field.id}>
-                              <TableCell className="whitespace-nowrap">
-                                {(field as PricingItem).name}
-                              </TableCell>
-                              <TableCell className="whitespace-nowrap">
-                                {(field as PricingItem).tarif} €
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex gap-1">
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleEditPricing(index)}
-                                  >
-                                    <Edit2 className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => removePricing(index)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </TableCell>
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEndPricing}
+                    >
+                      <div className="overflow-x-auto -mx-6 px-6">
+                        <Table className="min-w-[400px]">
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-[40px]"></TableHead>
+                              <TableHead>Tarif</TableHead>
+                              <TableHead>Montant</TableHead>
+                              <TableHead className="w-[100px]">Actions</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
+                          </TableHeader>
+                          <TableBody>
+                            <SortableContext
+                              items={pricingFields.map(f => f.id)}
+                              strategy={verticalListSortingStrategy}
+                            >
+                              {pricingFields.map((field, index) => (
+                                <SortableTableRow key={field.id} id={field.id}>
+                                  <TableCell className="whitespace-nowrap">
+                                    {(field as PricingItem).name}
+                                  </TableCell>
+                                  <TableCell className="whitespace-nowrap">
+                                    {(field as PricingItem).tarif} €
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex gap-1">
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handleEditPricing(index)}
+                                        title="Modifier"
+                                      >
+                                        <Edit2 className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => {
+                                          const item = pricingFields[index] as PricingItem;
+                                          appendPricing({ ...item });
+                                        }}
+                                        title="Dupliquer"
+                                      >
+                                        <Copy className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => removePricing(index)}
+                                        title="Supprimer"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </SortableTableRow>
+                              ))}
+                            </SortableContext>
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </DndContext>
                   ) : (
                     <p className="text-muted-foreground text-center py-8">
                       Aucun tarif encore ajouté

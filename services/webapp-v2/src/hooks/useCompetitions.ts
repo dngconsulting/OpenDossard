@@ -223,9 +223,9 @@ export function useUpdateCompetition() {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<CompetitionFormData> }) =>
       competitionsApi.update(id, data),
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
+      // Invalidates all queries starting with ['competitions'], including list and detail
       queryClient.invalidateQueries({ queryKey: ['competitions'] });
-      queryClient.invalidateQueries({ queryKey: competitionsKeys.detail(variables.id) });
     },
   });
 }

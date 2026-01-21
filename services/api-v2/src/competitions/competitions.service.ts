@@ -161,6 +161,13 @@ export class CompetitionsService {
     competitionData: Partial<CompetitionEntity>,
   ): Promise<CompetitionEntity> {
     const competition = await this.findOne(id);
+
+    // Fix: When clubId is provided, reset the club relation so TypeORM uses
+    // the new clubId instead of the existing club.id from the eager-loaded relation
+    if ('clubId' in competitionData) {
+      competition.club = null as unknown as typeof competition.club;
+    }
+
     Object.assign(competition, competitionData);
     return this.competitionRepository.save(competition);
   }
