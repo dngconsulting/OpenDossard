@@ -19,7 +19,7 @@ export type CompetitionInfoItem = {
 
 export type PricingItem = {
   name: string;
-  tarif: number;
+  tarif: string;
 };
 
 export type LinkItem = {

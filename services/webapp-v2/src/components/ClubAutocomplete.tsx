@@ -9,8 +9,8 @@ import { useClubsByFedeAndDept, useCreateClub } from '@/hooks/useClubs';
 import { cn } from '@/lib/utils';
 
 type ClubAutocompleteProps = {
-  value: string;
-  onChange: (value: string) => void;
+  value: number | null;
+  onChange: (clubId: number | null, clubName: string) => void;
   fede: string | undefined | null;
   department: string | undefined | null;
   disabled?: boolean;
@@ -61,8 +61,14 @@ export function ClubAutocomplete({
   // Only if: there's a non-empty trimmed search, no exact match exists, and fede+dept are selected
   const showCreateButton = trimmedSearch && !exactMatchExists && fede && department && !isLoading;
 
-  const handleSelect = (clubName: string) => {
-    onChange(clubName);
+  // Find the selected club by ID
+  const selectedClub = useMemo(() => {
+    if (!value || !clubs) return null;
+    return clubs.find(club => club.id === value) ?? null;
+  }, [value, clubs]);
+
+  const handleSelect = (clubId: number, clubName: string) => {
+    onChange(clubId, clubName);
     setSearch('');
     setOpen(false);
   };
@@ -78,7 +84,7 @@ export function ClubAutocomplete({
         fede,
         elicenceName: null,
       });
-      handleSelect(newClub.longName);
+      handleSelect(newClub.id, newClub.longName);
     } catch (err) {
       console.error('Failed to create club:', err);
     }
@@ -109,8 +115,8 @@ export function ClubAutocomplete({
             className="w-full justify-between font-normal"
             disabled={isDisabled}
           >
-            <span className={cn(!value && 'text-muted-foreground')}>
-              {value || (isDisabled ? 'Sélectionnez une fédération et un département' : 'Rechercher un club...')}
+            <span className={cn(!selectedClub && 'text-muted-foreground')}>
+              {selectedClub?.longName || (isDisabled ? 'Sélectionnez une fédération et un département' : 'Rechercher un club...')}
             </span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -146,14 +152,14 @@ export function ClubAutocomplete({
                       type="button"
                       className={cn(
                         'relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground',
-                        value === club.longName && 'bg-accent'
+                        value === club.id && 'bg-accent'
                       )}
-                      onClick={() => handleSelect(club.longName)}
+                      onClick={() => handleSelect(club.id, club.longName)}
                     >
                       <Check
                         className={cn(
                           'mr-2 h-4 w-4',
-                          value === club.longName ? 'opacity-100' : 'opacity-0'
+                          value === club.id ? 'opacity-100' : 'opacity-0'
                         )}
                       />
                       <span className="flex-1 text-left">{club.longName}</span>

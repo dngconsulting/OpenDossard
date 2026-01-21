@@ -7,6 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Federation, CompetitionType } from '../../common/enums';
+import { PricingInfo, CompetitionInfo, LinkInfo } from '../../common/types';
 import { ClubEntity } from '../../clubs/entities/club.entity';
 
 @Entity('competition')
@@ -41,7 +42,7 @@ export class CompetitionEntity {
   observations: string;
 
   @Column('json', { nullable: true })
-  pricing: any;
+  pricing: PricingInfo[];
 
   @Column('text')
   races: string;
@@ -64,7 +65,7 @@ export class CompetitionEntity {
   competitionType: CompetitionType;
 
   @Column({ name: 'competition_info', type: 'json', nullable: true })
-  competitionInfo: any;
+  competitionInfo: CompetitionInfo[];
 
   @Column({ name: 'lieu_dossard', nullable: true })
   lieuDossard: string;
@@ -118,14 +119,14 @@ export class CompetitionEntity {
   resultsValidated: boolean;
 
   @Column({ name: 'photo_urls', type: 'json', nullable: true })
-  photoUrls: any;
+  photoUrls: LinkInfo[];
 
   @Column({ name: 'ranking_urls', type: 'json', nullable: true })
-  rankingUrls: any;
+  rankingUrls: LinkInfo[];
 
   @Column({ name: 'avec_chrono', nullable: true, default: false })
   avecChrono: boolean;
 
   @Column({ name: 'registration_urls', type: 'json', nullable: true })
-  registrationUrls: any;
+  registrationUrls: LinkInfo[];
 }
