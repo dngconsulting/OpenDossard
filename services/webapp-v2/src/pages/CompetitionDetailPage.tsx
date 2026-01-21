@@ -1,233 +1,39 @@
-import {
-  closestCenter,
-  DndContext,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   ArrowLeft,
   Clock,
-  Copy,
-  Edit2,
   Euro,
-  ExternalLink,
-  Facebook,
-  Globe,
-  GripVertical,
   Image,
   Info,
   Loader2,
-  Mail,
   MapPin,
-  Phone,
-  Plus,
-  Save,
-  Trash2,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
-import { Controller, useFieldArray, useForm } from 'react-hook-form';
+import { useEffect, useMemo } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { z } from 'zod';
 
-import { ClubAutocomplete } from '@/components/ClubAutocomplete';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Form } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
-import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import {
   useCompetition,
   useCreateCompetition,
   useUpdateCompetition,
 } from '@/hooks/useCompetitions';
-import {
-  COMPETITION_TYPE_VALUES,
-  type CompetitionInfoItem,
-  FEDERATION_VALUES,
-  type LinkItem,
-  type PricingItem,
-} from '@/types/competitions';
 import { showErrorToast, showSuccessToast } from '@/utils/error-handler/error-handler';
 
-// Profile options based on competition type
-const getProfileOptions = (competitionType: string) => {
-  if (competitionType === 'CX') {
-    return [{ value: 'Cyclo Cross', label: 'Cyclo Cross' }];
-  }
-  return [
-    { value: 'Montagne', label: 'Montagne' },
-    { value: 'Moy-Montagne', label: 'Moy-Montagne' },
-    { value: 'Vallonné', label: 'Vallonné' },
-    { value: 'Circuit Plat', label: 'Circuit Plat' },
-    { value: 'NC', label: 'NC' },
-  ];
-};
-
-// Federation options (exclude NL and FFTRI for competition creation only)
-const FEDE_OPTIONS_CREATE = FEDERATION_VALUES.filter(f => f !== 'NL' && f !== 'FFTRI').map(f => ({
-  value: f,
-  label: f,
-}));
-
-// All federation options (for editing)
-const FEDE_OPTIONS_ALL = FEDERATION_VALUES.map(f => ({
-  value: f,
-  label: f,
-}));
-
-const COMPETITION_TYPE_OPTIONS = COMPETITION_TYPE_VALUES.map(t => ({
-  value: t,
-  label: t === 'CX' ? 'Cyclo-Cross' : t === 'VTT' ? 'VTT' : 'Route',
-}));
-
-// Zod schema for the form
-const competitionSchema = z.object({
-  name: z.string().min(1, "Le nom de l'épreuve est requis"),
-  eventDate: z.string().min(1, 'La date est requise'),
-  competitionType: z.string().min(1, 'Le type est requis'),
-  fede: z.string().min(1, 'La fédération est requise'),
-  zipCode: z
-    .string()
-    .min(5, 'Le code postal doit contenir 5 chiffres')
-    .max(5, 'Le code postal doit contenir 5 chiffres')
-    .regex(/^\d{5}$/, 'Le code postal doit contenir 5 chiffres'),
-  dept: z.string().optional(),
-  clubId: z.number().nullable().optional(),
-  longueurCircuit: z.string().optional(),
-  info: z.string().optional(),
-  contactName: z.string().optional(),
-  contactPhone: z
-    .string()
-    .optional()
-    .refine(val => !val || val.length === 10, 'Le téléphone doit contenir 10 chiffres'),
-  contactEmail: z
-    .string()
-    .optional()
-    .refine(val => !val || val.includes('@'), "L'email doit contenir @"),
-  siteweb: z
-    .string()
-    .optional()
-    .refine(val => !val || val.startsWith('http'), 'Le site web doit commencer par http'),
-  facebook: z
-    .string()
-    .optional()
-    .refine(val => !val || val.startsWith('http'), 'Le lien Facebook doit commencer par http'),
-  openedToOtherFede: z.boolean().optional(),
-  openedNL: z.boolean().optional(),
-  avecChrono: z.boolean().optional(),
-  observations: z.string().optional(),
-  commissaires: z.string().optional(),
-  speaker: z.string().optional(),
-  aboyeur: z.string().optional(),
-  feedback: z.string().optional(),
-  lieuDossard: z.string().optional(),
-  lieuDossardGPS: z.string().optional(),
-  competitionInfo: z
-    .array(
-      z.object({
-        course: z.string(),
-        horaireEngagement: z.string(),
-        horaireDepart: z.string(),
-        info1: z.string(),
-        info2: z.string(),
-        info3: z.string().optional(),
-      }),
-    )
-    .optional(),
-  pricing: z
-    .array(
-      z.object({
-        name: z.string(),
-        tarif: z.string(),
-      }),
-    )
-    .optional(),
-  photoUrls: z
-    .array(
-      z.object({
-        label: z.string(),
-        link: z.string(),
-      }),
-    )
-    .optional(),
-});
-
-type FormValues = z.infer<typeof competitionSchema>;
-
-// Sortable table row component for drag & drop
-function SortableTableRow({
-  id,
-  children,
-}: {
-  id: string;
-  children: React.ReactNode;
-}) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  return (
-    <TableRow ref={setNodeRef} style={style}>
-      <TableCell className="w-[40px] cursor-grab" {...attributes} {...listeners}>
-        <GripVertical className="h-4 w-4 text-muted-foreground" />
-      </TableCell>
-      {children}
-    </TableRow>
-  );
-}
-
-const VALID_TABS = ['general', 'horaires', 'tarifs', 'localisation', 'medias'] as const;
-type TabValue = (typeof VALID_TABS)[number];
+import { GeneralTab } from './competition/GeneralTab';
+import { HorairesTab } from './competition/HorairesTab';
+import { LocalisationTab } from './competition/LocalisationTab';
+import { MediasTab } from './competition/MediasTab';
+import { TarifsTab } from './competition/TarifsTab';
+import {
+  competitionSchema,
+  type FormValues,
+  type TabValue,
+  VALID_TABS,
+} from './competition/types';
 
 export default function CompetitionDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -236,7 +42,6 @@ export default function CompetitionDetailPage() {
   const isCreating = !id;
   const competitionId = id ? parseInt(id, 10) : undefined;
 
-  // Tab state from URL
   const tabParam = searchParams.get('tab');
   const currentTab: TabValue = VALID_TABS.includes(tabParam as TabValue)
     ? (tabParam as TabValue)
@@ -251,25 +56,6 @@ export default function CompetitionDetailPage() {
   const updateCompetition = useUpdateCompetition();
 
   const isSaving = createCompetition.isPending || updateCompetition.isPending;
-
-  // Horaires form state
-  const [horaireForm, setHoraireForm] = useState<CompetitionInfoItem>({
-    course: '',
-    horaireEngagement: '',
-    horaireDepart: '',
-    info1: '',
-    info2: '',
-    info3: '',
-  });
-  const [editingHoraireIndex, setEditingHoraireIndex] = useState<number | null>(null);
-
-  // Pricing form state
-  const [pricingForm, setPricingForm] = useState<PricingItem>({ name: '', tarif: '' });
-  const [editingPricingIndex, setEditingPricingIndex] = useState<number | null>(null);
-
-  // Media form state
-  const [mediaForm, setMediaForm] = useState<LinkItem>({ label: '', link: '' });
-  const [editingMediaIndex, setEditingMediaIndex] = useState<number | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(competitionSchema),
@@ -304,70 +90,8 @@ export default function CompetitionDetailPage() {
     },
   });
 
-  const {
-    fields: competitionInfoFields,
-    append: appendCompetitionInfo,
-    remove: removeCompetitionInfo,
-    update: updateCompetitionInfo,
-    move: moveCompetitionInfo,
-  } = useFieldArray({
-    control: form.control,
-    name: 'competitionInfo',
-  });
-
-  const {
-    fields: pricingFields,
-    append: appendPricing,
-    remove: removePricing,
-    update: updatePricing,
-    move: movePricing,
-  } = useFieldArray({
-    control: form.control,
-    name: 'pricing',
-  });
-
-  const {
-    fields: photoUrlsFields,
-    append: appendPhotoUrl,
-    remove: removePhotoUrl,
-    update: updatePhotoUrl,
-  } = useFieldArray({
-    control: form.control,
-    name: 'photoUrls',
-  });
-
-  // Drag & Drop sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const handleDragEndHoraires = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = competitionInfoFields.findIndex(f => f.id === active.id);
-      const newIndex = competitionInfoFields.findIndex(f => f.id === over.id);
-      moveCompetitionInfo(oldIndex, newIndex);
-    }
-  };
-
-  const handleDragEndPricing = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = pricingFields.findIndex(f => f.id === active.id);
-      const newIndex = pricingFields.findIndex(f => f.id === over.id);
-      movePricing(oldIndex, newIndex);
-    }
-  };
-
-  // Watch form values
-  const watchedFede = form.watch('fede');
   const watchedZipCode = form.watch('zipCode');
-  const watchedCompetitionType = form.watch('competitionType');
 
-  // Extract department from zipCode
   const deptFromZip = useMemo(() => {
     if (watchedZipCode && watchedZipCode.length >= 2) {
       return watchedZipCode.substring(0, 2);
@@ -375,16 +99,8 @@ export default function CompetitionDetailPage() {
     return '';
   }, [watchedZipCode]);
 
-  // Profile options based on competition type
-  const profileOptions = useMemo(
-    () => getProfileOptions(watchedCompetitionType),
-    [watchedCompetitionType],
-  );
-
-  // Load competition data when editing
   useEffect(() => {
     if (competition) {
-      // Convert UTC date to local datetime-local format (YYYY-MM-DDTHH:mm)
       let eventDateLocal = '';
       if (competition.eventDate) {
         const date = new Date(competition.eventDate);
@@ -440,10 +156,10 @@ export default function CompetitionDetailPage() {
 
       if (isCreating) {
         await createCompetition.mutateAsync(formData as any);
-        showSuccessToast('Épreuve créée avec succès');
+        showSuccessToast('Epreuve creee avec succes');
       } else {
         await updateCompetition.mutateAsync({ id: competitionId!, data: formData as any });
-        showSuccessToast('Épreuve mise à jour avec succès');
+        showSuccessToast('Epreuve mise a jour avec succes');
       }
     } catch (error) {
       showErrorToast(
@@ -451,73 +167,6 @@ export default function CompetitionDetailPage() {
         error instanceof Error ? error.message : String(error),
       );
     }
-  };
-
-  // Horaires handlers
-  const handleAddHoraire = () => {
-    if (!horaireForm.course || !horaireForm.horaireDepart) {
-      return;
-    }
-
-    if (editingHoraireIndex !== null) {
-      updateCompetitionInfo(editingHoraireIndex, horaireForm);
-      setEditingHoraireIndex(null);
-    } else {
-      appendCompetitionInfo(horaireForm);
-    }
-    setHoraireForm({
-      course: '',
-      horaireEngagement: '',
-      horaireDepart: '',
-      info1: '',
-      info2: '',
-      info3: '',
-    });
-  };
-
-  const handleEditHoraire = (index: number) => {
-    setHoraireForm(competitionInfoFields[index] as CompetitionInfoItem);
-    setEditingHoraireIndex(index);
-  };
-
-  // Pricing handlers
-  const handleAddPricing = () => {
-    if (!pricingForm.name) {
-      return;
-    }
-
-    if (editingPricingIndex !== null) {
-      updatePricing(editingPricingIndex, pricingForm);
-      setEditingPricingIndex(null);
-    } else {
-      appendPricing(pricingForm);
-    }
-    setPricingForm({ name: '', tarif: '' });
-  };
-
-  const handleEditPricing = (index: number) => {
-    setPricingForm(pricingFields[index] as PricingItem);
-    setEditingPricingIndex(index);
-  };
-
-  // Media handlers
-  const handleAddMedia = () => {
-    if (!mediaForm.label || !mediaForm.link) {
-      return;
-    }
-
-    if (editingMediaIndex !== null) {
-      updatePhotoUrl(editingMediaIndex, mediaForm);
-      setEditingMediaIndex(null);
-    } else {
-      appendPhotoUrl(mediaForm);
-    }
-    setMediaForm({ label: '', link: '' });
-  };
-
-  const handleEditMedia = (index: number) => {
-    setMediaForm(photoUrlsFields[index] as LinkItem);
-    setEditingMediaIndex(index);
   };
 
   const toolbar = (
@@ -541,11 +190,11 @@ export default function CompetitionDetailPage() {
   const toolbarLeft = competition && (
     <span className="text-sm text-muted-foreground">
       <strong className="text-foreground">{competition.name}</strong>
-      {competition.club && <span className="ml-2">— {competition.club.longName}</span>}
+      {competition.club && <span className="ml-2">- {competition.club.longName}</span>}
     </span>
   );
 
-  const pageTitle = isCreating ? 'Nouvelle épreuve' : "Détail de l'épreuve";
+  const pageTitle = isCreating ? 'Nouvelle epreuve' : "Detail de l'epreuve";
 
   if (!isCreating && isLoading) {
     return (
@@ -560,961 +209,71 @@ export default function CompetitionDetailPage() {
 
   return (
     <Layout title={pageTitle} toolbar={toolbar} toolbarLeft={toolbarLeft}>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full gap-0">
-            <TabsList className="mb-0 flex w-full justify-start md:justify-center gap-0 rounded-t-xl rounded-b-none bg-muted/50 p-0 h-auto overflow-x-auto scrollbar-none">
-              <TabsTrigger
-                value="general"
-                className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
-              >
-                <Info className="h-6 w-6" strokeWidth={2.5} />
-                <span className="text-base font-bold">Infos</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="horaires"
-                className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
-              >
-                <Clock className="h-6 w-6" strokeWidth={2.5} />
-                <span className="text-base font-bold">Horaires</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="tarifs"
-                className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
-              >
-                <Euro className="h-6 w-6" strokeWidth={2.5} />
-                <span className="text-base font-bold">Tarifs</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="localisation"
-                className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
-              >
-                <MapPin className="h-6 w-6" strokeWidth={2.5} />
-                <span className="text-base font-bold">Lieu</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="medias"
-                className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
-              >
-                <Image className="h-6 w-6" strokeWidth={2.5} />
-                <span className="text-base font-bold">Médias</span>
-              </TabsTrigger>
-            </TabsList>
+      <FormProvider {...form}>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full gap-0">
+              <TabsList className="mb-0 flex w-full justify-start md:justify-center gap-0 rounded-t-xl rounded-b-none bg-muted/50 p-0 h-auto overflow-x-auto scrollbar-none">
+                <TabsTrigger
+                  value="general"
+                  className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                >
+                  <Info className="h-6 w-6" strokeWidth={2.5} />
+                  <span className="text-base font-bold">Infos</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="horaires"
+                  className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                >
+                  <Clock className="h-6 w-6" strokeWidth={2.5} />
+                  <span className="text-base font-bold">Horaires</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="tarifs"
+                  className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                >
+                  <Euro className="h-6 w-6" strokeWidth={2.5} />
+                  <span className="text-base font-bold">Tarifs</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="localisation"
+                  className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                >
+                  <MapPin className="h-6 w-6" strokeWidth={2.5} />
+                  <span className="text-base font-bold">Lieu</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="medias"
+                  className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                >
+                  <Image className="h-6 w-6" strokeWidth={2.5} />
+                  <span className="text-base font-bold">Medias</span>
+                </TabsTrigger>
+              </TabsList>
 
-            {/* Tab 1: Informations générales */}
-            <TabsContent value="general" className="mt-0">
-              <Card className="rounded-t-none border-t-0">
-                <CardHeader>
-                  <CardTitle>Informations générales</CardTitle>
-                  <CardDescription>
-                    Renseignez les informations principales de l'épreuve
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Nom de l'épreuve <span className="text-destructive">*</span>
-                          </FormLabel>
-                          <FormControl>
-                            <Input placeholder="ex: Course de Lombez" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+              <TabsContent value="general" className="mt-0">
+                <GeneralTab competition={competition} isCreating={isCreating} />
+              </TabsContent>
 
-                    <FormField
-                      control={form.control}
-                      name="eventDate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Date et heure <span className="text-destructive">*</span>
-                          </FormLabel>
-                          <FormControl>
-                            <Input type="datetime-local" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+              <TabsContent value="horaires" className="mt-0">
+                <HorairesTab />
+              </TabsContent>
 
-                    <FormField
-                      control={form.control}
-                      name="competitionType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Type <span className="text-destructive">*</span>
-                          </FormLabel>
-                          <Select
-                            key={`type-${competition?.id || 'new'}-${competition?.competitionType || ''}`}
-                            onValueChange={field.onChange}
-                            defaultValue={competition?.competitionType || field.value}
-                            disabled={!isCreating}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Sélectionner un type" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {COMPETITION_TYPE_OPTIONS.map(opt => (
-                                <SelectItem key={opt.value} value={opt.value}>
-                                  {opt.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+              <TabsContent value="tarifs" className="mt-0">
+                <TarifsTab />
+              </TabsContent>
 
-                    <FormField
-                      control={form.control}
-                      name="info"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Profil</FormLabel>
-                          <Select
-                            key={`info-${competition?.id || 'new'}-${competition?.info || ''}`}
-                            onValueChange={field.onChange}
-                            defaultValue={competition?.info || field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Sélectionner un profil" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {profileOptions.map(opt => (
-                                <SelectItem key={opt.value} value={opt.value}>
-                                  {opt.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+              <TabsContent value="localisation" className="mt-0">
+                <LocalisationTab />
+              </TabsContent>
 
-                    <FormField
-                      control={form.control}
-                      name="fede"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Fédération <span className="text-destructive">*</span>
-                          </FormLabel>
-                          <Select
-                            key={`fede-${competition?.id || 'new'}-${competition?.fede || ''}`}
-                            onValueChange={field.onChange}
-                            defaultValue={competition?.fede || field.value}
-                            disabled={!isCreating}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Sélectionner une fédération" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {(isCreating ? FEDE_OPTIONS_CREATE : FEDE_OPTIONS_ALL).map(opt => (
-                                <SelectItem key={opt.value} value={opt.value}>
-                                  {opt.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="zipCode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Code postal <span className="text-destructive">*</span>
-                          </FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                              <Input
-                                className="pl-9"
-                                placeholder="ex: 31000"
-                                maxLength={5}
-                                {...field}
-                                onChange={e => {
-                                  const value = e.target.value.replace(/\D/g, '');
-                                  field.onChange(value);
-                                }}
-                              />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="longueurCircuit"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Longueur circuit</FormLabel>
-                          <FormControl>
-                            <Input placeholder="ex: 5km" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Club - visible when fede and zipCode are set */}
-                    {watchedFede && deptFromZip && (
-                      <Controller
-                        control={form.control}
-                        name="clubId"
-                        render={({ field, fieldState }) => (
-                          <ClubAutocomplete
-                            value={field.value ?? null}
-                            onChange={clubId => field.onChange(clubId)}
-                            fede={watchedFede}
-                            department={deptFromZip}
-                            error={fieldState.error?.message}
-                          />
-                        )}
-                      />
-                    )}
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Contact</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-                      <FormField
-                        control={form.control}
-                        name="contactName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nom contact</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Prénom NOM" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="contactPhone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Téléphone</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  className="pl-9"
-                                  placeholder="0612345678"
-                                  maxLength={10}
-                                  {...field}
-                                  onChange={e => {
-                                    const value = e.target.value.replace(/\D/g, '');
-                                    field.onChange(value);
-                                  }}
-                                />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="contactEmail"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>E-mail</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  className="pl-9"
-                                  type="email"
-                                  placeholder="contact@example.com"
-                                  {...field}
-                                />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="siteweb"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Site web</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <Globe className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                <Input className="pl-9" placeholder="https://..." {...field} />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="facebook"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Facebook</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <Facebook className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  className="pl-9"
-                                  placeholder="https://facebook.com/..."
-                                  {...field}
-                                />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Only show when editing */}
-                  {!isCreating && (
-                    <>
-                      <Separator />
-                      <div className="space-y-4">
-                        <h4 className="font-medium">Organisation (après création)</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="commissaires"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Commissaires</FormLabel>
-                                <FormControl>
-                                  <Input {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="speaker"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Speaker</FormLabel>
-                                <FormControl>
-                                  <Input {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          {watchedCompetitionType === 'CX' && (
-                            <FormField
-                              control={form.control}
-                              name="aboyeur"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Aboyeur</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          )}
-
-                          <FormField
-                            control={form.control}
-                            name="feedback"
-                            render={({ field }) => (
-                              <FormItem className="md:col-span-3">
-                                <FormLabel>Note commissaire(s)</FormLabel>
-                                <FormControl>
-                                  <Textarea {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  <Separator />
-
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Options</h4>
-                    <div className="flex flex-wrap gap-6">
-                      <FormField
-                        control={form.control}
-                        name="openedToOtherFede"
-                        render={({ field }) => (
-                          <FormItem className="flex items-center space-x-2 space-y-0">
-                            <FormControl>
-                              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              Ouvert aux autres fédérations
-                            </FormLabel>
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="openedNL"
-                        render={({ field }) => (
-                          <FormItem className="flex items-center space-x-2 space-y-0">
-                            <FormControl>
-                              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                            </FormControl>
-                            <FormLabel className="font-normal">Ouvert aux non licenciés</FormLabel>
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="avecChrono"
-                        render={({ field }) => (
-                          <FormItem className="flex items-center space-x-2 space-y-0">
-                            <FormControl>
-                              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                            </FormControl>
-                            <FormLabel className="font-normal">Compétition chronométrée</FormLabel>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <FormField
-                    control={form.control}
-                    name="observations"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Observations</FormLabel>
-                        <FormControl>
-                          <RichTextEditor
-                            value={field.value || ''}
-                            onChange={field.onChange}
-                            placeholder="Informations complémentaires..."
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Tab 2: Horaires & Circuit */}
-            <TabsContent value="horaires" className="mt-0">
-              <Card className="rounded-t-none border-t-0">
-                <CardHeader>
-                  <CardTitle>Horaires & Circuit</CardTitle>
-                  <CardDescription>
-                    Définissez les différents départs et leurs horaires
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 bg-muted/50 rounded-lg">
-                    <div className="space-y-1.5">
-                      <Label>Catégorie/Départ</Label>
-                      <Input
-                        value={horaireForm.course}
-                        onChange={e => setHoraireForm({ ...horaireForm, course: e.target.value })}
-                        placeholder="ex: Cat 4"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Heure dossard</Label>
-                      <Input
-                        value={horaireForm.horaireEngagement}
-                        onChange={e =>
-                          setHoraireForm({ ...horaireForm, horaireEngagement: e.target.value })
-                        }
-                        placeholder="ex: 14h"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Heure départ</Label>
-                      <Input
-                        value={horaireForm.horaireDepart}
-                        onChange={e =>
-                          setHoraireForm({ ...horaireForm, horaireDepart: e.target.value })
-                        }
-                        placeholder="ex: 15h"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Tours</Label>
-                      <Input
-                        value={horaireForm.info1}
-                        onChange={e => setHoraireForm({ ...horaireForm, info1: e.target.value })}
-                        placeholder="ex: 10"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Distance</Label>
-                      <Input
-                        value={horaireForm.info2}
-                        onChange={e => setHoraireForm({ ...horaireForm, info2: e.target.value })}
-                        placeholder="ex: 58kms"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Lien OpenRunner</Label>
-                      <Input
-                        value={horaireForm.info3 || ''}
-                        onChange={e => setHoraireForm({ ...horaireForm, info3: e.target.value })}
-                        placeholder="https://..."
-                      />
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="default"
-                      onClick={handleAddHoraire}
-                    >
-                      {editingHoraireIndex !== null ? (
-                        <Save className="mr-2 h-4 w-4" />
-                      ) : (
-                        <Plus className="mr-2 h-4 w-4" />
-                      )}
-                      {editingHoraireIndex !== null ? 'Enregistrer' : 'Ajouter'}
-                    </Button>
-                    {editingHoraireIndex !== null && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setEditingHoraireIndex(null);
-                          setHoraireForm({
-                            course: '',
-                            horaireEngagement: '',
-                            horaireDepart: '',
-                            info1: '',
-                            info2: '',
-                            info3: '',
-                          });
-                        }}
-                      >
-                        Annuler
-                      </Button>
-                    )}
-                  </div>
-
-                  {competitionInfoFields.length > 0 ? (
-                    <DndContext
-                      sensors={sensors}
-                      collisionDetection={closestCenter}
-                      onDragEnd={handleDragEndHoraires}
-                    >
-                      <div className="overflow-x-auto -mx-6 px-6">
-                        <Table className="min-w-[600px] table-fixed [&_td]:whitespace-normal [&_td]:md:whitespace-nowrap">
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="w-[40px]"></TableHead>
-                              <TableHead className="w-[140px]">Catégorie</TableHead>
-                              <TableHead className="w-[100px]">Dossard</TableHead>
-                              <TableHead className="w-[80px]">Départ</TableHead>
-                              <TableHead className="w-[60px]">Tours</TableHead>
-                              <TableHead className="w-[80px]">Distance</TableHead>
-                              <TableHead className="w-[50px]">Lien</TableHead>
-                              <TableHead className="w-[90px]">Actions</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            <SortableContext
-                              items={competitionInfoFields.map(f => f.id)}
-                              strategy={verticalListSortingStrategy}
-                            >
-                              {competitionInfoFields.map((field, index) => (
-                                <SortableTableRow key={field.id} id={field.id}>
-                                  <TableCell>{(field as CompetitionInfoItem).course}</TableCell>
-                                  <TableCell>
-                                    {(field as CompetitionInfoItem).horaireEngagement}
-                                  </TableCell>
-                                  <TableCell>{(field as CompetitionInfoItem).horaireDepart}</TableCell>
-                                  <TableCell>{(field as CompetitionInfoItem).info1}</TableCell>
-                                  <TableCell>{(field as CompetitionInfoItem).info2}</TableCell>
-                                  <TableCell>
-                                    {(field as CompetitionInfoItem).info3 && (
-                                      <a
-                                        href={(field as CompetitionInfoItem).info3}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-primary hover:underline"
-                                      >
-                                        <ExternalLink className="h-4 w-4" />
-                                      </a>
-                                    )}
-                                  </TableCell>
-                                  <TableCell>
-                                    <div className="flex gap-1">
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => handleEditHoraire(index)}
-                                        title="Modifier"
-                                      >
-                                        <Edit2 className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => {
-                                          const item = competitionInfoFields[index] as CompetitionInfoItem;
-                                          appendCompetitionInfo({ ...item });
-                                        }}
-                                        title="Dupliquer"
-                                      >
-                                        <Copy className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => removeCompetitionInfo(index)}
-                                        title="Supprimer"
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  </TableCell>
-                                </SortableTableRow>
-                              ))}
-                            </SortableContext>
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </DndContext>
-                  ) : (
-                    <p className="text-muted-foreground text-center py-8">
-                      Aucun horaire ou parcours encore ajouté
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Tab 3: Tarifs */}
-            <TabsContent value="tarifs" className="mt-0">
-              <Card className="rounded-t-none border-t-0">
-                <CardHeader>
-                  <CardTitle>Tarifs</CardTitle>
-                  <CardDescription>Définissez les différents tarifs d'inscription</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
-                    <div className="space-y-1.5">
-                      <Label>Nom du tarif</Label>
-                      <Input
-                        value={pricingForm.name}
-                        onChange={e => setPricingForm({ ...pricingForm, name: e.target.value })}
-                        placeholder="ex: Licencié FFC"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Montant (€)</Label>
-                      <Input
-                        type="number"
-                        value={pricingForm.tarif}
-                        onChange={e => setPricingForm({ ...pricingForm, tarif: e.target.value })}
-                        placeholder="ex: 7"
-                      />
-                    </div>
-                    <div className="flex items-end gap-2">
-                      <Button type="button" variant="default" onClick={handleAddPricing}>
-                        {editingPricingIndex !== null ? (
-                          <Save className="mr-2 h-4 w-4" />
-                        ) : (
-                          <Plus className="mr-2 h-4 w-4" />
-                        )}
-                        {editingPricingIndex !== null ? 'Enregistrer' : 'Ajouter'}
-                      </Button>
-                      {editingPricingIndex !== null && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setEditingPricingIndex(null);
-                            setPricingForm({ name: '', tarif: '' });
-                          }}
-                        >
-                          Annuler
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-
-                  {pricingFields.length > 0 ? (
-                    <DndContext
-                      sensors={sensors}
-                      collisionDetection={closestCenter}
-                      onDragEnd={handleDragEndPricing}
-                    >
-                      <div className="overflow-x-auto -mx-6 px-6">
-                        <Table className="min-w-[400px]">
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="w-[40px]"></TableHead>
-                              <TableHead>Tarif</TableHead>
-                              <TableHead>Montant</TableHead>
-                              <TableHead className="w-[100px]">Actions</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            <SortableContext
-                              items={pricingFields.map(f => f.id)}
-                              strategy={verticalListSortingStrategy}
-                            >
-                              {pricingFields.map((field, index) => (
-                                <SortableTableRow key={field.id} id={field.id}>
-                                  <TableCell className="whitespace-nowrap">
-                                    {(field as PricingItem).name}
-                                  </TableCell>
-                                  <TableCell className="whitespace-nowrap">
-                                    {(field as PricingItem).tarif} €
-                                  </TableCell>
-                                  <TableCell>
-                                    <div className="flex gap-1">
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => handleEditPricing(index)}
-                                        title="Modifier"
-                                      >
-                                        <Edit2 className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => {
-                                          const item = pricingFields[index] as PricingItem;
-                                          appendPricing({ ...item });
-                                        }}
-                                        title="Dupliquer"
-                                      >
-                                        <Copy className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => removePricing(index)}
-                                        title="Supprimer"
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  </TableCell>
-                                </SortableTableRow>
-                              ))}
-                            </SortableContext>
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </DndContext>
-                  ) : (
-                    <p className="text-muted-foreground text-center py-8">
-                      Aucun tarif encore ajouté
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Tab 4: Localisation */}
-            <TabsContent value="localisation" className="mt-0">
-              <Card className="rounded-t-none border-t-0">
-                <CardHeader>
-                  <CardTitle>Localisation</CardTitle>
-                  <CardDescription>
-                    Indiquez le lieu de retrait des dossards et les coordonnées GPS
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="lieuDossard"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Lieu de retrait des dossards</FormLabel>
-                          <FormControl>
-                            <Input placeholder="ex: Salle des fêtes de Lombez" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="lieuDossardGPS"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Coordonnées GPS</FormLabel>
-                          <FormControl>
-                            <Input placeholder="ex: 43.4731, 0.9114" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="bg-muted/50 rounded-lg p-8 text-center">
-                    <MapPin className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">
-                      La carte interactive sera disponible dans une prochaine version.
-                      <br />
-                      Vous pouvez saisir les coordonnées GPS manuellement ci-dessus.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Tab 5: Photos/Médias */}
-            <TabsContent value="medias" className="mt-0">
-              <Card className="rounded-t-none border-t-0">
-                <CardHeader>
-                  <CardTitle>Photos & Médias</CardTitle>
-                  <CardDescription>Ajoutez des liens vers les albums photos</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
-                    <div>
-                      <Label>Nom de l'album</Label>
-                      <Input
-                        value={mediaForm.label}
-                        onChange={e => setMediaForm({ ...mediaForm, label: e.target.value })}
-                        placeholder="ex: Photos toutes catégories"
-                      />
-                    </div>
-                    <div>
-                      <Label>Lien de l'album</Label>
-                      <Input
-                        value={mediaForm.link}
-                        onChange={e => setMediaForm({ ...mediaForm, link: e.target.value })}
-                        placeholder="https://..."
-                      />
-                    </div>
-                    <div className="flex items-end">
-                      <Button type="button" variant="outline" onClick={handleAddMedia}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        {editingMediaIndex !== null ? 'Modifier' : 'Ajouter'}
-                      </Button>
-                    </div>
-                  </div>
-
-                  {photoUrlsFields.length > 0 ? (
-                    <div className="overflow-x-auto -mx-6 px-6">
-                      <Table className="min-w-[500px]">
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Nom de l'album</TableHead>
-                            <TableHead>Lien</TableHead>
-                            <TableHead className="w-[100px]">Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {photoUrlsFields.map((field, index) => (
-                            <TableRow key={field.id}>
-                              <TableCell className="whitespace-nowrap">
-                                {(field as LinkItem).label}
-                              </TableCell>
-                              <TableCell>
-                                <a
-                                  href={(field as LinkItem).link}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-primary hover:underline flex items-center gap-1 max-w-[200px] truncate"
-                                >
-                                  {(field as LinkItem).link}
-                                  <ExternalLink className="h-3 w-3 shrink-0" />
-                                </a>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex gap-1">
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleEditMedia(index)}
-                                  >
-                                    <Edit2 className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => removePhotoUrl(index)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground text-center py-8">
-                      Aucun lien encore ajouté
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </form>
-      </Form>
+              <TabsContent value="medias" className="mt-0">
+                <MediasTab />
+              </TabsContent>
+            </Tabs>
+          </form>
+        </Form>
+      </FormProvider>
     </Layout>
   );
 }
