@@ -19,7 +19,6 @@ import LicencesPage from '@/pages/LicencesPage.tsx';
 import LoginPage from '@/pages/LoginPage.tsx';
 import NotFoundPage from '@/pages/NotFoundPage.tsx';
 import PalmaresPage from '@/pages/PalmaresPage.tsx';
-import RacesPage from '@/pages/RacesPage.tsx';
 import UsersPage from '@/pages/UsersPage.tsx';
 import WelcomePage from '@/pages/WelcomePage.tsx';
 import { ApiError, handleGlobalError } from '@/utils/error-handler';
@@ -68,7 +67,6 @@ export default function App() {
                 <Route path="/competitions" element={<CompetitionsPage />} />
                 <Route path="/competition/new" element={<CompetitionDetailPage />} />
                 <Route path="/competition/:id" element={<CompetitionDetailPage />} />
-                <Route path="/races" element={<RacesPage />} />
                 <Route path="/achievements" element={<AchievementsPage />} />
                 <Route path="/palmares/:licenceId?" element={<PalmaresPage />} />
                 <Route path="/users" element={<UsersPage />} />

@@ -1,5 +1,4 @@
 import {
-  Bike,
   BookOpen,
   Bot,
   Calendar,
@@ -132,11 +131,6 @@ export const appData = {
       name: 'Épreuves',
       url: '/competitions',
       icon: Calendar,
-    },
-    {
-      name: 'Courses',
-      url: '/races',
-      icon: Bike,
     },
     {
       name: 'Challenges',

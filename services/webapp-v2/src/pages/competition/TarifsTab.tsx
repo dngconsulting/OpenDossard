@@ -73,7 +73,7 @@ export function TarifsTab() {
 
     const cleanedPricing = {
       ...pricingForm,
-      tarif: pricingForm.tarif.replace(/[€\s]+/g, '').trim(),
+      tarif: (pricingForm.tarif || '').replace(/[€\s]+/g, '').trim(),
     };
 
     if (editingPricingIndex !== null) {
@@ -87,9 +87,12 @@ export function TarifsTab() {
 
   const handleEditPricing = (index: number) => {
     const item = pricingFields[index] as PricingItem;
+    const rawTarif = item.tarif || '';
+    // Remove non-numeric chars except dots and commas, then convert comma to dot for number input
+    const cleanedTarif = rawTarif.replace(/[^0-9.,]/g, '').replace(',', '.').trim();
     setPricingForm({
-      name: item.name,
-      tarif: item.tarif.replace(/[^0-9.,]/g, '').trim(),
+      name: item.name || '',
+      tarif: cleanedTarif,
     });
     setEditingPricingIndex(index);
   };
@@ -172,7 +175,7 @@ export function TarifsTab() {
                           {(field as PricingItem).name}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
-                          {(field as PricingItem).tarif.replace(/[€\s]+/g, '').trim()} €
+                          {((field as PricingItem).tarif || '').replace(/[€\s]+/g, '').trim()} €
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
