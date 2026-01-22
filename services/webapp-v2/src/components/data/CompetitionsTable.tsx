@@ -92,7 +92,7 @@ export const CompetitionsDataTable = ({ onEdit, onDuplicate: _onDuplicate }: Com
     {
       accessorKey: 'eventDate',
       header: 'Date',
-      size: 100,
+      size: 75,
       cell: ({ row }) => formatDate(row.original.eventDate),
     },
     {
@@ -103,7 +103,7 @@ export const CompetitionsDataTable = ({ onEdit, onDuplicate: _onDuplicate }: Com
     {
       accessorKey: 'zipCode',
       header: 'Lieu',
-      size: 80,
+      size: 50,
     },
     {
       accessorKey: 'club',

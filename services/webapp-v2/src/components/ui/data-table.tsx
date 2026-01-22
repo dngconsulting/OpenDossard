@@ -320,7 +320,7 @@ export function DataTable<TData, TValue>({
 
   const tableContent = (
     <Table>
-      <TableHeader>
+      <TableHeader className="sticky top-0 z-10 bg-muted">
         {table.getHeaderGroups().map(headerGroup => (
           <TableRow key={headerGroup.id}>
             {enableDragDrop && <TableHead className="w-8" />}
@@ -359,7 +359,7 @@ export function DataTable<TData, TValue>({
           </TableRow>
         ))}
       </TableHeader>
-      <TableFilter>
+      <TableFilter className="sticky top-8 z-10 bg-muted/50">
         {table.getHeaderGroups().map(headerGroup => (
           <TableFilterRow key={headerGroup.id}>
             {enableDragDrop && <TableFilterCell className="w-8" />}
@@ -493,7 +493,8 @@ export function DataTable<TData, TValue>({
   );
 
   return (
-    <div className="overflow-hidden rounded-md border shadow-xs">
+    <div className="rounded-md border shadow-xs flex flex-col max-h-[calc(100vh-200px)]">
+      <div className="overflow-auto flex-1">
       {enableDragDrop ? (
         <DndContext
           sensors={sensors}
@@ -508,6 +509,7 @@ export function DataTable<TData, TValue>({
       ) : (
         tableContent
       )}
+      </div>
       {paginationControls}
     </div>
   );
