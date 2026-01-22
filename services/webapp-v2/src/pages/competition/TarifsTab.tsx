@@ -130,9 +130,9 @@ export function TarifsTab() {
           <div className="flex items-end gap-2">
             <Button type="button" variant="default" onClick={handleAddPricing}>
               {editingPricingIndex !== null ? (
-                <Save className="mr-2 h-4 w-4" />
+                <Save className="h-4 w-4" />
               ) : (
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus className="h-4 w-4" />
               )}
               {editingPricingIndex !== null ? 'Enregistrer' : 'Ajouter'}
             </Button>

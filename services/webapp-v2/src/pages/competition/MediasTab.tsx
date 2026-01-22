@@ -80,9 +80,9 @@ export function MediasTab() {
           <div className="flex items-end gap-2">
             <Button type="button" variant="default" onClick={handleAddMedia}>
               {editingMediaIndex !== null ? (
-                <Save className="mr-2 h-4 w-4" />
+                <Save className="h-4 w-4" />
               ) : (
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus className="h-4 w-4" />
               )}
               {editingMediaIndex !== null ? 'Enregistrer' : 'Ajouter'}
             </Button>

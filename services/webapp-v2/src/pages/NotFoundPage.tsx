@@ -58,14 +58,14 @@ export default function NotFoundPage() {
               variant="outline"
               className="flex-1 h-11 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ArrowLeft className="h-4 w-4" />
               Retour
             </Button>
             <Button
               onClick={() => navigate('/')}
               className="flex-1 h-11 bg-white text-primary hover:bg-white/90 font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5"
             >
-              <Home className="mr-2 h-4 w-4" />
+              <Home className="h-4 w-4" />
               Accueil
             </Button>
           </div>

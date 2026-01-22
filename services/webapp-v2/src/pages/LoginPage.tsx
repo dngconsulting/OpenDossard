@@ -75,15 +75,13 @@ export default function LoginPage() {
       {/* Content */}
       <div className="relative z-10 w-full max-w-md space-y-8">
         {/* Logo and branding */}
-        <div className="text-center space-y-4 fade-in">
+        <div className="text-center fade-in">
           <div className="flex justify-center">
-            <div className="w-24 h-24 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-2xl">
-              <img
-                src={appData.app.logoUrl}
-                alt={appData.app.name}
-                className="w-16 h-16 object-contain"
-              />
-            </div>
+            <img
+              src={appData.app.logoUrl}
+              alt={appData.app.name}
+              className="w-24 h-24 object-contain"
+            />
           </div>
           <div>
             <h1 className="text-4xl font-bold text-white tracking-tight">{appData.app.name}</h1>

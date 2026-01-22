@@ -1,13 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  ArrowLeft,
-  Clock,
-  Euro,
-  Image,
-  Info,
-  Loader2,
-  MapPin,
-} from 'lucide-react';
+import { ArrowLeft, Clock, Euro, Image, Info, Loader2, MapPin } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -28,12 +20,7 @@ import { HorairesTab } from './competition/HorairesTab';
 import { LocalisationTab } from './competition/LocalisationTab';
 import { MediasTab } from './competition/MediasTab';
 import { TarifsTab } from './competition/TarifsTab';
-import {
-  competitionSchema,
-  type FormValues,
-  type TabValue,
-  VALID_TABS,
-} from './competition/types';
+import { competitionSchema, type FormValues, type TabValue, VALID_TABS } from './competition/types';
 
 export default function CompetitionDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -91,6 +78,19 @@ export default function CompetitionDetailPage() {
   });
 
   const watchedZipCode = form.watch('zipCode');
+  const watchedName = form.watch('name');
+  const watchedEventDate = form.watch('eventDate');
+  const watchedCompetitionType = form.watch('competitionType');
+  const watchedFede = form.watch('fede');
+
+  // Les 5 champs obligatoires doivent être remplis pour activer le bouton Enregistrer
+  const canSave = Boolean(
+    watchedName &&
+      watchedEventDate &&
+      watchedCompetitionType &&
+      watchedFede &&
+      watchedZipCode?.length === 5,
+  );
 
   const deptFromZip = useMemo(() => {
     if (watchedZipCode && watchedZipCode.length >= 2) {
@@ -155,11 +155,12 @@ export default function CompetitionDetailPage() {
       };
 
       if (isCreating) {
-        await createCompetition.mutateAsync(formData as any);
-        showSuccessToast('Epreuve creee avec succes');
+        const newCompetition = await createCompetition.mutateAsync(formData as any);
+        showSuccessToast('Epreuve créée avec succès');
+        navigate(`/competition/${newCompetition.id}`, { replace: true });
       } else {
         await updateCompetition.mutateAsync({ id: competitionId!, data: formData as any });
-        showSuccessToast('Epreuve mise a jour avec succes');
+        showSuccessToast('Epreuve mise à jour avec succès');
       }
     } catch (error) {
       showErrorToast(
@@ -176,10 +177,9 @@ export default function CompetitionDetailPage() {
       </Button>
       <Button
         onClick={() => {
-          console.log('Button clicked, form values:', form.getValues());
           form.handleSubmit(onSubmit, errors => console.error('Validation errors:', errors))();
         }}
-        disabled={isSaving}
+        disabled={isSaving || !canSave}
       >
         {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Enregistrer
@@ -236,18 +236,18 @@ export default function CompetitionDetailPage() {
                   <span className="text-base font-bold">Tarifs</span>
                 </TabsTrigger>
                 <TabsTrigger
-                  value="localisation"
-                  className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
-                >
-                  <MapPin className="h-6 w-6" strokeWidth={2.5} />
-                  <span className="text-base font-bold">Lieu</span>
-                </TabsTrigger>
-                <TabsTrigger
                   value="medias"
                   className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
                 >
                   <Image className="h-6 w-6" strokeWidth={2.5} />
                   <span className="text-base font-bold">Medias</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="localisation"
+                  className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                >
+                  <MapPin className="h-6 w-6" strokeWidth={2.5} />
+                  <span className="text-base font-bold">Lieu</span>
                 </TabsTrigger>
               </TabsList>
 
