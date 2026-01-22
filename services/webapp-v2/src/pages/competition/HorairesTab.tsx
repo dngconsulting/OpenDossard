@@ -273,6 +273,7 @@ export function HorairesTab() {
                               size="icon"
                               onClick={() => removeCompetitionInfo(index)}
                               title="Supprimer"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -287,7 +288,13 @@ export function HorairesTab() {
           </DndContext>
         ) : (
           <p className="text-muted-foreground text-center py-8">
-            Aucun horaire ou parcours encore ajoute
+            Aucun horaire ou parcours encore ajouté
+          </p>
+        )}
+
+        {competitionInfoFields.length > 0 && (
+          <p className="text-sm text-muted-foreground text-center">
+            <strong>N'oubliez pas de sauvegarder l'épreuve !</strong>
           </p>
         )}
       </CardContent>

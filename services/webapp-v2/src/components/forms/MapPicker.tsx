@@ -1,24 +1,18 @@
-/* eslint-disable import/order */
-import { useState, useEffect } from 'react';
-import { LatLng, Icon } from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-// Fix default marker icon issue in Leaflet with bundlers
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-import { MapPin, X, Search } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import maplibregl from 'maplibre-gl';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { MapPin, Search, X } from 'lucide-react';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-delete (Icon.Default.prototype as any)._getIconUrl;
-Icon.Default.mergeOptions({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
-});
+// Use OpenFreeMap for free 3D buildings
+const STYLE_3D = 'https://tiles.openfreemap.org/styles/liberty';
+
+// Default center: Toulouse, France
+const DEFAULT_CENTER: [number, number] = [1.4442, 43.6047]; // [lng, lat]
+const DEFAULT_ZOOM = 9;
+const MARKER_ZOOM = 15;
 
 interface MapPickerProps {
   value?: string; // "lat,lng" format
@@ -26,24 +20,11 @@ interface MapPickerProps {
   className?: string;
 }
 
-interface LocationMarkerProps {
-  position: LatLng | null;
-  setPosition: (position: LatLng) => void;
-}
-
-function LocationMarker({ position, setPosition }: LocationMarkerProps) {
-  const map = useMapEvents({
-    click(e) {
-      setPosition(e.latlng);
-      map.flyTo(e.latlng, 15, { duration: 1 });
-    },
-  });
-
-  return position === null ? null : <Marker position={position} />;
-}
-
 export function MapPicker({ value, onChange, className }: MapPickerProps) {
-  const [position, setPosition] = useState<LatLng | null>(null);
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<maplibregl.Map | null>(null);
+  const marker = useRef<maplibregl.Marker | null>(null);
+  const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
@@ -52,17 +33,68 @@ export function MapPicker({ value, onChange, className }: MapPickerProps) {
     if (value) {
       const [lat, lng] = value.split(',').map(Number);
       if (!isNaN(lat) && !isNaN(lng)) {
-        setPosition(new LatLng(lat, lng));
+        setPosition({ lat, lng });
       }
     }
   }, [value]);
 
-  // Update form value when position changes
-  useEffect(() => {
-    if (position) {
-      onChange(`${position.lat},${position.lng}`);
+  const updateMarker = useCallback((lngLat: [number, number]) => {
+    if (!map.current) return;
+
+    if (marker.current) {
+      marker.current.setLngLat(lngLat);
+    } else {
+      marker.current = new maplibregl.Marker({ color: '#047857' })
+        .setLngLat(lngLat)
+        .addTo(map.current);
     }
-  }, [position, onChange]);
+  }, []);
+
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainer.current || map.current) return;
+
+    const initialCenter: [number, number] = position
+      ? [position.lng, position.lat]
+      : DEFAULT_CENTER;
+    const initialZoom = position ? MARKER_ZOOM : DEFAULT_ZOOM;
+
+    map.current = new maplibregl.Map({
+      container: mapContainer.current,
+      style: STYLE_3D,
+      center: initialCenter,
+      zoom: initialZoom,
+    });
+
+    map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+    if (position) {
+      updateMarker([position.lng, position.lat]);
+    }
+
+    // Click to set marker
+    map.current.on('click', e => {
+      const { lng, lat } = e.lngLat;
+      setPosition({ lat, lng });
+      onChange(`${lat},${lng}`);
+      updateMarker([lng, lat]);
+      map.current?.flyTo({ center: [lng, lat], zoom: MARKER_ZOOM, duration: 1000 });
+    });
+
+    return () => {
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+        marker.current = null;
+      }
+    };
+  }, []);
+
+  // Update marker when position changes externally
+  useEffect(() => {
+    if (!map.current || !position) return;
+    updateMarker([position.lng, position.lat]);
+  }, [position, updateMarker]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -73,20 +105,23 @@ export function MapPicker({ value, onChange, className }: MapPickerProps) {
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-          searchQuery
-        )}&format=json&limit=1`,
+          searchQuery,
+        )}&format=json&limit=1&countrycodes=fr`,
         {
           headers: {
             'User-Agent': 'OpenDossard-Backoffice',
           },
-        }
+        },
       );
       const data = await response.json();
 
       if (data && data.length > 0) {
-        const { lat, lon } = data[0];
-        const newPosition = new LatLng(parseFloat(lat), parseFloat(lon));
-        setPosition(newPosition);
+        const lat = parseFloat(data[0].lat);
+        const lng = parseFloat(data[0].lon);
+        setPosition({ lat, lng });
+        onChange(`${lat},${lng}`);
+        updateMarker([lng, lat]);
+        map.current?.flyTo({ center: [lng, lat], zoom: MARKER_ZOOM, duration: 1500 });
       }
     } catch (error) {
       console.error('Search error:', error);
@@ -98,11 +133,11 @@ export function MapPicker({ value, onChange, className }: MapPickerProps) {
   const handleClear = () => {
     setPosition(null);
     onChange('');
+    if (marker.current) {
+      marker.current.remove();
+      marker.current = null;
+    }
   };
-
-  // Default center: Toulouse, France
-  const defaultCenter: [number, number] = [43.6047, 1.4442];
-  const defaultZoom = 9;
 
   return (
     <div className={className}>
@@ -134,20 +169,10 @@ export function MapPicker({ value, onChange, className }: MapPickerProps) {
       </div>
 
       {/* Map */}
-      <div className="relative h-[400px] w-full rounded-md border overflow-hidden">
-        <MapContainer
-          center={position ? [position.lat, position.lng] : defaultCenter}
-          zoom={position ? 15 : defaultZoom}
-          className="h-full w-full"
-          style={{ height: '400px', width: '100%' }}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          <LocationMarker position={position} setPosition={setPosition} />
-        </MapContainer>
-      </div>
+      <div
+        ref={mapContainer}
+        className="relative h-[400px] w-full rounded-md border overflow-hidden"
+      />
 
       {/* Coordinates display and clear button */}
       {position && (

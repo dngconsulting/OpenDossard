@@ -47,7 +47,7 @@ function showToast({ type, message, details, persistent = false }: ShowToastOpti
 
   const toastId = toast.custom(id => createElement(AppToast, { id, type, message, details }), {
     duration: persistent ? Infinity : 5000,
-    position: 'top-right',
+    position: 'top-center',
   });
 
   activeToasts.push(toastId);

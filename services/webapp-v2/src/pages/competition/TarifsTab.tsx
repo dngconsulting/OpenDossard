@@ -71,17 +71,26 @@ export function TarifsTab() {
       return;
     }
 
+    const cleanedPricing = {
+      ...pricingForm,
+      tarif: pricingForm.tarif.replace(/[€\s]+/g, '').trim(),
+    };
+
     if (editingPricingIndex !== null) {
-      updatePricing(editingPricingIndex, pricingForm);
+      updatePricing(editingPricingIndex, cleanedPricing);
       setEditingPricingIndex(null);
     } else {
-      appendPricing(pricingForm);
+      appendPricing(cleanedPricing);
     }
     setPricingForm({ name: '', tarif: '' });
   };
 
   const handleEditPricing = (index: number) => {
-    setPricingForm(pricingFields[index] as PricingItem);
+    const item = pricingFields[index] as PricingItem;
+    setPricingForm({
+      name: item.name,
+      tarif: item.tarif.replace(/[^0-9.,]/g, '').trim(),
+    });
     setEditingPricingIndex(index);
   };
 
@@ -149,7 +158,7 @@ export function TarifsTab() {
                     <TableHead className="w-[40px]"></TableHead>
                     <TableHead>Tarif</TableHead>
                     <TableHead>Montant</TableHead>
-                    <TableHead className="w-[100px]">Actions</TableHead>
+                    <TableHead className="w-[130px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -163,10 +172,10 @@ export function TarifsTab() {
                           {(field as PricingItem).name}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
-                          {(field as PricingItem).tarif} €
+                          {(field as PricingItem).tarif.replace(/[€\s]+/g, '').trim()} €
                         </TableCell>
                         <TableCell>
-                          <div className="flex gap-1">
+                          <div className="flex items-center gap-1">
                             <Button
                               type="button"
                               variant="ghost"
@@ -194,6 +203,7 @@ export function TarifsTab() {
                               size="icon"
                               onClick={() => removePricing(index)}
                               title="Supprimer"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -208,7 +218,13 @@ export function TarifsTab() {
           </DndContext>
         ) : (
           <p className="text-muted-foreground text-center py-8">
-            Aucun tarif encore ajoute
+            Aucun tarif encore ajouté
+          </p>
+        )}
+
+        {pricingFields.length > 0 && (
+          <p className="text-sm text-muted-foreground text-center">
+            <strong>N'oubliez pas de sauvegarder l'épreuve !</strong>
           </p>
         )}
       </CardContent>

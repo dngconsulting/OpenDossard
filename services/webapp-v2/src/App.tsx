@@ -80,7 +80,7 @@ export default function App() {
             </Routes>
           </AuthProvider>
         </BrowserRouter>
-        <Toaster position="top-right" richColors closeButton />
+        <Toaster position="top-center" richColors closeButton />
         <UpdatePrompt />
         <OfflineBanner />
         <ReactQueryDevtools initialIsOpen={false} />
