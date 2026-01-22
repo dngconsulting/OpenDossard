@@ -1,5 +1,12 @@
+import { Link } from 'react-router-dom';
+
 import { DataTable } from '@/components/ui/data-table';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useCompetitions } from '@/hooks/useCompetitions';
 import type { CompetitionType } from '@/types/competitions';
 
@@ -78,7 +85,17 @@ export const CompetitionsDataTable = ({ onEdit, onDuplicate: _onDuplicate }: Com
       header: 'Eng.',
       size: 60,
       cell: ({ row }) => (
-        <span className="text-center block">{row.original.engagementsCount}</span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              to={`/competition/${row.original.id}/engagements`}
+              className="text-center block text-primary hover:underline"
+            >
+              {row.original.engagementsCount}
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>Accès aux engagements</TooltipContent>
+        </Tooltip>
       ),
     },
     {
@@ -86,7 +103,17 @@ export const CompetitionsDataTable = ({ onEdit, onDuplicate: _onDuplicate }: Com
       header: 'Class.',
       size: 60,
       cell: ({ row }) => (
-        <span className="text-center block">{row.original.classementsCount}</span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              to={`/competition/${row.original.id}/classements`}
+              className="text-center block text-primary hover:underline"
+            >
+              {row.original.classementsCount}
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>Accès aux classements</TooltipContent>
+        </Tooltip>
       ),
     },
     {

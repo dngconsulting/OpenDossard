@@ -10,62 +10,68 @@ import { CompetitionEntity } from '../../competitions/entities/competition.entit
 import { LicenceEntity } from '../../licences/entities/licence.entity';
 
 @Entity('race')
+@Index(['competitionId', 'riderNumber', 'raceCode'], { unique: true })
+@Index(['competitionId', 'licenceId', 'raceCode'], { unique: true })
 export class RaceEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
   @ManyToOne(() => CompetitionEntity, { eager: false, nullable: true })
   @JoinColumn({ name: 'competition_id' })
-  competition: CompetitionEntity;
+  competition: CompetitionEntity | null;
 
-  @Column({ name: 'competition_id', nullable: true })
+  @Column({ name: 'competition_id', type: 'int', nullable: true })
+  @Index()
   competitionId: number;
 
   @ManyToOne(() => LicenceEntity, { eager: false, nullable: true })
   @JoinColumn({ name: 'licence_id' })
-  licence: LicenceEntity;
+  licence: LicenceEntity | null;
 
-  @Column({ name: 'licence_id', nullable: true })
+  @Column({ name: 'licence_id', type: 'int', nullable: true })
+  @Index()
   licenceId: number;
 
-  @Column({ name: 'race_code', nullable: true })
+  @Column({ name: 'race_code', type: 'varchar', nullable: true })
   @Index()
-  raceCode: string;
+  raceCode: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   @Index()
-  catev: string;
+  catev: string | null;
 
-  @Column({ name: 'rider_dossard', nullable: true })
-  riderDossard: number;
+  @Column({ type: 'varchar', nullable: true })
+  catea: string | null;
 
-  @Column({ name: 'ranking_scratch', nullable: true })
-  rankingScratch: number;
+  @Column({ name: 'rider_dossard', type: 'int', nullable: true })
+  @Index()
+  riderNumber: number | null;
 
-  @Column({ name: 'number_min', nullable: true })
-  numberMin: number;
+  @Column({ name: 'ranking_scratch', type: 'int', nullable: true })
+  @Index()
+  rankingScratch: number | null;
 
-  @Column({ name: 'number_max', nullable: true })
-  numberMax: number;
+  @Column({ name: 'number_min', type: 'int', nullable: true })
+  numberMin: number | null;
 
-  @Column({ nullable: true })
-  surclassed: boolean;
+  @Column({ name: 'number_max', type: 'int', nullable: true })
+  numberMax: number | null;
 
-  @Column({ nullable: true })
-  comment: string;
+  @Column({ type: 'boolean', nullable: true, default: false })
+  surclassed: boolean | null;
 
-  @Column({ nullable: true })
-  sprintchallenge: boolean;
+  @Column({ type: 'varchar', nullable: true })
+  comment: string | null;
 
-  @Column({ nullable: true })
-  catea: string;
+  @Column({ type: 'boolean', nullable: true, default: false })
+  sprintchallenge: boolean | null;
 
-  @Column({ nullable: true })
-  club: string;
+  @Column({ type: 'varchar', nullable: true })
+  club: string | null;
 
-  @Column({ nullable: true })
-  chrono: string;
+  @Column({ type: 'varchar', nullable: true })
+  chrono: string | null;
 
-  @Column({ nullable: true })
-  tours: string;
+  @Column({ type: 'int', nullable: true })
+  tours: number | null;
 }

@@ -1,97 +1,191 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { racesApi } from '@/api/races.api';
-import type { RaceType, EngagedRider } from '@/types/races.ts';
+import type { CreateEngagementDto, UpdateRankingDto, RemoveRankingDto, RaceType, EngagedRider } from '@/types/races';
 
 export const racesKeys = {
   all: ['races'] as const,
-  detail: (id: string) => ['races', id] as const,
+  competition: (competitionId: number) => ['races', 'competition', competitionId] as const,
+  palmares: (licenceId: number) => ['races', 'palmares', licenceId] as const,
 };
 
-export function useRaces() {
+/**
+ * Hook pour récupérer les engagements d'une compétition
+ */
+export function useCompetitionRaces(competitionId: number | undefined) {
   return useQuery({
-    queryKey: racesKeys.all,
-    queryFn: () => racesApi.getAll(),
+    queryKey: racesKeys.competition(competitionId!),
+    queryFn: () => racesApi.getByCompetition(competitionId!),
+    enabled: !!competitionId,
   });
 }
 
-export function useRace(id: string) {
+/**
+ * Hook pour récupérer le palmarès d'un coureur
+ */
+export function usePalmaresRaces(licenceId: number | undefined) {
   return useQuery({
-    queryKey: racesKeys.detail(id),
-    queryFn: () => racesApi.getById(id),
-    enabled: !!id,
+    queryKey: racesKeys.palmares(licenceId!),
+    queryFn: () => racesApi.getPalmares(licenceId!),
+    enabled: !!licenceId,
   });
 }
 
-export function useCreateRace() {
+/**
+ * Hook pour engager un coureur
+ */
+export function useEngage() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (race: Omit<RaceType, 'id'>) => racesApi.create(race),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: racesKeys.all });
-    },
-  });
-}
-
-export function useUpdateRace() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<RaceType> }) =>
-      racesApi.update(id, updates),
+    mutationFn: (data: CreateEngagementDto) => racesApi.engage(data),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: racesKeys.all });
       queryClient.invalidateQueries({
-        queryKey: racesKeys.detail(variables.id),
+        queryKey: racesKeys.competition(variables.competitionId),
       });
     },
   });
 }
 
+/**
+ * Hook pour supprimer un engagement
+ */
 export function useDeleteRace() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => racesApi.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: racesKeys.all });
+    mutationFn: ({ id }: { id: number; competitionId: number }) =>
+      racesApi.delete(id),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: racesKeys.competition(variables.competitionId),
+      });
     },
   });
 }
 
+/**
+ * Hook pour mettre à jour le classement
+ */
+export function useUpdateRanking() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateRankingDto) => racesApi.updateRanking(data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: racesKeys.competition(variables.competitionId),
+      });
+    },
+  });
+}
+
+/**
+ * Hook pour retirer du classement
+ */
+export function useRemoveRanking() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: RemoveRankingDto) => racesApi.removeRanking(data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: racesKeys.competition(variables.competitionId),
+      });
+    },
+  });
+}
+
+/**
+ * Hook pour toggle le sprint challenge
+ */
+export function useToggleChallenge() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id }: { id: number; competitionId: number }) =>
+      racesApi.toggleChallenge(id),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: racesKeys.competition(variables.competitionId),
+      });
+    },
+  });
+}
+
+/**
+ * Hook pour mettre à jour le chrono
+ */
+export function useUpdateChrono() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      chrono,
+    }: {
+      id: number;
+      chrono: string;
+      competitionId: number;
+    }) => racesApi.updateChrono(id, chrono),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: racesKeys.competition(variables.competitionId),
+      });
+    },
+  });
+}
+
+// ============================================================================
+// Legacy hooks for backward compatibility with existing components
+// These are placeholder implementations that will need real API integration
+// ============================================================================
+
+/**
+ * Hook pour récupérer la liste des courses (legacy)
+ * @deprecated Use useCompetitionRaces instead
+ */
+export function useRaces() {
+  return useQuery<RaceType[]>({
+    queryKey: ['races', 'legacy'],
+    queryFn: async () => [],
+    enabled: false, // Disabled by default - needs real implementation
+  });
+}
+
+/**
+ * Hook pour ajouter un coureur engagé (legacy)
+ * @deprecated Use useEngage instead
+ */
 export function useAddEngagedRider() {
-  const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: (data: { raceId: string; categoryId: string; rider: Omit<EngagedRider, 'id'> }) =>
-      racesApi.addEngagedRider(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: racesKeys.all });
+    mutationFn: async (_data: { raceId: string; categoryId: string; rider: Omit<EngagedRider, 'id'> }) => {
+      console.warn('useAddEngagedRider is deprecated. Use useEngage instead.');
+      return {} as EngagedRider;
     },
   });
 }
 
+/**
+ * Hook pour supprimer un coureur engagé (legacy)
+ * @deprecated Use useDeleteRace instead
+ */
 export function useRemoveEngagedRider() {
-  const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: (data: { raceId: string; categoryId: string; riderId: string }) =>
-      racesApi.removeEngagedRider(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: racesKeys.all });
+    mutationFn: async (_data: { raceId: string; categoryId: string; riderId: string }) => {
+      console.warn('useRemoveEngagedRider is deprecated. Use useDeleteRace instead.');
     },
   });
 }
 
+/**
+ * Hook pour mettre à jour les classements (legacy)
+ * @deprecated Use useUpdateRanking instead
+ */
 export function useUpdateResultsRankings() {
-  const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: (data: { raceId: string; categoryId: string; resultIds: string[] }) =>
-      racesApi.updateResultsRankings(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: racesKeys.all });
+    mutationFn: async (_data: { raceId: string; categoryId: string; resultIds: string[] }) => {
+      console.warn('useUpdateResultsRankings is deprecated. Use useUpdateRanking instead.');
     },
   });
 }

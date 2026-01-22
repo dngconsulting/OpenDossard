@@ -382,8 +382,8 @@ export const LicencesForm = ({ updatingLicence, onSuccess }: Props) => {
                 name="club"
                 render={({ field, fieldState }) => (
                   <ClubAutocomplete
-                    value={field.value ?? ''}
-                    onChange={field.onChange}
+                    value={null}
+                    onChange={(_clubId, clubName) => field.onChange(clubName)}
                     fede={fede}
                     department={selectedDepartment}
                     disabled={!fede || !selectedDepartment}

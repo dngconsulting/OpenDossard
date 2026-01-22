@@ -1,82 +1,99 @@
-import { isMockMode } from '@/config/api.config';
-import {
-  mockRacesService,
-  addEngagedRiderMock,
-  removeEngagedRiderMock,
-  updateResultsRankingsMock,
-} from '@/services/mocks/races.mock.service';
-import type { RaceType, EngagedRider, RaceResult } from '@/types/races.ts';
+import type {
+  RaceRowType,
+  CreateEngagementDto,
+  UpdateRankingDto,
+  RemoveRankingDto,
+  PalmaresRowType,
+} from '@/types/races';
+import type { LicenceType } from '@/types/licences';
 
 import { apiClient } from './client';
 
-const realRacesService = {
-  getAll: (): Promise<RaceType[]> => apiClient<RaceType[]>('/races'),
+export const racesApi = {
+  /**
+   * Récupère tous les engagements d'une compétition
+   */
+  getByCompetition: (competitionId: number): Promise<RaceRowType[]> =>
+    apiClient<RaceRowType[]>(`/races/competition/${competitionId}`),
 
-  getById: (id: string): Promise<RaceType> => apiClient<RaceType>(`/races/${id}`),
+  /**
+   * Récupère le palmarès d'un coureur
+   */
+  getPalmares: (licenceId: number): Promise<PalmaresRowType[]> =>
+    apiClient<PalmaresRowType[]>(`/races/palmares/${licenceId}`),
 
-  create: (race: Omit<RaceType, 'id'>): Promise<RaceType> =>
-    apiClient<RaceType>('/races', {
+  /**
+   * Recherche des licences avec palmarès
+   */
+  searchLicencesWithPalmares: (query: string): Promise<LicenceType[]> =>
+    apiClient<LicenceType[]>(`/races/withpalmares/${encodeURIComponent(query)}`),
+
+  /**
+   * Engage un coureur sur une compétition
+   */
+  engage: (data: CreateEngagementDto): Promise<RaceRowType> =>
+    apiClient<RaceRowType>('/races', {
       method: 'POST',
-      body: JSON.stringify(race),
+      body: JSON.stringify(data),
     }),
 
-  update: (id: string, updates: Partial<RaceType>): Promise<RaceType> =>
-    apiClient<RaceType>(`/races/${id}`, {
+  /**
+   * Supprime un engagement
+   */
+  delete: (id: number): Promise<{ success: boolean }> =>
+    apiClient<{ success: boolean }>(`/races/${id}`, {
+      method: 'DELETE',
+    }),
+
+  /**
+   * Met à jour le classement d'un coureur
+   */
+  updateRanking: (data: UpdateRankingDto): Promise<RaceRowType> =>
+    apiClient<RaceRowType>('/races/ranking', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  /**
+   * Retire un coureur du classement
+   */
+  removeRanking: (data: RemoveRankingDto): Promise<{ success: boolean }> =>
+    apiClient<{ success: boolean }>('/races/ranking/remove', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  /**
+   * Toggle le flag sprint challenge
+   */
+  toggleChallenge: (id: number): Promise<RaceRowType> =>
+    apiClient<RaceRowType>(`/races/${id}/challenge`, {
+      method: 'PUT',
+    }),
+
+  /**
+   * Met à jour le chrono
+   */
+  updateChrono: (id: number, chrono: string): Promise<RaceRowType> =>
+    apiClient<RaceRowType>(`/races/${id}/chrono`, {
       method: 'PATCH',
-      body: JSON.stringify(updates),
+      body: JSON.stringify({ chrono }),
     }),
 
-  delete: (id: string): Promise<void> =>
-    apiClient<void>(`/races/${id}`, {
-      method: 'DELETE',
+  /**
+   * Met à jour les tours
+   */
+  updateTours: (id: number, tours: number | null): Promise<RaceRowType> =>
+    apiClient<RaceRowType>(`/races/${id}/tours`, {
+      method: 'PATCH',
+      body: JSON.stringify({ tours }),
     }),
 
-  addEngagedRider: (data: {
-    raceId: string;
-    categoryId: string;
-    rider: Omit<EngagedRider, 'id'>;
-  }): Promise<EngagedRider> =>
-    apiClient<EngagedRider>(`/races/${data.raceId}/categories/${data.categoryId}/engaged`, {
+  /**
+   * Rafraîchit l'engagement depuis la licence
+   */
+  refreshEngagement: (licenceId: number, competitionId: number): Promise<RaceRowType> =>
+    apiClient<RaceRowType>(`/races/refresh/${licenceId}/${competitionId}`, {
       method: 'POST',
-      body: JSON.stringify(data.rider),
     }),
-
-  removeEngagedRider: (data: {
-    raceId: string;
-    categoryId: string;
-    riderId: string;
-  }): Promise<void> =>
-    apiClient<void>(`/races/${data.raceId}/categories/${data.categoryId}/engaged/${data.riderId}`, {
-      method: 'DELETE',
-    }),
-
-  updateResultsRankings: (data: {
-    raceId: string;
-    categoryId: string;
-    resultIds: string[];
-  }): Promise<RaceResult[]> =>
-    apiClient<RaceResult[]>(
-      `/races/${data.raceId}/categories/${data.categoryId}/results/rankings`,
-      {
-        method: 'PUT',
-        body: JSON.stringify({ resultIds: data.resultIds }),
-      }
-    ),
 };
-
-const mockServiceWithEngagedRiders = {
-  ...mockRacesService,
-  addEngagedRider: (data: {
-    raceId: string;
-    categoryId: string;
-    rider: Omit<EngagedRider, 'id'>;
-  }) => addEngagedRiderMock(data.raceId, data.categoryId, data.rider),
-
-  removeEngagedRider: (data: { raceId: string; categoryId: string; riderId: string }) =>
-    removeEngagedRiderMock(data.raceId, data.categoryId, data.riderId),
-
-  updateResultsRankings: (data: { raceId: string; categoryId: string; resultIds: string[] }) =>
-    updateResultsRankingsMock(data.raceId, data.categoryId, data.resultIds),
-};
-
-export const racesApi = isMockMode('races') ? mockServiceWithEngagedRiders : realRacesService;
