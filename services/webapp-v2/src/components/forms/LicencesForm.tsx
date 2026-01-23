@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Award, Info, Loader2, Save, UserCircle } from 'lucide-react';
+import { Award, FileText, IdCard, Info, Loader2, Save, UserCircle } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -252,38 +252,48 @@ export const LicencesForm = ({ updatingLicence, onSuccess }: Props) => {
   return (
     <Form {...licenceForm}>
       <form onSubmit={licenceForm.handleSubmit(onSubmit)} className="space-y-6 max-w-4xl">
-        {/* 1) Fédération - toujours visible en premier */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-          <SelectField
-            form={licenceForm}
-            field="fede"
-            label="Fédération"
-            options={FEDERATION_OPTIONS}
-            required
-          />
-          {/* Numéro de licence et Saison - visible si fede && fede !== NL */}
-          {showLicenceFields && (
-            <>
-              <StringField
-                field="licenceNumber"
+        {/* 1) Capsule Fédération - toujours visible en premier */}
+        <Card className="bg-slate-100 dark:bg-muted/50 border-slate-200 dark:border-muted">
+          <CardHeader className="pb-0">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <IdCard className="h-4 w-4 text-primary" />
+              Fédération
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+              <SelectField
                 form={licenceForm}
-                label="Numéro de licence"
+                field="fede"
+                label="Fédération"
+                options={FEDERATION_OPTIONS}
                 required
               />
-              <StringField
-                field="saison"
-                form={licenceForm}
-                label="Saison"
-                description={FIELD_HELPER_TEXTS.saison}
-                required
-              />
-            </>
-          )}
-        </div>
+              {/* Numéro de licence et Saison - visible si fede && fede !== NL */}
+              {showLicenceFields && (
+                <>
+                  <StringField
+                    field="licenceNumber"
+                    form={licenceForm}
+                    label="Numéro de licence"
+                    required
+                  />
+                  <StringField
+                    field="saison"
+                    form={licenceForm}
+                    label="Saison"
+                    description={FIELD_HELPER_TEXTS.saison}
+                    required
+                  />
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* 2) Capsule Identité - toujours visible */}
-        <Card className="bg-muted/50 border-muted">
-          <CardHeader className="pb-2">
+        <Card className="bg-slate-100 dark:bg-muted/50 border-slate-200 dark:border-muted">
+          <CardHeader className="pb-0">
             <CardTitle className="flex items-center gap-2 text-base">
               <UserCircle className="h-4 w-4 text-primary" />
               Identité
@@ -330,8 +340,8 @@ export const LicencesForm = ({ updatingLicence, onSuccess }: Props) => {
 
         {/* 4) Capsule Catégories - visible uniquement si fédération sélectionnée */}
         {showCategorySection && (
-          <Card className="bg-muted/50 border-muted">
-            <CardHeader className="pb-2">
+          <Card className="bg-slate-100 dark:bg-muted/50 border-slate-200 dark:border-muted">
+            <CardHeader className="pb-0">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Award className="h-4 w-4 text-primary" />
                 Catégories
@@ -371,52 +381,63 @@ export const LicencesForm = ({ updatingLicence, onSuccess }: Props) => {
           </Card>
         )}
 
-        {/* 5) Département, Club - visible si fédération sélectionnée */}
-        {showDeptAndClub && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-            <ComboboxField
-              form={licenceForm}
-              field="dept"
-              label="Département"
-              options={departmentOptions}
-              isLoading={isLoadingDepartments}
-              description={FIELD_HELPER_TEXTS.dept}
-              required
-            />
-            {/* Club - visible si dept && fede && fede !== NL */}
-            {selectedDepartment && !isNL && (
-              <Controller
-                control={licenceForm.control}
-                name="club"
-                render={({ field, fieldState }) => (
-                  <ClubAutocomplete
-                    value={null}
-                    onChange={(_clubId, clubName) => field.onChange(clubName)}
-                    fede={fede}
-                    department={selectedDepartment}
-                    disabled={!fede || !selectedDepartment}
-                    error={fieldState.error?.message}
-                    description={clubHelperText}
-                    required
-                    selectedName={field.value}
+        {/* 5) Capsule Autres informations */}
+        <Card className="bg-slate-100 dark:bg-muted/50 border-slate-200 dark:border-muted">
+          <CardHeader className="pb-0">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <FileText className="h-4 w-4 text-primary" />
+              Autres informations
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Département, Club - visible si fédération sélectionnée */}
+            {showDeptAndClub && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                <ComboboxField
+                  form={licenceForm}
+                  field="dept"
+                  label="Département"
+                  options={departmentOptions}
+                  isLoading={isLoadingDepartments}
+                  description={FIELD_HELPER_TEXTS.dept}
+                  required
+                />
+                {/* Club - visible si dept && fede && fede !== NL */}
+                {selectedDepartment && !isNL && (
+                  <Controller
+                    control={licenceForm.control}
+                    name="club"
+                    render={({ field, fieldState }) => (
+                      <ClubAutocomplete
+                        value={null}
+                        onChange={(_clubId, clubName) => field.onChange(clubName)}
+                        fede={fede}
+                        department={selectedDepartment}
+                        disabled={!fede || !selectedDepartment}
+                        error={fieldState.error?.message}
+                        description={clubHelperText}
+                        required
+                        selectedName={field.value}
+                      />
+                    )}
                   />
                 )}
-              />
+              </div>
             )}
-          </div>
-        )}
 
-        {/* 6) Commentaire pleine largeur - toujours visible */}
-        <Field>
-          <FieldLabel htmlFor="comment">Commentaires</FieldLabel>
-          <Textarea
-            id="comment"
-            placeholder="Ajouter des commentaires additionnels"
-            className="resize-none min-h-[100px]"
-            {...licenceForm.register('comment')}
-          />
-          <FieldDescription>Informations complémentaires sur le licencié</FieldDescription>
-        </Field>
+            {/* Commentaire */}
+            <Field>
+              <FieldLabel htmlFor="comment">Commentaires</FieldLabel>
+              <Textarea
+                id="comment"
+                placeholder="Ajouter des commentaires additionnels"
+                className="resize-none min-h-[100px]"
+                {...licenceForm.register('comment')}
+              />
+              <FieldDescription>Informations complémentaires sur le licencié</FieldDescription>
+            </Field>
+          </CardContent>
+        </Card>
 
         {/* Informations de dernière modification - mode édition uniquement */}
         {updatingLicence?.lastChanged && updatingLicence?.author && (
