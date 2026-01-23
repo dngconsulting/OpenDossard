@@ -245,6 +245,7 @@ export function GeneralTab({ competition, isCreating }: GeneralTabProps) {
                   fede={watchedFede}
                   department={deptFromZip}
                   error={fieldState.error?.message}
+                  label="Club organisateur"
                 />
               )}
             />

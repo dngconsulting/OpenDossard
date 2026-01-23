@@ -2,8 +2,8 @@ import { Check, ChevronsUpDown, Loader2, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { Field, FieldContent, FieldDescription, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useClubsByFedeAndDept, useCreateClub } from '@/hooks/useClubs';
 import { cn } from '@/lib/utils';
@@ -17,6 +17,8 @@ type ClubAutocompleteProps = {
   error?: string;
   description?: string;
   required?: boolean;
+  label?: string;
+  selectedName?: string;
 };
 
 export function ClubAutocomplete({
@@ -28,6 +30,8 @@ export function ClubAutocomplete({
   error,
   description,
   required,
+  label = 'Club',
+  selectedName,
 }: ClubAutocompleteProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -101,11 +105,14 @@ export function ClubAutocomplete({
   const isInvalid = !!error;
 
   return (
-    <div className="space-y-2">
-      <Label>
-        Club organisateur
-        {required && <span className="text-destructive ml-1">*</span>}
-      </Label>
+    <Field data-invalid={isInvalid}>
+      <FieldContent>
+        <FieldLabel>
+          {label}
+          {required && <span className="text-destructive">*</span>}
+        </FieldLabel>
+        {description && !isInvalid && <FieldDescription>{description}</FieldDescription>}
+      </FieldContent>
       <Popover open={open} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
           <Button
@@ -115,8 +122,8 @@ export function ClubAutocomplete({
             className="w-full justify-between font-normal"
             disabled={isDisabled}
           >
-            <span className={cn(!selectedClub && 'text-muted-foreground')}>
-              {selectedClub?.longName || (isDisabled ? 'Sélectionnez une fédération et un département' : 'Rechercher un club...')}
+            <span className={cn(!selectedClub && !selectedName && 'text-muted-foreground')}>
+              {selectedClub?.longName || selectedName || (isDisabled ? 'Sélectionnez une fédération et un département' : 'Rechercher un club...')}
             </span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -197,7 +204,6 @@ export function ClubAutocomplete({
         </PopoverContent>
       </Popover>
       {isInvalid && <p className="text-destructive text-sm">{error}</p>}
-      {description && !isInvalid && <p className="text-muted-foreground text-sm">{description}</p>}
-    </div>
+    </Field>
   );
 }

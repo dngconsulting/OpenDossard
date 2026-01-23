@@ -51,7 +51,7 @@ export function EngagementsTable({
       .sort((a, b) => (a.riderNumber || 0) - (b.riderNumber || 0));
   }, [engagements, currentRaceCode]);
 
-  // Vérifier si on peut supprimer (pas classé)
+  // Vérifier si on peut supprimer (pas classé et pas de commentaire type ABD/DNF)
   const canDelete = (engagement: RaceRowType) => {
     return !engagement.rankingScratch && !engagement.comment;
   };
@@ -93,16 +93,16 @@ export function EngagementsTable({
         <Table className="min-w-[900px]">
           <TableHeader className="bg-muted/50">
             <TableRow>
-              <TableHead className="min-w-[60px]">Actions</TableHead>
-              <TableHead className="min-w-[80px]">Dossard</TableHead>
-              <TableHead className="min-w-[150px]">Coureur</TableHead>
-              <TableHead className="min-w-[150px]">Club</TableHead>
-              <TableHead className="min-w-[50px]">H/F</TableHead>
-              <TableHead className="min-w-[50px]">Dept</TableHead>
-              <TableHead className="min-w-[60px]">Année</TableHead>
-              <TableHead className="min-w-[70px]">Caté. A.</TableHead>
-              <TableHead className="min-w-[70px]">Caté. V.</TableHead>
-              <TableHead className="min-w-[70px]">Fédé.</TableHead>
+              <TableHead className="w-[60px]">Actions</TableHead>
+              <TableHead className="w-[70px]">Dossard</TableHead>
+              <TableHead className="w-[20%] min-w-[150px]">Coureur</TableHead>
+              <TableHead className="w-[20%] min-w-[150px]">Club</TableHead>
+              <TableHead className="w-[50px]">H/F</TableHead>
+              <TableHead className="w-[50px]">Dept</TableHead>
+              <TableHead className="w-[60px]">Année</TableHead>
+              <TableHead className="w-[70px]">Caté. A.</TableHead>
+              <TableHead className="w-[70px]">Caté. V.</TableHead>
+              <TableHead className="w-[70px]">Fédé.</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -152,7 +152,7 @@ export function EngagementsTable({
                   </TableCell>
 
                   {/* Club */}
-                  <TableCell className="text-muted-foreground">{engagement.club || '-'}</TableCell>
+                  <TableCell className="text-muted-foreground max-w-[200px] truncate" title={engagement.club || undefined}>{engagement.club || '-'}</TableCell>
 
                   {/* Genre */}
                   <TableCell>

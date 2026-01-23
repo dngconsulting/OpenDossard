@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Award, Info, Loader2 } from 'lucide-react';
+import { Award, Info, Loader2, Save } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -390,6 +390,7 @@ export const LicencesForm = ({ updatingLicence, onSuccess }: Props) => {
                     error={fieldState.error?.message}
                     description={clubHelperText}
                     required
+                    selectedName={field.value}
                   />
                 )}
               />
@@ -420,9 +421,9 @@ export const LicencesForm = ({ updatingLicence, onSuccess }: Props) => {
         )}
 
         {/* Bouton Enregistrer */}
-        <div className="flex justify-end pt-4 border-t">
+        <div className="flex justify-center pt-4 border-t">
           <Button type="submit" size="lg" disabled={isSaving}>
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
             {isEditing ? 'Mettre à jour' : 'Créer la licence'}
           </Button>
         </div>

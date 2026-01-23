@@ -1,10 +1,9 @@
-import { Loader2, AlertCircle, User, MapPin, Calendar, CreditCard } from 'lucide-react';
+import { Loader2, User, MapPin, Calendar, CreditCard, MessageCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useSearchLicences } from '@/hooks/useSearchLicences';
 import { cn } from '@/lib/utils';
 import type { LicenceType } from '@/types/licences';
@@ -21,12 +20,12 @@ type LicenceAutocompleteProps = {
 /**
  * Calcule si la saison du licencié est valide pour l'année en cours
  */
-function getSaisonStatus(saison: string | undefined): 'valid' | 'expired' | 'unknown' {
-  if (!saison) return 'unknown';
+function getSaisonStatus(saison: string | undefined): 'valid' | 'expired' {
+  if (!saison) return 'expired';
   const currentYear = new Date().getFullYear();
   const saisonYear = parseInt(saison, 10);
-  if (isNaN(saisonYear)) return 'unknown';
-  return saisonYear >= currentYear ? 'valid' : 'expired';
+  if (isNaN(saisonYear)) return 'expired';
+  return saisonYear === currentYear ? 'valid' : 'expired';
 }
 
 /**
@@ -78,16 +77,12 @@ function LicenceItem({
             <span className="font-semibold text-foreground truncate">
               {licence.name} {licence.firstName}
             </span>
-            {licence.comment && (
-              <span title={licence.comment}>
-                <AlertCircle className="h-4 w-4 text-amber-500" />
-              </span>
-            )}
             <Badge
-              variant={saisonStatus === 'valid' ? 'default' : saisonStatus === 'expired' ? 'destructive' : 'secondary'}
               className={cn(
                 'text-[10px] px-1.5 py-0',
-                saisonStatus === 'valid' && 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                saisonStatus === 'valid'
+                  ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                  : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
               )}
             >
               {licence.saison || 'N/A'}
@@ -121,6 +116,11 @@ function LicenceItem({
             <span className="flex items-center gap-1 text-muted-foreground/70">
               <CreditCard className="h-3 w-3" />
               {licence.licenceNumber || 'N/A'}
+              {licence.comment && (
+                <span title={licence.comment}>
+                  <MessageCircle className="h-3 w-3 text-amber-500 fill-amber-500" />
+                </span>
+              )}
             </span>
           </div>
         </div>
@@ -145,6 +145,9 @@ export function LicenceAutocomplete({
   useEffect(() => {
     if (value) {
       setInputValue(`${value.name} ${value.firstName} - ${value.club || 'Sans club'}`);
+    } else {
+      setInputValue('');
+      setSearchTerm('');
     }
   }, [value]);
 
@@ -187,35 +190,26 @@ export function LicenceAutocomplete({
         Saisir coureur
         {required && <span className="text-destructive ml-1">*</span>}
       </Label>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <div className="relative">
-            <Input
-              placeholder="Rechercher par nom, prénom ou numéro de licence..."
-              value={inputValue}
-              onChange={handleInputChange}
-              onFocus={handleFocus}
-              onBlur={handleBlur}
-              disabled={disabled}
-              className={cn(error && 'border-destructive')}
-            />
-            {(isLoading || isSearching) && (
-              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-            )}
-          </div>
-        </PopoverTrigger>
-        <PopoverContent
-          className="w-[--radix-popover-trigger-width] p-0 shadow-lg border-border/50"
-          align="start"
-          sideOffset={4}
-          onOpenAutoFocus={e => e.preventDefault()}
-        >
-          <div
-            className="max-h-[400px] overflow-y-auto overscroll-contain"
-            onWheel={e => e.stopPropagation()}
-          >
-            {searchTerm.length >= 2 && (
-              licences.length > 0 ? (
+      <div className="relative">
+        <Input
+          placeholder="Rechercher par nom, prénom ou numéro de licence..."
+          value={inputValue}
+          onChange={handleInputChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          disabled={disabled}
+          className={cn(error && 'border-destructive')}
+        />
+        {(isLoading || isSearching) && (
+          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+        )}
+        {open && searchTerm.length >= 2 && (
+          <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-popover border border-border/50 rounded-md shadow-lg">
+            <div
+              className="max-h-[400px] overflow-y-auto overscroll-contain"
+              onWheel={e => e.stopPropagation()}
+            >
+              {licences.length > 0 ? (
                 <div className="py-2">
                   {licences.map((licence, index) => (
                     <div key={licence.id}>
@@ -233,11 +227,11 @@ export function LicenceAutocomplete({
                   <User className="h-8 w-8 mx-auto mb-2 opacity-30" />
                   Aucun licencié trouvé pour "{searchTerm}"
                 </div>
-              )
-            )}
+              )}
+            </div>
           </div>
-        </PopoverContent>
-      </Popover>
+        )}
+      </div>
       {error && <p className="text-destructive text-sm">{error}</p>}
     </div>
   );

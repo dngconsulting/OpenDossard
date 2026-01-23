@@ -53,6 +53,21 @@ export default function EngagementsPage() {
     return engagements.some(e => e.rankingScratch != null);
   }, [engagements]);
 
+  // Vérifier si des dossards sont dupliqués entre courses différentes
+  const hasDuplicateRiderNumbers = useMemo(() => {
+    const riderNumberToRaces = new Map<number, Set<string>>();
+    for (const e of engagements) {
+      if (e.riderNumber) {
+        if (!riderNumberToRaces.has(e.riderNumber)) {
+          riderNumberToRaces.set(e.riderNumber, new Set());
+        }
+        riderNumberToRaces.get(e.riderNumber)!.add(e.raceCode);
+      }
+    }
+    // Si un dossard apparaît dans plusieurs courses, il y a duplication
+    return Array.from(riderNumberToRaces.values()).some(racesSet => racesSet.size > 1);
+  }, [engagements]);
+
   // Synchroniser le hash avec la course courante
   useEffect(() => {
     const hash = location.hash.replace('#', '');
@@ -96,9 +111,15 @@ export default function EngagementsPage() {
     <div className="flex flex-col sm:flex-row gap-2">
       <Button
         variant="outline"
-        disabled={hasAnyRanking}
+        disabled={hasAnyRanking || hasDuplicateRiderNumbers}
         onClick={() => setIsReorganizeOpen(true)}
-        title={hasAnyRanking ? 'Impossible de réorganiser : des classements existent' : 'Réorganiser les départs'}
+        title={
+          hasAnyRanking
+            ? 'Impossible de réorganiser : des classements existent'
+            : hasDuplicateRiderNumbers
+              ? 'Impossible de réorganiser : des dossards sont attribués sur plusieurs courses'
+              : 'Réorganiser les départs'
+        }
       >
         <Shuffle className="h-4 w-4 mr-2" />
         Réorganiser les départs
