@@ -1,4 +1,4 @@
-import { AlertTriangle, Trash2, ExternalLink } from 'lucide-react';
+import { AlertTriangle, ExternalLink, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -28,7 +28,9 @@ type EngagementsTableProps = {
  * Vérifie si un coureur est surclassé (sa catégorie n'est pas dans le raceCode)
  */
 function isSurclassed(catev: string | undefined, raceCode: string): boolean {
-  if (!catev) return false;
+  if (!catev) {
+    return false;
+  }
   const categories = raceCode.split('/');
   return !categories.includes(catev);
 }
@@ -55,7 +57,9 @@ export function EngagementsTable({
   };
 
   const handleDelete = async () => {
-    if (!deleteTarget) return;
+    if (!deleteTarget) {
+      return;
+    }
     try {
       await deleteMutation.mutateAsync({
         id: deleteTarget.id,
@@ -105,7 +109,10 @@ export function EngagementsTable({
             {filteredEngagements.map(engagement => {
               const surclassed = isSurclassed(engagement.catev, currentRaceCode);
               return (
-                <TableRow key={engagement.id} className={cn(surclassed && 'bg-amber-50 dark:bg-amber-950/30')}>
+                <TableRow
+                  key={engagement.id}
+                  className={cn(surclassed && 'bg-amber-50 dark:bg-amber-950/30')}
+                >
                   {/* Actions */}
                   <TableCell>
                     <div className="flex gap-1">
@@ -136,7 +143,7 @@ export function EngagementsTable({
                   {/* Coureur - lien vers fiche licence */}
                   <TableCell>
                     <Link
-                      to={`/licences/${engagement.licenceId}`}
+                      to={`/licence/${engagement.licenceId}`}
                       className="hover:underline flex items-center gap-1"
                     >
                       {engagement.name}
