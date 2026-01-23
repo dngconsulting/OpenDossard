@@ -141,13 +141,13 @@ export function EngagementsTable({
                   </TableCell>
 
                   {/* Coureur - lien vers fiche licence */}
-                  <TableCell>
+                  <TableCell className="max-w-[200px]" title={engagement.name || undefined}>
                     <Link
                       to={`/licence/${engagement.licenceId}`}
                       className="hover:underline flex items-center gap-1"
                     >
-                      {engagement.name}
-                      <ExternalLink className="h-3 w-3 opacity-50" />
+                      <span className="truncate">{engagement.name}</span>
+                      <ExternalLink className="h-3 w-3 opacity-50 shrink-0" />
                     </Link>
                   </TableCell>
 
