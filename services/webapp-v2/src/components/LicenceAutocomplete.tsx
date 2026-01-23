@@ -1,7 +1,6 @@
-import { ChevronsUpDown, Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -119,28 +118,48 @@ export function LicenceAutocomplete({
   required,
 }: LicenceAutocompleteProps) {
   const [open, setOpen] = useState(false);
+  const [inputValue, setInputValue] = useState('');
   const { searchTerm, setSearchTerm, licences, isLoading, isSearching } = useSearchLicences();
 
-  // Reset search when popover closes
+  // Sync input value with selected licence display
   useEffect(() => {
-    if (!open) {
-      setSearchTerm('');
+    if (value) {
+      setInputValue(`${value.name} ${value.firstName} - ${value.club || 'Sans club'}`);
     }
-  }, [open, setSearchTerm]);
+  }, [value]);
 
   const handleSelect = (licence: LicenceType) => {
     onChange(licence);
+    setInputValue(`${licence.name} ${licence.firstName} - ${licence.club || 'Sans club'}`);
     setOpen(false);
+    setSearchTerm('');
   };
 
-  const handleOpenChange = (isOpen: boolean) => {
-    if (disabled) return;
-    setOpen(isOpen);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    setSearchTerm(newValue);
+    // Clear selection if user modifies the input
+    if (value) {
+      onChange(null);
+    }
+    if (newValue.length >= 2) {
+      setOpen(true);
+    } else {
+      setOpen(false);
+    }
   };
 
-  const displayValue = value
-    ? `${value.name} ${value.firstName} - ${value.club || 'Sans club'}`
-    : null;
+  const handleFocus = () => {
+    if (inputValue.length >= 2 && !value) {
+      setOpen(true);
+    }
+  };
+
+  const handleBlur = () => {
+    // Delay closing to allow click on results
+    setTimeout(() => setOpen(false), 200);
+  };
 
   return (
     <div className="space-y-2">
@@ -148,62 +167,49 @@ export function LicenceAutocomplete({
         Saisir coureur
         {required && <span className="text-destructive ml-1">*</span>}
       </Label>
-      <Popover open={open} onOpenChange={handleOpenChange}>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-full justify-between font-normal"
-            disabled={disabled}
-          >
-            <span className={cn(!value && 'text-muted-foreground', 'truncate')}>
-              {displayValue || 'Rechercher un licencié...'}
-            </span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
+          <div className="relative">
+            <Input
+              placeholder="Rechercher par nom, prénom ou numéro de licence..."
+              value={inputValue}
+              onChange={handleInputChange}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              disabled={disabled}
+              className={cn(error && 'border-destructive')}
+            />
+            {(isLoading || isSearching) && (
+              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+            )}
+          </div>
         </PopoverTrigger>
         <PopoverContent
           className="w-[--radix-popover-trigger-width] min-w-[400px] overflow-hidden p-0"
           align="start"
+          onOpenAutoFocus={e => e.preventDefault()}
         >
-          <div className="p-2 border-b">
-            <Input
-              placeholder="Rechercher par nom, prénom ou numéro de licence..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="h-9"
-              autoFocus
-            />
-          </div>
           <div
             className="max-h-80 overflow-y-auto overscroll-contain"
             onWheel={e => e.stopPropagation()}
           >
-            {isLoading || isSearching ? (
-              <div className="flex items-center justify-center py-6 text-sm text-muted-foreground">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Recherche en cours...
-              </div>
-            ) : searchTerm.length < 2 ? (
-              <div className="py-6 px-4 text-sm text-muted-foreground text-center">
-                Saisissez au moins 2 caractères pour rechercher
-              </div>
-            ) : licences.length > 0 ? (
-              <div className="p-1">
-                {licences.map(licence => (
-                  <LicenceItem
-                    key={licence.id}
-                    licence={licence}
-                    competitionFede={competitionFede}
-                    onClick={() => handleSelect(licence)}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="py-6 px-4 text-sm text-muted-foreground text-center">
-                Aucun licencié trouvé pour "{searchTerm}"
-              </div>
+            {searchTerm.length >= 2 && (
+              licences.length > 0 ? (
+                <div className="p-1">
+                  {licences.map(licence => (
+                    <LicenceItem
+                      key={licence.id}
+                      licence={licence}
+                      competitionFede={competitionFede}
+                      onClick={() => handleSelect(licence)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="py-6 px-4 text-sm text-muted-foreground text-center">
+                  Aucun licencié trouvé pour "{searchTerm}"
+                </div>
+              )
             )}
           </div>
         </PopoverContent>

@@ -93,9 +93,33 @@ export default function EngagementsPage() {
   ) : null;
 
   const toolbar = (
-    <Button variant="outline" onClick={() => navigate('/competitions')}>
-      <ArrowLeft /> Retour
-    </Button>
+    <div className="flex flex-col sm:flex-row gap-2">
+      <Button
+        variant="outline"
+        disabled={hasAnyRanking}
+        onClick={() => setIsReorganizeOpen(true)}
+        title={hasAnyRanking ? 'Impossible de réorganiser : des classements existent' : 'Réorganiser les départs'}
+      >
+        <Shuffle className="h-4 w-4 mr-2" />
+        Réorganiser les départs
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" disabled title="Fonctionnalité à venir">
+            <Download className="h-4 w-4 mr-2" />
+            Télécharger
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem>Engagements PDF</DropdownMenuItem>
+          <DropdownMenuItem>Feuilles d'émargement PDF</DropdownMenuItem>
+          <DropdownMenuItem>Engagements CSV</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <Button variant="outline" onClick={() => navigate('/competitions')}>
+        <ArrowLeft /> Retour
+      </Button>
+    </div>
   );
 
   const isLoading = isLoadingCompetition || isLoadingEngagements;
@@ -120,7 +144,7 @@ export default function EngagementsPage() {
 
   return (
     <Layout title="Engagements" toolbar={toolbar} toolbarLeft={toolbarLeft}>
-      <div className="space-y-6">
+      <div className="space-y-2">
         {/* Onglets des courses */}
         {races.length > 0 && (
           <Tabs value={currentRaceCode} onValueChange={handleRaceChange} className="w-full">
@@ -140,32 +164,6 @@ export default function EngagementsPage() {
             </TabsList>
           </Tabs>
         )}
-
-        {/* Boutons d'action */}
-        <div className="flex gap-2 px-4">
-          <Button
-            variant="outline"
-            disabled={hasAnyRanking}
-            onClick={() => setIsReorganizeOpen(true)}
-            title={hasAnyRanking ? 'Impossible de réorganiser : des classements existent' : 'Réorganiser les départs'}
-          >
-            <Shuffle className="h-4 w-4 mr-2" />
-            Réorganiser les départs
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" disabled title="Fonctionnalité à venir">
-                <Download className="h-4 w-4 mr-2" />
-                Télécharger
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>Engagements PDF</DropdownMenuItem>
-              <DropdownMenuItem>Feuilles d'émargement PDF</DropdownMenuItem>
-              <DropdownMenuItem>Engagements CSV</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
 
         {/* Formulaire d'engagement */}
         {currentRaceCode && (

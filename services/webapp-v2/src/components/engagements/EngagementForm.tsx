@@ -147,7 +147,7 @@ export function EngagementForm({
       </div>
 
       {/* Numéro de dossard */}
-      <div className="w-32">
+      <div className="w-32 space-y-2">
         <Label htmlFor="riderNumber">
           Dossard <span className="text-destructive">*</span>
         </Label>
@@ -156,7 +156,6 @@ export function EngagementForm({
           type="number"
           value={riderNumber}
           onChange={e => setRiderNumber(e.target.value)}
-          placeholder={String(suggestedRiderNumber)}
           className={isRiderNumberTaken ? 'border-destructive' : ''}
         />
         {isRiderNumberTaken && (
@@ -165,7 +164,7 @@ export function EngagementForm({
       </div>
 
       {/* Catégorie */}
-      <div className="w-40">
+      <div className="w-40 space-y-2">
         <Label htmlFor="catev">
           Catégorie <span className="text-destructive">*</span>
         </Label>

@@ -89,20 +89,20 @@ export function EngagementsTable({
 
   return (
     <>
-      <div className="border rounded-lg overflow-hidden">
-        <Table>
+      <div className="border rounded-lg overflow-x-auto">
+        <Table className="min-w-[900px]">
           <TableHeader className="bg-muted/50">
             <TableRow>
-              <TableHead className="w-[60px]">Actions</TableHead>
-              <TableHead className="w-[80px]">Dossard</TableHead>
-              <TableHead>Coureur</TableHead>
-              <TableHead>Club</TableHead>
-              <TableHead className="w-[60px]">H/F</TableHead>
-              <TableHead className="w-[60px]">Dept</TableHead>
-              <TableHead className="w-[70px]">Année</TableHead>
-              <TableHead className="w-[80px]">Caté. A.</TableHead>
-              <TableHead className="w-[80px]">Caté. V.</TableHead>
-              <TableHead className="w-[80px]">Fédé.</TableHead>
+              <TableHead className="min-w-[60px]">Actions</TableHead>
+              <TableHead className="min-w-[80px]">Dossard</TableHead>
+              <TableHead className="min-w-[150px]">Coureur</TableHead>
+              <TableHead className="min-w-[150px]">Club</TableHead>
+              <TableHead className="min-w-[50px]">H/F</TableHead>
+              <TableHead className="min-w-[50px]">Dept</TableHead>
+              <TableHead className="min-w-[60px]">Année</TableHead>
+              <TableHead className="min-w-[70px]">Caté. A.</TableHead>
+              <TableHead className="min-w-[70px]">Caté. V.</TableHead>
+              <TableHead className="min-w-[70px]">Fédé.</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
