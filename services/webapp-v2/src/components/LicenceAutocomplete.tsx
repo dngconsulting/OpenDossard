@@ -1,6 +1,7 @@
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, User, MapPin, Calendar, CreditCard } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -29,36 +30,24 @@ function getSaisonStatus(saison: string | undefined): 'valid' | 'expired' | 'unk
 }
 
 /**
- * Indicateur visuel de la saison (point coloré)
+ * Avatar avec initiales
  */
-function SaisonIndicator({ saison }: { saison: string | undefined }) {
-  const status = getSaisonStatus(saison);
+function Avatar({ name, firstName, gender }: { name: string; firstName: string; gender?: string }) {
+  const initials = `${firstName?.[0] || ''}${name?.[0] || ''}`.toUpperCase();
   return (
-    <span
+    <div
       className={cn(
-        'inline-block w-2.5 h-2.5 rounded-full',
-        status === 'valid' && 'bg-green-500',
-        status === 'expired' && 'bg-red-500',
-        status === 'unknown' && 'bg-gray-400'
+        'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white',
+        gender === 'F' ? 'bg-pink-500' : 'bg-blue-500'
       )}
-      title={
-        status === 'valid'
-          ? 'Licence à jour'
-          : status === 'expired'
-            ? 'Licence périmée'
-            : 'Saison non renseignée'
-      }
-    />
+    >
+      {initials || <User className="h-5 w-5" />}
+    </div>
   );
 }
 
 /**
- * Élément de licence dans la liste déroulante
- * Affichage:
- * - Ligne 1: NOM Prénom (bold pour le nom)
- * - Ligne 2: Club
- * - Ligne 3: Catégorie valeur + Catégorie age + Fédération
- * - Ligne 4: Lic. N°, Année, Dept, Genre, Saison
+ * Élément de licence dans la liste déroulante - Design moderne
  */
 function LicenceItem({
   licence,
@@ -70,40 +59,71 @@ function LicenceItem({
   onClick: () => void;
 }) {
   const isSameFede = competitionFede && licence.fede === competitionFede;
+  const saisonStatus = getSaisonStatus(licence.saison);
 
   return (
     <button
       type="button"
-      className="w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground rounded-sm cursor-pointer border-b border-border last:border-b-0"
+      className="w-full text-left p-3 hover:bg-muted/80 rounded-lg cursor-pointer transition-colors group"
       onClick={onClick}
     >
-      {/* Ligne 1: Nom Prénom */}
-      <div className="flex items-center gap-2">
-        <span className="font-semibold">{licence.name}</span>
-        <span>{licence.firstName}</span>
-        {licence.comment && (
-          <span title={licence.comment}>
-            <AlertCircle className="h-4 w-4 text-destructive" />
-          </span>
-        )}
-      </div>
+      <div className="flex gap-3">
+        {/* Avatar */}
+        <Avatar name={licence.name} firstName={licence.firstName} gender={licence.gender} />
 
-      {/* Ligne 2: Club */}
-      <div className="text-sm text-muted-foreground">{licence.club || 'Pas de club'}</div>
+        {/* Contenu principal */}
+        <div className="flex-1 min-w-0">
+          {/* Ligne 1: Nom + badges */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-foreground truncate">
+              {licence.name} {licence.firstName}
+            </span>
+            {licence.comment && (
+              <span title={licence.comment}>
+                <AlertCircle className="h-4 w-4 text-amber-500" />
+              </span>
+            )}
+            <Badge
+              variant={saisonStatus === 'valid' ? 'default' : saisonStatus === 'expired' ? 'destructive' : 'secondary'}
+              className={cn(
+                'text-[10px] px-1.5 py-0',
+                saisonStatus === 'valid' && 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+              )}
+            >
+              {licence.saison || 'N/A'}
+            </Badge>
+          </div>
 
-      {/* Ligne 3: Catégorie */}
-      <div className={cn('text-sm', isSameFede ? 'font-semibold text-primary' : 'text-foreground')}>
-        {licence.catev} {licence.catea} {licence.fede}
-      </div>
+          {/* Ligne 2: Club */}
+          <div className="text-sm text-muted-foreground truncate mt-0.5">
+            {licence.club || 'Sans club'}
+          </div>
 
-      {/* Ligne 4: Infos licence */}
-      <div className="text-xs text-muted-foreground flex items-center gap-2 mt-1">
-        <span>Lic. N°: {licence.licenceNumber || 'N/A'}</span>
-        <span>Année: {licence.birthYear}</span>
-        <span>Dept: {licence.dept}</span>
-        <span>Genre: {licence.gender}</span>
-        <span>Saison: {licence.saison || 'N/A'}</span>
-        <SaisonIndicator saison={licence.saison} />
+          {/* Ligne 3: Infos compactes */}
+          <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
+            <Badge
+              variant={isSameFede ? 'default' : 'outline'}
+              className={cn(
+                'font-medium',
+                isSameFede && 'bg-primary/10 text-primary border-primary/20'
+              )}
+            >
+              {licence.catev} · {licence.catea} · {licence.fede}
+            </Badge>
+            <span className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              {licence.birthYear}
+            </span>
+            <span className="flex items-center gap-1">
+              <MapPin className="h-3 w-3" />
+              {licence.dept || '—'}
+            </span>
+            <span className="flex items-center gap-1 text-muted-foreground/70">
+              <CreditCard className="h-3 w-3" />
+              {licence.licenceNumber || 'N/A'}
+            </span>
+          </div>
+        </div>
       </div>
     </button>
   );
@@ -185,28 +205,32 @@ export function LicenceAutocomplete({
           </div>
         </PopoverTrigger>
         <PopoverContent
-          className="w-[--radix-popover-trigger-width] min-w-[400px] overflow-hidden p-0"
+          className="w-[--radix-popover-trigger-width] p-0 shadow-lg border-border/50"
           align="start"
+          sideOffset={4}
           onOpenAutoFocus={e => e.preventDefault()}
         >
           <div
-            className="max-h-80 overflow-y-auto overscroll-contain"
+            className="max-h-[400px] overflow-y-auto overscroll-contain"
             onWheel={e => e.stopPropagation()}
           >
             {searchTerm.length >= 2 && (
               licences.length > 0 ? (
-                <div className="p-1">
-                  {licences.map(licence => (
-                    <LicenceItem
-                      key={licence.id}
-                      licence={licence}
-                      competitionFede={competitionFede}
-                      onClick={() => handleSelect(licence)}
-                    />
+                <div className="py-2">
+                  {licences.map((licence, index) => (
+                    <div key={licence.id}>
+                      {index > 0 && <div className="mx-3 border-t border-border/50" />}
+                      <LicenceItem
+                        licence={licence}
+                        competitionFede={competitionFede}
+                        onClick={() => handleSelect(licence)}
+                      />
+                    </div>
                   ))}
                 </div>
               ) : (
-                <div className="py-6 px-4 text-sm text-muted-foreground text-center">
+                <div className="py-8 px-4 text-sm text-muted-foreground text-center">
+                  <User className="h-8 w-8 mx-auto mb-2 opacity-30" />
                   Aucun licencié trouvé pour "{searchTerm}"
                 </div>
               )
