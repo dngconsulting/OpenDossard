@@ -2,7 +2,7 @@ import { ArrowLeft, Download, Shuffle } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 
-import { EngagementForm, EngagementsTable } from '@/components/engagements';
+import { EngagementForm, EngagementsTable, ReorganizeRacesDialog } from '@/components/engagements';
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,21 +25,32 @@ export default function EngagementsPage() {
 
   // Récupérer la course depuis le hash de l'URL
   const [currentRaceCode, setCurrentRaceCode] = useState<string>('');
+  const [isReorganizeOpen, setIsReorganizeOpen] = useState(false);
 
   // Charger les données
   const { data: competition, isLoading: isLoadingCompetition } = useCompetition(competitionId);
   const { data: engagements = [], isLoading: isLoadingEngagements } =
     useCompetitionRaces(competitionId);
 
-  // Liste des courses triées
+  // Liste des courses dans l'ordre original (pour la réorganisation)
   // races peut être un string (comma-separated) ou déjà un array
-  const races = useMemo(() => {
+  const racesOriginalOrder = useMemo(() => {
     if (!competition?.races) return [];
     const racesArray = typeof competition.races === 'string'
       ? competition.races.split(',').map(r => r.trim()).filter(Boolean)
       : competition.races;
-    return [...racesArray].sort((a, b) => a.localeCompare(b, 'fr', { numeric: true }));
+    return racesArray;
   }, [competition?.races]);
+
+  // Liste des courses triées pour l'affichage des onglets
+  const races = useMemo(() => {
+    return [...racesOriginalOrder].sort((a, b) => a.localeCompare(b, 'fr', { numeric: true }));
+  }, [racesOriginalOrder]);
+
+  // Vérifier si on peut réorganiser (aucun classement existant)
+  const hasAnyRanking = useMemo(() => {
+    return engagements.some(e => e.rankingScratch != null);
+  }, [engagements]);
 
   // Synchroniser le hash avec la course courante
   useEffect(() => {
@@ -67,6 +78,10 @@ export default function EngagementsPage() {
     return counts;
   }, [engagements, races]);
 
+  const toolbarLeft = competition ? (
+    <h1 className="text-lg font-semibold">{competition.name}</h1>
+  ) : null;
+
   const toolbar = (
     <Button variant="outline" onClick={() => navigate('/competitions')}>
       <ArrowLeft /> Retour
@@ -77,7 +92,7 @@ export default function EngagementsPage() {
 
   if (isLoading && !competition) {
     return (
-      <Layout title="Engagements" toolbar={toolbar}>
+      <Layout title="Engagements" toolbar={toolbar} toolbarLeft={toolbarLeft}>
         <div className="flex items-center justify-center p-8">Chargement...</div>
       </Layout>
     );
@@ -85,7 +100,7 @@ export default function EngagementsPage() {
 
   if (!competition) {
     return (
-      <Layout title="Engagements" toolbar={toolbar}>
+      <Layout title="Engagements" toolbar={toolbar} toolbarLeft={toolbarLeft}>
         <div className="flex items-center justify-center p-8 text-destructive">
           Compétition non trouvée
         </div>
@@ -94,22 +109,19 @@ export default function EngagementsPage() {
   }
 
   return (
-    <Layout title="Engagements" toolbar={toolbar}>
-      <div className="space-y-6 p-4">
-        {/* Titre de l'épreuve */}
-        <h1 className="text-2xl font-bold">{competition.name}</h1>
-
+    <Layout title="Engagements" toolbar={toolbar} toolbarLeft={toolbarLeft}>
+      <div className="space-y-6">
         {/* Onglets des courses */}
         {races.length > 0 && (
-          <Tabs value={currentRaceCode} onValueChange={handleRaceChange}>
-            <TabsList className="flex-wrap h-auto">
+          <Tabs value={currentRaceCode} onValueChange={handleRaceChange} className="w-full">
+            <TabsList className="mb-0 flex w-full justify-start md:justify-center gap-0 rounded-t-xl rounded-b-none bg-muted/50 p-0 h-auto overflow-x-auto scrollbar-none border-0">
               {races.map(race => (
                 <TabsTrigger
                   key={race}
                   value={race}
-                  className="flex items-center gap-2"
+                  className="group flex shrink-0 items-center gap-2.5 rounded-t-lg rounded-b-none first:rounded-tl-xl last:rounded-tr-xl px-5 py-3 bg-muted/30 border border-muted-foreground/20 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white data-[state=active]:border-[#047857]"
                 >
-                  <span>Cat. {race}</span>
+                  <span className="text-base font-bold">{race}</span>
                   <Badge variant="secondary" className="text-xs">
                     {engagementsCount[race] || 0}
                   </Badge>
@@ -120,10 +132,15 @@ export default function EngagementsPage() {
         )}
 
         {/* Boutons d'action */}
-        <div className="flex gap-2">
-          <Button variant="outline" disabled title="Fonctionnalité à venir">
+        <div className="flex gap-2 px-4">
+          <Button
+            variant="outline"
+            disabled={hasAnyRanking}
+            onClick={() => setIsReorganizeOpen(true)}
+            title={hasAnyRanking ? 'Impossible de réorganiser : des classements existent' : 'Réorganiser les départs'}
+          >
             <Shuffle className="h-4 w-4 mr-2" />
-            Réorganiser la course
+            Réorganiser les départs
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -161,6 +178,20 @@ export default function EngagementsPage() {
           />
         )}
       </div>
+
+      {/* Dialog de réorganisation */}
+      <ReorganizeRacesDialog
+        open={isReorganizeOpen}
+        onOpenChange={setIsReorganizeOpen}
+        competitionId={competition.id}
+        currentRaces={racesOriginalOrder}
+        engagements={engagements}
+        onSuccess={() => {
+          // Sélectionner le premier onglet après réorganisation
+          setCurrentRaceCode('');
+          navigate(`#`, { replace: true });
+        }}
+      />
     </Layout>
   );
 }

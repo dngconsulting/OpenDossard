@@ -2,14 +2,18 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CompetitionEntity } from './entities/competition.entity';
+import { RaceEntity } from '../races/entities/race.entity';
 import { PaginatedResponseDto } from '../common/dto';
 import { FilterCompetitionDto } from './dto/filter-competition.dto';
+import { ReorganizeCompetitionDto } from './dto/reorganize-competition.dto';
 
 @Injectable()
 export class CompetitionsService {
   constructor(
     @InjectRepository(CompetitionEntity)
     private competitionRepository: Repository<CompetitionEntity>,
+    @InjectRepository(RaceEntity)
+    private raceRepository: Repository<RaceEntity>,
   ) {}
 
   async findAll(
@@ -192,5 +196,36 @@ export class CompetitionsService {
     const competition = await this.findOne(id);
     competition.resultsValidated = true;
     return this.competitionRepository.save(competition);
+  }
+
+  async reorganize(dto: ReorganizeCompetitionDto): Promise<void> {
+    const competition = await this.findOne(dto.competitionId);
+
+    // Filter out empty races
+    const cleanRaces = dto.races.filter(race => race.trim().length > 0);
+
+    // Get all engagements for this competition
+    const engagements = await this.raceRepository.find({
+      where: { competitionId: dto.competitionId },
+    });
+
+    // Update raceCode for each engagement based on new races configuration
+    for (const engagement of engagements) {
+      if (!engagement.catev) continue;
+
+      // Find the race that contains this engagement's catev
+      const newRaceCode = cleanRaces.find(race =>
+        race.split('/').includes(engagement.catev as string),
+      );
+
+      if (newRaceCode && newRaceCode !== engagement.raceCode) {
+        engagement.raceCode = newRaceCode;
+        await this.raceRepository.save(engagement);
+      }
+    }
+
+    // Update competition races (stored as comma-separated string)
+    competition.races = cleanRaces.join(',');
+    await this.competitionRepository.save(competition);
   }
 }

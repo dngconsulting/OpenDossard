@@ -64,4 +64,10 @@ export const competitionsApi = {
     apiClient<CompetitionType>(`/competitions/${id}/duplicate`, {
       method: 'POST',
     }),
+
+  reorganize: (competitionId: number, races: string[]): Promise<void> =>
+    apiClient<void>('/competitions/reorganize', {
+      method: 'POST',
+      body: JSON.stringify({ competitionId, races }),
+    }),
 };

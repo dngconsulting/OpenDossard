@@ -19,7 +19,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { CompetitionsService } from './competitions.service';
-import { FilterCompetitionDto } from './dto/filter-competition.dto';
+import { FilterCompetitionDto, ReorganizeCompetitionDto } from './dto';
 import { CompetitionEntity } from './entities/competition.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -106,5 +106,17 @@ export class CompetitionsController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<CompetitionEntity> {
     return this.competitionsService.validate(id);
+  }
+
+  @Post('reorganize')
+  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reorganize competition races' })
+  @ApiResponse({ status: 200, description: 'Races reorganized' })
+  async reorganize(
+    @Body() dto: ReorganizeCompetitionDto,
+  ): Promise<{ success: boolean }> {
+    await this.competitionsService.reorganize(dto);
+    return { success: true };
   }
 }

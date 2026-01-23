@@ -84,37 +84,43 @@ export const CompetitionsDataTable = ({ onEdit, onDuplicate: _onDuplicate }: Com
       accessorKey: 'engagementsCount',
       header: 'Eng.',
       size: 60,
-      cell: ({ row }) => (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              to={`/competition/${row.original.id}/engagements`}
-              className="text-center block text-primary hover:underline"
-            >
-              {row.original.engagementsCount}
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent>Accès aux engagements</TooltipContent>
-        </Tooltip>
-      ),
+      cell: ({ row }) => {
+        const count = row.original.engagementsCount;
+        return (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                to={`/competition/${row.original.id}/engagements`}
+                className="text-center block text-primary hover:underline"
+              >
+                {count === 0 ? 'Engager' : `${count} Eng.`}
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>Accès aux engagements</TooltipContent>
+          </Tooltip>
+        );
+      },
     },
     {
       accessorKey: 'classementsCount',
       header: 'Class.',
       size: 60,
-      cell: ({ row }) => (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              to={`/competition/${row.original.id}/classements`}
-              className="text-center block text-primary hover:underline"
-            >
-              {row.original.classementsCount}
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent>Accès aux classements</TooltipContent>
-        </Tooltip>
-      ),
+      cell: ({ row }) => {
+        const count = row.original.classementsCount;
+        return (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                to={`/competition/${row.original.id}/classements`}
+                className="text-center block text-primary hover:underline"
+              >
+                {count === 0 ? 'Classer' : `${count} Class.`}
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>Accès aux classements</TooltipContent>
+          </Tooltip>
+        );
+      },
     },
     {
       accessorKey: 'eventDate',

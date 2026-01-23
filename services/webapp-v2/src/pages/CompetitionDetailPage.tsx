@@ -8,6 +8,7 @@ import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FEDERATIONS, type FedeEnum } from '@/config/federations';
 import {
   useCompetition,
   useCreateCompetition,
@@ -144,12 +145,21 @@ export default function CompetitionDetailPage() {
     }
   }, [competition, form]);
 
+  // Génère les races par défaut basées sur les 6 premières catégories de la fédération
+  const getDefaultRaces = (fede: string): string => {
+    const federation = FEDERATIONS[fede as FedeEnum];
+    if (!federation) return '';
+    const races = federation.catev.slice(0, 6).map(cat => cat.value);
+    return races.join(',');
+  };
+
   const onSubmit = async (data: FormValues) => {
     try {
+      const defaultRaces = isCreating ? getDefaultRaces(data.fede) : '';
       const formData = {
         ...data,
         eventDate: new Date(data.eventDate).toISOString(),
-        races: '[]',
+        races: isCreating ? defaultRaces : competition?.races || '',
         categories: '["Toutes"]',
         dept: deptFromZip,
       };
@@ -213,38 +223,38 @@ export default function CompetitionDetailPage() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full gap-0">
-              <TabsList className="mb-0 flex w-full justify-start md:justify-center gap-0 rounded-t-xl rounded-b-none bg-muted/50 p-0 h-auto overflow-x-auto scrollbar-none">
+              <TabsList className="mb-0 flex w-full justify-start md:justify-center gap-0 rounded-t-xl rounded-b-none bg-muted/50 p-0 h-auto overflow-x-auto scrollbar-none border-0">
                 <TabsTrigger
                   value="general"
-                  className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                  className="group flex shrink-0 items-center gap-2.5 rounded-t-lg rounded-b-none first:rounded-tl-xl last:rounded-tr-xl px-5 py-3 bg-muted/30 border border-muted-foreground/20 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white data-[state=active]:border-[#047857]"
                 >
                   <Info className="h-6 w-6" strokeWidth={2.5} />
                   <span className="text-base font-bold">Infos</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="horaires"
-                  className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                  className="group flex shrink-0 items-center gap-2.5 rounded-t-lg rounded-b-none first:rounded-tl-xl last:rounded-tr-xl px-5 py-3 bg-muted/30 border border-muted-foreground/20 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white data-[state=active]:border-[#047857]"
                 >
                   <Clock className="h-6 w-6" strokeWidth={2.5} />
                   <span className="text-base font-bold">Horaires</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="tarifs"
-                  className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                  className="group flex shrink-0 items-center gap-2.5 rounded-t-lg rounded-b-none first:rounded-tl-xl last:rounded-tr-xl px-5 py-3 bg-muted/30 border border-muted-foreground/20 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white data-[state=active]:border-[#047857]"
                 >
                   <Euro className="h-6 w-6" strokeWidth={2.5} />
                   <span className="text-base font-bold">Tarifs</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="medias"
-                  className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                  className="group flex shrink-0 items-center gap-2.5 rounded-t-lg rounded-b-none first:rounded-tl-xl last:rounded-tr-xl px-5 py-3 bg-muted/30 border border-muted-foreground/20 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white data-[state=active]:border-[#047857]"
                 >
                   <Image className="h-6 w-6" strokeWidth={2.5} />
                   <span className="text-base font-bold">Medias</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="localisation"
-                  className="group flex shrink-0 items-center gap-2.5 rounded-none px-5 py-3 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white"
+                  className="group flex shrink-0 items-center gap-2.5 rounded-t-lg rounded-b-none first:rounded-tl-xl last:rounded-tr-xl px-5 py-3 bg-muted/30 border border-muted-foreground/20 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white data-[state=active]:border-[#047857]"
                 >
                   <MapPin className="h-6 w-6" strokeWidth={2.5} />
                   <span className="text-base font-bold">Lieu</span>

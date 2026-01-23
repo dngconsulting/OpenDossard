@@ -229,3 +229,17 @@ export function useUpdateCompetition() {
     },
   });
 }
+
+export function useReorganizeRaces() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ competitionId, races }: { competitionId: number; races: string[] }) =>
+      competitionsApi.reorganize(competitionId, races),
+    onSuccess: (_, variables) => {
+      // Invalidate both competitions and races queries
+      queryClient.invalidateQueries({ queryKey: ['competitions'] });
+      queryClient.invalidateQueries({ queryKey: ['races', 'competition', variables.competitionId] });
+    },
+  });
+}
