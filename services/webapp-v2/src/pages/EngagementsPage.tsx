@@ -26,6 +26,7 @@ export default function EngagementsPage() {
   // Récupérer la course depuis le hash de l'URL
   const [currentRaceCode, setCurrentRaceCode] = useState<string>('');
   const [isReorganizeOpen, setIsReorganizeOpen] = useState(false);
+  const [needsTabReset, setNeedsTabReset] = useState(false);
 
   // Charger les données
   const { data: competition, isLoading: isLoadingCompetition } = useCompetition(competitionId);
@@ -62,6 +63,15 @@ export default function EngagementsPage() {
       navigate(`#${races[0]}`, { replace: true });
     }
   }, [location.hash, races, currentRaceCode, navigate]);
+
+  // Sélectionner le premier onglet après une réorganisation
+  useEffect(() => {
+    if (needsTabReset && races.length > 0) {
+      setCurrentRaceCode(races[0]);
+      navigate(`#${races[0]}`, { replace: true });
+      setNeedsTabReset(false);
+    }
+  }, [needsTabReset, races, navigate]);
 
   // Changer de course
   const handleRaceChange = (raceCode: string) => {
@@ -186,11 +196,7 @@ export default function EngagementsPage() {
         competitionId={competition.id}
         currentRaces={racesOriginalOrder}
         engagements={engagements}
-        onSuccess={() => {
-          // Sélectionner le premier onglet après réorganisation
-          setCurrentRaceCode('');
-          navigate(`#`, { replace: true });
-        }}
+        onSuccess={() => setNeedsTabReset(true)}
       />
     </Layout>
   );

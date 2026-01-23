@@ -1,7 +1,6 @@
 import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -20,11 +19,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useReorganizeRaces } from '@/hooks/useCompetitions';
 import type { RaceRowType } from '@/types/races';
 import { showErrorToast, showSuccessToast } from '@/utils/error-handler/error-handler';
@@ -42,13 +36,6 @@ type CategoryStats = {
   catev: string;
   count: number;
 };
-
-/**
- * Compte le nombre d'engagés pour un ensemble de catégories (un départ)
- */
-function computeByRace(engagements: RaceRowType[], categories: string[]): number {
-  return engagements.filter(e => categories.includes(e.catev)).length;
-}
 
 /**
  * Calcule les statistiques par catégorie
@@ -96,13 +83,11 @@ function computeErrors(races: string[], categoriesWithEngaged: string[]): string
   const uniqueCategories = Array.from(new Set(flatCategories));
 
   // Vérifier que toutes les catégories avec engagés sont présentes
-  const missingCategories = categoriesWithEngaged.filter(
-    c => !uniqueCategories.includes(c)
-  );
+  const missingCategories = categoriesWithEngaged.filter(c => !uniqueCategories.includes(c));
 
   if (missingCategories.length > 0) {
     errors.push(
-      `Les coureurs engagés en catégories ${missingCategories.join(', ')} n'existent pas dans votre nouvelle organisation`
+      `Les coureurs engagés en catégories ${missingCategories.join(', ')} n'existent pas dans votre nouvelle organisation`,
     );
   }
 
@@ -136,15 +121,12 @@ export function ReorganizeRacesDialog({
   const categoryStats = useMemo(() => computeByCate(engagements), [engagements]);
 
   // Catégories avec des engagés
-  const categoriesWithEngaged = useMemo(
-    () => categoryStats.map(s => s.catev),
-    [categoryStats]
-  );
+  const categoriesWithEngaged = useMemo(() => categoryStats.map(s => s.catev), [categoryStats]);
 
   // Erreurs de validation
   const errors = useMemo(
     () => computeErrors(races, categoriesWithEngaged),
-    [races, categoriesWithEngaged]
+    [races, categoriesWithEngaged],
   );
 
   const handleRaceChange = (index: number, value: string) => {
@@ -178,21 +160,20 @@ export function ReorganizeRacesDialog({
     } catch (error) {
       showErrorToast(
         'Erreur lors de la réorganisation',
-        error instanceof Error ? error.message : String(error)
+        error instanceof Error ? error.message : String(error),
       );
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>Réorganiser les départs</DialogTitle>
           <DialogDescription>
-            Modifiez l'organisation des catégories par départ. Le caractère{' '}
-            <strong>"/"</strong> permet de grouper plusieurs catégories dans un
-            même départ (ex: 1/2 signifie que les catégories 1 et 2 courent
-            ensemble).
+            Modifiez l'organisation des catégories par départ. Le caractère <strong>"/"</strong>{' '}
+            permet de grouper plusieurs catégories dans un même départ (ex: 1/2 signifie que les
+            catégories 1 et 2 courent ensemble).
           </DialogDescription>
         </DialogHeader>
 
@@ -202,65 +183,39 @@ export function ReorganizeRacesDialog({
             <h3 className="text-sm font-medium text-muted-foreground mb-2">
               Départs (ordre d'affichage)
             </h3>
-            {races.map((race, index) => {
-              const engagedCount = computeByRace(
-                engagements,
-                race.split('/').map(c => c.trim())
-              );
-              return (
-                <div key={index} className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground w-6">
-                    {index + 1}.
-                  </span>
-                  <div className="relative flex-1">
-                    <Input
-                      value={race}
-                      onChange={e => handleRaceChange(index, e.target.value)}
-                      placeholder="Ex: 1/2 ou 3"
-                      className="pr-16"
-                    />
-                    {engagedCount > 0 && (
-                      <Badge
-                        variant="secondary"
-                        className="absolute right-2 top-1/2 -translate-y-1/2"
-                      >
-                        {engagedCount} eng.
-                      </Badge>
-                    )}
-                  </div>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemoveRace(index)}
-                        disabled={races.length <= 1}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Supprimer ce départ</TooltipContent>
-                  </Tooltip>
-                  {index === races.length - 1 && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={handleAddRace}
-                          className="text-primary hover:text-primary"
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Ajouter un départ</TooltipContent>
-                    </Tooltip>
-                  )}
-                  {index !== races.length - 1 && <div className="w-9" />}
-                </div>
-              );
-            })}
+            {races.map((race, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground w-6">{index + 1}.</span>
+                <Input
+                  value={race}
+                  onChange={e => handleRaceChange(index, e.target.value)}
+                  placeholder="Ex: 1/2/3/C"
+                  className="flex-1 min-w-[400px]"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleRemoveRace(index)}
+                  disabled={races.length <= 1}
+                  className="text-destructive hover:text-destructive"
+                  title="Supprimer ce départ"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+                {index === races.length - 1 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleAddRace}
+                    className="text-primary hover:text-primary"
+                    title="Ajouter un départ"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+                {index !== races.length - 1 && <div className="w-9" />}
+              </div>
+            ))}
           </div>
 
           {/* Tableau des catégories */}
@@ -279,12 +234,8 @@ export function ReorganizeRacesDialog({
                 <TableBody>
                   {categoryStats.map(stat => (
                     <TableRow key={stat.catev}>
-                      <TableCell className="py-1 font-medium">
-                        {stat.catev}
-                      </TableCell>
-                      <TableCell className="py-1 text-right">
-                        {stat.count}
-                      </TableCell>
+                      <TableCell className="py-1 font-medium">{stat.catev}</TableCell>
+                      <TableCell className="py-1 text-right">{stat.count}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -308,10 +259,7 @@ export function ReorganizeRacesDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annuler
           </Button>
-          <Button
-            onClick={handleSave}
-            disabled={errors.length > 0 || reorganizeMutation.isPending}
-          >
+          <Button onClick={handleSave} disabled={errors.length > 0 || reorganizeMutation.isPending}>
             {reorganizeMutation.isPending ? 'Enregistrement...' : 'Réorganiser'}
           </Button>
         </DialogFooter>
