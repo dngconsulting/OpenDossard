@@ -56,7 +56,7 @@ export function ConfirmDialog({
           </DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="gap-2">
           <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
             {cancelLabel}
           </Button>

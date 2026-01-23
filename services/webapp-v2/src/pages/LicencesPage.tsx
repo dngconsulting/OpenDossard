@@ -37,7 +37,7 @@ export default function LicencesPage() {
       open={!!deleteLicence}
       onOpenChange={(open: boolean) => !open && setDeleteLicence(undefined)}
     >
-      <DialogContent className="max-h-[90%] overflow-y-scroll sm:max-w-[calc(100%-2rem)] lg:max-w-[900px]">
+      <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
           <DialogTitle>Suppression de licence</DialogTitle>
           <DialogDescription>

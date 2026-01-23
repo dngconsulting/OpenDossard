@@ -150,7 +150,7 @@ function SortableRow<TData>({
             variant="outline"
             size="icon-sm"
             onClick={() => onOpenRow(row.original)}
-            title="Voir le palmarès"
+            title="Palmarès"
           >
             <Trophy />
           </Button>
@@ -158,14 +158,24 @@ function SortableRow<TData>({
       )}
       {onEditRow && (
         <TableCell style={{ width: 40 }}>
-          <Button variant="outline" size="icon-sm" onClick={() => onEditRow(row.original)}>
+          <Button
+            variant="outline"
+            size="icon-sm"
+            onClick={() => onEditRow(row.original)}
+            title="Éditer"
+          >
             <Edit2 />
           </Button>
         </TableCell>
       )}
       {onDeleteRow && (
         <TableCell style={{ width: 56, paddingRight: 16 }}>
-          <Button variant="outline" size="icon-sm" onClick={() => onDeleteRow(row.original)}>
+          <Button
+            variant="outline"
+            size="icon-sm"
+            onClick={() => onDeleteRow(row.original)}
+            title="Supprimer"
+          >
             <Trash2 />
           </Button>
         </TableCell>
