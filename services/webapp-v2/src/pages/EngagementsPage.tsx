@@ -239,6 +239,7 @@ export default function EngagementsPage() {
             competitionId={competition.id}
             competitionFede={competition.fede}
             competitionType={competition.competitionType as CompetitionTypeEnum}
+            competitionRaces={competition.races || ''}
             currentRaceCode={currentRaceCode}
             existingEngagements={engagements}
           />

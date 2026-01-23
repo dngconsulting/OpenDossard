@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Award, Info, Loader2, Save } from 'lucide-react';
+import { Award, Info, Loader2, Save, UserCircle } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -281,48 +281,56 @@ export const LicencesForm = ({ updatingLicence, onSuccess }: Props) => {
           )}
         </div>
 
-        {/* 2) Nom, Prénom - toujours visible */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-          <StringField
-            field="name"
-            form={licenceForm}
-            label="Nom"
-            description={FIELD_HELPER_TEXTS.name}
-            required
-          />
-          <StringField
-            field="firstName"
-            form={licenceForm}
-            label="Prénom"
-            description={firstNameHelperText}
-            required
-          />
-        </div>
-
-        {/* 3) Genre, Année de naissance - toujours visible */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-          <SelectField
-            form={licenceForm}
-            field="gender"
-            label="Genre"
-            options={[
-              { value: 'H', label: 'Masculin' },
-              { value: 'F', label: 'Dames' },
-            ]}
-            required
-          />
-          <StringField
-            field="birthYear"
-            form={licenceForm}
-            label="Année de naissance"
-            description={FIELD_HELPER_TEXTS.birthYear}
-            required
-          />
-        </div>
+        {/* 2) Capsule Identité - toujours visible */}
+        <Card className="bg-muted/50 border-muted">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <UserCircle className="h-4 w-4 text-primary" />
+              Identité
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+              <StringField
+                field="name"
+                form={licenceForm}
+                label="Nom"
+                description={FIELD_HELPER_TEXTS.name}
+                required
+              />
+              <StringField
+                field="firstName"
+                form={licenceForm}
+                label="Prénom"
+                description={firstNameHelperText}
+                required
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+              <SelectField
+                form={licenceForm}
+                field="gender"
+                label="Genre"
+                options={[
+                  { value: 'H', label: 'Masculin' },
+                  { value: 'F', label: 'Dames' },
+                ]}
+                required
+              />
+              <StringField
+                field="birthYear"
+                form={licenceForm}
+                label="Année de naissance"
+                description={FIELD_HELPER_TEXTS.birthYear}
+                required
+              />
+            </div>
+          </CardContent>
+        </Card>
 
         {/* 4) Capsule Catégories - visible uniquement si fédération sélectionnée */}
         {showCategorySection && (
-          <Card className="bg-muted/30 border-muted">
+          <Card className="bg-muted/50 border-muted">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Award className="h-4 w-4 text-primary" />

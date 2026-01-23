@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 
+import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/ui/data-table.tsx';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLicences } from '@/hooks/useLicences';
@@ -102,11 +103,19 @@ export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
       accessorKey: 'club',
       header: 'Club',
       size: 200,
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">{row.original.club || '-'}</span>
+      ),
     },
     {
       accessorKey: 'gender',
       header: 'G',
       size: 50,
+      cell: ({ row }) => (
+        <Badge variant={row.original.gender === 'F' ? 'secondary' : 'outline'}>
+          {row.original.gender || '-'}
+        </Badge>
+      ),
     },
     {
       accessorKey: 'dept',

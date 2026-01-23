@@ -111,6 +111,7 @@ export function ClubAutocomplete({
           {label}
           {required && <span className="text-destructive">*</span>}
         </FieldLabel>
+        {isInvalid && <p className="text-destructive text-sm">{error}</p>}
         {description && !isInvalid && <FieldDescription>{description}</FieldDescription>}
       </FieldContent>
       <Popover open={open} onOpenChange={handleOpenChange}>
@@ -122,7 +123,7 @@ export function ClubAutocomplete({
             className="w-full justify-between font-normal"
             disabled={isDisabled}
           >
-            <span className={cn(!selectedClub && !selectedName && 'text-muted-foreground')}>
+            <span className={cn('truncate', !selectedClub && !selectedName && 'text-muted-foreground')}>
               {selectedClub?.longName || selectedName || (isDisabled ? 'Sélectionnez une fédération et un département' : 'Rechercher un club...')}
             </span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -203,7 +204,6 @@ export function ClubAutocomplete({
           </div>
         </PopoverContent>
       </Popover>
-      {isInvalid && <p className="text-destructive text-sm">{error}</p>}
     </Field>
   );
 }

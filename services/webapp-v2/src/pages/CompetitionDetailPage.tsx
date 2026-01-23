@@ -198,9 +198,13 @@ export default function CompetitionDetailPage() {
   );
 
   const toolbarLeft = competition && (
-    <span className="text-sm text-muted-foreground">
-      <strong className="text-foreground">{competition.name}</strong>
-      {competition.club && <span className="ml-2">- {competition.club.longName}</span>}
+    <span className="text-sm text-muted-foreground flex items-center gap-2 min-w-0">
+      <strong className="text-foreground shrink-0">{competition.name}</strong>
+      {competition.club && (
+        <span className="truncate" title={competition.club.longName}>
+          - {competition.club.longName}
+        </span>
+      )}
     </span>
   );
 

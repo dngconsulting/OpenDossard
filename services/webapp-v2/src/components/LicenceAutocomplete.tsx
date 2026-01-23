@@ -204,7 +204,10 @@ export function LicenceAutocomplete({
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
         )}
         {open && searchTerm.length >= 2 && (
-          <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-popover border border-border/50 rounded-md shadow-lg">
+          <div
+            className="absolute top-full left-0 right-0 mt-1 z-50 bg-popover border border-border/50 rounded-md shadow-lg"
+            onMouseDown={e => e.preventDefault()}
+          >
             <div
               className="max-h-[400px] overflow-y-auto overscroll-contain"
               onWheel={e => e.stopPropagation()}

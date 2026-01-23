@@ -21,6 +21,7 @@ type EngagementFormProps = {
   competitionId: number;
   competitionFede: string;
   competitionType: CompetitionType;
+  competitionRaces: string;
   currentRaceCode: string;
   existingEngagements: RaceRowType[];
   onSuccess?: () => void;
@@ -30,6 +31,7 @@ export function EngagementForm({
   competitionId,
   competitionFede,
   competitionType,
+  competitionRaces,
   currentRaceCode,
   existingEngagements,
   onSuccess,
@@ -41,11 +43,31 @@ export function EngagementForm({
 
   const engageMutation = useEngage();
 
-  // Options de catégorie basées sur la fédération de la compétition
-  const catevOptions = useMemo(
-    () => getCatevOptions(competitionFede, competitionType),
-    [competitionFede, competitionType]
-  );
+  // Options de catégorie basées sur la fédération de la compétition + catégories personnalisées
+  const catevOptions = useMemo(() => {
+    const fedeOptions = getCatevOptions(competitionFede, competitionType);
+    const fedeValues = new Set(fedeOptions.map(opt => opt.value));
+
+    // Extraire les catégories personnalisées depuis competition.races
+    // Format: "A,B,C,1/2" -> séparer par "," puis par "/" pour obtenir A, B, C, 1, 2
+    const customCategories: { value: string; label: string }[] = [];
+    if (competitionRaces) {
+      const categories = competitionRaces
+        .split(/[,\/]/)
+        .map(r => r.trim())
+        .filter(Boolean);
+      for (const cat of categories) {
+        // Ajouter seulement si pas déjà dans les options de la fédération
+        if (!fedeValues.has(cat)) {
+          customCategories.push({ value: cat, label: cat });
+          fedeValues.add(cat); // Éviter les doublons
+        }
+      }
+    }
+
+    // Retourner les catégories personnalisées en premier, puis les options de la fédé
+    return [...customCategories, ...fedeOptions];
+  }, [competitionFede, competitionType, competitionRaces]);
 
   // Reset du formulaire quand la course change
   useEffect(() => {
@@ -74,14 +96,6 @@ export function EngagementForm({
       setShowFedeWarning(false);
     }
   }, [selectedLicence, competitionFede, competitionType]);
-
-  // Prochain numéro de dossard disponible pour la catégorie courante
-  const suggestedRiderNumber = useMemo(() => {
-    const raceEngagements = existingEngagements.filter(e => e.raceCode === currentRaceCode);
-    if (raceEngagements.length === 0) return 1;
-    const maxNumber = Math.max(...raceEngagements.map(e => e.riderNumber || 0));
-    return maxNumber + 1;
-  }, [existingEngagements, currentRaceCode]);
 
   // Validation
   const isRiderNumberTaken = useMemo(() => {
@@ -148,19 +162,19 @@ export function EngagementForm({
 
       {/* Numéro de dossard */}
       <div className="w-32 space-y-2">
-        <Label htmlFor="riderNumber">
-          Dossard <span className="text-destructive">*</span>
+        <Label htmlFor="riderNumber" className="flex items-center gap-2">
+          <span>Dossard <span className="text-destructive">*</span></span>
+          {isRiderNumberTaken && (
+            <span className="text-destructive text-xs font-normal">Déjà pris</span>
+          )}
         </Label>
         <Input
           id="riderNumber"
           type="number"
           value={riderNumber}
           onChange={e => setRiderNumber(e.target.value)}
-          className={isRiderNumberTaken ? 'border-destructive' : ''}
+          className={isRiderNumberTaken ? 'border-destructive focus:border-destructive focus-visible:ring-destructive/50' : ''}
         />
-        {isRiderNumberTaken && (
-          <p className="text-destructive text-xs mt-1">Ce numéro est déjà pris</p>
-        )}
       </div>
 
       {/* Catégorie */}

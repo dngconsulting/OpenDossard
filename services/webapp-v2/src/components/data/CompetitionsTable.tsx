@@ -142,7 +142,9 @@ export const CompetitionsDataTable = ({ onEdit, onDuplicate: _onDuplicate }: Com
       accessorKey: 'club',
       header: 'Club',
       size: 180,
-      cell: ({ row }) => row.original.club?.longName || '-',
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">{row.original.club?.longName || '-'}</span>
+      ),
     },
     {
       accessorKey: 'fede',
