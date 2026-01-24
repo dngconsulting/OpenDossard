@@ -16,7 +16,7 @@ import {
 } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Users } from 'lucide-react';
+import { GripVertical, Trash2, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 import {
@@ -36,6 +36,7 @@ import {
   useUpdateTours,
   useToggleChallenge,
   useReorderRankings,
+  useRemoveRanking,
 } from '@/hooks/useRaces';
 import type { RaceRowType, UpdateRankingDto } from '@/types/races';
 import { DNF_CODES, type DNFCode } from '@/types/races';
@@ -57,20 +58,24 @@ type ClassementsTableProps = {
 function SortableRow({
   row,
   avecChrono,
+  currentRaceCode,
   onDossardSubmit,
   onChronoSubmit,
   onToursSubmit,
   onToggleChallenge,
+  onRemoveRanking,
   rowIndex,
   totalRows,
   inputRefs,
 }: {
   row: TransformedRow;
   avecChrono: boolean;
+  currentRaceCode: string;
   onDossardSubmit: (position: number, value: string) => void;
   onChronoSubmit: (id: number, chrono: string) => void;
   onToursSubmit: (id: number, tours: number | null) => void;
   onToggleChallenge: (id: number) => void;
+  onRemoveRanking: (id: number, raceCode: string) => void;
   rowIndex: number;
   totalRows: number;
   inputRefs: React.MutableRefObject<Map<string, HTMLInputElement>>;
@@ -261,30 +266,46 @@ function SortableRow({
       {/* Fédé */}
       <TableCell className="w-[70px] text-center">{row.fede}</TableCell>
 
-      {/* Actions (toggle challenge) */}
-      <TableCell className="w-[50px] p-1">
+      {/* Actions (toggle challenge + supprimer) */}
+      <TableCell className="w-[80px] p-1">
         {row.id && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                className={cn(
-                  'p-1 rounded hover:bg-muted',
-                  row.sprintchallenge && 'text-blue-600'
-                )}
-                onClick={() => onToggleChallenge(row.id!)}
-              >
-                <Users className="h-4 w-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                {row.sprintchallenge
-                  ? 'Retirer du challenge sprint'
-                  : 'Marquer vainqueur challenge sprint'}
-              </p>
-            </TooltipContent>
-          </Tooltip>
+          <div className="flex items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className={cn(
+                    'p-1 rounded hover:bg-muted',
+                    row.sprintchallenge && 'text-blue-600'
+                  )}
+                  onClick={() => onToggleChallenge(row.id!)}
+                >
+                  <Users className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  {row.sprintchallenge
+                    ? 'Retirer du challenge sprint'
+                    : 'Marquer vainqueur challenge sprint'}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className="p-1 rounded hover:bg-muted text-destructive hover:text-destructive"
+                  onClick={() => onRemoveRanking(row.id!, currentRaceCode)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Retirer du classement</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
         )}
       </TableCell>
     </TableRow>
@@ -310,6 +331,7 @@ export function ClassementsTable({
   const updateTours = useUpdateTours();
   const toggleChallenge = useToggleChallenge();
   const reorderRankings = useReorderRankings();
+  const removeRanking = useRemoveRanking();
 
   // Transformer les données pour l'affichage
   const rows = useMemo(
@@ -443,6 +465,19 @@ export function ClassementsTable({
     [toggleChallenge, competitionId, showToast]
   );
 
+  // Gérer la suppression du classement
+  const handleRemoveRanking = useCallback(
+    async (id: number, raceCode: string) => {
+      try {
+        await removeRanking.mutateAsync({ id, raceCode, competitionId });
+        showToast('success', 'Coureur retiré du classement');
+      } catch {
+        showToast('error', 'Impossible de retirer le coureur du classement');
+      }
+    },
+    [removeRanking, competitionId, showToast]
+  );
+
   // Gérer le drag & drop
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
@@ -533,7 +568,7 @@ export function ClassementsTable({
                 <TableHead className="w-[60px] text-center">Dept</TableHead>
                 <TableHead className="w-[70px] text-center">CatéV</TableHead>
                 <TableHead className="w-[70px] text-center">Fédé</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
+                <TableHead className="w-[80px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -542,10 +577,12 @@ export function ClassementsTable({
                   key={row.id ?? `empty-${row.position}`}
                   row={row}
                   avecChrono={avecChrono}
+                  currentRaceCode={currentRaceCode}
                   onDossardSubmit={handleDossardSubmit}
                   onChronoSubmit={handleChronoSubmit}
                   onToursSubmit={handleToursSubmit}
                   onToggleChallenge={handleToggleChallenge}
+                  onRemoveRanking={handleRemoveRanking}
                   rowIndex={index}
                   totalRows={rows.length}
                   inputRefs={inputRefs}
