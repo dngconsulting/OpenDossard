@@ -17,7 +17,7 @@ import {
 } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, PartyPopper, Trash2 } from 'lucide-react';
+import { GripVertical, Medal, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import {
@@ -229,7 +229,7 @@ function SortableRow({
             {row.sprintchallenge && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <PartyPopper className="h-4 w-4 text-blue-600 mr-1" />
+                  <Medal className="h-4 w-4 text-blue-600 mr-1" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Vainqueur du challenge sprint</p>
@@ -271,7 +271,7 @@ function SortableRow({
                   )}
                   onClick={() => onToggleChallenge(row.id!)}
                 >
-                  <PartyPopper className="h-4 w-4" />
+                  <Medal className="h-4 w-4" />
                 </button>
               </TooltipTrigger>
               <TooltipContent>
