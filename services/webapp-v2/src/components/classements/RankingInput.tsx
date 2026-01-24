@@ -123,6 +123,7 @@ export function RankingInput({
         <PopoverTrigger asChild>
           <button
             type="button"
+            tabIndex={-1}
             onClick={handleChevronClick}
             disabled={disabled}
             className="absolute right-1 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded"

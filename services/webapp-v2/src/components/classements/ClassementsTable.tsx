@@ -145,6 +145,7 @@ function SortableRow({
             className="cursor-grab touch-none p-1 hover:bg-muted rounded"
             {...attributes}
             {...listeners}
+            tabIndex={-1}
           >
             <GripVertical className="h-4 w-4 text-muted-foreground" />
           </button>
@@ -181,22 +182,12 @@ function SortableRow({
               ref={setInputRef(`chrono-${rowIndex}`)}
               type="time"
               step="1"
+              tabIndex={-1}
               defaultValue={row.chrono ?? ''}
               className="h-8 w-24 text-center font-mono"
               onBlur={(e) => {
                 if (e.target.value !== row.chrono) {
                   onChronoSubmit(row.id!, e.target.value);
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Tab' || e.key === 'Enter') {
-                  // Focus sur Tours
-                  const toursKey = `tours-${rowIndex}`;
-                  const toursInput = inputRefs.current.get(toursKey);
-                  if (toursInput && e.key === 'Enter') {
-                    e.preventDefault();
-                    toursInput.focus();
-                  }
                 }
               }}
             />
@@ -212,22 +203,13 @@ function SortableRow({
               ref={setInputRef(`tours-${rowIndex}`)}
               type="number"
               min={0}
+              tabIndex={-1}
               defaultValue={row.tours ?? ''}
               className="h-8 w-16 text-center font-mono"
               onBlur={(e) => {
                 const newTours = e.target.value ? parseInt(e.target.value, 10) : null;
                 if (newTours !== row.tours) {
                   onToursSubmit(row.id!, newTours);
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  // Focus sur dossard ligne suivante
-                  if (rowIndex < totalRows - 1) {
-                    const nextKey = `dossard-${rowIndex + 1}`;
-                    inputRefs.current.get(nextKey)?.focus();
-                  }
                 }
               }}
             />
@@ -281,6 +263,7 @@ function SortableRow({
               <TooltipTrigger asChild>
                 <button
                   type="button"
+                  tabIndex={-1}
                   className={cn(
                     'p-1 rounded hover:bg-muted',
                     row.sprintchallenge && 'text-blue-600'
@@ -302,6 +285,7 @@ function SortableRow({
               <TooltipTrigger asChild>
                 <button
                   type="button"
+                  tabIndex={-1}
                   className="p-1 rounded hover:bg-muted text-destructive hover:text-destructive"
                   onClick={() => onRemoveRanking(row.id!, currentRaceCode)}
                 >
