@@ -399,6 +399,7 @@ export class RacesService {
       race.rankingScratch = null;
     }
     race.chrono = null;
+    race.sprintchallenge = false;
 
     await this.raceRepository.save(race);
 
