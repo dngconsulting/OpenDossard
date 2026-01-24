@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 
 type RankingInputProps = {
   value: string;
+  comment?: string | null;
   onSubmit: (value: string) => void;
   disabled?: boolean;
   placeholder?: string;
@@ -18,6 +19,7 @@ type RankingInputProps = {
 
 export function RankingInput({
   value: initialValue,
+  comment,
   onSubmit,
   disabled = false,
   placeholder = '---',
@@ -35,6 +37,12 @@ export function RankingInput({
     setInputValue(initialValue);
   }, [initialValue]);
 
+  // Un coureur est présent si on a un dossard valide (numérique)
+  const hasRider = initialValue !== '' && !isNaN(parseInt(initialValue, 10));
+
+  // Déterminer si la valeur actuelle est un code DNF
+  const isDNF = comment != null && DNF_CODES.includes(comment as DNFCode);
+
   const handleSubmit = useCallback(() => {
     if (hasSubmittedRef.current) return;
 
@@ -51,7 +59,6 @@ export function RankingInput({
   }, [inputValue, initialValue, onSubmit]);
 
   const handleSelectDNF = useCallback((code: DNFCode) => {
-    setInputValue(code);
     hasSubmittedRef.current = true;
     onSubmit(code);
     setIsOpen(false);
@@ -95,29 +102,34 @@ export function RankingInput({
     inputRef.current?.select();
   }, []);
 
-  // Déterminer si la valeur est un code DNF
-  const isDNF = DNF_CODES.includes(inputValue as DNFCode);
-
   return (
     <Popover open={isOpen && !disabled} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <div className={cn('relative', className)}>
-          <Input
-            ref={inputRef}
-            type="text"
-            inputMode="numeric"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={handleBlur}
-            onFocus={handleFocus}
-            disabled={disabled}
-            placeholder={placeholder}
-            className={cn(
-              'h-8 w-24 text-center pr-7 font-mono',
-              isDNF && 'text-orange-600 font-semibold'
-            )}
-          />
+          {isDNF ? (
+            // Affichage lecture seule pour DNF : "{Dossard}-{Motif}"
+            <div
+              className="h-8 w-24 text-center font-mono flex items-center justify-center border rounded-md bg-background cursor-pointer text-sm"
+              onClick={() => !disabled && setIsOpen(true)}
+            >
+              <span>{initialValue}-</span>
+              <span className="text-orange-600 font-semibold">{comment}</span>
+            </div>
+          ) : (
+            <Input
+              ref={inputRef}
+              type="text"
+              inputMode="numeric"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onBlur={handleBlur}
+              onFocus={handleFocus}
+              disabled={disabled}
+              placeholder={placeholder}
+              className="h-8 w-24 text-center pr-7 font-mono"
+            />
+          )}
           <ChevronDown
             className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none"
           />
@@ -135,13 +147,26 @@ export function RankingInput({
           <button
             key={code}
             type="button"
-            className="w-full text-left px-2 py-1.5 text-sm rounded hover:bg-accent flex items-center justify-between"
-            onClick={() => handleSelectDNF(code)}
+            disabled={!hasRider}
+            className={cn(
+              'w-full text-left px-2 py-1.5 text-sm rounded flex items-center justify-between',
+              hasRider
+                ? 'hover:bg-accent cursor-pointer'
+                : 'opacity-50 cursor-not-allowed'
+            )}
+            onClick={() => hasRider && handleSelectDNF(code)}
           >
-            <span className="font-mono font-semibold text-orange-600">{code}</span>
+            <span className={cn('font-mono font-semibold', hasRider ? 'text-orange-600' : 'text-muted-foreground')}>
+              {code}
+            </span>
             <span className="text-muted-foreground text-xs">{DNF_LABELS[code]}</span>
           </button>
         ))}
+        {!hasRider && (
+          <div className="text-xs text-muted-foreground px-2 py-2 italic border-t mt-1">
+            Saisissez d'abord un dossard
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   );

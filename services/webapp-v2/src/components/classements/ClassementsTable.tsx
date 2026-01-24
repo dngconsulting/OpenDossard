@@ -159,6 +159,7 @@ function SortableRow({
       <TableCell className="w-[100px] p-1">
         <RankingInput
           value={row.riderNumber?.toString().padStart(3, '0') ?? ''}
+          comment={row.comment}
           onSubmit={(value) => onDossardSubmit(row.position, value)}
           onNavigateDown={navigateDown}
           onNavigateNext={navigateNext}
