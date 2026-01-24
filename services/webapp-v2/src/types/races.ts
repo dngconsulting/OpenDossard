@@ -61,8 +61,8 @@ export type UpdateRankingDto = {
   riderNumber: number;
   raceCode: string;
   competitionId: number;
-  rankingScratch?: number;
-  comment?: string;
+  rankingScratch?: number | null;
+  comment?: string | null;
 };
 
 /**
