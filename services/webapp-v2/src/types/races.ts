@@ -74,6 +74,30 @@ export type RemoveRankingDto = {
   competitionId: number;
 };
 
+/**
+ * DTO pour réordonner les classements (drag & drop)
+ */
+export type ReorderRankingItemDto = {
+  id: number;
+  rankingScratch: number;
+};
+
+/**
+ * Codes DNF (Did Not Finish) pour les coureurs non classés
+ */
+export const DNF_CODES = ['ABD', 'CHT', 'NC', 'NP', 'DSQ', 'HD', 'DNV'] as const;
+export type DNFCode = (typeof DNF_CODES)[number];
+
+export const DNF_LABELS: Record<DNFCode, string> = {
+  ABD: 'Abandon',
+  CHT: 'Chute',
+  NC: 'Non classé',
+  NP: 'Non partant',
+  DSQ: 'Disqualifié',
+  HD: 'Hors délai',
+  DNV: 'Dossard non visible',
+};
+
 // Legacy types for backward compatibility
 export type EngagedRider = {
   id: string;

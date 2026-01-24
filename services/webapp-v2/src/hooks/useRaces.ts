@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { racesApi } from '@/api/races.api';
-import type { CreateEngagementDto, UpdateRankingDto, RemoveRankingDto, RaceType, EngagedRider } from '@/types/races';
+import type { CreateEngagementDto, UpdateRankingDto, RemoveRankingDto, RaceType, EngagedRider, ReorderRankingItemDto } from '@/types/races';
 
 export const racesKeys = {
   all: ['races'] as const,
@@ -128,6 +128,50 @@ export function useUpdateChrono() {
       chrono: string;
       competitionId: number;
     }) => racesApi.updateChrono(id, chrono),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: racesKeys.competition(variables.competitionId),
+      });
+    },
+  });
+}
+
+/**
+ * Hook pour mettre à jour les tours
+ */
+export function useUpdateTours() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      tours,
+    }: {
+      id: number;
+      tours: number | null;
+      competitionId: number;
+    }) => racesApi.updateTours(id, tours),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: racesKeys.competition(variables.competitionId),
+      });
+    },
+  });
+}
+
+/**
+ * Hook pour réordonner les classements (drag & drop)
+ */
+export function useReorderRankings() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      items,
+    }: {
+      items: ReorderRankingItemDto[];
+      competitionId: number;
+    }) => racesApi.reorderRankings(items),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: racesKeys.competition(variables.competitionId),

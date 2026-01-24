@@ -1,0 +1,560 @@
+import { useCallback, useMemo, useRef } from 'react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import { CSS } from '@dnd-kit/utilities';
+import { GripVertical, Users } from 'lucide-react';
+import { toast } from 'sonner';
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Input } from '@/components/ui/input';
+import { AppToast } from '@/components/ui/app-toast';
+import {
+  useUpdateRanking,
+  useUpdateChrono,
+  useUpdateTours,
+  useToggleChallenge,
+  useReorderRankings,
+} from '@/hooks/useRaces';
+import type { RaceRowType, UpdateRankingDto } from '@/types/races';
+import { DNF_CODES, type DNFCode } from '@/types/races';
+import { transformRows, formatRanking, type TransformedRow } from '@/utils/classements';
+import { cn } from '@/lib/utils';
+
+import { RankingInput } from './RankingInput';
+import { PodiumIcon } from './PodiumIcon';
+
+type ClassementsTableProps = {
+  engagements: RaceRowType[];
+  currentRaceCode: string;
+  competitionId: number;
+  avecChrono: boolean;
+  isLoading?: boolean;
+};
+
+// Composant ligne triable
+function SortableRow({
+  row,
+  avecChrono,
+  onDossardSubmit,
+  onChronoSubmit,
+  onToursSubmit,
+  onToggleChallenge,
+  rowIndex,
+  totalRows,
+  inputRefs,
+}: {
+  row: TransformedRow;
+  avecChrono: boolean;
+  onDossardSubmit: (position: number, value: string) => void;
+  onChronoSubmit: (id: number, chrono: string) => void;
+  onToursSubmit: (id: number, tours: number | null) => void;
+  onToggleChallenge: (id: number) => void;
+  rowIndex: number;
+  totalRows: number;
+  inputRefs: React.MutableRefObject<Map<string, HTMLInputElement>>;
+}) {
+  const isDraggable = row.id != null;
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: row.id?.toString() ?? `empty-${row.position}`,
+    disabled: !isDraggable,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const navigateDown = useCallback(() => {
+    if (rowIndex < totalRows - 1) {
+      const nextKey = `dossard-${rowIndex + 1}`;
+      inputRefs.current.get(nextKey)?.focus();
+    }
+  }, [rowIndex, totalRows, inputRefs]);
+
+  const navigateNext = useCallback(() => {
+    if (avecChrono && row.id) {
+      const chronoKey = `chrono-${rowIndex}`;
+      inputRefs.current.get(chronoKey)?.focus();
+    } else if (rowIndex < totalRows - 1) {
+      const nextKey = `dossard-${rowIndex + 1}`;
+      inputRefs.current.get(nextKey)?.focus();
+    }
+  }, [avecChrono, row.id, rowIndex, totalRows, inputRefs]);
+
+  const setInputRef = useCallback(
+    (key: string) => (el: HTMLInputElement | null) => {
+      if (el) {
+        inputRefs.current.set(key, el);
+      } else {
+        inputRefs.current.delete(key);
+      }
+    },
+    [inputRefs]
+  );
+
+  return (
+    <TableRow
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        isDragging && 'bg-muted',
+        !row.riderNumber && 'text-muted-foreground'
+      )}
+    >
+      {/* Grip handle */}
+      <TableCell className="w-[40px] p-1">
+        {isDraggable && (
+          <button
+            type="button"
+            className="cursor-grab touch-none p-1 hover:bg-muted rounded"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="h-4 w-4 text-muted-foreground" />
+          </button>
+        )}
+      </TableCell>
+
+      {/* Classement */}
+      <TableCell className="w-[80px] text-center font-mono">
+        {formatRanking(row)}
+      </TableCell>
+
+      {/* Dossard (input) */}
+      <TableCell className="w-[100px] p-1">
+        <RankingInput
+          value={row.riderNumber?.toString().padStart(3, '0') ?? ''}
+          onSubmit={(value) => onDossardSubmit(row.position, value)}
+          onNavigateDown={navigateDown}
+          onNavigateNext={navigateNext}
+          placeholder="---"
+        />
+      </TableCell>
+
+      {/* Chrono (si avecChrono) */}
+      {avecChrono && (
+        <TableCell className="w-[100px] p-1">
+          {row.id && (
+            <Input
+              ref={setInputRef(`chrono-${rowIndex}`)}
+              type="time"
+              step="1"
+              defaultValue={row.chrono ?? ''}
+              className="h-8 w-24 text-center font-mono"
+              onBlur={(e) => {
+                if (e.target.value !== row.chrono) {
+                  onChronoSubmit(row.id!, e.target.value);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Tab' || e.key === 'Enter') {
+                  // Focus sur Tours
+                  const toursKey = `tours-${rowIndex}`;
+                  const toursInput = inputRefs.current.get(toursKey);
+                  if (toursInput && e.key === 'Enter') {
+                    e.preventDefault();
+                    toursInput.focus();
+                  }
+                }
+              }}
+            />
+          )}
+        </TableCell>
+      )}
+
+      {/* Tours (si avecChrono) */}
+      {avecChrono && (
+        <TableCell className="w-[70px] p-1">
+          {row.id && (
+            <Input
+              ref={setInputRef(`tours-${rowIndex}`)}
+              type="number"
+              min={0}
+              defaultValue={row.tours ?? ''}
+              className="h-8 w-16 text-center font-mono"
+              onBlur={(e) => {
+                const newTours = e.target.value ? parseInt(e.target.value, 10) : null;
+                if (newTours !== row.tours) {
+                  onToursSubmit(row.id!, newTours);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  // Focus sur dossard ligne suivante
+                  if (rowIndex < totalRows - 1) {
+                    const nextKey = `dossard-${rowIndex + 1}`;
+                    inputRefs.current.get(nextKey)?.focus();
+                  }
+                }
+              }}
+            />
+          )}
+        </TableCell>
+      )}
+
+      {/* Coureur + icônes */}
+      <TableCell className="min-w-[200px]">
+        {row.name && (
+          <span className="flex items-center gap-1">
+            <PodiumIcon
+              rankingScratch={row.rankingScratch}
+              rankOfCate={row.rankOfCate}
+            />
+            {row.sprintchallenge && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Users className="h-4 w-4 text-blue-600 mr-1" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Vainqueur du challenge sprint</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {row.name}
+          </span>
+        )}
+      </TableCell>
+
+      {/* Club */}
+      <TableCell className="min-w-[150px]">{row.club}</TableCell>
+
+      {/* H/F */}
+      <TableCell className="w-[50px] text-center">{row.gender}</TableCell>
+
+      {/* Dept */}
+      <TableCell className="w-[60px] text-center">{row.dept}</TableCell>
+
+      {/* CatéV */}
+      <TableCell className="w-[70px] text-center">{row.catev}</TableCell>
+
+      {/* Fédé */}
+      <TableCell className="w-[70px] text-center">{row.fede}</TableCell>
+
+      {/* Actions (toggle challenge) */}
+      <TableCell className="w-[50px] p-1">
+        {row.id && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                className={cn(
+                  'p-1 rounded hover:bg-muted',
+                  row.sprintchallenge && 'text-blue-600'
+                )}
+                onClick={() => onToggleChallenge(row.id!)}
+              >
+                <Users className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                {row.sprintchallenge
+                  ? 'Retirer du challenge sprint'
+                  : 'Marquer vainqueur challenge sprint'}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </TableCell>
+    </TableRow>
+  );
+}
+
+export function ClassementsTable({
+  engagements,
+  currentRaceCode,
+  competitionId,
+  avecChrono,
+  isLoading,
+}: ClassementsTableProps) {
+  const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
+
+  const showToast = useCallback((type: 'success' | 'error' | 'info', message: string) => {
+    toast.custom((id) => <AppToast id={id} type={type} message={message} />);
+  }, []);
+
+  // Mutations
+  const updateRanking = useUpdateRanking();
+  const updateChrono = useUpdateChrono();
+  const updateTours = useUpdateTours();
+  const toggleChallenge = useToggleChallenge();
+  const reorderRankings = useReorderRankings();
+
+  // Transformer les données pour l'affichage
+  const rows = useMemo(
+    () => transformRows(engagements, currentRaceCode),
+    [engagements, currentRaceCode]
+  );
+
+  // IDs pour le drag & drop (seulement les lignes avec id)
+  const sortableIds = useMemo(
+    () => rows.map((r) => r.id?.toString() ?? `empty-${r.position}`),
+    [rows]
+  );
+
+  // Sensors pour drag & drop
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Engagés de la course courante (pour validation dossard)
+  const raceEngagements = useMemo(
+    () => engagements.filter((e) => e.raceCode === currentRaceCode),
+    [engagements, currentRaceCode]
+  );
+
+  // Gérer la soumission d'un dossard
+  const handleDossardSubmit = useCallback(
+    async (position: number, value: string) => {
+      const trimmed = value.trim().toUpperCase();
+
+      // Si c'est un code DNF
+      if (DNF_CODES.includes(trimmed as DNFCode)) {
+        // Trouver la ligne existante à cette position
+        const existingRow = rows.find((r) => r.position === position && r.id);
+        if (existingRow?.id) {
+          // Mettre à jour avec le code DNF
+          const dto: UpdateRankingDto = {
+            riderNumber: existingRow.riderNumber!,
+            raceCode: currentRaceCode,
+            competitionId,
+            comment: trimmed,
+          };
+
+          try {
+            await updateRanking.mutateAsync(dto);
+            showToast('success', `Coureur marqué ${trimmed}`);
+          } catch {
+            showToast('error', 'Impossible de mettre à jour le classement');
+          }
+        }
+        return;
+      }
+
+      // Sinon, c'est un numéro de dossard
+      const dossardNum = parseInt(trimmed, 10);
+      if (isNaN(dossardNum)) {
+        return;
+      }
+
+      // Vérifier que le dossard existe dans les engagés
+      const engagement = raceEngagements.find((e) => e.riderNumber === dossardNum);
+      if (!engagement) {
+        showToast('error', `Le dossard ${dossardNum} n'existe pas dans les engagés`);
+        return;
+      }
+
+      // Vérifier que le dossard n'est pas déjà classé
+      const alreadyRanked = raceEngagements.find(
+        (e) =>
+          e.riderNumber === dossardNum &&
+          (e.rankingScratch != null || e.comment != null)
+      );
+      if (alreadyRanked) {
+        showToast('error', `Le dossard ${dossardNum} est déjà classé en position ${alreadyRanked.rankingScratch ?? alreadyRanked.comment}`);
+        return;
+      }
+
+      // Mettre à jour le classement
+      const dto: UpdateRankingDto = {
+        riderNumber: dossardNum,
+        raceCode: currentRaceCode,
+        competitionId,
+        rankingScratch: position,
+      };
+
+      try {
+        await updateRanking.mutateAsync(dto);
+        showToast('success', `${engagement.name} classé ${position}ème`);
+      } catch {
+        showToast('error', 'Impossible de mettre à jour le classement');
+      }
+    },
+    [rows, currentRaceCode, competitionId, raceEngagements, updateRanking, showToast]
+  );
+
+  // Gérer la soumission d'un chrono
+  const handleChronoSubmit = useCallback(
+    async (id: number, chrono: string) => {
+      try {
+        await updateChrono.mutateAsync({ id, chrono, competitionId });
+      } catch {
+        showToast('error', 'Impossible de mettre à jour le chrono');
+      }
+    },
+    [updateChrono, competitionId, showToast]
+  );
+
+  // Gérer la soumission des tours
+  const handleToursSubmit = useCallback(
+    async (id: number, tours: number | null) => {
+      try {
+        await updateTours.mutateAsync({ id, tours, competitionId });
+      } catch {
+        showToast('error', 'Impossible de mettre à jour les tours');
+      }
+    },
+    [updateTours, competitionId, showToast]
+  );
+
+  // Gérer le toggle challenge
+  const handleToggleChallenge = useCallback(
+    async (id: number) => {
+      try {
+        await toggleChallenge.mutateAsync({ id, competitionId });
+      } catch {
+        showToast('error', 'Impossible de modifier le challenge');
+      }
+    },
+    [toggleChallenge, competitionId, showToast]
+  );
+
+  // Gérer le drag & drop
+  const handleDragEnd = useCallback(
+    async (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+
+      // Trouver les indices
+      const oldIndex = rows.findIndex(
+        (r) => (r.id?.toString() ?? `empty-${r.position}`) === active.id
+      );
+      const newIndex = rows.findIndex(
+        (r) => (r.id?.toString() ?? `empty-${r.position}`) === over.id
+      );
+
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      // Réorganiser les lignes avec id (classées)
+      const rankedRows = rows.filter((r) => r.id != null);
+      const movedRow = rankedRows.find((r) => r.id?.toString() === active.id);
+      if (!movedRow) return;
+
+      // Calculer les nouveaux rangs
+      const newRankedRows = [...rankedRows];
+      const movedIndex = newRankedRows.findIndex((r) => r.id === movedRow.id);
+      newRankedRows.splice(movedIndex, 1);
+
+      // Insérer à la nouvelle position
+      const targetRow = rows[newIndex];
+      let insertIndex = newRankedRows.findIndex((r) => r.id === targetRow?.id);
+      if (insertIndex === -1) {
+        insertIndex = newIndex > oldIndex ? newRankedRows.length : 0;
+      }
+      newRankedRows.splice(insertIndex, 0, movedRow);
+
+      // Créer les items pour l'API
+      const items = newRankedRows
+        .filter((r) => r.rankingScratch != null)
+        .map((r, idx) => ({
+          id: r.id!,
+          rankingScratch: idx + 1,
+        }));
+
+      try {
+        await reorderRankings.mutateAsync({ items, competitionId });
+      } catch {
+        showToast('error', 'Impossible de réordonner les classements');
+      }
+    },
+    [rows, competitionId, reorderRankings, showToast]
+  );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        Chargement des classements...
+      </div>
+    );
+  }
+
+  if (rows.length === 0) {
+    return (
+      <div className="flex items-center justify-center p-8 text-muted-foreground">
+        Aucun engagé dans cette course
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-md border">
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+        modifiers={[restrictToVerticalAxis]}
+      >
+        <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[40px]"></TableHead>
+                <TableHead className="w-[80px] text-center">Clt</TableHead>
+                <TableHead className="w-[100px]">Dossard</TableHead>
+                {avecChrono && <TableHead className="w-[100px]">Chrono</TableHead>}
+                {avecChrono && <TableHead className="w-[70px]">Tours</TableHead>}
+                <TableHead className="min-w-[200px]">Coureur</TableHead>
+                <TableHead className="min-w-[150px]">Club</TableHead>
+                <TableHead className="w-[50px] text-center">H/F</TableHead>
+                <TableHead className="w-[60px] text-center">Dept</TableHead>
+                <TableHead className="w-[70px] text-center">CatéV</TableHead>
+                <TableHead className="w-[70px] text-center">Fédé</TableHead>
+                <TableHead className="w-[50px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((row, index) => (
+                <SortableRow
+                  key={row.id ?? `empty-${row.position}`}
+                  row={row}
+                  avecChrono={avecChrono}
+                  onDossardSubmit={handleDossardSubmit}
+                  onChronoSubmit={handleChronoSubmit}
+                  onToursSubmit={handleToursSubmit}
+                  onToggleChallenge={handleToggleChallenge}
+                  rowIndex={index}
+                  totalRows={rows.length}
+                  inputRefs={inputRefs}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </SortableContext>
+      </DndContext>
+    </div>
+  );
+}

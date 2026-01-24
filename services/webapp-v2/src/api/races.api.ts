@@ -96,4 +96,13 @@ export const racesApi = {
     apiClient<RaceRowType>(`/races/refresh/${licenceId}/${competitionId}`, {
       method: 'POST',
     }),
+
+  /**
+   * Réordonne les classements manuellement (drag & drop)
+   */
+  reorderRankings: (items: { id: number; rankingScratch: number }[]): Promise<{ success: boolean }> =>
+    apiClient<{ success: boolean }>('/races/ranking/reorder', {
+      method: 'PUT',
+      body: JSON.stringify(items),
+    }),
 };
