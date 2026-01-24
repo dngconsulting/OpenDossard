@@ -35,6 +35,7 @@ import { computeAgeCategory } from '@/utils/licence.ts';
 type Props = {
   updatingLicence?: LicenceType;
   onSuccess?: () => void;
+  onFormValuesChange?: (values: { name: string; firstName: string }) => void;
 };
 
 const currentYear = new Date().getFullYear();
@@ -67,7 +68,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export const LicencesForm = ({ updatingLicence, onSuccess }: Props) => {
+export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange }: Props) => {
   const navigate = useNavigate();
   const { data: departments, isLoading: isLoadingDepartments } = useDepartments();
   const createLicence = useCreateLicence();
@@ -100,6 +101,13 @@ export const LicencesForm = ({ updatingLicence, onSuccess }: Props) => {
   const birthYear = licenceForm.watch('birthYear');
   const saison = licenceForm.watch('saison');
   const selectedDepartment = licenceForm.watch('dept');
+  const watchedName = licenceForm.watch('name');
+  const watchedFirstName = licenceForm.watch('firstName');
+
+  // Notify parent of form values changes
+  useEffect(() => {
+    onFormValuesChange?.({ name: watchedName, firstName: watchedFirstName });
+  }, [watchedName, watchedFirstName, onFormValuesChange]);
 
   // Conditional display flags (v1 rules)
   const hasFede = !!fede;
@@ -431,7 +439,7 @@ export const LicencesForm = ({ updatingLicence, onSuccess }: Props) => {
               <Textarea
                 id="comment"
                 placeholder="Ajouter des commentaires additionnels"
-                className="resize-none min-h-[100px]"
+                className="resize-none min-h-[100px] bg-background"
                 {...licenceForm.register('comment')}
               />
               <FieldDescription>Informations complémentaires sur le licencié</FieldDescription>

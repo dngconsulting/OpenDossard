@@ -1,4 +1,5 @@
 import { ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { LicencesForm } from '@/components/forms/LicencesForm.tsx';
@@ -12,6 +13,7 @@ export default function LicenceDetailPage() {
   const isCreating = !id;
   const licenceId = id ? parseInt(id, 10) : undefined;
   const { data: licence, isLoading } = useLicence(licenceId);
+  const [formValues, setFormValues] = useState<{ name: string; firstName: string }>({ name: '', firstName: '' });
 
   const toolbar = (
     <Button variant="outline" onClick={() => navigate('/licences')}>
@@ -19,7 +21,18 @@ export default function LicenceDetailPage() {
     </Button>
   );
 
-  const toolbarLeft = licence && (
+  const toolbarLeft = isCreating ? (
+    <span className="text-sm text-muted-foreground">
+      {formValues.firstName || formValues.name ? (
+        <>
+          <strong className="text-foreground">{formValues.firstName}</strong>{' '}
+          <strong className="text-foreground">{formValues.name}</strong>
+        </>
+      ) : (
+        'Veuillez saisir une nouvelle licence'
+      )}
+    </span>
+  ) : licence ? (
     <span className="text-sm text-muted-foreground">
       {licence.gender && (licence.gender === 'H' ? 'Mr' : 'Mme')}{' '}
       {licence.firstName && <strong className="text-foreground">{licence.firstName}</strong>}{' '}
@@ -33,7 +46,7 @@ export default function LicenceDetailPage() {
         </span>
       )}
     </span>
-  );
+  ) : null;
 
   const pageTitle = isCreating ? 'Nouvelle licence' : "Détail d'une licence";
 
@@ -50,6 +63,7 @@ export default function LicenceDetailPage() {
       <LicencesForm
         updatingLicence={licence}
         onSuccess={() => navigate('/licences')}
+        onFormValuesChange={setFormValues}
       />
     </Layout>
   );
