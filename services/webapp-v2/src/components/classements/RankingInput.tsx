@@ -92,33 +92,45 @@ export function RankingInput({
   }, [handleSubmit]);
 
   const handleFocus = useCallback(() => {
-    setIsOpen(true);
-    // Sélectionner tout le texte
+    // Sélectionner tout le texte (sans ouvrir la popup)
     inputRef.current?.select();
   }, []);
 
+  const handleChevronClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!disabled) {
+      setIsOpen((prev) => !prev);
+    }
+  }, [disabled]);
+
   return (
     <Popover open={isOpen && !disabled} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <div className={cn('relative', className)}>
-          <Input
-            ref={inputRef}
-            type="text"
-            inputMode="numeric"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={handleBlur}
-            onFocus={handleFocus}
+      <div className={cn('relative', className)}>
+        <Input
+          ref={inputRef}
+          type="text"
+          inputMode="numeric"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onBlur={handleBlur}
+          onFocus={handleFocus}
+          disabled={disabled}
+          placeholder={placeholder}
+          className="h-8 w-24 text-center pr-7 font-mono"
+        />
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            onClick={handleChevronClick}
             disabled={disabled}
-            placeholder={placeholder}
-            className="h-8 w-24 text-center pr-7 font-mono"
-          />
-          <ChevronDown
-            className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none"
-          />
-        </div>
-      </PopoverTrigger>
+            className="absolute right-1 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded"
+          >
+            <ChevronDown className="h-3 w-3 text-muted-foreground" />
+          </button>
+        </PopoverTrigger>
+      </div>
       <PopoverContent
         className="w-48 p-1"
         align="start"
