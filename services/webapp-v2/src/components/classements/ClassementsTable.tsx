@@ -322,7 +322,9 @@ export function ClassementsTable({
   const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
   const showToast = useCallback((type: 'success' | 'error' | 'info', message: string) => {
-    toast.custom((id) => <AppToast id={id} type={type} message={message} />);
+    toast.custom((id) => <AppToast id={id} type={type} message={message} />, {
+      duration: type === 'success' ? 1000 : 4000,
+    });
   }, []);
 
   // Mutations
