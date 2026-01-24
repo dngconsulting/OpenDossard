@@ -13,6 +13,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
   useSortable,
+  arrayMove,
 } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { CSS } from '@dnd-kit/utilities';
@@ -487,36 +488,23 @@ export function ClassementsTable({
       const { active, over } = event;
       if (!over || active.id === over.id) return;
 
-      // Trouver les indices dans le tableau affiché
-      const oldIndex = rows.findIndex(
-        (r) => (r.id?.toString() ?? `empty-${r.position}`) === active.id
+      // Récupérer les lignes classées (avec id)
+      const rankedRows = rows.filter((r) => r.id != null);
+
+      // Trouver les indices dans le tableau des classés
+      const oldIndex = rankedRows.findIndex(
+        (r) => r.id?.toString() === active.id
       );
-      const newIndex = rows.findIndex(
-        (r) => (r.id?.toString() ?? `empty-${r.position}`) === over.id
+      const newIndex = rankedRows.findIndex(
+        (r) => r.id?.toString() === over.id
       );
 
       if (oldIndex === -1 || newIndex === -1) return;
 
-      // Récupérer toutes les lignes classées (avec id)
-      const rankedRows = rows.filter((r) => r.id != null);
-      const movedRow = rankedRows.find((r) => r.id?.toString() === active.id);
-      if (!movedRow) return;
-
-      // Créer une copie et réordonner
-      const newRankedRows = [...rankedRows];
-      const movedIndex = newRankedRows.findIndex((r) => r.id === movedRow.id);
-      newRankedRows.splice(movedIndex, 1);
-
-      // Insérer à la nouvelle position
-      const targetRow = rows[newIndex];
-      let insertIndex = newRankedRows.findIndex((r) => r.id === targetRow?.id);
-      if (insertIndex === -1) {
-        insertIndex = newIndex > oldIndex ? newRankedRows.length : 0;
-      }
-      newRankedRows.splice(insertIndex, 0, movedRow);
+      // Réordonner avec arrayMove
+      const newRankedRows = arrayMove(rankedRows, oldIndex, newIndex);
 
       // Créer les items pour l'API (ordre du tableau = nouveau classement)
-      // Le backend utilise la position dans le tableau pour déterminer le rang
       const items = newRankedRows.map((r) => ({
         id: r.id!,
         comment: r.comment,
