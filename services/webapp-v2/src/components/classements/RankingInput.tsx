@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils';
 
 type RankingInputProps = {
   value: string;
-  comment?: string | null;
   onSubmit: (value: string) => void;
   disabled?: boolean;
   placeholder?: string;
@@ -19,7 +18,6 @@ type RankingInputProps = {
 
 export function RankingInput({
   value: initialValue,
-  comment,
   onSubmit,
   disabled = false,
   placeholder = '---',
@@ -39,9 +37,6 @@ export function RankingInput({
 
   // Un coureur est présent si on a un dossard valide (numérique)
   const hasRider = initialValue !== '' && !isNaN(parseInt(initialValue, 10));
-
-  // Déterminer si la valeur actuelle est un code DNF
-  const isDNF = comment != null && DNF_CODES.includes(comment as DNFCode);
 
   const handleSubmit = useCallback(() => {
     if (hasSubmittedRef.current) return;
@@ -106,30 +101,19 @@ export function RankingInput({
     <Popover open={isOpen && !disabled} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <div className={cn('relative', className)}>
-          {isDNF ? (
-            // Affichage lecture seule pour DNF : "{Dossard}-{Motif}"
-            <div
-              className="h-8 w-24 text-center font-mono flex items-center justify-center border rounded-md bg-background cursor-pointer text-sm"
-              onClick={() => !disabled && setIsOpen(true)}
-            >
-              <span>{initialValue}-</span>
-              <span className="text-orange-600 font-semibold">{comment}</span>
-            </div>
-          ) : (
-            <Input
-              ref={inputRef}
-              type="text"
-              inputMode="numeric"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              onBlur={handleBlur}
-              onFocus={handleFocus}
-              disabled={disabled}
-              placeholder={placeholder}
-              className="h-8 w-24 text-center pr-7 font-mono"
-            />
-          )}
+          <Input
+            ref={inputRef}
+            type="text"
+            inputMode="numeric"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onBlur={handleBlur}
+            onFocus={handleFocus}
+            disabled={disabled}
+            placeholder={placeholder}
+            className="h-8 w-24 text-center pr-7 font-mono"
+          />
           <ChevronDown
             className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none"
           />

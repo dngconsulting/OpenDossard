@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { AppToast } from '@/components/ui/app-toast';
 import {
   useUpdateRanking,
@@ -152,14 +153,19 @@ function SortableRow({
 
       {/* Classement */}
       <TableCell className="w-[80px] text-center font-mono">
-        {formatRanking(row)}
+        {row.comment ? (
+          <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300 font-semibold">
+            {row.comment}
+          </Badge>
+        ) : (
+          formatRanking(row)
+        )}
       </TableCell>
 
       {/* Dossard (input) */}
       <TableCell className="w-[100px] p-1">
         <RankingInput
           value={row.riderNumber?.toString().padStart(3, '0') ?? ''}
-          comment={row.comment}
           onSubmit={(value) => onDossardSubmit(row.position, value)}
           onNavigateDown={navigateDown}
           onNavigateNext={navigateNext}
