@@ -373,16 +373,23 @@ export function ClassementsTable({
         // Trouver la ligne existante à cette position
         const existingRow = rows.find((r) => r.position === position && r.id);
         if (existingRow?.id) {
-          // Mettre à jour avec le code DNF (rankingScratch doit être null)
-          const dto: UpdateRankingDto = {
-            riderNumber: existingRow.riderNumber!,
-            raceCode: currentRaceCode,
-            competitionId,
-            rankingScratch: null,
-            comment: trimmed,
-          };
-
           try {
+            // Si le coureur est déjà classé, d'abord supprimer son classement
+            if (existingRow.rankingScratch != null || existingRow.comment != null) {
+              await removeRanking.mutateAsync({
+                id: existingRow.id,
+                raceCode: currentRaceCode,
+                competitionId,
+              });
+            }
+
+            // Puis mettre à jour avec le code DNF
+            const dto: UpdateRankingDto = {
+              riderNumber: existingRow.riderNumber!,
+              raceCode: currentRaceCode,
+              competitionId,
+              comment: trimmed,
+            };
             await updateRanking.mutateAsync(dto);
             showToast('success', `Dossard ${existingRow.riderNumber} - ${existingRow.name} marqué ${trimmed}`);
           } catch {
