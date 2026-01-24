@@ -99,8 +99,9 @@ export const racesApi = {
 
   /**
    * Réordonne les classements manuellement (drag & drop)
+   * Note: Le backend détermine le rang à partir de la position dans le tableau
    */
-  reorderRankings: (items: { id: number; rankingScratch: number }[]): Promise<{ success: boolean }> =>
+  reorderRankings: (items: { id: number; comment?: string | null }[]): Promise<{ success: boolean }> =>
     apiClient<{ success: boolean }>('/races/ranking/reorder', {
       method: 'PUT',
       body: JSON.stringify(items),

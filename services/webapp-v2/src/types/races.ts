@@ -76,10 +76,11 @@ export type RemoveRankingDto = {
 
 /**
  * DTO pour réordonner les classements (drag & drop)
+ * Note: Le backend détermine le rang à partir de la position dans le tableau
  */
 export type ReorderRankingItemDto = {
   id: number;
-  rankingScratch: number;
+  comment?: string | null;
 };
 
 /**

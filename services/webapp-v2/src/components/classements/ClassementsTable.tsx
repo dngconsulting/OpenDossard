@@ -487,7 +487,7 @@ export function ClassementsTable({
       const { active, over } = event;
       if (!over || active.id === over.id) return;
 
-      // Trouver les indices
+      // Trouver les indices dans le tableau affiché
       const oldIndex = rows.findIndex(
         (r) => (r.id?.toString() ?? `empty-${r.position}`) === active.id
       );
@@ -497,12 +497,12 @@ export function ClassementsTable({
 
       if (oldIndex === -1 || newIndex === -1) return;
 
-      // Réorganiser les lignes avec id (classées)
+      // Récupérer toutes les lignes classées (avec id)
       const rankedRows = rows.filter((r) => r.id != null);
       const movedRow = rankedRows.find((r) => r.id?.toString() === active.id);
       if (!movedRow) return;
 
-      // Calculer les nouveaux rangs
+      // Créer une copie et réordonner
       const newRankedRows = [...rankedRows];
       const movedIndex = newRankedRows.findIndex((r) => r.id === movedRow.id);
       newRankedRows.splice(movedIndex, 1);
@@ -515,13 +515,12 @@ export function ClassementsTable({
       }
       newRankedRows.splice(insertIndex, 0, movedRow);
 
-      // Créer les items pour l'API
-      const items = newRankedRows
-        .filter((r) => r.rankingScratch != null)
-        .map((r, idx) => ({
-          id: r.id!,
-          rankingScratch: idx + 1,
-        }));
+      // Créer les items pour l'API (ordre du tableau = nouveau classement)
+      // Le backend utilise la position dans le tableau pour déterminer le rang
+      const items = newRankedRows.map((r) => ({
+        id: r.id!,
+        comment: r.comment,
+      }));
 
       try {
         await reorderRankings.mutateAsync({ items, competitionId });
