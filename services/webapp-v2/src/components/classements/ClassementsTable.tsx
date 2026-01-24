@@ -139,7 +139,7 @@ function SortableRow({
       )}
     >
       {/* Grip handle */}
-      <TableCell className="w-[40px] p-1">
+      <TableCell className="w-[40px] p-1 hidden sm:table-cell">
         {isDraggable && (
           <button
             type="button"
@@ -219,9 +219,9 @@ function SortableRow({
       )}
 
       {/* Coureur + icônes */}
-      <TableCell className="min-w-[200px]">
+      <TableCell>
         {row.name && (
-          <span className="flex items-center gap-1">
+          <div className="flex items-center gap-1 max-w-[200px]">
             <PodiumIcon
               rankingScratch={row.rankingScratch}
               rankOfCate={row.rankOfCate}
@@ -229,26 +229,28 @@ function SortableRow({
             {row.sprintchallenge && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Medal className="h-4 w-4 text-blue-600 mr-1" />
+                  <Medal className="h-4 w-4 text-blue-600 mr-1 flex-shrink-0" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Vainqueur du challenge sprint</p>
                 </TooltipContent>
               </Tooltip>
             )}
-            {row.name}
-          </span>
+            <span className="truncate" title={row.name}>{row.name}</span>
+          </div>
         )}
       </TableCell>
 
       {/* Club */}
-      <TableCell className="min-w-[150px]">{row.club}</TableCell>
+      <TableCell>
+        <span className="block truncate max-w-[150px]" title={row.club ?? ''}>{row.club}</span>
+      </TableCell>
 
       {/* H/F */}
-      <TableCell className="w-[50px] text-center">{row.gender}</TableCell>
+      <TableCell className="w-[50px] text-center hidden sm:table-cell">{row.gender}</TableCell>
 
       {/* Dept */}
-      <TableCell className="w-[60px] text-center">{row.dept}</TableCell>
+      <TableCell className="w-[60px] text-center hidden sm:table-cell">{row.dept}</TableCell>
 
       {/* CatéV */}
       <TableCell className="w-[70px] text-center">{row.catev}</TableCell>
@@ -536,7 +538,7 @@ export function ClassementsTable({
   }
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border overflow-x-auto">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -544,18 +546,18 @@ export function ClassementsTable({
         modifiers={[restrictToVerticalAxis]}
       >
         <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
-          <Table>
+          <Table className="min-w-[700px]">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[40px]"></TableHead>
+                <TableHead className="w-[40px] hidden sm:table-cell"></TableHead>
                 <TableHead className="w-[80px] text-center">Clt</TableHead>
                 <TableHead className="w-[100px]">Dossard</TableHead>
                 {avecChrono && <TableHead className="w-[100px]">Chrono</TableHead>}
                 {avecChrono && <TableHead className="w-[70px]">Tours</TableHead>}
-                <TableHead className="min-w-[200px]">Coureur</TableHead>
-                <TableHead className="min-w-[150px]">Club</TableHead>
-                <TableHead className="w-[50px] text-center">H/F</TableHead>
-                <TableHead className="w-[60px] text-center">Dept</TableHead>
+                <TableHead>Coureur</TableHead>
+                <TableHead>Club</TableHead>
+                <TableHead className="w-[50px] text-center hidden sm:table-cell">H/F</TableHead>
+                <TableHead className="w-[60px] text-center hidden sm:table-cell">Dept</TableHead>
                 <TableHead className="w-[70px] text-center">CatéV</TableHead>
                 <TableHead className="w-[70px] text-center">Fédé</TableHead>
                 <TableHead className="w-[80px]"></TableHead>

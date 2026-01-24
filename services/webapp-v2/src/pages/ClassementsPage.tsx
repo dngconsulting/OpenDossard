@@ -111,8 +111,7 @@ export default function ClassementsPage() {
           engagements={engagements}
           currentRaceCode={currentRaceCode}
           races={races}
-          competitionName={competition.name}
-          avecChrono={competition.avecChrono ?? false}
+          competition={competition}
         />
       )}
       {competition && (
