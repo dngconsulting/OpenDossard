@@ -42,10 +42,10 @@ export function RankingInput({
     if (trimmed && trimmed !== initialValue) {
       hasSubmittedRef.current = true;
       onSubmit(trimmed);
-      // Reset après un court délai
+      // Reset après un délai plus long que handleBlur (150ms)
       setTimeout(() => {
         hasSubmittedRef.current = false;
-      }, 100);
+      }, 300);
     }
     setIsOpen(false);
   }, [inputValue, initialValue, onSubmit]);
@@ -57,7 +57,7 @@ export function RankingInput({
     setIsOpen(false);
     setTimeout(() => {
       hasSubmittedRef.current = false;
-    }, 100);
+    }, 300);
     // Naviguer au suivant
     onNavigateNext?.();
   }, [onSubmit, onNavigateNext]);
@@ -114,12 +114,12 @@ export function RankingInput({
             disabled={disabled}
             placeholder={placeholder}
             className={cn(
-              'h-8 w-20 text-center pr-6 font-mono',
+              'h-8 w-24 text-center pr-7 font-mono',
               isDNF && 'text-orange-600 font-semibold'
             )}
           />
           <ChevronDown
-            className="absolute right-1 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none"
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none"
           />
         </div>
       </PopoverTrigger>

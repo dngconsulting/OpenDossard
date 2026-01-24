@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronLeft, ChevronRight, Download, Shuffle } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Download, Shuffle, Trophy } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 
@@ -159,7 +159,7 @@ export default function EngagementsPage() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" disabled title="Fonctionnalité à venir">
-            <Download className="h-4 w-4 mr-2" />
+            <Download className="h-4 w-4" />
             Télécharger
           </Button>
         </DropdownMenuTrigger>
@@ -169,6 +169,15 @@ export default function EngagementsPage() {
           <DropdownMenuItem>Engagements CSV</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <Button
+        className="bg-emerald-600 hover:bg-emerald-700 text-white disabled:bg-emerald-600/50"
+        disabled={totalEngagements === 0}
+        onClick={() => navigate(`/competition/${id}/classements#${currentRaceCode}`)}
+        title={totalEngagements === 0 ? 'Aucun engagé' : 'Accéder aux classements'}
+      >
+        <Trophy className="h-4 w-4" />
+        Classements
+      </Button>
       <Button variant="outline" onClick={() => navigate('/competitions')}>
         <ArrowLeft /> Retour
       </Button>

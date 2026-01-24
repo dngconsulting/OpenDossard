@@ -42,7 +42,7 @@ export function ExportMenu({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline">
-          <Download className="h-4 w-4 mr-2" />
+          <Download className="h-4 w-4" />
           Télécharger
         </Button>
       </DropdownMenuTrigger>

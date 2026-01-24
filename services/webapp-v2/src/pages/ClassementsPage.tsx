@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, ClipboardList } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 
@@ -115,8 +115,17 @@ export default function ClassementsPage() {
           avecChrono={competition.avecChrono ?? false}
         />
       )}
+      {competition && (
+        <Button
+          className="bg-emerald-600 hover:bg-emerald-700 text-white"
+          onClick={() => navigate(`/competition/${competition.id}/engagements#${currentRaceCode}`)}
+        >
+          <ClipboardList className="h-4 w-4" />
+          Engagés
+        </Button>
+      )}
       <Button variant="outline" onClick={() => navigate('/competitions')}>
-        <ArrowLeft className="h-4 w-4 mr-2" />
+        <ArrowLeft className="h-4 w-4" />
         Retour
       </Button>
     </div>
@@ -184,15 +193,21 @@ export default function ClassementsPage() {
           </Tabs>
         )}
 
-        {/* Tableau des classements */}
+        {/* Tableau des classements - aligné avec les onglets (compense les chevrons) */}
         {currentRaceCode && (
-          <ClassementsTable
-            engagements={engagements}
-            currentRaceCode={currentRaceCode}
-            competitionId={competition.id}
-            avecChrono={competition.avecChrono ?? false}
-            isLoading={isLoadingEngagements}
-          />
+          <div className="flex items-start gap-1">
+            <div className="shrink-0 w-4" /> {/* Spacer gauche */}
+            <div className="flex-1 min-w-0">
+              <ClassementsTable
+                engagements={engagements}
+                currentRaceCode={currentRaceCode}
+                competitionId={competition.id}
+                avecChrono={competition.avecChrono ?? false}
+                isLoading={isLoadingEngagements}
+              />
+            </div>
+            <div className="shrink-0 w-4" /> {/* Spacer droite */}
+          </div>
         )}
       </div>
     </Layout>
