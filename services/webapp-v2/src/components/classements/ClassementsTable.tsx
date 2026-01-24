@@ -468,14 +468,15 @@ export function ClassementsTable({
   // Gérer la suppression du classement
   const handleRemoveRanking = useCallback(
     async (id: number, raceCode: string) => {
+      const row = rows.find((r) => r.id === id);
       try {
         await removeRanking.mutateAsync({ id, raceCode, competitionId });
-        showToast('success', 'Coureur retiré du classement');
+        showToast('success', `Dossard ${row?.riderNumber} - ${row?.name} retiré du classement`);
       } catch {
         showToast('error', 'Impossible de retirer le coureur du classement');
       }
     },
-    [removeRanking, competitionId, showToast]
+    [removeRanking, competitionId, showToast, rows]
   );
 
   // Gérer le drag & drop
