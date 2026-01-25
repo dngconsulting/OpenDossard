@@ -113,30 +113,24 @@ export default function ChallengePage() {
     ? competitionTypeLabels[challenge.competitionType] || challenge.competitionType
     : '';
 
-  const toolbarLeft = challenge ? (
-    <div className="flex items-center gap-3">
-      <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-        {icon || <Trophy className="size-5 text-primary" />}
-      </div>
-      <div>
-        <h1 className="text-lg font-semibold">{challenge.name}</h1>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-xs">{typeLabel}</Badge>
-          <Badge variant={challenge.active ? 'default' : 'secondary'} className="text-xs">
+  const toolbarLeft = (
+    <div className="flex items-center gap-2">
+      <Button variant="outline" onClick={() => navigate('/challenges')}>
+        <ArrowLeft className="size-4" /> Retour
+      </Button>
+      {challenge && (
+        <>
+          <Badge className="bg-slate-600 text-white hover:bg-slate-600 gap-1">
+            {icon}
+            {typeLabel}
+          </Badge>
+          <Badge className={challenge.active ? 'bg-emerald-600 text-white hover:bg-emerald-600' : 'bg-gray-500 text-white hover:bg-gray-500'}>
             {challenge.active ? 'Actif' : 'Terminé'}
           </Badge>
-        </div>
-      </div>
+        </>
+      )}
     </div>
-  ) : isLoadingChallenge ? (
-    <div className="flex items-center gap-3">
-      <Skeleton className="size-10 rounded-lg" />
-      <div className="space-y-1">
-        <Skeleton className="h-5 w-40" />
-        <Skeleton className="h-4 w-24" />
-      </div>
-    </div>
-  ) : null;
+  );
 
   const toolbar = (
     <div className="flex flex-col sm:flex-row gap-2">
@@ -155,10 +149,6 @@ export default function ChallengePage() {
       <Button variant="outline" onClick={handleExportPDF} disabled={!ranking || ranking.length === 0}>
         <Download className="size-4" />
         Export PDF
-      </Button>
-      <Button variant="outline" onClick={() => navigate('/challenges')}>
-        <ArrowLeft className="size-4" />
-        Retour
       </Button>
     </div>
   );
