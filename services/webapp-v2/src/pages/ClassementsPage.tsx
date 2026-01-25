@@ -1,5 +1,5 @@
-import { ArrowLeft, ChevronLeft, ChevronRight, ClipboardList } from 'lucide-react';
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { ArrowLeft, ClipboardList } from 'lucide-react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 
 import { ClassementsTable, ExportMenu } from '@/components/classements';
@@ -20,10 +20,8 @@ export default function ClassementsPage() {
   // Récupérer la course depuis le hash de l'URL
   const [currentRaceCode, setCurrentRaceCode] = useState<string>('');
 
-  // Scroll indicators pour les onglets
+  // Ref pour les onglets (scroll horizontal)
   const tabsRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
 
   // Charger les données
   const { data: competition, isLoading: isLoadingCompetition } = useCompetition(competitionId);
@@ -39,28 +37,6 @@ export default function ClassementsPage() {
         : competition.races;
     return [...racesArray].sort((a, b) => a.localeCompare(b, 'fr', { numeric: true }));
   }, [competition?.races]);
-
-  // Vérifier la position de scroll des onglets
-  const checkScrollPosition = useCallback(() => {
-    const el = tabsRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 0);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
-  }, []);
-
-  useEffect(() => {
-    const el = tabsRef.current;
-    if (!el) return;
-
-    checkScrollPosition();
-    el.addEventListener('scroll', checkScrollPosition);
-    window.addEventListener('resize', checkScrollPosition);
-
-    return () => {
-      el.removeEventListener('scroll', checkScrollPosition);
-      window.removeEventListener('resize', checkScrollPosition);
-    };
-  }, [checkScrollPosition, races]);
 
   // Synchroniser le hash avec la course courante
   useEffect(() => {
@@ -79,11 +55,15 @@ export default function ClassementsPage() {
     navigate(`#${raceCode}`, { replace: true });
   };
 
-  // Compter les classés par course
-  const rankedCount = useMemo(() => {
-    const counts: Record<string, number> = {};
+  // Compter les classés et engagés par course
+  const raceCounts = useMemo(() => {
+    const counts: Record<string, { ranked: number; engaged: number }> = {};
     for (const race of races) {
-      counts[race] = countRanked(engagements, race);
+      const raceEngagements = engagements.filter((e) => e.raceCode === race);
+      counts[race] = {
+        ranked: countRanked(engagements, race),
+        engaged: raceEngagements.length,
+      };
     }
     return counts;
   }, [engagements, races]);
@@ -156,57 +136,35 @@ export default function ClassementsPage() {
         {/* Onglets des courses */}
         {races.length > 0 && (
           <Tabs value={currentRaceCode} onValueChange={handleRaceChange} className="w-full">
-            <div className="relative flex items-center gap-1">
-              {/* Indicateur scroll gauche */}
-              <div
-                className={`shrink-0 transition-opacity ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`}
-              >
-                <ChevronLeft className="h-4 w-4 text-muted-foreground" />
-              </div>
-
-              <TabsList
-                ref={tabsRef}
-                className="mb-0 flex w-full justify-start gap-0 rounded-t-xl rounded-b-none bg-muted/50 p-0 h-auto overflow-x-auto scrollbar-none border-0"
-              >
-                {races.map((race) => (
-                  <TabsTrigger
-                    key={race}
-                    value={race}
-                    className="group flex shrink-0 items-center gap-2.5 rounded-t-lg rounded-b-none first:rounded-tl-xl last:rounded-tr-xl px-5 py-3 bg-muted/30 border border-muted-foreground/20 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white data-[state=active]:border-[#047857]"
-                  >
-                    <span className="text-base font-bold">{race}</span>
-                    <Badge variant="secondary" className="text-xs">
-                      {rankedCount[race] || 0}
-                    </Badge>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              {/* Indicateur scroll droite */}
-              <div
-                className={`shrink-0 transition-opacity ${canScrollRight ? 'opacity-100' : 'opacity-0'}`}
-              >
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </div>
+            <TabsList
+              ref={tabsRef}
+              className="mb-0 flex w-full justify-start gap-0 rounded-t-xl rounded-b-none bg-muted/50 p-0 h-auto overflow-x-auto scrollbar-none border-0"
+            >
+              {races.map((race) => (
+                <TabsTrigger
+                  key={race}
+                  value={race}
+                  className="group flex shrink-0 items-center gap-2.5 rounded-t-lg rounded-b-none first:rounded-tl-xl last:rounded-tr-xl px-5 py-3 bg-muted/30 border border-muted-foreground/20 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white data-[state=active]:border-[#047857]"
+                >
+                  <span className="text-base font-bold">{race}</span>
+                  <Badge variant="secondary" className="text-xs">
+                    {raceCounts[race]?.ranked || 0}/{raceCounts[race]?.engaged || 0}
+                  </Badge>
+                </TabsTrigger>
+              ))}
+            </TabsList>
           </Tabs>
         )}
 
-        {/* Tableau des classements - aligné avec les onglets (compense les chevrons) */}
+        {/* Tableau des classements */}
         {currentRaceCode && (
-          <div className="flex items-start gap-1">
-            <div className="shrink-0 w-4" /> {/* Spacer gauche */}
-            <div className="flex-1 min-w-0">
-              <ClassementsTable
-                engagements={engagements}
-                currentRaceCode={currentRaceCode}
-                competitionId={competition.id}
-                avecChrono={competition.avecChrono ?? false}
-                isLoading={isLoadingEngagements}
-              />
-            </div>
-            <div className="shrink-0 w-4" /> {/* Spacer droite */}
-          </div>
+          <ClassementsTable
+            engagements={engagements}
+            currentRaceCode={currentRaceCode}
+            competitionId={competition.id}
+            avecChrono={competition.avecChrono ?? false}
+            isLoading={isLoadingEngagements}
+          />
         )}
       </div>
     </Layout>

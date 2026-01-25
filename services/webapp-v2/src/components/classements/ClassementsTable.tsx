@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -69,6 +69,7 @@ function SortableRow({
   rowIndex,
   totalRows,
   inputRefs,
+  isHighlighted,
 }: {
   row: TransformedRow;
   avecChrono: boolean;
@@ -81,6 +82,7 @@ function SortableRow({
   rowIndex: number;
   totalRows: number;
   inputRefs: React.MutableRefObject<Map<string, HTMLInputElement>>;
+  isHighlighted?: boolean;
 }) {
   const isDraggable = row.id != null;
   const {
@@ -134,7 +136,9 @@ function SortableRow({
       ref={setNodeRef}
       style={style}
       className={cn(
+        'transition-colors duration-700',
         isDragging && 'bg-muted',
+        isHighlighted && '!bg-orange-200 dark:!bg-orange-800/50',
         !row.riderNumber && 'text-muted-foreground'
       )}
     >
@@ -177,15 +181,14 @@ function SortableRow({
 
       {/* Chrono (si avecChrono) */}
       {avecChrono && (
-        <TableCell className="w-[100px] p-1">
+        <TableCell className="w-[150px] p-1">
           {row.id && (
             <Input
               ref={setInputRef(`chrono-${rowIndex}`)}
-              type="time"
-              step="1"
-              tabIndex={-1}
+              type="text"
+              placeholder="00:00:00:00"
               defaultValue={row.chrono ?? ''}
-              className="h-8 w-24 text-center font-mono"
+              className="h-8 w-[130px] text-center font-mono"
               onBlur={(e) => {
                 if (e.target.value !== row.chrono) {
                   onChronoSubmit(row.id!, e.target.value);
@@ -198,13 +201,12 @@ function SortableRow({
 
       {/* Tours (si avecChrono) */}
       {avecChrono && (
-        <TableCell className="w-[70px] p-1">
+        <TableCell className="w-[80px] p-1">
           {row.id && (
             <Input
               ref={setInputRef(`tours-${rowIndex}`)}
               type="number"
               min={0}
-              tabIndex={-1}
               defaultValue={row.tours ?? ''}
               className="h-8 w-16 text-center font-mono"
               onBlur={(e) => {
@@ -314,6 +316,7 @@ export function ClassementsTable({
   isLoading,
 }: ClassementsTableProps) {
   const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
+  const [highlightedRowId, setHighlightedRowId] = useState<number | null>(null);
 
   const showToast = useCallback((type: 'success' | 'error' | 'info', message: string) => {
     const id = toast.custom((toastId) => <AppToast id={toastId} type={type} message={message} />);
@@ -503,6 +506,9 @@ export function ClassementsTable({
 
       if (oldIndex === -1 || newIndex === -1) return;
 
+      // ID de la ligne déplacée pour le highlight
+      const movedRowId = parseInt(active.id as string, 10);
+
       // Réordonner avec arrayMove
       const newRankedRows = arrayMove(rankedRows, oldIndex, newIndex);
 
@@ -512,9 +518,14 @@ export function ClassementsTable({
         comment: r.comment,
       }));
 
+      // Highlight la ligne déplacée
+      setHighlightedRowId(movedRowId);
+
       try {
         await reorderRankings.mutateAsync({ items, competitionId });
+        setTimeout(() => setHighlightedRowId(null), 1000);
       } catch {
+        setHighlightedRowId(null);
         showToast('error', 'Impossible de réordonner les classements');
       }
     },
@@ -552,8 +563,8 @@ export function ClassementsTable({
                 <TableHead className="w-[40px] hidden sm:table-cell"></TableHead>
                 <TableHead className="w-[80px] text-center">Clt</TableHead>
                 <TableHead className="w-[100px]">Dossard</TableHead>
-                {avecChrono && <TableHead className="w-[100px]">Chrono</TableHead>}
-                {avecChrono && <TableHead className="w-[70px]">Tours</TableHead>}
+                {avecChrono && <TableHead className="w-[150px]">Chrono</TableHead>}
+                {avecChrono && <TableHead className="w-[80px]">Tours</TableHead>}
                 <TableHead>Coureur</TableHead>
                 <TableHead>Club</TableHead>
                 <TableHead className="w-[50px] text-center hidden sm:table-cell">H/F</TableHead>
@@ -578,6 +589,7 @@ export function ClassementsTable({
                   rowIndex={index}
                   totalRows={rows.length}
                   inputRefs={inputRefs}
+                  isHighlighted={highlightedRowId !== null && row.id === highlightedRowId}
                 />
               ))}
             </TableBody>

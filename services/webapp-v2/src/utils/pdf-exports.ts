@@ -2,8 +2,64 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 import type { RaceRowType } from '@/types/races';
-import type { CompetitionDetailType } from '@/types/competitions';
+import type { CompetitionDetailType, FederationType } from '@/types/competitions';
 import { transformRows, type TransformedRow } from './classements';
+
+/**
+ * Mapping des fédérations vers les fichiers de logos
+ */
+const FEDE_LOGOS: Partial<Record<FederationType, string>> = {
+  FSGT: '/logo/fsgt.svg',
+  UFOLEP: '/logo/ufolep.svg',
+  FFC: '/logo/ffc.svg',
+  FFVELO: '/logo/ffvelo.svg',
+  FFTRI: '/logo/fftri.svg',
+};
+
+/**
+ * Charge un logo SVG et le convertit en data URL pour jsPDF
+ */
+async function loadLogoAsDataUrl(fede: FederationType): Promise<string | null> {
+  const logoPath = FEDE_LOGOS[fede];
+  if (!logoPath) return null;
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      // Haute résolution pour une bonne qualité d'impression (300 DPI équivalent)
+      const size = 400;
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        // Activer l'anti-aliasing pour un meilleur rendu
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, size, size);
+        resolve(canvas.toDataURL('image/png', 1.0));
+      } else {
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+    img.src = logoPath;
+  });
+}
+
+/**
+ * Ajoute le logo de la fédération au PDF
+ */
+function addLogoToPdf(doc: jsPDF, logoDataUrl: string | null, x: number, y: number, size: number = 12): void {
+  if (logoDataUrl) {
+    try {
+      doc.addImage(logoDataUrl, 'PNG', x, y, size, size);
+    } catch {
+      // Ignorer les erreurs de chargement de logo
+    }
+  }
+}
 
 /**
  * Formate la date en français
@@ -47,13 +103,16 @@ function getChallengeWinners(rows: TransformedRow[]): string {
 /**
  * Export PDF des classements (équivalent de resultsPDF)
  */
-export function exportClassementsPDF(
+export async function exportClassementsPDF(
   engagements: RaceRowType[],
   races: string[],
   competition: CompetitionDetailType
-): void {
+): Promise<void> {
   const filename = `Clt_${competition.name.replace(/\s/g, '')}_cate_${races.join(',').replace(/\s/g, '')}.pdf`;
   const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
+
+  // Charger le logo de la fédération
+  const logoDataUrl = await loadLogoAsDataUrl(competition.fede);
 
   // Vérifier si on a des tours
   const avecTours = engagements.some((row) => row.tours != null && row.tours > 0);
@@ -120,17 +179,19 @@ export function exportClassementsPDF(
       },
       body: rowsToDisplay,
       didDrawPage: (data) => {
+        // Logo fédération
+        addLogoToPdf(doc, logoDataUrl, data.settings.margin.left, 2, 12);
         // Header
         doc.setFontSize(13);
-        doc.text(`Epreuve : ${competition.name}`, data.settings.margin.left + 50, 15);
+        doc.text(`Epreuve : ${competition.name}`, data.settings.margin.left + 15, 7);
         doc.text(
           `Date : ${capitalize(formatDateFr(competition.eventDate))}`,
-          data.settings.margin.left + 50,
-          20
+          data.settings.margin.left + 15,
+          12
         );
-        doc.text(`Catégorie(s) : ${currentRace}`, data.settings.margin.left + 50, 25);
+        doc.text(`Catégorie(s) : ${currentRace}`, data.settings.margin.left + 15, 17);
       },
-      margin: { top: 30, left: 5, right: 5 },
+      margin: { top: 22, left: 5, right: 5 },
       styles: {
         valign: 'middle',
         halign: 'left',
@@ -182,12 +243,15 @@ export function exportClassementsPDF(
 /**
  * Export PDF des podiums (équivalent de podiumsPDF)
  */
-export function exportPodiumsPDF(
+export async function exportPodiumsPDF(
   engagements: RaceRowType[],
   competition: CompetitionDetailType
-): void {
+): Promise<void> {
   const filename = `Podiums_${competition.name.replace(/\s/g, '')}.pdf`;
   const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
+
+  // Charger le logo de la fédération
+  const logoDataUrl = await loadLogoAsDataUrl(competition.fede);
 
   // Récupérer toutes les catégories individuelles
   const allCategories = competition.races
@@ -273,19 +337,21 @@ export function exportPodiumsPDF(
       body: rowsToDisplay,
       didDrawPage: (data) => {
         if (isFirstTable) {
+          // Logo fédération
+          addLogoToPdf(doc, logoDataUrl, data.settings.margin.left, 2, 12);
           doc.setFontSize(14);
           doc.setTextColor(40);
-          doc.text(`Podiums : ${competition.name}`, data.settings.margin.left + 50, 15);
+          doc.text(`Podiums : ${competition.name}`, data.settings.margin.left + 15, 7);
           doc.setFontSize(10);
           doc.text(
             `Date : ${capitalize(formatDateFr(competition.eventDate))}`,
-            data.settings.margin.left + 50,
-            20
+            data.settings.margin.left + 15,
+            12
           );
-          doc.text(`Organisateur : ${competition.club?.longName ?? 'NC'}`, data.settings.margin.left + 50, 25);
+          doc.text(`Organisateur : ${competition.club?.longName ?? 'NC'}`, data.settings.margin.left + 15, 17);
         }
       },
-      margin: { top: isFirstTable ? 30 : 10, left: 5, right: 5 },
+      margin: { top: isFirstTable ? 22 : 10, left: 5, right: 5 },
       styles: {
         valign: 'middle',
         fontSize: 9,
@@ -320,13 +386,16 @@ export function exportPodiumsPDF(
 /**
  * Export PDF de la liste des engagés (équivalent de listeEngagesPDF avec emargement=false)
  */
-export function exportEngagesPDF(
+export async function exportEngagesPDF(
   engagements: RaceRowType[],
   raceCode: string,
   competition: CompetitionDetailType
-): void {
+): Promise<void> {
   const filename = `Engagement_${competition.name.replace(/\s/g, '')}_cate_${raceCode}.pdf`;
   const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
+
+  // Charger le logo de la fédération
+  const logoDataUrl = await loadLogoAsDataUrl(competition.fede);
 
   // Filtrer et trier par numéro de dossard
   const raceEngagements = engagements
@@ -402,6 +471,8 @@ export function exportEngagesPDF(
       }
     },
     didDrawPage: (data) => {
+      // Logo fédération
+      addLogoToPdf(doc, logoDataUrl, data.settings.margin.left, 2, 12);
       doc.setFontSize(14);
       doc.setTextColor(40);
       doc.setFontSize(10);
@@ -416,7 +487,7 @@ export function exportEngagesPDF(
       doc.text(`Page ${doc.getNumberOfPages()}/${totalPagesExp}`, data.settings.margin.left, pageHeight - 10);
       doc.text(`Fichier : ${filename} Imprimé à : ${new Date().toLocaleTimeString('fr-FR')}`, 40, pageHeight - 5);
     },
-    margin: { top: 14, left: 10 },
+    margin: { top: 16, left: 10 },
     styles: {
       valign: 'middle',
       fontSize: 10,
@@ -431,14 +502,17 @@ export function exportEngagesPDF(
 /**
  * Export PDF de la feuille d'émargement (équivalent de listeEngagesPDF avec emargement=true)
  */
-export function exportEmargementPDF(
+export async function exportEmargementPDF(
   engagements: RaceRowType[],
   raceCode: string,
   competition: CompetitionDetailType
-): void {
+): Promise<void> {
   const filename = `Emargement_${competition.name.replace(/\s/g, '')}_cate_${raceCode}.pdf`;
   // Format paysage pour l'émargement
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4', compress: true });
+
+  // Charger le logo de la fédération
+  const logoDataUrl = await loadLogoAsDataUrl(competition.fede);
 
   // Filtrer et trier par numéro de dossard
   const raceEngagements = engagements
@@ -498,6 +572,8 @@ export function exportEmargementPDF(
     },
     body: rowsToDisplay,
     didDrawPage: (data) => {
+      // Logo fédération
+      addLogoToPdf(doc, logoDataUrl, data.settings.margin.left, 2, 12);
       doc.setFontSize(14);
       doc.setTextColor(40);
       doc.setFontSize(10);
@@ -512,7 +588,7 @@ export function exportEmargementPDF(
       doc.text(`Page ${doc.getNumberOfPages()}/${totalPagesExp}`, data.settings.margin.left, pageHeight - 10);
       doc.text(`Fichier : ${filename} Imprimé à : ${new Date().toLocaleTimeString('fr-FR')}`, 40, pageHeight - 5);
     },
-    margin: { top: 14, left: 10 },
+    margin: { top: 16, left: 10 },
     styles: {
       valign: 'middle',
       fontSize: 10,
