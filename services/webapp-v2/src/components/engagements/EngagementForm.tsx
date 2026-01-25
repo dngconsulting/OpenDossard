@@ -114,6 +114,7 @@ export function EngagementForm({
   }, [existingEngagements, currentRaceCode, selectedLicence]);
 
   const canSubmit =
+    currentRaceCode &&
     selectedLicence &&
     riderNumber &&
     catev &&
