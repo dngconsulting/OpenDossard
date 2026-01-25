@@ -141,7 +141,7 @@ export function ChallengeRankingTable({ riders, isLoading }: Props) {
                     <TableCell className="w-[80px] text-center text-muted-foreground">
                       {nbRaces}
                     </TableCell>
-                    <TableCell className="w-[80px] text-right font-bold text-lg">
+                    <TableCell className="w-[80px] text-right font-bold text-lg pr-4">
                       {rider.ptsAllRaces || 0}
                     </TableCell>
                   </TableRow>
