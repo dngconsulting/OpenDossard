@@ -76,7 +76,7 @@ export function ExportMenu({
             <FileText className="h-4 w-4 mr-2 text-red-600" />
             PDF
           </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent>
+          <DropdownMenuSubContent sideOffset={2} alignOffset={-5} collisionPadding={16}>
             <DropdownMenuItem onClick={handleExportEngagesPdf}>
               <FileText className="h-4 w-4 mr-2" />
               Liste engagés {currentRaceCode}
@@ -102,7 +102,7 @@ export function ExportMenu({
             <Sheet className="h-4 w-4 mr-2 text-green-600" />
             CSV
           </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent>
+          <DropdownMenuSubContent sideOffset={2} alignOffset={-5} collisionPadding={16}>
             <DropdownMenuItem onClick={handleExportEngagesCsv}>
               <Sheet className="h-4 w-4 mr-2" />
               Engagés {currentRaceCode}
