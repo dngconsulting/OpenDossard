@@ -1,33 +1,38 @@
-import type { ChallengeTableType } from '@/components/data/ChallengeTable';
-import { isMockMode } from '@/config/api.config';
-import { mockChallengesService } from '@/services/mocks/challenges.mock.service';
+import type { ChallengeRider, ChallengeType } from '@/types/challenges';
 
 import { apiClient } from './client';
 
-const realChallengesService = {
-  getAll: (): Promise<ChallengeTableType[]> => apiClient<ChallengeTableType[]>('/challenges'),
+export const challengesApi = {
+  // Get all challenges (optionally filter by active status)
+  getAll: (active?: boolean): Promise<ChallengeType[]> => {
+    const query = active !== undefined ? `?active=${active}` : '';
+    return apiClient<ChallengeType[]>(`/challenges${query}`);
+  },
 
-  getById: (id: string): Promise<ChallengeTableType> =>
-    apiClient<ChallengeTableType>(`/challenges/${id}`),
+  // Get a single challenge by ID
+  getById: (id: number): Promise<ChallengeType> => apiClient<ChallengeType>(`/challenges/${id}`),
 
-  create: (challenge: Omit<ChallengeTableType, 'id'>): Promise<ChallengeTableType> =>
-    apiClient<ChallengeTableType>('/challenges', {
+  // Get challenge ranking/classement
+  getRanking: (id: number): Promise<ChallengeRider[]> =>
+    apiClient<ChallengeRider[]>(`/challenges/${id}/ranking`),
+
+  // Create a new challenge
+  create: (data: Omit<ChallengeType, 'id'>): Promise<ChallengeType> =>
+    apiClient<ChallengeType>('/challenges', {
       method: 'POST',
-      body: JSON.stringify(challenge),
+      body: JSON.stringify(data),
     }),
 
-  update: (id: string, updates: Partial<ChallengeTableType>): Promise<ChallengeTableType> =>
-    apiClient<ChallengeTableType>(`/challenges/${id}`, {
+  // Update a challenge
+  update: (id: number, data: Partial<ChallengeType>): Promise<ChallengeType> =>
+    apiClient<ChallengeType>(`/challenges/${id}`, {
       method: 'PATCH',
-      body: JSON.stringify(updates),
+      body: JSON.stringify(data),
     }),
 
-  delete: (id: string): Promise<void> =>
-    apiClient<void>(`/challenges/${id}`, {
+  // Delete a challenge
+  delete: (id: number): Promise<{ success: boolean }> =>
+    apiClient<{ success: boolean }>(`/challenges/${id}`, {
       method: 'DELETE',
     }),
 };
-
-export const challengesApi = isMockMode('challenges')
-  ? mockChallengesService
-  : realChallengesService;

@@ -1,5 +1,4 @@
 import { DataTable } from '@/components/ui/data-table.tsx';
-import { useChallenges } from '@/hooks/useChallenges';
 
 import type { ColumnDef } from '@tanstack/react-table';
 
@@ -52,20 +51,16 @@ const columns: ColumnDef<ChallengeTableType>[] = [
 ];
 
 type Props = {
+  data?: ChallengeTableType[];
+  isLoading?: boolean;
   onOpenRow?: (row: ChallengeTableType) => void;
 };
 
-export const ChallengeTable = ({ onOpenRow }: Props) => {
-  const { data: challenge, isLoading, error } = useChallenges();
-
-  if (error) {
-    return <div>Error loading challenges</div>;
-  }
-
+export const ChallengeTable = ({ data, isLoading, onOpenRow }: Props) => {
   return (
     <DataTable
       columns={columns}
-      data={challenge || []}
+      data={data || []}
       onOpenRow={onOpenRow}
       isLoading={isLoading}
     />
