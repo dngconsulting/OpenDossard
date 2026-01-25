@@ -93,7 +93,6 @@ export default function ClassementsPage() {
 
   const toolbarLeft = competition ? (
     <div className="flex items-center gap-2">
-      <h1 className="text-lg font-semibold">{competition.name}</h1>
       <Badge variant="outline">
         {totalRanked}/{totalEngagements} classé{totalRanked > 1 ? 's' : ''}
       </Badge>
