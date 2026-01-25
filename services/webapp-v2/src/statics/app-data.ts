@@ -1,6 +1,7 @@
 import {
   BookOpen,
   Bot,
+  Building2,
   Calendar,
   Home,
   IdCard,
@@ -121,6 +122,11 @@ export const appData = {
       name: 'Licences',
       url: '/licences',
       icon: IdCard,
+    },
+    {
+      name: 'Clubs',
+      url: '/clubs',
+      icon: Building2,
     },
     {
       name: 'Épreuves',

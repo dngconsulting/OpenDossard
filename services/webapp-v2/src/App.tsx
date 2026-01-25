@@ -14,6 +14,7 @@ import AchievementsPage from '@/pages/AchievementsPage.tsx';
 import ChallengePage from '@/pages/ChallengePage.tsx';
 import ChallengesPage from '@/pages/ChallengesPage.tsx';
 import ClassementsPage from '@/pages/ClassementsPage.tsx';
+import ClubsPage from '@/pages/ClubsPage.tsx';
 import CompetitionDetailPage from '@/pages/CompetitionDetailPage.tsx';
 import EngagementsPage from '@/pages/EngagementsPage.tsx';
 import CompetitionsPage from '@/pages/CompetitionsPage.tsx';
@@ -70,6 +71,7 @@ export default function App() {
                 <Route path="/licences" element={<LicencesPage />} />
                 <Route path="/licence/new" element={<LicenceDetailPage />} />
                 <Route path="/licence/:id" element={<LicenceDetailPage />} />
+                <Route path="/clubs" element={<ClubsPage />} />
                 <Route path="/competitions" element={<CompetitionsPage />} />
                 <Route path="/competition/new" element={<CompetitionDetailPage />} />
                 <Route path="/competition/:id" element={<CompetitionDetailPage />} />
