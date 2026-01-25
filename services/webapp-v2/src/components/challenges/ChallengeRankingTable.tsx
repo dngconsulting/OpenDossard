@@ -2,7 +2,6 @@ import { Fragment, useState } from 'react';
 import { ChevronDown, ChevronRight, Medal, Trophy } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -74,21 +73,18 @@ export function ChallengeRankingTable({ riders, isLoading }: Props) {
 
   if (riders.length === 0) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center text-muted-foreground">
-          <Trophy className="size-12 mx-auto mb-4 opacity-20" />
-          <p>Aucun classement disponible pour cette catégorie.</p>
-        </CardContent>
-      </Card>
+      <div className="border rounded-t-none border-t-0 rounded-b-lg py-12 text-center text-muted-foreground">
+        <Trophy className="size-12 mx-auto mb-4 opacity-20" />
+        <p>Aucun classement disponible pour cette catégorie.</p>
+      </div>
     );
   }
 
   return (
-    <Card className="rounded-t-none border-t-0">
-      <CardContent className="p-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
+    <div className="border rounded-t-none border-t-0 rounded-b-lg overflow-x-auto">
+      <Table>
+        <TableHeader className="bg-muted/50">
+          <TableRow>
               <TableHead className="w-10"></TableHead>
               <TableHead className="w-12 text-center">Clt.</TableHead>
               <TableHead>Nom</TableHead>
@@ -206,7 +202,6 @@ export function ChallengeRankingTable({ riders, isLoading }: Props) {
             })}
           </TableBody>
         </Table>
-      </CardContent>
-    </Card>
+      </div>
   );
 }
