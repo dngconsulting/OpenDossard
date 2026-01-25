@@ -1,4 +1,4 @@
-import { ChevronDown, Download, FileSpreadsheet, FileText } from 'lucide-react';
+import { ChevronDown, Download, FileText, Sheet } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -9,8 +9,6 @@ import {
   DropdownMenuSub,
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 import type { RaceRowType } from '@/types/races';
 import type { CompetitionDetailType } from '@/types/competitions';
@@ -22,8 +20,6 @@ import {
 import {
   exportClassementsPDF,
   exportPodiumsPDF,
-  exportEngagesPDF,
-  exportEmargementPDF,
 } from '@/utils/pdf-exports';
 
 type ExportMenuProps = {
@@ -62,14 +58,6 @@ export function ExportMenu({
     exportPodiumsPDF(engagements, competition);
   };
 
-  const handleExportEngagesPdf = () => {
-    exportEngagesPDF(engagements, currentRaceCode, competition);
-  };
-
-  const handleExportEmargementPdf = () => {
-    exportEmargementPDF(engagements, currentRaceCode, competition);
-  };
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -87,27 +75,17 @@ export function ExportMenu({
             PDF
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
-            <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Classements
-            </DropdownMenuLabel>
             <DropdownMenuItem onClick={handleExportClassementsPdf}>
+              <FileText className="h-4 w-4 mr-2" />
               Classements {currentRaceCode}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleExportAllClassementsPdf}>
+              <FileText className="h-4 w-4 mr-2" />
               Classements (toutes courses)
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleExportPodiumsPdf}>
+              <FileText className="h-4 w-4 mr-2" />
               Podiums
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Engagés
-            </DropdownMenuLabel>
-            <DropdownMenuItem onClick={handleExportEngagesPdf}>
-              Liste engagés {currentRaceCode}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleExportEmargementPdf}>
-              Feuille émargement {currentRaceCode}
             </DropdownMenuItem>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
@@ -115,14 +93,16 @@ export function ExportMenu({
         {/* CSV Exports */}
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
-            <FileSpreadsheet className="h-4 w-4 mr-2 text-green-600" />
+            <Sheet className="h-4 w-4 mr-2 text-green-600" />
             CSV
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
             <DropdownMenuItem onClick={handleExportCurrentRaceCsv}>
+              <Sheet className="h-4 w-4 mr-2" />
               Classements {currentRaceCode}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleExportAllRacesCsv}>
+              <Sheet className="h-4 w-4 mr-2" />
               Classements (toutes courses)
             </DropdownMenuItem>
           </DropdownMenuSubContent>

@@ -10,6 +10,7 @@ import { UpdatePrompt } from '@/components/pwa/UpdatePrompt';
 import { ThemeProvider } from '@/components/theme-provider';
 import AccountPage from '@/pages/AccountPage.tsx';
 import AchievementsPage from '@/pages/AchievementsPage.tsx';
+import ChallengePage from '@/pages/ChallengePage.tsx';
 import ChallengesPage from '@/pages/ChallengesPage.tsx';
 import ClassementsPage from '@/pages/ClassementsPage.tsx';
 import CompetitionDetailPage from '@/pages/CompetitionDetailPage.tsx';
@@ -63,6 +64,7 @@ export default function App() {
                 <Route path="/" element={<WelcomePage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/challenges" element={<ChallengesPage />} />
+                <Route path="/challenges/:id" element={<ChallengePage />} />
                 <Route path="/licences" element={<LicencesPage />} />
                 <Route path="/licence/new" element={<LicenceDetailPage />} />
                 <Route path="/licence/:id" element={<LicenceDetailPage />} />

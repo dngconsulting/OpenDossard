@@ -100,6 +100,7 @@ interface DataTableProps<TData, TValue> {
   serverFilters?: Record<string, string>;
   onFilterChange?: (columnId: string, value: string) => void;
   sorting?: SortingProps;
+  showColumnFilters?: boolean;
 }
 
 interface SortableRowProps<TData> {
@@ -211,6 +212,7 @@ export function DataTable<TData, TValue>({
   serverFilters,
   onFilterChange,
   sorting,
+  showColumnFilters = true,
 }: DataTableProps<TData, TValue>) {
   const isServerFiltering = !!onFilterChange;
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -369,7 +371,7 @@ export function DataTable<TData, TValue>({
           </TableRow>
         ))}
       </TableHeader>
-      <TableFilter className="sticky top-8 z-10 bg-muted/50">
+      {showColumnFilters && (<TableFilter className="sticky top-8 z-10 bg-muted/50">
         {table.getHeaderGroups().map(headerGroup => (
           <TableFilterRow key={headerGroup.id}>
             {enableDragDrop && <TableFilterCell className="w-8" />}
@@ -406,6 +408,7 @@ export function DataTable<TData, TValue>({
           </TableFilterRow>
         ))}
       </TableFilter>
+      )}
       <TableBody>
         {table.getRowModel().rows?.length ? (
           table

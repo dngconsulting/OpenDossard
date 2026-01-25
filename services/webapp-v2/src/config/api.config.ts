@@ -15,7 +15,7 @@ export interface ApiConfig {
 export const apiConfig: ApiConfig = {
   licences: 'real',
   races: 'mock',
-  users: 'mock',
+  users: 'real',
   challenges: 'mock',
   charts: 'mock',
   dashboard: 'mock',
