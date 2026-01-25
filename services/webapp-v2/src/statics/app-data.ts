@@ -118,11 +118,6 @@ export const appData = {
       icon: Home,
     },
     {
-      name: 'Tableau de bord',
-      url: '/dashboard',
-      icon: LayoutDashboard,
-    },
-    {
       name: 'Licences',
       url: '/licences',
       icon: IdCard,
@@ -146,6 +141,12 @@ export const appData = {
       name: 'Utilisateurs',
       url: '/users',
       icon: User2,
+      requiredRoles: ['ADMIN'],
+    },
+    {
+      name: 'Statistiques',
+      url: '/dashboard',
+      icon: LayoutDashboard,
     },
   ],
 };

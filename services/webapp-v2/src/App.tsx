@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
 
 import { AuthProvider } from '@/components/auth/AuthProvider';
+import { AdminRoute } from '@/components/navigation/AdminRoute';
 import { ProtectedRoute } from '@/components/navigation/ProtectedRoute.tsx';
 import { OfflineBanner } from '@/components/pwa/OfflineBanner';
 import { UpdatePrompt } from '@/components/pwa/UpdatePrompt';
@@ -76,9 +77,12 @@ export default function App() {
                 <Route path="/competition/:id/classements" element={<ClassementsPage />} />
                 <Route path="/achievements" element={<AchievementsPage />} />
                 <Route path="/palmares/:licenceId?" element={<PalmaresPage />} />
-                <Route path="/users" element={<UsersPage />} />
-                <Route path="/user/new" element={<UserDetailPage />} />
-                <Route path="/user/:id" element={<UserDetailPage />} />
+                {/* Admin-only routes */}
+                <Route element={<AdminRoute />}>
+                  <Route path="/users" element={<UsersPage />} />
+                  <Route path="/user/new" element={<UserDetailPage />} />
+                  <Route path="/user/:id" element={<UserDetailPage />} />
+                </Route>
                 <Route path="/account" element={<AccountPage />} />
               </Route>
 

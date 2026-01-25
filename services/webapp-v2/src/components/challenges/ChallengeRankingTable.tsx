@@ -92,7 +92,7 @@ export function ChallengeRankingTable({ riders, isLoading }: Props) {
               <TableHead className="w-[180px]">Club</TableHead>
               <TableHead className="w-[100px] text-center">Catégorie</TableHead>
               <TableHead className="w-[80px] text-center">Courses</TableHead>
-              <TableHead className="w-[80px] text-right">Points</TableHead>
+              <TableHead className="w-[80px] text-right pr-4">Points</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

@@ -103,7 +103,7 @@ export default function LoginPage() {
             <p className="text-white/60 text-sm mt-1">Accédez à votre espace de gestion</p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
             {/* Error message */}
             {error && (
               <div className="bg-destructive/20 border border-destructive/30 rounded-lg p-3 text-sm text-white">

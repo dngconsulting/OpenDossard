@@ -12,25 +12,41 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import useUserStore from '@/store/UserStore';
+
+type PageItem = {
+  name: string;
+  url: string;
+  icon: LucideIcon;
+  requiredRoles?: string[];
+};
 
 export function NavPages({
   pages,
 }: {
-  pages: {
-    name: string;
-    url: string;
-    icon: LucideIcon;
-  }[];
+  pages: PageItem[];
 }) {
   const location = useLocation();
   const { state } = useSidebar();
+  const user = useUserStore(s => s.user);
   const isCollapsed = state === 'collapsed';
+
+  // Filter pages based on user roles
+  const visiblePages = pages.filter(page => {
+    if (!page.requiredRoles || page.requiredRoles.length === 0) {
+      return true;
+    }
+    if (!user?.roles) {
+      return false;
+    }
+    return page.requiredRoles.some(role => user.roles.includes(role));
+  });
 
   return (
     <SidebarGroup>
       {!isCollapsed && <SidebarGroupLabel>Navigation</SidebarGroupLabel>}
       <SidebarMenu>
-        {pages.map(item => {
+        {visiblePages.map(item => {
           const isActive =
             location.pathname === item.url ||
             (item.url !== '/' && location.pathname.startsWith(item.url));
