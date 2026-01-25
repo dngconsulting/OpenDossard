@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   ArrowLeft,
   Bike,
@@ -163,8 +163,23 @@ export default function ChallengePage() {
     </div>
   );
 
+  const breadcrumb = (
+    <nav className="flex items-center gap-2 text-sm">
+      <Link
+        to="/challenges"
+        className="text-muted-foreground hover:text-white dark:hover:text-foreground transition-colors"
+      >
+        Challenges
+      </Link>
+      <ChevronRight className="size-4 text-muted-foreground" />
+      <span className="font-medium">
+        {challenge?.name || <Skeleton className="h-4 w-32 inline-block" />}
+      </span>
+    </nav>
+  );
+
   return (
-    <Layout title="Challenge" toolbar={toolbar} toolbarLeft={toolbarLeft}>
+    <Layout title={breadcrumb} toolbar={toolbar} toolbarLeft={toolbarLeft}>
       <div className="space-y-2">
         {/* Category Tabs */}
         {categories.length > 0 && (

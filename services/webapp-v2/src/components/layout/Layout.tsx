@@ -8,7 +8,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from '@/com
 import { useIsMobile } from '@/hooks/use-mobile.ts';
 import { appData } from '@/statics/app-data.ts';
 
-function MobileHeader({ title }: { title: string }) {
+function MobileHeader({ title }: { title: React.ReactNode }) {
   const { toggleSidebar } = useSidebar();
 
   return (
@@ -17,14 +17,14 @@ function MobileHeader({ title }: { title: string }) {
         <Menu className="size-5" />
       </Button>
 
-      <h1 className="flex-1">{title}</h1>
+      <div className="flex-1">{title}</div>
 
       <img src={appData.app.logoUrl} alt="logo" className="h-8 w-auto" />
     </div>
   );
 }
 
-function DesktopHeader({ title }: { title: string }) {
+function DesktopHeader({ title }: { title: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 px-4 w-full">
       <SidebarTrigger className="header-icon -ml-1" />
@@ -32,14 +32,14 @@ function DesktopHeader({ title }: { title: string }) {
         orientation="vertical"
         className="header-separator mr-2 data-[orientation=vertical]:h-4"
       />
-      <h1 className="flex-1">{title}</h1>
+      <div className="flex-1">{title}</div>
     </div>
   );
 }
 
 type LayoutProps = {
   children: React.ReactNode;
-  title: string;
+  title: React.ReactNode;
   toolbar?: React.ReactNode;
   toolbarLeft?: React.ReactNode;
   noPadding?: boolean;
