@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
   ParseIntPipe,
   HttpCode,
@@ -17,13 +18,16 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { UsersService, CreateUserDto, UpdateUserDto, UpdatePasswordDto } from './users.service';
-import { UserEntity } from './entities/user.entity';
+
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { PaginatedResponseDto } from '../common/dto/pagination.dto';
 import { Role } from '../common/enums';
+import { FilterUserDto } from './dto/filter-user.dto';
+import { UserEntity } from './entities/user.entity';
+import { UsersService, CreateUserDto, UpdateUserDto, UpdatePasswordDto } from './users.service';
 
 @ApiTags('Users')
 @ApiBearerAuth('JWT-auth')
@@ -34,10 +38,10 @@ export class UsersController {
 
   @Get()
   @Roles(Role.ADMIN)
-  @ApiOperation({ summary: 'Get all users (admin only)' })
-  @ApiResponse({ status: 200, description: 'List of users' })
-  async findAll(): Promise<UserEntity[]> {
-    return this.usersService.findAll();
+  @ApiOperation({ summary: 'Get all users with pagination (admin only)' })
+  @ApiResponse({ status: 200, description: 'Paginated list of users' })
+  async findAll(@Query() filterDto: FilterUserDto): Promise<PaginatedResponseDto<UserEntity>> {
+    return this.usersService.findAll(filterDto);
   }
 
   @Get(':id')

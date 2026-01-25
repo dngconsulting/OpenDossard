@@ -1,8 +1,11 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserEntity } from './entities/user.entity';
 import * as bcrypt from 'bcryptjs';
+
+import { PaginatedResponseDto } from '../common/dto/pagination.dto';
+import { FilterUserDto } from './dto/filter-user.dto';
+import { UserEntity } from './entities/user.entity';
 
 export interface CreateUserDto {
   email: string;
@@ -32,10 +35,44 @@ export class UsersService {
     private userRepository: Repository<UserEntity>,
   ) {}
 
-  async findAll(): Promise<UserEntity[]> {
-    return this.userRepository.find({
-      order: { lastName: 'ASC', firstName: 'ASC' },
-    });
+  async findAll(filterDto: FilterUserDto): Promise<PaginatedResponseDto<UserEntity>> {
+    const {
+      offset = 0,
+      limit = 20,
+      search,
+      orderBy = 'lastName',
+      orderDirection = 'ASC',
+    } = filterDto;
+
+    const queryBuilder = this.userRepository.createQueryBuilder('user');
+
+    // Global search across email, firstName, lastName
+    if (search) {
+      queryBuilder.andWhere(
+        '(LOWER(user.email) LIKE LOWER(:search) OR LOWER(user.firstName) LIKE LOWER(:search) OR LOWER(user.lastName) LIKE LOWER(:search))',
+        { search: `%${search}%` }
+      );
+    }
+
+    // Ordering
+    const validOrderFields = ['id', 'email', 'firstName', 'lastName', 'phone', 'roles'];
+    const orderField = validOrderFields.includes(orderBy) ? orderBy : 'lastName';
+    queryBuilder.orderBy(`user.${orderField}`, orderDirection);
+
+    // Secondary sort for consistency
+    if (orderField !== 'lastName') {
+      queryBuilder.addOrderBy('user.lastName', 'ASC');
+    }
+    if (orderField !== 'firstName') {
+      queryBuilder.addOrderBy('user.firstName', 'ASC');
+    }
+
+    // Pagination
+    queryBuilder.skip(offset).take(limit);
+
+    const [data, total] = await queryBuilder.getManyAndCount();
+
+    return new PaginatedResponseDto(data, total, offset, limit);
   }
 
   async findOne(id: number): Promise<UserEntity> {
