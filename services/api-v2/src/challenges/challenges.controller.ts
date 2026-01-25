@@ -21,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { ChallengesService, CreateChallengeDto, UpdateChallengeDto } from './challenges.service';
 import { ChallengeEntity } from './entities/challenge.entity';
+import { ChallengeRiderDto } from './dto/challenge-ranking.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -54,10 +55,10 @@ export class ChallengesController {
   @Get(':id/ranking')
   @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
   @ApiOperation({ summary: 'Get challenge ranking' })
-  @ApiResponse({ status: 200, description: 'Challenge ranking' })
+  @ApiResponse({ status: 200, description: 'Challenge ranking', type: [ChallengeRiderDto] })
   async getRanking(
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<{ licenceId: number; name: string; points: number; rank: number }[]> {
+  ): Promise<ChallengeRiderDto[]> {
     return this.challengesService.getRanking(id);
   }
 
