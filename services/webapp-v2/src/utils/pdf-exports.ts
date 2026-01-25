@@ -3,6 +3,7 @@ import autoTable from 'jspdf-autotable';
 
 import type { RaceRowType } from '@/types/races';
 import type { CompetitionDetailType, FederationType } from '@/types/competitions';
+import type { ChallengeRider, ChallengeType, GenderType } from '@/types/challenges';
 import { transformRows, type TransformedRow } from './classements';
 
 /**
@@ -63,9 +64,19 @@ async function loadLogoAsDataUrl(fede: FederationType): Promise<string | null> {
 }
 
 /**
- * Charge le logo Open Dossard
+ * Résultat du chargement du logo Open Dossard avec ses dimensions
  */
-async function loadOpenDossardLogo(): Promise<string | null> {
+type OpenDossardLogoResult = {
+  dataUrl: string;
+  width: number;
+  height: number;
+  ratio: number;
+} | null;
+
+/**
+ * Charge le logo Open Dossard avec ses dimensions originales
+ */
+async function loadOpenDossardLogo(): Promise<OpenDossardLogoResult> {
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -76,7 +87,12 @@ async function loadOpenDossardLogo(): Promise<string | null> {
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL('image/png', 1.0));
+        resolve({
+          dataUrl: canvas.toDataURL('image/png', 1.0),
+          width: img.width,
+          height: img.height,
+          ratio: img.width / img.height,
+        });
       } else {
         resolve(null);
       }
@@ -315,14 +331,14 @@ export async function exportClassementsPDF(
         const fedeLogoY = 6;
         addLogoToPdf(doc, logoDataUrl, data.settings.margin.left, fedeLogoY, fedeLogoSize);
 
-        // Logo Open Dossard (droite) - ratio 114x90, centré verticalement aussi
+        // Logo Open Dossard (droite) - utilise le ratio original
         if (openDossardLogo) {
           const logoHeight = 12;
-          const logoWidth = logoHeight * (114 / 90);
+          const logoWidth = logoHeight * openDossardLogo.ratio;
           const logoX = pageWidth - data.settings.margin.right - logoWidth;
           const logoY = 6;
           try {
-            doc.addImage(openDossardLogo, 'PNG', logoX, logoY, logoWidth, logoHeight);
+            doc.addImage(openDossardLogo.dataUrl, 'PNG', logoX, logoY, logoWidth, logoHeight);
           } catch {
             // Ignorer les erreurs de chargement
           }
@@ -775,5 +791,218 @@ export async function exportEmargementPDF(
   });
 
   doc.putTotalPages(totalPagesExp);
+  doc.save(filename);
+}
+
+/**
+ * Filtre les riders par catégorie et genre
+ */
+function filterChallengeRiders(
+  riders: ChallengeRider[],
+  category: string,
+  gender: GenderType | undefined
+): ChallengeRider[] {
+  return riders
+    .filter(rider => {
+      if (rider.currentLicenceCatev !== category) return false;
+      if (gender && rider.gender !== gender) return false;
+      return true;
+    })
+    .sort((a, b) => (b.ptsAllRaces || 0) - (a.ptsAllRaces || 0));
+}
+
+/**
+ * Export PDF du classement d'un challenge - toutes les catégories avec tableaux séparés
+ */
+export async function exportChallengePDF(
+  challenge: ChallengeType,
+  allRiders: ChallengeRider[]
+): Promise<void> {
+  const filename = `Challenge_${challenge.name.replace(/\s/g, '_')}.pdf`;
+
+  const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
+
+  // Charger les logos et trophées
+  const [logoDataUrl, openDossardLogo, trophyIcons] = await Promise.all([
+    loadLogoAsDataUrl('FSGT'),
+    loadOpenDossardLogo(),
+    loadTrophyIcons(),
+  ]);
+
+  const pageMargin = 10;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const availableWidth = pageWidth - 2 * pageMargin;
+
+  // Définir les catégories selon le type de compétition
+  const categories = challenge.competitionType === 'CX'
+    ? ['1', '2', '3', '4', '5', 'DAMES']
+    : ['1', '2', '3', '4', '5'];
+
+  // Définir les genres à parcourir
+  const genders: (GenderType | undefined)[] = ['H', 'F'];
+
+  // Calculer les largeurs de colonnes
+  const baseWidths = [12, 55, 45, 20, 20, 18, 20];
+  const totalBase = baseWidths.reduce((a, b) => a + b, 0);
+  const scale = availableWidth / totalBase;
+  const columnWidths = baseWidths.map((w) => w * scale);
+
+  let isFirstTable = true;
+
+  for (const category of categories) {
+    // Pour la catégorie DAMES, on ne filtre pas par genre
+    const gendersToProcess = category === 'DAMES' ? [undefined] : genders;
+
+    for (const gender of gendersToProcess) {
+      const riders = filterChallengeRiders(allRiders, category, gender);
+
+      // Skip si pas de coureurs dans cette catégorie/genre
+      if (riders.length === 0) continue;
+
+      const genderLabel = gender === 'H' ? 'Hommes' : gender === 'F' ? 'Femmes' : '';
+      const categoryLabel = category === 'DAMES' ? 'Dames' : `Catégorie ${category}`;
+
+      // Préparer les données du tableau
+      const rowsToDisplay: (string | number)[][] = riders.map((rider, index) => {
+        const rank = index + 1;
+        const nbRaces = rider.challengeRaceRows?.length || 0;
+        return [
+          rank,
+          `${rider.firstName || ''} ${(rider.name || '').toUpperCase()}`,
+          rider.currentClub || '-',
+          rider.currentLicenceCatev || '-',
+          rider.currentLicenceCatea || '-',
+          nbRaces,
+          rider.ptsAllRaces || 0,
+        ];
+      });
+
+      // Calculer la position Y de départ
+      const previousFinalY = isFirstTable
+        ? undefined
+        : (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable?.finalY;
+
+      // Titre de la catégorie
+      const titleY = previousFinalY === undefined ? 26 : previousFinalY + 10;
+
+      // Vérifier si on doit passer à une nouvelle page
+      if (titleY > 250) {
+        doc.addPage();
+      }
+
+      const actualTitleY = titleY > 250 ? 26 : titleY;
+
+      doc.setFontSize(11);
+      doc.setTextColor(0, 82, 147);
+      const titleText = genderLabel
+        ? `${categoryLabel} - ${genderLabel} (${riders.length} coureur${riders.length > 1 ? 's' : ''})`
+        : `${categoryLabel} (${riders.length} coureur${riders.length > 1 ? 's' : ''})`;
+      doc.text(titleText, pageMargin, actualTitleY);
+      doc.setTextColor(0);
+
+      autoTable(doc, {
+        startY: actualTitleY + 2,
+        head: [['#', 'Coureur', 'Club', 'Caté.V', 'Caté.A', 'Courses', 'Points']],
+        headStyles: {
+          fontSize: 8,
+          fontStyle: 'bold',
+          halign: 'center',
+          cellPadding: 1,
+          minCellHeight: 6,
+          fillColor: [0, 82, 147],
+          textColor: [255, 255, 255],
+        },
+        bodyStyles: {
+          minCellHeight: 5,
+          cellPadding: 1,
+          fontSize: 8,
+        },
+        columnStyles: {
+          0: { cellWidth: columnWidths[0], halign: 'center' },
+          1: { cellWidth: columnWidths[1], halign: 'left', fontStyle: 'bold' },
+          2: { cellWidth: columnWidths[2], halign: 'left' },
+          3: { cellWidth: columnWidths[3], halign: 'center' },
+          4: { cellWidth: columnWidths[4], halign: 'center' },
+          5: { cellWidth: columnWidths[5], halign: 'center' },
+          6: { cellWidth: columnWidths[6], halign: 'center', fontStyle: 'bold' },
+        },
+        body: rowsToDisplay,
+        alternateRowStyles: {
+          fillColor: [245, 245, 245],
+        },
+        didDrawCell: (data) => {
+          if (data.section === 'body' && data.column.index === 0) {
+            const rank = data.cell.raw;
+            let trophyIcon: string | null = null;
+
+            if (rank === 1) trophyIcon = trophyIcons.gold;
+            else if (rank === 2) trophyIcon = trophyIcons.silver;
+            else if (rank === 3) trophyIcon = trophyIcons.bronze;
+
+            if (trophyIcon) {
+              const iconSize = 3;
+              const x = data.cell.x + data.cell.width - iconSize - 1;
+              const y = data.cell.y + (data.cell.height - iconSize) / 2;
+              try {
+                doc.addImage(trophyIcon, 'PNG', x, y, iconSize, iconSize);
+              } catch {
+                // Ignorer les erreurs
+              }
+            }
+          }
+        },
+        didDrawPage: (data) => {
+          const pageCenterX = pageWidth / 2;
+
+          doc.setFontSize(8);
+          doc.setTextColor(100);
+          doc.text('Classement généré avec Open Dossard (https://www.opendossard.com)', pageCenterX, 4, { align: 'center' });
+          doc.setTextColor(0);
+
+          const fedeLogoSize = 12;
+          const fedeLogoY = 6;
+          addLogoToPdf(doc, logoDataUrl, data.settings.margin.left, fedeLogoY, fedeLogoSize);
+
+          if (openDossardLogo) {
+            const logoHeight = 12;
+            const logoWidth = logoHeight * openDossardLogo.ratio;
+            const logoX = pageWidth - data.settings.margin.right - logoWidth;
+            const logoY = 6;
+            try {
+              doc.addImage(openDossardLogo.dataUrl, 'PNG', logoX, logoY, logoWidth, logoHeight);
+            } catch {
+              // Ignorer
+            }
+          }
+
+          doc.setFontSize(12);
+          doc.setTextColor(40);
+          doc.text(challenge.name, pageCenterX, 12, { align: 'center' });
+          doc.setTextColor(0);
+        },
+        margin: { top: 20, left: pageMargin, right: pageMargin },
+        styles: {
+          valign: 'middle',
+          halign: 'left',
+          fontSize: 8,
+          minCellHeight: 5,
+        },
+      });
+
+      isFirstTable = false;
+    }
+  }
+
+  // Numérotation des pages
+  const pageCountChallenge = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCountChallenge; i++) {
+    doc.setPage(i);
+    doc.setFontSize(10);
+    const pageSize = doc.internal.pageSize;
+    const pageHeight = pageSize.height || pageSize.getHeight();
+    doc.text(`Page ${i}/${pageCountChallenge}`, pageMargin, pageHeight - 10);
+    doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, 50, pageHeight - 5);
+  }
+
   doc.save(filename);
 }
