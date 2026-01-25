@@ -17,6 +17,20 @@ const FEDE_LOGOS: Partial<Record<FederationType, string>> = {
 };
 
 /**
+ * Logo Open Dossard
+ */
+const OPEN_DOSSARD_LOGO = '/logo/opendossard.png';
+
+/**
+ * Trophées pour les podiums
+ */
+const TROPHY_ICONS = {
+  gold: '/logo/trophy-gold.svg',
+  silver: '/logo/trophy-silver.svg',
+  bronze: '/logo/trophy-bronze.svg',
+};
+
+/**
  * Charge un logo SVG et le convertit en data URL pour jsPDF
  */
 async function loadLogoAsDataUrl(fede: FederationType): Promise<string | null> {
@@ -46,6 +60,69 @@ async function loadLogoAsDataUrl(fede: FederationType): Promise<string | null> {
     img.onerror = () => resolve(null);
     img.src = logoPath;
   });
+}
+
+/**
+ * Charge le logo Open Dossard
+ */
+async function loadOpenDossardLogo(): Promise<string | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/png', 1.0));
+      } else {
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+    img.src = OPEN_DOSSARD_LOGO;
+  });
+}
+
+/**
+ * Charge une icône SVG et la convertit en data URL
+ */
+async function loadSvgAsDataUrl(path: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const size = 64;
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, size, size);
+        resolve(canvas.toDataURL('image/png', 1.0));
+      } else {
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+    img.src = path;
+  });
+}
+
+/**
+ * Charge tous les trophées
+ */
+async function loadTrophyIcons(): Promise<{ gold: string | null; silver: string | null; bronze: string | null }> {
+  const [gold, silver, bronze] = await Promise.all([
+    loadSvgAsDataUrl(TROPHY_ICONS.gold),
+    loadSvgAsDataUrl(TROPHY_ICONS.silver),
+    loadSvgAsDataUrl(TROPHY_ICONS.bronze),
+  ]);
+  return { gold, silver, bronze };
 }
 
 /**
@@ -111,8 +188,12 @@ export async function exportClassementsPDF(
   const filename = `Clt_${competition.name.replace(/\s/g, '')}_cate_${races.join(',').replace(/\s/g, '')}.pdf`;
   const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
 
-  // Charger le logo de la fédération
-  const logoDataUrl = await loadLogoAsDataUrl(competition.fede);
+  // Charger les logos et trophées
+  const [logoDataUrl, openDossardLogo, trophyIcons] = await Promise.all([
+    loadLogoAsDataUrl(competition.fede),
+    loadOpenDossardLogo(),
+    loadTrophyIcons(),
+  ]);
 
   // Vérifier si on a des tours
   const avecTours = engagements.some((row) => row.tours != null && row.tours > 0);
@@ -139,6 +220,19 @@ export async function exportClassementsPDF(
       ]);
     });
 
+    // Marges et largeur disponible
+    const pageMargin = 10;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const availableWidth = pageWidth - 2 * pageMargin;
+
+    // Calculer les largeurs de colonnes proportionnelles
+    const baseWidths = [12, 12, 14, 50, 40, 12, 16, 14, 18];
+    if (competition.avecChrono) baseWidths.push(20);
+    if (avecTours) baseWidths.push(14);
+    const totalBase = baseWidths.reduce((a, b) => a + b, 0);
+    const scale = availableWidth / totalBase;
+    const columnWidths = baseWidths.map((w) => w * scale);
+
     autoTable(doc, {
       head: [
         [
@@ -158,40 +252,89 @@ export async function exportClassementsPDF(
       headStyles: {
         fontSize: 9,
         fontStyle: 'bold',
-        halign: 'left',
-        cellPadding: 0.5,
+        halign: 'center',
+        cellPadding: 1,
         minCellHeight: 8,
+        fillColor: [0, 82, 147], // Open Dossard blue
+        textColor: [255, 255, 255],
       },
       bodyStyles: {
-        minCellHeight: 3,
-        cellPadding: 0.5,
+        minCellHeight: 5,
+        cellPadding: 1,
       },
       columnStyles: {
-        0: { cellWidth: 12, halign: 'center' },
-        1: { cellWidth: 12, halign: 'center' },
-        2: { cellWidth: 12, halign: 'center', fillColor: [253, 238, 115], fontStyle: 'bold' },
-        3: { cellWidth: 45 },
-        4: { cellWidth: 35 },
-        5: { cellWidth: 10, halign: 'center' },
-        6: { cellWidth: 14, halign: 'center' },
-        7: { cellWidth: 12, halign: 'center' },
-        8: { cellWidth: 15, halign: 'center' },
+        0: { cellWidth: columnWidths[0], halign: 'center' },
+        1: { cellWidth: columnWidths[1], halign: 'center' },
+        2: { cellWidth: columnWidths[2], halign: 'center', fontStyle: 'bold' },
+        3: { cellWidth: columnWidths[3], halign: 'left' },
+        4: { cellWidth: columnWidths[4], halign: 'left' },
+        5: { cellWidth: columnWidths[5], halign: 'center' },
+        6: { cellWidth: columnWidths[6], halign: 'center' },
+        7: { cellWidth: columnWidths[7], halign: 'center' },
+        8: { cellWidth: columnWidths[8], halign: 'center' },
+        ...(competition.avecChrono ? { 9: { cellWidth: columnWidths[9], halign: 'center' } } : {}),
+        ...(avecTours ? { [competition.avecChrono ? 10 : 9]: { cellWidth: columnWidths[competition.avecChrono ? 10 : 9], halign: 'center' } } : {}),
       },
       body: rowsToDisplay,
-      didDrawPage: (data) => {
-        // Logo fédération
-        addLogoToPdf(doc, logoDataUrl, data.settings.margin.left, 2, 12);
-        // Header
-        doc.setFontSize(13);
-        doc.text(`Epreuve : ${competition.name}`, data.settings.margin.left + 15, 7);
-        doc.text(
-          `Date : ${capitalize(formatDateFr(competition.eventDate))}`,
-          data.settings.margin.left + 15,
-          12
-        );
-        doc.text(`Catégorie(s) : ${currentRace}`, data.settings.margin.left + 15, 17);
+      alternateRowStyles: {
+        fillColor: [245, 245, 245], // Light gray for alternating rows
       },
-      margin: { top: 22, left: 5, right: 5 },
+      didDrawCell: (data) => {
+        // Ajouter les trophées dans la colonne Cat. (index 1) pour les rangs 1, 2, 3
+        if (data.section === 'body' && data.column.index === 1) {
+          const rank = data.cell.raw;
+          let trophyIcon: string | null = null;
+
+          if (rank === 1) trophyIcon = trophyIcons.gold;
+          else if (rank === 2) trophyIcon = trophyIcons.silver;
+          else if (rank === 3) trophyIcon = trophyIcons.bronze;
+
+          if (trophyIcon) {
+            const iconSize = 3.5;
+            const x = data.cell.x + 1;
+            const y = data.cell.y + (data.cell.height - iconSize) / 2;
+            try {
+              doc.addImage(trophyIcon, 'PNG', x, y, iconSize, iconSize);
+            } catch {
+              // Ignorer les erreurs
+            }
+          }
+        }
+      },
+      didDrawPage: (data) => {
+        const pageCenterX = pageWidth / 2;
+
+        // "Résultats générés avec Open Dossard" en haut
+        doc.setFontSize(8);
+        doc.setTextColor(100);
+        doc.text('Résultats générés avec Open Dossard (https://www.opendossard.com)', pageCenterX, 4, { align: 'center' });
+        doc.setTextColor(0);
+
+        // Logo fédération (gauche) - centré verticalement entre haut de page et début du tableau
+        const fedeLogoSize = 12;
+        const fedeLogoY = 6;
+        addLogoToPdf(doc, logoDataUrl, data.settings.margin.left, fedeLogoY, fedeLogoSize);
+
+        // Logo Open Dossard (droite) - ratio 114x90, centré verticalement aussi
+        if (openDossardLogo) {
+          const logoHeight = 12;
+          const logoWidth = logoHeight * (114 / 90);
+          const logoX = pageWidth - data.settings.margin.right - logoWidth;
+          const logoY = 6;
+          try {
+            doc.addImage(openDossardLogo, 'PNG', logoX, logoY, logoWidth, logoHeight);
+          } catch {
+            // Ignorer les erreurs de chargement
+          }
+        }
+
+        // Header centré horizontalement
+        doc.setFontSize(13);
+        doc.text(competition.name, pageCenterX, 9, { align: 'center' });
+        doc.text(capitalize(formatDateFr(competition.eventDate)), pageCenterX, 14, { align: 'center' });
+        doc.text(`Catégorie(s) : ${currentRace}`, pageCenterX, 19, { align: 'center' });
+      },
+      margin: { top: 24, left: pageMargin, right: pageMargin },
       styles: {
         valign: 'middle',
         halign: 'left',
@@ -218,8 +361,8 @@ export async function exportClassementsPDF(
       `Vainqueur(s) du challenge : ${getChallengeWinners(rankedRows)}`,
     ].join('\n');
 
-    const splitText = doc.splitTextToSize(footerText, 190);
-    doc.text(splitText, 5, footerY);
+    const splitText = doc.splitTextToSize(footerText, availableWidth);
+    doc.text(splitText, pageMargin, footerY);
 
     if (pageIndex + 1 < races.length) {
       doc.addPage();
@@ -233,8 +376,8 @@ export async function exportClassementsPDF(
     doc.setFontSize(10);
     const pageSize = doc.internal.pageSize;
     const pageHeight = pageSize.height || pageSize.getHeight();
-    doc.text(`Page ${i}/${pageCount}`, 5, pageHeight - 10);
-    doc.text(`${filename} généré à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, 40, pageHeight - 5);
+    doc.text(`Page ${i}/${pageCount}`, 10, pageHeight - 10);
+    doc.text(`${filename} généré à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, 50, pageHeight - 5);
   }
 
   doc.save(filename);
@@ -252,6 +395,17 @@ export async function exportPodiumsPDF(
 
   // Charger le logo de la fédération
   const logoDataUrl = await loadLogoAsDataUrl(competition.fede);
+
+  // Marges et largeur disponible
+  const pageMargin = 10;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const availableWidth = pageWidth - 2 * pageMargin;
+
+  // Calculer les largeurs de colonnes proportionnelles
+  const baseWidths = [12, 12, 14, 50, 40, 12, 16, 14, 18];
+  const totalBase = baseWidths.reduce((a, b) => a + b, 0);
+  const scale = availableWidth / totalBase;
+  const columnWidths = baseWidths.map((w) => w * scale);
 
   // Récupérer toutes les catégories individuelles
   const allCategories = competition.races
@@ -308,31 +462,31 @@ export async function exportPodiumsPDF(
     if (challengeWinner) {
       titleText += `  - Challenge : ${challengeWinner.name ?? challengeWinner.riderName} - scratch: ${challengeWinner.rankingScratch} (${challengeWinner.club})`;
     }
-    doc.text(titleText, 5, titleY);
+    doc.text(titleText, pageMargin, titleY);
 
     autoTable(doc, {
       startY: titleY + 2,
       head: [['Cat.', 'Scrat.', 'Doss', 'Coureur', 'Club', 'H/F', 'Caté.V', 'Caté.A', 'Fédé']],
       headStyles: {
-        fontSize: 8,
+        fontSize: 9,
         fontStyle: 'bold',
-        halign: 'left',
-        cellPadding: 0.5,
+        halign: 'center',
+        cellPadding: 1,
       },
       bodyStyles: {
-        minCellHeight: 4,
-        cellPadding: 0.5,
+        minCellHeight: 5,
+        cellPadding: 1,
       },
       columnStyles: {
-        0: { cellWidth: 12, halign: 'center' },
-        1: { cellWidth: 12, halign: 'center' },
-        2: { cellWidth: 12, halign: 'center', fillColor: [253, 238, 115], fontStyle: 'bold' },
-        3: { cellWidth: 45 },
-        4: { cellWidth: 35 },
-        5: { cellWidth: 10, halign: 'center' },
-        6: { cellWidth: 14, halign: 'center' },
-        7: { cellWidth: 12, halign: 'center' },
-        8: { cellWidth: 15, halign: 'center' },
+        0: { cellWidth: columnWidths[0], halign: 'center' },
+        1: { cellWidth: columnWidths[1], halign: 'center' },
+        2: { cellWidth: columnWidths[2], halign: 'center', fillColor: [253, 238, 115], fontStyle: 'bold' },
+        3: { cellWidth: columnWidths[3], halign: 'left' },
+        4: { cellWidth: columnWidths[4], halign: 'left' },
+        5: { cellWidth: columnWidths[5], halign: 'center' },
+        6: { cellWidth: columnWidths[6], halign: 'center' },
+        7: { cellWidth: columnWidths[7], halign: 'center' },
+        8: { cellWidth: columnWidths[8], halign: 'center' },
       },
       body: rowsToDisplay,
       didDrawPage: (data) => {
@@ -351,11 +505,11 @@ export async function exportPodiumsPDF(
           doc.text(`Organisateur : ${competition.club?.longName ?? 'NC'}`, data.settings.margin.left + 15, 17);
         }
       },
-      margin: { top: isFirstTable ? 22 : 10, left: 5, right: 5 },
+      margin: { top: isFirstTable ? 22 : 10, left: pageMargin, right: pageMargin },
       styles: {
         valign: 'middle',
-        fontSize: 9,
-        minCellHeight: 4,
+        fontSize: 10,
+        minCellHeight: 5,
       },
     });
 
@@ -376,8 +530,8 @@ export async function exportPodiumsPDF(
     doc.setFontSize(10);
     const pageSize = doc.internal.pageSize;
     const pageHeight = pageSize.height || pageSize.getHeight();
-    doc.text(`Page ${i}/${pageCount}`, 5, pageHeight - 10);
-    doc.text(`${filename} généré à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, 40, pageHeight - 5);
+    doc.text(`Page ${i}/${pageCount}`, pageMargin, pageHeight - 10);
+    doc.text(`${filename} généré à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, 50, pageHeight - 5);
   }
 
   doc.save(filename);
@@ -396,6 +550,17 @@ export async function exportEngagesPDF(
 
   // Charger le logo de la fédération
   const logoDataUrl = await loadLogoAsDataUrl(competition.fede);
+
+  // Marges et largeur disponible
+  const pageMargin = 10;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const availableWidth = pageWidth - 2 * pageMargin;
+
+  // Calculer les largeurs de colonnes proportionnelles
+  const baseWidths = [15, 55, 45, 12, 12, 14, 15, 14, 18];
+  const totalBase = baseWidths.reduce((a, b) => a + b, 0);
+  const scale = availableWidth / totalBase;
+  const columnWidths = baseWidths.map((w) => w * scale);
 
   // Filtrer et trier par numéro de dossard
   const raceEngagements = engagements
@@ -444,25 +609,26 @@ export async function exportEngagesPDF(
   autoTable(doc, {
     head: [['Doss', 'Coureur', 'Club', 'H/F', 'Dept', 'Année', 'Cat.A', 'Cat.V', 'Fédé.']],
     bodyStyles: {
-      minCellHeight: 3,
-      cellPadding: 0.5,
+      minCellHeight: 5,
+      cellPadding: 1,
     },
     rowPageBreak: 'avoid',
     headStyles: {
-      fontSize: 8,
+      fontSize: 9,
       fontStyle: 'bold',
-      halign: 'left',
+      halign: 'center',
+      cellPadding: 1,
     },
     columnStyles: {
-      0: { cellWidth: 15, fillColor: [253, 238, 115], halign: 'center', fontStyle: 'bold', fontSize: 13 },
-      1: { cellWidth: 55 },
-      2: { cellWidth: 40 },
-      3: { cellWidth: 10 },
-      4: { cellWidth: 10 },
-      5: { cellWidth: 12 },
-      6: { cellWidth: 13 },
-      7: { cellWidth: 12 },
-      8: { cellWidth: 20 },
+      0: { cellWidth: columnWidths[0], fillColor: [253, 238, 115], halign: 'center', fontStyle: 'bold', fontSize: 12 },
+      1: { cellWidth: columnWidths[1], halign: 'left' },
+      2: { cellWidth: columnWidths[2], halign: 'left' },
+      3: { cellWidth: columnWidths[3], halign: 'center' },
+      4: { cellWidth: columnWidths[4], halign: 'center' },
+      5: { cellWidth: columnWidths[5], halign: 'center' },
+      6: { cellWidth: columnWidths[6], halign: 'center' },
+      7: { cellWidth: columnWidths[7], halign: 'center' },
+      8: { cellWidth: columnWidths[8], halign: 'center' },
     },
     body: rowsToDisplay,
     didParseCell: (data) => {
@@ -485,9 +651,9 @@ export async function exportEngagesPDF(
       const pageHeight = pageSize.height || pageSize.getHeight();
       doc.setFontSize(8);
       doc.text(`Page ${doc.getNumberOfPages()}/${totalPagesExp}`, data.settings.margin.left, pageHeight - 10);
-      doc.text(`Fichier : ${filename} Imprimé à : ${new Date().toLocaleTimeString('fr-FR')}`, 40, pageHeight - 5);
+      doc.text(`Fichier : ${filename} Imprimé à : ${new Date().toLocaleTimeString('fr-FR')}`, 50, pageHeight - 5);
     },
-    margin: { top: 16, left: 10 },
+    margin: { top: 16, left: pageMargin, right: pageMargin },
     styles: {
       valign: 'middle',
       fontSize: 10,
@@ -513,6 +679,17 @@ export async function exportEmargementPDF(
 
   // Charger le logo de la fédération
   const logoDataUrl = await loadLogoAsDataUrl(competition.fede);
+
+  // Marges et largeur disponible
+  const pageMargin = 10;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const availableWidth = pageWidth - 2 * pageMargin;
+
+  // Calculer les largeurs de colonnes proportionnelles
+  const baseWidths = [15, 50, 40, 12, 12, 14, 14, 14, 25, 18, 55];
+  const totalBase = baseWidths.reduce((a, b) => a + b, 0);
+  const scale = availableWidth / totalBase;
+  const columnWidths = baseWidths.map((w) => w * scale);
 
   // Filtrer et trier par numéro de dossard
   const raceEngagements = engagements
@@ -549,26 +726,27 @@ export async function exportEmargementPDF(
     head: [['Doss', 'Coureur', 'Club', 'H/F', 'Dept', 'Année', 'Cat.A', 'Cat.V', 'Licence N°', 'Fédé.', 'Signature']],
     bodyStyles: {
       minCellHeight: 10,
-      cellPadding: 0.5,
+      cellPadding: 1,
     },
     rowPageBreak: 'avoid',
     headStyles: {
-      fontSize: 8,
+      fontSize: 9,
       fontStyle: 'bold',
-      halign: 'left',
+      halign: 'center',
+      cellPadding: 1,
     },
     columnStyles: {
-      0: { cellWidth: 15, fillColor: [253, 238, 115], halign: 'center', fontStyle: 'bold', fontSize: 13 },
-      1: { cellWidth: 55 },
-      2: { cellWidth: 40 },
-      3: { cellWidth: 10 },
-      4: { cellWidth: 10 },
-      5: { cellWidth: 12 },
-      6: { cellWidth: 13 },
-      7: { cellWidth: 12 },
-      8: { cellWidth: 20 },
-      9: { cellWidth: 20 },
-      10: { cellWidth: 50, lineWidth: 0.2, lineColor: [73, 138, 159] },
+      0: { cellWidth: columnWidths[0], fillColor: [253, 238, 115], halign: 'center', fontStyle: 'bold', fontSize: 12 },
+      1: { cellWidth: columnWidths[1], halign: 'left' },
+      2: { cellWidth: columnWidths[2], halign: 'left' },
+      3: { cellWidth: columnWidths[3], halign: 'center' },
+      4: { cellWidth: columnWidths[4], halign: 'center' },
+      5: { cellWidth: columnWidths[5], halign: 'center' },
+      6: { cellWidth: columnWidths[6], halign: 'center' },
+      7: { cellWidth: columnWidths[7], halign: 'center' },
+      8: { cellWidth: columnWidths[8], halign: 'center' },
+      9: { cellWidth: columnWidths[9], halign: 'center' },
+      10: { cellWidth: columnWidths[10], lineWidth: 0.2, lineColor: [73, 138, 159] },
     },
     body: rowsToDisplay,
     didDrawPage: (data) => {
@@ -586,9 +764,9 @@ export async function exportEmargementPDF(
       const pageHeight = pageSize.height || pageSize.getHeight();
       doc.setFontSize(8);
       doc.text(`Page ${doc.getNumberOfPages()}/${totalPagesExp}`, data.settings.margin.left, pageHeight - 10);
-      doc.text(`Fichier : ${filename} Imprimé à : ${new Date().toLocaleTimeString('fr-FR')}`, 40, pageHeight - 5);
+      doc.text(`Fichier : ${filename} Imprimé à : ${new Date().toLocaleTimeString('fr-FR')}`, 50, pageHeight - 5);
     },
-    margin: { top: 16, left: 10 },
+    margin: { top: 16, left: pageMargin, right: pageMargin },
     styles: {
       valign: 'middle',
       fontSize: 10,
