@@ -1,10 +1,12 @@
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { LicencesForm } from '@/components/forms/LicencesForm.tsx';
 import Layout from '@/components/layout/Layout.tsx';
+import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
+import { Skeleton } from '@/components/ui/skeleton.tsx';
 import { useLicence } from '@/hooks/useLicences';
 
 export default function LicenceDetailPage() {
@@ -15,51 +17,61 @@ export default function LicenceDetailPage() {
   const { data: licence, isLoading } = useLicence(licenceId);
   const [formValues, setFormValues] = useState<{ name: string; firstName: string }>({ name: '', firstName: '' });
 
-  const toolbar = (
-    <Button variant="outline" onClick={() => navigate('/licences')}>
-      <ArrowLeft /> Retour
-    </Button>
+  const displayName = isCreating
+    ? (formValues.firstName || formValues.name
+        ? `${formValues.firstName} ${formValues.name}`.trim()
+        : 'Nouvelle licence')
+    : licence
+      ? `${licence.firstName} ${licence.name}`
+      : null;
+
+  const breadcrumb = (
+    <nav className="flex items-center gap-2 text-sm">
+      <Link
+        to="/licences"
+        className="text-muted-foreground hover:text-white dark:hover:text-foreground transition-colors"
+      >
+        Licences
+      </Link>
+      <ChevronRight className="size-4 text-muted-foreground" />
+      <span className="font-medium">
+        {displayName || <Skeleton className="h-4 w-32 inline-block" />}
+      </span>
+    </nav>
   );
 
-  const toolbarLeft = isCreating ? (
-    <span className="text-sm text-muted-foreground">
-      {formValues.firstName || formValues.name ? (
+  const toolbarLeft = (
+    <div className="flex items-center gap-2">
+      <Button variant="outline" onClick={() => navigate('/licences')}>
+        <ArrowLeft className="h-4 w-4" /> Retour
+      </Button>
+      {licence && (
         <>
-          <strong className="text-foreground">{formValues.firstName}</strong>{' '}
-          <strong className="text-foreground">{formValues.name}</strong>
+          {licence.club && (
+            <Badge className="bg-slate-600 text-white hover:bg-slate-600">
+              {licence.club}
+            </Badge>
+          )}
+          {licence.licenceNumber && (
+            <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
+              N° {licence.licenceNumber}
+            </Badge>
+          )}
         </>
-      ) : (
-        'Veuillez saisir une nouvelle licence'
       )}
-    </span>
-  ) : licence ? (
-    <span className="text-sm text-muted-foreground">
-      {licence.gender && (licence.gender === 'H' ? 'Mr' : 'Mme')}{' '}
-      {licence.firstName && <strong className="text-foreground">{licence.firstName}</strong>}{' '}
-      {licence.name && <strong className="text-foreground">{licence.name}</strong>}
-      {licence.club && (
-        <span className="ml-2">— {licence.club}</span>
-      )}
-      {licence.licenceNumber && (
-        <span className="ml-2">
-          — N° <strong className="text-foreground">{licence.licenceNumber}</strong>
-        </span>
-      )}
-    </span>
-  ) : null;
-
-  const pageTitle = isCreating ? 'Nouvelle licence' : "Détail d'une licence";
+    </div>
+  );
 
   if (!isCreating && isLoading) {
     return (
-      <Layout title={pageTitle} toolbar={toolbar}>
+      <Layout title={breadcrumb} toolbarLeft={toolbarLeft}>
         <div className="flex items-center justify-center p-8">Chargement...</div>
       </Layout>
     );
   }
 
   return (
-    <Layout title={pageTitle} toolbar={toolbar} toolbarLeft={toolbarLeft}>
+    <Layout title={breadcrumb} toolbarLeft={toolbarLeft}>
       <LicencesForm
         updatingLicence={licence}
         onSuccess={() => navigate('/licences')}
