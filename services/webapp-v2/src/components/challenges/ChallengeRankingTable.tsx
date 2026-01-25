@@ -84,7 +84,7 @@ export function ChallengeRankingTable({ riders, isLoading }: Props) {
   }
 
   return (
-    <Card>
+    <Card className="rounded-t-none border-t-0">
       <CardContent className="p-0">
         <Table>
           <TableHeader>

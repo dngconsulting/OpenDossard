@@ -1,9 +1,8 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   ArrowLeft,
   Bike,
-  ChevronLeft,
   ChevronRight,
   Download,
   ExternalLink,
@@ -53,33 +52,9 @@ export default function ChallengePage() {
   const [selectedCategory, setSelectedCategory] = useState('1');
   const [selectedGender, setSelectedGender] = useState<GenderType>('H');
 
-  // Scroll indicators for tabs
   const tabsRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
 
   const categories = useMemo(() => getCategories(challenge?.competitionType), [challenge?.competitionType]);
-
-  const checkScrollPosition = useCallback(() => {
-    const el = tabsRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 0);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
-  }, []);
-
-  useEffect(() => {
-    const el = tabsRef.current;
-    if (!el) return;
-
-    checkScrollPosition();
-    el.addEventListener('scroll', checkScrollPosition);
-    window.addEventListener('resize', checkScrollPosition);
-
-    return () => {
-      el.removeEventListener('scroll', checkScrollPosition);
-      window.removeEventListener('resize', checkScrollPosition);
-    };
-  }, [checkScrollPosition, categories]);
 
   const filteredRiders = useMemo(() => {
     if (selectedCategory === 'DAMES') {
@@ -174,35 +149,25 @@ export default function ChallengePage() {
         {/* Category Tabs */}
         {categories.length > 0 && (
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-            <div className="relative flex items-center gap-1">
-              <div className={`shrink-0 transition-opacity ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`}>
-                <ChevronLeft className="h-4 w-4 text-muted-foreground" />
-              </div>
-
-              <TabsList
-                ref={tabsRef}
-                className="mb-0 flex w-full justify-start gap-0 rounded-t-xl rounded-b-none bg-muted/50 p-0 h-auto overflow-x-auto scrollbar-none border-0"
-              >
-                {categories.map(cat => (
-                  <TabsTrigger
-                    key={cat}
-                    value={cat}
-                    className="group flex shrink-0 items-center gap-2.5 rounded-t-lg rounded-b-none first:rounded-tl-xl last:rounded-tr-xl px-5 py-3 bg-muted/30 border border-muted-foreground/20 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white data-[state=active]:border-[#047857]"
-                  >
-                    <span className="text-base font-bold">
-                      {cat === 'DAMES' ? 'Dames' : `Caté ${cat}`}
-                    </span>
-                    <Badge variant="secondary" className="text-xs">
-                      {categoryCounts[cat] || 0}
-                    </Badge>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              <div className={`shrink-0 transition-opacity ${canScrollRight ? 'opacity-100' : 'opacity-0'}`}>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </div>
+            <TabsList
+              ref={tabsRef}
+              className="mb-0 flex w-full justify-start gap-0 rounded-t-xl rounded-b-none bg-muted/50 p-0 h-auto overflow-x-auto scrollbar-none border-0"
+            >
+              {categories.map(cat => (
+                <TabsTrigger
+                  key={cat}
+                  value={cat}
+                  className="group flex shrink-0 items-center gap-2.5 rounded-t-lg rounded-b-none first:rounded-tl-xl last:rounded-tr-xl px-5 py-3 bg-muted/30 border border-muted-foreground/20 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white data-[state=active]:border-[#047857]"
+                >
+                  <span className="text-base font-bold">
+                    {cat === 'DAMES' ? 'Dames' : `Caté ${cat}`}
+                  </span>
+                  <Badge variant="secondary" className="text-xs">
+                    {categoryCounts[cat] || 0}
+                  </Badge>
+                </TabsTrigger>
+              ))}
+            </TabsList>
           </Tabs>
         )}
 
