@@ -82,17 +82,17 @@ export function ChallengeRankingTable({ riders, isLoading }: Props) {
 
   return (
     <div className="border rounded-t-none border-t-0 rounded-b-lg overflow-x-auto">
-      <Table>
+      <Table className="min-w-[800px]">
         <TableHeader className="bg-muted/50">
           <TableRow>
-              <TableHead className="w-10"></TableHead>
-              <TableHead className="w-12 text-center">Clt.</TableHead>
-              <TableHead>Nom</TableHead>
-              <TableHead>Prénom</TableHead>
-              <TableHead>Club</TableHead>
-              <TableHead className="text-center">Catégorie</TableHead>
-              <TableHead className="text-center">Courses</TableHead>
-              <TableHead className="text-right">Points</TableHead>
+              <TableHead className="w-[40px]"></TableHead>
+              <TableHead className="w-[60px] text-center">Clt.</TableHead>
+              <TableHead className="w-[120px]">Nom</TableHead>
+              <TableHead className="w-[100px]">Prénom</TableHead>
+              <TableHead className="w-[180px]">Club</TableHead>
+              <TableHead className="w-[100px] text-center">Catégorie</TableHead>
+              <TableHead className="w-[80px] text-center">Courses</TableHead>
+              <TableHead className="w-[80px] text-right">Points</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -109,7 +109,7 @@ export function ChallengeRankingTable({ riders, isLoading }: Props) {
                     className={`cursor-pointer hover:bg-muted/50 ${rank <= 3 ? 'bg-primary/5' : ''}`}
                     onClick={() => toggleRow(licenceId)}
                   >
-                    <TableCell className="w-10 px-2">
+                    <TableCell className="w-[40px] px-2">
                       <button className="p-1 hover:bg-muted rounded">
                         {isExpanded ? (
                           <ChevronDown className="size-4" />
@@ -118,30 +118,30 @@ export function ChallengeRankingTable({ riders, isLoading }: Props) {
                         )}
                       </button>
                     </TableCell>
-                    <TableCell className="text-center font-medium">
+                    <TableCell className="w-[60px] text-center font-medium">
                       <div className="flex items-center justify-center gap-1">
                         {rankIcon}
                         <span>{rank}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">
+                    <TableCell className="w-[120px] font-medium truncate" title={rider.name?.toUpperCase()}>
                       {rider.name?.toUpperCase()}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="w-[100px] truncate" title={rider.firstName}>
                       {rider.firstName}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="w-[180px] text-muted-foreground truncate" title={rider.currentClub || '-'}>
                       {rider.currentClub || '-'}
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="w-[100px] text-center">
                       <Badge variant="outline">
                         {rider.currentLicenceCatev}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-center text-muted-foreground">
+                    <TableCell className="w-[80px] text-center text-muted-foreground">
                       {nbRaces}
                     </TableCell>
-                    <TableCell className="text-right font-bold text-lg">
+                    <TableCell className="w-[80px] text-right font-bold text-lg">
                       {rider.ptsAllRaces || 0}
                     </TableCell>
                   </TableRow>
@@ -149,44 +149,44 @@ export function ChallengeRankingTable({ riders, isLoading }: Props) {
                   {isExpanded && (
                     <TableRow className="bg-muted/20 hover:bg-muted/20">
                       <TableCell colSpan={8} className="p-0">
-                        <div className="px-4 py-3 border-l-4 border-primary/50">
+                        <div className="px-4 py-3 border-l-4 border-primary/50 overflow-x-auto">
                           <div className="font-semibold text-sm mb-2">
                             {rider.firstName} {rider.name?.toUpperCase()}
                           </div>
-                          <Table>
+                          <Table className="min-w-[700px]">
                             <TableHeader>
                               <TableRow className="text-xs bg-muted/30">
-                                <TableHead className="h-8 py-1">Course</TableHead>
-                                <TableHead className="h-8 py-1 w-28">Date</TableHead>
-                                <TableHead className="h-8 py-1 w-24 text-center">Catégorie</TableHead>
-                                <TableHead className="h-8 py-1 w-24 text-center">Classement</TableHead>
-                                <TableHead className="h-8 py-1 w-32 text-center">Points épreuve</TableHead>
-                                <TableHead className="h-8 py-1 text-center">Explications</TableHead>
+                                <TableHead className="h-8 py-1 w-[180px]">Course</TableHead>
+                                <TableHead className="h-8 py-1 w-[100px]">Date</TableHead>
+                                <TableHead className="h-8 py-1 w-[80px] text-center">Catégorie</TableHead>
+                                <TableHead className="h-8 py-1 w-[80px] text-center">Clt.</TableHead>
+                                <TableHead className="h-8 py-1 w-[80px] text-center">Points</TableHead>
+                                <TableHead className="h-8 py-1 w-[180px] text-center">Explications</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
                               {rider.challengeRaceRows?.map((race, idx) => (
                                 <TableRow key={idx} className="text-sm">
-                                  <TableCell className="py-1.5">
+                                  <TableCell className="py-1.5 w-[180px] truncate" title={race.competitionName || '-'}>
                                     {race.competitionName || '-'}
                                   </TableCell>
-                                  <TableCell className="py-1.5">
+                                  <TableCell className="py-1.5 w-[100px]">
                                     {formatDate(race.eventDate)}
                                   </TableCell>
-                                  <TableCell className="py-1.5 text-center">
+                                  <TableCell className="py-1.5 w-[80px] text-center">
                                     {race.catev}
                                   </TableCell>
-                                  <TableCell className="py-1.5 text-center">
+                                  <TableCell className="py-1.5 w-[80px] text-center">
                                     {race.comment ? (
                                       <span className="text-muted-foreground italic">{race.comment}</span>
                                     ) : (
                                       race.rankingScratch || '-'
                                     )}
                                   </TableCell>
-                                  <TableCell className="py-1.5 text-center font-medium">
+                                  <TableCell className="py-1.5 w-[80px] text-center font-medium">
                                     {race.ptsRace || 0}
                                   </TableCell>
-                                  <TableCell className="py-1.5 text-muted-foreground text-xs text-center">
+                                  <TableCell className="py-1.5 w-[180px] text-muted-foreground text-xs text-center truncate" title={race.explanation || '-'}>
                                     {race.explanation || '-'}
                                   </TableCell>
                                 </TableRow>
