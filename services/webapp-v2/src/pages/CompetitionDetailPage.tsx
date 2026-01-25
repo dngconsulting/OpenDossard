@@ -1,12 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Clock, Euro, Image, Info, Loader2, MapPin } from 'lucide-react';
+import { ArrowLeft, Bike, ChevronRight, Clock, Euro, Image, Info, Loader2, MapPin, Mountain, TreePine } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import Layout from '@/components/layout/Layout';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FEDERATIONS, type FedeEnum } from '@/config/federations';
 import {
@@ -22,6 +24,18 @@ import { LocalisationTab } from './competition/LocalisationTab';
 import { MediasTab } from './competition/MediasTab';
 import { TarifsTab } from './competition/TarifsTab';
 import { competitionSchema, type FormValues, type TabValue, VALID_TABS } from './competition/types';
+
+const competitionTypeIcons: Record<string, React.ReactNode> = {
+  ROUTE: <Bike className="size-4" />,
+  CX: <TreePine className="size-4" />,
+  VTT: <Mountain className="size-4" />,
+};
+
+const competitionTypeLabels: Record<string, string> = {
+  ROUTE: 'Route',
+  CX: 'Cyclo-cross',
+  VTT: 'VTT',
+};
 
 export default function CompetitionDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -180,11 +194,30 @@ export default function CompetitionDetailPage() {
     }
   };
 
+  const typeIcon = competition?.competitionType
+    ? competitionTypeIcons[competition.competitionType] || <Bike className="size-4" />
+    : null;
+  const typeLabel = competition?.competitionType
+    ? competitionTypeLabels[competition.competitionType] || competition.competitionType
+    : '';
+
+  const breadcrumb = (
+    <nav className="flex items-center gap-2 text-sm">
+      <Link
+        to="/competitions"
+        className="text-muted-foreground hover:text-white dark:hover:text-foreground transition-colors"
+      >
+        Épreuves
+      </Link>
+      <ChevronRight className="size-4 text-muted-foreground" />
+      <span className="font-medium">
+        {isCreating ? 'Nouvelle épreuve' : (competition?.name || <Skeleton className="h-4 w-32 inline-block" />)}
+      </span>
+    </nav>
+  );
+
   const toolbar = (
     <div className="flex items-center gap-2">
-      <Button variant="outline" onClick={() => navigate('/competitions')}>
-        <ArrowLeft /> Retour
-      </Button>
       <Button
         onClick={() => {
           form.handleSubmit(onSubmit, errors => console.error('Validation errors:', errors))();
@@ -197,22 +230,30 @@ export default function CompetitionDetailPage() {
     </div>
   );
 
-  const toolbarLeft = competition && (
-    <span className="text-sm text-muted-foreground flex items-center gap-2 min-w-0">
-      <strong className="text-foreground shrink-0">{competition.name}</strong>
-      {competition.club && (
-        <span className="truncate" title={competition.club.longName}>
-          - {competition.club.longName}
-        </span>
+  const toolbarLeft = (
+    <div className="flex items-center gap-2">
+      <Button variant="outline" onClick={() => navigate('/competitions')}>
+        <ArrowLeft className="h-4 w-4" /> Retour
+      </Button>
+      {competition && (
+        <>
+          <Badge className="bg-slate-600 text-white hover:bg-slate-600 gap-1">
+            {typeIcon}
+            {typeLabel}
+          </Badge>
+          {competition.fede && (
+            <Badge className="bg-blue-600 text-white hover:bg-blue-600">
+              {competition.fede}
+            </Badge>
+          )}
+        </>
       )}
-    </span>
+    </div>
   );
-
-  const pageTitle = isCreating ? 'Nouvelle epreuve' : "Detail de l'epreuve";
 
   if (!isCreating && isLoading) {
     return (
-      <Layout title={pageTitle} toolbar={toolbar}>
+      <Layout title={breadcrumb} toolbar={toolbar} toolbarLeft={toolbarLeft}>
         <div className="flex items-center justify-center p-8">
           <Loader2 className="mr-2 h-6 w-6 animate-spin" />
           Chargement...
@@ -222,7 +263,7 @@ export default function CompetitionDetailPage() {
   }
 
   return (
-    <Layout title={pageTitle} toolbar={toolbar} toolbarLeft={toolbarLeft}>
+    <Layout title={breadcrumb} toolbar={toolbar} toolbarLeft={toolbarLeft}>
       <FormProvider {...form}>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
