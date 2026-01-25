@@ -1,5 +1,5 @@
-import { ArrowLeft, ChevronLeft, ChevronRight, Shuffle, Trophy } from 'lucide-react';
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { ArrowLeft, ChevronRight, Shuffle, Trophy } from 'lucide-react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 
 import { EngagementForm, EngagementsTable, ExportMenu, ReorganizeRacesDialog } from '@/components/engagements';
@@ -23,10 +23,7 @@ export default function EngagementsPage() {
   const [isReorganizeOpen, setIsReorganizeOpen] = useState(false);
   const [needsTabReset, setNeedsTabReset] = useState(false);
 
-  // Scroll indicators pour les onglets
   const tabsRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
 
   // Charger les données
   const { data: competition, isLoading: isLoadingCompetition } = useCompetition(competitionId);
@@ -47,28 +44,6 @@ export default function EngagementsPage() {
   const races = useMemo(() => {
     return [...racesOriginalOrder].sort((a, b) => a.localeCompare(b, 'fr', { numeric: true }));
   }, [racesOriginalOrder]);
-
-  // Vérifier la position de scroll des onglets
-  const checkScrollPosition = useCallback(() => {
-    const el = tabsRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 0);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
-  }, []);
-
-  useEffect(() => {
-    const el = tabsRef.current;
-    if (!el) return;
-
-    checkScrollPosition();
-    el.addEventListener('scroll', checkScrollPosition);
-    window.addEventListener('resize', checkScrollPosition);
-
-    return () => {
-      el.removeEventListener('scroll', checkScrollPosition);
-      window.removeEventListener('resize', checkScrollPosition);
-    };
-  }, [checkScrollPosition, races]);
 
   // Vérifier si on peut réorganiser (aucun classement existant)
   const hasAnyRanking = useMemo(() => {
@@ -214,39 +189,27 @@ export default function EngagementsPage() {
 
   return (
     <Layout title={breadcrumb} toolbar={toolbar} toolbarLeft={toolbarLeft}>
-      <div className="space-y-2">
+      <div>
         {/* Onglets des courses */}
         {races.length > 0 && (
           <Tabs value={currentRaceCode} onValueChange={handleRaceChange} className="w-full">
-            <div className="relative flex items-center gap-1">
-              {/* Indicateur scroll gauche */}
-              <div className={`shrink-0 transition-opacity ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`}>
-                <ChevronLeft className="h-4 w-4 text-muted-foreground" />
-              </div>
-
-              <TabsList
-                ref={tabsRef}
-                className="mb-0 flex w-full justify-start gap-0 rounded-t-xl rounded-b-none bg-muted/50 p-0 h-auto overflow-x-auto scrollbar-none border-0"
-              >
-                {races.map(race => (
-                  <TabsTrigger
-                    key={race}
-                    value={race}
-                    className="group flex shrink-0 items-center gap-2.5 rounded-t-lg rounded-b-none first:rounded-tl-xl last:rounded-tr-xl px-5 py-3 bg-muted/30 border border-muted-foreground/20 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white data-[state=active]:border-[#047857]"
-                  >
-                    <span className="text-base font-bold">{race}</span>
-                    <Badge variant="secondary" className="text-xs">
-                      {engagementsCount[race] || 0}
-                    </Badge>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              {/* Indicateur scroll droite */}
-              <div className={`shrink-0 transition-opacity ${canScrollRight ? 'opacity-100' : 'opacity-0'}`}>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </div>
+            <TabsList
+              ref={tabsRef}
+              className="mb-0 flex w-full justify-start gap-0 rounded-t-xl rounded-b-none bg-muted/50 p-0 h-auto overflow-x-auto scrollbar-none border-0"
+            >
+              {races.map(race => (
+                <TabsTrigger
+                  key={race}
+                  value={race}
+                  className="group flex shrink-0 items-center gap-2.5 rounded-t-lg rounded-b-none first:rounded-tl-xl last:rounded-tr-xl px-6 py-3 bg-muted/30 border border-muted-foreground/20 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white data-[state=active]:border-[#047857]"
+                >
+                  <span className="text-base font-bold">{race}</span>
+                  <Badge variant="secondary" className="text-xs">
+                    {engagementsCount[race] || 0}
+                  </Badge>
+                </TabsTrigger>
+              ))}
+            </TabsList>
           </Tabs>
         )}
 
