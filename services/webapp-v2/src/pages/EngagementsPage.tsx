@@ -1,17 +1,11 @@
-import { ArrowLeft, ChevronLeft, ChevronRight, Download, Shuffle, Trophy } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Shuffle, Trophy } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 
-import { EngagementForm, EngagementsTable, ReorganizeRacesDialog } from '@/components/engagements';
+import { EngagementForm, EngagementsTable, ExportMenu, ReorganizeRacesDialog } from '@/components/engagements';
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { type CompetitionType as CompetitionTypeEnum } from '@/config/federations';
 import { useCompetition } from '@/hooks/useCompetitions';
@@ -156,19 +150,14 @@ export default function EngagementsPage() {
         <Shuffle className="h-4 w-4 mr-2" />
         Réorganiser les départs
       </Button>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" disabled title="Fonctionnalité à venir">
-            <Download className="h-4 w-4" />
-            Télécharger
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem>Engagements PDF</DropdownMenuItem>
-          <DropdownMenuItem>Feuilles d'émargement PDF</DropdownMenuItem>
-          <DropdownMenuItem>Engagements CSV</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {competition && currentRaceCode && (
+        <ExportMenu
+          engagements={engagements}
+          currentRaceCode={currentRaceCode}
+          races={races}
+          competition={competition}
+        />
+      )}
       <Button
         className="bg-emerald-600 hover:bg-emerald-700 text-white disabled:bg-emerald-600/50"
         disabled={totalEngagements === 0}
