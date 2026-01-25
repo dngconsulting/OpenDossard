@@ -116,7 +116,7 @@ export function HorairesTab() {
       <CardHeader>
         <CardTitle>Horaires & Circuit</CardTitle>
         <CardDescription>
-          Definissez les differents departs et leurs horaires
+          Définissez les différents départs et leurs horaires
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
