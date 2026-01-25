@@ -142,11 +142,18 @@ export default function EngagementsPage() {
     </nav>
   );
 
-  const toolbarLeft = competition ? (
+  const toolbarLeft = (
     <div className="flex items-center gap-2">
-      <Badge variant="outline">{totalEngagements} engagé{totalEngagements > 1 ? 's' : ''}</Badge>
+      <Button variant="outline" onClick={() => navigate('/competitions')}>
+        <ArrowLeft className="h-4 w-4" /> Retour
+      </Button>
+      {competition && (
+        <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
+          {totalEngagements} engagé{totalEngagements > 1 ? 's' : ''}
+        </Badge>
+      )}
     </div>
-  ) : null;
+  );
 
   const toolbar = (
     <div className="flex flex-col sm:flex-row gap-2">
@@ -181,9 +188,6 @@ export default function EngagementsPage() {
       >
         <Trophy className="h-4 w-4" />
         Classements
-      </Button>
-      <Button variant="outline" onClick={() => navigate('/competitions')}>
-        <ArrowLeft /> Retour
       </Button>
     </div>
   );
