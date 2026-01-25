@@ -1,11 +1,12 @@
 import { ArrowLeft, ChevronLeft, ChevronRight, Shuffle, Trophy } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 
 import { EngagementForm, EngagementsTable, ExportMenu, ReorganizeRacesDialog } from '@/components/engagements';
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { type CompetitionType as CompetitionTypeEnum } from '@/config/federations';
 import { useCompetition } from '@/hooks/useCompetitions';
@@ -126,9 +127,23 @@ export default function EngagementsPage() {
 
   const totalEngagements = engagements.length;
 
+  const breadcrumb = (
+    <nav className="flex items-center gap-2 text-sm">
+      <Link
+        to="/competitions"
+        className="text-muted-foreground hover:text-white dark:hover:text-foreground transition-colors"
+      >
+        Épreuves
+      </Link>
+      <ChevronRight className="size-4 text-muted-foreground" />
+      <span className="font-medium">
+        {competition?.name || <Skeleton className="h-4 w-32 inline-block" />}
+      </span>
+    </nav>
+  );
+
   const toolbarLeft = competition ? (
     <div className="flex items-center gap-2">
-      <h1 className="text-lg font-semibold">{competition.name}</h1>
       <Badge variant="outline">{totalEngagements} engagé{totalEngagements > 1 ? 's' : ''}</Badge>
     </div>
   ) : null;
@@ -177,7 +192,7 @@ export default function EngagementsPage() {
 
   if (isLoading && !competition) {
     return (
-      <Layout title="Engagements" toolbar={toolbar} toolbarLeft={toolbarLeft}>
+      <Layout title={breadcrumb} toolbar={toolbar} toolbarLeft={toolbarLeft}>
         <div className="flex items-center justify-center p-8">Chargement...</div>
       </Layout>
     );
@@ -185,7 +200,7 @@ export default function EngagementsPage() {
 
   if (!competition) {
     return (
-      <Layout title="Engagements" toolbar={toolbar} toolbarLeft={toolbarLeft}>
+      <Layout title={breadcrumb} toolbar={toolbar} toolbarLeft={toolbarLeft}>
         <div className="flex items-center justify-center p-8 text-destructive">
           Compétition non trouvée
         </div>
@@ -194,7 +209,7 @@ export default function EngagementsPage() {
   }
 
   return (
-    <Layout title="Engagements" toolbar={toolbar} toolbarLeft={toolbarLeft}>
+    <Layout title={breadcrumb} toolbar={toolbar} toolbarLeft={toolbarLeft}>
       <div className="space-y-2">
         {/* Onglets des courses */}
         {races.length > 0 && (
