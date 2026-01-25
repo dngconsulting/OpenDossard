@@ -56,9 +56,11 @@ type Props = {
     onSortChange: (column: string, direction: 'ASC' | 'DESC') => void;
   };
   onRolesChange?: (userId: number, roles: string) => void;
+  onEditUser?: (user: UserType) => void;
+  onDeleteUser?: (user: UserType) => void;
 };
 
-export const UsersTable = ({ users, isLoading, pagination, sorting, onRolesChange }: Props) => {
+export const UsersTable = ({ users, isLoading, pagination, sorting, onRolesChange, onEditUser, onDeleteUser }: Props) => {
   const columns = createColumns({ onRolesChange });
 
   return (
@@ -67,6 +69,8 @@ export const UsersTable = ({ users, isLoading, pagination, sorting, onRolesChang
       data={users}
       isLoading={isLoading}
       showColumnFilters={false}
+      onEditRow={onEditUser}
+      onDeleteRow={onDeleteUser}
       pagination={{
         enabled: true,
         meta: pagination.meta,

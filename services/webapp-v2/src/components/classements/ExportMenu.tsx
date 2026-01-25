@@ -9,7 +9,10 @@ import {
   DropdownMenuSub,
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
+import { useIsMobile } from '@/hooks/use-mobile';
 import type { RaceRowType } from '@/types/races';
 import type { CompetitionDetailType } from '@/types/competitions';
 import {
@@ -35,6 +38,8 @@ export function ExportMenu({
   races,
   competition,
 }: ExportMenuProps) {
+  const isMobile = useIsMobile();
+
   // CSV exports
   const handleExportCurrentRaceCsv = () => {
     const rows = transformRows(engagements, currentRaceCode);
@@ -67,46 +72,76 @@ export function ExportMenu({
           <ChevronDown className="h-4 w-4 ml-1" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        {/* PDF Exports */}
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <FileText className="h-4 w-4 mr-2 text-red-600" />
-            PDF
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent sideOffset={2} alignOffset={-5} collisionPadding={16}>
+      <DropdownMenuContent align="end" className="w-64">
+        {isMobile ? (
+          <>
+            {/* Mobile: flat menu */}
+            <DropdownMenuLabel className="text-red-600">PDF</DropdownMenuLabel>
             <DropdownMenuItem onClick={handleExportClassementsPdf}>
-              <FileText className="h-4 w-4 mr-2" />
+              <FileText className="h-4 w-4 mr-2 text-red-600" />
               Classements {currentRaceCode}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleExportAllClassementsPdf}>
-              <FileText className="h-4 w-4 mr-2" />
+              <FileText className="h-4 w-4 mr-2 text-red-600" />
               Classements (toutes courses)
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleExportPodiumsPdf}>
-              <FileText className="h-4 w-4 mr-2" />
+              <FileText className="h-4 w-4 mr-2 text-red-600" />
               Podiums
             </DropdownMenuItem>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
-
-        {/* CSV Exports */}
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <Sheet className="h-4 w-4 mr-2 text-green-600" />
-            CSV
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent sideOffset={2} alignOffset={-5} collisionPadding={16}>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-green-600">CSV</DropdownMenuLabel>
             <DropdownMenuItem onClick={handleExportCurrentRaceCsv}>
-              <Sheet className="h-4 w-4 mr-2" />
+              <Sheet className="h-4 w-4 mr-2 text-green-600" />
               Classements {currentRaceCode}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleExportAllRacesCsv}>
-              <Sheet className="h-4 w-4 mr-2" />
+              <Sheet className="h-4 w-4 mr-2 text-green-600" />
               Classements (toutes courses)
             </DropdownMenuItem>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
+          </>
+        ) : (
+          <>
+            {/* Desktop: submenus */}
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <FileText className="h-4 w-4 mr-2 text-red-600" />
+                PDF
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem onClick={handleExportClassementsPdf}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Classements {currentRaceCode}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportAllClassementsPdf}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Classements (toutes courses)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportPodiumsPdf}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Podiums
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <Sheet className="h-4 w-4 mr-2 text-green-600" />
+                CSV
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem onClick={handleExportCurrentRaceCsv}>
+                  <Sheet className="h-4 w-4 mr-2" />
+                  Classements {currentRaceCode}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportAllRacesCsv}>
+                  <Sheet className="h-4 w-4 mr-2" />
+                  Classements (toutes courses)
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

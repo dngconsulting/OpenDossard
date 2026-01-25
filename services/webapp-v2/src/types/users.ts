@@ -7,6 +7,15 @@ export type UserType = {
   roles: string;
 };
 
+export type CreateUserInput = {
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  roles: string;
+  password: string;
+};
+
 export type UserPaginationParams = {
   offset?: number;
   limit?: number;

@@ -1,4 +1,4 @@
-import type { UserType, UserPaginationParams, PaginatedResponse } from '@/types/users';
+import type { UserType, UserPaginationParams, PaginatedResponse, CreateUserInput } from '@/types/users';
 import { isMockMode } from '@/config/api.config';
 import { mockUsersService } from '@/services/mocks/users.mock.service';
 
@@ -23,11 +23,17 @@ const realUsersService = {
 
   getById: (id: number): Promise<UserType> => apiClient<UserType>(`/users/${id}`),
 
-  create: (user: Omit<UserType, 'id'>): Promise<UserType> =>
-    apiClient<UserType>('/users', {
+  create: (user: CreateUserInput): Promise<UserType> => {
+    // Convert roles string to array for the API
+    const apiUser = {
+      ...user,
+      roles: user.roles ? user.roles.split(',').filter(Boolean) : ['ORGANISATEUR'],
+    };
+    return apiClient<UserType>('/users', {
       method: 'POST',
-      body: JSON.stringify(user),
-    }),
+      body: JSON.stringify(apiUser),
+    });
+  },
 
   update: (id: number, updates: Partial<UserType>): Promise<UserType> => {
     // Convert roles string to array for the API

@@ -97,7 +97,7 @@ export class UsersService {
       throw new ConflictException('Email already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 12);
     const roles = createUserDto.roles ? createUserDto.roles.join(',') : 'ORGANISATEUR';
 
     const user = this.userRepository.create({
@@ -138,7 +138,7 @@ export class UsersService {
       throw new ConflictException('Current password is incorrect');
     }
 
-    const hashedPassword = await bcrypt.hash(updatePasswordDto.newPassword, 10);
+    const hashedPassword = await bcrypt.hash(updatePasswordDto.newPassword, 12);
     await this.userRepository.update(id, { password: hashedPassword });
 
     return { success: true };
@@ -146,7 +146,7 @@ export class UsersService {
 
   async resetPassword(id: number, newPassword: string): Promise<{ success: boolean }> {
     await this.findOne(id);
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
     await this.userRepository.update(id, { password: hashedPassword });
     return { success: true };
   }

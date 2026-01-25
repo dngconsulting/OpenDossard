@@ -1,5 +1,5 @@
-import { AlertTriangle, ExternalLink, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, ExternalLink, Trash2 } from 'lucide-react';
+import { useMemo, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +16,9 @@ import {
 import { useDeleteRace } from '@/hooks/useRaces';
 import { cn } from '@/lib/utils';
 import type { RaceRowType } from '@/types/races';
+
+type SortColumn = 'riderNumber' | 'name' | 'club' | 'gender' | 'dept' | 'birthYear' | 'catea' | 'catev' | 'fede';
+type SortDirection = 'asc' | 'desc';
 
 type EngagementsTableProps = {
   engagements: RaceRowType[];
@@ -35,6 +38,39 @@ function isSurclassed(catev: string | undefined, raceCode: string): boolean {
   return !categories.includes(catev);
 }
 
+type SortableHeaderProps = {
+  column: SortColumn;
+  currentColumn: SortColumn;
+  direction: SortDirection;
+  onSort: (column: SortColumn) => void;
+  children: React.ReactNode;
+  className?: string;
+};
+
+function SortableHeader({ column, currentColumn, direction, onSort, children, className }: SortableHeaderProps) {
+  const isActive = column === currentColumn;
+  return (
+    <TableHead className={className}>
+      <button
+        type="button"
+        className="flex items-center gap-1 hover:text-foreground transition-colors w-full"
+        onClick={() => onSort(column)}
+      >
+        {children}
+        {isActive ? (
+          direction === 'asc' ? (
+            <ArrowUp className="h-3 w-3" />
+          ) : (
+            <ArrowDown className="h-3 w-3" />
+          )
+        ) : (
+          <ArrowUpDown className="h-3 w-3 opacity-30" />
+        )}
+      </button>
+    </TableHead>
+  );
+}
+
 export function EngagementsTable({
   engagements,
   currentRaceCode,
@@ -42,19 +78,54 @@ export function EngagementsTable({
   isLoading = false,
 }: EngagementsTableProps) {
   const [deleteTarget, setDeleteTarget] = useState<RaceRowType | null>(null);
+  const [sortColumn, setSortColumn] = useState<SortColumn>('riderNumber');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const deleteMutation = useDeleteRace();
 
-  // Filtrer par course courante
+  // Toggle sort on column click
+  const handleSort = useCallback((column: SortColumn) => {
+    if (sortColumn === column) {
+      setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  }, [sortColumn]);
+
+  // Filtrer et trier par course courante
   const filteredEngagements = useMemo(() => {
-    return engagements
-      .filter(e => e.raceCode === currentRaceCode)
-      .sort((a, b) => (a.riderNumber || 0) - (b.riderNumber || 0));
-  }, [engagements, currentRaceCode]);
+    const filtered = engagements.filter(e => e.raceCode === currentRaceCode);
+
+    return filtered.sort((a, b) => {
+      const aVal = a[sortColumn];
+      const bVal = b[sortColumn];
+
+      // Handle null/undefined
+      if (aVal == null && bVal == null) return 0;
+      if (aVal == null) return sortDirection === 'asc' ? 1 : -1;
+      if (bVal == null) return sortDirection === 'asc' ? -1 : 1;
+
+      // Compare based on type
+      let comparison: number;
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        comparison = aVal - bVal;
+      } else {
+        comparison = String(aVal).localeCompare(String(bVal), 'fr', { numeric: true, sensitivity: 'base' });
+      }
+
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [engagements, currentRaceCode, sortColumn, sortDirection]);
 
   // Vérifier si on peut supprimer (pas classé et pas de commentaire type ABD/DNF)
-  const canDelete = (engagement: RaceRowType) => {
+  const canDelete = useCallback((engagement: RaceRowType) => {
     return !engagement.rankingScratch && !engagement.comment;
-  };
+  }, []);
+
+  // Vérifier si au moins un engagement peut être supprimé
+  const hasAnyDeletable = useMemo(() => {
+    return filteredEngagements.some(e => canDelete(e));
+  }, [filteredEngagements, canDelete]);
 
   const handleDelete = async () => {
     if (!deleteTarget) {
@@ -93,16 +164,34 @@ export function EngagementsTable({
         <Table className="min-w-[900px]">
           <TableHeader className="bg-muted/50">
             <TableRow>
-              <TableHead className="w-[60px]">Actions</TableHead>
-              <TableHead className="w-[70px]">Dossard</TableHead>
-              <TableHead className="w-[20%] min-w-[150px]">Coureur</TableHead>
-              <TableHead className="w-[20%] min-w-[150px]">Club</TableHead>
-              <TableHead className="w-[50px]">H/F</TableHead>
-              <TableHead className="w-[50px]">Dept</TableHead>
-              <TableHead className="w-[60px]">Année</TableHead>
-              <TableHead className="w-[70px]">Caté. A.</TableHead>
-              <TableHead className="w-[70px]">Caté. V.</TableHead>
-              <TableHead className="w-[70px]">Fédé.</TableHead>
+              {hasAnyDeletable && <TableHead className="w-[60px]">Actions</TableHead>}
+              <SortableHeader column="riderNumber" currentColumn={sortColumn} direction={sortDirection} onSort={handleSort} className="w-[70px]">
+                Dossard
+              </SortableHeader>
+              <SortableHeader column="name" currentColumn={sortColumn} direction={sortDirection} onSort={handleSort} className="w-[20%] min-w-[150px]">
+                Coureur
+              </SortableHeader>
+              <SortableHeader column="club" currentColumn={sortColumn} direction={sortDirection} onSort={handleSort} className="w-[20%] min-w-[150px]">
+                Club
+              </SortableHeader>
+              <SortableHeader column="gender" currentColumn={sortColumn} direction={sortDirection} onSort={handleSort} className="w-[50px]">
+                H/F
+              </SortableHeader>
+              <SortableHeader column="dept" currentColumn={sortColumn} direction={sortDirection} onSort={handleSort} className="w-[50px]">
+                Dept
+              </SortableHeader>
+              <SortableHeader column="birthYear" currentColumn={sortColumn} direction={sortDirection} onSort={handleSort} className="w-[60px]">
+                Année
+              </SortableHeader>
+              <SortableHeader column="catea" currentColumn={sortColumn} direction={sortDirection} onSort={handleSort} className="w-[70px]">
+                Caté. A.
+              </SortableHeader>
+              <SortableHeader column="catev" currentColumn={sortColumn} direction={sortDirection} onSort={handleSort} className="w-[70px]">
+                Caté. V.
+              </SortableHeader>
+              <SortableHeader column="fede" currentColumn={sortColumn} direction={sortDirection} onSort={handleSort} className="w-[70px]">
+                Fédé.
+              </SortableHeader>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -114,21 +203,23 @@ export function EngagementsTable({
                   className={cn(surclassed && 'bg-amber-50 dark:bg-amber-950/30')}
                 >
                   {/* Actions */}
-                  <TableCell>
-                    <div className="flex gap-1">
-                      {canDelete(engagement) && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-destructive hover:text-destructive"
-                          onClick={() => setDeleteTarget(engagement)}
-                          title="Désengager"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
+                  {hasAnyDeletable && (
+                    <TableCell>
+                      <div className="flex gap-1">
+                        {canDelete(engagement) && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-destructive hover:text-destructive"
+                            onClick={() => setDeleteTarget(engagement)}
+                            title="Désengager"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  )}
 
                   {/* Dossard - lien vers palmarès */}
                   <TableCell>

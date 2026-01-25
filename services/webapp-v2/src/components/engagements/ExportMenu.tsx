@@ -9,7 +9,10 @@ import {
   DropdownMenuSub,
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
+import { useIsMobile } from '@/hooks/use-mobile';
 import type { RaceRowType } from '@/types/races';
 import type { CompetitionDetailType } from '@/types/competitions';
 import {
@@ -34,6 +37,8 @@ export function ExportMenu({
   races,
   competition,
 }: ExportMenuProps) {
+  const isMobile = useIsMobile();
+
   // PDF exports
   const handleExportEngagesPdf = () => {
     exportEngagesPDF(engagements, currentRaceCode, competition);
@@ -69,50 +74,84 @@ export function ExportMenu({
           <ChevronDown className="h-4 w-4 ml-1" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        {/* PDF Exports */}
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <FileText className="h-4 w-4 mr-2 text-red-600" />
-            PDF
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent sideOffset={2} alignOffset={-5} collisionPadding={16}>
+      <DropdownMenuContent align="end" className="w-64">
+        {isMobile ? (
+          <>
+            {/* Mobile: flat menu */}
+            <DropdownMenuLabel className="text-red-600">PDF</DropdownMenuLabel>
             <DropdownMenuItem onClick={handleExportEngagesPdf}>
-              <FileText className="h-4 w-4 mr-2" />
-              Liste engagés {currentRaceCode}
+              <FileText className="h-4 w-4 mr-2 text-red-600" />
+              Engagés {currentRaceCode}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleExportAllEngagesPdf}>
-              <FileText className="h-4 w-4 mr-2" />
-              Liste engagés (toutes courses)
+              <FileText className="h-4 w-4 mr-2 text-red-600" />
+              Engagés (toutes courses)
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleExportEmargementPdf}>
-              <FileText className="h-4 w-4 mr-2" />
-              Feuille émargement {currentRaceCode}
+              <FileText className="h-4 w-4 mr-2 text-red-600" />
+              Émargement {currentRaceCode}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleExportAllEmargementPdf}>
-              <FileText className="h-4 w-4 mr-2" />
-              Feuilles émargement (toutes courses)
+              <FileText className="h-4 w-4 mr-2 text-red-600" />
+              Émargement (toutes courses)
             </DropdownMenuItem>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
-
-        {/* CSV Exports */}
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <Sheet className="h-4 w-4 mr-2 text-green-600" />
-            CSV
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent sideOffset={2} alignOffset={-5} collisionPadding={16}>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-green-600">CSV</DropdownMenuLabel>
             <DropdownMenuItem onClick={handleExportEngagesCsv}>
-              <Sheet className="h-4 w-4 mr-2" />
+              <Sheet className="h-4 w-4 mr-2 text-green-600" />
               Engagés {currentRaceCode}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleExportAllEngagesCsv}>
-              <Sheet className="h-4 w-4 mr-2" />
+              <Sheet className="h-4 w-4 mr-2 text-green-600" />
               Engagés (toutes courses)
             </DropdownMenuItem>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
+          </>
+        ) : (
+          <>
+            {/* Desktop: submenus */}
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <FileText className="h-4 w-4 mr-2 text-red-600" />
+                PDF
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem onClick={handleExportEngagesPdf}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Liste engagés {currentRaceCode}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportAllEngagesPdf}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Liste engagés (toutes courses)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportEmargementPdf}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Feuille émargement {currentRaceCode}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportAllEmargementPdf}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Feuilles émargement (toutes courses)
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <Sheet className="h-4 w-4 mr-2 text-green-600" />
+                CSV
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem onClick={handleExportEngagesCsv}>
+                  <Sheet className="h-4 w-4 mr-2" />
+                  Engagés {currentRaceCode}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportAllEngagesCsv}>
+                  <Sheet className="h-4 w-4 mr-2" />
+                  Engagés (toutes courses)
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

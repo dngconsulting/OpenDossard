@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import { usersApi } from '@/api/users.api';
 import useUserStore from '@/store/UserStore';
-import type { UserType, UserPaginationParams } from '@/types/users';
+import type { UserType, UserPaginationParams, CreateUserInput } from '@/types/users';
 
 export const usersKeys = {
   all: ['users'] as const,
@@ -121,7 +121,7 @@ export function useCreateUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (user: Omit<UserType, 'id'>) => usersApi.create(user),
+    mutationFn: (user: CreateUserInput) => usersApi.create(user),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },

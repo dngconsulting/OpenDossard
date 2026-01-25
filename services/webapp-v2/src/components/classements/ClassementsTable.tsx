@@ -221,9 +221,9 @@ function SortableRow({
       )}
 
       {/* Coureur + icônes */}
-      <TableCell>
+      <TableCell className="w-[150px]">
         {row.name && (
-          <div className="flex items-center gap-1 max-w-[200px]">
+          <div className="flex items-center gap-1">
             <PodiumIcon
               rankingScratch={row.rankingScratch}
               rankOfCate={row.rankOfCate}
@@ -244,8 +244,8 @@ function SortableRow({
       </TableCell>
 
       {/* Club */}
-      <TableCell>
-        <span className="block truncate max-w-[150px]" title={row.club ?? ''}>{row.club}</span>
+      <TableCell className="w-[120px]">
+        <span className="block truncate" title={row.club ?? ''}>{row.club}</span>
       </TableCell>
 
       {/* H/F */}
@@ -557,7 +557,7 @@ export function ClassementsTable({
         modifiers={[restrictToVerticalAxis]}
       >
         <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
-          <Table className="min-w-[700px]">
+          <Table className="min-w-[950px]">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[40px] hidden sm:table-cell"></TableHead>
@@ -565,8 +565,8 @@ export function ClassementsTable({
                 <TableHead className="w-[100px]">Dossard</TableHead>
                 {avecChrono && <TableHead className="w-[150px]">Chrono</TableHead>}
                 {avecChrono && <TableHead className="w-[80px]">Tours</TableHead>}
-                <TableHead>Coureur</TableHead>
-                <TableHead>Club</TableHead>
+                <TableHead className="w-[150px]">Coureur</TableHead>
+                <TableHead className="w-[120px]">Club</TableHead>
                 <TableHead className="w-[50px] text-center hidden sm:table-cell">H/F</TableHead>
                 <TableHead className="w-[60px] text-center hidden sm:table-cell">Dept</TableHead>
                 <TableHead className="w-[70px] text-center">CatéV</TableHead>

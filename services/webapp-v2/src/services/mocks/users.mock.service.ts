@@ -1,4 +1,4 @@
-import type { UserType, UserPaginationParams, PaginatedResponse } from '@/types/users';
+import type { UserType, UserPaginationParams, PaginatedResponse, CreateUserInput } from '@/types/users';
 import { users as initialUsers } from '@/mocks/users.mocks';
 
 let usersData: UserType[] = [...initialUsers];
@@ -51,12 +51,14 @@ export const mockUsersService = {
     return usersData.find(u => u.id === id);
   },
 
-  create: async (user: Omit<UserType, 'id'>): Promise<UserType> => {
+  create: async (user: CreateUserInput): Promise<UserType> => {
     await delay();
     if (usersData.find(u => u.email === user.email)) {
       throw new Error('User with this email already exists');
     }
-    const newUser = { ...user, id: nextId++ };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...userWithoutPassword } = user;
+    const newUser: UserType = { ...userWithoutPassword, id: nextId++ };
     usersData.push(newUser);
     return newUser;
   },

@@ -22,6 +22,7 @@ import LicencesPage from '@/pages/LicencesPage.tsx';
 import LoginPage from '@/pages/LoginPage.tsx';
 import NotFoundPage from '@/pages/NotFoundPage.tsx';
 import PalmaresPage from '@/pages/PalmaresPage.tsx';
+import UserDetailPage from '@/pages/UserDetailPage.tsx';
 import UsersPage from '@/pages/UsersPage.tsx';
 import WelcomePage from '@/pages/WelcomePage.tsx';
 import { ApiError, handleGlobalError } from '@/utils/error-handler';
@@ -76,6 +77,8 @@ export default function App() {
                 <Route path="/achievements" element={<AchievementsPage />} />
                 <Route path="/palmares/:licenceId?" element={<PalmaresPage />} />
                 <Route path="/users" element={<UsersPage />} />
+                <Route path="/user/new" element={<UserDetailPage />} />
+                <Route path="/user/:id" element={<UserDetailPage />} />
                 <Route path="/account" element={<AccountPage />} />
               </Route>
 

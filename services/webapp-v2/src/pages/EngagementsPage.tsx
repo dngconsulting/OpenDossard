@@ -119,7 +119,7 @@ export default function EngagementsPage() {
 
   const toolbarLeft = (
     <div className="flex items-center gap-2">
-      <Button variant="outline" onClick={() => navigate('/competitions')} className="hidden sm:flex">
+      <Button variant="outline" onClick={() => navigate('/competitions')}>
         <ArrowLeft className="h-4 w-4" /> Retour
       </Button>
       {competition && (
