@@ -18,7 +18,7 @@ export const apiConfig: ApiConfig = {
   users: 'real',
   challenges: 'mock',
   charts: 'mock',
-  dashboard: 'mock',
+  dashboard: 'real',
   palmares: 'mock',
   clubs: 'mock',
   departments: 'mock',

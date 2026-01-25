@@ -19,6 +19,13 @@ export interface DashboardStats {
   licencesByFederation: { federation: string; count: number }[];
 }
 
+export interface DashboardSummary {
+  stats: {
+    totalLicenses: number;
+    totalCompetitions: number;
+  };
+}
+
 export interface DashboardFilters {
   startDate?: Date;
   endDate?: Date;
@@ -149,6 +156,18 @@ export class DashboardService {
     return {
       recentCompetitions,
       recentRaces,
+    };
+  }
+
+  async getSummary(): Promise<DashboardSummary> {
+    const totalLicenses = await this.licenceRepository.count();
+    const totalCompetitions = await this.competitionRepository.count();
+
+    return {
+      stats: {
+        totalLicenses,
+        totalCompetitions,
+      },
     };
   }
 }

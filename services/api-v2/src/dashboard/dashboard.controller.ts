@@ -6,7 +6,7 @@ import {
   ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
-import { DashboardService, DashboardStats, DashboardFilters } from './dashboard.service';
+import { DashboardService, DashboardStats, DashboardFilters, DashboardSummary } from './dashboard.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -20,6 +20,14 @@ import { RaceEntity } from '../races/entities/race.entity';
 @Controller('dashboard')
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
+
+  @Get()
+  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @ApiOperation({ summary: 'Get dashboard summary' })
+  @ApiResponse({ status: 200, description: 'Dashboard summary with stats' })
+  async getSummary(): Promise<DashboardSummary> {
+    return this.dashboardService.getSummary();
+  }
 
   @Get('stats')
   @Roles(Role.ADMIN, Role.ORGANISATEUR)

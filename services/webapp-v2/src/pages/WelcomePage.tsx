@@ -6,6 +6,7 @@ import {
   IdCard,
   LayoutDashboard,
   ListOrdered,
+  Menu,
   Sparkles,
   Trophy,
   Users,
@@ -16,7 +17,7 @@ import { Link } from 'react-router-dom';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { appData } from '@/statics/app-data';
@@ -53,9 +54,8 @@ const features = [
 ];
 
 const quickStats = [
-  { label: 'Licenciés actifs', key: 'totalLicenses' as const, icon: Users },
-  { label: 'Courses cette saison', key: 'totalCompetitions' as const, icon: Calendar },
-  { label: 'Clubs partenaires', key: 'totalClubs' as const, icon: Bike },
+  { label: 'Licenciés', key: 'totalLicenses' as const, icon: Users },
+  { label: 'Épreuves', key: 'totalCompetitions' as const, icon: Calendar },
 ];
 
 function StatCard({
@@ -128,8 +128,40 @@ function FeatureCard({
   );
 }
 
-export default function WelcomePage() {
+function WelcomeHeader() {
   const isMobile = useIsMobile();
+  const { toggleSidebar } = useSidebar();
+
+  return (
+    <header className="header-sidebar flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+      <div className="flex items-center gap-2 px-4 w-full">
+        {isMobile ? (
+          <>
+            <Button variant="ghost" size="icon" className="header-icon size-8" onClick={toggleSidebar}>
+              <Menu className="size-5" />
+            </Button>
+            <div className="flex-1 flex justify-center">
+              <img src={appData.app.logoUrl} alt="logo" className="h-8 w-auto" />
+            </div>
+            {/* Spacer pour équilibrer le burger menu */}
+            <div className="size-8" />
+          </>
+        ) : (
+          <>
+            <SidebarTrigger className="header-icon -ml-1" />
+            <Separator
+              orientation="vertical"
+              className="header-separator mr-2 data-[orientation=vertical]:h-4"
+            />
+            <h1 className="flex-1 font-medium">Accueil</h1>
+          </>
+        )}
+      </div>
+    </header>
+  );
+}
+
+export default function WelcomePage() {
   const { data: dashboardData } = useDashboard();
 
   const stats = dashboardData?.stats;
@@ -139,28 +171,7 @@ export default function WelcomePage() {
       <AppSidebar />
       <SidebarInset>
         {/* Header */}
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4 w-full">
-            {isMobile ? (
-              <>
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <img src={appData.app.logoUrl} alt="logo" className="w-3/4" />
-                </div>
-                <Separator orientation="vertical" className="data-[orientation=vertical]:h-4" />
-              </>
-            ) : (
-              <>
-                <SidebarTrigger className="-ml-1" />
-                <Separator
-                  orientation="vertical"
-                  className="mr-2 data-[orientation=vertical]:h-4"
-                />
-              </>
-            )}
-            <h1 className="flex-1 font-medium">Accueil</h1>
-            {isMobile && <SidebarTrigger className="-ml-1" />}
-          </div>
-        </header>
+        <WelcomeHeader />
 
         {/* Main Content */}
         <div className="flex flex-1 flex-col gap-6 p-4 pt-0 overflow-auto">
@@ -231,7 +242,7 @@ export default function WelcomePage() {
 
           {/* Quick Stats */}
           {stats && (
-            <section className="stagger-children grid gap-4 md:grid-cols-3">
+            <section className="stagger-children grid gap-4 md:grid-cols-2">
               {quickStats.map((stat, index) => (
                 <StatCard
                   key={stat.label}
