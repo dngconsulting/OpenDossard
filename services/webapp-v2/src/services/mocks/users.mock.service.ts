@@ -1,38 +1,74 @@
-import type { UserTableType } from '@/components/data/UsersTable';
+import type { UserType, UserPaginationParams, PaginatedResponse } from '@/types/users';
 import { users as initialUsers } from '@/mocks/users.mocks';
 
-let usersData: UserTableType[] = [...initialUsers];
+let usersData: UserType[] = [...initialUsers];
+let nextId = usersData.length + 1;
 
 const delay = () => new Promise(resolve => setTimeout(resolve, 300));
 
 export const mockUsersService = {
-  getAll: async (): Promise<UserTableType[]> => {
+  getAll: async (params: UserPaginationParams = {}): Promise<PaginatedResponse<UserType>> => {
     await delay();
-    return [...usersData];
+    const { offset = 0, limit = 20, search, orderBy = 'lastName', orderDirection = 'ASC' } = params;
+
+    let filtered = [...usersData];
+
+    // Apply search filter
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filtered = filtered.filter(
+        u =>
+          u.email.toLowerCase().includes(searchLower) ||
+          u.firstName.toLowerCase().includes(searchLower) ||
+          u.lastName.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      const aVal = String(a[orderBy as keyof UserType] || '').toLowerCase();
+      const bVal = String(b[orderBy as keyof UserType] || '').toLowerCase();
+      const comparison = aVal.localeCompare(bVal);
+      return orderDirection === 'DESC' ? -comparison : comparison;
+    });
+
+    const total = filtered.length;
+    const data = filtered.slice(offset, offset + limit);
+
+    return {
+      data,
+      meta: {
+        offset,
+        limit,
+        total,
+        hasMore: offset + data.length < total,
+      },
+    };
   },
 
-  getByEmail: async (email: string): Promise<UserTableType | undefined> => {
+  getById: async (id: number): Promise<UserType | undefined> => {
     await delay();
-    return usersData.find(u => u.email === email);
+    return usersData.find(u => u.id === id);
   },
 
-  create: async (user: UserTableType): Promise<UserTableType> => {
+  create: async (user: Omit<UserType, 'id'>): Promise<UserType> => {
     await delay();
     if (usersData.find(u => u.email === user.email)) {
       throw new Error('User with this email already exists');
     }
-    usersData.push(user);
-    return user;
+    const newUser = { ...user, id: nextId++ };
+    usersData.push(newUser);
+    return newUser;
   },
 
-  update: async (email: string, updates: Partial<UserTableType>): Promise<UserTableType> => {
+  update: async (id: number, updates: Partial<UserType>): Promise<UserType> => {
     await delay();
-    const index = usersData.findIndex(u => u.email === email);
+    const index = usersData.findIndex(u => u.id === id);
     if (index === -1) {
       throw new Error('User not found');
     }
 
-    if (updates.email && updates.email !== email) {
+    if (updates.email && updates.email !== usersData[index].email) {
       if (usersData.find(u => u.email === updates.email)) {
         throw new Error('User with this email already exists');
       }
@@ -42,8 +78,8 @@ export const mockUsersService = {
     return usersData[index];
   },
 
-  delete: async (email: string): Promise<void> => {
+  delete: async (id: number): Promise<void> => {
     await delay();
-    usersData = usersData.filter(u => u.email !== email);
+    usersData = usersData.filter(u => u.id !== id);
   },
 };

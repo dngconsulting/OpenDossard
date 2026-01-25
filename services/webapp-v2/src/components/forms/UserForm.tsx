@@ -11,7 +11,7 @@ const formSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   email: z.email(),
-  phoneNumber: z.string().optional(),
+  phone: z.string().optional(),
 });
 
 type UserFormProps = {
@@ -25,7 +25,7 @@ export const UserForm = ({ user }: UserFormProps) => {
       firstName: user?.firstName ?? '',
       lastName: user?.lastName ?? '',
       email: user?.email ?? '',
-      phoneNumber: user?.phoneNumber ?? '',
+      phone: user?.phone ?? '',
     },
   });
 
@@ -37,7 +37,7 @@ export const UserForm = ({ user }: UserFormProps) => {
             <StringField field="lastName" form={userForm} label="Nom" />
             <StringField field="firstName" form={userForm} label="Prénom" />
             <StringField field="email" form={userForm} label="Email" />
-            <StringField field="phoneNumber" form={userForm} label="Téléphone" />
+            <StringField field="phone" form={userForm} label="Téléphone" />
           </FieldSet>
           <FieldSet>
             <Button type="submit">Enregistrer</Button>

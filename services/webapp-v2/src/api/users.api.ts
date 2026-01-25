@@ -1,29 +1,48 @@
-import type { UserTableType } from '@/components/data/UsersTable';
+import type { UserType, UserPaginationParams, PaginatedResponse } from '@/types/users';
 import { isMockMode } from '@/config/api.config';
 import { mockUsersService } from '@/services/mocks/users.mock.service';
 
 import { apiClient } from './client';
 
+const buildQueryString = (params: UserPaginationParams): string => {
+  const searchParams = new URLSearchParams();
+
+  if (params.offset && params.offset > 0) searchParams.set('offset', String(params.offset));
+  if (params.limit && params.limit !== 20) searchParams.set('limit', String(params.limit));
+  if (params.search) searchParams.set('search', params.search);
+  if (params.orderBy) searchParams.set('orderBy', params.orderBy);
+  if (params.orderDirection) searchParams.set('orderDirection', params.orderDirection);
+
+  const queryString = searchParams.toString();
+  return queryString ? `?${queryString}` : '';
+};
+
 const realUsersService = {
-  getAll: (): Promise<UserTableType[]> => apiClient<UserTableType[]>('/users'),
+  getAll: (params: UserPaginationParams = {}): Promise<PaginatedResponse<UserType>> =>
+    apiClient<PaginatedResponse<UserType>>(`/users${buildQueryString(params)}`),
 
-  getByEmail: (email: string): Promise<UserTableType> =>
-    apiClient<UserTableType>(`/users/${encodeURIComponent(email)}`),
+  getById: (id: number): Promise<UserType> => apiClient<UserType>(`/users/${id}`),
 
-  create: (user: UserTableType): Promise<UserTableType> =>
-    apiClient<UserTableType>('/users', {
+  create: (user: Omit<UserType, 'id'>): Promise<UserType> =>
+    apiClient<UserType>('/users', {
       method: 'POST',
       body: JSON.stringify(user),
     }),
 
-  update: (email: string, updates: Partial<UserTableType>): Promise<UserTableType> =>
-    apiClient<UserTableType>(`/users/${encodeURIComponent(email)}`, {
+  update: (id: number, updates: Partial<UserType>): Promise<UserType> => {
+    // Convert roles string to array for the API
+    const apiUpdates = {
+      ...updates,
+      roles: updates.roles ? updates.roles.split(',').filter(Boolean) : undefined,
+    };
+    return apiClient<UserType>(`/users/${id}`, {
       method: 'PATCH',
-      body: JSON.stringify(updates),
-    }),
+      body: JSON.stringify(apiUpdates),
+    });
+  },
 
-  delete: (email: string): Promise<void> =>
-    apiClient<void>(`/users/${encodeURIComponent(email)}`, {
+  delete: (id: number): Promise<void> =>
+    apiClient<void>(`/users/${id}`, {
       method: 'DELETE',
     }),
 };
