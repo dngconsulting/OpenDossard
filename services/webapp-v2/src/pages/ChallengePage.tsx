@@ -145,7 +145,7 @@ export default function ChallengePage() {
 
   return (
     <Layout title={breadcrumb} toolbar={toolbar} toolbarLeft={toolbarLeft}>
-      <div className="space-y-2">
+      <div>
         {/* Category Tabs */}
         {categories.length > 0 && (
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
