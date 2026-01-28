@@ -1,9 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Camera, Lock, Save, UserCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FieldGroup, FieldSet, StringField, Field, FieldLabel, FieldError } from '@/components/ui/field';
 import { Form } from '@/components/ui/form';
 import { RolesMultiSelect } from '@/components/ui/roles-multi-select';
@@ -42,6 +45,12 @@ type UserFormProps = {
   onSuccess: () => void;
 };
 
+function getInitials(firstName?: string, lastName?: string): string {
+  const f = firstName?.charAt(0)?.toUpperCase() ?? '';
+  const l = lastName?.charAt(0)?.toUpperCase() ?? '';
+  return f + l || '?';
+}
+
 export const UserForm = ({ user, isCreating, onSuccess }: UserFormProps) => {
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
@@ -61,6 +70,9 @@ export const UserForm = ({ user, isCreating, onSuccess }: UserFormProps) => {
       confirmPassword: '',
     },
   });
+
+  const watchedFirstName = form.watch('firstName');
+  const watchedLastName = form.watch('lastName');
 
   const onSubmit = async (data: FormValues) => {
     try {
@@ -97,66 +109,114 @@ export const UserForm = ({ user, isCreating, onSuccess }: UserFormProps) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 gap-6">
-        <FieldGroup>
-          <FieldSet>
-            <StringField
-              field="email"
-              form={form}
-              label="Email"
-              type="email"
-              autoComplete="email"
-              required
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <StringField field="lastName" form={form} label="Nom" autoComplete="family-name" />
-              <StringField field="firstName" form={form} label="Prénom" autoComplete="given-name" />
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Profil */}
+        <Card className="bg-slate-100 dark:bg-muted/50 border-slate-200 dark:border-muted">
+          <CardHeader className="pb-0">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <UserCircle className="h-4 w-4 text-primary" />
+              Profil
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-6 items-start">
+              {/* Avatar */}
+              <div className="flex flex-col items-center gap-2 pt-1">
+                <div className="relative group cursor-pointer">
+                  <Avatar className="h-20 w-20 text-lg">
+                    <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xl">
+                      {getInitials(watchedFirstName, watchedLastName)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Camera className="h-5 w-5 text-white" />
+                  </div>
+                </div>
+                <span className="text-xs text-muted-foreground">Photo</span>
+              </div>
+
+              {/* Champs */}
+              <div className="flex-1 w-full">
+                <FieldGroup>
+                  <FieldSet>
+                    <StringField
+                      field="email"
+                      form={form}
+                      label="Email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <StringField field="lastName" form={form} label="Nom" autoComplete="family-name" />
+                      <StringField field="firstName" form={form} label="Prénom" autoComplete="given-name" />
+                    </div>
+                    <StringField field="phone" form={form} label="Téléphone" type="tel" autoComplete="tel" />
+
+                    <Field data-invalid={!!form.formState.errors.roles}>
+                      <FieldLabel>
+                        Rôles
+                        <span className="text-destructive">*</span>
+                      </FieldLabel>
+                      <RolesMultiSelect
+                        roles={form.watch('roles')}
+                        onChange={value => form.setValue('roles', value, { shouldValidate: true })}
+                      />
+                      {form.formState.errors.roles && (
+                        <FieldError errors={[form.formState.errors.roles]} />
+                      )}
+                    </Field>
+                  </FieldSet>
+                </FieldGroup>
+              </div>
             </div>
-            <StringField field="phone" form={form} label="Téléphone" type="tel" autoComplete="tel" />
+          </CardContent>
+        </Card>
 
-            <Field data-invalid={!!form.formState.errors.roles}>
-              <FieldLabel>
-                Rôles
-                <span className="text-destructive">*</span>
-              </FieldLabel>
-              <RolesMultiSelect
-                roles={form.watch('roles')}
-                onChange={value => form.setValue('roles', value, { shouldValidate: true })}
-              />
-              {form.formState.errors.roles && (
-                <FieldError errors={[form.formState.errors.roles]} />
-              )}
-            </Field>
+        {/* Mot de passe (création uniquement) */}
+        {isCreating && (
+          <Card className="bg-slate-100 dark:bg-muted/50 border-slate-200 dark:border-muted">
+            <CardHeader className="pb-0">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Lock className="h-4 w-4 text-primary" />
+                Mot de passe
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FieldGroup>
+                <FieldSet>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <StringField
+                      field="password"
+                      form={form}
+                      label="Mot de passe"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      description="Minimum 8 caractères"
+                    />
+                    <StringField
+                      field="confirmPassword"
+                      form={form}
+                      label="Confirmer le mot de passe"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                    />
+                  </div>
+                </FieldSet>
+              </FieldGroup>
+            </CardContent>
+          </Card>
+        )}
 
-            {isCreating && (
-              <>
-                <StringField
-                  field="password"
-                  form={form}
-                  label="Mot de passe"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  description="Minimum 8 caractères"
-                />
-                <StringField
-                  field="confirmPassword"
-                  form={form}
-                  label="Confirmer le mot de passe"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                />
-              </>
-            )}
-          </FieldSet>
-
-          <FieldSet>
-            <Button type="submit" size="sm" disabled={isPending}>
-              {isPending ? 'Enregistrement...' : isCreating ? 'Créer' : 'Enregistrer'}
-            </Button>
-          </FieldSet>
-        </FieldGroup>
+        {/* Submit */}
+        <div className="flex justify-center">
+          <Button type="submit" size="sm" disabled={isPending} className="w-[150px]">
+            <Save className="h-4 w-4" />
+            {isPending ? 'Enregistrement...' : isCreating ? 'Créer' : 'Enregistrer'}
+          </Button>
+        </div>
       </form>
     </Form>
   );

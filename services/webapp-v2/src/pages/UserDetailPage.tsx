@@ -54,7 +54,7 @@ export default function UserDetailPage() {
 
   return (
     <Layout title={breadcrumb} toolbarLeft={toolbarLeft}>
-      <div className="max-w-2xl">
+      <div className="max-w-3xl">
         <UserForm
           user={user}
           isCreating={isCreating}
