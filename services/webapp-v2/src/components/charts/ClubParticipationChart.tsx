@@ -25,6 +25,7 @@ const chartConfig = {
 type Props = {
   data: ClubParticipationItem[] | undefined;
   isLoading: boolean;
+  defaultOpen?: boolean;
 };
 
 function truncateLabel(label: string, maxLen = 40): string {
@@ -32,7 +33,7 @@ function truncateLabel(label: string, maxLen = 40): string {
   return label.slice(0, maxLen - 1) + '\u2026';
 }
 
-export function ClubParticipationChart({ data, isLoading }: Props) {
+export function ClubParticipationChart({ data, isLoading, defaultOpen }: Props) {
   if (isLoading) return <ChartSkeleton />;
   if (!data?.length) return <ChartEmpty />;
 
@@ -41,6 +42,7 @@ export function ClubParticipationChart({ data, isLoading }: Props) {
 
   return (
     <CollapsibleChartCard
+      defaultOpen={defaultOpen}
       header={
         <>
           <div className="h-10 w-1 rounded-full bg-gradient-to-b from-[var(--accent-green)] to-[var(--teal)]" />
@@ -68,6 +70,7 @@ export function ClubParticipationChart({ data, isLoading }: Props) {
             dataKey="club"
             type="category"
             width={320}
+            interval={0}
             tickLine={false}
             axisLine={false}
             tick={({ x, y, payload }) => (
@@ -84,6 +87,9 @@ export function ClubParticipationChart({ data, isLoading }: Props) {
           </Bar>
         </BarChart>
       </ChartContainer>
+      {data.length >= 100 && (
+        <p className="text-xs text-muted-foreground text-center mt-2">Seuls les 100 premiers clubs sont affichés</p>
+      )}
     </CollapsibleChartCard>
   );
 }

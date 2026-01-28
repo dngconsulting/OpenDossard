@@ -90,6 +90,7 @@ export class DashboardService {
       .groupBy('competition.id')
       .addGroupBy('competition.name')
       .orderBy('count', 'DESC')
+      .limit(100)
       .getRawMany();
 
     return results.map(r => ({ name: r.name, count: parseInt(r.count, 10) }));
@@ -102,6 +103,7 @@ export class DashboardService {
       .addSelect('COUNT(race.id)', 'count')
       .groupBy('race.club')
       .orderBy('count', 'DESC')
+      .limit(100)
       .getRawMany();
 
     return results.map(r => ({ club: r.club, count: parseInt(r.count, 10) }));

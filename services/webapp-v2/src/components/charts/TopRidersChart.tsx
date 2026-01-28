@@ -25,6 +25,7 @@ const chartConfig = {
 type Props = {
   data: TopRiderItem[] | undefined;
   isLoading: boolean;
+  defaultOpen?: boolean;
 };
 
 function truncateLabel(label: string, maxLen = 24): string {
@@ -32,7 +33,7 @@ function truncateLabel(label: string, maxLen = 24): string {
   return label.slice(0, maxLen - 1) + '\u2026';
 }
 
-export function TopRidersChart({ data, isLoading }: Props) {
+export function TopRidersChart({ data, isLoading, defaultOpen }: Props) {
   if (isLoading) return <ChartSkeleton />;
   if (!data?.length) return <ChartEmpty />;
 
@@ -43,6 +44,7 @@ export function TopRidersChart({ data, isLoading }: Props) {
 
   return (
     <CollapsibleChartCard
+      defaultOpen={defaultOpen}
       header={
         <>
           <div className="h-10 w-1 rounded-full bg-gradient-to-b from-[var(--teal)] to-[var(--primary)]" />
@@ -68,6 +70,7 @@ export function TopRidersChart({ data, isLoading }: Props) {
             dataKey="displayName"
             type="category"
             width={200}
+            interval={0}
             tickLine={false}
             axisLine={false}
             tick={({ x, y, payload }) => (
@@ -93,6 +96,9 @@ export function TopRidersChart({ data, isLoading }: Props) {
           </Bar>
         </BarChart>
       </ChartContainer>
+      {data.length >= 50 && (
+        <p className="text-xs text-muted-foreground text-center mt-2">Seuls les 50 premiers coureurs sont affichés</p>
+      )}
     </CollapsibleChartCard>
   );
 }
