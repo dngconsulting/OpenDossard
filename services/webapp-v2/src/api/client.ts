@@ -12,8 +12,9 @@ export function setAuthAccessors(getToken: () => string | null, logout: () => vo
 }
 
 export async function apiClient<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const isFormData = options?.body instanceof FormData;
   const headers: HeadersInit = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...options?.headers,
   };
 

@@ -106,4 +106,19 @@ export const racesApi = {
       method: 'PUT',
       body: JSON.stringify(items),
     }),
+
+  /**
+   * Upload d'un fichier CSV de résultats pour une compétition
+   */
+  uploadResultsCsv: (competitionId: number, file: File): Promise<{ processed: number; errors: string[] }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient<{ processed: number; errors: string[] }>(
+      `/races/results/upload/${competitionId}`,
+      {
+        method: 'POST',
+        body: formData,
+      },
+    );
+  },
 };

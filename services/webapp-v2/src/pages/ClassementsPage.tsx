@@ -2,7 +2,7 @@ import { ArrowLeft, ChevronRight, ClipboardList } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 
-import { ClassementsTable, ExportMenu } from '@/components/classements';
+import { ClassementsTable, ExportMenu, ImportClassementButton } from '@/components/classements';
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -106,6 +106,9 @@ export default function ClassementsPage() {
 
   const toolbar = (
     <div className="flex flex-col sm:flex-row gap-2">
+      {competition && (
+        <ImportClassementButton competitionId={competition.id} />
+      )}
       {competition && currentRaceCode && (
         <ExportMenu
           engagements={engagements}

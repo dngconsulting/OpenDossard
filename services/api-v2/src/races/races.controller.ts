@@ -12,7 +12,10 @@ import {
   ParseIntPipe,
   HttpCode,
   HttpStatus,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiTags,
   ApiOperation,
@@ -271,6 +274,25 @@ export class RacesController {
     @Body() raceData: Partial<RaceEntity>,
   ): Promise<RaceEntity> {
     return this.racesService.update(id, raceData);
+  }
+
+  // ==================== UPLOAD CSV ====================
+
+  @UseInterceptors(FileInterceptor('file'))
+  @Post('results/upload/:competitionId')
+  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @ApiOperation({
+    summary: 'Upload race results from CSV file',
+    operationId: 'uploadResultsCsv',
+  })
+  @ApiParam({ name: 'competitionId', type: Number })
+  @ApiResponse({ status: 201, description: 'Results uploaded' })
+  @ApiResponse({ status: 400, description: 'Invalid CSV format or data' })
+  async uploadResultsCsv(
+    @UploadedFile() file: Express.Multer.File,
+    @Param('competitionId', ParseIntPipe) competitionId: number,
+  ): Promise<{ processed: number; errors: string[] }> {
+    return this.racesService.uploadResultsCsv(competitionId, file);
   }
 
   // ==================== RESULTS ====================

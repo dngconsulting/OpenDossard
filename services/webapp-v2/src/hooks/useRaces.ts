@@ -180,6 +180,28 @@ export function useReorderRankings() {
   });
 }
 
+/**
+ * Hook pour uploader un fichier CSV de résultats
+ */
+export function useUploadResultsCsv() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      competitionId,
+      file,
+    }: {
+      competitionId: number;
+      file: File;
+    }) => racesApi.uploadResultsCsv(competitionId, file),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: racesKeys.competition(variables.competitionId),
+      });
+    },
+  });
+}
+
 // ============================================================================
 // Legacy hooks for backward compatibility with existing components
 // These are placeholder implementations that will need real API integration
