@@ -103,9 +103,7 @@ export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
       accessorKey: 'club',
       header: 'Club',
       size: 200,
-      cell: ({ row }) => (
-        <span className="text-muted-foreground">{row.original.club || '-'}</span>
-      ),
+      cell: ({ row }) => <span className="text-muted-foreground">{row.original.club || '-'}</span>,
     },
     {
       accessorKey: 'gender',
@@ -125,22 +123,22 @@ export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
     {
       accessorKey: 'birthYear',
       header: 'Année',
-      size: 90,
+      size: 80,
     },
     {
       accessorKey: 'catea',
       header: 'Caté.A',
-      size: 90,
+      size: 80,
     },
     {
       accessorKey: 'catev',
       header: 'Caté.V',
-      size: 90,
+      size: 80,
     },
     {
       accessorKey: 'catevCX',
       header: 'CX',
-      size: 90,
+      size: 80,
     },
     {
       accessorKey: 'fede',

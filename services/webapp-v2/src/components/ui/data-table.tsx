@@ -40,6 +40,7 @@ import {
   GripVertical,
   Trash2,
   Trophy,
+  X,
 } from 'lucide-react';
 import * as React from 'react';
 
@@ -381,27 +382,44 @@ export function DataTable<TData, TValue>({
             {headerGroup.headers.map(header => {
               const columnId = header.column.id;
               const hasFixedSize = header.column.columnDef.size !== undefined;
+              const showClear = !hasFixedSize || header.getSize() >= 80;
+              const filterValue = isServerFiltering
+                ? localFilters[columnId] || ''
+                : header.column.getFilterValue()?.toString() || '';
               return (
                 <TableFilterCell
                   key={header.id}
                   style={hasFixedSize ? { width: header.getSize() } : undefined}
                 >
-                  <Input
-                    placeholder={columnId === 'club' ? 'Ex: Castan\u00e9en' : ''}
-                    value={
-                      isServerFiltering
-                        ? localFilters[columnId] || ''
-                        : header.column.getFilterValue()?.toString() || ''
-                    }
-                    onChange={event => {
-                      if (isServerFiltering) {
-                        handleFilterChange(columnId, event.target.value);
-                      } else {
-                        header.column.setFilterValue(event.target.value);
-                      }
-                    }}
-                    className={`h-8 text-sm text-left bg-background/80 border-border/50 focus:border-primary/50 ${columnId === 'club' ? 'placeholder:italic' : ''}`}
-                  />
+                  <div className="relative">
+                    <Input
+                      placeholder={columnId === 'club' ? 'Ex: Castan\u00e9en' : ''}
+                      value={filterValue}
+                      onChange={event => {
+                        if (isServerFiltering) {
+                          handleFilterChange(columnId, event.target.value);
+                        } else {
+                          header.column.setFilterValue(event.target.value);
+                        }
+                      }}
+                      className={`h-8 text-sm text-left ${showClear ? 'pr-7' : ''} bg-background/80 border-border/50 focus:border-primary/50 ${columnId === 'club' ? 'placeholder:italic' : ''}`}
+                    />
+                    {showClear && filterValue && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (isServerFiltering) {
+                            handleFilterChange(columnId, '');
+                          } else {
+                            header.column.setFilterValue('');
+                          }
+                        }}
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </TableFilterCell>
               );
             })}

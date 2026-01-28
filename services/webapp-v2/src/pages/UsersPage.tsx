@@ -1,4 +1,4 @@
-import { ArrowLeft, Plus, Search } from 'lucide-react';
+import { ArrowLeft, Plus, Search, X } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { showSuccessToast } from '@/utils/error-handler/error-handler';
@@ -102,8 +102,17 @@ export default function UsersPage() {
             placeholder="Rechercher un utilisateur..."
             value={searchInput}
             onChange={handleSearchChange}
-            className="pl-9"
+            className="pl-9 pr-9"
           />
+          {searchInput && (
+            <button
+              type="button"
+              onClick={() => { setSearchInput(''); setSearch(''); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
       <UsersTable

@@ -1,4 +1,4 @@
-import { Loader2, User, MapPin, Calendar, CreditCard, MessageCircle } from 'lucide-react';
+import { Loader2, User, MapPin, Calendar, CreditCard, MessageCircle, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -198,9 +198,23 @@ export function LicenceAutocomplete({
           onFocus={handleFocus}
           onBlur={handleBlur}
           disabled={disabled}
-          className={cn(error && 'border-destructive')}
+          className={cn('pr-9', error && 'border-destructive')}
         />
-        {(isLoading || isSearching) && (
+        {inputValue && !disabled && (
+          <button
+            type="button"
+            onClick={() => {
+              setInputValue('');
+              setSearchTerm('');
+              setOpen(false);
+              if (value) onChange(null);
+            }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+        {!inputValue && (isLoading || isSearching) && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
         )}
         {open && searchTerm.length >= 2 && (
