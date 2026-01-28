@@ -1,8 +1,7 @@
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, LabelList } from 'recharts';
 
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -13,6 +12,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { CollapsibleChartCard } from './CollapsibleChartCard';
 import type { TopRiderItem } from '@/types/dashboard';
 
 const chartConfig = {
@@ -27,6 +27,11 @@ type Props = {
   isLoading: boolean;
 };
 
+function truncateLabel(label: string, maxLen = 24): string {
+  if (label.length <= maxLen) return label;
+  return label.slice(0, maxLen - 1) + '\u2026';
+}
+
 export function TopRidersChart({ data, isLoading }: Props) {
   if (isLoading) return <ChartSkeleton />;
   if (!data?.length) return <ChartEmpty />;
@@ -37,67 +42,78 @@ export function TopRidersChart({ data, isLoading }: Props) {
   }));
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Top 50 coureurs les plus assidus</CardTitle>
-        <CardDescription>
-          Classement par nombre de participations
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="w-full" style={{ height: Math.max(400, chartData.length * 24) }}>
-          <BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 30 }}>
-            <CartesianGrid horizontal={false} />
-            <YAxis
-              dataKey="displayName"
-              type="category"
-              width={180}
-              tickLine={false}
-              axisLine={false}
-              tick={{ fontSize: 11 }}
-            />
-            <XAxis type="number" tickLine={false} axisLine={false} />
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  labelFormatter={(_value, payload) => {
-                    const item = payload?.[0]?.payload as TopRiderItem & { displayName: string } | undefined;
-                    return item ? `${item.displayName} (${item.club || 'Sans club'})` : '';
-                  }}
-                />
-              }
-            />
-            <Bar dataKey="count" fill="var(--color-count)" radius={[0, 4, 4, 0]} />
-          </BarChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
+    <CollapsibleChartCard
+      header={
+        <>
+          <div className="h-10 w-1 rounded-full bg-gradient-to-b from-[var(--teal)] to-[var(--primary)]" />
+          <div>
+            <CardTitle className="text-lg font-bold tracking-tight">Top {data.length} coureurs les plus assidus</CardTitle>
+            <CardDescription className="text-sm mt-0.5">
+              Classement par nombre de participations
+            </CardDescription>
+          </div>
+        </>
+      }
+    >
+      <ChartContainer config={chartConfig} className="w-full" style={{ height: Math.max(400, chartData.length * 30) }}>
+        <BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 50 }} barGap={4}>
+          <defs>
+            <linearGradient id="gradTopRiders" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="var(--teal)" stopOpacity={0.9} />
+              <stop offset="100%" stopColor="var(--primary)" stopOpacity={1} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid horizontal={false} strokeDasharray="3 3" strokeOpacity={0.15} />
+          <YAxis
+            dataKey="displayName"
+            type="category"
+            width={200}
+            tickLine={false}
+            axisLine={false}
+            tick={({ x, y, payload }) => (
+              <text x={x} y={y} dy={4} textAnchor="end" className="fill-foreground text-xs font-medium">
+                <title>{payload.value}</title>
+                {truncateLabel(payload.value)}
+              </text>
+            )}
+          />
+          <XAxis type="number" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
+          <ChartTooltip
+            content={
+              <ChartTooltipContent
+                labelFormatter={(_value, payload) => {
+                  const item = payload?.[0]?.payload as TopRiderItem & { displayName: string } | undefined;
+                  return item ? `${item.displayName} (${item.club || 'Sans club'})` : '';
+                }}
+              />
+            }
+          />
+          <Bar dataKey="count" fill="url(#gradTopRiders)" radius={[0, 6, 6, 0]} barSize={16}>
+            <LabelList dataKey="count" position="right" className="fill-muted-foreground text-xs font-semibold" />
+          </Bar>
+        </BarChart>
+      </ChartContainer>
+    </CollapsibleChartCard>
   );
 }
 
 function ChartSkeleton() {
   return (
-    <Card>
+    <Card className="border-0 shadow-lg">
       <CardHeader>
         <CardTitle>Top 50 coureurs les plus assidus</CardTitle>
         <CardDescription>Chargement...</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="h-[400px] animate-pulse rounded bg-muted" />
-      </CardContent>
     </Card>
   );
 }
 
 function ChartEmpty() {
   return (
-    <Card>
+    <Card className="border-0 shadow-lg">
       <CardHeader>
         <CardTitle>Top 50 coureurs les plus assidus</CardTitle>
       </CardHeader>
-      <CardContent>
-        <p className="text-muted-foreground text-center py-10">Aucune donnée pour les critères sélectionnés</p>
-      </CardContent>
     </Card>
   );
 }

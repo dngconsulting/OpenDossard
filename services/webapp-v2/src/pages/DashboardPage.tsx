@@ -94,12 +94,12 @@ export default function DashboardPage() {
 
   return (
     <Layout title="Tableau de bord" toolbar={toolbar}>
-      <div className="space-y-6">
+      <div className="space-y-8">
         <RidersPerCompetitionChart data={ridersPerComp.data} isLoading={ridersPerComp.isLoading} />
 
         <ClubParticipationChart data={clubPart.data} isLoading={clubPart.isLoading} />
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-8 md:grid-cols-2">
           <CateaDistributionChart data={cateaDist.data} isLoading={cateaDist.isLoading} />
           <CatevDistributionChart data={catevDist.data} isLoading={catevDist.isLoading} />
         </div>

@@ -1,8 +1,7 @@
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, LabelList } from 'recharts';
 
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -13,6 +12,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { CollapsibleChartCard } from './CollapsibleChartCard';
 import type { RidersPerCompetitionItem } from '@/types/dashboard';
 
 const chartConfig = {
@@ -27,63 +27,82 @@ type Props = {
   isLoading: boolean;
 };
 
+function truncateLabel(label: string, maxLen = 40): string {
+  if (label.length <= maxLen) return label;
+  return label.slice(0, maxLen - 1) + '\u2026';
+}
+
 export function RidersPerCompetitionChart({ data, isLoading }: Props) {
   if (isLoading) return <ChartSkeleton title="Nombre de coureurs par épreuve" />;
   if (!data?.length) return <ChartEmpty title="Nombre de coureurs par épreuve" />;
 
+  const total = data.reduce((s, d) => s + d.count, 0);
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Nombre de coureurs par épreuve</CardTitle>
-        <CardDescription>
-          {data.length} épreuves &middot; {data.reduce((s, d) => s + d.count, 0)} participations
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="w-full" style={{ height: Math.max(400, data.length * 28) }}>
-          <BarChart data={data} layout="vertical" margin={{ left: 10, right: 30 }}>
-            <CartesianGrid horizontal={false} />
-            <YAxis
-              dataKey="name"
-              type="category"
-              width={200}
-              tickLine={false}
-              axisLine={false}
-              tick={{ fontSize: 12 }}
-            />
-            <XAxis type="number" tickLine={false} axisLine={false} />
-            <ChartTooltip content={<ChartTooltipContent />} />
-            <Bar dataKey="count" fill="var(--color-count)" radius={[0, 4, 4, 0]} />
-          </BarChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
+    <CollapsibleChartCard
+      header={
+        <>
+          <div className="h-10 w-1 rounded-full bg-gradient-to-b from-[var(--primary)] to-[var(--teal)]" />
+          <div>
+            <CardTitle className="text-lg font-bold tracking-tight">Nombre de coureurs par épreuve</CardTitle>
+            <CardDescription className="text-sm mt-0.5">
+              <span className="font-semibold text-foreground">{data.length}</span> épreuves &middot;{' '}
+              <span className="font-semibold text-foreground">{total.toLocaleString('fr-FR')}</span> participations
+            </CardDescription>
+          </div>
+        </>
+      }
+    >
+      <ChartContainer config={chartConfig} className="w-full" style={{ height: Math.max(400, data.length * 28) }}>
+        <BarChart data={data} layout="vertical" margin={{ left: 10, right: 50 }}>
+          <defs>
+            <linearGradient id="gradRiders" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.9} />
+              <stop offset="100%" stopColor="var(--teal)" stopOpacity={1} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid horizontal={false} strokeDasharray="3 3" strokeOpacity={0.15} />
+          <YAxis
+            dataKey="name"
+            type="category"
+            width={320}
+            tickLine={false}
+            axisLine={false}
+            tick={({ x, y, payload }) => (
+              <text x={x} y={y} dy={4} textAnchor="end" className="fill-foreground text-xs font-medium">
+                <title>{payload.value}</title>
+                {truncateLabel(payload.value)}
+              </text>
+            )}
+          />
+          <XAxis type="number" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
+          <ChartTooltip content={<ChartTooltipContent />} />
+          <Bar dataKey="count" fill="url(#gradRiders)" radius={[0, 6, 6, 0]} barSize={18}>
+            <LabelList dataKey="count" position="right" className="fill-muted-foreground text-xs font-semibold" />
+          </Bar>
+        </BarChart>
+      </ChartContainer>
+    </CollapsibleChartCard>
   );
 }
 
 function ChartSkeleton({ title }: { title: string }) {
   return (
-    <Card>
+    <Card className="border-0 shadow-lg">
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardDescription>Chargement...</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="h-[400px] animate-pulse rounded bg-muted" />
-      </CardContent>
     </Card>
   );
 }
 
 function ChartEmpty({ title }: { title: string }) {
   return (
-    <Card>
+    <Card className="border-0 shadow-lg">
       <CardHeader>
         <CardTitle>{title}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <p className="text-muted-foreground text-center py-10">Aucune donnée pour les critères sélectionnés</p>
-      </CardContent>
     </Card>
   );
 }
