@@ -1,7 +1,7 @@
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { showSuccessToast, showErrorToast } from '@/utils/error-handler/error-handler';
 
 import { CompetitionsDataTable } from '@/components/data/CompetitionsTable';
 import { useCompetitions, useDuplicateCompetition } from '@/hooks/useCompetitions';
@@ -29,12 +29,12 @@ export default function CompetitionsPage() {
 
     duplicate(duplicateCompetition.id, {
       onSuccess: (newCompetition) => {
-        toast.success(`Épreuve "${duplicateCompetition.name}" dupliquée avec succès`);
+        showSuccessToast(`Épreuve "${duplicateCompetition.name}" dupliquée avec succès`);
         setDuplicateCompetition(undefined);
         navigate(`/competition/${newCompetition.id}`);
       },
       onError: () => {
-        toast.error(`Erreur lors de la duplication de l'épreuve`);
+        showErrorToast(`Erreur lors de la duplication de l'épreuve`);
       },
     });
   };

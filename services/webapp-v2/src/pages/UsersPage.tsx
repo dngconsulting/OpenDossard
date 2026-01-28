@@ -1,7 +1,7 @@
 import { ArrowLeft, Plus, Search } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { showSuccessToast } from '@/utils/error-handler/error-handler';
 
 import { UsersTable } from '@/components/data/UsersTable';
 import Layout from '@/components/layout/Layout';
@@ -60,7 +60,7 @@ export default function UsersPage() {
     if (!userToDelete) return;
     try {
       await deleteUserMutation.mutateAsync(userToDelete.id);
-      toast.success('Utilisateur supprimé avec succès');
+      showSuccessToast('Utilisateur supprimé avec succès');
       setUserToDelete(null);
     } catch {
       // Error handled by global handler

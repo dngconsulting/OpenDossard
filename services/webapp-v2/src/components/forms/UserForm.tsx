@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Camera, Lock, Save, UserCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
+import { showSuccessToast } from '@/utils/error-handler/error-handler';
 import { z } from 'zod';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -85,7 +85,7 @@ export const UserForm = ({ user, isCreating, onSuccess }: UserFormProps) => {
           roles: data.roles,
           password: data.password!,
         });
-        toast.success('Utilisateur créé avec succès');
+        showSuccessToast('Utilisateur créé avec succès');
       } else if (user) {
         await updateUser.mutateAsync({
           id: user.id,
@@ -97,7 +97,7 @@ export const UserForm = ({ user, isCreating, onSuccess }: UserFormProps) => {
             roles: data.roles,
           },
         });
-        toast.success('Utilisateur mis à jour avec succès');
+        showSuccessToast('Utilisateur mis à jour avec succès');
       }
       onSuccess();
     } catch {

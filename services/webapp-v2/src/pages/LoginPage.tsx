@@ -3,7 +3,7 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { toast } from 'sonner';
+import { showInfoToast } from '@/utils/error-handler/error-handler';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
@@ -59,9 +59,7 @@ export default function LoginPage() {
   };
 
   const handleForgotPassword = () => {
-    toast.info('Fonctionnalité à venir', {
-      description: 'La réinitialisation de mot de passe sera bientôt disponible.',
-    });
+    showInfoToast('Fonctionnalité à venir', 'La réinitialisation de mot de passe sera bientôt disponible.');
   };
 
   return (
