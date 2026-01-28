@@ -242,7 +242,6 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange }:
           updates: licenceData,
         });
         showSuccessToast('Licence mise à jour', `${data.firstName} ${data.name}`);
-        onSuccess?.();
       } else {
         await createLicence.mutateAsync(licenceData);
         showSuccessToast('Licence créée', `${data.firstName} ${data.name}`);
@@ -461,7 +460,7 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange }:
         <div className="flex justify-center pt-4 border-t">
           <Button type="submit" size="lg" disabled={isSaving}>
             {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            {isEditing ? 'Mettre à jour' : 'Créer la licence'}
+            {isEditing ? 'Sauvegarder' : 'Créer la licence'}
           </Button>
         </div>
       </form>

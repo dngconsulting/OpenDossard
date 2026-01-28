@@ -81,7 +81,7 @@ export default function UsersPage() {
   const meta = data?.meta || { offset: 0, limit: 20, total: 0, hasMore: false };
 
   const toolbarLeft = (
-    <Button variant="outline" onClick={() => navigate('/')}>
+    <Button variant="outline" onClick={() => navigate(-1)}>
       <ArrowLeft className="h-4 w-4" /> Retour
     </Button>
   );

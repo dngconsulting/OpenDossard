@@ -45,6 +45,7 @@ export default function LicencesPage() {
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
+          <Button variant="outline" onClick={() => setDeleteLicence(undefined)}>Annuler</Button>
           <Button variant="destructive">Supprimer</Button>
         </DialogFooter>
       </DialogContent>

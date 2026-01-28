@@ -90,7 +90,7 @@ export default function ChallengePage() {
 
   const toolbarLeft = (
     <div className="flex items-center gap-2">
-      <Button variant="outline" onClick={() => navigate('/challenges')}>
+      <Button variant="outline" onClick={() => navigate(-1)}>
         <ArrowLeft className="size-4" /> Retour
       </Button>
       {challenge && (
