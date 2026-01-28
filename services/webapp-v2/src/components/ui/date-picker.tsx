@@ -1,5 +1,5 @@
 import { CalendarIcon, X } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { format, parse, isValid } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -26,6 +26,10 @@ export function DatePicker({
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState(value ? format(value, DATE_FORMAT) : '');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setInputValue(value ? format(value, DATE_FORMAT) : '');
+  }, [value]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
