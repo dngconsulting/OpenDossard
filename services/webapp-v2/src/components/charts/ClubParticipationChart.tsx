@@ -87,9 +87,6 @@ export function ClubParticipationChart({ data, isLoading, defaultOpen }: Props) 
           </Bar>
         </BarChart>
       </ChartContainer>
-      {data.length >= 100 && (
-        <p className="text-xs text-muted-foreground text-center mt-2">Seuls les 100 premiers clubs sont affichés</p>
-      )}
     </CollapsibleChartCard>
   );
 }
