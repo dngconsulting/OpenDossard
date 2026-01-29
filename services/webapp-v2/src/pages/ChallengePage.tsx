@@ -19,18 +19,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { filterRiders, useChallenge, useChallengeRanking } from '@/hooks/useChallenges';
 import type { GenderType } from '@/types/challenges';
+import { COMPETITION_TYPE_LABELS } from '@/types/api';
 import { exportChallengePDF } from '@/utils/pdf-exports';
 
 const competitionTypeIcons: Record<string, React.ReactNode> = {
   ROUTE: <Bike className="size-5" />,
   CX: <TreePine className="size-5" />,
   VTT: <Mountain className="size-5" />,
-};
-
-const competitionTypeLabels: Record<string, string> = {
-  ROUTE: 'Route',
-  CX: 'Cyclo-cross',
-  VTT: 'VTT',
 };
 
 function getCategories(competitionType: string | undefined) {
@@ -89,7 +84,7 @@ export default function ChallengePage() {
     ? competitionTypeIcons[challenge.competitionType] || <Bike className="size-5" />
     : null;
   const typeLabel = challenge?.competitionType
-    ? competitionTypeLabels[challenge.competitionType] || challenge.competitionType
+    ? COMPETITION_TYPE_LABELS[challenge.competitionType] || challenge.competitionType
     : '';
 
   const toolbarLeft = (

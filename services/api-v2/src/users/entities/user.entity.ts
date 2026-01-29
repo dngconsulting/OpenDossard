@@ -3,29 +3,37 @@ import {
   PrimaryGeneratedColumn,
   Column,
 } from 'typeorm';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 
 @Entity('user')
 export class UserEntity {
+  @ApiProperty()
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiPropertyOptional()
   @Column({ name: 'first_name', nullable: true })
   firstName: string;
 
+  @ApiPropertyOptional()
   @Column({ name: 'last_name', nullable: true })
   lastName: string;
 
+  @ApiProperty()
   @Column()
   email: string;
 
+  @ApiPropertyOptional()
   @Column({ nullable: true })
   @Exclude()
   password: string;
 
+  @ApiPropertyOptional()
   @Column('text', { nullable: true })
   roles: string;
 
+  @ApiPropertyOptional()
   @Column({ nullable: true })
   phone: string;
 

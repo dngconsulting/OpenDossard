@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { COMPETITION_TYPE_LABELS } from '@/types/api';
 import type { ChallengeType } from '@/types/challenges';
 
 type Props = {
@@ -14,12 +15,6 @@ const competitionTypeIcons: Record<string, React.ReactNode> = {
   ROUTE: <Bike className="size-5" />,
   CX: <TreePine className="size-5" />,
   VTT: <Mountain className="size-5" />,
-};
-
-const competitionTypeLabels: Record<string, string> = {
-  ROUTE: 'Route',
-  CX: 'Cyclo-cross',
-  VTT: 'VTT',
 };
 
 export function ChallengeCard({ challenge }: Props) {
@@ -37,7 +32,7 @@ export function ChallengeCard({ challenge }: Props) {
   };
 
   const icon = competitionTypeIcons[challenge.competitionType] || <Bike className="size-5" />;
-  const typeLabel = competitionTypeLabels[challenge.competitionType] || challenge.competitionType;
+  const typeLabel = COMPETITION_TYPE_LABELS[challenge.competitionType] || challenge.competitionType;
   const nbCompetitions = challenge.competitionIds?.length || 0;
 
   return (

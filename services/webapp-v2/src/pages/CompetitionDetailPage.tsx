@@ -16,6 +16,7 @@ import {
   useCreateCompetition,
   useUpdateCompetition,
 } from '@/hooks/useCompetitions';
+import { COMPETITION_TYPE_LABELS } from '@/types/api';
 import { showErrorToast, showSuccessToast } from '@/utils/error-handler/error-handler';
 
 import { GeneralTab } from './competition/GeneralTab';
@@ -29,12 +30,6 @@ const competitionTypeIcons: Record<string, React.ReactNode> = {
   ROUTE: <Bike className="size-4" />,
   CX: <TreePine className="size-4" />,
   VTT: <Mountain className="size-4" />,
-};
-
-const competitionTypeLabels: Record<string, string> = {
-  ROUTE: 'Route',
-  CX: 'Cyclo-cross',
-  VTT: 'VTT',
 };
 
 export default function CompetitionDetailPage() {
@@ -198,7 +193,7 @@ export default function CompetitionDetailPage() {
     ? competitionTypeIcons[competition.competitionType] || <Bike className="size-4" />
     : null;
   const typeLabel = competition?.competitionType
-    ? competitionTypeLabels[competition.competitionType] || competition.competitionType
+    ? COMPETITION_TYPE_LABELS[competition.competitionType] || competition.competitionType
     : '';
 
   const breadcrumb = (
