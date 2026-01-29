@@ -81,7 +81,7 @@ export function AppToast({ id, type, message, details }: AppToastProps) {
   };
 
   return (
-    <div className={`w-[356px] ${config.bg} rounded-lg shadow-lg overflow-hidden`}>
+    <div className={`w-[450px] ${config.bg} rounded-lg shadow-lg overflow-hidden`}>
       <div className="p-4">
         <div className="flex items-start gap-3">
           <div className="shrink-0 mt-0.5">{config.icon}</div>
