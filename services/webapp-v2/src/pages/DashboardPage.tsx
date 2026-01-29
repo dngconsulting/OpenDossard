@@ -10,6 +10,7 @@ import { CatevDistributionChart } from '@/components/charts/CatevDistributionCha
 import { ClubParticipationChart } from '@/components/charts/ClubParticipationChart';
 import { RidersPerCompetitionChart } from '@/components/charts/RidersPerCompetitionChart';
 import { TopRidersChart } from '@/components/charts/TopRidersChart';
+import { FEDERATION_OPTIONS, COMPETITION_TYPE_OPTIONS } from '@/types/api';
 import { useClubs } from '@/hooks/useClubs';
 import { useDashboardFilters } from '@/hooks/useDashboardFilters';
 import {
@@ -20,21 +21,6 @@ import {
   useTopRiders,
 } from '@/hooks/useDashboardCharts';
 import { useDepartments } from '@/hooks/useDepartments';
-
-const FEDE_OPTIONS: MultiSelectOption[] = [
-  { value: 'FSGT', label: 'FSGT' },
-  { value: 'UFOLEP', label: 'UFOLEP' },
-  { value: 'FFC', label: 'FFC' },
-  { value: 'CYCLOS', label: 'CYCLOS' },
-  { value: 'FFVELO', label: 'FFVELO' },
-  { value: 'FFTRI', label: 'FFTRI' },
-];
-
-const DISCIPLINE_OPTIONS: MultiSelectOption[] = [
-  { value: 'CX', label: 'CX' },
-  { value: 'ROUTE', label: 'Route' },
-  { value: 'VTT', label: 'VTT' },
-];
 
 export default function DashboardPage() {
   const { filters, updateFilter, resetFilters, chartFilters } = useDashboardFilters();
@@ -65,13 +51,13 @@ export default function DashboardPage() {
         placeholder="Date fin"
       />
       <MultiSelect
-        options={FEDE_OPTIONS}
+        options={FEDERATION_OPTIONS}
         selected={filters.fedes}
         onChange={v => updateFilter('fedes', v)}
         placeholder="Toutes fédés"
       />
       <MultiSelect
-        options={DISCIPLINE_OPTIONS}
+        options={COMPETITION_TYPE_OPTIONS}
         selected={filters.competitionTypes}
         onChange={v => updateFilter('competitionTypes', v)}
         placeholder="Toutes disciplines"

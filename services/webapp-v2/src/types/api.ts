@@ -64,3 +64,10 @@ export const GENDER_LABELS: Record<Gender, string> = {
   H: 'Homme',
   F: 'Femme',
 };
+
+// ---------------------------------------------------------------------------
+// Select options derived from enums + labels
+// ---------------------------------------------------------------------------
+export const FEDERATION_OPTIONS = FEDERATIONS.map(f => ({ value: f, label: FEDERATION_LABELS[f] }));
+export const COMPETITION_TYPE_OPTIONS = COMPETITION_TYPES.map(t => ({ value: t, label: COMPETITION_TYPE_LABELS[t] }));
+export const GENDER_OPTIONS = GENDERS.map(g => ({ value: g, label: GENDER_LABELS[g] }));
