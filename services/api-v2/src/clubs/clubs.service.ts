@@ -1,14 +1,26 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ClubEntity } from './entities/club.entity';
+import { LicenceEntity } from '../licences/entities/licence.entity';
+import { RaceEntity } from '../races/entities/race.entity';
+import { CompetitionEntity } from '../competitions/entities/competition.entity';
 import { Federation } from '../common/enums';
+import { PaginatedResponseDto } from '../common/dto/pagination.dto';
+import { FilterClubDto } from './dto/filter-club.dto';
+import { UpdateClubDto } from './dto/update-club.dto';
 
 @Injectable()
 export class ClubsService {
   constructor(
     @InjectRepository(ClubEntity)
     private clubRepository: Repository<ClubEntity>,
+    @InjectRepository(LicenceEntity)
+    private licenceRepository: Repository<LicenceEntity>,
+    @InjectRepository(RaceEntity)
+    private raceRepository: Repository<RaceEntity>,
+    @InjectRepository(CompetitionEntity)
+    private competitionRepository: Repository<CompetitionEntity>,
   ) {}
 
   async findAll(fede?: Federation, dept?: string): Promise<ClubEntity[]> {
@@ -24,12 +36,155 @@ export class ClubsService {
     return queryBuilder.orderBy('club.longName', 'ASC').getMany();
   }
 
-  async findOne(id: number): Promise<ClubEntity | null> {
-    return this.clubRepository.findOne({ where: { id } });
+  async findAllPaginated(filterDto: FilterClubDto): Promise<PaginatedResponseDto<ClubEntity>> {
+    const {
+      offset = 0,
+      limit = 20,
+      search,
+      orderBy = 'shortName',
+      orderDirection = 'ASC',
+      shortName,
+      dept,
+      fede,
+      longName,
+      elicenceName,
+    } = filterDto;
+
+    const qb = this.clubRepository.createQueryBuilder('club');
+
+    if (search) {
+      qb.andWhere(
+        '(LOWER(club.shortName) LIKE LOWER(:search) OR LOWER(club.longName) LIKE LOWER(:search) OR LOWER(club.elicenceName) LIKE LOWER(:search))',
+        { search: `%${search}%` },
+      );
+    }
+
+    // Column-level filters
+    if (shortName) {
+      qb.andWhere('club.shortName ILIKE :shortName', { shortName: `%${shortName}%` });
+    }
+    if (dept) {
+      qb.andWhere('club.dept ILIKE :dept', { dept: `%${dept}%` });
+    }
+    if (fede) {
+      qb.andWhere('club.fede::text ILIKE :fede', { fede: `%${fede}%` });
+    }
+    if (longName) {
+      qb.andWhere('club.longName ILIKE :longName', { longName: `%${longName}%` });
+    }
+    if (elicenceName) {
+      qb.andWhere('club.elicenceName ILIKE :elicenceName', { elicenceName: `%${elicenceName}%` });
+    }
+
+    const validOrderFields = ['id', 'shortName', 'longName', 'dept', 'fede', 'elicenceName'];
+    const orderField = validOrderFields.includes(orderBy) ? orderBy : 'shortName';
+    qb.orderBy(`club.${orderField}`, orderDirection as 'ASC' | 'DESC');
+
+    if (orderField !== 'shortName') {
+      qb.addOrderBy('club.shortName', 'ASC');
+    }
+
+    qb.skip(offset).take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+
+    return new PaginatedResponseDto(data, total, offset, limit);
+  }
+
+  async findOne(id: number): Promise<ClubEntity> {
+    const club = await this.clubRepository.findOne({ where: { id } });
+    if (!club) {
+      throw new NotFoundException(`Club with ID ${id} not found`);
+    }
+    return club;
   }
 
   async create(clubData: Partial<ClubEntity>): Promise<ClubEntity> {
     const club = this.clubRepository.create(clubData);
     return this.clubRepository.save(club);
+  }
+
+  async update(id: number, dto: UpdateClubDto): Promise<ClubEntity & { racesUpdated?: number; licencesUpdated?: number }> {
+    const club = await this.findOne(id);
+
+    // Propagate longName change to races/licences BEFORE updating the club
+    let racesUpdated: number | undefined;
+    let licencesUpdated: number | undefined;
+    if (dto.propagate && dto.longName && dto.longName.trim() !== club.longName.trim()) {
+      const result = await this.propagateName(club.longName, dto.longName);
+      racesUpdated = result.racesUpdated;
+      licencesUpdated = result.licencesUpdated;
+    }
+
+    if (dto.shortName !== undefined) club.shortName = dto.shortName;
+    if (dto.longName !== undefined) club.longName = dto.longName;
+    if (dto.elicenceName !== undefined) club.elicenceName = dto.elicenceName;
+
+    const saved = await this.clubRepository.save(club);
+    return { ...saved, racesUpdated, licencesUpdated };
+  }
+
+  async countReferences(id: number): Promise<{ raceCount: number; licenceCount: number; competitionCount: number }> {
+    const club = await this.findOne(id);
+    const longName = club.longName.trim();
+
+    const raceCount = await this.raceRepository
+      .createQueryBuilder('race')
+      .where('TRIM(race.club) = :longName', { longName })
+      .getCount();
+
+    const licenceCount = await this.licenceRepository
+      .createQueryBuilder('licence')
+      .where('TRIM(licence.club) = :longName', { longName })
+      .getCount();
+
+    const competitionCount = await this.competitionRepository
+      .createQueryBuilder('competition')
+      .where('competition.clubId = :id', { id })
+      .getCount();
+
+    return { raceCount, licenceCount, competitionCount };
+  }
+
+  async remove(id: number): Promise<void> {
+    const club = await this.findOne(id);
+    const { raceCount, licenceCount, competitionCount } = await this.countReferences(id);
+
+    const errors: string[] = [];
+    if (raceCount > 0) errors.push(`${raceCount} participation(s)`);
+    if (licenceCount > 0) errors.push(`${licenceCount} licence(s)`);
+    if (competitionCount > 0) errors.push(`${competitionCount} compétition(s)`);
+
+    if (errors.length > 0) {
+      throw new ConflictException(
+        `Impossible de supprimer le club "${club.longName}" : référencé dans ${errors.join(', ')}`,
+      );
+    }
+
+    await this.clubRepository.remove(club);
+  }
+
+  private async propagateName(oldName: string, newName: string): Promise<{ racesUpdated: number; licencesUpdated: number }> {
+    const trimmedOld = oldName.trim();
+    const trimmedNew = newName.trim();
+
+    const raceResult = await this.raceRepository
+      .createQueryBuilder()
+      .update(RaceEntity)
+      .set({ club: trimmedNew })
+      .where('TRIM(club) = :oldName', { oldName: trimmedOld })
+      .execute();
+
+    const licenceResult = await this.licenceRepository
+      .createQueryBuilder()
+      .update(LicenceEntity)
+      .set({ club: trimmedNew })
+      .where('TRIM(club) = :oldName', { oldName: trimmedOld })
+      .execute();
+
+    return {
+      racesUpdated: raceResult.affected ?? 0,
+      licencesUpdated: licenceResult.affected ?? 0,
+    };
   }
 }
