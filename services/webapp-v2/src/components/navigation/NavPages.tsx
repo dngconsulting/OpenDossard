@@ -27,9 +27,9 @@ export function NavPages({
   pages: PageItem[];
 }) {
   const location = useLocation();
-  const { state } = useSidebar();
+  const { state, isMobile } = useSidebar();
   const user = useUserStore(s => s.user);
-  const isCollapsed = state === 'collapsed';
+  const isCollapsed = !isMobile && state === 'collapsed';
 
   // Filter pages based on user roles
   const visiblePages = pages.filter(page => {

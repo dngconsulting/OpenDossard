@@ -11,8 +11,8 @@ export function AppTitle({
     version: string;
   };
 }) {
-  const { state } = useSidebar();
-  const isCollapsed = state === 'collapsed';
+  const { state, isMobile } = useSidebar();
+  const isCollapsed = !isMobile && state === 'collapsed';
 
   return (
     <SidebarMenu>
