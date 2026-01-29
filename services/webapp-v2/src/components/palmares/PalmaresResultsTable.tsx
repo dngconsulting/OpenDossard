@@ -1,5 +1,6 @@
+import { Trophy } from 'lucide-react';
+
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { PalmaresRaceResult } from '@/types/palmares';
@@ -12,6 +13,12 @@ type Props = {
 
 const DNF_CODES = ['ABD', 'DSQ', 'NC', 'NP', 'CHT', 'HD', 'DNV'];
 
+const PODIUM_COLORS: Record<number, string> = {
+  1: 'text-yellow-500',
+  2: 'text-gray-400',
+  3: 'text-amber-700',
+};
+
 function RankingCell({ row }: { row: PalmaresRaceResult }) {
   if (row.comment && DNF_CODES.includes(row.comment.toUpperCase())) {
     return (
@@ -21,10 +28,12 @@ function RankingCell({ row }: { row: PalmaresRaceResult }) {
     );
   }
   if (row.rankingScratch != null && row.rankingInCategory != null) {
+    const podiumColor = PODIUM_COLORS[row.rankingInCategory];
     return (
-      <span>
+      <span className="inline-flex items-center gap-1.5 text-base">
+        {podiumColor && <Trophy className={`h-4 w-4 ${podiumColor}`} />}
         <span className="font-semibold">{row.rankingScratch}</span>
-        <span className="text-muted-foreground"> ({row.rankingInCategory}/{row.totalInCategory})</span>
+        <span className="text-muted-foreground text-sm">({row.rankingInCategory}/{row.totalInCategory})</span>
       </span>
     );
   }
@@ -35,7 +44,7 @@ const columns: ColumnDef<PalmaresRaceResult>[] = [
   {
     id: 'ranking',
     header: 'Classement',
-    size: 140,
+    size: 110,
     cell: ({ row }) => <RankingCell row={row.original} />,
   },
   {
@@ -44,17 +53,35 @@ const columns: ColumnDef<PalmaresRaceResult>[] = [
     size: 100,
     cell: ({ row }) => {
       const date = new Date(row.getValue('date'));
-      return date.toLocaleDateString('fr-FR');
+      return <span className="tabular-nums">{date.toLocaleDateString('fr-FR')}</span>;
     },
   },
   {
     accessorKey: 'competitionName',
     header: 'Compétition',
+    cell: ({ row }) => (
+      <span className="font-medium">{row.getValue('competitionName')}</span>
+    ),
   },
   {
     accessorKey: 'raceCode',
-    header: 'Catégorie',
+    header: 'Course',
     size: 100,
+    cell: ({ row }) => (
+      <Badge variant="outline" className="font-mono text-xs">
+        {row.getValue('raceCode')}
+      </Badge>
+    ),
+  },
+  {
+    accessorKey: 'catev',
+    header: 'Cat.',
+    size: 60,
+    cell: ({ row }) => (
+      <Badge variant="secondary" className="font-mono text-xs">
+        {row.getValue('catev')}
+      </Badge>
+    ),
   },
 ];
 
@@ -63,32 +90,32 @@ export function PalmaresResultsTable({ results }: Props) {
   const cxResults = results.filter(r => r.competitionType === 'CX');
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Résultats</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="route">
+    <div className="rounded-xl border bg-card">
+      <Tabs defaultValue="route">
+        <div className="px-5 pt-5 pb-0 flex items-center justify-between">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Résultats</h3>
           <TabsList>
             <TabsTrigger value="route">Route ({routeResults.length})</TabsTrigger>
             <TabsTrigger value="cx">Cyclo-cross ({cxResults.length})</TabsTrigger>
           </TabsList>
-          <TabsContent value="route" className="mt-4">
+        </div>
+        <div className="p-5 pt-3">
+          <TabsContent value="route" className="mt-0">
             {routeResults.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4">Aucun résultat en Route</p>
+              <p className="text-sm text-muted-foreground py-8 text-center">Aucun résultat en Route</p>
             ) : (
               <DataTable columns={columns} data={routeResults} />
             )}
           </TabsContent>
-          <TabsContent value="cx" className="mt-4">
+          <TabsContent value="cx" className="mt-0">
             {cxResults.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4">Aucun résultat en Cyclo-cross</p>
+              <p className="text-sm text-muted-foreground py-8 text-center">Aucun résultat en Cyclo-cross</p>
             ) : (
               <DataTable columns={columns} data={cxResults} />
             )}
           </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+        </div>
+      </Tabs>
+    </div>
   );
 }

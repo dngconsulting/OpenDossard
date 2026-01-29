@@ -168,22 +168,21 @@ export class RacesService {
       totalInCategory: number;
     }> = await this.dataSource.query(query, [licenceId]);
 
-    // c) Compute stats
-    const ranked = rows.filter((r) => r.rankingInCategory != null);
+    // c) Compute stats — COUNT(*) returns bigint which pg driver serializes as string
+    const ranked = rows
+      .filter((r) => r.rankingInCategory != null)
+      .map((r) => ({ ...r, rankingInCategory: Number(r.rankingInCategory) }));
     const stats: PalmaresStatsDto = {
       totalRaces: rows.length,
       wins: ranked.filter((r) => r.rankingInCategory === 1).length,
-      podiums: ranked.filter((r) => r.rankingInCategory! <= 3).length,
-      topTen: ranked.filter((r) => r.rankingInCategory! <= 10).length,
-      avgRanking: ranked.length > 0
-        ? Math.round((ranked.reduce((sum, r) => sum + r.rankingInCategory!, 0) / ranked.length) * 10) / 10
-        : 0,
+      podiums: ranked.filter((r) => r.rankingInCategory <= 3).length,
+      topTen: ranked.filter((r) => r.rankingInCategory <= 10).length,
       bestRanking: ranked.length > 0
-        ? Math.min(...ranked.map((r) => r.rankingInCategory!))
+        ? Math.min(...ranked.map((r) => r.rankingInCategory))
         : 0,
     };
 
-    // d) Compute categoryHistory
+    // d) Compute categoryHistory — every catev change chronologically
     const sortedAsc = [...rows].sort((a, b) => {
       const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime();
       return dateCompare !== 0 ? dateCompare : a.id - b.id;
@@ -224,6 +223,7 @@ export class RacesService {
       competitionName: r.competitionName,
       competitionType: r.competitionType,
       raceCode: r.raceCode,
+      catev: r.catev,
       rankingScratch: r.rankingScratch,
       rankingInCategory: r.rankingInCategory != null ? Number(r.rankingInCategory) : null,
       totalInCategory: Number(r.totalInCategory),

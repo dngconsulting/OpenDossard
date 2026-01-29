@@ -1,3 +1,4 @@
+import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -35,7 +36,7 @@ export default function PalmaresPage() {
 
   return (
     <Layout title="Palmarès">
-      <div className="space-y-6">
+      <div className="space-y-5">
         <LicenceAutocomplete
           value={selectedLicence}
           onChange={handleLicenceChange}
@@ -43,13 +44,13 @@ export default function PalmaresPage() {
 
         {isLoading && parsedId && (
           <div className="space-y-4">
-            <Skeleton className="h-32 w-full rounded-xl" />
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {[...Array(6)].map((_, i) => (
-                <Skeleton key={i} className="h-24 rounded-xl" />
+            <Skeleton className="h-36 w-full rounded-xl" />
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-20 rounded-xl" />
               ))}
             </div>
-            <Skeleton className="h-48 w-full rounded-xl" />
+            <Skeleton className="h-16 w-full rounded-xl" />
             <Skeleton className="h-64 w-full rounded-xl" />
           </div>
         )}
@@ -64,8 +65,12 @@ export default function PalmaresPage() {
         )}
 
         {!parsedId && !isLoading && (
-          <div className="text-center py-12 text-muted-foreground">
-            Recherchez un coureur pour afficher son palmarès
+          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+              <Search className="h-7 w-7" />
+            </div>
+            <p className="text-lg font-medium">Recherchez un coureur</p>
+            <p className="text-sm mt-1">pour afficher son palmarès</p>
           </div>
         )}
       </div>

@@ -6,7 +6,6 @@ export class PalmaresStatsDto {
   @ApiProperty() wins: number;
   @ApiProperty() podiums: number;
   @ApiProperty() topTen: number;
-  @ApiProperty() avgRanking: number;
   @ApiProperty() bestRanking: number;
 }
 
@@ -24,6 +23,7 @@ export class PalmaresResultDto {
   @ApiProperty() competitionName: string;
   @ApiProperty() competitionType: string;
   @ApiProperty() raceCode: string;
+  @ApiProperty() catev: string;
   @ApiPropertyOptional() rankingScratch: number | null;
   @ApiPropertyOptional() rankingInCategory: number | null;
   @ApiProperty() totalInCategory: number;

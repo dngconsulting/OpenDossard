@@ -5,7 +5,6 @@ export type RiderStats = {
   wins: number;
   podiums: number;
   topTen: number;
-  avgRanking: number;
   bestRanking: number;
 };
 
@@ -23,6 +22,7 @@ export type PalmaresRaceResult = {
   competitionName: string;
   competitionType: string;
   raceCode: string;
+  catev: string;
   rankingScratch: number | null;
   rankingInCategory: number | null;
   totalInCategory: number;
