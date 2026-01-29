@@ -136,6 +136,7 @@ export class RacesService {
              FROM race rr
              WHERE rr.competition_id = r.competition_id
                AND rr.race_code = r.race_code
+               AND rr.catev = r.catev
                AND rr.ranking_scratch IS NOT NULL
                AND rr.comment IS NULL
                AND rr.ranking_scratch <= r.ranking_scratch)
@@ -145,6 +146,7 @@ export class RacesService {
          FROM race rr
          WHERE rr.competition_id = r.competition_id
            AND rr.race_code = r.race_code
+           AND rr.catev = r.catev
            AND rr.ranking_scratch IS NOT NULL
            AND rr.comment IS NULL) AS "totalInCategory"
       FROM race r
