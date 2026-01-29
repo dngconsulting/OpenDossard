@@ -7,7 +7,7 @@ import {
   Mountain,
   TreePine,
 } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { ChallengeRankingTable } from '@/components/challenges/ChallengeRankingTable';
@@ -18,22 +18,15 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { filterRiders, useChallenge, useChallengeRanking } from '@/hooks/useChallenges';
-import type { GenderType } from '@/types/challenges';
 import { COMPETITION_TYPE_LABELS } from '@/types/api';
+import type { GenderType } from '@/types/challenges';
 import { exportChallengePDF } from '@/utils/pdf-exports';
 
-const competitionTypeIcons: Record<string, React.ReactNode> = {
+const competitionTypeIcons: Record<string, ReactNode> = {
   ROUTE: <Bike className="size-5" />,
   CX: <TreePine className="size-5" />,
   VTT: <Mountain className="size-5" />,
 };
-
-function getCategories(competitionType: string | undefined) {
-  if (competitionType === 'CX') {
-    return ['1', '2', '3', '4', '5', 'DAMES'];
-  }
-  return ['1', '2', '3', '4', '5'];
-}
 
 export default function ChallengePage() {
   const { id } = useParams<{ id: string }>();
@@ -43,15 +36,26 @@ export default function ChallengePage() {
   const { data: challenge } = useChallenge(challengeId);
   const { data: ranking, isLoading: isLoadingRanking } = useChallengeRanking(challengeId);
 
-  const [selectedCategory, setSelectedCategory] = useState('1');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedGender, setSelectedGender] = useState<GenderType>('H');
 
   const tabsRef = useRef<HTMLDivElement>(null);
 
-  const categories = useMemo(
-    () => getCategories(challenge?.competitionType),
-    [challenge?.competitionType],
-  );
+  const categories = useMemo(() => {
+    if (!ranking) {
+      return [];
+    }
+    return [
+      ...new Set(ranking.map(r => r.currentLicenceCatev).filter((v): v is string => !!v)),
+    ].sort();
+  }, [ranking]);
+
+  // Select first category when categories become available
+  useEffect(() => {
+    if (categories.length > 0 && !categories.includes(selectedCategory)) {
+      setSelectedCategory(categories[0] ?? '');
+    }
+  }, [categories, selectedCategory]);
 
   const filteredRiders = useMemo(() => {
     if (selectedCategory === 'DAMES') {
@@ -156,7 +160,7 @@ export default function ChallengePage() {
     <Layout title={breadcrumb} toolbar={toolbar} toolbarLeft={toolbarLeft}>
       <div>
         {/* Category Tabs */}
-        {categories.length > 0 && (
+        {categories.length > 0 && selectedCategory !== '' && (
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
             <TabsList
               ref={tabsRef}
@@ -169,7 +173,7 @@ export default function ChallengePage() {
                   className="group flex shrink-0 items-center gap-2.5 rounded-t-lg rounded-b-none first:rounded-tl-xl last:rounded-tr-xl px-5 py-3 bg-muted/30 border border-muted-foreground/20 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white data-[state=active]:border-[#047857]"
                 >
                   <span className="text-base font-bold">
-                    {cat === 'DAMES' ? 'Dames' : `Caté ${cat}`}
+                    {/^\d+$/.test(cat) ? `Caté ${cat}` : cat}
                   </span>
                   <Badge variant="secondary" className="text-xs">
                     {categoryCounts[cat] || 0}
