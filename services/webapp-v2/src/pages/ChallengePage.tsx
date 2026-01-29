@@ -1,5 +1,3 @@
-import { useState, useMemo, useRef } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   ArrowLeft,
   Bike,
@@ -8,8 +6,9 @@ import {
   ExternalLink,
   Mountain,
   TreePine,
-  Trophy,
 } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { ChallengeRankingTable } from '@/components/challenges/ChallengeRankingTable';
 import { GenderToggle } from '@/components/challenges/GenderToggle';
@@ -46,7 +45,7 @@ export default function ChallengePage() {
   const navigate = useNavigate();
   const challengeId = id ? parseInt(id, 10) : undefined;
 
-  const { data: challenge, isLoading: isLoadingChallenge } = useChallenge(challengeId);
+  const { data: challenge } = useChallenge(challengeId);
   const { data: ranking, isLoading: isLoadingRanking } = useChallengeRanking(challengeId);
 
   const [selectedCategory, setSelectedCategory] = useState('1');
@@ -54,7 +53,10 @@ export default function ChallengePage() {
 
   const tabsRef = useRef<HTMLDivElement>(null);
 
-  const categories = useMemo(() => getCategories(challenge?.competitionType), [challenge?.competitionType]);
+  const categories = useMemo(
+    () => getCategories(challenge?.competitionType),
+    [challenge?.competitionType],
+  );
 
   const filteredRiders = useMemo(() => {
     if (selectedCategory === 'DAMES') {
@@ -77,7 +79,9 @@ export default function ChallengePage() {
   }, [ranking, categories, selectedGender]);
 
   const handleExportPDF = async () => {
-    if (!challenge || !ranking || ranking.length === 0) return;
+    if (!challenge || !ranking || ranking.length === 0) {
+      return;
+    }
     await exportChallengePDF(challenge, ranking);
   };
 
@@ -99,7 +103,13 @@ export default function ChallengePage() {
             {icon}
             {typeLabel}
           </Badge>
-          <Badge className={challenge.active ? 'bg-emerald-600 text-white hover:bg-emerald-600' : 'bg-gray-500 text-white hover:bg-gray-500'}>
+          <Badge
+            className={
+              challenge.active
+                ? 'bg-emerald-600 text-white hover:bg-emerald-600'
+                : 'bg-gray-500 text-white hover:bg-gray-500'
+            }
+          >
             {challenge.active ? 'Actif' : 'Terminé'}
           </Badge>
         </>
@@ -121,7 +131,11 @@ export default function ChallengePage() {
           Règlement
         </Button>
       )}
-      <Button variant="outline" onClick={handleExportPDF} disabled={!ranking || ranking.length === 0}>
+      <Button
+        variant="outline"
+        onClick={handleExportPDF}
+        disabled={!ranking || ranking.length === 0}
+      >
         <Download className="size-4" />
         Export PDF
       </Button>
@@ -172,10 +186,7 @@ export default function ChallengePage() {
         )}
 
         {/* Ranking Table */}
-        <ChallengeRankingTable
-          riders={filteredRiders}
-          isLoading={isLoadingRanking}
-        />
+        <ChallengeRankingTable riders={filteredRiders} isLoading={isLoadingRanking} />
       </div>
     </Layout>
   );

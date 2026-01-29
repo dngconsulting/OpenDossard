@@ -3,7 +3,7 @@ import type { RaceRowType } from '@/types/races';
 /**
  * Couleurs des médailles pour les podiums
  */
-export const MEDAL_COLORS = {
+const MEDAL_COLORS = {
   1: '#efd807', // Or
   2: '#D7D7D7', // Argent
   3: '#6A3805', // Bronze

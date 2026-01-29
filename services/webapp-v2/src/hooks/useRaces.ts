@@ -21,17 +21,6 @@ export function useCompetitionRaces(competitionId: number | undefined) {
 }
 
 /**
- * Hook pour récupérer le palmarès d'un coureur
- */
-export function usePalmaresRaces(licenceId: number | undefined) {
-  return useQuery({
-    queryKey: racesKeys.palmares(licenceId!),
-    queryFn: () => racesApi.getPalmares(licenceId!),
-    enabled: !!licenceId,
-  });
-}
-
-/**
  * Hook pour engager un coureur
  */
 export function useEngage() {

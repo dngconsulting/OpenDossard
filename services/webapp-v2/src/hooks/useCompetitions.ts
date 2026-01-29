@@ -195,17 +195,6 @@ export function useDuplicateCompetition() {
   });
 }
 
-export function useDeleteCompetition() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: number) => competitionsApi.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['competitions'] });
-    },
-  });
-}
-
 export function useCreateCompetition() {
   const queryClient = useQueryClient();
 

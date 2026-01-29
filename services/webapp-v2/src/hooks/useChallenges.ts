@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 import { challengesApi } from '@/api/challenges.api';
-import type { ChallengeRider, ChallengeType } from '@/types/challenges';
+import type { ChallengeRider } from '@/types/challenges';
 
 export const challengesKeys = {
   all: ['challenges'] as const,
@@ -33,46 +33,6 @@ export function useChallengeRanking(id: number | undefined) {
     queryKey: challengesKeys.ranking(id!),
     queryFn: () => challengesApi.getRanking(id!),
     enabled: id !== undefined,
-  });
-}
-
-// Create a new challenge
-export function useCreateChallenge() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (challenge: Omit<ChallengeType, 'id'>) => challengesApi.create(challenge),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: challengesKeys.all });
-    },
-  });
-}
-
-// Update a challenge
-export function useUpdateChallenge() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, updates }: { id: number; updates: Partial<ChallengeType> }) =>
-      challengesApi.update(id, updates),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: challengesKeys.all });
-      queryClient.invalidateQueries({
-        queryKey: challengesKeys.detail(variables.id),
-      });
-    },
-  });
-}
-
-// Delete a challenge
-export function useDeleteChallenge() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: number) => challengesApi.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: challengesKeys.all });
-    },
   });
 }
 

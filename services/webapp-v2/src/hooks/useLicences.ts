@@ -202,13 +202,3 @@ export function useUpdateLicence() {
   });
 }
 
-export function useDeleteLicence() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: number) => licencesApi.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['licences'] });
-    },
-  });
-}

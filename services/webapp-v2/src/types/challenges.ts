@@ -52,5 +52,3 @@ export type ChallengeRider = {
 // Gender type for filtering
 export type GenderType = 'H' | 'F';
 
-// Category type for filtering (1-5 for road, plus DAMES for CX)
-export type CategoryType = '1' | '2' | '3' | '4' | '5' | 'DAMES';

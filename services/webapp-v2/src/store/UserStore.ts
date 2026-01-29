@@ -8,7 +8,7 @@ const STORAGE_KEYS = {
   REMEMBER_ME: 'od_remember_me',
 } as const;
 
-export type User = UserProfile;
+type User = UserProfile;
 
 type AuthState = {
   user: User | null;

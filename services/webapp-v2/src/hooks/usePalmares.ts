@@ -32,12 +32,3 @@ export function useLicenceSearch(query: string) {
   });
 }
 
-export function useFilteredResults(
-  results: { competitionType: string }[] | undefined,
-  type: 'ROUTE' | 'CX'
-) {
-  if (!results) {
-    return [];
-  }
-  return results.filter(r => r.competitionType === type);
-}
