@@ -37,7 +37,7 @@ import {
   CreateEngagementDto,
   FilterRaceDto,
   RaceRowDto,
-  PalmaresRowDto,
+  PalmaresResponseDto,
   UpdateRankingDto,
   RemoveRankingDto,
   UpdateChronoDto,
@@ -91,12 +91,12 @@ export class RacesController {
   @ApiParam({ name: 'licenceId', type: Number })
   @ApiResponse({
     status: 200,
-    description: 'List of past races with rankings',
-    type: [PalmaresRowDto],
+    description: 'Palmares with licence info, stats, category history and results',
+    type: PalmaresResponseDto,
   })
   async getPalmares(
     @Param('licenceId', ParseIntPipe) licenceId: number,
-  ): Promise<PalmaresRowDto[]> {
+  ): Promise<PalmaresResponseDto> {
     return this.racesService.getPalmares(licenceId);
   }
 
