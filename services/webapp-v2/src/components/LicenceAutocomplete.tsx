@@ -15,6 +15,7 @@ type LicenceAutocompleteProps = {
   disabled?: boolean;
   error?: string;
   required?: boolean;
+  hideLabel?: boolean;
 };
 
 /**
@@ -136,6 +137,7 @@ export function LicenceAutocomplete({
   disabled = false,
   error,
   required,
+  hideLabel = false,
 }: LicenceAutocompleteProps) {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
@@ -159,13 +161,15 @@ export function LicenceAutocomplete({
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setInputValue(newValue);
-    setSearchTerm(newValue);
-    // Clear selection if user modifies the input
+    let newValue = e.target.value;
+    // If a licence was selected, clear everything and start fresh with the new keystroke
     if (value) {
       onChange(null);
+      const lastChar = newValue.slice(-1);
+      newValue = lastChar;
     }
+    setInputValue(newValue);
+    setSearchTerm(newValue);
     if (newValue.length >= 2) {
       setOpen(true);
     } else {
@@ -185,11 +189,13 @@ export function LicenceAutocomplete({
   };
 
   return (
-    <div className="space-y-2">
-      <Label>
-        Saisir coureur
-        {required && <span className="text-destructive ml-1">*</span>}
-      </Label>
+    <div className={hideLabel ? '' : 'space-y-2'}>
+      {!hideLabel && (
+        <Label>
+          Saisir coureur
+          {required && <span className="text-destructive ml-1">*</span>}
+        </Label>
+      )}
       <div className="relative">
         <Input
           placeholder="Rechercher par nom, prénom ou numéro de licence..."
@@ -207,7 +213,7 @@ export function LicenceAutocomplete({
               setInputValue('');
               setSearchTerm('');
               setOpen(false);
-              if (value) onChange(null);
+              onChange(null);
             }}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
           >

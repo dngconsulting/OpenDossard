@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import Layout from '@/components/layout/Layout';
@@ -8,6 +8,7 @@ import { PalmaresResultsTable } from '@/components/palmares/PalmaresResultsTable
 import { RankingHistorySection } from '@/components/palmares/RankingHistorySection';
 import { RiderHeaderCard } from '@/components/palmares/RiderHeaderCard';
 import { RiderStatsCards } from '@/components/palmares/RiderStatsCards';
+import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePalmares } from '@/hooks/usePalmares';
 import type { LicenceType } from '@/types/licences';
@@ -20,6 +21,13 @@ export default function PalmaresPage() {
 
   const [selectedLicence, setSelectedLicence] = useState<LicenceType | null>(null);
 
+  // Sync selected licence on direct URL access
+  useEffect(() => {
+    if (palmares?.licence && !selectedLicence) {
+      setSelectedLicence(palmares.licence);
+    }
+  }, [palmares?.licence?.id]);
+
   const handleLicenceChange = (licence: LicenceType | null) => {
     setSelectedLicence(licence);
     if (licence) {
@@ -29,19 +37,19 @@ export default function PalmaresPage() {
     }
   };
 
-  // Sync selected licence when palmares loads
-  if (palmares?.licence && !selectedLicence) {
-    setSelectedLicence(palmares.licence);
-  }
-
   return (
     <Layout title="Palmarès">
       <div className="space-y-5">
-        <LicenceAutocomplete
-          value={selectedLicence}
-          onChange={handleLicenceChange}
-        />
-
+        <div className="flex items-center gap-4">
+          <Label className="shrink-0 text-sm font-medium">Coureur</Label>
+          <div className="flex-1">
+            <LicenceAutocomplete
+              value={selectedLicence}
+              onChange={handleLicenceChange}
+              hideLabel
+            />
+          </div>
+        </div>
         {isLoading && parsedId && (
           <div className="space-y-4">
             <Skeleton className="h-36 w-full rounded-xl" />
