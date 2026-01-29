@@ -19,7 +19,7 @@ export const apiConfig: ApiConfig = {
   challenges: 'mock',
   charts: 'mock',
   dashboard: 'real',
-  palmares: 'mock',
+  palmares: 'real',
   clubs: 'mock',
   departments: 'mock',
 };

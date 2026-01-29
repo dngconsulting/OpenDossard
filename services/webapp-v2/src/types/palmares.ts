@@ -1,32 +1,32 @@
-import type { LicenceType } from './licences';
-
-export type CompetitionType = 'ROUTE' | 'CX';
+import type { LicenceType } from '@/types/licences';
 
 export type RiderStats = {
   totalRaces: number;
   wins: number;
   podiums: number;
-  winRate: number;
+  topTen: number;
   avgRanking: number;
   bestRanking: number;
 };
 
 export type CategoryChange = {
-  date: string;
   season: string;
   fromCategory: string | null;
   toCategory: string;
+  direction: 'up' | 'down' | 'initial';
 };
 
 export type PalmaresRaceResult = {
-  id: string;
-  competitionId: string;
+  id: number;
+  competitionId: number;
   date: string;
   competitionName: string;
-  competitionType: CompetitionType;
-  category: string;
-  ranking: number;
-  totalParticipants?: number;
+  competitionType: string;
+  raceCode: string;
+  rankingScratch: number | null;
+  rankingInCategory: number | null;
+  totalInCategory: number;
+  comment: string | null;
 };
 
 export type PalmaresData = {

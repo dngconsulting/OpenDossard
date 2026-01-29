@@ -1,4 +1,4 @@
-import { Trophy, Medal, Target, Percent, TrendingUp, Award } from 'lucide-react';
+import { Trophy, Medal, Target, TrendingUp, Award, Hash } from 'lucide-react';
 
 import { Card, CardContent } from '@/components/ui/card';
 import type { RiderStats } from '@/types/palmares';
@@ -30,28 +30,12 @@ function StatCard({ icon, label, value }: StatCardProps) {
 export function RiderStatsCards({ stats }: Props) {
   return (
     <div className="flex flex-wrap gap-4">
-      <StatCard
-        icon={<Target className="h-5 w-5" />}
-        label="Total courses"
-        value={stats.totalRaces}
-      />
+      <StatCard icon={<Target className="h-5 w-5" />} label="Total courses" value={stats.totalRaces} />
       <StatCard icon={<Trophy className="h-5 w-5" />} label="Victoires" value={stats.wins} />
       <StatCard icon={<Medal className="h-5 w-5" />} label="Podiums" value={stats.podiums} />
-      <StatCard
-        icon={<Percent className="h-5 w-5" />}
-        label="Taux victoire"
-        value={`${stats.winRate}%`}
-      />
-      <StatCard
-        icon={<TrendingUp className="h-5 w-5" />}
-        label="Classement moyen"
-        value={stats.avgRanking}
-      />
-      <StatCard
-        icon={<Award className="h-5 w-5" />}
-        label="Meilleur classement"
-        value={stats.bestRanking}
-      />
+      <StatCard icon={<Hash className="h-5 w-5" />} label="Top 10" value={stats.topTen} />
+      <StatCard icon={<TrendingUp className="h-5 w-5" />} label="Classement moyen" value={stats.avgRanking} />
+      <StatCard icon={<Award className="h-5 w-5" />} label="Meilleur classement" value={stats.bestRanking} />
     </div>
   );
 }
