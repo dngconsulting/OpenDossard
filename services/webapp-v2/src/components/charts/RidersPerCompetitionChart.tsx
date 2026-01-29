@@ -79,7 +79,22 @@ export function RidersPerCompetitionChart({ data, isLoading, defaultOpen }: Prop
             )}
           />
           <XAxis type="number" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
-          <ChartTooltip content={<ChartTooltipContent />} />
+          <ChartTooltip
+            content={
+              <ChartTooltipContent
+                labelFormatter={(_, payload) => {
+                  const item = payload?.[0]?.payload as RidersPerCompetitionItem | undefined;
+                  if (!item) return '';
+                  const date = new Date(item.eventDate).toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                  });
+                  return `${item.name} — ${date}`;
+                }}
+              />
+            }
+          />
           <Bar dataKey="count" fill="url(#gradRiders)" radius={[0, 6, 6, 0]} barSize={18}>
             <LabelList dataKey="count" position="right" className="fill-muted-foreground text-xs font-semibold" />
           </Bar>

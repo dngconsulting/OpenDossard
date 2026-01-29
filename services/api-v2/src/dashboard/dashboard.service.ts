@@ -82,18 +82,20 @@ export class DashboardService {
     return this.applyChartFilters(qb, filters);
   }
 
-  async getRidersPerCompetition(filters: DashboardChartFiltersDto): Promise<{ name: string; count: number }[]> {
+  async getRidersPerCompetition(filters: DashboardChartFiltersDto): Promise<{ name: string; eventDate: string; count: number }[]> {
     const qb = this.createBaseChartQuery(filters);
     const results = await qb
       .select('competition.name', 'name')
+      .addSelect('competition.eventDate', 'eventDate')
       .addSelect('COUNT(race.id)', 'count')
       .groupBy('competition.id')
       .addGroupBy('competition.name')
+      .addGroupBy('competition.eventDate')
       .orderBy('count', 'DESC')
       .limit(100)
       .getRawMany();
 
-    return results.map(r => ({ name: r.name, count: parseInt(r.count, 10) }));
+    return results.map(r => ({ name: r.name, eventDate: r.eventDate, count: parseInt(r.count, 10) }));
   }
 
   async getClubParticipation(filters: DashboardChartFiltersDto): Promise<{ club: string; count: number }[]> {

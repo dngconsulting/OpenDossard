@@ -26,6 +26,7 @@ export type DashboardChartFilters = {
 
 export type RidersPerCompetitionItem = {
   name: string;
+  eventDate: string;
   count: number;
 };
 

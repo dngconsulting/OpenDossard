@@ -54,6 +54,7 @@ function TableSkeleton() {
 type CompetitionsTableProps = {
   onEdit?: (row: CompetitionType) => void;
   onDuplicate?: (row: CompetitionType) => void;
+  onDelete?: (row: CompetitionType) => void;
 };
 
 const formatDate = (dateString: string) => {
@@ -65,7 +66,7 @@ const formatDate = (dateString: string) => {
   });
 };
 
-export const CompetitionsDataTable = ({ onEdit, onDuplicate: _onDuplicate }: CompetitionsTableProps) => {
+export const CompetitionsDataTable = ({ onEdit, onDuplicate: _onDuplicate, onDelete }: CompetitionsTableProps) => {
   const {
     data,
     isLoading,
@@ -84,6 +85,7 @@ export const CompetitionsDataTable = ({ onEdit, onDuplicate: _onDuplicate }: Com
       accessorKey: 'engagementsCount',
       header: 'Eng.',
       size: 60,
+      enableColumnFilter: false,
       cell: ({ row }) => {
         const count = row.original.engagementsCount;
         return (
@@ -105,6 +107,7 @@ export const CompetitionsDataTable = ({ onEdit, onDuplicate: _onDuplicate }: Com
       accessorKey: 'classementsCount',
       header: 'Class.',
       size: 60,
+      enableColumnFilter: false,
       cell: ({ row }) => {
         const count = row.original.classementsCount;
         return (
@@ -126,6 +129,7 @@ export const CompetitionsDataTable = ({ onEdit, onDuplicate: _onDuplicate }: Com
       accessorKey: 'eventDate',
       header: 'Date',
       size: 75,
+      enableColumnFilter: false,
       cell: ({ row }) => formatDate(row.original.eventDate),
     },
     {
@@ -171,6 +175,7 @@ export const CompetitionsDataTable = ({ onEdit, onDuplicate: _onDuplicate }: Com
       columns={columns}
       data={data?.data || []}
       onEditRow={onEdit}
+      onDeleteRow={onDelete}
       isLoading={isLoading}
       serverFilters={(params.filters as Record<string, string>) || {}}
       onFilterChange={(columnId, value) => setFilter(columnId as keyof CompetitionType, value)}

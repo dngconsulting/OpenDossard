@@ -58,7 +58,7 @@ export class DashboardController {
   @ApiResponse({ status: 200, description: 'Riders per competition chart data' })
   async getRidersPerCompetition(
     @Query() filters: DashboardChartFiltersDto,
-  ): Promise<{ name: string; count: number }[]> {
+  ): Promise<{ name: string; eventDate: string; count: number }[]> {
     return this.dashboardService.getRidersPerCompetition(filters);
   }
 

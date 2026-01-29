@@ -92,6 +92,7 @@ export default function DashboardPage() {
         clubs={allClubs || []}
         selected={filters.clubs}
         onChange={v => updateFilter('clubs', v)}
+        className="min-w-[300px]"
       />
       <Button variant="ghost" size="sm" onClick={resetFilters}>
         <RotateCcw className="h-4 w-4 mr-1" />

@@ -38,6 +38,7 @@ import {
   ChevronsRight,
   Edit2,
   GripVertical,
+  Search,
   Trash2,
   Trophy,
   X,
@@ -171,7 +172,7 @@ function SortableRow<TData>({
         </TableCell>
       )}
       {onDeleteRow && (
-        <TableCell style={{ width: 56, paddingRight: 16 }}>
+        <TableCell style={{ width: 40 }}>
           <Button
             variant="outline"
             size="icon-sm"
@@ -220,18 +221,20 @@ export function DataTable<TData, TValue>({
   const [internalData, setInternalData] = React.useState<TData[]>(data);
   const [localFilters, setLocalFilters] = React.useState<Record<string, string>>({});
   const debounceTimers = React.useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const serverFiltersKey = serverFilters ? JSON.stringify(serverFilters) : '';
 
   // Sync internal data when external data changes
   React.useEffect(() => {
     setInternalData(data);
   }, [data]);
 
-  // Sync local filters with server filters
+  // Sync local filters with server filters (stable key avoids spurious resets)
   React.useEffect(() => {
     if (serverFilters) {
       setLocalFilters(serverFilters);
     }
-  }, [serverFilters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverFiltersKey]);
 
   const tableData = enableDragDrop ? internalData : data;
   const columnResizeMode: ColumnResizeMode = 'onChange';
@@ -249,27 +252,24 @@ export function DataTable<TData, TValue>({
     enableColumnResizing: true,
   });
 
-  const handleFilterChange = React.useCallback(
-    (columnId: string, value: string) => {
-      setLocalFilters(prev => ({ ...prev, [columnId]: value }));
+  const handleFilterChange = React.useCallback((columnId: string, value: string) => {
+    setLocalFilters(prev => ({ ...prev, [columnId]: value }));
 
-      if (onFilterChange) {
-        // Clear existing timer for this column
-        if (debounceTimers.current[columnId]) {
-          clearTimeout(debounceTimers.current[columnId]);
-        }
-        // Set new debounced call
-        debounceTimers.current[columnId] = setTimeout(() => {
-          onFilterChange(columnId, value);
-        }, 500);
-      }
-    },
-    [onFilterChange]
-  );
+    // Clear existing timer for this column
+    if (debounceTimers.current[columnId]) {
+      clearTimeout(debounceTimers.current[columnId]);
+    }
+    // Set new debounced call
+    debounceTimers.current[columnId] = setTimeout(() => {
+      onFilterChange?.(columnId, value);
+    }, 500);
+  }, [onFilterChange]);
 
   const handleSortChange = React.useCallback(
     (columnId: string) => {
-      if (!sorting?.onSortChange) return;
+      if (!sorting?.onSortChange) {
+        return;
+      }
 
       // Toggle direction: none -> ASC -> DESC -> ASC
       if (sorting.sortColumn === columnId) {
@@ -279,11 +279,13 @@ export function DataTable<TData, TValue>({
         sorting.onSortChange(columnId, 'ASC');
       }
     },
-    [sorting]
+    [sorting],
   );
 
   const getSortIcon = (columnId: string) => {
-    if (!sorting?.onSortChange) return null;
+    if (!sorting?.onSortChange) {
+      return null;
+    }
 
     if (sorting.sortColumn === columnId) {
       return sorting.sortDirection === 'ASC' ? (
@@ -299,7 +301,7 @@ export function DataTable<TData, TValue>({
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const getRowId = React.useCallback(
@@ -307,13 +309,13 @@ export function DataTable<TData, TValue>({
       const id = row[rowIdAccessor];
       return String(id);
     },
-    [rowIdAccessor]
+    [rowIdAccessor],
   );
 
   const tableRows = table.getRowModel().rows;
   const rowIds = React.useMemo(
     () => tableRows.map(row => getRowId(row.original)),
-    [tableRows, getRowId]
+    [tableRows, getRowId],
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -339,7 +341,7 @@ export function DataTable<TData, TValue>({
             {enableDragDrop && <TableHead className="w-8" />}
             {onOpenRow && <TableHead style={{ width: 40 }} />}
             {onEditRow && <TableHead style={{ width: 40 }} />}
-            {onDeleteRow && <TableHead style={{ width: 56, paddingRight: 16 }} />}
+            {onDeleteRow && <TableHead style={{ width: 40 }} />}
             {headerGroup.headers.map(header => {
               const columnId = header.column.id;
               const isSortable = sorting?.onSortChange && !header.isPlaceholder;
@@ -372,60 +374,69 @@ export function DataTable<TData, TValue>({
           </TableRow>
         ))}
       </TableHeader>
-      {showColumnFilters && (<TableFilter className="sticky top-8 z-10 bg-muted/50">
-        {table.getHeaderGroups().map(headerGroup => (
-          <TableFilterRow key={headerGroup.id}>
-            {enableDragDrop && <TableFilterCell className="w-8" />}
-            {onOpenRow && <TableFilterCell style={{ width: 40 }} />}
-            {onEditRow && <TableFilterCell style={{ width: 40 }} />}
-            {onDeleteRow && <TableFilterCell style={{ width: 56, paddingRight: 16 }} />}
-            {headerGroup.headers.map(header => {
-              const columnId = header.column.id;
-              const hasFixedSize = header.column.columnDef.size !== undefined;
-              const showClear = !hasFixedSize || header.getSize() >= 80;
-              const filterValue = isServerFiltering
-                ? localFilters[columnId] || ''
-                : header.column.getFilterValue()?.toString() || '';
-              return (
-                <TableFilterCell
-                  key={header.id}
-                  style={hasFixedSize ? { width: header.getSize() } : undefined}
-                >
-                  <div className="relative">
-                    <Input
-                      placeholder={columnId === 'club' ? 'Ex: Castan\u00e9en' : ''}
-                      value={filterValue}
-                      onChange={event => {
-                        if (isServerFiltering) {
-                          handleFilterChange(columnId, event.target.value);
-                        } else {
-                          header.column.setFilterValue(event.target.value);
-                        }
-                      }}
-                      className={`h-8 text-sm text-left ${showClear ? 'pr-7' : ''} bg-background/80 border-border/50 focus:border-primary/50 ${columnId === 'club' ? 'placeholder:italic' : ''}`}
-                    />
-                    {showClear && filterValue && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (isServerFiltering) {
-                            handleFilterChange(columnId, '');
-                          } else {
-                            header.column.setFilterValue('');
-                          }
-                        }}
-                        className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </TableFilterCell>
-              );
-            })}
-          </TableFilterRow>
-        ))}
-      </TableFilter>
+      {showColumnFilters && (
+        <TableFilter className="sticky top-8 z-10 bg-muted/50">
+          {table.getHeaderGroups().map(headerGroup => (
+            <TableFilterRow key={headerGroup.id}>
+              {enableDragDrop && <TableFilterCell className="w-8" />}
+              {onOpenRow && <TableFilterCell style={{ width: 40 }} />}
+              {onEditRow && <TableFilterCell style={{ width: 40 }} />}
+              {onDeleteRow && <TableFilterCell style={{ width: 40 }} />}
+              {headerGroup.headers.map(header => {
+                const columnId = header.column.id;
+                const hasFixedSize = header.column.columnDef.size !== undefined;
+                const canFilter = header.column.columnDef.enableColumnFilter !== false;
+                const showClear = canFilter && (!hasFixedSize || header.getSize() >= 80);
+                const filterValue = canFilter
+                  ? isServerFiltering
+                    ? localFilters[columnId] || ''
+                    : header.column.getFilterValue()?.toString() || ''
+                  : '';
+                return (
+                  <TableFilterCell
+                    key={header.id}
+                    style={hasFixedSize ? { width: header.getSize() } : undefined}
+                  >
+                    {canFilter ? (
+                      <div className="relative">
+                        {!filterValue && (
+                          <Search className="absolute left-1.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50 pointer-events-none" />
+                        )}
+                        <Input
+                          placeholder={columnId === 'club' ? 'Ex: Castan\u00e9en' : ''}
+                          value={filterValue}
+                          onChange={event => {
+                            if (isServerFiltering) {
+                              handleFilterChange(columnId, event.target.value);
+                            } else {
+                              header.column.setFilterValue(event.target.value);
+                            }
+                          }}
+                          className={`h-8 text-sm text-left ${filterValue ? 'pl-2' : 'pl-6'} ${showClear ? 'pr-7' : ''} bg-background/80 border-border/50 focus:border-primary/50 ${columnId === 'club' ? 'placeholder:italic' : ''}`}
+                        />
+                        {showClear && filterValue && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (isServerFiltering) {
+                                handleFilterChange(columnId, '');
+                              } else {
+                                header.column.setFilterValue('');
+                              }
+                            }}
+                            className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    ) : null}
+                  </TableFilterCell>
+                );
+              })}
+            </TableFilterRow>
+          ))}
+        </TableFilter>
       )}
       <TableBody>
         {table.getRowModel().rows?.length ? (
@@ -526,20 +537,20 @@ export function DataTable<TData, TValue>({
   return (
     <div className="rounded-md border shadow-xs flex flex-col max-h-[calc(100vh-200px)]">
       <div className="overflow-auto flex-1">
-      {enableDragDrop ? (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-          modifiers={[restrictToVerticalAxis]}
-        >
-          <SortableContext items={rowIds} strategy={verticalListSortingStrategy}>
-            {tableContent}
-          </SortableContext>
-        </DndContext>
-      ) : (
-        tableContent
-      )}
+        {enableDragDrop ? (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+            modifiers={[restrictToVerticalAxis]}
+          >
+            <SortableContext items={rowIds} strategy={verticalListSortingStrategy}>
+              {tableContent}
+            </SortableContext>
+          </DndContext>
+        ) : (
+          tableContent
+        )}
       </div>
       {paginationControls}
     </div>

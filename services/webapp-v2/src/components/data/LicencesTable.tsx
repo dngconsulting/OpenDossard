@@ -85,6 +85,11 @@ export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
       size: 70,
     },
     {
+      accessorKey: 'fede',
+      header: 'Fédé',
+      size: 90,
+    },
+    {
       accessorKey: 'licenceNumber',
       header: 'Lic. N°',
       size: 90,
@@ -139,11 +144,6 @@ export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
       accessorKey: 'catevCX',
       header: 'CX',
       size: 80,
-    },
-    {
-      accessorKey: 'fede',
-      header: 'Fédé',
-      size: 90,
     },
     {
       accessorKey: 'saison',

@@ -123,24 +123,32 @@ export function useCompetitions() {
 
   const setFilter = useCallback(
     (key: keyof CompetitionType, value: string) => {
-      const newFilters = { ...params.filters, [key]: value || undefined };
-      const cleanFilters = Object.fromEntries(
-        Object.entries(newFilters).filter(([, v]) => v)
-      ) as CompetitionFilters;
-      updateParams({
-        offset: 0,
-        filters: Object.keys(cleanFilters).length > 0 ? cleanFilters : undefined,
-      });
+      setSearchParams(prev => {
+        const currentParams = parseUrlParams(prev);
+        const newFilters = { ...currentParams.filters, [key]: value || undefined };
+        const cleanFilters = Object.fromEntries(
+          Object.entries(newFilters).filter(([, v]) => v)
+        ) as CompetitionFilters;
+        const merged = {
+          ...currentParams,
+          offset: 0,
+          filters: Object.keys(cleanFilters).length > 0 ? cleanFilters : undefined,
+        };
+        return buildUrlParams(merged);
+      }, { replace: true });
     },
-    [params.filters, updateParams]
+    [setSearchParams]
   );
 
   const goToPage = useCallback(
     (page: number) => {
-      const limit = params.limit || 20;
-      updateParams({ offset: page * limit });
+      setSearchParams(prev => {
+        const currentParams = parseUrlParams(prev);
+        const limit = currentParams.limit || 20;
+        return buildUrlParams({ ...currentParams, offset: page * limit });
+      }, { replace: true });
     },
-    [params.limit, updateParams]
+    [setSearchParams]
   );
 
   const setSort = useCallback(
@@ -189,6 +197,17 @@ export function useDuplicateCompetition() {
 
   return useMutation({
     mutationFn: (id: number) => competitionsApi.duplicate(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['competitions'] });
+    },
+  });
+}
+
+export function useDeleteCompetition() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => competitionsApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['competitions'] });
     },

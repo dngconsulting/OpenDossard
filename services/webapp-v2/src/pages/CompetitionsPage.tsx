@@ -5,7 +5,8 @@ import { useNavigate } from 'react-router-dom';
 
 import { showSuccessToast, showErrorToast } from '@/utils/error-handler/error-handler';
 import { CompetitionsDataTable } from '@/components/data/CompetitionsTable';
-import { useCompetitions, useDuplicateCompetition } from '@/hooks/useCompetitions';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { useCompetitions, useDeleteCompetition, useDuplicateCompetition } from '@/hooks/useCompetitions';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -22,8 +23,10 @@ import type { CompetitionType } from '@/types/competitions';
 export default function CompetitionsPage() {
   const navigate = useNavigate();
   const [duplicateCompetition, setDuplicateCompetition] = useState<CompetitionType | undefined>(undefined);
+  const [deleteCompetition, setDeleteCompetition] = useState<CompetitionType | undefined>(undefined);
   const { data, setAdvancedFilters, params } = useCompetitions();
   const { mutate: duplicate, isPending: isDuplicating } = useDuplicateCompetition();
+  const { mutate: deleteComp, isPending: isDeleting } = useDeleteCompetition();
   const totalCompetitions = data?.meta?.total ?? 0;
 
   // Date filters from URL params
@@ -53,6 +56,27 @@ export default function CompetitionsPage() {
       },
       onError: () => {
         showErrorToast(`Erreur lors de la duplication de l'épreuve`);
+      },
+    });
+  };
+
+  const handleDeleteRequest = (competition: CompetitionType) => {
+    if (competition.engagementsCount > 0) {
+      showErrorToast(`Impossible de supprimer "${competition.name}" : ${competition.engagementsCount} engagé(s) en cours`);
+      return;
+    }
+    setDeleteCompetition(competition);
+  };
+
+  const handleDelete = () => {
+    if (!deleteCompetition) return;
+    deleteComp(deleteCompetition.id, {
+      onSuccess: () => {
+        showSuccessToast(`Épreuve "${deleteCompetition.name}" supprimée`);
+        setDeleteCompetition(undefined);
+      },
+      onError: () => {
+        showErrorToast(`Erreur lors de la suppression de l'épreuve`);
       },
     });
   };
@@ -118,6 +142,18 @@ export default function CompetitionsPage() {
       <CompetitionsDataTable
         onEdit={(row: CompetitionType) => navigate(`/competition/${row.id}`)}
         onDuplicate={(row: CompetitionType) => setDuplicateCompetition(row)}
+        onDelete={handleDeleteRequest}
+      />
+
+      <ConfirmDialog
+        open={!!deleteCompetition}
+        onOpenChange={open => !open && setDeleteCompetition(undefined)}
+        title="Supprimer une épreuve"
+        description={`Êtes-vous sûr de vouloir supprimer l'épreuve "${deleteCompetition?.name}" ? Cette action est irréversible.`}
+        confirmLabel="Supprimer"
+        onConfirm={handleDelete}
+        isLoading={isDeleting}
+        variant="destructive"
       />
     </Layout>
   );
