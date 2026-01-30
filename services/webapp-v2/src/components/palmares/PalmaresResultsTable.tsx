@@ -1,4 +1,5 @@
 import { Trophy } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/ui/data-table';
@@ -60,7 +61,12 @@ const columns: ColumnDef<PalmaresRaceResult>[] = [
     accessorKey: 'competitionName',
     header: 'Compétition',
     cell: ({ row }) => (
-      <span className="font-medium">{row.getValue('competitionName')}</span>
+      <Link
+        to={`/competition/${row.original.competitionId}/classements#cate_course`}
+        className="font-medium text-primary underline-offset-4 hover:underline"
+      >
+        {row.getValue('competitionName')}
+      </Link>
     ),
   },
   {
