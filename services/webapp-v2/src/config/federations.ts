@@ -233,7 +233,7 @@ export const FIELD_HELPER_TEXTS = {
     default: "Première lettre en majuscule, puis le reste en minuscule",
   },
   birthYear: `Année entre ${new Date().getFullYear() - 130} et ${new Date().getFullYear() - 4}`,
-  dept: "Code département entre 01 et 99",
+  dept: "",
   saison: "Année de la saison sportive (ex: 2025)",
   catea: "Sélectionnez d'abord un genre et une année de naissance",
 };

@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Award, FileText, IdCard, Info, Loader2, Save, UserCircle } from 'lucide-react';
+import { AlertTriangle, Award, FileText, IdCard, Info, Loader2, Save, UserCircle } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -259,6 +259,15 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange }:
   return (
     <Form {...licenceForm}>
       <form onSubmit={licenceForm.handleSubmit(onSubmit)} className="space-y-6 max-w-4xl">
+        {fede === 'FSGT' && (
+          <div className="w-full flex items-center gap-2 p-2 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded text-sm text-amber-800 dark:text-amber-200">
+            <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+            <span>
+              Attention, certains comités FSGT utilisent l'import de licence via la plateforme elicence d'Exalto,
+              vos modifications pourraient être écrasées.
+            </span>
+          </div>
+        )}
         {/* 1) Capsule Fédération - toujours visible en premier */}
         <Card className="bg-slate-100 dark:bg-muted/50 border-slate-200 dark:border-muted">
           <CardHeader className="pb-0">
