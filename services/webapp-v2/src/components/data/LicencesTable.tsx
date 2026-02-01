@@ -1,10 +1,15 @@
-import { Trophy } from 'lucide-react';
+import { MessageCircle, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table.tsx';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useLicences } from '@/hooks/useLicences';
 import type { LicenceType } from '@/types/licences.ts';
 
@@ -154,18 +159,21 @@ export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
     },
     {
       accessorKey: 'catea',
-      header: 'Caté.A',
+      header: 'Cat.A',
       size: 80,
+      cell: ({ row }) => <span className="block text-center">{row.original.catea || '-'}</span>,
     },
     {
       accessorKey: 'catev',
-      header: 'Caté.V',
+      header: 'Cat.V',
       size: 80,
+      cell: ({ row }) => <span className="block text-center">{row.original.catev || '-'}</span>,
     },
     {
       accessorKey: 'catevCX',
       header: 'CX',
       size: 80,
+      cell: ({ row }) => <span className="block text-center">{row.original.catevCX || '-'}</span>,
     },
     {
       accessorKey: 'saison',
@@ -175,8 +183,22 @@ export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
     {
       accessorKey: 'comment',
       header: 'Com.',
-      size: 90,
-      cell: ({ row }) => (row.original.comment ? 'O' : 'N'),
+      size: 50,
+      enableColumnFilter: false,
+      cell: ({ row }) => {
+        const comment = row.original.comment;
+        if (!comment) return <span className="block text-center text-muted-foreground">-</span>;
+        return (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="block text-center cursor-pointer">
+                <MessageCircle className="inline h-4 w-4 text-primary" />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">{comment}</TooltipContent>
+          </Tooltip>
+        );
+      },
     },
   ];
 
