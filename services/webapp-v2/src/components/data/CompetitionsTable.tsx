@@ -1,7 +1,8 @@
-import { CalendarDays } from 'lucide-react';
+import { CalendarDays, Copy } from 'lucide-react';
 import { useCallback } from 'react';
 import { Link } from 'react-router-dom';
 
+import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TableCell, TableRow } from '@/components/ui/table';
@@ -69,7 +70,7 @@ const formatDate = (dateString: string) => {
   });
 };
 
-export const CompetitionsDataTable = ({ onEdit, onDuplicate: _onDuplicate, onDelete }: CompetitionsTableProps) => {
+export const CompetitionsDataTable = ({ onEdit, onDuplicate, onDelete }: CompetitionsTableProps) => {
   const {
     data,
     isLoading,
@@ -163,6 +164,26 @@ export const CompetitionsDataTable = ({ onEdit, onDuplicate: _onDuplicate, onDel
       header: 'Type',
       size: 70,
     },
+    ...(onDuplicate
+      ? [
+          {
+            id: 'duplicate',
+            header: '',
+            size: 40,
+            enableColumnFilter: false,
+            cell: ({ row }: { row: { original: CompetitionType } }) => (
+              <Button
+                variant="outline"
+                size="icon-sm"
+                onClick={() => onDuplicate(row.original)}
+                title="Dupliquer"
+              >
+                <Copy />
+              </Button>
+            ),
+          } satisfies ColumnDef<CompetitionType>,
+        ]
+      : []),
   ];
 
   const competitions = data?.data || [];

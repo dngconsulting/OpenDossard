@@ -6,18 +6,10 @@ import { useNavigate } from 'react-router-dom';
 import { showSuccessToast, showErrorToast } from '@/utils/error-handler/error-handler';
 import { CompetitionsDataTable } from '@/components/data/CompetitionsTable';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { useCompetitions, useDeleteCompetition, useDuplicateCompetition } from '@/hooks/useCompetitions';
+import { useCompetitions, useDeleteCompetition } from '@/hooks/useCompetitions';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import type { CompetitionType } from '@/types/competitions';
 
 export default function CompetitionsPage() {
@@ -25,7 +17,6 @@ export default function CompetitionsPage() {
   const [duplicateCompetition, setDuplicateCompetition] = useState<CompetitionType | undefined>(undefined);
   const [deleteCompetition, setDeleteCompetition] = useState<CompetitionType | undefined>(undefined);
   const { data, setAdvancedFilters, params } = useCompetitions();
-  const { mutate: duplicate, isPending: isDuplicating } = useDuplicateCompetition();
   const { mutate: deleteComp, isPending: isDeleting } = useDeleteCompetition();
   const totalCompetitions = data?.meta?.total ?? 0;
 
@@ -47,17 +38,8 @@ export default function CompetitionsPage() {
 
   const handleDuplicate = () => {
     if (!duplicateCompetition) return;
-
-    duplicate(duplicateCompetition.id, {
-      onSuccess: (newCompetition) => {
-        showSuccessToast(`Épreuve "${duplicateCompetition.name}" dupliquée avec succès`);
-        setDuplicateCompetition(undefined);
-        navigate(`/competition/${newCompetition.id}`);
-      },
-      onError: () => {
-        showErrorToast(`Erreur lors de la duplication de l'épreuve`);
-      },
-    });
+    setDuplicateCompetition(undefined);
+    navigate(`/competition/new?duplicateFrom=${duplicateCompetition.id}`);
   };
 
   const handleDeleteRequest = (competition: CompetitionType) => {
@@ -81,28 +63,15 @@ export default function CompetitionsPage() {
     });
   };
 
-  const DuplicateDialog = () => (
-    <Dialog
+  const duplicateDialog = (
+    <ConfirmDialog
       open={!!duplicateCompetition}
-      onOpenChange={(open: boolean) => !open && setDuplicateCompetition(undefined)}
-    >
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Dupliquer une épreuve</DialogTitle>
-          <DialogDescription>
-            Voulez-vous dupliquer l'épreuve "{duplicateCompetition?.name}" ?
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setDuplicateCompetition(undefined)}>
-            Annuler
-          </Button>
-          <Button onClick={handleDuplicate} disabled={isDuplicating}>
-            {isDuplicating ? 'Duplication...' : 'Dupliquer'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      onOpenChange={open => !open && setDuplicateCompetition(undefined)}
+      title="Dupliquer une épreuve"
+      description={`Voulez-vous dupliquer l'épreuve "${duplicateCompetition?.name}" ?`}
+      confirmLabel="Dupliquer"
+      onConfirm={handleDuplicate}
+    />
   );
 
   const toolbarLeft = (
@@ -116,7 +85,7 @@ export default function CompetitionsPage() {
       <Button variant="success" onClick={() => navigate('/competition/new')}>
         <Plus /> Créer une épreuve
       </Button>
-      <DuplicateDialog />
+      {duplicateDialog}
     </>
   );
 

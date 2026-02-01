@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Controller, useFormContext } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 import { Facebook, Globe, Mail, MapPin, Phone } from 'lucide-react';
 
 import { ClubAutocomplete } from '@/components/ClubAutocomplete';
@@ -36,9 +36,12 @@ import {
 interface GeneralTabProps {
   competition: CompetitionDetailType | undefined;
   isCreating: boolean;
+  isDuplicating?: boolean;
 }
 
-export function GeneralTab({ competition, isCreating }: GeneralTabProps) {
+const HIGHLIGHT_CLASS = 'bg-amber-100 dark:bg-amber-900/30 border-amber-400';
+
+export function GeneralTab({ competition, isCreating, isDuplicating }: GeneralTabProps) {
   const form = useFormContext<FormValues>();
 
   const watchedFede = form.watch('fede');
@@ -92,7 +95,7 @@ export function GeneralTab({ competition, isCreating }: GeneralTabProps) {
                   Date et heure <span className="text-destructive">*</span>
                 </FormLabel>
                 <FormControl>
-                  <Input type="datetime-local" {...field} />
+                  <Input type="datetime-local" {...field} className={isDuplicating && !field.value ? HIGHLIGHT_CLASS : ''} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -108,9 +111,9 @@ export function GeneralTab({ competition, isCreating }: GeneralTabProps) {
                   Type <span className="text-destructive">*</span>
                 </FormLabel>
                 <Select
-                  key={`type-${competition?.id || 'new'}-${competition?.competitionType || ''}`}
+                  key={`type-${field.value}`}
                   onValueChange={field.onChange}
-                  defaultValue={competition?.competitionType || field.value}
+                  value={field.value || undefined}
                   disabled={!isCreating}
                 >
                   <FormControl>
@@ -138,9 +141,9 @@ export function GeneralTab({ competition, isCreating }: GeneralTabProps) {
               <FormItem>
                 <FormLabel>Profil</FormLabel>
                 <Select
-                  key={`info-${competition?.id || 'new'}-${competition?.info || ''}`}
+                  key={`info-${field.value}`}
                   onValueChange={field.onChange}
-                  defaultValue={competition?.info || field.value}
+                  value={field.value || undefined}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -169,9 +172,9 @@ export function GeneralTab({ competition, isCreating }: GeneralTabProps) {
                   Federation <span className="text-destructive">*</span>
                 </FormLabel>
                 <Select
-                  key={`fede-${competition?.id || 'new'}-${competition?.fede || ''}`}
+                  key={`fede-${field.value}`}
                   onValueChange={field.onChange}
-                  defaultValue={competition?.fede || field.value}
+                  value={field.value || undefined}
                   disabled={!isCreating}
                 >
                   <FormControl>
@@ -235,18 +238,24 @@ export function GeneralTab({ competition, isCreating }: GeneralTabProps) {
           />
 
           {watchedFede && deptFromZip && (
-            <Controller
+            <FormField
               control={form.control}
               name="clubId"
               render={({ field, fieldState }) => (
-                <ClubAutocomplete
-                  value={field.value ?? null}
-                  onChange={clubId => field.onChange(clubId)}
-                  fede={watchedFede}
-                  department={deptFromZip}
-                  error={fieldState.error?.message}
-                  label="Club organisateur"
-                />
+                <FormItem>
+                  <FormLabel>Club organisateur</FormLabel>
+                  <FormControl>
+                    <ClubAutocomplete
+                      value={field.value ?? null}
+                      onChange={clubId => field.onChange(clubId)}
+                      fede={watchedFede}
+                      department={deptFromZip}
+                      error={fieldState.error?.message}
+                      label=""
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
           )}
@@ -328,7 +337,7 @@ export function GeneralTab({ competition, isCreating }: GeneralTabProps) {
                   <FormControl>
                     <div className="relative">
                       <Globe className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input className="pl-9" placeholder="https://..." {...field} />
+                      <Input className={`pl-9 ${isDuplicating && !field.value ? HIGHLIGHT_CLASS : ''}`} placeholder="https://..." {...field} />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -346,7 +355,7 @@ export function GeneralTab({ competition, isCreating }: GeneralTabProps) {
                     <div className="relative">
                       <Facebook className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
-                        className="pl-9"
+                        className={`pl-9 ${isDuplicating && !field.value ? HIGHLIGHT_CLASS : ''}`}
                         placeholder="https://facebook.com/..."
                         {...field}
                       />

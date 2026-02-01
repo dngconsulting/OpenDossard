@@ -2,7 +2,7 @@ import { Check, ChevronsUpDown, Loader2, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Field, FieldContent, FieldDescription, FieldLabel } from '@/components/ui/field';
+import { Field, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useClubsByFedeAndDept, useCreateClub } from '@/hooks/useClubs';
@@ -104,16 +104,8 @@ export function ClubAutocomplete({
 
   const isInvalid = !!error;
 
-  return (
-    <Field data-invalid={isInvalid}>
-      <FieldContent>
-        <FieldLabel>
-          {label}
-          {required && <span className="text-destructive">*</span>}
-        </FieldLabel>
-        {isInvalid && <p className="text-destructive text-sm">{error}</p>}
-        {description && !isInvalid && <FieldDescription>{description}</FieldDescription>}
-      </FieldContent>
+  const popoverContent = (
+    <>
       <Popover open={open} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
           <Button
@@ -204,6 +196,19 @@ export function ClubAutocomplete({
           </div>
         </PopoverContent>
       </Popover>
+      {isInvalid && <p className="text-destructive text-sm">{error}</p>}
+    </>
+  );
+
+  if (!label) return popoverContent;
+
+  return (
+    <Field data-invalid={isInvalid}>
+      <FieldLabel>
+        {label}
+        {required && <span className="text-destructive">*</span>}
+      </FieldLabel>
+      {popoverContent}
     </Field>
   );
 }

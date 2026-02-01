@@ -1,8 +1,7 @@
 import { MessageCircle, Trophy } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-
+import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table.tsx';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -71,7 +70,6 @@ type LicenceTableProps = {
 };
 
 export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
-  const navigate = useNavigate();
   const {
     data,
     isLoading,
@@ -95,14 +93,13 @@ export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
         const count = row.original.racesCount ?? 0;
         if (count === 0) return null;
         return (
-          <Button
-            variant="outline"
-            size="icon-sm"
-            onClick={() => navigate(`/palmares/${row.original.id}`)}
+          <Link
+            to={`/palmares/${row.original.id}`}
+            className={buttonVariants({ variant: 'outline', size: 'icon-sm' })}
             title="Palmarès"
           >
             <Trophy />
-          </Button>
+          </Link>
         );
       },
     },

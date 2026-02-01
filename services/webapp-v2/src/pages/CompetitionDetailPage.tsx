@@ -38,6 +38,9 @@ export default function CompetitionDetailPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const isCreating = !id;
   const competitionId = id ? parseInt(id, 10) : undefined;
+  const duplicateFromParam = searchParams.get('duplicateFrom');
+  const duplicateFromId = duplicateFromParam ? parseInt(duplicateFromParam, 10) : undefined;
+  const isDuplicating = isCreating && !!duplicateFromId;
 
   const tabParam = searchParams.get('tab');
   const currentTab: TabValue = VALID_TABS.includes(tabParam as TabValue)
@@ -45,10 +48,15 @@ export default function CompetitionDetailPage() {
     : 'general';
 
   const handleTabChange = (value: string) => {
-    setSearchParams({ tab: value }, { replace: true });
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set('tab', value);
+      return next;
+    }, { replace: true });
   };
 
   const { data: competition, isLoading } = useCompetition(competitionId);
+  const { data: sourceCompetition, isLoading: isLoadingSource } = useCompetition(duplicateFromId);
   const createCompetition = useCreateCompetition();
   const updateCompetition = useUpdateCompetition();
 
@@ -110,49 +118,50 @@ export default function CompetitionDetailPage() {
   }, [watchedZipCode]);
 
   useEffect(() => {
-    if (competition) {
-      let eventDateLocal = '';
-      if (competition.eventDate) {
-        const date = new Date(competition.eventDate);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        eventDateLocal = `${year}-${month}-${day}T${hours}:${minutes}`;
-      }
+    const source = isDuplicating ? sourceCompetition : competition;
+    if (!source) return;
 
-      form.reset({
-        name: competition.name || '',
-        eventDate: eventDateLocal,
-        competitionType: competition.competitionType || '',
-        fede: competition.fede || '',
-        zipCode: competition.zipCode || '',
-        dept: competition.dept || '',
-        clubId: competition.club?.id ?? null,
-        longueurCircuit: competition.longueurCircuit || '',
-        info: competition.info || '',
-        contactName: competition.contactName || '',
-        contactPhone: competition.contactPhone || '',
-        contactEmail: competition.contactEmail || '',
-        siteweb: competition.siteweb || '',
-        facebook: competition.facebook || '',
-        openedToOtherFede: competition.openedToOtherFede || false,
-        openedNL: competition.openedNL || false,
-        avecChrono: competition.avecChrono || false,
-        observations: competition.observations || '',
-        commissaires: competition.commissaires || '',
-        speaker: competition.speaker || '',
-        aboyeur: competition.aboyeur || '',
-        feedback: competition.feedback || '',
-        lieuDossard: competition.lieuDossard || '',
-        lieuDossardGPS: competition.lieuDossardGPS || '',
-        competitionInfo: competition.competitionInfo || [],
-        pricing: competition.pricing || [],
-        photoUrls: competition.photoUrls || [],
-      });
+    let eventDateLocal = '';
+    if (!isDuplicating && source.eventDate) {
+      const date = new Date(source.eventDate);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      eventDateLocal = `${year}-${month}-${day}T${hours}:${minutes}`;
     }
-  }, [competition, form]);
+
+    form.reset({
+      name: source.name || '',
+      eventDate: eventDateLocal,
+      competitionType: source.competitionType || '',
+      fede: source.fede || '',
+      zipCode: source.zipCode || '',
+      dept: source.dept || '',
+      clubId: source.club?.id ?? null,
+      longueurCircuit: source.longueurCircuit || '',
+      info: source.info || '',
+      contactName: source.contactName || '',
+      contactPhone: source.contactPhone || '',
+      contactEmail: source.contactEmail || '',
+      siteweb: isDuplicating ? '' : source.siteweb || '',
+      facebook: isDuplicating ? '' : source.facebook || '',
+      openedToOtherFede: source.openedToOtherFede || false,
+      openedNL: source.openedNL || false,
+      avecChrono: source.avecChrono || false,
+      observations: isDuplicating ? '' : source.observations || '',
+      commissaires: source.commissaires || '',
+      speaker: source.speaker || '',
+      aboyeur: source.aboyeur || '',
+      feedback: source.feedback || '',
+      lieuDossard: source.lieuDossard || '',
+      lieuDossardGPS: source.lieuDossardGPS || '',
+      competitionInfo: source.competitionInfo || [],
+      pricing: source.pricing || [],
+      photoUrls: isDuplicating ? [] : source.photoUrls || [],
+    });
+  }, [competition, sourceCompetition, isDuplicating, form]);
 
   // Génère les races par défaut basées sur les 6 premières catégories de la fédération
   const getDefaultRaces = (fede: string): string => {
@@ -206,7 +215,7 @@ export default function CompetitionDetailPage() {
       </Link>
       <ChevronRight className="size-4 text-muted-foreground" />
       <span className="font-medium">
-        {isCreating ? 'Nouvelle épreuve' : (competition?.name || <Skeleton className="h-4 w-32 inline-block" />)}
+        {isDuplicating ? 'Duplication d\'épreuve' : isCreating ? 'Nouvelle épreuve' : (competition?.name || <Skeleton className="h-4 w-32 inline-block" />)}
       </span>
     </nav>
   );
@@ -246,7 +255,7 @@ export default function CompetitionDetailPage() {
     </div>
   );
 
-  if (!isCreating && isLoading) {
+  if ((!isCreating && isLoading) || (isDuplicating && isLoadingSource)) {
     return (
       <Layout title={breadcrumb} toolbar={toolbar} toolbarLeft={toolbarLeft}>
         <div className="flex items-center justify-center p-8">
@@ -302,7 +311,7 @@ export default function CompetitionDetailPage() {
               </TabsList>
 
               <TabsContent value="general" className="mt-0">
-                <GeneralTab competition={competition} isCreating={isCreating} />
+                <GeneralTab competition={competition} isCreating={isCreating} isDuplicating={isDuplicating} />
               </TabsContent>
 
               <TabsContent value="horaires" className="mt-0">
