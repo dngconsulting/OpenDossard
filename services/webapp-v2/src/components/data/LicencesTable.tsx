@@ -1,6 +1,8 @@
+import { Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table.tsx';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLicences } from '@/hooks/useLicences';
@@ -79,6 +81,26 @@ export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
   } = useLicences();
 
   const columns: ColumnDef<LicenceType>[] = [
+    {
+      id: 'racesCount',
+      header: '',
+      size: 40,
+      enableColumnFilter: false,
+      cell: ({ row }) => {
+        const count = row.original.racesCount ?? 0;
+        if (count === 0) return null;
+        return (
+          <Button
+            variant="outline"
+            size="icon-sm"
+            onClick={() => navigate(`/palmares/${row.original.id}`)}
+            title="Palmarès"
+          >
+            <Trophy />
+          </Button>
+        );
+      },
+    },
     {
       accessorKey: 'id',
       header: 'ID',
@@ -172,7 +194,6 @@ export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
       data={data?.data || []}
       onEditRow={onEdit}
       onDeleteRow={onDelete}
-      onOpenRow={row => navigate(`/palmares/${row.id}`)}
       isLoading={isLoading}
       serverFilters={(params.filters as Record<string, string>) || {}}
       onFilterChange={(columnId, value) => setFilter(columnId as keyof LicenceType, value)}

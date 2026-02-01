@@ -120,15 +120,35 @@ export class LicencesService {
       'saison',
     ];
     const orderField = validOrderFields.includes(orderBy) ? orderBy : 'name';
-    queryBuilder.orderBy(
-      `licence.${orderField}`,
-      orderDirection as 'ASC' | 'DESC',
+    if (orderBy === 'racesCount') {
+      queryBuilder.orderBy(
+        '(SELECT COUNT(*) FROM race WHERE race.licence_id = licence.id)',
+        orderDirection as 'ASC' | 'DESC',
+      );
+    } else {
+      queryBuilder.orderBy(
+        `licence.${orderField}`,
+        orderDirection as 'ASC' | 'DESC',
+      );
+    }
+
+    // Add races count as a correlated subquery
+    queryBuilder.addSelect(
+      '(SELECT COUNT(*) FROM race WHERE race.licence_id = licence.id)',
+      'racesCount',
     );
 
     // Pagination with offset/limit
     queryBuilder.skip(offset).take(limit);
 
-    const [data, total] = await queryBuilder.getManyAndCount();
+    const { raw, entities } = await queryBuilder.getRawAndEntities();
+    const total = await queryBuilder.getCount();
+
+    const rawByIndex = new Map(raw.map((r, i) => [i, r]));
+    const data = entities.map((entity, i) => ({
+      ...entity,
+      racesCount: Number(rawByIndex.get(i)?.racesCount ?? 0),
+    }));
 
     return new PaginatedResponseDto(data, total, offset, limit);
   }

@@ -15,6 +15,7 @@ export type LicenceType = {
   author?: string;
   lastChanged?: string;
   comment?: string;
+  racesCount?: number;
 };
 
 export type LicenceFilters = Partial<Record<keyof LicenceType, string>>;
