@@ -1,7 +1,10 @@
+import { CalendarDays } from 'lucide-react';
+import { useCallback } from 'react';
 import { Link } from 'react-router-dom';
 
 import { DataTable } from '@/components/ui/data-table';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TableCell, TableRow } from '@/components/ui/table';
 import {
   Tooltip,
   TooltipContent,
@@ -162,6 +165,27 @@ export const CompetitionsDataTable = ({ onEdit, onDuplicate: _onDuplicate, onDel
     },
   ];
 
+  const competitions = data?.data || [];
+  const todayTs = new Date().setHours(0, 0, 0, 0);
+
+  const renderBeforeRow = useCallback((row: CompetitionType, index: number) => {
+    const rowDate = new Date(row.eventDate).setHours(0, 0, 0, 0);
+    if (rowDate >= todayTs) return null;
+    // Insert only if this is the first past row (previous row is future or this is the first row)
+    const prevRow = competitions[index - 1];
+    if (prevRow && new Date(prevRow.eventDate).setHours(0, 0, 0, 0) < todayTs) return null;
+    return (
+      <TableRow className="bg-muted/50 hover:bg-muted/50 border-y-2 border-primary/30">
+        <TableCell colSpan={10} className="py-1.5 text-center">
+          <span className="inline-flex items-center gap-2 text-sm font-semibold text-primary/70">
+            <CalendarDays className="h-4 w-4" />
+            Aujourd&apos;hui
+          </span>
+        </TableCell>
+      </TableRow>
+    );
+  }, [todayTs, competitions]);
+
   if (error) {
     return <div>Erreur lors du chargement des épreuves...</div>;
   }
@@ -173,10 +197,11 @@ export const CompetitionsDataTable = ({ onEdit, onDuplicate: _onDuplicate, onDel
   return (
     <DataTable
       columns={columns}
-      data={data?.data || []}
+      data={competitions}
       onEditRow={onEdit}
       onDeleteRow={onDelete}
       isLoading={isLoading}
+      renderBeforeRow={renderBeforeRow}
       serverFilters={(params.filters as Record<string, string>) || {}}
       onFilterChange={(columnId, value) => setFilter(columnId as keyof CompetitionType, value)}
       sorting={{

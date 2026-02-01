@@ -103,6 +103,7 @@ interface DataTableProps<TData, TValue> {
   onFilterChange?: (columnId: string, value: string) => void;
   sorting?: SortingProps;
   showColumnFilters?: boolean;
+  renderBeforeRow?: (row: TData, index: number) => React.ReactNode | null;
 }
 
 interface SortableRowProps<TData> {
@@ -215,6 +216,7 @@ export function DataTable<TData, TValue>({
   onFilterChange,
   sorting,
   showColumnFilters = true,
+  renderBeforeRow,
 }: DataTableProps<TData, TValue>) {
   const isServerFiltering = !!onFilterChange;
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -440,11 +442,10 @@ export function DataTable<TData, TValue>({
       )}
       <TableBody>
         {table.getRowModel().rows?.length ? (
-          table
-            .getRowModel()
-            .rows.map(row => (
+          table.getRowModel().rows.map((row, index) => (
+            <React.Fragment key={row.id}>
+              {renderBeforeRow?.(row.original, index)}
               <SortableRow
-                key={row.id}
                 row={row}
                 rowId={getRowId(row.original)}
                 onEditRow={onEditRow}
@@ -452,7 +453,8 @@ export function DataTable<TData, TValue>({
                 onOpenRow={onOpenRow}
                 enableDragDrop={enableDragDrop}
               />
-            ))
+            </React.Fragment>
+          ))
         ) : (
           <TableRow>
             <TableCell
