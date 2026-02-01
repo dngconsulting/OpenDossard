@@ -4,10 +4,11 @@ import { MulterModule } from '@nestjs/platform-express';
 import { LicencesService } from './licences.service';
 import { LicencesController } from './licences.controller';
 import { LicenceEntity } from './entities/licence.entity';
+import { ClubEntity } from '../clubs/entities/club.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([LicenceEntity]),
+    TypeOrmModule.forFeature([LicenceEntity, ClubEntity]),
     MulterModule.register({
       limits: {
         fileSize: 10 * 1024 * 1024, // 10MB

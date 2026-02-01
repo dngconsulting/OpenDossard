@@ -1,11 +1,13 @@
 import { FileSpreadsheet, FileText, Loader2, MoreHorizontal, Plus, Upload } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { LicencesDataTable } from '@/components/data/LicencesTable.tsx';
 import { useExportLicencesCSV } from '@/hooks/useExportLicencesCSV';
 import { useExportLicencesPDF } from '@/hooks/useExportLicencesPDF';
-import { useLicences } from '@/hooks/useLicences';
+import { useImportElicence, useLicences } from '@/hooks/useLicences';
+import { ImportResultDialog } from '@/components/licences/ImportResultDialog';
+import type { ImportResult } from '@/api/licences.api';
 import Layout from '@/components/layout/Layout.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import {
@@ -31,6 +33,21 @@ export default function LicencesPage() {
   const totalLicences = data?.meta?.total ?? 0;
   const { exportPDF, isExporting: isExportingPDF } = useExportLicencesPDF(params, totalLicences);
   const { exportCSV, isExporting: isExportingCSV } = useExportLicencesCSV(params, totalLicences);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const importMutation = useImportElicence();
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const result = await importMutation.mutateAsync(file);
+      setImportResult(result);
+    } catch {
+      // error handled by mutation/error-handler
+    }
+    e.target.value = '';
+  };
 
   const DeleteLicence = () => (
     <Dialog
@@ -83,8 +100,14 @@ export default function LicencesPage() {
         {isExportingCSV ? <Loader2 className="animate-spin" /> : <FileSpreadsheet />}
         Export CSV
       </Button>
-      <Button variant="action" className="hidden md:flex">
-        <Upload /> Import e-licence
+      <Button
+        variant="action"
+        className="hidden md:flex"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={importMutation.isPending}
+      >
+        {importMutation.isPending ? <Loader2 className="animate-spin" /> : <Upload />}
+        Import e-licence
       </Button>
       {/* Mobile: menu déroulant */}
       <DropdownMenu>
@@ -110,8 +133,16 @@ export default function LicencesPage() {
             )}
             Export CSV
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Upload className="mr-2 h-4 w-4" /> Import e-licence
+          <DropdownMenuItem
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importMutation.isPending}
+          >
+            {importMutation.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Upload className="mr-2 h-4 w-4" />
+            )}
+            Import e-licence
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -123,6 +154,17 @@ export default function LicencesPage() {
       <LicencesDataTable
         onEdit={(row: LicenceType) => navigate(`/licence/${row.id}`)}
         onDelete={(row: LicenceType) => setDeleteLicence(row)}
+      />
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".csv"
+        className="hidden"
+        onChange={handleImportFile}
+      />
+      <ImportResultDialog
+        result={importResult}
+        onClose={() => setImportResult(null)}
       />
     </Layout>
   );

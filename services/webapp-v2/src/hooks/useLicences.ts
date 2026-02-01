@@ -202,3 +202,14 @@ export function useUpdateLicence() {
   });
 }
 
+export function useImportElicence() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (file: File) => licencesApi.importElicence(file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['licences'] });
+    },
+  });
+}
+

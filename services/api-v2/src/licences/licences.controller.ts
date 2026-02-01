@@ -31,6 +31,7 @@ import {
   CreateLicenceDto,
   UpdateLicenceDto,
   FilterLicenceDto,
+  ImportResultDto,
 } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -138,7 +139,7 @@ export class LicencesController {
   async importCsv(
     @UploadedFile() file: Express.Multer.File,
     @CurrentUser('email') author: string,
-  ): Promise<{ imported: number; errors: string[] }> {
+  ): Promise<ImportResultDto> {
     const content = file.buffer.toString('utf-8');
     return this.licencesService.importFromCsv(content, author);
   }

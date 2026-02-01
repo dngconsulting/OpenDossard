@@ -36,6 +36,22 @@ export type CreateLicenceDto = {
 
 export type UpdateLicenceDto = Partial<CreateLicenceDto>;
 
+export type ImportResult = {
+  summary: {
+    total: number;
+    created: number;
+    updated: number;
+    unchanged: number;
+    skipped: number;
+  };
+  details: {
+    created: Array<{ licenceNumber: string; name: string; firstName: string; club: string }>;
+    updated: Array<{ licenceNumber: string; name: string; firstName: string; changes: string[] }>;
+    warnings: Array<{ licenceNumber: string; name: string; firstName: string; message: string }>;
+    skipped: Array<{ rider: string; reason: string }>;
+  };
+};
+
 export const licencesApi = {
   getAll: (params: PaginationParams = {}): Promise<PaginatedResponse<LicenceType>> =>
     apiClient<PaginatedResponse<LicenceType>>(`/licences${buildQueryString(params)}`),
@@ -58,4 +74,13 @@ export const licencesApi = {
     apiClient<{ success: boolean }>(`/licences/${id}`, {
       method: 'DELETE',
     }),
+
+  importElicence: (file: File): Promise<ImportResult> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient<ImportResult>('/licences/import', {
+      method: 'POST',
+      body: formData,
+    });
+  },
 };
