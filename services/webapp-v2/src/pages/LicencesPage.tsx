@@ -24,6 +24,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { LicenceType } from '@/types/licences.ts';
 
 export default function LicencesPage() {
@@ -100,15 +101,22 @@ export default function LicencesPage() {
         {isExportingCSV ? <Loader2 className="animate-spin" /> : <FileSpreadsheet />}
         Export CSV
       </Button>
-      <Button
-        variant="action"
-        className="hidden md:flex"
-        onClick={() => fileInputRef.current?.click()}
-        disabled={importMutation.isPending}
-      >
-        {importMutation.isPending ? <Loader2 className="animate-spin" /> : <Upload />}
-        Import e-licence
-      </Button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="action"
+              className="hidden md:flex"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={importMutation.isPending}
+            >
+              {importMutation.isPending ? <Loader2 className="animate-spin" /> : <Upload />}
+              Import e-licence
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Importer un fichier fourni par Exalto E-licences</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       {/* Mobile: menu déroulant */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild className="md:hidden">

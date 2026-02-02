@@ -1,3 +1,5 @@
+import { parse } from 'csv-parse/sync';
+
 export type ElicenceCsvRow = {
   licenceNumber: string | undefined;
   name: string | undefined;
@@ -54,55 +56,54 @@ export function computeCateaFromBirthYear(birthYear: string, gender: string): st
   return catea;
 }
 
+/**
+ * Parse e-licence CSV content into typed rows.
+ * Uses csv-parse with columns:true so each row is an object keyed by header name.
+ * This handles quoted fields (containing ;) correctly — same approach as V1.
+ */
 export function parseElicenceCsv(content: string): ElicenceCsvRow[] {
   const cleaned = stripBOM(content);
-  const lines = cleaned.split(/\r?\n/);
-  if (lines.length < 2) return [];
+  const records: Record<string, string>[] = parse(cleaned, {
+    delimiter: ';',
+    columns: true,
+    skip_empty_lines: true,
+    trim: true,
+    relax_column_count: true,
+  });
 
-  const headers = lines[0].split(';').map(h => h.trim());
   const deptPattern = /\d+$/;
 
-  const col = (row: string[], ...names: string[]): string | undefined => {
+  const col = (data: Record<string, string>, ...names: string[]): string | undefined => {
     for (const name of names) {
-      const idx = headers.indexOf(name);
-      if (idx !== -1 && row[idx] !== undefined) {
-        const val = row[idx].trim();
-        if (val) return val;
-      }
+      const val = data[name]?.trim();
+      if (val) return val;
     }
     return undefined;
   };
 
-  const rows: ElicenceCsvRow[] = [];
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line) continue;
-    const fields = line.split(';');
-
-    let dept = col(fields, 'Code Comité Départemental');
+  return records.map(data => {
+    let dept = col(data, 'Code Comité Départemental');
     if (!dept) {
-      const deptFull = col(fields, 'Comité Départemental');
+      const deptFull = col(data, 'Comité Départemental');
       if (deptFull) {
         const match = deptFull.match(deptPattern);
         if (match) dept = match[0];
       }
     }
 
-    rows.push({
-      name: col(fields, 'Nom'),
-      firstName: col(fields, 'Prénom'),
-      saison: col(fields, 'Saison'),
-      elicenceClubName: col(fields, 'Nom Club', 'Nom club'),
-      catea: col(fields, "Catégorie d'âge vélo"),
-      active: col(fields, 'État'),
-      birthDay: col(fields, 'DDN', 'Date de naissance'),
-      licenceNumber: col(fields, 'Code adhérent', 'Numéro adhérent'),
-      catev: col(fields, 'Niveau Route'),
-      catevCX: col(fields, 'Niveau Cyclo-Cross'),
+    return {
+      name: col(data, 'Nom'),
+      firstName: col(data, 'Prénom'),
+      saison: col(data, 'Saison'),
+      elicenceClubName: col(data, 'Nom Club', 'Nom club'),
+      catea: col(data, "Catégorie d'âge vélo", 'Catégorie âge sportif'),
+      active: col(data, 'État'),
+      birthDay: col(data, 'DDN', 'Date de naissance'),
+      licenceNumber: col(data, 'Code adhérent', 'Numéro adhérent'),
+      catev: col(data, 'Niveau Route'),
+      catevCX: col(data, 'Niveau Cyclo-Cross'),
       dept,
-      gender: normalizeGender(col(fields, 'Genre', 'Civilité')),
-    });
-  }
-
-  return rows;
+      gender: normalizeGender(col(data, 'Genre', 'Civilité')),
+    };
+  });
 }
