@@ -26,6 +26,9 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { RacesService } from './races.service';
+import { PalmaresService } from './palmares.service';
+import { RankingService } from './ranking.service';
+import { ResultsCsvService } from './results-csv.service';
 import { RaceEntity } from './entities/race.entity';
 import { LicenceEntity } from '../licences/entities/licence.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -50,7 +53,12 @@ import {
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('races')
 export class RacesController {
-  constructor(private readonly racesService: RacesService) {}
+  constructor(
+    private readonly racesService: RacesService,
+    private readonly palmaresService: PalmaresService,
+    private readonly rankingService: RankingService,
+    private readonly resultsCsvService: ResultsCsvService,
+  ) {}
 
   // ==================== QUERIES ====================
 
@@ -97,7 +105,7 @@ export class RacesController {
   async getPalmares(
     @Param('licenceId', ParseIntPipe) licenceId: number,
   ): Promise<PalmaresResponseDto> {
-    return this.racesService.getPalmares(licenceId);
+    return this.palmaresService.getPalmares(licenceId);
   }
 
   @Get('withpalmares/:query')
@@ -115,7 +123,7 @@ export class RacesController {
   async getLicencesWithPalmares(
     @Param('query') query: string,
   ): Promise<LicenceEntity[]> {
-    return this.racesService.getLicencesWithPalmares(query);
+    return this.palmaresService.getLicencesWithPalmares(query);
   }
 
   @Get(':id')
@@ -182,7 +190,7 @@ export class RacesController {
   @ApiBody({ type: UpdateRankingDto })
   @ApiResponse({ status: 200, description: 'Ranking updated', type: RaceEntity })
   async updateRanking(@Body() dto: UpdateRankingDto): Promise<RaceEntity> {
-    return this.racesService.updateRanking(dto);
+    return this.rankingService.updateRanking(dto);
   }
 
   @Put('ranking/remove')
@@ -195,7 +203,7 @@ export class RacesController {
   @ApiBody({ type: RemoveRankingDto })
   @ApiResponse({ status: 200, description: 'Ranking removed' })
   async removeRanking(@Body() dto: RemoveRankingDto): Promise<{ success: boolean }> {
-    await this.racesService.removeRanking(dto);
+    await this.rankingService.removeRanking(dto);
     return { success: true };
   }
 
@@ -211,7 +219,7 @@ export class RacesController {
   async reorderRankings(
     @Body() items: ReorderRankingItemDto[],
   ): Promise<{ success: boolean }> {
-    await this.racesService.reorderRankings(items);
+    await this.rankingService.reorderRankings(items);
     return { success: true };
   }
 
@@ -292,7 +300,7 @@ export class RacesController {
     @UploadedFile() file: Express.Multer.File,
     @Param('competitionId', ParseIntPipe) competitionId: number,
   ): Promise<{ processed: number; errors: string[] }> {
-    return this.racesService.uploadResultsCsv(competitionId, file);
+    return this.resultsCsvService.uploadResultsCsv(competitionId, file);
   }
 
   // ==================== RESULTS ====================

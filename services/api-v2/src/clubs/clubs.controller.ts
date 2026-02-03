@@ -38,6 +38,7 @@ export class ClubsController {
   constructor(private readonly clubsService: ClubsService) {}
 
   @Get()
+  @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
   @ApiOperation({ summary: 'Get all clubs with pagination, search and sorting' })
   @ApiResponse({ status: 200, description: 'Paginated list of clubs' })
   async findAll(@Query() filterDto: FilterClubDto): Promise<PaginatedResponseDto<ClubEntity>> {
@@ -45,6 +46,7 @@ export class ClubsController {
   }
 
   @Get('legacy')
+  @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
   @ApiOperation({ summary: 'Get all clubs (legacy, no pagination), optionally filtered by federation and department' })
   @ApiQuery({ name: 'fede', required: false, enum: Federation })
   @ApiQuery({ name: 'dept', required: false })
@@ -57,6 +59,7 @@ export class ClubsController {
   }
 
   @Get(':id')
+  @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
   @ApiOperation({ summary: 'Get club by ID' })
   @ApiResponse({ status: 200, description: 'Club details' })
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<ClubEntity> {
@@ -64,6 +67,7 @@ export class ClubsController {
   }
 
   @Get(':id/references')
+  @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
   @ApiOperation({ summary: 'Count references to this club in races, licences and competitions' })
   @ApiResponse({ status: 200, description: 'Reference counts' })
   async countReferences(@Param('id', ParseIntPipe) id: number) {
