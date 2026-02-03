@@ -16,7 +16,7 @@ export type ElicenceCsvRow = {
 };
 
 export function stripBOM(content: string): string {
-  return content.charCodeAt(0) === 0xFEFF ? content.slice(1) : content;
+  return content.charCodeAt(0) === 0xfeff ? content.slice(1) : content;
 }
 
 export function normalizeGender(genre: string | undefined): string | undefined {

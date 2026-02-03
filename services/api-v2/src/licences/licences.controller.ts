@@ -28,12 +28,7 @@ import {
 import { LicencesService } from './licences.service';
 import { LicenceImportService } from './licence-import.service';
 import { LicenceEntity } from './entities/licence.entity';
-import {
-  CreateLicenceDto,
-  UpdateLicenceDto,
-  FilterLicenceDto,
-  ImportResultDto,
-} from './dto';
+import { CreateLicenceDto, UpdateLicenceDto, FilterLicenceDto, ImportResultDto } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -116,9 +111,7 @@ export class LicencesController {
   @ApiParam({ name: 'id', description: 'Licence ID' })
   @ApiResponse({ status: 200, description: 'Licence deleted' })
   @ApiResponse({ status: 404, description: 'Licence not found' })
-  async remove(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<{ success: boolean }> {
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<{ success: boolean }> {
     await this.licencesService.remove(id);
     return { success: true };
   }

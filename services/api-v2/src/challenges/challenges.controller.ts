@@ -12,13 +12,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { ChallengesService, CreateChallengeDto, UpdateChallengeDto } from './challenges.service';
 import { ChallengeEntity } from './entities/challenge.entity';
 import { ChallengeRiderDto } from './dto/challenge-ranking.dto';
@@ -56,9 +50,7 @@ export class ChallengesController {
   @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
   @ApiOperation({ summary: 'Get challenge ranking' })
   @ApiResponse({ status: 200, description: 'Challenge ranking', type: [ChallengeRiderDto] })
-  async getRanking(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<ChallengeRiderDto[]> {
+  async getRanking(@Param('id', ParseIntPipe) id: number): Promise<ChallengeRiderDto[]> {
     return this.challengesService.getRanking(id);
   }
 

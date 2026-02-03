@@ -28,7 +28,7 @@ export class UpdateRankingDto {
 }
 
 export class RemoveRankingDto {
-  @ApiProperty({ description: 'ID de l\'engagement' })
+  @ApiProperty({ description: "ID de l'engagement" })
   @IsNumber()
   id: number;
 
@@ -55,7 +55,7 @@ export class UpdateToursDto {
 }
 
 export class ReorderRankingItemDto {
-  @ApiProperty({ description: 'ID de l\'engagement' })
+  @ApiProperty({ description: "ID de l'engagement" })
   @IsNumber()
   id: number;
 

@@ -104,7 +104,10 @@ export class ClubsService {
     return this.clubRepository.save(club);
   }
 
-  async update(id: number, dto: UpdateClubDto): Promise<ClubEntity & { racesUpdated?: number; licencesUpdated?: number }> {
+  async update(
+    id: number,
+    dto: UpdateClubDto,
+  ): Promise<ClubEntity & { racesUpdated?: number; licencesUpdated?: number }> {
     const club = await this.findOne(id);
 
     // Propagate longName change to races/licences BEFORE updating the club
@@ -124,7 +127,9 @@ export class ClubsService {
     return { ...saved, racesUpdated, licencesUpdated };
   }
 
-  async countReferences(id: number): Promise<{ raceCount: number; licenceCount: number; competitionCount: number }> {
+  async countReferences(
+    id: number,
+  ): Promise<{ raceCount: number; licenceCount: number; competitionCount: number }> {
     const club = await this.findOne(id);
     const longName = club.longName.trim();
 
@@ -164,7 +169,10 @@ export class ClubsService {
     await this.clubRepository.remove(club);
   }
 
-  private async propagateName(oldName: string, newName: string): Promise<{ racesUpdated: number; licencesUpdated: number }> {
+  private async propagateName(
+    oldName: string,
+    newName: string,
+  ): Promise<{ racesUpdated: number; licencesUpdated: number }> {
     const trimmedOld = oldName.trim();
     const trimmedNew = newName.trim();
 

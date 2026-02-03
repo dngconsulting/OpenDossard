@@ -134,7 +134,9 @@ export class LicencesService {
     const { raw, entities } = await queryBuilder.getRawAndEntities();
     const total = await queryBuilder.getCount();
 
-    const rawByIndex = new Map(raw.map((r, i) => [i, r]));
+    const rawByIndex = new Map<number, { racesCount?: string | number }>(
+      raw.map((r: { racesCount?: string | number }, i: number) => [i, r]),
+    );
     const data = entities.map((entity, i) => ({
       ...entity,
       racesCount: Number(rawByIndex.get(i)?.racesCount ?? 0),
@@ -151,7 +153,7 @@ export class LicencesService {
     return licence;
   }
 
-  async search(query: string, competitionType?: string): Promise<LicenceEntity[]> {
+  async search(query: string, _competitionType?: string): Promise<LicenceEntity[]> {
     const searchPattern = `%${query}%`;
 
     return this.licenceRepository

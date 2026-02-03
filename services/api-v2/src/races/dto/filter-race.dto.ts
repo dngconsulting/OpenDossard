@@ -10,7 +10,7 @@ export class FilterRaceDto {
   @IsOptional()
   page?: number = 1;
 
-  @ApiPropertyOptional({ description: 'Nombre d\'éléments par page', default: 50 })
+  @ApiPropertyOptional({ description: "Nombre d'éléments par page", default: 50 })
   @Type(() => Number)
   @IsNumber()
   @Min(1)

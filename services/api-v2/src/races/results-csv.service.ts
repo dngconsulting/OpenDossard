@@ -57,9 +57,7 @@ export class ResultsCsvService {
         if (VALID_COMMENTS.includes(row.Classement)) {
           race.comment = row.Classement;
         } else {
-          errors.push(
-            `Dossard ${row.Dossard} : classement invalide "${row.Classement}"`,
-          );
+          errors.push(`Dossard ${row.Dossard} : classement invalide "${row.Classement}"`);
           continue;
         }
       } else {
@@ -76,12 +74,12 @@ export class ResultsCsvService {
     buffer: Buffer,
   ): { Dossard: string; Chrono: string; Tours: string; Classement: string }[] {
     const content = buffer.toString('utf-8').replace(/^\uFEFF/, '');
-    const lines = content.split(/\r?\n/).filter((l) => l.trim());
+    const lines = content.split(/\r?\n/).filter(l => l.trim());
     if (lines.length < 2) {
-      throw new BadRequestException('Le fichier CSV est vide ou ne contient que l\'en-tête');
+      throw new BadRequestException("Le fichier CSV est vide ou ne contient que l'en-tête");
     }
 
-    const headers = lines[0].split(';').map((h) => h.trim());
+    const headers = lines[0].split(';').map(h => h.trim());
     const required = ['Dossard', 'Chrono', 'Tours', 'Classement'];
     for (const col of required) {
       if (!headers.includes(col)) {
@@ -89,7 +87,7 @@ export class ResultsCsvService {
       }
     }
 
-    return lines.slice(1).map((line) => {
+    return lines.slice(1).map(line => {
       const values = line.split(';');
       const row: Record<string, string> = {};
       headers.forEach((h, i) => (row[h] = (values[i] ?? '').trim()));

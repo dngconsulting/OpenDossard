@@ -1,12 +1,11 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiQuery,
-} from '@nestjs/swagger';
-import { DashboardService, DashboardStats, DashboardFilters, DashboardSummary } from './dashboard.service';
+  DashboardService,
+  DashboardStats,
+  DashboardFilters,
+  DashboardSummary,
+} from './dashboard.service';
 import { DashboardChartFiltersDto } from './dto/dashboard-chart-filters.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';

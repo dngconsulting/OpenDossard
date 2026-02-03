@@ -1,13 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsString,
-  IsEnum,
-  IsNumber,
-  IsOptional,
-  Length,
-  Min,
-  Max,
-} from 'class-validator';
+import { IsString, IsEnum, IsOptional, Length } from 'class-validator';
 import { Federation } from '../../common/enums';
 
 export class CreateLicenceDto {

@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { RaceEntity } from './entities/race.entity';
@@ -10,11 +6,7 @@ import { LicenceEntity } from '../licences/entities/licence.entity';
 import { CompetitionEntity } from '../competitions/entities/competition.entity';
 import { PaginatedResponseDto } from '../common/dto';
 import { CompetitionType } from '../common/enums';
-import {
-  CreateEngagementDto,
-  FilterRaceDto,
-  RaceRowDto,
-} from './dto';
+import { CreateEngagementDto, FilterRaceDto, RaceRowDto } from './dto';
 
 @Injectable()
 export class RacesService {
@@ -142,9 +134,7 @@ export class RacesService {
       },
     });
     if (numberConflict) {
-      throw new BadRequestException(
-        `Le numéro de dossard ${dto.riderNumber} est déjà pris`,
-      );
+      throw new BadRequestException(`Le numéro de dossard ${dto.riderNumber} est déjà pris`);
     }
 
     // Validation : licence pas déjà inscrite sur cette course
@@ -156,9 +146,7 @@ export class RacesService {
       },
     });
     if (licenceConflict) {
-      throw new BadRequestException(
-        'Ce licencié est déjà inscrit sur cette épreuve',
-      );
+      throw new BadRequestException('Ce licencié est déjà inscrit sur cette épreuve');
     }
 
     // Création de l'engagement
@@ -178,10 +166,7 @@ export class RacesService {
   /**
    * Rafraîchit l'engagement depuis les données de la licence
    */
-  async refreshEngagement(
-    licenceId: number,
-    competitionId: number,
-  ): Promise<RaceEntity> {
+  async refreshEngagement(licenceId: number, competitionId: number): Promise<RaceEntity> {
     const licence = await this.licenceRepository.findOne({
       where: { id: licenceId },
     });
@@ -261,10 +246,7 @@ export class RacesService {
   /**
    * Met à jour une race générique
    */
-  async update(
-    id: number,
-    raceData: Partial<RaceEntity>,
-  ): Promise<RaceEntity> {
+  async update(id: number, raceData: Partial<RaceEntity>): Promise<RaceEntity> {
     const race = await this.findOne(id);
     Object.assign(race, raceData);
     return this.raceRepository.save(race);

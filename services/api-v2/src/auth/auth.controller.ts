@@ -1,19 +1,5 @@
-import {
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Post,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Controller, Get, HttpCode, HttpStatus, Post, Request, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -38,8 +24,7 @@ export class AuthController {
   })
   @ApiResponse({
     status: 401,
-    description:
-      'Connexion impossible, vérifiez vos identifiants ou mot de passe',
+    description: 'Connexion impossible, vérifiez vos identifiants ou mot de passe',
   })
   async login(@Request() req): Promise<AuthResponseDto> {
     return this.authService.login(req.user);
@@ -68,9 +53,7 @@ export class AuthController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Logout current user' })
   @ApiResponse({ status: 200, description: 'Logout successful' })
-  async logout(
-    @CurrentUser('id') userId: number,
-  ): Promise<{ success: boolean }> {
+  async logout(@CurrentUser('id') userId: number): Promise<{ success: boolean }> {
     await this.authService.logout(userId);
     return { success: true };
   }

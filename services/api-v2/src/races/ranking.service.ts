@@ -1,16 +1,8 @@
-import {
-  Injectable,
-  BadRequestException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RaceEntity } from './entities/race.entity';
-import {
-  UpdateRankingDto,
-  RemoveRankingDto,
-  ReorderRankingItemDto,
-} from './dto';
+import { UpdateRankingDto, RemoveRankingDto, ReorderRankingItemDto } from './dto';
 
 @Injectable()
 export class RankingService {
@@ -35,9 +27,7 @@ export class RankingService {
     });
 
     if (!rider) {
-      throw new BadRequestException(
-        "Impossible de classer ce coureur, il n'existe pas",
-      );
+      throw new BadRequestException("Impossible de classer ce coureur, il n'existe pas");
     }
 
     // Vérifier qu'il n'est pas déjà classé
@@ -105,16 +95,13 @@ export class RankingService {
   /**
    * Réordonne les classements pour une course donnée
    */
-  async reorderRankingsForRace(
-    competitionId: number,
-    raceCode: string,
-  ): Promise<void> {
+  async reorderRankingsForRace(competitionId: number, raceCode: string): Promise<void> {
     const races = await this.raceRepository.find({
       where: { competitionId, raceCode },
       order: { rankingScratch: 'ASC' },
     });
 
-    const rankedRaces = races.filter((r) => r.rankingScratch && !r.comment);
+    const rankedRaces = races.filter(r => r.rankingScratch && !r.comment);
 
     let newRank = 1;
     for (const race of rankedRaces) {
@@ -131,7 +118,7 @@ export class RankingService {
    */
   async reorderRankings(items: ReorderRankingItemDto[]): Promise<void> {
     // Filtrer les items avec un ID et sans commentaire (pas ABD/DSQ)
-    const validItems = items.filter((item) => item.id && !item.comment);
+    const validItems = items.filter(item => item.id && !item.comment);
 
     for (let index = 0; index < validItems.length; index++) {
       const item = validItems[index];
@@ -143,9 +130,7 @@ export class RankingService {
 
       if (race && race.rankingScratch !== newRank && !race.comment) {
         race.rankingScratch = newRank;
-        this.logger.debug(
-          `Update ranking of rider ${race.riderNumber} to rank ${newRank}`,
-        );
+        this.logger.debug(`Update ranking of rider ${race.riderNumber} to rank ${newRank}`);
         await this.raceRepository.save(race);
       }
     }

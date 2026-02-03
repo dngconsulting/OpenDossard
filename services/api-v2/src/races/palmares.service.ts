@@ -82,16 +82,14 @@ export class PalmaresService {
 
     // c) Compute stats — COUNT(*) returns bigint which pg driver serializes as string
     const ranked = rows
-      .filter((r) => r.rankingInCategory != null)
-      .map((r) => ({ ...r, rankingInCategory: Number(r.rankingInCategory) }));
+      .filter(r => r.rankingInCategory != null)
+      .map(r => ({ ...r, rankingInCategory: Number(r.rankingInCategory) }));
     const stats: PalmaresStatsDto = {
       totalRaces: rows.length,
-      wins: ranked.filter((r) => r.rankingInCategory === 1).length,
-      podiums: ranked.filter((r) => r.rankingInCategory <= 3).length,
-      topTen: ranked.filter((r) => r.rankingInCategory <= 10).length,
-      bestRanking: ranked.length > 0
-        ? Math.min(...ranked.map((r) => r.rankingInCategory))
-        : 0,
+      wins: ranked.filter(r => r.rankingInCategory === 1).length,
+      podiums: ranked.filter(r => r.rankingInCategory <= 3).length,
+      topTen: ranked.filter(r => r.rankingInCategory <= 10).length,
+      bestRanking: ranked.length > 0 ? Math.min(...ranked.map(r => r.rankingInCategory)) : 0,
     };
 
     // d) Compute categoryHistory — every catev change chronologically
@@ -128,7 +126,7 @@ export class PalmaresService {
     }
 
     // e) Map rows to PalmaresResultDto[]
-    const results: PalmaresResultDto[] = rows.map((r) => ({
+    const results: PalmaresResultDto[] = rows.map(r => ({
       id: r.id,
       competitionId: r.competitionId,
       date: r.date,

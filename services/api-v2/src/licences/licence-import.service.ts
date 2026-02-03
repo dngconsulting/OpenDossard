@@ -213,7 +213,7 @@ export class LicenceImportService {
 
     const birthYear = row.birthDay ? extractBirthYear(row.birthDay) : undefined;
     const catea =
-      birthYear && row.gender ? computeCateaFromBirthYear(birthYear, row.gender!) || 'NC' : 'NC';
+      birthYear && row.gender ? computeCateaFromBirthYear(birthYear, row.gender) || 'NC' : 'NC';
 
     const newLicence = this.licenceRepository.create({
       licenceNumber: row.licenceNumber,

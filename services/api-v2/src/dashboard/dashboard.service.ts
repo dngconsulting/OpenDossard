@@ -60,10 +60,14 @@ export class DashboardService {
       qb.andWhere('competition.fede IN (:...fedes)', { fedes: filters.fedes });
     }
     if (filters.competitionTypes?.length) {
-      qb.andWhere('competition.competitionType IN (:...competitionTypes)', { competitionTypes: filters.competitionTypes });
+      qb.andWhere('competition.competitionType IN (:...competitionTypes)', {
+        competitionTypes: filters.competitionTypes,
+      });
     }
     if (filters.competitionDepts?.length) {
-      qb.andWhere('competition.dept IN (:...competitionDepts)', { competitionDepts: filters.competitionDepts });
+      qb.andWhere('competition.dept IN (:...competitionDepts)', {
+        competitionDepts: filters.competitionDepts,
+      });
     }
     if (filters.riderDepts?.length) {
       qb.andWhere('licence.dept IN (:...riderDepts)', { riderDepts: filters.riderDepts });
@@ -82,7 +86,9 @@ export class DashboardService {
     return this.applyChartFilters(qb, filters);
   }
 
-  async getRidersPerCompetition(filters: DashboardChartFiltersDto): Promise<{ name: string; eventDate: string; count: number }[]> {
+  async getRidersPerCompetition(
+    filters: DashboardChartFiltersDto,
+  ): Promise<{ name: string; eventDate: string; count: number }[]> {
     const qb = this.createBaseChartQuery(filters);
     const results = await qb
       .select('competition.name', 'name')
@@ -95,10 +101,16 @@ export class DashboardService {
       .limit(100)
       .getRawMany();
 
-    return results.map(r => ({ name: r.name, eventDate: r.eventDate, count: parseInt(r.count, 10) }));
+    return results.map(r => ({
+      name: r.name,
+      eventDate: r.eventDate,
+      count: parseInt(r.count, 10),
+    }));
   }
 
-  async getClubParticipation(filters: DashboardChartFiltersDto): Promise<{ club: string; count: number }[]> {
+  async getClubParticipation(
+    filters: DashboardChartFiltersDto,
+  ): Promise<{ club: string; count: number }[]> {
     const qb = this.createBaseChartQuery(filters);
     const results = await qb
       .select("COALESCE(NULLIF(race.club, ''), 'Non Licenciés')", 'club')
@@ -111,7 +123,9 @@ export class DashboardService {
     return results.map(r => ({ club: r.club, count: parseInt(r.count, 10) }));
   }
 
-  async getCateaDistribution(filters: DashboardChartFiltersDto): Promise<{ catea: string; count: number }[]> {
+  async getCateaDistribution(
+    filters: DashboardChartFiltersDto,
+  ): Promise<{ catea: string; count: number }[]> {
     const qb = this.createBaseChartQuery(filters);
     const results = await qb
       .select("COALESCE(NULLIF(race.catea, ''), 'Non défini')", 'catea')
@@ -123,7 +137,9 @@ export class DashboardService {
     return results.map(r => ({ catea: r.catea, count: parseInt(r.count, 10) }));
   }
 
-  async getCatevDistribution(filters: DashboardChartFiltersDto): Promise<{ catev: string; count: number }[]> {
+  async getCatevDistribution(
+    filters: DashboardChartFiltersDto,
+  ): Promise<{ catev: string; count: number }[]> {
     const qb = this.createBaseChartQuery(filters);
     const results = await qb
       .select("COALESCE(NULLIF(race.catev, ''), 'Non défini')", 'catev')
@@ -135,7 +151,10 @@ export class DashboardService {
     return results.map(r => ({ catev: r.catev, count: parseInt(r.count, 10) }));
   }
 
-  async getTopRiders(filters: DashboardChartFiltersDto, limit: number = 50): Promise<{ name: string; firstName: string; club: string; count: number }[]> {
+  async getTopRiders(
+    filters: DashboardChartFiltersDto,
+    limit: number = 50,
+  ): Promise<{ name: string; firstName: string; club: string; count: number }[]> {
     const qb = this.createBaseChartQuery(filters);
     const results = await qb
       .select('licence.name', 'name')
@@ -151,7 +170,12 @@ export class DashboardService {
       .limit(limit)
       .getRawMany();
 
-    return results.map(r => ({ name: r.name, firstName: r.firstName, club: r.club, count: parseInt(r.count, 10) }));
+    return results.map(r => ({
+      name: r.name,
+      firstName: r.firstName,
+      club: r.club,
+      count: parseInt(r.count, 10),
+    }));
   }
 
   // Existing methods below - keep them as-is

@@ -8,14 +8,7 @@ import { RaceEntity } from '../races/entities/race.entity';
 import { ClubEntity } from '../clubs/entities/club.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([
-      CompetitionEntity,
-      LicenceEntity,
-      RaceEntity,
-      ClubEntity,
-    ]),
-  ],
+  imports: [TypeOrmModule.forFeature([CompetitionEntity, LicenceEntity, RaceEntity, ClubEntity])],
   controllers: [DashboardController],
   providers: [DashboardService],
 })

@@ -10,9 +10,7 @@ import { RankingService } from './ranking.service';
 import { ResultsCsvService } from './results-csv.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([RaceEntity, LicenceEntity, CompetitionEntity]),
-  ],
+  imports: [TypeOrmModule.forFeature([RaceEntity, LicenceEntity, CompetitionEntity])],
   controllers: [RacesController],
   providers: [RacesService, PalmaresService, RankingService, ResultsCsvService],
   exports: [RacesService, PalmaresService, RankingService, ResultsCsvService],

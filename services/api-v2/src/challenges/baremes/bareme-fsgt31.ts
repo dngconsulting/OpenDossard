@@ -3,25 +3,19 @@ export const baremeByCateFSGT31 = [
     catev: '1',
     ptsParticipation: 50,
     ptsBareme: (ranking: number): number =>
-      ranking <= 10
-        ? [400, 350, 300, 250, 200, 150, 140, 130, 120, 110][ranking - 1]
-        : 0,
+      ranking <= 10 ? [400, 350, 300, 250, 200, 150, 140, 130, 120, 110][ranking - 1] : 0,
   },
   {
     catev: '2',
     ptsParticipation: 40,
     ptsBareme: (ranking: number): number =>
-      ranking <= 10
-        ? [300, 260, 220, 180, 150, 120, 100, 80, 60, 40][ranking - 1]
-        : 0,
+      ranking <= 10 ? [300, 260, 220, 180, 150, 120, 100, 80, 60, 40][ranking - 1] : 0,
   },
   {
     catev: '3',
     ptsParticipation: 30,
     ptsBareme: (ranking: number): number =>
-      ranking <= 10
-        ? [160, 140, 120, 100, 85, 70, 55, 45, 35, 30][ranking - 1]
-        : 0,
+      ranking <= 10 ? [160, 140, 120, 100, 85, 70, 55, 45, 35, 30][ranking - 1] : 0,
   },
   {
     catev: '4',

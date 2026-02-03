@@ -66,7 +66,7 @@ export class FilterLicenceDto extends PaginationDto {
 
   @ApiPropertyOptional({ description: 'Filter by ID' })
   @IsOptional()
-  @Transform(({ value }) => value ? parseInt(value, 10) : undefined)
+  @Transform(({ value }) => (value ? parseInt(value, 10) : undefined))
   @IsNumber()
   id?: number;
 

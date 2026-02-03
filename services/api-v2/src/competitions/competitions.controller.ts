@@ -12,12 +12,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { CompetitionsService } from './competitions.service';
 import { FilterCompetitionDto, ReorganizeCompetitionDto } from './dto';
 import { CompetitionEntity } from './entities/competition.entity';
@@ -40,7 +35,9 @@ export class CompetitionsController {
   @ApiResponse({ status: 200, description: 'Paginated list of competitions' })
   async findAll(
     @Query() filterDto: FilterCompetitionDto,
-  ): Promise<PaginatedResponseDto<CompetitionEntity & { engagementsCount: number; classementsCount: number }>> {
+  ): Promise<
+    PaginatedResponseDto<CompetitionEntity & { engagementsCount: number; classementsCount: number }>
+  > {
     return this.competitionsService.findAll(filterDto);
   }
 
@@ -49,9 +46,7 @@ export class CompetitionsController {
   @ApiOperation({ summary: 'Get competition by ID' })
   @ApiResponse({ status: 200, description: 'Competition details' })
   @ApiResponse({ status: 404, description: 'Competition not found' })
-  async findOne(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<CompetitionEntity> {
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<CompetitionEntity> {
     return this.competitionsService.findOne(id);
   }
 
@@ -59,9 +54,7 @@ export class CompetitionsController {
   @Roles(Role.ADMIN, Role.ORGANISATEUR)
   @ApiOperation({ summary: 'Create a new competition' })
   @ApiResponse({ status: 201, description: 'Competition created' })
-  async create(
-    @Body() competitionData: Partial<CompetitionEntity>,
-  ): Promise<CompetitionEntity> {
+  async create(@Body() competitionData: Partial<CompetitionEntity>): Promise<CompetitionEntity> {
     return this.competitionsService.create(competitionData);
   }
 
@@ -81,9 +74,7 @@ export class CompetitionsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a competition' })
   @ApiResponse({ status: 200, description: 'Competition deleted' })
-  async remove(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<{ success: boolean }> {
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<{ success: boolean }> {
     await this.competitionsService.remove(id);
     return { success: true };
   }
@@ -92,9 +83,7 @@ export class CompetitionsController {
   @Roles(Role.ADMIN, Role.ORGANISATEUR)
   @ApiOperation({ summary: 'Duplicate a competition' })
   @ApiResponse({ status: 201, description: 'Competition duplicated' })
-  async duplicate(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<CompetitionEntity> {
+  async duplicate(@Param('id', ParseIntPipe) id: number): Promise<CompetitionEntity> {
     return this.competitionsService.duplicate(id);
   }
 
@@ -102,9 +91,7 @@ export class CompetitionsController {
   @Roles(Role.ADMIN, Role.ORGANISATEUR)
   @ApiOperation({ summary: 'Validate competition results' })
   @ApiResponse({ status: 200, description: 'Results validated' })
-  async validate(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<CompetitionEntity> {
+  async validate(@Param('id', ParseIntPipe) id: number): Promise<CompetitionEntity> {
     return this.competitionsService.validate(id);
   }
 
@@ -113,9 +100,7 @@ export class CompetitionsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Reorganize competition races' })
   @ApiResponse({ status: 200, description: 'Races reorganized' })
-  async reorganize(
-    @Body() dto: ReorganizeCompetitionDto,
-  ): Promise<{ success: boolean }> {
+  async reorganize(@Body() dto: ReorganizeCompetitionDto): Promise<{ success: boolean }> {
     await this.competitionsService.reorganize(dto);
     return { success: true };
   }

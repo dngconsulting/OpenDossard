@@ -21,7 +21,6 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiQuery,
   ApiParam,
   ApiBody,
 } from '@nestjs/swagger';
@@ -66,9 +65,7 @@ export class RacesController {
   @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
   @ApiOperation({ summary: 'Get all races with filters and pagination' })
   @ApiResponse({ status: 200, description: 'Paginated list of races' })
-  async findAll(
-    @Query() filterDto: FilterRaceDto,
-  ): Promise<PaginatedResponseDto<RaceEntity>> {
+  async findAll(@Query() filterDto: FilterRaceDto): Promise<PaginatedResponseDto<RaceEntity>> {
     return this.racesService.findAll(filterDto);
   }
 
@@ -120,9 +117,7 @@ export class RacesController {
     description: 'List of licences with palmares',
     type: [LicenceEntity],
   })
-  async getLicencesWithPalmares(
-    @Param('query') query: string,
-  ): Promise<LicenceEntity[]> {
+  async getLicencesWithPalmares(@Param('query') query: string): Promise<LicenceEntity[]> {
     return this.palmaresService.getLicencesWithPalmares(query);
   }
 
@@ -157,9 +152,7 @@ export class RacesController {
   @Roles(Role.ADMIN, Role.ORGANISATEUR)
   @ApiOperation({ summary: 'Create multiple race entries at once' })
   @ApiResponse({ status: 201, description: 'Races created' })
-  async createMany(
-    @Body() racesData: Partial<RaceEntity>[],
-  ): Promise<RaceEntity[]> {
+  async createMany(@Body() racesData: Partial<RaceEntity>[]): Promise<RaceEntity[]> {
     return this.racesService.createMany(racesData);
   }
 
@@ -216,9 +209,7 @@ export class RacesController {
   })
   @ApiBody({ type: [ReorderRankingItemDto] })
   @ApiResponse({ status: 200, description: 'Rankings reordered' })
-  async reorderRankings(
-    @Body() items: ReorderRankingItemDto[],
-  ): Promise<{ success: boolean }> {
+  async reorderRankings(@Body() items: ReorderRankingItemDto[]): Promise<{ success: boolean }> {
     await this.rankingService.reorderRankings(items);
     return { success: true };
   }
@@ -233,9 +224,7 @@ export class RacesController {
   })
   @ApiParam({ name: 'id', type: Number })
   @ApiResponse({ status: 200, description: 'Challenge flag toggled' })
-  async toggleSprintChallenge(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<RaceEntity> {
+  async toggleSprintChallenge(@Param('id', ParseIntPipe) id: number): Promise<RaceEntity> {
     return this.racesService.toggleSprintChallenge(id);
   }
 
@@ -333,9 +322,7 @@ export class RacesController {
     operationId: 'deleteRace',
   })
   @ApiResponse({ status: 200, description: 'Race deleted' })
-  async remove(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<{ success: boolean }> {
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<{ success: boolean }> {
     await this.racesService.remove(id);
     return { success: true };
   }

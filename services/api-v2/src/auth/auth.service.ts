@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -50,7 +47,7 @@ export class AuthService {
     };
   }
 
-  async refreshTokens(userId: number, refreshToken: string): Promise<TokensDto> {
+  async refreshTokens(userId: number, _refreshToken: string): Promise<TokensDto> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
@@ -63,12 +60,19 @@ export class AuthService {
     return tokens;
   }
 
-  async logout(userId: number): Promise<void> {
+  async logout(_userId: number): Promise<void> {
     // No-op since we don't store refresh tokens in DB
     // In production, you might want to blacklist the token
   }
 
-  async getProfile(userId: number): Promise<{ id: number; email: string; firstName: string; lastName: string; roles: string[]; phone: string }> {
+  async getProfile(userId: number): Promise<{
+    id: number;
+    email: string;
+    firstName: string;
+    lastName: string;
+    roles: string[];
+    phone: string;
+  }> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
@@ -98,10 +102,7 @@ export class AuthService {
         expiresIn: this.configService.get('JWT_ACCESS_EXPIRE', '15m'),
       }),
       this.jwtService.signAsync(payload, {
-        secret: this.configService.get(
-          'JWT_REFRESH_SECRET',
-          'opendossard-refresh-secret-v2',
-        ),
+        secret: this.configService.get('JWT_REFRESH_SECRET', 'opendossard-refresh-secret-v2'),
         expiresIn: this.configService.get('JWT_REFRESH_EXPIRE', '7d'),
       }),
     ]);

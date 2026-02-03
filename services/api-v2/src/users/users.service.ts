@@ -50,7 +50,7 @@ export class UsersService {
     if (search) {
       queryBuilder.andWhere(
         '(LOWER(user.email) LIKE LOWER(:search) OR LOWER(user.firstName) LIKE LOWER(:search) OR LOWER(user.lastName) LIKE LOWER(:search))',
-        { search: `%${search}%` }
+        { search: `%${search}%` },
       );
     }
 
@@ -123,7 +123,10 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
-  async updatePassword(id: number, updatePasswordDto: UpdatePasswordDto): Promise<{ success: boolean }> {
+  async updatePassword(
+    id: number,
+    updatePasswordDto: UpdatePasswordDto,
+  ): Promise<{ success: boolean }> {
     const user = await this.userRepository.findOne({
       where: { id },
       select: ['id', 'password'],

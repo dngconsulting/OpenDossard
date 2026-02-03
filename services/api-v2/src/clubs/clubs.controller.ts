@@ -12,13 +12,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { ClubsService } from './clubs.service';
 import { ClubEntity } from './entities/club.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -28,7 +22,6 @@ import { Role, Federation } from '../common/enums';
 import { PaginatedResponseDto } from '../common/dto/pagination.dto';
 import { FilterClubDto } from './dto/filter-club.dto';
 import { UpdateClubDto } from './dto/update-club.dto';
-
 
 @ApiTags('Clubs')
 @ApiBearerAuth('JWT-auth')
@@ -47,7 +40,10 @@ export class ClubsController {
 
   @Get('legacy')
   @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
-  @ApiOperation({ summary: 'Get all clubs (legacy, no pagination), optionally filtered by federation and department' })
+  @ApiOperation({
+    summary:
+      'Get all clubs (legacy, no pagination), optionally filtered by federation and department',
+  })
   @ApiQuery({ name: 'fede', required: false, enum: Federation })
   @ApiQuery({ name: 'dept', required: false })
   @ApiResponse({ status: 200, description: 'List of clubs' })

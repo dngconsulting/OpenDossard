@@ -87,9 +87,7 @@ export class ChallengesService {
   async removeCompetition(id: number, competitionId: number): Promise<ChallengeEntity> {
     const challenge = await this.findOne(id);
     if (challenge.competitionIds) {
-      challenge.competitionIds = challenge.competitionIds.filter(
-        (cid) => cid !== competitionId,
-      );
+      challenge.competitionIds = challenge.competitionIds.filter(cid => cid !== competitionId);
     }
     return this.challengeRepository.save(challenge);
   }
@@ -205,11 +203,9 @@ export class ChallengesService {
       riderRaces.forEach((challengeRaceRow: any, index: number) => {
         riderRaces[index].ptsRace = 0;
       });
-      const challengeRider = challengeRiders.find(
-        (cr) => cr.licenceId === riderRace.licenceId,
-      );
+      const challengeRider = challengeRiders.find(cr => cr.licenceId === riderRace.licenceId);
       if (challengeRider) {
-        challengeRider.challengeRaceRows = riderRaces as ChallengeRaceRowDto[];
+        challengeRider.challengeRaceRows = riderRaces;
         challengeRider.ptsAllRaces = 0;
       }
     });
@@ -218,19 +214,17 @@ export class ChallengesService {
   }
 
   private baremeChallengeFSGT31(riderChallenge: ChallengeRiderDto[]): ChallengeRiderDto[] {
-    const catesOfChallenge = baremeByCateFSGT31.map((b) => b.catev);
+    const catesOfChallenge = baremeByCateFSGT31.map(b => b.catev);
     const riderChallengeFiltered = riderChallenge
-      .filter((rc) => catesOfChallenge.includes(rc.currentLicenceCatev))
-      .map((rc) => ({
+      .filter(rc => catesOfChallenge.includes(rc.currentLicenceCatev))
+      .map(rc => ({
         ...rc,
-        challengeRaceRows: rc.challengeRaceRows.filter((r) =>
-          catesOfChallenge.includes(r.catev),
-        ),
+        challengeRaceRows: rc.challengeRaceRows.filter(r => catesOfChallenge.includes(r.catev)),
       }));
 
-    riderChallengeFiltered.forEach((rider) => {
+    riderChallengeFiltered.forEach(rider => {
       rider.challengeRaceRows.forEach((riderRace, index) => {
-        const bareme = baremeByCateFSGT31.find((b) => b.catev === riderRace.catev);
+        const bareme = baremeByCateFSGT31.find(b => b.catev === riderRace.catev);
         if (bareme) {
           rider.challengeRaceRows[index].ptsRace =
             (rider.challengeRaceRows[index].ptsRace || 0) +
@@ -248,19 +242,17 @@ export class ChallengesService {
   }
 
   private baremeChallengeFSGT31CX(riderChallenge: ChallengeRiderDto[]): ChallengeRiderDto[] {
-    const catesOfChallenge = baremeByCateFSGT31CX.map((b) => b.catev);
+    const catesOfChallenge = baremeByCateFSGT31CX.map(b => b.catev);
     const riderChallengeFiltered = riderChallenge
-      .filter((rc) => catesOfChallenge.includes(rc.currentLicenceCatev))
-      .map((rc) => ({
+      .filter(rc => catesOfChallenge.includes(rc.currentLicenceCatev))
+      .map(rc => ({
         ...rc,
-        challengeRaceRows: rc.challengeRaceRows.filter((r) =>
-          catesOfChallenge.includes(r.catev),
-        ),
+        challengeRaceRows: rc.challengeRaceRows.filter(r => catesOfChallenge.includes(r.catev)),
       }));
 
-    riderChallengeFiltered.forEach((rider) => {
+    riderChallengeFiltered.forEach(rider => {
       rider.challengeRaceRows.forEach((riderRace, index) => {
-        const bareme = baremeByCateFSGT31CX.find((b) => b.catev === riderRace.catev);
+        const bareme = baremeByCateFSGT31CX.find(b => b.catev === riderRace.catev);
         if (bareme) {
           rider.challengeRaceRows[index].ptsRace =
             (rider.challengeRaceRows[index].ptsRace || 0) +
@@ -278,10 +270,9 @@ export class ChallengesService {
   }
 
   private baremeAssiduite(riderChallenge: ChallengeRiderDto[]): ChallengeRiderDto[] {
-    riderChallenge.forEach((rider) => {
+    riderChallenge.forEach(rider => {
       rider.challengeRaceRows.forEach((riderRace, index) => {
-        rider.challengeRaceRows[index].ptsRace =
-          (rider.challengeRaceRows[index].ptsRace || 0) + 1;
+        rider.challengeRaceRows[index].ptsRace = (rider.challengeRaceRows[index].ptsRace || 0) + 1;
         rider.challengeRaceRows[index].explanation =
           `Présent et marque ${rider.challengeRaceRows[index].ptsRace} pts`;
       });
@@ -295,7 +286,7 @@ export class ChallengesService {
     let ptsAllRaces = 0;
     let nbRaces = 0;
 
-    riderChallenge.forEach((rider) => {
+    riderChallenge.forEach(rider => {
       ptsAllRaces = 0;
       nbRaces = 0;
 
@@ -329,7 +320,7 @@ export class ChallengesService {
         )} ${riderRace.sprintchallenge ? ' + 50 pts sprint/gpm' : ''}`;
       });
 
-      if (!rider.challengeRaceRows.find((r) => r.catev === rider.currentLicenceCatev)) {
+      if (!rider.challengeRaceRows.find(r => r.catev === rider.currentLicenceCatev)) {
         rider.ptsAllRaces = 0;
       } else {
         const coef = 1 + ((nbRaces > 12 ? 12 : nbRaces) - 1) * 0.2;
