@@ -85,7 +85,7 @@ export function ChallengeCard({ challenge }: Props) {
         <Button
           variant="ghost"
           size="sm"
-          className="ml-auto gap-1.5 group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+          className="ml-auto gap-1.5 group-hover:bg-primary group-hover:text-primary-foreground hover:bg-primary hover:text-primary-foreground transition-colors"
         >
           Voir le classement
         </Button>

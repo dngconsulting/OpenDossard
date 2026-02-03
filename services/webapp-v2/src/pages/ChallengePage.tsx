@@ -1,6 +1,7 @@
 import {
   ArrowLeft,
   Bike,
+  Calendar,
   ChevronRight,
   Download,
   ExternalLink,
@@ -15,6 +16,13 @@ import { GenderToggle } from '@/components/challenges/GenderToggle';
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { filterRiders, useChallenge, useChallengeRanking } from '@/hooks/useChallenges';
@@ -77,6 +85,26 @@ export default function ChallengePage() {
     return counts;
   }, [ranking, categories, selectedGender]);
 
+  // Extract unique competitions from ranking data
+  const competitions = useMemo(() => {
+    if (!ranking) return [];
+    const competitionsMap = new Map<number, { id: number; name: string; date: string }>();
+    for (const rider of ranking) {
+      for (const race of rider.challengeRaceRows || []) {
+        if (race.competitionId && race.competitionName && !competitionsMap.has(race.competitionId)) {
+          competitionsMap.set(race.competitionId, {
+            id: race.competitionId,
+            name: race.competitionName,
+            date: race.eventDate || '',
+          });
+        }
+      }
+    }
+    return Array.from(competitionsMap.values()).sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+  }, [ranking]);
+
   const handleExportPDF = async () => {
     if (!challenge || !ranking || ranking.length === 0) {
       return;
@@ -111,6 +139,55 @@ export default function ChallengePage() {
           >
             {challenge.active ? 'Actif' : 'Terminé'}
           </Badge>
+          <Dialog>
+            <DialogTrigger asChild>
+              <button
+                type="button"
+                className="text-sm text-primary hover:text-primary/80 hover:underline transition-colors ml-2"
+              >
+                Liste des courses ({challenge.competitionIds?.length || 0})
+              </button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Courses du challenge</DialogTitle>
+              </DialogHeader>
+              <div className="max-h-80 overflow-y-auto">
+                {competitions.length === 0 ? (
+                  <p className="text-muted-foreground text-sm py-4 text-center">
+                    Aucune course trouvée
+                  </p>
+                ) : (
+                  <ul className="space-y-2">
+                    {competitions.map(comp => (
+                      <li key={comp.id}>
+                        <Link
+                          to={`/competition/${comp.id}`}
+                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors group"
+                        >
+                          <Calendar className="size-4 text-muted-foreground shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm group-hover:text-primary transition-colors truncate">
+                              {comp.name}
+                            </p>
+                            {comp.date && (
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(comp.date).toLocaleDateString('fr-FR', {
+                                  day: 'numeric',
+                                  month: 'long',
+                                  year: 'numeric',
+                                })}
+                              </p>
+                            )}
+                          </div>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
         </>
       )}
     </div>
