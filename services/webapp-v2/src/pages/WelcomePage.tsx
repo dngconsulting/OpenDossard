@@ -32,9 +32,9 @@ const features = [
   },
   {
     icon: Bike,
-    title: 'Epreuves & Résultats',
+    title: 'Épreuves & Résultats',
     description: 'Organisez vos courses et saisissez les résultats en temps réel',
-    href: '/races',
+    href: '/competitions',
     color: 'from-emerald-500 to-teal-500',
   },
   {
@@ -174,7 +174,7 @@ export default function WelcomePage() {
         <WelcomeHeader />
 
         {/* Main Content */}
-        <div className="flex flex-1 flex-col gap-6 p-4 pt-0 overflow-auto">
+        <div className="flex flex-1 flex-col gap-6 p-4 pt-4 overflow-auto">
           {/* Hero Section */}
           <section className="relative overflow-hidden rounded-3xl bg-gradient-hero p-8 md:p-12">
             {/* Decorative elements */}
@@ -197,7 +197,7 @@ export default function WelcomePage() {
               <h1 className="mb-4 text-4xl font-bold text-white md:text-5xl">
                 Bienvenue sur{' '}
                 <span className="relative">
-                  OpenDossard
+                  Open Dossard
                   <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 8" fill="none">
                     <path
                       d="M2 6C50 2 150 2 198 6"
@@ -220,7 +220,7 @@ export default function WelcomePage() {
                   size="lg"
                   className="bg-white text-primary hover:bg-white/90 shadow-lg"
                 >
-                  <Link to="/">
+                  <Link to="/dashboard">
                     <LayoutDashboard className="mr-2 h-5 w-5" />
                     Tableau de bord
                   </Link>
@@ -290,9 +290,11 @@ export default function WelcomePage() {
                   </p>
                 </div>
               </div>
-              <Button variant="outline" className="hover-scale">
-                Voir la documentation
-                <ArrowRight className="ml-2 h-4 w-4" />
+              <Button variant="outline" className="hover-scale" asChild>
+                <a href="https://www.opendossard.com" target="_blank" rel="noopener noreferrer">
+                  Voir la documentation
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </a>
               </Button>
             </div>
           </section>

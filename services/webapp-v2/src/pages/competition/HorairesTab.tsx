@@ -113,8 +113,12 @@ export function HorairesTab() {
 
   return (
     <Card className="rounded-t-none border-t-0">
-      <CardHeader>
-        <CardTitle>Horaires & Circuit</CardTitle>
+      <CardHeader className="pt-4">
+        <CardTitle>
+          <span className="text-emerald-700 dark:text-white relative pb-1 inline-block after:absolute after:bottom-0 after:left-0 after:-right-2 after:h-px after:bg-emerald-700/30 dark:after:bg-white/30 after:rounded-full">
+            Horaires & Circuit
+          </span>
+        </CardTitle>
         <CardDescription>
           Définissez les différents départs et leurs horaires
         </CardDescription>
@@ -122,7 +126,7 @@ export function HorairesTab() {
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 bg-muted/50 rounded-lg">
           <div className="space-y-1.5">
-            <Label>Categorie/Depart</Label>
+            <Label>Catégorie/Départ</Label>
             <Input
               value={horaireForm.course}
               onChange={e => setHoraireForm({ ...horaireForm, course: e.target.value })}
@@ -140,7 +144,7 @@ export function HorairesTab() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Heure depart</Label>
+            <Label>Heure départ</Label>
             <Input
               value={horaireForm.horaireDepart}
               onChange={e =>
@@ -209,9 +213,9 @@ export function HorairesTab() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[40px]"></TableHead>
-                    <TableHead className="w-[140px]">Categorie</TableHead>
+                    <TableHead className="w-[140px]">Catégorie</TableHead>
                     <TableHead className="w-[100px]">Dossard</TableHead>
-                    <TableHead className="w-[80px]">Depart</TableHead>
+                    <TableHead className="w-[80px]">Départ</TableHead>
                     <TableHead className="w-[60px]">Tours</TableHead>
                     <TableHead className="w-[80px]">Distance</TableHead>
                     <TableHead className="w-[50px]">Lien</TableHead>

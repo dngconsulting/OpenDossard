@@ -23,8 +23,6 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
-import type { CompetitionDetailType } from '@/types/competitions';
-
 import {
   COMPETITION_TYPE_OPTIONS,
   FEDE_OPTIONS_ALL,
@@ -34,14 +32,13 @@ import {
 } from './types';
 
 interface GeneralTabProps {
-  competition: CompetitionDetailType | undefined;
   isCreating: boolean;
   isDuplicating?: boolean;
 }
 
 const HIGHLIGHT_CLASS = 'bg-amber-100 dark:bg-amber-900/30 border-amber-400';
 
-export function GeneralTab({ competition, isCreating, isDuplicating }: GeneralTabProps) {
+export function GeneralTab({ isCreating, isDuplicating }: GeneralTabProps) {
   const form = useFormContext<FormValues>();
 
   const watchedFede = form.watch('fede');
@@ -62,10 +59,14 @@ export function GeneralTab({ competition, isCreating, isDuplicating }: GeneralTa
 
   return (
     <Card className="rounded-t-none border-t-0">
-      <CardHeader>
-        <CardTitle>Informations generales</CardTitle>
+      <CardHeader className="pt-4">
+        <CardTitle>
+          <span className="text-emerald-700 dark:text-white relative pb-1 inline-block after:absolute after:bottom-0 after:left-0 after:-right-2 after:h-px after:bg-emerald-700/30 dark:after:bg-white/30 after:rounded-full">
+            Informations générales
+          </span>
+        </CardTitle>
         <CardDescription>
-          Renseignez les informations principales de l'epreuve
+          Renseignez les informations principales de l'épreuve
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -76,7 +77,7 @@ export function GeneralTab({ competition, isCreating, isDuplicating }: GeneralTa
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Nom de l'epreuve <span className="text-destructive">*</span>
+                  Nom de l'épreuve <span className="text-destructive">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input placeholder="ex: Course de Lombez" {...field} />
@@ -118,7 +119,7 @@ export function GeneralTab({ competition, isCreating, isDuplicating }: GeneralTa
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selectionner un type" />
+                      <SelectValue placeholder="Sélectionner un type" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -147,7 +148,7 @@ export function GeneralTab({ competition, isCreating, isDuplicating }: GeneralTa
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selectionner un profil" />
+                      <SelectValue placeholder="Sélectionner un profil" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -169,7 +170,7 @@ export function GeneralTab({ competition, isCreating, isDuplicating }: GeneralTa
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Federation <span className="text-destructive">*</span>
+                  Fédération <span className="text-destructive">*</span>
                 </FormLabel>
                 <Select
                   key={`fede-${field.value}`}
@@ -179,7 +180,7 @@ export function GeneralTab({ competition, isCreating, isDuplicating }: GeneralTa
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selectionner une federation" />
+                      <SelectValue placeholder="Sélectionner une fédération" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -264,7 +265,11 @@ export function GeneralTab({ competition, isCreating, isDuplicating }: GeneralTa
         <Separator />
 
         <div className="space-y-4">
-          <h4 className="font-medium">Contact</h4>
+          <h4 className="font-medium">
+            <span className="text-emerald-700 dark:text-white relative pb-1 inline-block after:absolute after:bottom-0 after:left-0 after:-right-2 after:h-px after:bg-emerald-700/30 dark:after:bg-white/30 after:rounded-full">
+              Contact
+            </span>
+          </h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
             <FormField
               control={form.control}
@@ -273,7 +278,7 @@ export function GeneralTab({ competition, isCreating, isDuplicating }: GeneralTa
                 <FormItem>
                   <FormLabel>Nom contact</FormLabel>
                   <FormControl>
-                    <Input placeholder="Prenom NOM" {...field} />
+                    <Input placeholder="Prénom NOM" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -285,7 +290,7 @@ export function GeneralTab({ competition, isCreating, isDuplicating }: GeneralTa
               name="contactPhone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Telephone</FormLabel>
+                  <FormLabel>Téléphone</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -372,7 +377,11 @@ export function GeneralTab({ competition, isCreating, isDuplicating }: GeneralTa
           <>
             <Separator />
             <div className="space-y-4">
-              <h4 className="font-medium">Organisation (apres creation)</h4>
+              <h4 className="font-medium">
+              <span className="text-emerald-700 dark:text-white relative pb-1 inline-block after:absolute after:bottom-0 after:left-0 after:-right-2 after:h-px after:bg-emerald-700/30 dark:after:bg-white/30 after:rounded-full">
+                Organisation (après création)
+              </span>
+            </h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
@@ -439,7 +448,11 @@ export function GeneralTab({ competition, isCreating, isDuplicating }: GeneralTa
         <Separator />
 
         <div className="space-y-4">
-          <h4 className="font-medium">Options</h4>
+          <h4 className="font-medium">
+            <span className="text-emerald-700 dark:text-white relative pb-1 inline-block after:absolute after:bottom-0 after:left-0 after:-right-2 after:h-px after:bg-emerald-700/30 dark:after:bg-white/30 after:rounded-full">
+              Options
+            </span>
+          </h4>
           <div className="flex flex-wrap gap-6">
             <FormField
               control={form.control}
@@ -450,7 +463,7 @@ export function GeneralTab({ competition, isCreating, isDuplicating }: GeneralTa
                     <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                   <FormLabel className="font-normal">
-                    Ouvert aux autres federations
+                    Ouvert aux autres fédérations
                   </FormLabel>
                 </FormItem>
               )}
@@ -464,7 +477,7 @@ export function GeneralTab({ competition, isCreating, isDuplicating }: GeneralTa
                   <FormControl>
                     <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
-                  <FormLabel className="font-normal">Ouvert aux non licencies</FormLabel>
+                  <FormLabel className="font-normal">Ouvert aux non licenciés</FormLabel>
                 </FormItem>
               )}
             />
@@ -477,7 +490,7 @@ export function GeneralTab({ competition, isCreating, isDuplicating }: GeneralTa
                   <FormControl>
                     <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
-                  <FormLabel className="font-normal">Competition chronometree</FormLabel>
+                  <FormLabel className="font-normal">Compétition chronométrée</FormLabel>
                 </FormItem>
               )}
             />
@@ -496,7 +509,7 @@ export function GeneralTab({ competition, isCreating, isDuplicating }: GeneralTa
                 <RichTextEditor
                   value={field.value || ''}
                   onChange={field.onChange}
-                  placeholder="Informations complementaires..."
+                  placeholder="Informations complémentaires..."
                 />
               </FormControl>
               <FormMessage />

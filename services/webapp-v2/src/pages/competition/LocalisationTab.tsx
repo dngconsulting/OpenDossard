@@ -236,8 +236,12 @@ export function LocalisationTab() {
 
   return (
     <Card className="rounded-t-none border-t-0">
-      <CardHeader>
-        <CardTitle>Localisation</CardTitle>
+      <CardHeader className="pt-4">
+        <CardTitle>
+          <span className="text-emerald-700 dark:text-white relative pb-1 inline-block after:absolute after:bottom-0 after:left-0 after:-right-2 after:h-px after:bg-emerald-700/30 dark:after:bg-white/30 after:rounded-full">
+            Localisation
+          </span>
+        </CardTitle>
         <CardDescription>
           Indiquez le lieu de retrait des dossards et les coordonnées GPS
         </CardDescription>

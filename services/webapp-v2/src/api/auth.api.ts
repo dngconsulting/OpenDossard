@@ -18,6 +18,10 @@ export interface UserProfile {
   roles: string[];
 }
 
+export interface ChangePasswordRequest {
+  newPassword: string;
+}
+
 export const authApi = {
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -59,5 +63,21 @@ export const authApi = {
     }).catch(() => {
       // Ignore logout errors - we clear local state anyway
     });
+  },
+
+  async changePassword(accessToken: string, newPassword: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ newPassword }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || 'Impossible de changer le mot de passe');
+    }
   },
 };

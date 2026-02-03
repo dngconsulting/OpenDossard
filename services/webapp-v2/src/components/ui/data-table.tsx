@@ -172,18 +172,6 @@ function SortableRow<TData>({
           </Button>
         </TableCell>
       )}
-      {onDeleteRow && (
-        <TableCell style={{ width: 40 }}>
-          <Button
-            variant="outline"
-            size="icon-sm"
-            onClick={() => onDeleteRow(row.original)}
-            title="Supprimer"
-          >
-            <Trash2 />
-          </Button>
-        </TableCell>
-      )}
       {row.getVisibleCells().map(cell => {
         const hasFixedSize = cell.column.columnDef.size !== undefined;
         return (
@@ -197,6 +185,19 @@ function SortableRow<TData>({
           </TableCell>
         );
       })}
+      {onDeleteRow && (
+        <TableCell style={{ width: 40 }}>
+          <Button
+            variant="outline"
+            size="icon-sm"
+            onClick={() => onDeleteRow(row.original)}
+            title="Supprimer"
+            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+          >
+            <Trash2 />
+          </Button>
+        </TableCell>
+      )}
     </TableRow>
   );
 }
@@ -343,7 +344,6 @@ export function DataTable<TData, TValue>({
             {enableDragDrop && <TableHead className="w-8" />}
             {onOpenRow && <TableHead style={{ width: 40 }} />}
             {onEditRow && <TableHead style={{ width: 40 }} />}
-            {onDeleteRow && <TableHead style={{ width: 40 }} />}
             {headerGroup.headers.map(header => {
               const columnId = header.column.id;
               const isSortable = sorting?.onSortChange && !header.isPlaceholder;
@@ -373,6 +373,7 @@ export function DataTable<TData, TValue>({
                 </TableHead>
               );
             })}
+            {onDeleteRow && <TableHead style={{ width: 40 }} />}
           </TableRow>
         ))}
       </TableHeader>
@@ -383,7 +384,6 @@ export function DataTable<TData, TValue>({
               {enableDragDrop && <TableFilterCell className="w-8" />}
               {onOpenRow && <TableFilterCell style={{ width: 40 }} />}
               {onEditRow && <TableFilterCell style={{ width: 40 }} />}
-              {onDeleteRow && <TableFilterCell style={{ width: 40 }} />}
               {headerGroup.headers.map(header => {
                 const columnId = header.column.id;
                 const hasFixedSize = header.column.columnDef.size !== undefined;
@@ -436,6 +436,7 @@ export function DataTable<TData, TValue>({
                   </TableFilterCell>
                 );
               })}
+              {onDeleteRow && <TableFilterCell style={{ width: 40 }} />}
             </TableFilterRow>
           ))}
         </TableFilter>

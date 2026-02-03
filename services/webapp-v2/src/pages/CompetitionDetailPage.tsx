@@ -311,7 +311,7 @@ export default function CompetitionDetailPage() {
               </TabsList>
 
               <TabsContent value="general" className="mt-0">
-                <GeneralTab competition={competition} isCreating={isCreating} isDuplicating={isDuplicating} />
+                <GeneralTab isCreating={isCreating} isDuplicating={isDuplicating} />
               </TabsContent>
 
               <TabsContent value="horaires" className="mt-0">

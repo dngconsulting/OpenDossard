@@ -29,7 +29,7 @@ const toastConfigs: Record<ToastType, ToastConfig> = {
     title: 'Erreur',
   },
   success: {
-    bg: 'bg-[#5cb85c]',
+    bg: 'bg-[#047857]',
     icon: <CircleCheck className="h-5 w-5 text-white" />,
     title: 'Succès',
   },
