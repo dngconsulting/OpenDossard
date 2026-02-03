@@ -3,8 +3,7 @@ import { useState, useCallback } from 'react';
 import { licencesApi } from '@/api/licences.api';
 import type { LicenceType, PaginationParams } from '@/types/licences';
 import { licencesPDF } from '@/utils/pdf/licences-pdf';
-import { showWarningToast } from '@/utils/error-handler/error-handler';
-import { handleGlobalError } from '@/utils/error-handler/error-handler';
+import { showWarningToast, handleGlobalError } from '@/utils/error-handler/error-handler';
 
 const MAX_EXPORT_LICENCES = 1500;
 const API_PAGE_SIZE = 100; // Backend limit

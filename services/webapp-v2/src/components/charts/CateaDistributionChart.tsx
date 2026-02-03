@@ -40,10 +40,10 @@ type Props = {
 };
 
 export function CateaDistributionChart({ data, isLoading }: Props) {
-  if (isLoading) return <ChartSkeleton />;
-  if (!data?.length) return <ChartEmpty />;
-
   const { chartData, chartConfig, total, sortedAll } = useMemo(() => {
+    if (!data?.length) {
+      return { chartData: [], chartConfig: {} as ChartConfig, total: 0, sortedAll: [] };
+    }
     const total = data.reduce((s, d) => s + d.count, 0);
     const sorted = [...data].sort((a, b) => b.count - a.count);
     const top = sorted.slice(0, MAX_SLICES);
@@ -61,6 +61,9 @@ export function CateaDistributionChart({ data, isLoading }: Props) {
 
     return { chartData: slices, chartConfig: config, total, sortedAll: sorted };
   }, [data]);
+
+  if (isLoading) return <ChartSkeleton />;
+  if (!data?.length) return <ChartEmpty />;
 
   return (
     <CollapsibleChartCard

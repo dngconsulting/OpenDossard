@@ -53,7 +53,7 @@ export function EngagementForm({
     const customCategories: { value: string; label: string }[] = [];
     if (competitionRaces) {
       const categories = competitionRaces
-        .split(/[,\/]/)
+        .split(/[,/]/)
         .map(r => r.trim())
         .filter(Boolean);
       for (const cat of categories) {

@@ -40,8 +40,7 @@ import {
   useReorderRankings,
   useRemoveRanking,
 } from '@/hooks/useRaces';
-import type { RaceRowType, UpdateRankingDto } from '@/types/races';
-import { DNF_CODES, type DNFCode } from '@/types/races';
+import { DNF_CODES, type RaceRowType, type UpdateRankingDto, type DNFCode } from '@/types/races';
 import { transformRows, formatRanking, type TransformedRow } from '@/utils/classements';
 import { cn } from '@/lib/utils';
 

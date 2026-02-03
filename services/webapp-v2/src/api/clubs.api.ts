@@ -6,15 +6,27 @@ import { apiClient } from './client';
 const buildQueryString = (params: ClubPaginationParams): string => {
   const searchParams = new URLSearchParams();
 
-  if (params.offset && params.offset > 0) searchParams.set('offset', String(params.offset));
-  if (params.limit && params.limit !== 20) searchParams.set('limit', String(params.limit));
-  if (params.search) searchParams.set('search', params.search);
-  if (params.orderBy) searchParams.set('orderBy', params.orderBy);
-  if (params.orderDirection) searchParams.set('orderDirection', params.orderDirection);
+  if (params.offset && params.offset > 0) {
+    searchParams.set('offset', String(params.offset));
+  }
+  if (params.limit && params.limit !== 20) {
+    searchParams.set('limit', String(params.limit));
+  }
+  if (params.search) {
+    searchParams.set('search', params.search);
+  }
+  if (params.orderBy) {
+    searchParams.set('orderBy', params.orderBy);
+  }
+  if (params.orderDirection) {
+    searchParams.set('orderDirection', params.orderDirection);
+  }
 
   if (params.filters) {
     Object.entries(params.filters).forEach(([key, value]) => {
-      if (value) searchParams.set(key, value);
+      if (value) {
+        searchParams.set(key, value);
+      }
     });
   }
 
