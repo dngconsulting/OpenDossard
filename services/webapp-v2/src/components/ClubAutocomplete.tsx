@@ -28,7 +28,7 @@ export function ClubAutocomplete({
   department,
   disabled = false,
   error,
-  description,
+  description: _description,
   required,
   label = 'Club',
   selectedName,

@@ -19,12 +19,12 @@ import {
 import { COMPETITION_TYPE_LABELS } from '@/types/api';
 import { showErrorToast, showSuccessToast } from '@/utils/error-handler/error-handler';
 
-import { GeneralTab } from './competition/GeneralTab';
-import { HorairesTab } from './competition/HorairesTab';
-import { LocalisationTab } from './competition/LocalisationTab';
-import { MediasTab } from './competition/MediasTab';
-import { TarifsTab } from './competition/TarifsTab';
-import { competitionSchema, type FormValues, type TabValue, VALID_TABS } from './competition/types';
+import { GeneralTab } from './GeneralTab';
+import { HorairesTab } from './HorairesTab';
+import { LocalisationTab } from './LocalisationTab';
+import { MediasTab } from './MediasTab';
+import { TarifsTab } from './TarifsTab';
+import { competitionSchema, type FormValues, type TabValue, VALID_TABS } from './types';
 
 const competitionTypeIcons: Record<string, React.ReactNode> = {
   ROUTE: <Bike className="size-4" />,

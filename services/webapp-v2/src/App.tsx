@@ -1,6 +1,6 @@
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Toaster } from 'sonner';
 
 import { AuthProvider } from '@/components/auth/AuthProvider';
@@ -9,24 +9,23 @@ import { ProtectedRoute } from '@/components/navigation/ProtectedRoute.tsx';
 import { OfflineBanner } from '@/components/pwa/OfflineBanner';
 import { UpdatePrompt } from '@/components/pwa/UpdatePrompt';
 import { ThemeProvider } from '@/components/theme-provider';
-import AccountPage from '@/pages/AccountPage.tsx';
-import AchievementsPage from '@/pages/AchievementsPage.tsx';
-import ChallengePage from '@/pages/ChallengePage.tsx';
-import ChallengesPage from '@/pages/ChallengesPage.tsx';
-import ClassementsPage from '@/pages/ClassementsPage.tsx';
-import ClubDetailPage from '@/pages/ClubDetailPage.tsx';
-import ClubsPage from '@/pages/ClubsPage.tsx';
-import CompetitionDetailPage from '@/pages/CompetitionDetailPage.tsx';
-import EngagementsPage from '@/pages/EngagementsPage.tsx';
-import CompetitionsPage from '@/pages/CompetitionsPage.tsx';
-import DashboardPage from '@/pages/DashboardPage.tsx';
-import LicenceDetailPage from '@/pages/LicenceDetailPage.tsx';
-import LicencesPage from '@/pages/LicencesPage.tsx';
-import LoginPage from '@/pages/LoginPage.tsx';
-import NotFoundPage from '@/pages/NotFoundPage.tsx';
-import PalmaresPage from '@/pages/PalmaresPage.tsx';
-import UserDetailPage from '@/pages/UserDetailPage.tsx';
-import UsersPage from '@/pages/UsersPage.tsx';
+import AccountPage from '@/pages/account/AccountPage.tsx';
+import LoginPage from '@/pages/account/LoginPage.tsx';
+import UserDetailPage from '@/pages/account/UserDetailPage.tsx';
+import ChallengePage from '@/pages/challenge/ChallengePage.tsx';
+import ChallengesPage from '@/pages/challenge/ChallengesPage.tsx';
+import ClassementsPage from '@/pages/classement/ClassementsPage.tsx';
+import ClubDetailPage from '@/pages/club/ClubDetailPage.tsx';
+import ClubsPage from '@/pages/club/ClubsPage.tsx';
+import CompetitionDetailPage from '@/pages/competition/CompetitionDetailPage.tsx';
+import CompetitionsPage from '@/pages/competition/CompetitionsPage.tsx';
+import DashboardPage from '@/pages/dashboard/DashboardPage.tsx';
+import EngagementsPage from '@/pages/engagement/EngagementsPage.tsx';
+import LicenceDetailPage from '@/pages/licence/LicenceDetailPage.tsx';
+import LicencesPage from '@/pages/licence/LicencesPage.tsx';
+import PalmaresPage from '@/pages/palmares/PalmaresPage.tsx';
+import NotFoundPage from '@/pages/status/NotFoundPage.tsx';
+import UsersPage from '@/pages/users/UsersPage.tsx';
 import WelcomePage from '@/pages/WelcomePage.tsx';
 import { ApiError, handleGlobalError } from '@/utils/error-handler';
 
@@ -80,7 +79,6 @@ export default function App() {
                 <Route path="/competition/:id" element={<CompetitionDetailPage />} />
                 <Route path="/competition/:id/engagements" element={<EngagementsPage />} />
                 <Route path="/competition/:id/classements" element={<ClassementsPage />} />
-                <Route path="/achievements" element={<AchievementsPage />} />
                 <Route path="/palmares/:licenceId?" element={<PalmaresPage />} />
                 {/* Admin-only routes */}
                 <Route element={<AdminRoute />}>
