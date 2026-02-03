@@ -26,6 +26,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { LicencesService } from './licences.service';
+import { LicenceImportService } from './licence-import.service';
 import { LicenceEntity } from './entities/licence.entity';
 import {
   CreateLicenceDto,
@@ -45,7 +46,10 @@ import { PaginatedResponseDto } from '../common/dto';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('licences')
 export class LicencesController {
-  constructor(private readonly licencesService: LicencesService) {}
+  constructor(
+    private readonly licencesService: LicencesService,
+    private readonly licenceImportService: LicenceImportService,
+  ) {}
 
   @Get()
   @Roles(Role.ADMIN, Role.ORGANISATEUR)
@@ -141,6 +145,6 @@ export class LicencesController {
     @CurrentUser('email') author: string,
   ): Promise<ImportResultDto> {
     const content = file.buffer.toString('utf-8');
-    return this.licencesService.importFromCsv(content, author);
+    return this.licenceImportService.importFromCsv(content, author);
   }
 }
