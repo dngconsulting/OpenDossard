@@ -16,3 +16,10 @@ services/webapp/debug.log
 **/public/workbox-*.js
 **/public/sw.js
 **/public/worker-*.js
+
+# Local development SSL certificates (never commit)
+config/local-ssl/
+
+# Local docker-compose files (optional to commit)
+docker-compose.local-*.yml
+config/nginx.local-*.conf

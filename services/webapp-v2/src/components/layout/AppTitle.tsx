@@ -33,9 +33,15 @@ export function AppTitle({
               <span className="block font-normal text-sidebar-foreground tracking-tight text-sm">
                 {app.name}
               </span>
-              <span className="block text-xs" style={{ color: 'var(--sidebar-foreground-muted)' }}>
+              <a
+                href={`https://github.com/dngconsulting/OpenDossard/releases/tag/v${app.version}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-xs hover:underline"
+                style={{ color: 'var(--sidebar-foreground-muted)' }}
+              >
                 v{app.version}
-              </span>
+              </a>
             </div>
           )}
         </div>

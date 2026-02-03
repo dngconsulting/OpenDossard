@@ -7,16 +7,16 @@ export function UpdatePrompt() {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
-    onRegistered(r) {
-      // Vérifie les mises à jour toutes les heures
+    onRegisteredSW(_swUrl, r) {
       if (r) {
-        setInterval(
-          () => {
-            r.update();
-          },
-          60 * 60 * 1000
-        );
+        // Vérifie immédiatement au chargement
+        r.update();
+        // Puis toutes les heures
+        setInterval(() => r.update(), 60 * 60 * 1000);
       }
+    },
+    onRegisterError(error) {
+      console.error('SW registration error:', error);
     },
   });
 

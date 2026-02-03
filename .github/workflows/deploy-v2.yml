@@ -1,0 +1,134 @@
+name: Deploy V2 to environment
+
+on:
+  workflow_dispatch:
+    inputs:
+      envname:
+        type: choice
+        description: Environnement
+        options:
+          - TEST
+          - PREPROD
+          - PROD
+        required: true
+      branch:
+        type: string
+        description: Branche à déployer (défaut = branche courante du workflow)
+        required: false
+        default: ''
+
+env:
+  REGISTRY: ghcr.io
+  API_IMAGE: ghcr.io/dngconsulting/opendossard_api-v2
+  WEBAPP_IMAGE: ghcr.io/dngconsulting/opendossard_webapp-v2
+
+jobs:
+  build-and-push:
+    name: Build & Push Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref_name }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build and push api-v2
+      - name: Build and push api-v2
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.api-v2
+          push: true
+          tags: |
+            ${{ env.API_IMAGE }}:latest
+            ${{ env.API_IMAGE }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Build and push webapp-v2
+      - name: Build and push webapp-v2
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.webapp-v2
+          push: true
+          tags: |
+            ${{ env.WEBAPP_IMAGE }}:latest
+            ${{ env.WEBAPP_IMAGE }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to ${{ github.event.inputs.envname }}
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.envname }}
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+          POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_EXPIRE_SECONDS: ${{ secrets.JWT_EXPIRE_SECONDS }}
+        with:
+          host: ${{ secrets.HOSTNAME }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          envs: POSTGRES_HOST,POSTGRES_PORT,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,JWT_EXPIRE_SECONDS
+          script: |
+            export POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}
+            export POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}
+            export POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+            export POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+            export POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            export JWT_SECRET=${{ secrets.JWT_SECRET }}
+            export JWT_EXPIRE_SECONDS=${{ secrets.JWT_EXPIRE_SECONDS }}
+
+            cd /home/dngconsulting/OpenDossard
+
+            # Determine branch to deploy (input > current workflow branch)
+            BRANCH="${{ github.event.inputs.branch }}"
+            if [ -z "$BRANCH" ]; then
+              BRANCH="${{ github.ref_name }}"
+            fi
+            echo "📦 Deploying branch: $BRANCH"
+
+            # Fetch and checkout the target branch
+            git fetch origin "$BRANCH"
+            git checkout "$BRANCH"
+            git pull origin "$BRANCH"
+
+            # Pull the new v2 images
+            docker compose -f docker-compose.prod.yml pull api-v2 webapp-v2
+
+            # Start/restart only v2 services (v1 remains untouched)
+            docker compose -f docker-compose.prod.yml up -d api-v2 webapp-v2
+
+            # Reload nginx to apply new config (no downtime)
+            docker compose -f docker-compose.prod.yml exec -T website nginx -s reload
+
+            # Cleanup old images
+            docker image prune --all --force &
+
+            echo "✅ V2 deployment complete!"
+            echo "🔗 Access at: https://$([[ \"${{ github.event.inputs.envname }}\" == \"PROD\" ]] && echo 'app' || echo '${{ github.event.inputs.envname }}' | tr '[:upper:]' '[:lower:]')-v2.opendossard.com"

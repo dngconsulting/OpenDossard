@@ -38,8 +38,39 @@ services:
       - DISABLE_ESLINT_PLUGIN="true"
       - CI="true"
       - PORT="80"
+  # ══════════════════════════════════════════════════════════
+  # V2 - NEW SERVICES
+  # ══════════════════════════════════════════════════════════
+  api-v2:
+    container_name: api-v2
+    image: ghcr.io/dngconsulting/opendossard_api-v2:latest
+    restart: always
+    expose:
+      - "3001"
+    environment:
+      - POSTGRES_HOST=dossarddb
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - JWT_SECRET
+      - JWT_EXPIRE_SECONDS
+      - NODE_ENV=production
+    depends_on:
+      - dossarddb
+
+  webapp-v2:
+    container_name: webapp-v2
+    image: ghcr.io/dngconsulting/opendossard_webapp-v2:latest
+    restart: always
+    expose:
+      - "80"
+
+  # ══════════════════════════════════════════════════════════
+  # REVERSE PROXY
+  # ══════════════════════════════════════════════════════════
   website:
-    image: nginx:1.17.5-alpine
+    image: nginx:1.27-alpine
     container_name: website
     restart: always
     ports:
@@ -52,5 +83,10 @@ services:
       - /etc/letsencrypt/live/opendossard.com/fullchain.pem:/etc/letsencrypt/opendossard/cert.pem
       - /etc/letsencrypt/live/opendossard.com/privkey.pem:/etc/letsencrypt/opendossard/key.pem
       - /etc/letsencrypt/live/opendossard.com/dhparam.pem:/etc/letsencrypt/opendossard/dhparam.pem
+    depends_on:
+      - api_webapp
+      - api-v2
+      - webapp-v2
+
 volumes:
   postgres:

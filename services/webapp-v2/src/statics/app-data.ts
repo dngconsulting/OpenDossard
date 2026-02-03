@@ -23,7 +23,7 @@ export const appData = {
   app: {
     name: 'Open Dossard',
     logoUrl: '/logood.png',
-    version: '2.0.0',
+    version: __APP_VERSION__,
   },
   navMain: [
     {
