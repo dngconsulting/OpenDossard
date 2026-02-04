@@ -160,10 +160,19 @@ export class RuntimeError extends Error implements ErrorDetails {
       ? `${params.filename}:${params.lineno}:${params.colno}`
       : undefined;
 
+    // Build detailed message with original error message + location
+    const details: string[] = [];
+    if (params.message) {
+      details.push(`Message: ${params.message}`);
+    }
+    if (location) {
+      details.push(`Location: ${location}`);
+    }
+
     this.technicalDetails = formatTechnicalDetails({
       type: 'RuntimeError',
       category: this.category,
-      serverMessage: location ? `Location: ${location}` : undefined,
+      serverMessage: details.length > 0 ? details.join('\n') : undefined,
       stack: params.stack || this.stack,
       timestamp: this.timestamp,
     });
