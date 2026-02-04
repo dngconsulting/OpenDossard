@@ -37,13 +37,27 @@ export class LicencesService {
 
     const queryBuilder = this.licenceRepository.createQueryBuilder('licence');
 
-    // Global search
+    // Global search — split into tokens for multi-word queries
+    // "J Miquel" → token "J" matches start of name/firstName, "Miquel" matches start of name/firstName
+    // Supports accent-insensitive matching and name/firstName inversion
     if (search) {
-      const searchPattern = `%${search}%`;
-      queryBuilder.andWhere(
-        '(licence.name ILIKE :search OR licence.firstName ILIKE :search OR licence.licenceNumber ILIKE :search OR licence.club ILIKE :search)',
-        { search: searchPattern },
-      );
+      const tokens = search.trim().split(/\s+/).filter(Boolean);
+
+      if (tokens.length === 1) {
+        // Single token: prefix match on name/firstName + substring on licenceNumber/club
+        queryBuilder.andWhere(
+          `(unaccent(licence.name) ILIKE unaccent(:sToken) OR unaccent(licence.firstName) ILIKE unaccent(:sToken) OR licence.licenceNumber ILIKE :sSubstr OR licence.club ILIKE :sSubstr)`,
+          { sToken: `${tokens[0]}%`, sSubstr: `%${tokens[0]}%` },
+        );
+      } else {
+        // Multiple tokens: each must match start of name OR firstName (AND between tokens)
+        tokens.forEach((token, i) => {
+          queryBuilder.andWhere(
+            `(unaccent(licence.name) ILIKE unaccent(:sToken${i}) OR unaccent(licence.firstName) ILIKE unaccent(:sToken${i}))`,
+            { [`sToken${i}`]: `${token}%` },
+          );
+        });
+      }
     }
 
     // Specific filters - all combined with AND
@@ -154,17 +168,24 @@ export class LicencesService {
   }
 
   async search(query: string, _competitionType?: string): Promise<LicenceEntity[]> {
-    const searchPattern = `%${query}%`;
+    const qb = this.licenceRepository.createQueryBuilder('licence');
+    const tokens = query.trim().split(/\s+/).filter(Boolean);
 
-    return this.licenceRepository
-      .createQueryBuilder('licence')
-      .where(
-        '(licence.name ILIKE :search OR licence.firstName ILIKE :search OR licence.licenceNumber ILIKE :search)',
-        { search: searchPattern },
-      )
-      .orderBy('licence.name', 'ASC')
-      .take(20)
-      .getMany();
+    if (tokens.length === 1) {
+      qb.where(
+        `(unaccent(licence.name) ILIKE unaccent(:sToken) OR unaccent(licence.firstName) ILIKE unaccent(:sToken) OR licence.licenceNumber ILIKE :sSubstr)`,
+        { sToken: `${tokens[0]}%`, sSubstr: `%${tokens[0]}%` },
+      );
+    } else {
+      tokens.forEach((token, i) => {
+        qb.andWhere(
+          `(unaccent(licence.name) ILIKE unaccent(:sToken${i}) OR unaccent(licence.firstName) ILIKE unaccent(:sToken${i}))`,
+          { [`sToken${i}`]: `${token}%` },
+        );
+      });
+    }
+
+    return qb.orderBy('licence.name', 'ASC').take(20).getMany();
   }
 
   async create(createLicenceDto: CreateLicenceDto, author?: string): Promise<LicenceEntity> {
