@@ -23,6 +23,7 @@ export type PalmaresRaceResult = {
   competitionType: string;
   raceCode: string;
   catev: string;
+  club: string | null;
   rankingScratch: number | null;
   rankingInCategory: number | null;
   totalInCategory: number;
@@ -32,6 +33,7 @@ export type PalmaresRaceResult = {
 export type PalmaresData = {
   licence: LicenceType;
   stats: RiderStats;
-  categoryHistory: CategoryChange[];
+  categoryHistoryRoute: CategoryChange[];
+  categoryHistoryCX: CategoryChange[];
   results: PalmaresRaceResult[];
 };

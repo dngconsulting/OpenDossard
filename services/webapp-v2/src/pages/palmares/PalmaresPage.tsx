@@ -67,7 +67,7 @@ export default function PalmaresPage() {
           <>
             <RiderHeaderCard licence={palmares.licence} />
             <RiderStatsCards stats={palmares.stats} />
-            <RankingHistorySection history={palmares.categoryHistory} />
+            <RankingHistorySection historyRoute={palmares.categoryHistoryRoute} historyCX={palmares.categoryHistoryCX} />
             <PalmaresResultsTable results={palmares.results} />
           </>
         )}

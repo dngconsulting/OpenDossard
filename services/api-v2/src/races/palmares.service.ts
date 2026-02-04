@@ -40,6 +40,7 @@ export class PalmaresService {
         r.ranking_scratch AS "rankingScratch",
         r.comment,
         r.catev,
+        r.club,
         CASE
           WHEN r.ranking_scratch IS NOT NULL AND r.comment IS NULL THEN
             (SELECT COUNT(*)
@@ -76,6 +77,7 @@ export class PalmaresService {
       rankingScratch: number | null;
       comment: string | null;
       catev: string;
+      club: string | null;
       rankingInCategory: number | null;
       totalInCategory: number;
     }> = await this.dataSource.query(query, [licenceId]);
@@ -92,38 +94,51 @@ export class PalmaresService {
       bestRanking: ranked.length > 0 ? Math.min(...ranked.map(r => r.rankingInCategory)) : 0,
     };
 
-    // d) Compute categoryHistory — every catev change chronologically
+    // d) Compute categoryHistory per discipline (route vs CX)
     const sortedAsc = [...rows].sort((a, b) => {
       const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime();
       return dateCompare !== 0 ? dateCompare : a.id - b.id;
     });
 
-    const categoryHistory: PalmaresCategoryChangeDto[] = [];
-    let lastCatev: string | null = null;
+    const buildCategoryHistory = (
+      races: typeof sortedAsc,
+    ): PalmaresCategoryChangeDto[] => {
+      const history: PalmaresCategoryChangeDto[] = [];
+      let lastCatev: string | null = null;
 
-    for (const row of sortedAsc) {
-      if (row.catev && row.catev !== lastCatev) {
-        const season = new Date(row.date).getFullYear().toString();
-        let direction: 'up' | 'down' | 'initial' = 'initial';
+      for (const row of races) {
+        if (row.catev && row.catev !== lastCatev) {
+          const season = new Date(row.date).getFullYear().toString();
+          let direction: 'up' | 'down' | 'initial' = 'initial';
 
-        if (lastCatev !== null) {
-          const oldNum = parseInt(lastCatev.replace(/\D/g, ''), 10);
-          const newNum = parseInt(row.catev.replace(/\D/g, ''), 10);
-          if (!isNaN(oldNum) && !isNaN(newNum)) {
-            direction = newNum < oldNum ? 'up' : 'down';
+          if (lastCatev !== null) {
+            const oldNum = parseInt(lastCatev.replace(/\D/g, ''), 10);
+            const newNum = parseInt(row.catev.replace(/\D/g, ''), 10);
+            if (!isNaN(oldNum) && !isNaN(newNum)) {
+              direction = newNum < oldNum ? 'up' : 'down';
+            }
           }
+
+          history.push({
+            season,
+            fromCategory: lastCatev,
+            toCategory: row.catev,
+            direction,
+          });
+
+          lastCatev = row.catev;
         }
-
-        categoryHistory.push({
-          season,
-          fromCategory: lastCatev,
-          toCategory: row.catev,
-          direction,
-        });
-
-        lastCatev = row.catev;
       }
-    }
+
+      return history;
+    };
+
+    const categoryHistoryRoute = buildCategoryHistory(
+      sortedAsc.filter(r => r.competitionType === 'ROUTE'),
+    );
+    const categoryHistoryCX = buildCategoryHistory(
+      sortedAsc.filter(r => r.competitionType === 'CX'),
+    );
 
     // e) Map rows to PalmaresResultDto[]
     const results: PalmaresResultDto[] = rows.map(r => ({
@@ -134,6 +149,7 @@ export class PalmaresService {
       competitionType: r.competitionType,
       raceCode: r.raceCode,
       catev: r.catev,
+      club: r.club,
       rankingScratch: r.rankingScratch,
       rankingInCategory: r.rankingInCategory != null ? Number(r.rankingInCategory) : null,
       totalInCategory: Number(r.totalInCategory),
@@ -141,7 +157,7 @@ export class PalmaresService {
     }));
 
     // f) Return full response
-    return { licence, stats, categoryHistory, results };
+    return { licence, stats, categoryHistoryRoute, categoryHistoryCX, results };
   }
 
   /**

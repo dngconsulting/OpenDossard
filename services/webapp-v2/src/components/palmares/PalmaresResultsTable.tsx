@@ -70,6 +70,14 @@ const columns: ColumnDef<PalmaresRaceResult>[] = [
     ),
   },
   {
+    accessorKey: 'club',
+    header: 'Club',
+    size: 140,
+    cell: ({ row }) => (
+      <span className="text-sm text-muted-foreground truncate">{row.getValue('club') || '\u2014'}</span>
+    ),
+  },
+  {
     accessorKey: 'raceCode',
     header: 'Course',
     size: 100,

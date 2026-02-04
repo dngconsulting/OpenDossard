@@ -24,6 +24,7 @@ export class PalmaresResultDto {
   @ApiProperty() competitionType: string;
   @ApiProperty() raceCode: string;
   @ApiProperty() catev: string;
+  @ApiPropertyOptional() club: string | null;
   @ApiPropertyOptional() rankingScratch: number | null;
   @ApiPropertyOptional() rankingInCategory: number | null;
   @ApiProperty() totalInCategory: number;
@@ -33,6 +34,7 @@ export class PalmaresResultDto {
 export class PalmaresResponseDto {
   @ApiProperty() licence: LicenceEntity;
   @ApiProperty() stats: PalmaresStatsDto;
-  @ApiProperty({ type: [PalmaresCategoryChangeDto] }) categoryHistory: PalmaresCategoryChangeDto[];
+  @ApiProperty({ type: [PalmaresCategoryChangeDto] }) categoryHistoryRoute: PalmaresCategoryChangeDto[];
+  @ApiProperty({ type: [PalmaresCategoryChangeDto] }) categoryHistoryCX: PalmaresCategoryChangeDto[];
   @ApiProperty({ type: [PalmaresResultDto] }) results: PalmaresResultDto[];
 }
