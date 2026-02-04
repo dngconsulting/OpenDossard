@@ -1,4 +1,5 @@
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, LabelList } from 'recharts';
+import { useIsMobile } from '@/hooks/useMediaQuery';
 
 import {
   Card,
@@ -34,11 +35,15 @@ function truncateLabel(label: string, maxLen = 40): string {
 }
 
 export function ClubParticipationChart({ data, isLoading, defaultOpen }: Props) {
+  const isMobile = useIsMobile();
+
   if (isLoading) return <ChartSkeleton />;
   if (!data?.length) return <ChartEmpty />;
 
   const top20 = data.slice(0, 20);
   const totalParticipations = data.reduce((s, d) => s + d.count, 0);
+  const yAxisWidth = isMobile ? 180 : 320;
+  const labelMaxLen = isMobile ? 22 : 40;
 
   return (
     <CollapsibleChartCard
@@ -69,14 +74,14 @@ export function ClubParticipationChart({ data, isLoading, defaultOpen }: Props) 
           <YAxis
             dataKey="club"
             type="category"
-            width={320}
+            width={yAxisWidth}
             interval={0}
             tickLine={false}
             axisLine={false}
             tick={({ x, y, payload }) => (
               <text x={x} y={y} dy={4} textAnchor="end" className="fill-foreground text-xs font-medium">
                 <title>{payload.value}</title>
-                {truncateLabel(payload.value)}
+                {truncateLabel(payload.value, labelMaxLen)}
               </text>
             )}
           />

@@ -1,4 +1,5 @@
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, LabelList } from 'recharts';
+import { useIsMobile } from '@/hooks/useMediaQuery';
 
 import {
   Card,
@@ -34,6 +35,8 @@ function truncateLabel(label: string, maxLen = 24): string {
 }
 
 export function TopRidersChart({ data, isLoading, defaultOpen }: Props) {
+  const isMobile = useIsMobile();
+
   if (isLoading) return <ChartSkeleton />;
   if (!data?.length) return <ChartEmpty />;
 
@@ -41,6 +44,8 @@ export function TopRidersChart({ data, isLoading, defaultOpen }: Props) {
     ...d,
     displayName: `${d.firstName} ${d.name}`,
   }));
+  const yAxisWidth = isMobile ? 140 : 200;
+  const labelMaxLen = isMobile ? 16 : 24;
 
   return (
     <CollapsibleChartCard
@@ -69,14 +74,14 @@ export function TopRidersChart({ data, isLoading, defaultOpen }: Props) {
           <YAxis
             dataKey="displayName"
             type="category"
-            width={200}
+            width={yAxisWidth}
             interval={0}
             tickLine={false}
             axisLine={false}
             tick={({ x, y, payload }) => (
               <text x={x} y={y} dy={4} textAnchor="end" className="fill-foreground text-xs font-medium">
                 <title>{payload.value}</title>
-                {truncateLabel(payload.value)}
+                {truncateLabel(payload.value, labelMaxLen)}
               </text>
             )}
           />
