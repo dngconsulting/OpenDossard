@@ -81,15 +81,44 @@ export function AppToast({ id, type, message, details }: AppToastProps) {
   };
 
   return (
-    <div className={`w-[450px] ${config.bg} rounded-lg shadow-lg overflow-hidden`}>
-      <div className="p-4">
+    <div className={`relative w-[85vw] max-w-[450px] ${config.bg} rounded-lg shadow-lg`}>
+      {/* Close button - large touch target at top right for mobile */}
+      <button
+        onClick={handleDismiss}
+        className="absolute top-1 right-1 z-10 h-10 w-10 flex items-center justify-center rounded-full text-white/80 hover:text-white hover:bg-white/10 active:bg-white/20 sm:hidden"
+        aria-label="Fermer"
+      >
+        <X className="h-6 w-6" />
+      </button>
+
+      <div className="p-4 pr-12 sm:pr-4">
         <div className="flex items-start gap-3">
           <div className="shrink-0 mt-0.5">{config.icon}</div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-white">{config.title}</p>
             <p className="text-sm text-white/90 mt-1">{message}</p>
+            {/* Details button on mobile - below message */}
+            {details && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="sm:hidden mt-2 h-7 px-2 text-xs text-white/80 hover:text-white hover:bg-white/10"
+                onClick={() => setIsExpanded(!isExpanded)}
+              >
+                {isExpanded ? (
+                  <>
+                    Masquer <ChevronUp className="h-3 w-3 ml-1" />
+                  </>
+                ) : (
+                  <>
+                    Détail <ChevronDown className="h-3 w-3 ml-1" />
+                  </>
+                )}
+              </Button>
+            )}
           </div>
-          <div className="flex items-center gap-1 shrink-0">
+          {/* Desktop buttons */}
+          <div className="hidden sm:flex items-center gap-1 shrink-0">
             {details && (
               <Button
                 variant="ghost"
