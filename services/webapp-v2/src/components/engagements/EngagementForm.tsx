@@ -43,10 +43,18 @@ export function EngagementForm({
 
   const engageMutation = useEngage();
 
+  // Catégorie pré-remplie depuis la licence (pour l'ajouter aux options si absente)
+  const licenceCatevValue = useMemo(() => {
+    if (!selectedLicence) return '';
+    return competitionType === 'CX'
+      ? selectedLicence.catevCX || selectedLicence.catev
+      : selectedLicence.catev;
+  }, [selectedLicence, competitionType]);
+
   // Options de catégorie basées sur la fédération de la compétition + catégories personnalisées
   const catevOptions = useMemo(() => {
     const fedeOptions = getCatevOptions(competitionFede, competitionType);
-    const fedeValues = new Set(fedeOptions.map(opt => opt.value));
+    const allValues = new Set(fedeOptions.map(opt => opt.value));
 
     // Extraire les catégories personnalisées depuis competition.races
     // Format: "A,B,C,1/2" -> séparer par "," puis par "/" pour obtenir A, B, C, 1, 2
@@ -57,17 +65,21 @@ export function EngagementForm({
         .map(r => r.trim())
         .filter(Boolean);
       for (const cat of categories) {
-        // Ajouter seulement si pas déjà dans les options de la fédération
-        if (!fedeValues.has(cat)) {
+        if (!allValues.has(cat)) {
           customCategories.push({ value: cat, label: cat });
-          fedeValues.add(cat); // Éviter les doublons
+          allValues.add(cat);
         }
       }
     }
 
+    // Ajouter le catev de la licence s'il n'est pas déjà dans les options
+    if (licenceCatevValue && !allValues.has(licenceCatevValue)) {
+      customCategories.push({ value: licenceCatevValue, label: licenceCatevValue });
+    }
+
     // Retourner les catégories personnalisées en premier, puis les options de la fédé
     return [...customCategories, ...fedeOptions];
-  }, [competitionFede, competitionType, competitionRaces]);
+  }, [competitionFede, competitionType, competitionRaces, licenceCatevValue]);
 
   // Reset du formulaire quand la course change
   useEffect(() => {
@@ -77,20 +89,13 @@ export function EngagementForm({
     setShowFedeWarning(false);
   }, [currentRaceCode]);
 
-  // Quand on sélectionne une licence, pré-remplir la catégorie si même fédération
+  // Quand on sélectionne une licence, pré-remplir la catégorie depuis la licence
   useEffect(() => {
     if (selectedLicence) {
-      if (selectedLicence.fede === competitionFede) {
-        // Même fédération : utiliser la catégorie de la licence
-        const licenceCatev =
-          competitionType === 'CX' ? selectedLicence.catevCX || selectedLicence.catev : selectedLicence.catev;
-        setCatev(licenceCatev || '');
-        setShowFedeWarning(false);
-      } else {
-        // Fédération différente : montrer l'avertissement
-        setCatev('');
-        setShowFedeWarning(true);
-      }
+      const licenceCatev =
+        competitionType === 'CX' ? selectedLicence.catevCX || selectedLicence.catev : selectedLicence.catev;
+      setCatev(licenceCatev || '');
+      setShowFedeWarning(selectedLicence.fede !== competitionFede);
     } else {
       setCatev('');
       setShowFedeWarning(false);
@@ -174,6 +179,7 @@ export function EngagementForm({
           type="number"
           value={riderNumber}
           onChange={e => setRiderNumber(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && canSubmit) handleSubmit(); }}
           className={isRiderNumberTaken ? 'border-destructive focus:border-destructive focus-visible:ring-destructive/50' : ''}
         />
       </div>

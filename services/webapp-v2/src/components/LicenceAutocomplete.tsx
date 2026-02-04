@@ -209,6 +209,7 @@ export function LicenceAutocomplete({
         {inputValue && !disabled && (
           <button
             type="button"
+            tabIndex={-1}
             onClick={() => {
               setInputValue('');
               setSearchTerm('');
