@@ -20,6 +20,12 @@ export function initErrorListeners(): void {
       return;
     }
 
+    // Ignore generic "Script error." from cross-origin scripts (CORS restriction)
+    // These provide no useful debugging info
+    if (event.message === 'Script error.' && !event.filename) {
+      return;
+    }
+
     handleGlobalError(
       new RuntimeError({
         message: event.message || 'Unknown error',
