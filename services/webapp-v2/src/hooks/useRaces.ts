@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { racesApi } from '@/api/races.api';
-import type { CreateEngagementDto, UpdateRankingDto, RemoveRankingDto, RaceType, EngagedRider, ReorderRankingItemDto } from '@/types/races';
+import type { CreateEngagementDto, UpdateRankingDto, RemoveRankingDto, ReorderRankingItemDto } from '@/types/races';
 
 export const racesKeys = {
   all: ['races'] as const,
@@ -191,56 +191,3 @@ export function useUploadResultsCsv() {
   });
 }
 
-// ============================================================================
-// Legacy hooks for backward compatibility with existing components
-// These are placeholder implementations that will need real API integration
-// ============================================================================
-
-/**
- * Hook pour récupérer la liste des courses (legacy)
- * @deprecated Use useCompetitionRaces instead
- */
-export function useRaces() {
-  return useQuery<RaceType[]>({
-    queryKey: ['races', 'legacy'],
-    queryFn: async () => [],
-    enabled: false, // Disabled by default - needs real implementation
-  });
-}
-
-/**
- * Hook pour ajouter un coureur engagé (legacy)
- * @deprecated Use useEngage instead
- */
-export function useAddEngagedRider() {
-  return useMutation({
-    mutationFn: async (_data: { raceId: string; categoryId: string; rider: Omit<EngagedRider, 'id'> }) => {
-      console.warn('useAddEngagedRider is deprecated. Use useEngage instead.');
-      return {} as EngagedRider;
-    },
-  });
-}
-
-/**
- * Hook pour supprimer un coureur engagé (legacy)
- * @deprecated Use useDeleteRace instead
- */
-export function useRemoveEngagedRider() {
-  return useMutation({
-    mutationFn: async (_data: { raceId: string; categoryId: string; riderId: string }) => {
-      console.warn('useRemoveEngagedRider is deprecated. Use useDeleteRace instead.');
-    },
-  });
-}
-
-/**
- * Hook pour mettre à jour les classements (legacy)
- * @deprecated Use useUpdateRanking instead
- */
-export function useUpdateResultsRankings() {
-  return useMutation({
-    mutationFn: async (_data: { raceId: string; categoryId: string; resultIds: string[] }) => {
-      console.warn('useUpdateResultsRankings is deprecated. Use useUpdateRanking instead.');
-    },
-  });
-}
