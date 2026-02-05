@@ -54,7 +54,9 @@ services:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
       - JWT_SECRET
-      - JWT_EXPIRE_SECONDS
+      - JWT_ACCESS_EXPIRE
+      - JWT_REFRESH_EXPIRE
+      - JWT_REFRESH_SECRET
       - NODE_ENV=production
     depends_on:
       - dossarddb

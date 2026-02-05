@@ -8,7 +8,7 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const { checkAuth, getAccessToken, logout } = useUserStore();
+  const { checkAuth, getAccessToken, getRefreshToken, setTokens, logout } = useUserStore();
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -19,11 +19,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     initialized.current = true;
 
     // Set up auth accessors for the API client
-    setAuthAccessors(getAccessToken, logout);
+    setAuthAccessors(getAccessToken, getRefreshToken, setTokens, logout);
 
     // Check authentication status on mount
     checkAuth();
-  }, [checkAuth, getAccessToken, logout]);
+  }, [checkAuth, getAccessToken, getRefreshToken, setTokens, logout]);
 
   return <>{children}</>;
 }

@@ -7,6 +7,7 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   accessToken: string;
+  refreshToken: string;
 }
 
 export interface UserProfile {
@@ -63,6 +64,20 @@ export const authApi = {
     }).catch(() => {
       // Ignore logout errors - we clear local state anyway
     });
+  },
+
+  async refresh(refreshToken: string): Promise<LoginResponse> {
+    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Token refresh failed');
+    }
+
+    return response.json();
   },
 
   async changePassword(accessToken: string, newPassword: string): Promise<void> {
