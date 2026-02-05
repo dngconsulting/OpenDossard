@@ -1,4 +1,22 @@
-import { Plus, Trash2 } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import { CSS } from '@dnd-kit/utilities';
+import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -99,6 +117,90 @@ function computeErrors(races: string[], categoriesWithEngaged: string[]): string
   return errors;
 }
 
+type RaceItem = {
+  id: string;
+  value: string;
+};
+
+function SortableRaceRow({
+  item,
+  index,
+  totalItems,
+  onChange,
+  onRemove,
+  onAdd,
+}: {
+  item: RaceItem;
+  index: number;
+  totalItems: number;
+  onChange: (id: string, value: string) => void;
+  onRemove: (id: string) => void;
+  onAdd: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="flex items-center gap-2">
+      <button
+        type="button"
+        className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <span className="text-sm text-muted-foreground w-6">{index + 1}.</span>
+      <Input
+        value={item.value}
+        onChange={e => onChange(item.id, e.target.value)}
+        placeholder="Ex: 1/2/3/C"
+        className="flex-1 min-w-[400px]"
+      />
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => onRemove(item.id)}
+        disabled={totalItems <= 1}
+        className="text-destructive hover:text-destructive"
+        title="Supprimer ce départ"
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
+      {index === totalItems - 1 ? (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onAdd}
+          className="text-primary hover:text-primary"
+          title="Ajouter un départ"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      ) : (
+        <div className="w-9" />
+      )}
+    </div>
+  );
+}
+
+let nextId = 0;
+function createItem(value: string): RaceItem {
+  return { id: `race-${++nextId}`, value };
+}
+
 export function ReorganizeRacesDialog({
   open,
   onOpenChange,
@@ -107,15 +209,29 @@ export function ReorganizeRacesDialog({
   engagements,
   onSuccess,
 }: Props) {
-  const [races, setRaces] = useState<string[]>([]);
+  const [items, setItems] = useState<RaceItem[]>([]);
   const reorganizeMutation = useReorganizeRaces();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   // Initialiser les races à l'ouverture
   useEffect(() => {
     if (open) {
-      setRaces(currentRaces.length > 0 ? [...currentRaces] : ['']);
+      setItems(
+        currentRaces.length > 0
+          ? currentRaces.map(r => createItem(r))
+          : [createItem('')],
+      );
     }
   }, [open, currentRaces]);
+
+  // Valeurs string pour la validation
+  const races = useMemo(() => items.map(i => i.value), [items]);
 
   // Statistiques par catégorie
   const categoryStats = useMemo(() => computeByCate(engagements), [engagements]);
@@ -129,21 +245,33 @@ export function ReorganizeRacesDialog({
     [races, categoriesWithEngaged],
   );
 
-  const handleRaceChange = (index: number, value: string) => {
-    const newRaces = [...races];
-    // Supprimer les espaces
-    newRaces[index] = value.replace(/\s/g, '');
-    setRaces(newRaces);
+  const handleChange = (id: string, value: string) => {
+    setItems(prev =>
+      prev.map(item =>
+        item.id === id ? { ...item, value: value.replace(/\s/g, '') } : item,
+      ),
+    );
   };
 
-  const handleAddRace = () => {
-    setRaces([...races, '']);
+  const handleAdd = () => {
+    setItems(prev => [...prev, createItem('')]);
   };
 
-  const handleRemoveRace = (index: number) => {
-    if (races.length > 1) {
-      setRaces(races.filter((_, i) => i !== index));
+  const handleRemove = (id: string) => {
+    if (items.length > 1) {
+      setItems(prev => prev.filter(item => item.id !== id));
     }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    setItems(prev => {
+      const oldIndex = prev.findIndex(i => i.id === active.id);
+      const newIndex = prev.findIndex(i => i.id === over.id);
+      return arrayMove(prev, oldIndex, newIndex);
+    });
   };
 
   const handleSave = async () => {
@@ -183,39 +311,29 @@ export function ReorganizeRacesDialog({
             <h3 className="text-sm font-medium text-muted-foreground mb-2">
               Départs (ordre d'affichage)
             </h3>
-            {races.map((race, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground w-6">{index + 1}.</span>
-                <Input
-                  value={race}
-                  onChange={e => handleRaceChange(index, e.target.value)}
-                  placeholder="Ex: 1/2/3/C"
-                  className="flex-1 min-w-[400px]"
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleRemoveRace(index)}
-                  disabled={races.length <= 1}
-                  className="text-destructive hover:text-destructive"
-                  title="Supprimer ce départ"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-                {index === races.length - 1 && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleAddRace}
-                    className="text-primary hover:text-primary"
-                    title="Ajouter un départ"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                )}
-                {index !== races.length - 1 && <div className="w-9" />}
-              </div>
-            ))}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              modifiers={[restrictToVerticalAxis]}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={items.map(i => i.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {items.map((item, index) => (
+                  <SortableRaceRow
+                    key={item.id}
+                    item={item}
+                    index={index}
+                    totalItems={items.length}
+                    onChange={handleChange}
+                    onRemove={handleRemove}
+                    onAdd={handleAdd}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
           </div>
 
           {/* Tableau des catégories */}
