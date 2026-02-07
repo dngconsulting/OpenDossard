@@ -1,0 +1,216 @@
+/* OpenDossard v2 — Custom Styles */
+
+:root {
+  /* Primary */
+  --primary: #4472C4;
+  --primary-light: #5B8DEF;
+  --primary-dark: #2d4889;
+
+  /* Navy gradient stops */
+  --navy-dark: #0f172a;
+  --navy-mid: #1e3a5f;
+  --navy-light: #2d5a87;
+
+  /* Accent */
+  --accent-green: #10B981;
+  --accent-green-light: #34D399;
+  --accent-teal: #14B8A6;
+
+  /* Neutral */
+  --bg: #f8fafc;
+  --fg: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+
+  /* Glass */
+  --glass-bg: rgba(255, 255, 255, 0.12);
+  --glass-border: rgba(255, 255, 255, 0.18);
+
+  /* Gradients */
+  --gradient-hero: linear-gradient(135deg, #0f172a 0%, #1e3a5f 40%, #2d5a87 70%, #4472C4 100%);
+  --gradient-primary: linear-gradient(135deg, #4472C4 0%, #5B8DEF 100%);
+  --gradient-accent: linear-gradient(135deg, #10B981 0%, #14B8A6 100%);
+}
+
+/* ---- Base ---- */
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: var(--fg);
+  background: var(--bg);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Glass card ---- */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 1rem;
+}
+
+/* ---- Text gradient ---- */
+.text-gradient {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ---- Hover lift ---- */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 32px rgba(68, 114, 196, 0.18);
+}
+
+/* ---- Fade-in-up animation ---- */
+.fade-in-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.fade-in-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---- Navbar ---- */
+.nav-main {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  transition: background 0.35s ease, box-shadow 0.35s ease, backdrop-filter 0.35s ease;
+  background: transparent;
+}
+.nav-main.scrolled {
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* ---- Horizontal scroll container (screenshots) ---- */
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.scroll-x::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---- Federation logos grayscale → color ---- */
+.fed-logo {
+  filter: grayscale(100%) brightness(1.4);
+  opacity: 0.5;
+  transition: filter 0.4s ease, opacity 0.4s ease;
+}
+.fed-logo:hover {
+  filter: grayscale(0%) brightness(1);
+  opacity: 1;
+}
+
+/* ---- Gradient accent bar (feature cards) ---- */
+.accent-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--gradient-accent);
+}
+
+/* ---- Screenshot images ---- */
+.screenshot {
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--border);
+}
+
+/* ---- Badge pill ---- */
+.badge-v2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ---- Section alternate background ---- */
+.section-alt {
+  background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+}
+
+/* ---- Stagger children animation delay ---- */
+.stagger > *:nth-child(1) { transition-delay: 0.05s; }
+.stagger > *:nth-child(2) { transition-delay: 0.10s; }
+.stagger > *:nth-child(3) { transition-delay: 0.15s; }
+.stagger > *:nth-child(4) { transition-delay: 0.20s; }
+.stagger > *:nth-child(5) { transition-delay: 0.25s; }
+.stagger > *:nth-child(6) { transition-delay: 0.30s; }
+.stagger > *:nth-child(7) { transition-delay: 0.35s; }
+.stagger > *:nth-child(8) { transition-delay: 0.40s; }
+
+/* ---- Tech badge ---- */
+.tech-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--fg);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.tech-badge:hover {
+  border-color: var(--primary);
+  box-shadow: 0 4px 16px rgba(68, 114, 196, 0.12);
+}
+.tech-badge img {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* ---- Mobile nav overlay ---- */
+.mobile-nav {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(15, 23, 42, 0.97);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.mobile-nav.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.mobile-nav a {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.mobile-nav a:hover {
+  color: var(--accent-green-light);
+}
