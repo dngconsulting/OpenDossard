@@ -143,7 +143,7 @@ export default function CompetitionDetailPage() {
       longueurCircuit: source.longueurCircuit || '',
       info: source.info || '',
       contactName: source.contactName || '',
-      contactPhone: source.contactPhone || '',
+      contactPhone: source.contactPhone?.replace(/\s/g, '') || '',
       contactEmail: source.contactEmail || '',
       siteweb: isDuplicating ? '' : source.siteweb || '',
       facebook: isDuplicating ? '' : source.facebook || '',

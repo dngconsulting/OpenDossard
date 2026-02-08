@@ -46,27 +46,32 @@ export function ContactSection({ isDuplicating }: ContactSectionProps) {
         <FormField
           control={form.control}
           name="contactPhone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Téléphone</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    className="pl-9"
-                    placeholder="0612345678"
-                    maxLength={10}
-                    {...field}
-                    onChange={e => {
-                      const value = e.target.value.replace(/\D/g, '');
-                      field.onChange(value);
-                    }}
-                  />
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            const formatPhone = (digits: string) =>
+              digits.replace(/(\d{2})(?=\d)/g, '$1 ').trim();
+            return (
+              <FormItem>
+                <FormLabel>Téléphone</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      className="pl-9"
+                      placeholder="06 12 34 56 78"
+                      maxLength={14}
+                      {...field}
+                      value={formatPhone(field.value ?? '')}
+                      onChange={e => {
+                        const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        field.onChange(digits);
+                      }}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
 
         <FormField

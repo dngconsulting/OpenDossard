@@ -56,6 +56,7 @@ export const competitionSchema = z.object({
   contactPhone: z
     .string()
     .optional()
+    .transform(val => val?.replace(/\s/g, ''))
     .refine(val => !val || val.length === 10, 'Le téléphone doit contenir 10 chiffres'),
   contactEmail: z
     .string()

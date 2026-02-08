@@ -21,8 +21,23 @@
   <priority>0.80</priority>
 </url>
 <url>
-  <loc>https://www.opendossard.com/techno.html</loc>
-  <lastmod>2026-02-07T00:00:00+00:00</lastmod>
+  <loc>https://www.opendossard.com/calendrier.html</loc>
+  <lastmod>2026-02-08T00:00:00+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.opendossard.com/licences.html</loc>
+  <lastmod>2026-02-08T00:00:00+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.opendossard.com/engagements-classements.html</loc>
+  <lastmod>2026-02-08T00:00:00+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.opendossard.com/challenges-palmares.html</loc>
+  <lastmod>2026-02-08T00:00:00+00:00</lastmod>
   <priority>0.80</priority>
 </url>
   <url>

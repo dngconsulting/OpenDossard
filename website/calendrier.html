@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Calendrier des épreuves Open Dossard : liste des compétitions, fiche détaillée, création d'épreuve et statistiques.">
+  <title>Open Dossard — Calendrier des épreuves</title>
+  <link rel="canonical" href="https://www.opendossard.com/calendrier.html">
+  <link rel="icon" href="./assets/favicon.ico">
+  <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#4472C4', light: '#5B8DEF', dark: '#2d4889' },
+            navy: { DEFAULT: '#1e3a5f', dark: '#0f172a', light: '#2d5a87' },
+            accent: { DEFAULT: '#10B981', light: '#34D399', teal: '#14B8A6' },
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="font-sans antialiased">
+
+  <!-- Nav -->
+  <nav class="nav-main py-4 px-6 lg:px-12">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-3">
+        <img src="assets/images/logoblanc.svg" alt="Open Dossard" class="h-8">
+        <span class="text-white font-bold text-lg hidden sm:inline">Open Dossard</span>
+      </a>
+      <div class="hidden md:flex items-center gap-8">
+        <a href="index.html" class="text-white/90 hover:text-white text-sm font-medium transition">Accueil</a>
+        <a href="product.html" class="text-white/90 hover:text-white text-sm font-medium transition">Fonctionnalités</a>
+        <a href="calendrier.html" class="text-white/90 hover:text-white text-sm font-medium transition">Calendrier</a>
+        <a href="licences.html" class="text-white/90 hover:text-white text-sm font-medium transition">Licences</a>
+        <a href="engagements-classements.html" class="text-white/90 hover:text-white text-sm font-medium transition">Engagements & Classements</a>
+        <a href="challenges-palmares.html" class="text-white/90 hover:text-white text-sm font-medium transition">Challenges & Palmarès</a>
+        <a href="https://github.com/dngconsulting/OpenDossard" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white text-sm font-medium hover:bg-white/20 transition">
+          <i data-lucide="github" class="w-4 h-4"></i> GitHub
+        </a>
+      </div>
+      <button id="nav-burger" class="md:hidden text-white" aria-label="Menu">
+        <i data-lucide="menu" class="w-6 h-6"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile nav -->
+  <div id="mobile-nav" class="mobile-nav">
+    <button id="nav-close" class="absolute top-6 right-6 text-white" aria-label="Fermer">
+      <i data-lucide="x" class="w-7 h-7"></i>
+    </button>
+    <a href="index.html">Accueil</a>
+    <a href="product.html">Fonctionnalités</a>
+    <a href="calendrier.html">Calendrier</a>
+    <a href="licences.html">Licences</a>
+    <a href="engagements-classements.html">Engagements & Classements</a>
+    <a href="challenges-palmares.html">Challenges & Palmarès</a>
+    <a href="https://github.com/dngconsulting/OpenDossard" target="_blank" rel="noopener">GitHub</a>
+  </div>
+
+  <!-- Hero compact -->
+  <section class="pt-32 pb-16 px-6" style="background: var(--gradient-hero);">
+    <div class="max-w-4xl mx-auto text-center">
+      <span class="badge-v2 bg-accent/20 text-accent-light border border-accent/30 mb-6">
+        <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Calendrier
+      </span>
+      <h1 class="text-3xl md:text-5xl font-extrabold text-white mt-4 mb-4">Calendrier des épreuves</h1>
+      <p class="text-white/60 text-lg max-w-2xl mx-auto">Consultez, créez et gérez toutes les épreuves cyclistes avec une vue calendrier complète et des fiches détaillées.</p>
+    </div>
+  </section>
+
+  <!-- 1. Liste des épreuves -->
+  <section class="py-20 px-6 bg-white">
+    <div class="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12 fade-in-up">
+      <div class="lg:w-1/2">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">
+          <i data-lucide="list" class="w-4 h-4"></i> Liste des épreuves
+        </div>
+        <h2 class="text-2xl md:text-3xl font-bold text-navy-dark mb-4">Un calendrier complet d'épreuves</h2>
+        <p class="text-gray-500 mb-6">Parcourez l'ensemble des épreuves cyclistes avec une vue calendrier intuitive et des filtres avancés pour trouver rapidement ce que vous cherchez.</p>
+        <ul class="space-y-3 text-sm text-gray-600">
+          <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-accent mt-0.5 flex-shrink-0"></i> Filtres par date, fédération, type d'épreuve et club organisateur</li>
+          <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-accent mt-0.5 flex-shrink-0"></i> Tri chronologique avec vue par saison</li>
+          <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-accent mt-0.5 flex-shrink-0"></i> Recherche rapide par nom d'épreuve</li>
+          <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-accent mt-0.5 flex-shrink-0"></i> Accès direct à la fiche détaillée de chaque compétition</li>
+        </ul>
+      </div>
+      <div class="lg:w-1/2">
+        <img src="assets/images/v2/competitions.png" alt="Liste des épreuves" class="screenshot w-full">
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Détail d'une épreuve -->
+  <section class="py-20 px-6 section-alt">
+    <div class="max-w-6xl mx-auto flex flex-col lg:flex-row-reverse items-center gap-12 fade-in-up">
+      <div class="lg:w-1/2">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 text-accent text-xs font-semibold mb-4">
+          <i data-lucide="file-text" class="w-4 h-4"></i> Fiche épreuve
+        </div>
+        <h2 class="text-2xl md:text-3xl font-bold text-navy-dark mb-4">Fiche complète de chaque épreuve</h2>
+        <p class="text-gray-500 mb-6">Chaque épreuve dispose d'une fiche détaillée avec plusieurs onglets pour organiser toutes les informations nécessaires.</p>
+        <ul class="space-y-3 text-sm text-gray-600">
+          <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-accent mt-0.5 flex-shrink-0"></i> Onglet Général : nom, fédération, type, club organisateur</li>
+          <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-accent mt-0.5 flex-shrink-0"></i> Onglet Horaires : planning des courses avec heures de départ</li>
+          <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-accent mt-0.5 flex-shrink-0"></i> Onglet Localisation : adresse et carte interactive</li>
+          <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-accent mt-0.5 flex-shrink-0"></i> Tarifs, informations pratiques et médias associés</li>
+        </ul>
+      </div>
+      <div class="lg:w-1/2">
+        <img src="assets/images/v2/competition-detail.png" alt="Détail d'une épreuve" class="screenshot w-full">
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Création d'épreuve -->
+  <section class="py-20 px-6 bg-white">
+    <div class="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12 fade-in-up">
+      <div class="lg:w-1/2">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i> Création
+        </div>
+        <h2 class="text-2xl md:text-3xl font-bold text-navy-dark mb-4">Créez vos épreuves facilement</h2>
+        <p class="text-gray-500 mb-6">Un formulaire complet et guidé permet de créer une nouvelle épreuve en quelques minutes avec toutes les informations nécessaires.</p>
+        <ul class="space-y-3 text-sm text-gray-600">
+          <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-accent mt-0.5 flex-shrink-0"></i> Choix de la fédération et du type d'épreuve (route, CX, piste…)</li>
+          <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-accent mt-0.5 flex-shrink-0"></i> Sélection du club organisateur</li>
+          <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-accent mt-0.5 flex-shrink-0"></i> Configuration des courses, catégories et horaires</li>
+          <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-accent mt-0.5 flex-shrink-0"></i> Géolocalisation automatique du lieu</li>
+        </ul>
+      </div>
+      <div class="lg:w-1/2">
+        <img src="assets/images/v2/competitions.png" alt="Création d'épreuve" class="screenshot w-full">
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Statistiques -->
+  <section class="py-20 px-6 section-alt">
+    <div class="max-w-6xl mx-auto flex flex-col lg:flex-row-reverse items-center gap-12 fade-in-up">
+      <div class="lg:w-1/2">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 text-accent text-xs font-semibold mb-4">
+          <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Statistiques
+        </div>
+        <h2 class="text-2xl md:text-3xl font-bold text-navy-dark mb-4">Dashboard et statistiques</h2>
+        <p class="text-gray-500 mb-6">Un tableau de bord complet avec des graphiques interactifs pour analyser la participation et piloter l'organisation des épreuves.</p>
+        <ul class="space-y-3 text-sm text-gray-600">
+          <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-accent mt-0.5 flex-shrink-0"></i> Graphiques de participation par épreuve</li>
+          <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-accent mt-0.5 flex-shrink-0"></i> Répartition par club et par catégorie</li>
+          <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-accent mt-0.5 flex-shrink-0"></i> Évolution de la fréquentation sur la saison</li>
+          <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-accent mt-0.5 flex-shrink-0"></i> Filtres par compétition, club et catégorie</li>
+        </ul>
+      </div>
+      <div class="lg:w-1/2">
+        <img src="assets/images/v2/dashboard.png" alt="Statistiques" class="screenshot w-full">
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-20 px-6" style="background: var(--gradient-hero);">
+    <div class="max-w-3xl mx-auto text-center fade-in-up">
+      <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Gérez votre calendrier d'épreuves</h2>
+      <p class="text-white/60 mb-8">Accédez à l'application pour consulter et créer vos épreuves cyclistes.</p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="https://app.opendossard.com" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-accent text-white font-semibold hover:bg-accent-light transition shadow-lg shadow-accent/25">
+          <i data-lucide="external-link" class="w-5 h-5"></i> Accéder à l'app
+        </a>
+        <a href="product.html" class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-white/10 border border-white/20 text-white font-semibold hover:bg-white/20 transition">
+          <i data-lucide="arrow-left" class="w-5 h-5"></i> Toutes les fonctionnalités
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="relative py-16 px-6" style="background: var(--gradient-hero);">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+        <div>
+          <div class="flex items-center gap-3 mb-4">
+            <img src="assets/images/logoblanc.svg" alt="Open Dossard" class="h-8">
+            <span class="text-white font-bold text-lg">Open Dossard</span>
+          </div>
+          <p class="text-white/50 text-sm max-w-sm">Plateforme open source de gestion d'épreuves cyclistes multi-fédérations.</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-8 text-sm">
+          <div>
+            <h4 class="text-white font-semibold mb-3">Navigation</h4>
+            <div class="flex flex-col gap-2">
+              <a href="index.html" class="text-white/50 hover:text-white transition">Accueil</a>
+              <a href="product.html" class="text-white/50 hover:text-white transition">Fonctionnalités</a>
+              <a href="calendrier.html" class="text-white/50 hover:text-white transition">Calendrier</a>
+              <a href="licences.html" class="text-white/50 hover:text-white transition">Licences</a>
+              <a href="engagements-classements.html" class="text-white/50 hover:text-white transition">Engagements & Classements</a>
+              <a href="challenges-palmares.html" class="text-white/50 hover:text-white transition">Challenges & Palmarès</a>
+            </div>
+          </div>
+          <div>
+            <h4 class="text-white font-semibold mb-3">Contact</h4>
+            <div class="flex flex-col gap-2">
+              <a href="mailto:contact@opendossard.com" class="text-white/50 hover:text-white transition">contact@opendossard.com</a>
+              <a href="https://github.com/dngconsulting/OpenDossard" target="_blank" rel="noopener" class="text-white/50 hover:text-white transition">GitHub</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-white/30 text-xs">&copy; 2024 Open Dossard. Projet open source.</p>
+        <p class="text-white/30 text-xs">Sponsor : <a href="http://www.dng-consulting.com" class="hover:text-white/60 transition">DNG Consulting</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
