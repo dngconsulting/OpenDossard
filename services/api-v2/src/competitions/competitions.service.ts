@@ -166,10 +166,14 @@ export class CompetitionsService {
   ): Promise<CompetitionEntity> {
     const competition = await this.findOne(id);
 
-    // Fix: When clubId is provided, reset the club relation so TypeORM uses
-    // the new clubId instead of the existing club.id from the eager-loaded relation
+    // Fix: Sync the club relation with clubId so TypeORM generates the correct FK value.
+    // TypeORM prioritizes the relation object over the column, so we must align both.
     if ('clubId' in competitionData) {
-      competition.club = null as unknown as typeof competition.club;
+      if (competitionData.clubId != null) {
+        competition.club = { id: competitionData.clubId } as typeof competition.club;
+      } else {
+        competition.club = null as unknown as typeof competition.club;
+      }
     }
 
     Object.assign(competition, competitionData);
