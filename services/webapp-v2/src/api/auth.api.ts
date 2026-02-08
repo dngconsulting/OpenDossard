@@ -19,8 +19,10 @@ export interface UserProfile {
   roles: string[];
 }
 
-export interface ChangePasswordRequest {
-  newPassword: string;
+export interface UpdateProfileRequest {
+  firstName: string;
+  lastName: string;
+  phone?: string;
 }
 
 export const authApi = {
@@ -80,14 +82,32 @@ export const authApi = {
     return response.json();
   },
 
-  async changePassword(accessToken: string, newPassword: string): Promise<void> {
+  async updateProfile(accessToken: string, data: UpdateProfileRequest): Promise<UserProfile> {
+    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || 'Impossible de mettre à jour le profil');
+    }
+
+    return response.json();
+  },
+
+  async changePassword(accessToken: string, currentPassword: string, newPassword: string): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`,
       },
-      body: JSON.stringify({ newPassword }),
+      body: JSON.stringify({ currentPassword, newPassword }),
     });
 
     if (!response.ok) {

@@ -28,6 +28,7 @@ type AuthActions = {
   getAccessToken: () => string | null;
   getRefreshToken: () => string | null;
   setTokens: (accessToken: string, refreshToken: string) => void;
+  setUser: (user: User) => void;
 };
 
 type UserStore = AuthState & AuthActions;
@@ -174,6 +175,8 @@ const useUserStore = create<UserStore>((set, get) => ({
 
     set({ accessToken, refreshToken });
   },
+
+  setUser: (user: User) => set({ user }),
 }));
 
 export default useUserStore;

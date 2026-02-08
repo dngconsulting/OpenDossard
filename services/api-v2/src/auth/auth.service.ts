@@ -89,6 +89,44 @@ export class AuthService {
     };
   }
 
+  async updateProfile(userId: number, firstName: string, lastName: string, phone?: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    user.firstName = firstName;
+    user.lastName = lastName;
+    if (phone !== undefined) user.phone = phone;
+    await this.userRepository.save(user);
+
+    return {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      roles: user.getRolesArray(),
+      phone: user.phone,
+    };
+  }
+
+  async changePassword(userId: number, currentPassword: string, newPassword: string): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!user || !user.password) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const isCurrentValid = bcrypt.compareSync(currentPassword, user.password);
+    if (!isCurrentValid) {
+      throw new UnauthorizedException('Mot de passe actuel incorrect');
+    }
+
+    user.password = bcrypt.hashSync(newPassword, 12);
+    await this.userRepository.save(user);
+  }
+
   private async generateTokens(user: UserEntity): Promise<TokensDto> {
     const payload = {
       sub: user.id,
