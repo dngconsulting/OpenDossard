@@ -39,7 +39,37 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // 4. Intersection Observer — fade-in-up
+  // 4. Lightbox — click-to-zoom screenshots
+  var lightbox = document.createElement('div');
+  lightbox.className = 'lightbox';
+  lightbox.innerHTML = '<button class="lightbox-close" aria-label="Fermer">&times;</button><img src="" alt="">';
+  document.body.appendChild(lightbox);
+  var lbImg = lightbox.querySelector('img');
+  var lbClose = lightbox.querySelector('.lightbox-close');
+
+  function openLightbox(src, alt) {
+    lbImg.src = src;
+    lbImg.alt = alt || '';
+    requestAnimationFrame(function () { lightbox.classList.add('open'); });
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.screenshot').forEach(function (img) {
+    img.addEventListener('click', function () { openLightbox(img.src, img.alt); });
+  });
+  lightbox.addEventListener('click', function (e) {
+    if (e.target !== lbImg) closeLightbox();
+  });
+  lbClose.addEventListener('click', closeLightbox);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeLightbox();
+  });
+
+  // 5. Intersection Observer — fade-in-up
   var els = document.querySelectorAll('.fade-in-up');
   if (els.length && 'IntersectionObserver' in window) {
     var observer = new IntersectionObserver(
