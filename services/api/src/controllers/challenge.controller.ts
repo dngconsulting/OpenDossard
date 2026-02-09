@@ -51,7 +51,7 @@ export class ChallengeController {
     summary: "Calculer les challenges ",
   })
   @ApiResponse({ status: 200, type: ChallengeRider, isArray: true })
-  @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN)
+  @Roles(ROLES.ORGANISATEUR, ROLES.ADMIN, ROLES.MOBILE)
   public async calculChallenge(
     @Param("id") id: number,
   ): Promise<ChallengeRider[]> {
