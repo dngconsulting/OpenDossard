@@ -145,6 +145,9 @@ jobs:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+          JWT_ACCESS_EXPIRE: ${{ secrets.JWT_ACCESS_EXPIRE }}
+          JWT_REFRESH_EXPIRE: ${{ secrets.JWT_REFRESH_EXPIRE }}
           JWT_EXPIRE_SECONDS: ${{ secrets.JWT_EXPIRE_SECONDS }}
         with:
           host: ${{ secrets.HOSTNAME }}
@@ -159,7 +162,10 @@ jobs:
             export POSTGRES_USER=${{ secrets.POSTGRES_USER }}
             export POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
             export JWT_SECRET=${{ secrets.JWT_SECRET }}
+            export JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}
             export JWT_EXPIRE_SECONDS=${{ secrets.JWT_EXPIRE_SECONDS }}
+            export JWT_ACCESS_EXPIRE=${{ secrets.JWT_ACCESS_EXPIRE }}
+            export JWT_REFRESH_EXPIRE=${{ secrets.JWT_REFRESH_EXPIRE }}
 
             cd /home/dngconsulting/OpenDossard
 
