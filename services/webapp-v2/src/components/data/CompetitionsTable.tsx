@@ -59,6 +59,7 @@ type CompetitionsTableProps = {
   onEdit?: (row: CompetitionType) => void;
   onDuplicate?: (row: CompetitionType) => void;
   onDelete?: (row: CompetitionType) => void;
+  onExportFiche?: (row: CompetitionType) => void;
 };
 
 const formatDate = (dateString: string) => {
@@ -70,7 +71,7 @@ const formatDate = (dateString: string) => {
   });
 };
 
-export const CompetitionsDataTable = ({ onEdit, onDuplicate, onDelete }: CompetitionsTableProps) => {
+export const CompetitionsDataTable = ({ onEdit, onDuplicate, onDelete, onExportFiche }: CompetitionsTableProps) => {
   const {
     data,
     isLoading,
@@ -181,6 +182,27 @@ export const CompetitionsDataTable = ({ onEdit, onDuplicate, onDelete }: Competi
                 <Copy />
               </Button>
             ),
+          } satisfies ColumnDef<CompetitionType>,
+        ]
+      : []),
+    ...(onExportFiche
+      ? [
+          {
+            id: 'exportFiche',
+            header: '',
+            size: 40,
+            enableColumnFilter: false,
+            cell: ({ row }: { row: { original: CompetitionType } }) =>
+              row.original.fede === 'FSGT' ? (
+                <Button
+                  variant="outline"
+                  size="icon-sm"
+                  onClick={() => onExportFiche(row.original)}
+                  title="Fiche épreuve PDF"
+                >
+                  <img src="/logo/pdf-download.svg" alt="PDF" className="h-5 w-5" />
+                </Button>
+              ) : null,
           } satisfies ColumnDef<CompetitionType>,
         ]
       : []),

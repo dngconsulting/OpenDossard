@@ -18,6 +18,7 @@ import {
 } from '@/hooks/useCompetitions';
 import { COMPETITION_TYPE_LABELS } from '@/types/api';
 import { showErrorToast, showSuccessToast } from '@/utils/error-handler/error-handler';
+import { exportFicheEpreuvePDF } from '@/utils/pdf/fiche-epreuve-pdf';
 
 import { GeneralTab } from './GeneralTab';
 import { HorairesTab } from './HorairesTab';
@@ -220,8 +221,25 @@ export default function CompetitionDetailPage() {
     </nav>
   );
 
+  const handleExportFiche = async () => {
+    if (!competition) return;
+    try {
+      await exportFicheEpreuvePDF(competition);
+    } catch (error) {
+      showErrorToast(
+        'Erreur lors de la génération du PDF',
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+  };
+
   const toolbar = (
     <div className="flex items-center gap-2">
+      {!isCreating && competition?.fede === 'FSGT' && (
+        <Button variant="outline" onClick={handleExportFiche}>
+          <img src="/logo/pdf-download.svg" alt="PDF" className="h-5 w-5" /> Fiche épreuve
+        </Button>
+      )}
       <Button
         onClick={() => {
           form.handleSubmit(onSubmit, errors => console.error('Validation errors:', errors))();

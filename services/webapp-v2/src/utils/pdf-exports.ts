@@ -1,15 +1,16 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-import type { RaceRowType } from '@/types/races';
-import type { CompetitionDetailType, FederationType } from '@/types/competitions';
 import type { ChallengeRider, ChallengeType, GenderType } from '@/types/challenges';
-import { transformRows, type TransformedRow } from './classements';
+import type { CompetitionDetailType, FederationType } from '@/types/competitions';
+import type { RaceRowType } from '@/types/races';
+
+import { type TransformedRow, transformRows } from './classements';
 
 /**
  * Mapping des fédérations vers les fichiers de logos
  */
-const FEDE_LOGOS: Partial<Record<FederationType, string>> = {
+export const FEDE_LOGOS: Partial<Record<FederationType, string>> = {
   FSGT: '/logo/fsgt.svg',
   UFOLEP: '/logo/ufolep.svg',
   FFC: '/logo/ffc.svg',
@@ -20,7 +21,7 @@ const FEDE_LOGOS: Partial<Record<FederationType, string>> = {
 /**
  * Logo Open Dossard
  */
-const OPEN_DOSSARD_LOGO = '/logo/opendossard.png';
+export const OPEN_DOSSARD_LOGO = '/logo/od-blue.png';
 
 /**
  * Trophées pour les podiums
@@ -32,28 +33,40 @@ const TROPHY_ICONS = {
 };
 
 /**
- * Charge un logo SVG et le convertit en data URL pour jsPDF
+ * Résultat du chargement d'un logo fédération avec ses proportions
  */
-async function loadLogoAsDataUrl(fede: FederationType): Promise<string | null> {
-  const logoPath = FEDE_LOGOS[fede];
-  if (!logoPath) return null;
+export type FedeLogoResult = {
+  dataUrl: string;
+  ratio: number;
+} | null;
 
-  return new Promise((resolve) => {
+/**
+ * Charge un logo SVG et le convertit en data URL pour jsPDF, en conservant les proportions originales
+ */
+export async function loadLogoAsDataUrl(fede: FederationType): Promise<FedeLogoResult> {
+  const logoPath = FEDE_LOGOS[fede];
+  if (!logoPath) {
+    return null;
+  }
+
+  return new Promise(resolve => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
       const canvas = document.createElement('canvas');
       // Haute résolution pour une bonne qualité d'impression (300 DPI équivalent)
-      const size = 400;
-      canvas.width = size;
-      canvas.height = size;
+      const scale = 400 / Math.max(img.naturalWidth, img.naturalHeight);
+      canvas.width = Math.round(img.naturalWidth * scale);
+      canvas.height = Math.round(img.naturalHeight * scale);
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        // Activer l'anti-aliasing pour un meilleur rendu
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(img, 0, 0, size, size);
-        resolve(canvas.toDataURL('image/png', 1.0));
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve({
+          dataUrl: canvas.toDataURL('image/png', 1.0),
+          ratio: img.naturalWidth / img.naturalHeight,
+        });
       } else {
         resolve(null);
       }
@@ -66,7 +79,7 @@ async function loadLogoAsDataUrl(fede: FederationType): Promise<string | null> {
 /**
  * Résultat du chargement du logo Open Dossard avec ses dimensions
  */
-type OpenDossardLogoResult = {
+export type OpenDossardLogoResult = {
   dataUrl: string;
   width: number;
   height: number;
@@ -76,8 +89,8 @@ type OpenDossardLogoResult = {
 /**
  * Charge le logo Open Dossard avec ses dimensions originales
  */
-async function loadOpenDossardLogo(): Promise<OpenDossardLogoResult> {
-  return new Promise((resolve) => {
+export async function loadOpenDossardLogo(): Promise<OpenDossardLogoResult> {
+  return new Promise(resolve => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
@@ -105,8 +118,8 @@ async function loadOpenDossardLogo(): Promise<OpenDossardLogoResult> {
 /**
  * Charge une icône SVG et la convertit en data URL
  */
-async function loadSvgAsDataUrl(path: string): Promise<string | null> {
-  return new Promise((resolve) => {
+export async function loadSvgAsDataUrl(path: string): Promise<string | null> {
+  return new Promise(resolve => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
@@ -132,7 +145,11 @@ async function loadSvgAsDataUrl(path: string): Promise<string | null> {
 /**
  * Charge tous les trophées
  */
-async function loadTrophyIcons(): Promise<{ gold: string | null; silver: string | null; bronze: string | null }> {
+async function loadTrophyIcons(): Promise<{
+  gold: string | null;
+  silver: string | null;
+  bronze: string | null;
+}> {
   const [gold, silver, bronze] = await Promise.all([
     loadSvgAsDataUrl(TROPHY_ICONS.gold),
     loadSvgAsDataUrl(TROPHY_ICONS.silver),
@@ -142,12 +159,20 @@ async function loadTrophyIcons(): Promise<{ gold: string | null; silver: string 
 }
 
 /**
- * Ajoute le logo de la fédération au PDF
+ * Ajoute le logo de la fédération au PDF en respectant les proportions.
+ * height fixe la hauteur, la largeur est calculée depuis le ratio.
  */
-function addLogoToPdf(doc: jsPDF, logoDataUrl: string | null, x: number, y: number, size: number = 12): void {
-  if (logoDataUrl) {
+export function addLogoToPdf(
+  doc: jsPDF,
+  logo: FedeLogoResult,
+  x: number,
+  y: number,
+  height: number = 12,
+): void {
+  if (logo) {
     try {
-      doc.addImage(logoDataUrl, 'PNG', x, y, size, size);
+      const width = height * logo.ratio;
+      doc.addImage(logo.dataUrl, 'PNG', x, y, width, height);
     } catch {
       // Ignorer les erreurs de chargement de logo
     }
@@ -157,10 +182,23 @@ function addLogoToPdf(doc: jsPDF, logoDataUrl: string | null, x: number, y: numb
 /**
  * Formate la date en français
  */
-function formatDateFr(dateStr: string): string {
+export function formatDateFr(dateStr: string): string {
   const date = new Date(dateStr);
   const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
-  const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  const months = [
+    'janvier',
+    'février',
+    'mars',
+    'avril',
+    'mai',
+    'juin',
+    'juillet',
+    'août',
+    'septembre',
+    'octobre',
+    'novembre',
+    'décembre',
+  ];
 
   const dayName = days[date.getDay()];
   const day = date.getDate();
@@ -173,7 +211,7 @@ function formatDateFr(dateStr: string): string {
 /**
  * Capitalise la première lettre
  */
-function capitalize(str: string): string {
+export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
@@ -188,9 +226,11 @@ function displayDossard(num: string | number): string {
  * Récupère les vainqueurs du challenge sprint
  */
 function getChallengeWinners(rows: TransformedRow[]): string {
-  const winners = rows.filter((r) => r.sprintchallenge && r.name);
-  if (winners.length === 0) return 'NC';
-  return winners.map((w) => `${w.name} (${w.club})`).join(', ');
+  const winners = rows.filter(r => r.sprintchallenge && r.name);
+  if (winners.length === 0) {
+    return 'NC';
+  }
+  return winners.map(w => `${w.name} (${w.club})`).join(', ');
 }
 
 /**
@@ -199,7 +239,7 @@ function getChallengeWinners(rows: TransformedRow[]): string {
 export async function exportClassementsPDF(
   engagements: RaceRowType[],
   races: string[],
-  competition: CompetitionDetailType
+  competition: CompetitionDetailType,
 ): Promise<void> {
   const filename = `Clt_${competition.name.replace(/\s/g, '')}_cate_${races.join(',').replace(/\s/g, '')}.pdf`;
   const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
@@ -212,11 +252,11 @@ export async function exportClassementsPDF(
   ]);
 
   // Vérifier si on a des tours
-  const avecTours = engagements.some((row) => row.tours != null && row.tours > 0);
+  const avecTours = engagements.some(row => row.tours != null && row.tours > 0);
 
   races.forEach((currentRace: string, pageIndex: number) => {
     const transformed = transformRows(engagements, currentRace);
-    const rankedRows = transformed.filter((r) => r.rankingScratch != null || r.comment != null);
+    const rankedRows = transformed.filter(r => r.rankingScratch != null || r.comment != null);
 
     const rowsToDisplay: (string | number | null)[][] = [];
 
@@ -243,11 +283,15 @@ export async function exportClassementsPDF(
 
     // Calculer les largeurs de colonnes proportionnelles
     const baseWidths = [12, 12, 14, 50, 40, 12, 16, 14, 18];
-    if (competition.avecChrono) baseWidths.push(20);
-    if (avecTours) baseWidths.push(14);
+    if (competition.avecChrono) {
+      baseWidths.push(20);
+    }
+    if (avecTours) {
+      baseWidths.push(14);
+    }
     const totalBase = baseWidths.reduce((a, b) => a + b, 0);
     const scale = availableWidth / totalBase;
-    const columnWidths = baseWidths.map((w) => w * scale);
+    const columnWidths = baseWidths.map(w => w * scale);
 
     autoTable(doc, {
       head: [
@@ -289,21 +333,32 @@ export async function exportClassementsPDF(
         7: { cellWidth: columnWidths[7], halign: 'center' },
         8: { cellWidth: columnWidths[8], halign: 'center' },
         ...(competition.avecChrono ? { 9: { cellWidth: columnWidths[9], halign: 'center' } } : {}),
-        ...(avecTours ? { [competition.avecChrono ? 10 : 9]: { cellWidth: columnWidths[competition.avecChrono ? 10 : 9], halign: 'center' } } : {}),
+        ...(avecTours
+          ? {
+              [competition.avecChrono ? 10 : 9]: {
+                cellWidth: columnWidths[competition.avecChrono ? 10 : 9],
+                halign: 'center',
+              },
+            }
+          : {}),
       },
       body: rowsToDisplay,
       alternateRowStyles: {
         fillColor: [245, 245, 245], // Light gray for alternating rows
       },
-      didDrawCell: (data) => {
+      didDrawCell: data => {
         // Ajouter les trophées dans la colonne Cat. (index 1) pour les rangs 1, 2, 3
         if (data.section === 'body' && data.column.index === 1) {
           const rank = data.cell.raw;
           let trophyIcon: string | null = null;
 
-          if (rank === 1) trophyIcon = trophyIcons.gold;
-          else if (rank === 2) trophyIcon = trophyIcons.silver;
-          else if (rank === 3) trophyIcon = trophyIcons.bronze;
+          if (rank === 1) {
+            trophyIcon = trophyIcons.gold;
+          } else if (rank === 2) {
+            trophyIcon = trophyIcons.silver;
+          } else if (rank === 3) {
+            trophyIcon = trophyIcons.bronze;
+          }
 
           if (trophyIcon) {
             const iconSize = 3.5;
@@ -317,13 +372,18 @@ export async function exportClassementsPDF(
           }
         }
       },
-      didDrawPage: (data) => {
+      didDrawPage: data => {
         const pageCenterX = pageWidth / 2;
 
         // "Résultats générés avec Open Dossard" en haut
         doc.setFontSize(8);
         doc.setTextColor(100);
-        doc.text('Résultats générés avec Open Dossard (https://www.opendossard.com)', pageCenterX, 4, { align: 'center' });
+        doc.text(
+          'Résultats générés avec Open Dossard (https://www.opendossard.com)',
+          pageCenterX,
+          4,
+          { align: 'center' },
+        );
         doc.setTextColor(0);
 
         // Logo fédération (gauche) - centré verticalement entre haut de page et début du tableau
@@ -347,7 +407,9 @@ export async function exportClassementsPDF(
         // Header centré horizontalement
         doc.setFontSize(13);
         doc.text(competition.name, pageCenterX, 9, { align: 'center' });
-        doc.text(capitalize(formatDateFr(competition.eventDate)), pageCenterX, 14, { align: 'center' });
+        doc.text(capitalize(formatDateFr(competition.eventDate)), pageCenterX, 14, {
+          align: 'center',
+        });
         doc.text(`Catégorie(s) : ${currentRace}`, pageCenterX, 19, { align: 'center' });
       },
       margin: { top: 24, left: pageMargin, right: pageMargin },
@@ -361,12 +423,12 @@ export async function exportClassementsPDF(
 
     // Footer avec infos compétition
     const finalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
-    let footerY = finalY > 240 ? (doc.addPage(), 15) : finalY + 10;
+    const footerY = finalY > 240 ? (doc.addPage(), 15) : finalY + 10;
 
     doc.setTextColor('#424242');
     doc.setFontSize(10);
 
-    const raceEngagements = engagements.filter((e) => e.raceCode === currentRace);
+    const raceEngagements = engagements.filter(e => e.raceCode === currentRace);
     const footerText = [
       `NOMBRE DE COUREURS : ${raceEngagements.length} en catégorie(s) ${currentRace}`,
       `ORGANISATEUR : ${competition.club?.longName ?? 'NC'}`,
@@ -393,7 +455,11 @@ export async function exportClassementsPDF(
     const pageSize = doc.internal.pageSize;
     const pageHeight = pageSize.height || pageSize.getHeight();
     doc.text(`Page ${i}/${pageCount}`, 10, pageHeight - 10);
-    doc.text(`${filename} généré à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, 50, pageHeight - 5);
+    doc.text(
+      `${filename} généré à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`,
+      50,
+      pageHeight - 5,
+    );
   }
 
   doc.save(filename);
@@ -404,7 +470,7 @@ export async function exportClassementsPDF(
  */
 export async function exportPodiumsPDF(
   engagements: RaceRowType[],
-  competition: CompetitionDetailType
+  competition: CompetitionDetailType,
 ): Promise<void> {
   const filename = `Podiums_${competition.name.replace(/\s/g, '')}.pdf`;
   const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
@@ -421,25 +487,27 @@ export async function exportPodiumsPDF(
   const baseWidths = [12, 12, 14, 50, 40, 12, 16, 14, 18];
   const totalBase = baseWidths.reduce((a, b) => a + b, 0);
   const scale = availableWidth / totalBase;
-  const columnWidths = baseWidths.map((w) => w * scale);
+  const columnWidths = baseWidths.map(w => w * scale);
 
   // Récupérer toutes les catégories individuelles
   const allCategories = competition.races
     .split(',')
-    .flatMap((r) => r.split('/'))
-    .map((c) => c.trim())
+    .flatMap(r => r.split('/'))
+    .map(c => c.trim())
     .filter(Boolean);
 
   let isFirstTable = true;
 
-  allCategories.forEach((category) => {
+  allCategories.forEach(category => {
     // Filtrer les engagés de cette catégorie
-    const categoryEngagements = engagements.filter((e) => e.catev === category);
-    if (categoryEngagements.length === 0) return;
+    const categoryEngagements = engagements.filter(e => e.catev === category);
+    if (categoryEngagements.length === 0) {
+      return;
+    }
 
     // Calculer les podiums (top 3)
     const ranked = categoryEngagements
-      .filter((e) => e.rankingScratch != null && e.comment == null)
+      .filter(e => e.rankingScratch != null && e.comment == null)
       .sort((a, b) => (a.rankingScratch ?? 0) - (b.rankingScratch ?? 0));
 
     // Calculer le rang dans la catégorie
@@ -448,12 +516,14 @@ export async function exportPodiumsPDF(
       rankInCate: index + 1,
     }));
 
-    if (podiums.length === 0) return;
+    if (podiums.length === 0) {
+      return;
+    }
 
     // Trouver le vainqueur du challenge
-    const challengeWinner = categoryEngagements.find((e) => e.sprintchallenge);
+    const challengeWinner = categoryEngagements.find(e => e.sprintchallenge);
 
-    const rowsToDisplay: (string | number)[][] = podiums.map((r) => [
+    const rowsToDisplay: (string | number)[][] = podiums.map(r => [
       r.rankInCate,
       r.rankingScratch ?? '',
       displayDossard(r.riderNumber),
@@ -496,7 +566,12 @@ export async function exportPodiumsPDF(
       columnStyles: {
         0: { cellWidth: columnWidths[0], halign: 'center' },
         1: { cellWidth: columnWidths[1], halign: 'center' },
-        2: { cellWidth: columnWidths[2], halign: 'center', fillColor: [253, 238, 115], fontStyle: 'bold' },
+        2: {
+          cellWidth: columnWidths[2],
+          halign: 'center',
+          fillColor: [253, 238, 115],
+          fontStyle: 'bold',
+        },
         3: { cellWidth: columnWidths[3], halign: 'left' },
         4: { cellWidth: columnWidths[4], halign: 'left' },
         5: { cellWidth: columnWidths[5], halign: 'center' },
@@ -505,7 +580,7 @@ export async function exportPodiumsPDF(
         8: { cellWidth: columnWidths[8], halign: 'center' },
       },
       body: rowsToDisplay,
-      didDrawPage: (data) => {
+      didDrawPage: data => {
         if (isFirstTable) {
           // Logo fédération
           addLogoToPdf(doc, logoDataUrl, data.settings.margin.left, 2, 12);
@@ -516,9 +591,13 @@ export async function exportPodiumsPDF(
           doc.text(
             `Date : ${capitalize(formatDateFr(competition.eventDate))}`,
             data.settings.margin.left + 15,
-            12
+            12,
           );
-          doc.text(`Organisateur : ${competition.club?.longName ?? 'NC'}`, data.settings.margin.left + 15, 17);
+          doc.text(
+            `Organisateur : ${competition.club?.longName ?? 'NC'}`,
+            data.settings.margin.left + 15,
+            17,
+          );
         }
       },
       margin: { top: isFirstTable ? 22 : 10, left: pageMargin, right: pageMargin },
@@ -532,7 +611,8 @@ export async function exportPodiumsPDF(
     isFirstTable = false;
 
     // Vérifier si on doit passer à la page suivante
-    const currentFinalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
+    const currentFinalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
+      .finalY;
     if (currentFinalY > 250) {
       doc.addPage();
       isFirstTable = true;
@@ -547,7 +627,11 @@ export async function exportPodiumsPDF(
     const pageSize = doc.internal.pageSize;
     const pageHeight = pageSize.height || pageSize.getHeight();
     doc.text(`Page ${i}/${pageCount}`, pageMargin, pageHeight - 10);
-    doc.text(`${filename} généré à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, 50, pageHeight - 5);
+    doc.text(
+      `${filename} généré à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`,
+      50,
+      pageHeight - 5,
+    );
   }
 
   doc.save(filename);
@@ -559,7 +643,7 @@ export async function exportPodiumsPDF(
 export async function exportEngagesPDF(
   engagements: RaceRowType[],
   raceCode: string,
-  competition: CompetitionDetailType
+  competition: CompetitionDetailType,
 ): Promise<void> {
   const filename = `Engagement_${competition.name.replace(/\s/g, '')}_cate_${raceCode}.pdf`;
   const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
@@ -576,19 +660,19 @@ export async function exportEngagesPDF(
   const baseWidths = [15, 55, 45, 12, 12, 14, 15, 14, 18];
   const totalBase = baseWidths.reduce((a, b) => a + b, 0);
   const scale = availableWidth / totalBase;
-  const columnWidths = baseWidths.map((w) => w * scale);
+  const columnWidths = baseWidths.map(w => w * scale);
 
   // Filtrer et trier par numéro de dossard
   const raceEngagements = engagements
-    .filter((e) => e.raceCode === raceCode)
+    .filter(e => e.raceCode === raceCode)
     .sort((a, b) => a.riderNumber - b.riderNumber);
 
   // Calculer les statistiques
-  const uniqueClubs = new Set(raceEngagements.map((e) => e.club)).size;
-  const uniqueDepts = new Set(raceEngagements.map((e) => e.dept)).size;
-  const uniqueCatea = new Set(raceEngagements.map((e) => e.catea)).size;
-  const uniqueCatev = new Set(raceEngagements.map((e) => e.catev)).size;
-  const uniqueFede = new Set(raceEngagements.map((e) => e.fede)).size;
+  const uniqueClubs = new Set(raceEngagements.map(e => e.club)).size;
+  const uniqueDepts = new Set(raceEngagements.map(e => e.dept)).size;
+  const uniqueCatea = new Set(raceEngagements.map(e => e.catea)).size;
+  const uniqueCatev = new Set(raceEngagements.map(e => e.catev)).size;
+  const uniqueFede = new Set(raceEngagements.map(e => e.fede)).size;
 
   const rowsToDisplay: (string | number)[][] = [];
 
@@ -606,7 +690,7 @@ export async function exportEngagesPDF(
   ]);
 
   // Données des coureurs
-  raceEngagements.forEach((r) => {
+  raceEngagements.forEach(r => {
     rowsToDisplay.push([
       displayDossard(r.riderNumber),
       r.name ?? r.riderName ?? '',
@@ -636,7 +720,13 @@ export async function exportEngagesPDF(
       cellPadding: 1,
     },
     columnStyles: {
-      0: { cellWidth: columnWidths[0], fillColor: [253, 238, 115], halign: 'center', fontStyle: 'bold', fontSize: 12 },
+      0: {
+        cellWidth: columnWidths[0],
+        fillColor: [253, 238, 115],
+        halign: 'center',
+        fontStyle: 'bold',
+        fontSize: 12,
+      },
       1: { cellWidth: columnWidths[1], halign: 'left' },
       2: { cellWidth: columnWidths[2], halign: 'left' },
       3: { cellWidth: columnWidths[3], halign: 'center' },
@@ -647,27 +737,39 @@ export async function exportEngagesPDF(
       8: { cellWidth: columnWidths[8], halign: 'center' },
     },
     body: rowsToDisplay,
-    didParseCell: (data) => {
+    didParseCell: data => {
       if (data.row.index === 0) {
         data.cell.styles.fontStyle = 'bold';
       }
     },
-    didDrawPage: (data) => {
+    didDrawPage: data => {
       // Logo fédération
       addLogoToPdf(doc, logoDataUrl, data.settings.margin.left, 2, 12);
       doc.setFontSize(14);
       doc.setTextColor(40);
       doc.setFontSize(10);
       doc.text(`Listing Engagés : ${competition.name}`, data.settings.margin.left + 15, 4);
-      doc.text(`Date : ${capitalize(formatDateFr(competition.eventDate))}`, data.settings.margin.left + 15, 8);
+      doc.text(
+        `Date : ${capitalize(formatDateFr(competition.eventDate))}`,
+        data.settings.margin.left + 15,
+        8,
+      );
       doc.text(`Catégorie(s) : ${raceCode}`, data.settings.margin.left + 15, 12);
 
       // Footer
       const pageSize = doc.internal.pageSize;
       const pageHeight = pageSize.height || pageSize.getHeight();
       doc.setFontSize(8);
-      doc.text(`Page ${doc.getNumberOfPages()}/${totalPagesExp}`, data.settings.margin.left, pageHeight - 10);
-      doc.text(`Fichier : ${filename} Imprimé à : ${new Date().toLocaleTimeString('fr-FR')}`, 50, pageHeight - 5);
+      doc.text(
+        `Page ${doc.getNumberOfPages()}/${totalPagesExp}`,
+        data.settings.margin.left,
+        pageHeight - 10,
+      );
+      doc.text(
+        `Fichier : ${filename} Imprimé à : ${new Date().toLocaleTimeString('fr-FR')}`,
+        50,
+        pageHeight - 5,
+      );
     },
     margin: { top: 16, left: pageMargin, right: pageMargin },
     styles: {
@@ -687,7 +789,7 @@ export async function exportEngagesPDF(
 export async function exportEmargementPDF(
   engagements: RaceRowType[],
   raceCode: string,
-  competition: CompetitionDetailType
+  competition: CompetitionDetailType,
 ): Promise<void> {
   const filename = `Emargement_${competition.name.replace(/\s/g, '')}_cate_${raceCode}.pdf`;
   // Format paysage pour l'émargement
@@ -705,17 +807,17 @@ export async function exportEmargementPDF(
   const baseWidths = [15, 50, 40, 12, 12, 14, 14, 14, 25, 18, 55];
   const totalBase = baseWidths.reduce((a, b) => a + b, 0);
   const scale = availableWidth / totalBase;
-  const columnWidths = baseWidths.map((w) => w * scale);
+  const columnWidths = baseWidths.map(w => w * scale);
 
   // Filtrer et trier par numéro de dossard
   const raceEngagements = engagements
-    .filter((e) => e.raceCode === raceCode)
+    .filter(e => e.raceCode === raceCode)
     .sort((a, b) => a.riderNumber - b.riderNumber);
 
   const rowsToDisplay: (string | number)[][] = [];
 
   // Données des coureurs
-  raceEngagements.forEach((r) => {
+  raceEngagements.forEach(r => {
     rowsToDisplay.push([
       displayDossard(r.riderNumber),
       r.name ?? r.riderName ?? '',
@@ -739,7 +841,21 @@ export async function exportEmargementPDF(
   const totalPagesExp = '{total_pages_count_string}';
 
   autoTable(doc, {
-    head: [['Doss', 'Coureur', 'Club', 'H/F', 'Dept', 'Année', 'Cat.A', 'Cat.V', 'Licence N°', 'Fédé.', 'Signature']],
+    head: [
+      [
+        'Doss',
+        'Coureur',
+        'Club',
+        'H/F',
+        'Dept',
+        'Année',
+        'Cat.A',
+        'Cat.V',
+        'Licence N°',
+        'Fédé.',
+        'Signature',
+      ],
+    ],
     bodyStyles: {
       minCellHeight: 10,
       cellPadding: 1,
@@ -752,7 +868,13 @@ export async function exportEmargementPDF(
       cellPadding: 1,
     },
     columnStyles: {
-      0: { cellWidth: columnWidths[0], fillColor: [253, 238, 115], halign: 'center', fontStyle: 'bold', fontSize: 12 },
+      0: {
+        cellWidth: columnWidths[0],
+        fillColor: [253, 238, 115],
+        halign: 'center',
+        fontStyle: 'bold',
+        fontSize: 12,
+      },
       1: { cellWidth: columnWidths[1], halign: 'left' },
       2: { cellWidth: columnWidths[2], halign: 'left' },
       3: { cellWidth: columnWidths[3], halign: 'center' },
@@ -765,22 +887,34 @@ export async function exportEmargementPDF(
       10: { cellWidth: columnWidths[10], lineWidth: 0.2, lineColor: [73, 138, 159] },
     },
     body: rowsToDisplay,
-    didDrawPage: (data) => {
+    didDrawPage: data => {
       // Logo fédération
       addLogoToPdf(doc, logoDataUrl, data.settings.margin.left, 2, 12);
       doc.setFontSize(14);
       doc.setTextColor(40);
       doc.setFontSize(10);
       doc.text(`Feuille d'émargement : ${competition.name}`, data.settings.margin.left + 15, 4);
-      doc.text(`Date : ${capitalize(formatDateFr(competition.eventDate))}`, data.settings.margin.left + 15, 8);
+      doc.text(
+        `Date : ${capitalize(formatDateFr(competition.eventDate))}`,
+        data.settings.margin.left + 15,
+        8,
+      );
       doc.text(`Catégorie(s) : ${raceCode}`, data.settings.margin.left + 15, 12);
 
       // Footer
       const pageSize = doc.internal.pageSize;
       const pageHeight = pageSize.height || pageSize.getHeight();
       doc.setFontSize(8);
-      doc.text(`Page ${doc.getNumberOfPages()}/${totalPagesExp}`, data.settings.margin.left, pageHeight - 10);
-      doc.text(`Fichier : ${filename} Imprimé à : ${new Date().toLocaleTimeString('fr-FR')}`, 50, pageHeight - 5);
+      doc.text(
+        `Page ${doc.getNumberOfPages()}/${totalPagesExp}`,
+        data.settings.margin.left,
+        pageHeight - 10,
+      );
+      doc.text(
+        `Fichier : ${filename} Imprimé à : ${new Date().toLocaleTimeString('fr-FR')}`,
+        50,
+        pageHeight - 5,
+      );
     },
     margin: { top: 16, left: pageMargin, right: pageMargin },
     styles: {
@@ -800,12 +934,16 @@ export async function exportEmargementPDF(
 function filterChallengeRiders(
   riders: ChallengeRider[],
   category: string,
-  gender: GenderType | undefined
+  gender: GenderType | undefined,
 ): ChallengeRider[] {
   return riders
     .filter(rider => {
-      if (rider.currentLicenceCatev !== category) return false;
-      if (gender && rider.gender !== gender) return false;
+      if (rider.currentLicenceCatev !== category) {
+        return false;
+      }
+      if (gender && rider.gender !== gender) {
+        return false;
+      }
       return true;
     })
     .sort((a, b) => (b.ptsAllRaces || 0) - (a.ptsAllRaces || 0));
@@ -816,7 +954,7 @@ function filterChallengeRiders(
  */
 export async function exportChallengePDF(
   challenge: ChallengeType,
-  allRiders: ChallengeRider[]
+  allRiders: ChallengeRider[],
 ): Promise<void> {
   const filename = `Challenge_${challenge.name.replace(/\s/g, '_')}.pdf`;
 
@@ -834,9 +972,10 @@ export async function exportChallengePDF(
   const availableWidth = pageWidth - 2 * pageMargin;
 
   // Définir les catégories selon le type de compétition
-  const categories = challenge.competitionType === 'CX'
-    ? ['1', '2', '3', '4', '5', 'DAMES']
-    : ['1', '2', '3', '4', '5'];
+  const categories =
+    challenge.competitionType === 'CX'
+      ? ['1', '2', '3', '4', '5', 'DAMES']
+      : ['1', '2', '3', '4', '5'];
 
   // Définir les genres à parcourir
   const genders: (GenderType | undefined)[] = ['H', 'F'];
@@ -845,7 +984,7 @@ export async function exportChallengePDF(
   const baseWidths = [12, 55, 45, 20, 20, 18, 20];
   const totalBase = baseWidths.reduce((a, b) => a + b, 0);
   const scale = availableWidth / totalBase;
-  const columnWidths = baseWidths.map((w) => w * scale);
+  const columnWidths = baseWidths.map(w => w * scale);
 
   let isFirstTable = true;
 
@@ -857,7 +996,9 @@ export async function exportChallengePDF(
       const riders = filterChallengeRiders(allRiders, category, gender);
 
       // Skip si pas de coureurs dans cette catégorie/genre
-      if (riders.length === 0) continue;
+      if (riders.length === 0) {
+        continue;
+      }
 
       const genderLabel = gender === 'H' ? 'Hommes' : gender === 'F' ? 'Femmes' : '';
       const categoryLabel = category === 'DAMES' ? 'Dames' : `Catégorie ${category}`;
@@ -930,14 +1071,18 @@ export async function exportChallengePDF(
         alternateRowStyles: {
           fillColor: [245, 245, 245],
         },
-        didDrawCell: (data) => {
+        didDrawCell: data => {
           if (data.section === 'body' && data.column.index === 0) {
             const rank = data.cell.raw;
             let trophyIcon: string | null = null;
 
-            if (rank === 1) trophyIcon = trophyIcons.gold;
-            else if (rank === 2) trophyIcon = trophyIcons.silver;
-            else if (rank === 3) trophyIcon = trophyIcons.bronze;
+            if (rank === 1) {
+              trophyIcon = trophyIcons.gold;
+            } else if (rank === 2) {
+              trophyIcon = trophyIcons.silver;
+            } else if (rank === 3) {
+              trophyIcon = trophyIcons.bronze;
+            }
 
             if (trophyIcon) {
               const iconSize = 3;
@@ -951,12 +1096,17 @@ export async function exportChallengePDF(
             }
           }
         },
-        didDrawPage: (data) => {
+        didDrawPage: data => {
           const pageCenterX = pageWidth / 2;
 
           doc.setFontSize(8);
           doc.setTextColor(100);
-          doc.text('Classement généré avec Open Dossard (https://www.opendossard.com)', pageCenterX, 4, { align: 'center' });
+          doc.text(
+            'Classement généré avec Open Dossard (https://www.opendossard.com)',
+            pageCenterX,
+            4,
+            { align: 'center' },
+          );
           doc.setTextColor(0);
 
           const fedeLogoSize = 12;
@@ -1001,7 +1151,11 @@ export async function exportChallengePDF(
     const pageSize = doc.internal.pageSize;
     const pageHeight = pageSize.height || pageSize.getHeight();
     doc.text(`Page ${i}/${pageCountChallenge}`, pageMargin, pageHeight - 10);
-    doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, 50, pageHeight - 5);
+    doc.text(
+      `Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`,
+      50,
+      pageHeight - 5,
+    );
   }
 
   doc.save(filename);

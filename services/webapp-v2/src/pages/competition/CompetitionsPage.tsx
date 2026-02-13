@@ -3,7 +3,9 @@ import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { competitionsApi } from '@/api/competitions.api';
 import { showSuccessToast, showErrorToast } from '@/utils/error-handler/error-handler';
+import { exportFicheEpreuvePDF } from '@/utils/pdf/fiche-epreuve-pdf';
 import { CompetitionsDataTable } from '@/components/data/CompetitionsTable';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useCompetitions, useDeleteCompetition } from '@/hooks/useCompetitions';
@@ -40,6 +42,18 @@ export default function CompetitionsPage() {
     if (!duplicateCompetition) return;
     setDuplicateCompetition(undefined);
     navigate(`/competition/new?duplicateFrom=${duplicateCompetition.id}`);
+  };
+
+  const handleExportFiche = async (comp: CompetitionType) => {
+    try {
+      const fullCompetition = await competitionsApi.getById(comp.id);
+      await exportFicheEpreuvePDF(fullCompetition);
+    } catch (error) {
+      showErrorToast(
+        'Erreur lors de la génération du PDF',
+        error instanceof Error ? error.message : String(error),
+      );
+    }
   };
 
   const handleDeleteRequest = (competition: CompetitionType) => {
@@ -112,6 +126,7 @@ export default function CompetitionsPage() {
         onEdit={(row: CompetitionType) => navigate(`/competition/${row.id}`)}
         onDuplicate={(row: CompetitionType) => setDuplicateCompetition(row)}
         onDelete={handleDeleteRequest}
+        onExportFiche={handleExportFiche}
       />
 
       <ConfirmDialog
