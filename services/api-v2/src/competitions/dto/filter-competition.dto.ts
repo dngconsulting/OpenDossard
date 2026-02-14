@@ -1,6 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsBoolean, IsDateString } from 'class-validator';
-import { Transform } from 'class-transformer';
 import { PaginationDto } from '../../common/dto';
 
 export class FilterCompetitionDto extends PaginationDto {
@@ -51,13 +50,11 @@ export class FilterCompetitionDto extends PaginationDto {
 
   @ApiPropertyOptional({ description: 'Show past competitions' })
   @IsOptional()
-  @Transform(({ value }) => value === 'true')
   @IsBoolean()
   displayPast?: boolean;
 
   @ApiPropertyOptional({ description: 'Show future competitions' })
   @IsOptional()
-  @Transform(({ value }) => value === 'true')
   @IsBoolean()
   displayFuture?: boolean;
 

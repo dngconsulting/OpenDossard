@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import useUserStore from '@/store/UserStore';
 import { showSuccessToast, showErrorToast } from '@/utils/error-handler/error-handler';
 import { CompetitionsDataTable } from '@/components/data/CompetitionsTable';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useCompetitions, useDeleteCompetition } from '@/hooks/useCompetitions';
 import Layout from '@/components/layout/Layout';
@@ -21,20 +22,33 @@ export default function CompetitionsPage() {
   const { mutate: deleteComp, isPending: isDeleting } = useDeleteCompetition();
   const totalCompetitions = data?.meta?.total ?? 0;
 
-  // Date filters from URL params
+  // Date filters
   const startDate = params.startDate ? new Date(params.startDate) : undefined;
   const endDate = params.endDate ? new Date(params.endDate) : undefined;
 
   const handleStartDateChange = (date: Date | undefined) => {
-    setAdvancedFilters({
-      startDate: date ? format(date, 'yyyy-MM-dd') : undefined,
-    });
+    setAdvancedFilters({ startDate: date ? format(date, 'yyyy-MM-dd') : undefined, displayFuture: undefined, displayPast: undefined });
   };
 
   const handleEndDateChange = (date: Date | undefined) => {
-    setAdvancedFilters({
-      endDate: date ? format(date, 'yyyy-MM-dd') : undefined,
-    });
+    setAdvancedFilters({ endDate: date ? format(date, 'yyyy-MM-dd') : undefined, displayFuture: undefined, displayPast: undefined });
+  };
+
+  // Past/future/all checkbox filters (mutually exclusive)
+  const displayFuture = params.displayFuture === 'true';
+  const displayPast = params.displayPast === 'true';
+  const displayAll = !displayFuture && !displayPast;
+
+  const handleDisplayAllChange = () => {
+    setAdvancedFilters({ displayFuture: undefined, displayPast: undefined });
+  };
+
+  const handleDisplayFutureChange = () => {
+    setAdvancedFilters({ displayFuture: 'true', displayPast: undefined });
+  };
+
+  const handleDisplayPastChange = () => {
+    setAdvancedFilters({ displayPast: 'true', displayFuture: undefined });
   };
 
   const handleDuplicate = () => {
@@ -118,7 +132,7 @@ export default function CompetitionsPage() {
 
   return (
     <Layout title="Épreuves" toolbar={toolbar} toolbarLeft={toolbarLeft}>
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mb-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mb-4 flex-wrap">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-foreground whitespace-nowrap">Date de début :</span>
           <DatePicker
@@ -132,6 +146,38 @@ export default function CompetitionsPage() {
             value={endDate}
             onChange={handleEndDateChange}
           />
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5">
+            <Checkbox
+              id="display-all"
+              checked={displayAll}
+              onCheckedChange={handleDisplayAllChange}
+            />
+            <label htmlFor="display-all" className="text-sm font-medium text-foreground whitespace-nowrap cursor-pointer">
+              Toutes
+            </label>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Checkbox
+              id="display-future"
+              checked={displayFuture}
+              onCheckedChange={handleDisplayFutureChange}
+            />
+            <label htmlFor="display-future" className="text-sm font-medium text-foreground whitespace-nowrap cursor-pointer">
+              Futures
+            </label>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Checkbox
+              id="display-past"
+              checked={displayPast}
+              onCheckedChange={handleDisplayPastChange}
+            />
+            <label htmlFor="display-past" className="text-sm font-medium text-foreground whitespace-nowrap cursor-pointer">
+              Passées
+            </label>
+          </div>
         </div>
       </div>
 
