@@ -217,7 +217,7 @@ export default function CompetitionDetailPage() {
       </Link>
       <ChevronRight className="size-4 text-muted-foreground" />
       <span className="font-medium">
-        {isDuplicating ? 'Duplication d\'épreuve' : isCreating ? 'Nouvelle épreuve' : (competition?.name || <Skeleton className="h-4 w-32 inline-block" />)}
+        {isDuplicating ? 'Duplication d\'épreuve' : isCreating ? 'Nouvelle épreuve' : (competition ? `${competition.name} (${new Date(competition.eventDate).toLocaleDateString('fr-FR')})` : <Skeleton className="h-4 w-32 inline-block" />)}
       </span>
     </nav>
   );
