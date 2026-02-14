@@ -102,9 +102,7 @@ export class PalmaresService {
       return dateCompare !== 0 ? dateCompare : a.id - b.id;
     });
 
-    const buildCategoryHistory = (
-      races: typeof sortedAsc,
-    ): PalmaresCategoryChangeDto[] => {
+    const buildCategoryHistory = (races: typeof sortedAsc): PalmaresCategoryChangeDto[] => {
       const history: PalmaresCategoryChangeDto[] = [];
       let lastCatev: string | null = null;
 

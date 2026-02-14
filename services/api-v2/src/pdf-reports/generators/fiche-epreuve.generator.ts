@@ -299,10 +299,8 @@ export async function generateFicheEpreuvePDF(competition: CompetitionEntity): P
   const margin = 10;
   const contentWidth = pageWidth - 2 * margin;
 
-  const [logoDataUrl, openDossardLogo] = await Promise.all([
-    loadLogoAsDataUrl(competition.fede),
-    loadOpenDossardLogo(),
-  ]);
+  const logoDataUrl = loadLogoAsDataUrl(competition.fede);
+  const openDossardLogo = loadOpenDossardLogo();
 
   const saison = new Date(competition.eventDate).getFullYear();
 

@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
 import { Trophy } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/badge';
@@ -121,7 +121,9 @@ type SortConfig = {
 };
 
 function sortResults(results: PalmaresRaceResult[], sort: SortConfig | null): PalmaresRaceResult[] {
-  if (!sort) return results;
+  if (!sort) {
+    return results;
+  }
 
   return [...results].sort((a, b) => {
     const dir = sort.direction === 'ASC' ? 1 : -1;

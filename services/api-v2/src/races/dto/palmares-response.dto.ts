@@ -35,7 +35,9 @@ export class PalmaresResultDto {
 export class PalmaresResponseDto {
   @ApiProperty() licence: LicenceEntity;
   @ApiProperty() stats: PalmaresStatsDto;
-  @ApiProperty({ type: [PalmaresCategoryChangeDto] }) categoryHistoryRoute: PalmaresCategoryChangeDto[];
-  @ApiProperty({ type: [PalmaresCategoryChangeDto] }) categoryHistoryCX: PalmaresCategoryChangeDto[];
+  @ApiProperty({ type: [PalmaresCategoryChangeDto] })
+  categoryHistoryRoute: PalmaresCategoryChangeDto[];
+  @ApiProperty({ type: [PalmaresCategoryChangeDto] })
+  categoryHistoryCX: PalmaresCategoryChangeDto[];
   @ApiProperty({ type: [PalmaresResultDto] }) results: PalmaresResultDto[];
 }
