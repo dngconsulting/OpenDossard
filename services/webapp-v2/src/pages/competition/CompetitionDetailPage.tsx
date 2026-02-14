@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Bike, ChevronRight, Clock, Euro, Image, Info, Loader2, MapPin, Mountain, TreePine } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
@@ -39,6 +39,7 @@ export default function CompetitionDetailPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const isCreating = !id;
   const competitionId = id ? parseInt(id, 10) : undefined;
+  const isInvalidId = id != null && (isNaN(competitionId!) || String(competitionId) !== id);
   const duplicateFromParam = searchParams.get('duplicateFrom');
   const duplicateFromId = duplicateFromParam ? parseInt(duplicateFromParam, 10) : undefined;
   const isDuplicating = isCreating && !!duplicateFromId;
@@ -287,6 +288,10 @@ export default function CompetitionDetailPage() {
       )}
     </div>
   );
+
+  if (isInvalidId) {
+    return <Navigate to="/404" replace />;
+  }
 
   if ((!isCreating && isLoading) || (isDuplicating && isLoadingSource)) {
     return (
