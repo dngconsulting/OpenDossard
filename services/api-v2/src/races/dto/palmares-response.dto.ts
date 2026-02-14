@@ -24,6 +24,7 @@ export class PalmaresResultDto {
   @ApiProperty() competitionType: string;
   @ApiProperty() raceCode: string;
   @ApiProperty() catev: string;
+  @ApiPropertyOptional() catea: string | null;
   @ApiPropertyOptional() club: string | null;
   @ApiPropertyOptional() rankingScratch: number | null;
   @ApiPropertyOptional() rankingInCategory: number | null;

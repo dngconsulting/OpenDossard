@@ -23,6 +23,7 @@ export type PalmaresRaceResult = {
   competitionType: string;
   raceCode: string;
   catev: string;
+  catea: string | null;
   club: string | null;
   rankingScratch: number | null;
   rankingInCategory: number | null;

@@ -1,4 +1,4 @@
-import { Bike, Hash, MapPin, Shield } from 'lucide-react';
+import { Bike, Hash, MapPin, Shield, Users } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import type { LicenceType } from '@/types/licences';
@@ -56,6 +56,13 @@ export function RiderHeaderCard({ licence }: Props) {
           <span className="text-muted-foreground">CX</span>
           <Badge variant="secondary" className="text-xs font-semibold">
             {licence.catevCX || 'N/A'}
+          </Badge>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <Users className="h-4 w-4 text-muted-foreground" />
+          <span className="text-muted-foreground">Âge</span>
+          <Badge variant="secondary" className="text-xs font-semibold">
+            {licence.catea || 'N/A'}
           </Badge>
         </div>
       </div>

@@ -40,6 +40,7 @@ export class PalmaresService {
         r.ranking_scratch AS "rankingScratch",
         r.comment,
         r.catev,
+        r.catea,
         r.club,
         CASE
           WHEN r.ranking_scratch IS NOT NULL AND r.comment IS NULL THEN
@@ -77,6 +78,7 @@ export class PalmaresService {
       rankingScratch: number | null;
       comment: string | null;
       catev: string;
+      catea: string | null;
       club: string | null;
       rankingInCategory: number | null;
       totalInCategory: number;
@@ -149,6 +151,7 @@ export class PalmaresService {
       competitionType: r.competitionType,
       raceCode: r.raceCode,
       catev: r.catev,
+      catea: r.catea,
       club: r.club,
       rankingScratch: r.rankingScratch,
       rankingInCategory: r.rankingInCategory != null ? Number(r.rankingInCategory) : null,

@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import { Trophy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -97,11 +98,75 @@ const columns: ColumnDef<PalmaresRaceResult>[] = [
       </Badge>
     ),
   },
+  {
+    accessorKey: 'catea',
+    header: "Cat. d'âge",
+    size: 90,
+    cell: ({ row }) => {
+      const catea = row.getValue('catea') as string | null;
+      return catea ? (
+        <Badge variant="outline" className="font-mono text-xs">
+          {catea}
+        </Badge>
+      ) : (
+        <span className="text-muted-foreground">&mdash;</span>
+      );
+    },
+  },
 ];
+
+type SortConfig = {
+  column: string;
+  direction: 'ASC' | 'DESC';
+};
+
+function sortResults(results: PalmaresRaceResult[], sort: SortConfig | null): PalmaresRaceResult[] {
+  if (!sort) return results;
+
+  return [...results].sort((a, b) => {
+    const dir = sort.direction === 'ASC' ? 1 : -1;
+
+    switch (sort.column) {
+      case 'ranking': {
+        const aRank = a.rankingScratch ?? Infinity;
+        const bRank = b.rankingScratch ?? Infinity;
+        return (aRank - bRank) * dir;
+      }
+      case 'date':
+        return (new Date(a.date).getTime() - new Date(b.date).getTime()) * dir;
+      case 'competitionName':
+        return a.competitionName.localeCompare(b.competitionName, 'fr') * dir;
+      case 'club':
+        return (a.club ?? '').localeCompare(b.club ?? '', 'fr') * dir;
+      case 'raceCode':
+        return a.raceCode.localeCompare(b.raceCode, 'fr') * dir;
+      case 'catev':
+        return a.catev.localeCompare(b.catev, 'fr') * dir;
+      case 'catea':
+        return (a.catea ?? '').localeCompare(b.catea ?? '', 'fr') * dir;
+      default:
+        return 0;
+    }
+  });
+}
 
 export function PalmaresResultsTable({ results }: Props) {
   const routeResults = results.filter(r => r.competitionType === 'ROUTE');
   const cxResults = results.filter(r => r.competitionType === 'CX');
+
+  const [routeSort, setRouteSort] = useState<SortConfig | null>(null);
+  const [cxSort, setCxSort] = useState<SortConfig | null>(null);
+
+  const sortedRoute = useMemo(() => sortResults(routeResults, routeSort), [routeResults, routeSort]);
+  const sortedCx = useMemo(() => sortResults(cxResults, cxSort), [cxResults, cxSort]);
+
+  const handleRouteSortChange = (column: string, direction: 'ASC' | 'DESC') => {
+    setRouteSort({ column, direction });
+  };
+
+  const handleCxSortChange = (column: string, direction: 'ASC' | 'DESC') => {
+    setCxSort({ column, direction });
+  };
 
   return (
     <div className="rounded-xl border bg-card">
@@ -118,14 +183,32 @@ export function PalmaresResultsTable({ results }: Props) {
             {routeResults.length === 0 ? (
               <p className="text-sm text-muted-foreground py-8 text-center">Aucun résultat en Route</p>
             ) : (
-              <DataTable columns={columns} data={routeResults} />
+              <DataTable
+                columns={columns}
+                data={sortedRoute}
+                showColumnFilters={false}
+                sorting={{
+                  sortColumn: routeSort?.column,
+                  sortDirection: routeSort?.direction,
+                  onSortChange: handleRouteSortChange,
+                }}
+              />
             )}
           </TabsContent>
           <TabsContent value="cx" className="mt-0">
             {cxResults.length === 0 ? (
               <p className="text-sm text-muted-foreground py-8 text-center">Aucun résultat en Cyclo-cross</p>
             ) : (
-              <DataTable columns={columns} data={cxResults} />
+              <DataTable
+                columns={columns}
+                data={sortedCx}
+                showColumnFilters={false}
+                sorting={{
+                  sortColumn: cxSort?.column,
+                  sortDirection: cxSort?.direction,
+                  onSortChange: handleCxSortChange,
+                }}
+              />
             )}
           </TabsContent>
         </div>
