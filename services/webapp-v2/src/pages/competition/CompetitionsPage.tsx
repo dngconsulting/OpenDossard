@@ -3,9 +3,8 @@ import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { competitionsApi } from '@/api/competitions.api';
+import useUserStore from '@/store/UserStore';
 import { showSuccessToast, showErrorToast } from '@/utils/error-handler/error-handler';
-import { exportFicheEpreuvePDF } from '@/utils/pdf/fiche-epreuve-pdf';
 import { CompetitionsDataTable } from '@/components/data/CompetitionsTable';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useCompetitions, useDeleteCompetition } from '@/hooks/useCompetitions';
@@ -46,8 +45,22 @@ export default function CompetitionsPage() {
 
   const handleExportFiche = async (comp: CompetitionType) => {
     try {
-      const fullCompetition = await competitionsApi.getById(comp.id);
-      await exportFicheEpreuvePDF(fullCompetition);
+      const token = useUserStore.getState().getAccessToken();
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v2';
+      const response = await fetch(
+        `${baseUrl}/pdf-reports/fiche-epreuve/${comp.id}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      if (!response.ok) {
+        throw new Error(`Erreur serveur (${response.status})`);
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Fiche_epreuve_${comp.name.replace(/\s/g, '_')}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (error) {
       showErrorToast(
         'Erreur lors de la génération du PDF',

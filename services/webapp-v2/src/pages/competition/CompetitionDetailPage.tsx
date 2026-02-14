@@ -17,8 +17,8 @@ import {
   useUpdateCompetition,
 } from '@/hooks/useCompetitions';
 import { COMPETITION_TYPE_LABELS } from '@/types/api';
+import useUserStore from '@/store/UserStore';
 import { showErrorToast, showSuccessToast } from '@/utils/error-handler/error-handler';
-import { exportFicheEpreuvePDF } from '@/utils/pdf/fiche-epreuve-pdf';
 
 import { GeneralTab } from './GeneralTab';
 import { HorairesTab } from './HorairesTab';
@@ -224,7 +224,22 @@ export default function CompetitionDetailPage() {
   const handleExportFiche = async () => {
     if (!competition) return;
     try {
-      await exportFicheEpreuvePDF(competition);
+      const token = useUserStore.getState().getAccessToken();
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v2';
+      const response = await fetch(
+        `${baseUrl}/pdf-reports/fiche-epreuve/${competition.id}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      if (!response.ok) {
+        throw new Error(`Erreur serveur (${response.status})`);
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Fiche_epreuve_${competition.name.replace(/\s/g, '_')}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (error) {
       showErrorToast(
         'Erreur lors de la génération du PDF',
