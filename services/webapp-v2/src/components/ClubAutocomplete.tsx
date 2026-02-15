@@ -112,10 +112,10 @@ export function ClubAutocomplete({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between font-normal"
+            className="w-full justify-between font-normal overflow-hidden"
             disabled={isDisabled}
           >
-            <span className={cn('truncate', !selectedClub && !selectedName && 'text-muted-foreground')}>
+            <span className={cn('min-w-0 truncate', !selectedClub && !selectedName && 'text-muted-foreground')}>
               {selectedClub?.longName || selectedName || (isDisabled ? 'Sélectionnez une fédération et un département' : 'Rechercher un club...')}
             </span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

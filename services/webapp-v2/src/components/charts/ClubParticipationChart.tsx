@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, LabelList } from 'recharts';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { exportChartToPdf } from '@/utils/chart-pdf-export';
+import { truncateLabel } from '@/utils/format';
 
 import {
   Card,
@@ -30,11 +31,6 @@ type Props = {
   isLoading: boolean;
   defaultOpen?: boolean;
 };
-
-function truncateLabel(label: string, maxLen = 40): string {
-  if (label.length <= maxLen) return label;
-  return label.slice(0, maxLen - 1) + '\u2026';
-}
 
 export function ClubParticipationChart({ data, isLoading, defaultOpen }: Props) {
   const isMobile = useIsMobile();

@@ -94,7 +94,3 @@ export function handleGlobalError(error: unknown): void {
   }
 }
 
-export function dismissAllToasts(): void {
-  activeToasts.forEach(id => toast.dismiss(id));
-  activeToasts.length = 0;
-}

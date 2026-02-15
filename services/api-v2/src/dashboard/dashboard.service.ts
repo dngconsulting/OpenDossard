@@ -183,7 +183,9 @@ export class DashboardService {
   async getStats(filters: DashboardFilters = {}): Promise<DashboardStats> {
     const { startDate, endDate, federation } = filters;
     const now = new Date();
+    const currentYear = now.getFullYear();
 
+    // Build query builders first (before Promise.all)
     const competitionQb = this.competitionRepository.createQueryBuilder('competition');
     if (startDate) {
       competitionQb.andWhere('competition.eventDate >= :startDate', { startDate });
@@ -195,58 +197,66 @@ export class DashboardService {
       competitionQb.andWhere('competition.fede = :federation', { federation });
     }
 
-    const totalCompetitions = await competitionQb.getCount();
-
+    // Clone upcomingQb BEFORE Promise.all since it depends on competitionQb
     const upcomingQb = competitionQb.clone();
     upcomingQb.andWhere('competition.eventDate >= :now', { now });
-    const upcomingCompetitions = await upcomingQb.getCount();
-
-    const pastCompetitions = totalCompetitions - upcomingCompetitions;
 
     const licenceQb = this.licenceRepository.createQueryBuilder('licence');
     if (federation) {
       licenceQb.where('licence.fede = :federation', { federation });
     }
-    const totalLicences = await licenceQb.getCount();
-
-    const totalRaces = await this.raceRepository.count();
 
     const clubQb = this.clubRepository.createQueryBuilder('club');
     if (federation) {
       clubQb.where('club.fede = :federation', { federation });
     }
-    const totalClubs = await clubQb.getCount();
 
-    const competitionsByFederation = await this.competitionRepository
-      .createQueryBuilder('competition')
-      .select('competition.fede', 'federation')
-      .addSelect('COUNT(*)', 'count')
-      .groupBy('competition.fede')
-      .getRawMany();
+    // Run all independent queries in parallel
+    const [
+      totalCompetitions,
+      upcomingCompetitions,
+      totalLicences,
+      totalRaces,
+      totalClubs,
+      competitionsByFederation,
+      competitionsByType,
+      competitionsByMonth,
+      licencesByFederation,
+    ] = await Promise.all([
+      competitionQb.getCount(),
+      upcomingQb.getCount(),
+      licenceQb.getCount(),
+      this.raceRepository.count(),
+      clubQb.getCount(),
+      this.competitionRepository
+        .createQueryBuilder('competition')
+        .select('competition.fede', 'federation')
+        .addSelect('COUNT(*)', 'count')
+        .groupBy('competition.fede')
+        .getRawMany(),
+      this.competitionRepository
+        .createQueryBuilder('competition')
+        .select('competition.competitionType', 'type')
+        .addSelect('COUNT(*)', 'count')
+        .groupBy('competition.competitionType')
+        .getRawMany(),
+      this.competitionRepository
+        .createQueryBuilder('competition')
+        .select("TO_CHAR(competition.eventDate, 'YYYY-MM')", 'month')
+        .addSelect('COUNT(*)', 'count')
+        .where('EXTRACT(YEAR FROM competition.eventDate) = :year', { year: currentYear })
+        .groupBy("TO_CHAR(competition.eventDate, 'YYYY-MM')")
+        .orderBy('month', 'ASC')
+        .getRawMany(),
+      this.licenceRepository
+        .createQueryBuilder('licence')
+        .select('licence.fede', 'federation')
+        .addSelect('COUNT(*)', 'count')
+        .groupBy('licence.fede')
+        .getRawMany(),
+    ]);
 
-    const competitionsByType = await this.competitionRepository
-      .createQueryBuilder('competition')
-      .select('competition.competitionType', 'type')
-      .addSelect('COUNT(*)', 'count')
-      .groupBy('competition.competitionType')
-      .getRawMany();
-
-    const currentYear = now.getFullYear();
-    const competitionsByMonth = await this.competitionRepository
-      .createQueryBuilder('competition')
-      .select("TO_CHAR(competition.eventDate, 'YYYY-MM')", 'month')
-      .addSelect('COUNT(*)', 'count')
-      .where('EXTRACT(YEAR FROM competition.eventDate) = :year', { year: currentYear })
-      .groupBy("TO_CHAR(competition.eventDate, 'YYYY-MM')")
-      .orderBy('month', 'ASC')
-      .getRawMany();
-
-    const licencesByFederation = await this.licenceRepository
-      .createQueryBuilder('licence')
-      .select('licence.fede', 'federation')
-      .addSelect('COUNT(*)', 'count')
-      .groupBy('licence.fede')
-      .getRawMany();
+    const pastCompetitions = totalCompetitions - upcomingCompetitions;
 
     return {
       totalCompetitions,

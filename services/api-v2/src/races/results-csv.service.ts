@@ -33,14 +33,24 @@ export class ResultsCsvService {
       }
     }
 
-    // Traiter chaque ligne
+    // Pre-fetch all races for this competition in ONE query
+    const allRaces = await this.raceRepository.find({
+      where: { competitionId },
+    });
+
+    // Build Map by riderNumber for O(1) lookup
+    const raceByNumber = new Map<number, RaceEntity>();
+    for (const race of allRaces) {
+      if (race.riderNumber != null) {
+        raceByNumber.set(race.riderNumber, race);
+      }
+    }
+
+    // Traiter chaque ligne et apply changes in memory
+    const toSave: RaceEntity[] = [];
     for (const row of results) {
-      const race = await this.raceRepository.findOne({
-        where: {
-          riderNumber: parseInt(row.Dossard, 10),
-          competitionId,
-        },
-      });
+      const riderNumber = parseInt(row.Dossard, 10);
+      const race = raceByNumber.get(riderNumber);
 
       if (!race) {
         errors.push(`Dossard ${row.Dossard} non trouvé`);
@@ -64,7 +74,12 @@ export class ResultsCsvService {
         race.rankingScratch = rank;
       }
 
-      await this.raceRepository.save(race);
+      toSave.push(race);
+    }
+
+    // Batch save
+    if (toSave.length > 0) {
+      await this.raceRepository.save(toSave);
     }
 
     return { processed: results.length, errors };

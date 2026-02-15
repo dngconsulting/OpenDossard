@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/useMediaQuery';
 import type { RaceRowType } from '@/types/races';
 import type { CompetitionDetailType } from '@/types/competitions';
 import {

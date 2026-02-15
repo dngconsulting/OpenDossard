@@ -107,19 +107,6 @@ export function useLicences() {
     [updateParams]
   );
 
-  const setFilters = useCallback(
-    (filters: LicenceFilters) => {
-      const cleanFilters = Object.fromEntries(
-        Object.entries(filters).filter(([, v]) => v)
-      ) as LicenceFilters;
-      updateParams({
-        offset: 0,
-        filters: Object.keys(cleanFilters).length > 0 ? cleanFilters : undefined,
-      });
-    },
-    [updateParams]
-  );
-
   const setFilter = useCallback(
     (key: keyof LicenceType, value: string) => {
       const newFilters = { ...params.filters, [key]: value || undefined };
@@ -157,7 +144,6 @@ export function useLicences() {
     params,
     setLimit,
     setSearch,
-    setFilters,
     setFilter,
     setSort,
     goToPage,

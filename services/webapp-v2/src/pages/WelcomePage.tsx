@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { useDashboard } from '@/hooks/useDashboard';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/useMediaQuery';
 import { appData } from '@/statics/app-data';
 
 const features = [

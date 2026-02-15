@@ -12,7 +12,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/useMediaQuery';
 import { cn } from '@/lib/utils';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';

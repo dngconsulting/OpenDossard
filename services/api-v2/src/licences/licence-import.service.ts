@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { LicenceEntity } from './entities/licence.entity';
 import { ClubEntity } from '../clubs/entities/club.entity';
 import { ImportResultDto } from './dto';
@@ -32,6 +32,38 @@ export class LicenceImportService {
       details: { created: [], updated: [], warnings: [], skipped: [] },
     };
 
+    // Pre-load ALL clubs and build a Map by elicenceName
+    const allClubs = await this.clubRepository.find();
+    const clubByElicenceName = new Map<string, ClubEntity>();
+    for (const club of allClubs) {
+      if (club.elicenceName) {
+        clubByElicenceName.set(club.elicenceName, club);
+      }
+    }
+
+    // Pre-load existing licences by licence number (FSGT only)
+    const licenceNumbers = rows
+      .map(r => r.licenceNumber)
+      .filter((num): num is string => !!num);
+    const uniqueNumbers = [...new Set(licenceNumbers)];
+
+    let licenceByNumber = new Map<string, LicenceEntity>();
+    if (uniqueNumbers.length > 0) {
+      // Batch fetch in chunks to avoid query parameter limits
+      const chunkSize = 500;
+      for (let i = 0; i < uniqueNumbers.length; i += chunkSize) {
+        const chunk = uniqueNumbers.slice(i, i + chunkSize);
+        const licences = await this.licenceRepository.find({
+          where: { licenceNumber: In(chunk), fede: Federation.FSGT },
+        });
+        for (const licence of licences) {
+          if (licence.licenceNumber) {
+            licenceByNumber.set(licence.licenceNumber, licence);
+          }
+        }
+      }
+    }
+
     for (const row of rows) {
       if (
         !row.licenceNumber ||
@@ -52,12 +84,10 @@ export class LicenceImportService {
 
       const changes: string[] = [];
 
-      // 1. Search by licence number (FSGT only)
-      let existing = await this.licenceRepository.findOne({
-        where: { licenceNumber: row.licenceNumber, fede: Federation.FSGT },
-      });
+      // 1. Search by licence number from pre-loaded Map
+      let existing = licenceByNumber.get(row.licenceNumber) || null;
 
-      // 2. Fallback: search by birthYear + name + firstName
+      // 2. Fallback: search by birthYear + name + firstName (rare case, still requires DB query)
       if (!existing && row.birthDay) {
         const birthYear = extractBirthYear(row.birthDay);
         existing = await this.licenceRepository
@@ -78,9 +108,9 @@ export class LicenceImportService {
       }
 
       if (existing) {
-        await this.updateExistingLicence(existing, row, changes, result, author);
+        await this.updateExistingLicence(existing, row, changes, result, author, clubByElicenceName);
       } else {
-        await this.createNewLicence(row, result, author);
+        await this.createNewLicence(row, result, author, clubByElicenceName);
       }
     }
 
@@ -93,12 +123,11 @@ export class LicenceImportService {
     changes: string[],
     result: ImportResultDto,
     author?: string,
+    clubByElicenceName?: Map<string, ClubEntity>,
   ): Promise<void> {
     // Club
     if (row.elicenceClubName) {
-      const club = await this.clubRepository.findOne({
-        where: { elicenceName: row.elicenceClubName },
-      });
+      const club = clubByElicenceName?.get(row.elicenceClubName) ?? null;
       if (club && club.longName && existing.club !== club.longName) {
         changes.push(`club: ${existing.club ?? '∅'} → ${club.longName}`);
         existing.club = club.longName;
@@ -198,10 +227,9 @@ export class LicenceImportService {
     row: ReturnType<typeof parseElicenceCsv>[number],
     result: ImportResultDto,
     author?: string,
+    clubByElicenceName?: Map<string, ClubEntity>,
   ): Promise<void> {
-    const club = await this.clubRepository.findOne({
-      where: { elicenceName: row.elicenceClubName },
-    });
+    const club = (row.elicenceClubName && clubByElicenceName?.get(row.elicenceClubName)) || null;
     if (!club) {
       result.summary.skipped++;
       result.details.skipped.push({

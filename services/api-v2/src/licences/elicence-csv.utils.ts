@@ -1,6 +1,6 @@
 import { parse } from 'csv-parse/sync';
 
-export type ElicenceCsvRow = {
+type ElicenceCsvRow = {
   licenceNumber: string | undefined;
   name: string | undefined;
   firstName: string | undefined;
@@ -15,11 +15,11 @@ export type ElicenceCsvRow = {
   gender: string | undefined;
 };
 
-export function stripBOM(content: string): string {
+function stripBOM(content: string): string {
   return content.charCodeAt(0) === 0xfeff ? content.slice(1) : content;
 }
 
-export function normalizeGender(genre: string | undefined): string | undefined {
+function normalizeGender(genre: string | undefined): string | undefined {
   if (!genre) return undefined;
   if (genre === 'M') return 'H';
   if (genre === 'F') return 'F';

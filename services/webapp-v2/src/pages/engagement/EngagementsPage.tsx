@@ -7,7 +7,8 @@ import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RaceTabsList, RaceTabsTrigger } from '@/components/ui/race-tabs';
+import { Tabs } from '@/components/ui/tabs';
 import { type CompetitionType as CompetitionTypeEnum } from '@/config/federations';
 import { useCompetition } from '@/hooks/useCompetitions';
 import { useCompetitionRaces } from '@/hooks/useRaces';
@@ -193,23 +194,16 @@ export default function EngagementsPage() {
         {/* Onglets des courses */}
         {races.length > 0 && (
           <Tabs value={currentRaceCode} onValueChange={handleRaceChange} className="w-full">
-            <TabsList
-              ref={tabsRef}
-              className="mb-0 flex w-full justify-start gap-0 rounded-t-xl rounded-b-none bg-muted/50 p-0 h-auto overflow-x-auto scrollbar-none border-0"
-            >
+            <RaceTabsList ref={tabsRef}>
               {races.map(race => (
-                <TabsTrigger
-                  key={race}
-                  value={race}
-                  className="group flex shrink-0 items-center gap-2.5 rounded-t-lg rounded-b-none first:rounded-tl-xl last:rounded-tr-xl px-6 py-3 bg-muted/30 border border-muted-foreground/20 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white data-[state=active]:border-[#047857]"
-                >
+                <RaceTabsTrigger key={race} value={race} className="px-6">
                   <span className="text-base font-bold">{race}</span>
                   <Badge variant="secondary" className="text-xs">
                     {engagementsCount[race] || 0}
                   </Badge>
-                </TabsTrigger>
+                </RaceTabsTrigger>
               ))}
-            </TabsList>
+            </RaceTabsList>
           </Tabs>
         )}
 

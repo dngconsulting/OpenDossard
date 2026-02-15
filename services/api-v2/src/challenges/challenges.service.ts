@@ -161,10 +161,10 @@ export class ChallengesService {
       let calculatedRows: ChallengeRiderDto[] = [];
       switch (challenge.bareme) {
         case 'CHALLENGE_FSGT_31':
-          calculatedRows = this.baremeChallengeFSGT31(riders);
+          calculatedRows = this.applyBaremeByCategory(riders, baremeByCateFSGT31);
           break;
         case 'CHALLENGE_FSGT_31_CX':
-          calculatedRows = this.baremeChallengeFSGT31CX(riders);
+          calculatedRows = this.applyBaremeByCategory(riders, baremeByCateFSGT31CX);
           break;
         case 'BAREME_AU_POINTS':
           calculatedRows = this.baremeAuPoints(riders);
@@ -213,8 +213,11 @@ export class ChallengesService {
     return challengeRiders;
   }
 
-  private baremeChallengeFSGT31(riderChallenge: ChallengeRiderDto[]): ChallengeRiderDto[] {
-    const catesOfChallenge = baremeByCateFSGT31.map(b => b.catev);
+  private applyBaremeByCategory(
+    riderChallenge: ChallengeRiderDto[],
+    baremeData: typeof baremeByCateFSGT31,
+  ): ChallengeRiderDto[] {
+    const catesOfChallenge = baremeData.map(b => b.catev);
     const riderChallengeFiltered = riderChallenge
       .filter(rc => catesOfChallenge.includes(rc.currentLicenceCatev))
       .map(rc => ({
@@ -224,35 +227,7 @@ export class ChallengesService {
 
     riderChallengeFiltered.forEach(rider => {
       rider.challengeRaceRows.forEach((riderRace, index) => {
-        const bareme = baremeByCateFSGT31.find(b => b.catev === riderRace.catev);
-        if (bareme) {
-          rider.challengeRaceRows[index].ptsRace =
-            (rider.challengeRaceRows[index].ptsRace || 0) +
-            (bareme.ptsBareme(riderRace.rankingScratch) ?? 0) +
-            bareme.ptsParticipation;
-          rider.challengeRaceRows[index].explanation = `Class. ${
-            bareme.ptsBareme(riderRace.rankingScratch) ?? 0
-          } pts + Part. ${bareme.ptsParticipation} pts`;
-        }
-      });
-      rider.ptsAllRaces = _.sumBy(rider.challengeRaceRows, 'ptsRace');
-    });
-
-    return riderChallengeFiltered;
-  }
-
-  private baremeChallengeFSGT31CX(riderChallenge: ChallengeRiderDto[]): ChallengeRiderDto[] {
-    const catesOfChallenge = baremeByCateFSGT31CX.map(b => b.catev);
-    const riderChallengeFiltered = riderChallenge
-      .filter(rc => catesOfChallenge.includes(rc.currentLicenceCatev))
-      .map(rc => ({
-        ...rc,
-        challengeRaceRows: rc.challengeRaceRows.filter(r => catesOfChallenge.includes(r.catev)),
-      }));
-
-    riderChallengeFiltered.forEach(rider => {
-      rider.challengeRaceRows.forEach((riderRace, index) => {
-        const bareme = baremeByCateFSGT31CX.find(b => b.catev === riderRace.catev);
+        const bareme = baremeData.find(b => b.catev === riderRace.catev);
         if (bareme) {
           rider.challengeRaceRows[index].ptsRace =
             (rider.challengeRaceRows[index].ptsRace || 0) +

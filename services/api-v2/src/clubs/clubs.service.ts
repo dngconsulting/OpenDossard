@@ -142,20 +142,21 @@ export class ClubsService {
     const club = await this.findOne(id);
     const longName = club.longName.trim();
 
-    const raceCount = await this.raceRepository
-      .createQueryBuilder('race')
-      .where('TRIM(race.club) = :longName', { longName })
-      .getCount();
-
-    const licenceCount = await this.licenceRepository
-      .createQueryBuilder('licence')
-      .where('TRIM(licence.club) = :longName', { longName })
-      .getCount();
-
-    const competitionCount = await this.competitionRepository
-      .createQueryBuilder('competition')
-      .where('competition.clubId = :id', { id })
-      .getCount();
+    // Run all 3 independent count queries in parallel
+    const [raceCount, licenceCount, competitionCount] = await Promise.all([
+      this.raceRepository
+        .createQueryBuilder('race')
+        .where('TRIM(race.club) = :longName', { longName })
+        .getCount(),
+      this.licenceRepository
+        .createQueryBuilder('licence')
+        .where('TRIM(licence.club) = :longName', { longName })
+        .getCount(),
+      this.competitionRepository
+        .createQueryBuilder('competition')
+        .where('competition.clubId = :id', { id })
+        .getCount(),
+    ]);
 
     return { raceCount, licenceCount, competitionCount };
   }

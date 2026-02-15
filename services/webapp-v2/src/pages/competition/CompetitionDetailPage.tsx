@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RaceTabsList, RaceTabsTrigger } from '@/components/ui/race-tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { COMPETITION_TYPE_ICONS } from '@/config/competition-type.config';
 import { FEDERATIONS, type FedeEnum } from '@/config/federations';
 import {
@@ -18,7 +19,7 @@ import {
   useUpdateCompetition,
 } from '@/hooks/useCompetitions';
 import { COMPETITION_TYPE_LABELS } from '@/types/api';
-import useUserStore from '@/store/UserStore';
+import { downloadFromApi } from '@/utils/download';
 import { showErrorToast, showSuccessToast } from '@/utils/error-handler/error-handler';
 
 import { GeneralTab } from './GeneralTab';
@@ -221,22 +222,8 @@ export default function CompetitionDetailPage() {
   const handleExportFiche = async () => {
     if (!competition) return;
     try {
-      const token = useUserStore.getState().getAccessToken();
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v2';
-      const response = await fetch(
-        `${baseUrl}/reports/pdf/fiche-epreuve/${competition.id}`,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      if (!response.ok) {
-        throw new Error(`Erreur serveur (${response.status})`);
-      }
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Fiche_epreuve_${competition.name.replace(/\s/g, '_')}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
+      const filename = `Fiche_epreuve_${competition.name.replace(/\s/g, '_')}.pdf`;
+      await downloadFromApi(`/reports/pdf/fiche-epreuve/${competition.id}`, filename);
     } catch (error) {
       showErrorToast(
         'Erreur lors de la génération du PDF',
@@ -306,43 +293,28 @@ export default function CompetitionDetailPage() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full gap-0">
-              <TabsList className="mb-0 flex w-full justify-start md:justify-center gap-0 rounded-t-xl rounded-b-none bg-muted/50 p-0 h-auto overflow-x-auto scrollbar-none border-0">
-                <TabsTrigger
-                  value="general"
-                  className="group flex shrink-0 items-center gap-2.5 rounded-t-lg rounded-b-none first:rounded-tl-xl last:rounded-tr-xl px-5 py-3 bg-muted/30 border border-muted-foreground/20 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white data-[state=active]:border-[#047857]"
-                >
+              <RaceTabsList className="md:justify-center">
+                <RaceTabsTrigger value="general">
                   <Info className="h-6 w-6" strokeWidth={2.5} />
                   <span className="text-base font-bold">Infos</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="horaires"
-                  className="group flex shrink-0 items-center gap-2.5 rounded-t-lg rounded-b-none first:rounded-tl-xl last:rounded-tr-xl px-5 py-3 bg-muted/30 border border-muted-foreground/20 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white data-[state=active]:border-[#047857]"
-                >
+                </RaceTabsTrigger>
+                <RaceTabsTrigger value="horaires">
                   <Clock className="h-6 w-6" strokeWidth={2.5} />
                   <span className="text-base font-bold">Horaires</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="tarifs"
-                  className="group flex shrink-0 items-center gap-2.5 rounded-t-lg rounded-b-none first:rounded-tl-xl last:rounded-tr-xl px-5 py-3 bg-muted/30 border border-muted-foreground/20 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white data-[state=active]:border-[#047857]"
-                >
+                </RaceTabsTrigger>
+                <RaceTabsTrigger value="tarifs">
                   <Euro className="h-6 w-6" strokeWidth={2.5} />
                   <span className="text-base font-bold">Tarifs</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="medias"
-                  className="group flex shrink-0 items-center gap-2.5 rounded-t-lg rounded-b-none first:rounded-tl-xl last:rounded-tr-xl px-5 py-3 bg-muted/30 border border-muted-foreground/20 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white data-[state=active]:border-[#047857]"
-                >
+                </RaceTabsTrigger>
+                <RaceTabsTrigger value="medias">
                   <Image className="h-6 w-6" strokeWidth={2.5} />
                   <span className="text-base font-bold">Medias</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="localisation"
-                  className="group flex shrink-0 items-center gap-2.5 rounded-t-lg rounded-b-none first:rounded-tl-xl last:rounded-tr-xl px-5 py-3 bg-muted/30 border border-muted-foreground/20 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white data-[state=active]:border-[#047857]"
-                >
+                </RaceTabsTrigger>
+                <RaceTabsTrigger value="localisation">
                   <MapPin className="h-6 w-6" strokeWidth={2.5} />
                   <span className="text-base font-bold">Lieu</span>
-                </TabsTrigger>
-              </TabsList>
+                </RaceTabsTrigger>
+              </RaceTabsList>
 
               <TabsContent value="general" className="mt-0">
                 <GeneralTab isCreating={isCreating} isDuplicating={isDuplicating} />

@@ -37,13 +37,7 @@ export class AuthService {
 
     return {
       ...tokens,
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        roles: user.getRolesArray(),
-      },
+      user: this.toProfileResponse(user),
     };
   }
 
@@ -65,28 +59,14 @@ export class AuthService {
     // In production, you might want to blacklist the token
   }
 
-  async getProfile(userId: number): Promise<{
-    id: number;
-    email: string;
-    firstName: string;
-    lastName: string;
-    roles: string[];
-    phone: string;
-  }> {
+  async getProfile(userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
 
-    return {
-      id: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      roles: user.getRolesArray(),
-      phone: user.phone,
-    };
+    return this.toProfileResponse(user);
   }
 
   async updateProfile(userId: number, firstName: string, lastName: string, phone?: string) {
@@ -101,14 +81,7 @@ export class AuthService {
     if (phone !== undefined) user.phone = phone;
     await this.userRepository.save(user);
 
-    return {
-      id: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      roles: user.getRolesArray(),
-      phone: user.phone,
-    };
+    return this.toProfileResponse(user);
   }
 
   async changePassword(userId: number, currentPassword: string, newPassword: string): Promise<void> {
@@ -125,6 +98,17 @@ export class AuthService {
 
     user.password = bcrypt.hashSync(newPassword, 12);
     await this.userRepository.save(user);
+  }
+
+  private toProfileResponse(user: UserEntity) {
+    return {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      roles: user.getRolesArray(),
+      phone: user.phone,
+    };
   }
 
   private async generateTokens(user: UserEntity): Promise<TokensDto> {

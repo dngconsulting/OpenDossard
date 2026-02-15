@@ -1,4 +1,5 @@
 import { ClubEntity } from '../../../clubs/entities/club.entity';
+import { escapeCsvField } from './csv-utils';
 
 interface CsvColumn {
   label: string;
@@ -13,14 +14,6 @@ const CSV_COLUMNS: CsvColumn[] = [
   { label: 'Fédération', value: 'fede' },
   { label: 'Nom e-licence', value: 'elicenceName' },
 ];
-
-function escapeCsvField(value: string | number): string {
-  const stringValue = String(value);
-  if (stringValue.includes(';') || stringValue.includes('"') || stringValue.includes('\n')) {
-    return `"${stringValue.replace(/"/g, '""')}"`;
-  }
-  return stringValue;
-}
 
 export function generateClubsCSVBuffer(clubs: ClubEntity[]): Buffer {
   const header = CSV_COLUMNS.map(col => escapeCsvField(col.label)).join(';');

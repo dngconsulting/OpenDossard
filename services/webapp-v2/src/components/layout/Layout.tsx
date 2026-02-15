@@ -5,7 +5,7 @@ import { AppSidebar } from '@/components/layout/AppSidebar.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
-import { useIsMobile } from '@/hooks/use-mobile.ts';
+import { useIsMobile } from '@/hooks/useMediaQuery';
 import { appData } from '@/statics/app-data.ts';
 
 function MobileHeader({ title }: { title: React.ReactNode }) {

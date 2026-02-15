@@ -22,5 +22,5 @@ export function useMediaQuery(query: string): boolean {
 }
 
 export function useIsMobile(): boolean {
-  return useMediaQuery('(max-width: 640px)');
+  return useMediaQuery('(max-width: 767px)');
 }

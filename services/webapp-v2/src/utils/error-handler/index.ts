@@ -5,6 +5,5 @@ export {
   showSuccessToast,
   showInfoToast,
   showWarningToast,
-  dismissAllToasts,
 } from './error-handler';
 export { initErrorListeners } from './runtime-errors';

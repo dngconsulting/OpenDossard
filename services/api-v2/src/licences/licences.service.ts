@@ -36,26 +36,8 @@ export class LicencesService {
     const queryBuilder = this.licenceRepository.createQueryBuilder('licence');
 
     // Global search — split into tokens for multi-word queries
-    // "J Miquel" → token "J" matches start of name/firstName, "Miquel" matches start of name/firstName
-    // Supports accent-insensitive matching and name/firstName inversion
     if (search) {
-      const tokens = search.trim().split(/\s+/).filter(Boolean);
-
-      if (tokens.length === 1) {
-        // Single token: prefix match on name/firstName + substring on licenceNumber/club
-        queryBuilder.andWhere(
-          `(unaccent(licence.name) ILIKE unaccent(:sToken) OR unaccent(licence.firstName) ILIKE unaccent(:sToken) OR licence.licenceNumber ILIKE :sSubstr OR licence.club ILIKE :sSubstr)`,
-          { sToken: `${tokens[0]}%`, sSubstr: `%${tokens[0]}%` },
-        );
-      } else {
-        // Multiple tokens: each must match start of name OR firstName (AND between tokens)
-        tokens.forEach((token, i) => {
-          queryBuilder.andWhere(
-            `(unaccent(licence.name) ILIKE unaccent(:sToken${i}) OR unaccent(licence.firstName) ILIKE unaccent(:sToken${i}))`,
-            { [`sToken${i}`]: `${token}%` },
-          );
-        });
-      }
+      this.applySearchTokens(queryBuilder, search);
     }
 
     // Specific filters - all combined with AND
@@ -185,11 +167,26 @@ export class LicencesService {
 
   async search(query: string, _competitionType?: string): Promise<LicenceEntity[]> {
     const qb = this.licenceRepository.createQueryBuilder('licence');
-    const tokens = query.trim().split(/\s+/).filter(Boolean);
+
+    this.applySearchTokens(qb, query);
+
+    return qb.orderBy('licence.name', 'ASC').take(20).getMany();
+  }
+
+  /**
+   * Apply accent-insensitive search tokens to a query builder.
+   * Single token: prefix match on name/firstName + substring on licenceNumber/club.
+   * Multiple tokens: each must match start of name OR firstName (AND between tokens).
+   */
+  private applySearchTokens(
+    qb: SelectQueryBuilder<LicenceEntity>,
+    searchTerm: string,
+  ): void {
+    const tokens = searchTerm.trim().split(/\s+/).filter(Boolean);
 
     if (tokens.length === 1) {
-      qb.where(
-        `(unaccent(licence.name) ILIKE unaccent(:sToken) OR unaccent(licence.firstName) ILIKE unaccent(:sToken) OR licence.licenceNumber ILIKE :sSubstr)`,
+      qb.andWhere(
+        `(unaccent(licence.name) ILIKE unaccent(:sToken) OR unaccent(licence.firstName) ILIKE unaccent(:sToken) OR licence.licenceNumber ILIKE :sSubstr OR licence.club ILIKE :sSubstr)`,
         { sToken: `${tokens[0]}%`, sSubstr: `%${tokens[0]}%` },
       );
     } else {
@@ -200,8 +197,6 @@ export class LicencesService {
         );
       });
     }
-
-    return qb.orderBy('licence.name', 'ASC').take(20).getMany();
   }
 
   async create(createLicenceDto: CreateLicenceDto, author?: string): Promise<LicenceEntity> {

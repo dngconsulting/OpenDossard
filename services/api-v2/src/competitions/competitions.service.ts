@@ -206,6 +206,7 @@ export class CompetitionsService {
     });
 
     // Update raceCode for each engagement based on new races configuration
+    const toSave: RaceEntity[] = [];
     for (const engagement of engagements) {
       if (!engagement.catev) continue;
 
@@ -216,8 +217,12 @@ export class CompetitionsService {
 
       if (newRaceCode && newRaceCode !== engagement.raceCode) {
         engagement.raceCode = newRaceCode;
-        await this.raceRepository.save(engagement);
+        toSave.push(engagement);
       }
+    }
+
+    if (toSave.length > 0) {
+      await this.raceRepository.save(toSave);
     }
 
     // Update competition races (stored as comma-separated string)

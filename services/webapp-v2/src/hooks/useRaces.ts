@@ -4,9 +4,7 @@ import { racesApi } from '@/api/races.api';
 import type { CreateEngagementDto, UpdateRankingDto, RemoveRankingDto, ReorderRankingItemDto } from '@/types/races';
 
 export const racesKeys = {
-  all: ['races'] as const,
   competition: (competitionId: number) => ['races', 'competition', competitionId] as const,
-  palmares: (licenceId: number) => ['races', 'palmares', licenceId] as const,
 };
 
 /**

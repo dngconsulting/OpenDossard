@@ -109,42 +109,39 @@ export class RacesService {
    * Avec validations : licence existe, dossard pas pris, licence pas déjà inscrite
    */
   async engage(dto: CreateEngagementDto): Promise<RaceEntity> {
-    // Validation : licence requise
-    const licence = await this.licenceRepository.findOne({
-      where: { id: dto.licenceId },
-    });
+    // Run all 4 validation queries in parallel
+    const [licence, competition, numberConflict, licenceConflict] = await Promise.all([
+      this.licenceRepository.findOne({
+        where: { id: dto.licenceId },
+      }),
+      this.competitionRepository.findOne({
+        where: { id: dto.competitionId },
+      }),
+      this.raceRepository.findOne({
+        where: {
+          competitionId: dto.competitionId,
+          riderNumber: dto.riderNumber,
+          raceCode: dto.raceCode,
+        },
+      }),
+      this.raceRepository.findOne({
+        where: {
+          competitionId: dto.competitionId,
+          licenceId: dto.licenceId,
+          raceCode: dto.raceCode,
+        },
+      }),
+    ]);
+
     if (!licence) {
       throw new BadRequestException('Licence inconnue');
     }
-
-    // Validation : compétition existe
-    const competition = await this.competitionRepository.findOne({
-      where: { id: dto.competitionId },
-    });
     if (!competition) {
       throw new BadRequestException('Compétition inconnue');
     }
-
-    // Validation : dossard pas déjà pris sur cette course
-    const numberConflict = await this.raceRepository.findOne({
-      where: {
-        competitionId: dto.competitionId,
-        riderNumber: dto.riderNumber,
-        raceCode: dto.raceCode,
-      },
-    });
     if (numberConflict) {
       throw new BadRequestException(`Le numéro de dossard ${dto.riderNumber} est déjà pris`);
     }
-
-    // Validation : licence pas déjà inscrite sur cette course
-    const licenceConflict = await this.raceRepository.findOne({
-      where: {
-        competitionId: dto.competitionId,
-        licenceId: dto.licenceId,
-        raceCode: dto.raceCode,
-      },
-    });
     if (licenceConflict) {
       throw new BadRequestException('Ce licencié est déjà inscrit sur cette épreuve');
     }
@@ -265,25 +262,30 @@ export class RacesService {
       tours?: number;
     }[],
   ): Promise<RaceEntity[]> {
-    const updatedRaces: RaceEntity[] = [];
+    // Fetch all races for this competition in ONE query
+    const allRaces = await this.raceRepository.find({
+      where: { competitionId },
+    });
 
+    // Build a Map for O(1) lookup by licenceId+raceCode
+    const raceMap = new Map<string, RaceEntity>();
+    for (const race of allRaces) {
+      raceMap.set(`${race.licenceId}_${race.raceCode}`, race);
+    }
+
+    // Apply updates in memory
+    const toSave: RaceEntity[] = [];
     for (const result of results) {
-      const race = await this.raceRepository.findOne({
-        where: {
-          competitionId,
-          licenceId: result.licenceId,
-          raceCode: result.raceCode,
-        },
-      });
-
+      const race = raceMap.get(`${result.licenceId}_${result.raceCode}`);
       if (race) {
         race.rankingScratch = result.rankingScratch;
         if (result.chrono) race.chrono = result.chrono;
         if (result.tours !== undefined) race.tours = result.tours;
-        updatedRaces.push(await this.raceRepository.save(race));
+        toSave.push(race);
       }
     }
 
-    return updatedRaces;
+    // Batch save
+    return this.raceRepository.save(toSave);
   }
 }

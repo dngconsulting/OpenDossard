@@ -1,4 +1,5 @@
 import { LicenceEntity } from '../../../licences/entities/licence.entity';
+import { escapeCsvField } from './csv-utils';
 
 interface CsvColumn {
   label: string;
@@ -93,14 +94,6 @@ const CSV_COLUMNS: CsvColumn[] = [
   { label: 'Auteur', value: 'authorNomPrenom' },
   { label: 'Login Auteur', value: 'authorLogin' },
 ];
-
-function escapeCsvField(value: string | number): string {
-  const stringValue = String(value);
-  if (stringValue.includes(';') || stringValue.includes('"') || stringValue.includes('\n')) {
-    return `"${stringValue.replace(/"/g, '""')}"`;
-  }
-  return stringValue;
-}
 
 export function generateLicencesCSVBuffer(licences: LicenceEntity[]): Buffer {
   const transformed = licences.map(transformLicence);

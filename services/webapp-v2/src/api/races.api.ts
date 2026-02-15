@@ -3,9 +3,7 @@ import type {
   CreateEngagementDto,
   UpdateRankingDto,
   RemoveRankingDto,
-  PalmaresRowType,
 } from '@/types/races';
-import type { LicenceType } from '@/types/licences';
 
 import { apiClient } from './client';
 
@@ -15,18 +13,6 @@ export const racesApi = {
    */
   getByCompetition: (competitionId: number): Promise<RaceRowType[]> =>
     apiClient<RaceRowType[]>(`/races/competition/${competitionId}`),
-
-  /**
-   * Récupère le palmarès d'un coureur
-   */
-  getPalmares: (licenceId: number): Promise<PalmaresRowType[]> =>
-    apiClient<PalmaresRowType[]>(`/races/palmares/${licenceId}`),
-
-  /**
-   * Recherche des licences avec palmarès
-   */
-  searchLicencesWithPalmares: (query: string): Promise<LicenceType[]> =>
-    apiClient<LicenceType[]>(`/races/withpalmares/${encodeURIComponent(query)}`),
 
   /**
    * Engage un coureur sur une compétition
@@ -87,14 +73,6 @@ export const racesApi = {
     apiClient<RaceRowType>(`/races/${id}/tours`, {
       method: 'PATCH',
       body: JSON.stringify({ tours }),
-    }),
-
-  /**
-   * Rafraîchit l'engagement depuis la licence
-   */
-  refreshEngagement: (licenceId: number, competitionId: number): Promise<RaceRowType> =>
-    apiClient<RaceRowType>(`/races/refresh/${licenceId}/${competitionId}`, {
-      method: 'POST',
     }),
 
   /**

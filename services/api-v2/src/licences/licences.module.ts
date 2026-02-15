@@ -18,6 +18,6 @@ import { ClubEntity } from '../clubs/entities/club.entity';
   ],
   controllers: [LicencesController],
   providers: [LicencesService, LicenceImportService],
-  exports: [LicencesService, LicenceImportService],
+  exports: [LicencesService],
 })
 export class LicencesModule {}

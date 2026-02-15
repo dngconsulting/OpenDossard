@@ -21,7 +21,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RaceTabsList, RaceTabsTrigger } from '@/components/ui/race-tabs';
+import { Tabs } from '@/components/ui/tabs';
 import { COMPETITION_TYPE_ICONS } from '@/config/competition-type.config';
 import { filterRiders, useChallenge, useChallengeRanking } from '@/hooks/useChallenges';
 import { COMPETITION_TYPE_LABELS } from '@/types/api';
@@ -232,25 +233,18 @@ export default function ChallengePage() {
         {/* Category Tabs */}
         {categories.length > 0 && selectedCategory !== '' && (
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-            <TabsList
-              ref={tabsRef}
-              className="mb-0 flex w-full justify-start gap-0 rounded-t-xl rounded-b-none bg-muted/50 p-0 h-auto overflow-x-auto scrollbar-none border-0"
-            >
+            <RaceTabsList ref={tabsRef}>
               {categories.map(cat => (
-                <TabsTrigger
-                  key={cat}
-                  value={cat}
-                  className="group flex shrink-0 items-center gap-2.5 rounded-t-lg rounded-b-none first:rounded-tl-xl last:rounded-tr-xl px-5 py-3 bg-muted/30 border border-muted-foreground/20 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:text-[#047857] hover:bg-muted data-[state=active]:bg-[#047857] data-[state=active]:text-white data-[state=active]:border-[#047857]"
-                >
+                <RaceTabsTrigger key={cat} value={cat}>
                   <span className="text-base font-bold">
                     {/^\d+$/.test(cat) ? `Caté ${cat}` : cat}
                   </span>
                   <Badge variant="secondary" className="text-xs">
                     {categoryCounts[cat] || 0}
                   </Badge>
-                </TabsTrigger>
+                </RaceTabsTrigger>
               ))}
-            </TabsList>
+            </RaceTabsList>
           </Tabs>
         )}
 

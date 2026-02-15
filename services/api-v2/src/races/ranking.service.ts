@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { RaceEntity } from './entities/race.entity';
 import { UpdateRankingDto, RemoveRankingDto, ReorderRankingItemDto } from './dto';
 
@@ -103,13 +103,18 @@ export class RankingService {
 
     const rankedRaces = races.filter(r => r.rankingScratch && !r.comment);
 
+    const toSave: RaceEntity[] = [];
     let newRank = 1;
     for (const race of rankedRaces) {
       if (race.rankingScratch !== newRank) {
         race.rankingScratch = newRank;
-        await this.raceRepository.save(race);
+        toSave.push(race);
       }
       newRank++;
+    }
+
+    if (toSave.length > 0) {
+      await this.raceRepository.save(toSave);
     }
   }
 
@@ -120,19 +125,37 @@ export class RankingService {
     // Filtrer les items avec un ID et sans commentaire (pas ABD/DSQ)
     const validItems = items.filter(item => item.id && !item.comment);
 
+    if (validItems.length === 0) return;
+
+    // Fetch all races in one query
+    const ids = validItems.map(item => item.id);
+    const races = await this.raceRepository.find({
+      where: { id: In(ids) },
+    });
+
+    // Build a Map for O(1) lookup
+    const raceMap = new Map<number, RaceEntity>();
+    for (const race of races) {
+      raceMap.set(race.id, race);
+    }
+
+    // Apply changes in memory
+    const toSave: RaceEntity[] = [];
     for (let index = 0; index < validItems.length; index++) {
       const item = validItems[index];
       const newRank = index + 1;
-
-      const race = await this.raceRepository.findOne({
-        where: { id: item.id },
-      });
+      const race = raceMap.get(item.id);
 
       if (race && race.rankingScratch !== newRank && !race.comment) {
         race.rankingScratch = newRank;
         this.logger.debug(`Update ranking of rider ${race.riderNumber} to rank ${newRank}`);
-        await this.raceRepository.save(race);
+        toSave.push(race);
       }
+    }
+
+    // Batch save
+    if (toSave.length > 0) {
+      await this.raceRepository.save(toSave);
     }
   }
 }

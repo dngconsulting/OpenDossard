@@ -86,13 +86,3 @@ export class RaceRowDto {
   @ApiPropertyOptional({ description: 'Coureur surclassé' })
   surclassed?: boolean;
 }
-
-/**
- * DTO pour le palmarès d'un coureur
- */
-export class PalmaresRowDto extends RaceRowDto {
-  @ApiPropertyOptional({
-    description: 'Classement dans la catégorie (calculé)',
-  })
-  rankingInCategory?: number;
-}

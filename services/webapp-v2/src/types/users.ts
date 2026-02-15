@@ -24,14 +24,4 @@ export type UserPaginationParams = {
   orderDirection?: 'ASC' | 'DESC';
 };
 
-export type PaginationMeta = {
-  offset: number;
-  limit: number;
-  total: number;
-  hasMore: boolean;
-};
-
-export type PaginatedResponse<T> = {
-  data: T[];
-  meta: PaginationMeta;
-};
+export type { PaginationMeta, PaginatedResponse } from './pagination';
