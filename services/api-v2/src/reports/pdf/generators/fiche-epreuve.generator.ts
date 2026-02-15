@@ -456,7 +456,8 @@ export async function generateFicheEpreuvePDF(competition: CompetitionEntity): P
     tarifY += 6;
 
     competition.pricing.forEach(p => {
-      const label = p.tarif ? `${p.name} : ${p.tarif}` : p.name;
+      const tarif = p.tarif && !p.tarif.includes('€') ? `${p.tarif} €` : p.tarif;
+      const label = tarif ? `${p.name} : ${tarif}` : p.name;
       drawCheckbox(doc, label, margin + 2, tarifY, true);
       tarifY += 6;
     });
