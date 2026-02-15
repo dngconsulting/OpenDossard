@@ -1,0 +1,61 @@
+import { useState, useCallback } from 'react';
+
+import type { ClubPaginationParams } from '@/types/clubs';
+import { downloadFromApi } from '@/utils/download';
+import { showWarningToast, handleGlobalError } from '@/utils/error-handler/error-handler';
+
+const MAX_EXPORT_CLUBS = 1500;
+
+interface UseExportClubsCSVResult {
+  exportCSV: () => Promise<void>;
+  isExporting: boolean;
+}
+
+function buildExportQueryString(params: ClubPaginationParams): string {
+  const searchParams = new URLSearchParams();
+  if (params.search) searchParams.set('search', params.search);
+  if (params.orderBy) searchParams.set('orderBy', params.orderBy);
+  if (params.orderDirection) searchParams.set('orderDirection', params.orderDirection);
+  if (params.filters) {
+    Object.entries(params.filters).forEach(([key, value]) => {
+      if (value) searchParams.set(key, value);
+    });
+  }
+  const query = searchParams.toString();
+  return query ? `?${query}` : '';
+}
+
+export function useExportClubsCSV(
+  params: ClubPaginationParams,
+  totalCount: number,
+): UseExportClubsCSVResult {
+  const [isExporting, setIsExporting] = useState(false);
+
+  const exportCSV = useCallback(async () => {
+    if (totalCount > MAX_EXPORT_CLUBS) {
+      showWarningToast(
+        `Plus de ${MAX_EXPORT_CLUBS} clubs à exporter, veuillez utiliser plus de filtres.`,
+      );
+      return;
+    }
+
+    if (totalCount === 0) {
+      showWarningToast('Aucun club à exporter.');
+      return;
+    }
+
+    setIsExporting(true);
+
+    try {
+      const queryString = buildExportQueryString(params);
+      const date = new Date().toISOString().split('T')[0];
+      await downloadFromApi(`/reports/csv/clubs${queryString}`, `clubs - ${date}.csv`);
+    } catch (error) {
+      handleGlobalError(error);
+    } finally {
+      setIsExporting(false);
+    }
+  }, [params, totalCount]);
+
+  return { exportCSV, isExporting };
+}

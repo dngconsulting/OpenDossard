@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { ClubEntity } from './entities/club.entity';
 import { LicenceEntity } from '../licences/entities/licence.entity';
 import { RaceEntity } from '../races/entities/race.entity';
@@ -37,9 +37,20 @@ export class ClubsService {
   }
 
   async findAllPaginated(filterDto: FilterClubDto): Promise<PaginatedResponseDto<ClubEntity>> {
+    const { offset = 0, limit = 20 } = filterDto;
+    const qb = this.buildFilteredQuery(filterDto);
+    qb.skip(offset).take(limit);
+    const [data, total] = await qb.getManyAndCount();
+    return new PaginatedResponseDto(data, total, offset, limit);
+  }
+
+  async findForExport(filterDto: FilterClubDto): Promise<ClubEntity[]> {
+    const qb = this.buildFilteredQuery(filterDto);
+    return qb.take(1500).getMany();
+  }
+
+  private buildFilteredQuery(filterDto: FilterClubDto): SelectQueryBuilder<ClubEntity> {
     const {
-      offset = 0,
-      limit = 20,
       search,
       orderBy = 'shortName',
       orderDirection = 'ASC',
@@ -84,11 +95,7 @@ export class ClubsService {
       qb.addOrderBy('club.shortName', 'ASC');
     }
 
-    qb.skip(offset).take(limit);
-
-    const [data, total] = await qb.getManyAndCount();
-
-    return new PaginatedResponseDto(data, total, offset, limit);
+    return qb;
   }
 
   async findOne(id: number): Promise<ClubEntity> {

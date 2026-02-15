@@ -6,6 +6,7 @@ import { Roles } from '../../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Role } from '../../common/enums';
+import { FilterClubDto } from '../../clubs/dto/filter-club.dto';
 import { FilterLicenceDto } from '../../licences/dto';
 import { PdfReportsService } from './pdf-reports.service';
 
@@ -48,6 +49,24 @@ export class PdfReportsController {
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': 'attachment; filename="Licences.pdf"',
+      'Content-Length': pdfBuffer.length,
+    });
+    res.end(pdfBuffer);
+  }
+
+  @Get('clubs')
+  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @Header('Content-Type', 'application/pdf')
+  @ApiOperation({ summary: 'Export filtered clubs as PDF' })
+  @ApiResponse({ status: 200, description: 'PDF file' })
+  async exportClubsPDF(
+    @Query() filterDto: FilterClubDto,
+    @Res() res: Response,
+  ): Promise<void> {
+    const pdfBuffer = await this.pdfReportsService.generateClubsPDF(filterDto);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'attachment; filename="Clubs.pdf"',
       'Content-Length': pdfBuffer.length,
     });
     res.end(pdfBuffer);

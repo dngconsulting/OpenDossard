@@ -1,4 +1,4 @@
-import { ArrowLeft, Plus, Search, X } from 'lucide-react';
+import { FileSpreadsheet, FileText, Loader2, MoreHorizontal, Plus, Search, X } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { showSuccessToast } from '@/utils/error-handler/error-handler';
@@ -14,8 +14,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { useClubsPaginated, useDeleteClub } from '@/hooks/useClubs';
+import { useExportClubsCSV } from '@/hooks/useExportClubsCSV';
+import { useExportClubsPDF } from '@/hooks/useExportClubsPDF';
 import type { ClubType } from '@/types/clubs';
 
 export default function ClubsPage() {
@@ -37,6 +45,13 @@ export default function ClubsPage() {
 
   const [searchInput, setSearchInput] = useState(params.search || '');
   const [clubToDelete, setClubToDelete] = useState<ClubType | null>(null);
+
+  const clubs = data?.data || [];
+  const meta = data?.meta || { offset: 0, limit: 20, total: 0, hasMore: false };
+  const totalClubs = meta.total;
+
+  const { exportPDF, isExporting: isExportingPDF } = useExportClubsPDF(params, totalClubs);
+  const { exportCSV, isExporting: isExportingCSV } = useExportClubsCSV(params, totalClubs);
 
   const handleEditClub = useCallback(
     (club: ClubType) => {
@@ -70,19 +85,63 @@ export default function ClubsPage() {
     [setSearch],
   );
 
-  const clubs = data?.data || [];
-  const meta = data?.meta || { offset: 0, limit: 20, total: 0, hasMore: false };
-
   const toolbarLeft = (
-    <Button variant="outline" onClick={() => navigate(-1)}>
-      <ArrowLeft className="h-4 w-4" /> Retour
-    </Button>
+    <span className="text-sm text-muted-foreground">
+      Nombre de clubs : <strong className="text-foreground">{totalClubs}</strong>
+    </span>
   );
 
   const toolbar = (
-    <Button onClick={() => navigate('/club/new')}>
-      <Plus className="h-4 w-4" /> Ajouter un club
-    </Button>
+    <>
+      <Button onClick={() => navigate('/club/new')}>
+        <Plus className="h-4 w-4" /> Ajouter un club
+      </Button>
+      {/* Desktop: boutons visibles */}
+      <Button
+        variant="action"
+        className="hidden md:flex"
+        onClick={exportPDF}
+        disabled={isExportingPDF}
+      >
+        {isExportingPDF ? <Loader2 className="animate-spin" /> : <FileText />}
+        Export PDF
+      </Button>
+      <Button
+        variant="action"
+        className="hidden md:flex"
+        onClick={exportCSV}
+        disabled={isExportingCSV}
+      >
+        {isExportingCSV ? <Loader2 className="animate-spin" /> : <FileSpreadsheet />}
+        Export CSV
+      </Button>
+      {/* Mobile: menu déroulant */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild className="md:hidden">
+          <Button variant="action" size="icon">
+            <MoreHorizontal />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={exportPDF} disabled={isExportingPDF}>
+            {isExportingPDF ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <FileText className="mr-2 h-4 w-4" />
+            )}
+            Export PDF
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={exportCSV} disabled={isExportingCSV}>
+            {isExportingCSV ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
+            )}
+            Export CSV
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   );
 
   return (

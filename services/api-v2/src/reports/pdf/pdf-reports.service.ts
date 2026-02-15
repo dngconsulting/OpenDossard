@@ -2,9 +2,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { FilterClubDto } from '../../clubs/dto/filter-club.dto';
+import { ClubsService } from '../../clubs/clubs.service';
 import { CompetitionEntity } from '../../competitions/entities/competition.entity';
 import { FilterLicenceDto } from '../../licences/dto';
 import { LicencesService } from '../../licences/licences.service';
+import { generateClubsPDFBuffer } from './generators/clubs-pdf.generator';
 import { generateFicheEpreuvePDF } from './generators/fiche-epreuve.generator';
 import { generateLicencesPDFBuffer } from './generators/licences-pdf.generator';
 
@@ -14,6 +17,7 @@ export class PdfReportsService {
     @InjectRepository(CompetitionEntity)
     private readonly competitionRepository: Repository<CompetitionEntity>,
     private readonly licencesService: LicencesService,
+    private readonly clubsService: ClubsService,
   ) {}
 
   async generateFicheEpreuve(competitionId: number): Promise<Buffer> {
@@ -32,5 +36,10 @@ export class PdfReportsService {
   async generateLicencesPDF(filterDto: FilterLicenceDto): Promise<Buffer> {
     const licences = await this.licencesService.findForExport(filterDto);
     return generateLicencesPDFBuffer(licences);
+  }
+
+  async generateClubsPDF(filterDto: FilterClubDto): Promise<Buffer> {
+    const clubs = await this.clubsService.findForExport(filterDto);
+    return generateClubsPDFBuffer(clubs);
   }
 }
