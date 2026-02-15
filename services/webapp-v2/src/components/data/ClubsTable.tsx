@@ -12,8 +12,9 @@ const columns: ColumnDef<ClubType>[] = [
     enableSorting: false,
   },
   {
-    accessorKey: 'shortName',
-    header: 'Nom court',
+    accessorKey: 'fede',
+    header: 'Fédé',
+    size: 90,
   },
   {
     accessorKey: 'dept',
@@ -21,17 +22,19 @@ const columns: ColumnDef<ClubType>[] = [
     size: 80,
   },
   {
-    accessorKey: 'longName',
-    header: 'Nom long',
+    accessorKey: 'shortName',
+    header: 'Nom court',
+    size: 120,
   },
   {
-    accessorKey: 'fede',
-    header: 'Fédé',
-    size: 90,
+    accessorKey: 'longName',
+    header: 'Nom long',
+    size: 300,
   },
   {
     accessorKey: 'elicenceName',
-    header: 'eLicence',
+    header: 'Nom eLicence/Exalto',
+    size: 300,
   },
 ];
 

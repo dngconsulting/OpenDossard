@@ -17,6 +17,11 @@ export class UpdateClubDto {
   @IsString()
   elicenceName?: string;
 
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  dept?: string;
+
   @ApiPropertyOptional({ description: 'If true, propagate longName change to races and licences' })
   @IsOptional()
   @IsBoolean()

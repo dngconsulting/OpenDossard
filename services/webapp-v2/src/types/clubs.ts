@@ -11,6 +11,7 @@ export type UpdateClubInput = {
   shortName?: string;
   longName?: string;
   elicenceName?: string;
+  dept?: string;
   propagate?: boolean;
 };
 

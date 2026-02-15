@@ -147,7 +147,8 @@ export class CompetitionsService {
   }
 
   async create(competitionData: Partial<CompetitionEntity>): Promise<CompetitionEntity> {
-    const competition = this.competitionRepository.create(competitionData);
+    const { id, ...data } = competitionData;
+    const competition = this.competitionRepository.create(data);
     return this.competitionRepository.save(competition);
   }
 

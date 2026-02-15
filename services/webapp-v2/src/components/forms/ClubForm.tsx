@@ -27,7 +27,7 @@ const createFormSchema = (isCreating: boolean) =>
     shortName: z.string().optional(),
     longName: z.string().min(1, 'Le nom long est requis'),
     elicenceName: z.string().optional(),
-    dept: isCreating ? z.string().min(1, 'Le département est requis') : z.string().optional(),
+    dept: z.string().min(1, 'Le département est requis'),
     fede: isCreating ? z.string().min(1, 'La fédération est requise') : z.string().optional(),
   });
 
@@ -100,6 +100,7 @@ export const ClubForm = ({ club, isCreating, onSuccess }: ClubFormProps) => {
           shortName: data.shortName || undefined,
           longName: data.longName,
           elicenceName: data.elicenceName || undefined,
+          dept: data.dept || undefined,
           propagate,
         },
       });
@@ -142,9 +143,9 @@ export const ClubForm = ({ club, isCreating, onSuccess }: ClubFormProps) => {
                     <StringField field="longName" form={form} label="Nom long" required />
                   </div>
                   <StringField field="elicenceName" form={form} label="Nom eLicence" />
-                  {isCreating ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <StringField field="dept" form={form} label="Département" required />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <StringField field="dept" form={form} label="Département" required />
+                    {isCreating ? (
                       <SelectField
                         field="fede"
                         form={form}
@@ -152,19 +153,13 @@ export const ClubForm = ({ club, isCreating, onSuccess }: ClubFormProps) => {
                         options={FEDERATION_OPTIONS}
                         required
                       />
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="text-sm">
-                        <span className="text-muted-foreground">Département :</span>{' '}
-                        <span className="font-medium">{club?.dept || '—'}</span>
-                      </div>
-                      <div className="text-sm">
+                    ) : (
+                      <div className="text-sm flex items-center">
                         <span className="text-muted-foreground">Fédération :</span>{' '}
-                        <span className="font-medium">{club?.fede || '—'}</span>
+                        <span className="font-medium ml-1">{club?.fede || '—'}</span>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </FieldSet>
               </FieldGroup>
             </CardContent>
@@ -191,7 +186,10 @@ export const ClubForm = ({ club, isCreating, onSuccess }: ClubFormProps) => {
               Souhaitez-vous mettre à jour ces références avec le nouveau nom ?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="flex-row flex-wrap justify-end gap-2">
+            <Button variant="ghost" onClick={() => setPropagateDialog(null)}>
+              Annuler
+            </Button>
             <Button variant="outline" onClick={handleSkipPropagate}>
               Non, modifier uniquement le club
             </Button>

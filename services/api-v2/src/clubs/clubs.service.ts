@@ -107,7 +107,8 @@ export class ClubsService {
   }
 
   async create(clubData: Partial<ClubEntity>): Promise<ClubEntity> {
-    const club = this.clubRepository.create(clubData);
+    const { id, ...data } = clubData;
+    const club = this.clubRepository.create(data);
     return this.clubRepository.save(club);
   }
 
@@ -129,6 +130,7 @@ export class ClubsService {
     if (dto.shortName !== undefined) club.shortName = dto.shortName;
     if (dto.longName !== undefined) club.longName = dto.longName;
     if (dto.elicenceName !== undefined) club.elicenceName = dto.elicenceName;
+    if (dto.dept !== undefined) club.dept = dto.dept;
 
     const saved = await this.clubRepository.save(club);
     return { ...saved, racesUpdated, licencesUpdated };
