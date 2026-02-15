@@ -4,7 +4,7 @@ import type { PaginationMeta, PaginationParams } from './licences';
 export const FEDERATION_VALUES = ['FSGT', 'UFOLEP', 'FFC', 'CYCLOS', 'FFVELO', 'NL', 'FFTRI'] as const;
 export type FederationType = (typeof FEDERATION_VALUES)[number];
 
-export const COMPETITION_TYPE_VALUES = ['CX', 'ROUTE', 'VTT'] as const;
+export const COMPETITION_TYPE_VALUES = ['CX', 'ROUTE', 'VTT', 'GRAVEL', 'RANDO'] as const;
 export type CompetitionTypeEnum = (typeof COMPETITION_TYPE_VALUES)[number];
 
 // Nested types for JSON fields
@@ -103,8 +103,6 @@ export type CompetitionPaginationParams = PaginationParams & {
   fedes?: string;
   competitionTypes?: string;
   depts?: string;
-  displayPast?: string;
-  displayFuture?: string;
   startDate?: string;
   endDate?: string;
 };

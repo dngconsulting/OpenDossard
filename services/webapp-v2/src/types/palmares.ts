@@ -34,7 +34,6 @@ export type PalmaresRaceResult = {
 export type PalmaresData = {
   licence: LicenceType;
   stats: RiderStats;
-  categoryHistoryRoute: CategoryChange[];
-  categoryHistoryCX: CategoryChange[];
+  categoryHistory: Record<string, CategoryChange[]>;
   results: PalmaresRaceResult[];
 };

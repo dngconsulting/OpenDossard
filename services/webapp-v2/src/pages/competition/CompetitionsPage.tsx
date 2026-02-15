@@ -23,32 +23,33 @@ export default function CompetitionsPage() {
   const totalCompetitions = data?.meta?.total ?? 0;
 
   // Date filters
+  const today = format(new Date(), 'yyyy-MM-dd');
   const startDate = params.startDate ? new Date(params.startDate) : undefined;
   const endDate = params.endDate ? new Date(params.endDate) : undefined;
 
+  // Checkbox state derived from dates
+  const isFuture = params.startDate === today && !params.endDate;
+  const isPast = params.endDate === today && !params.startDate;
+  const isAll = !params.startDate && !params.endDate;
+
   const handleStartDateChange = (date: Date | undefined) => {
-    setAdvancedFilters({ startDate: date ? format(date, 'yyyy-MM-dd') : undefined, displayFuture: undefined, displayPast: undefined });
+    setAdvancedFilters({ startDate: date ? format(date, 'yyyy-MM-dd') : undefined });
   };
 
   const handleEndDateChange = (date: Date | undefined) => {
-    setAdvancedFilters({ endDate: date ? format(date, 'yyyy-MM-dd') : undefined, displayFuture: undefined, displayPast: undefined });
+    setAdvancedFilters({ endDate: date ? format(date, 'yyyy-MM-dd') : undefined });
   };
 
-  // Past/future/all checkbox filters (mutually exclusive)
-  const displayFuture = params.displayFuture === 'true';
-  const displayPast = params.displayPast === 'true';
-  const displayAll = !displayFuture && !displayPast;
-
   const handleDisplayAllChange = () => {
-    setAdvancedFilters({ displayFuture: undefined, displayPast: undefined });
+    setAdvancedFilters({ startDate: undefined, endDate: undefined });
   };
 
   const handleDisplayFutureChange = () => {
-    setAdvancedFilters({ displayFuture: 'true', displayPast: undefined });
+    setAdvancedFilters({ startDate: today, endDate: undefined });
   };
 
   const handleDisplayPastChange = () => {
-    setAdvancedFilters({ displayPast: 'true', displayFuture: undefined });
+    setAdvancedFilters({ startDate: undefined, endDate: today });
   };
 
   const handleDuplicate = () => {
@@ -150,8 +151,9 @@ export default function CompetitionsPage() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
             <Checkbox
+              className="border-2"
               id="display-all"
-              checked={displayAll}
+              checked={isAll}
               onCheckedChange={handleDisplayAllChange}
             />
             <label htmlFor="display-all" className="text-sm font-medium text-foreground whitespace-nowrap cursor-pointer">
@@ -160,8 +162,9 @@ export default function CompetitionsPage() {
           </div>
           <div className="flex items-center gap-1.5">
             <Checkbox
+              className="border-2"
               id="display-future"
-              checked={displayFuture}
+              checked={isFuture}
               onCheckedChange={handleDisplayFutureChange}
             />
             <label htmlFor="display-future" className="text-sm font-medium text-foreground whitespace-nowrap cursor-pointer">
@@ -170,8 +173,9 @@ export default function CompetitionsPage() {
           </div>
           <div className="flex items-center gap-1.5">
             <Checkbox
+              className="border-2"
               id="display-past"
-              checked={displayPast}
+              checked={isPast}
               onCheckedChange={handleDisplayPastChange}
             />
             <label htmlFor="display-past" className="text-sm font-medium text-foreground whitespace-nowrap cursor-pointer">

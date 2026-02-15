@@ -27,7 +27,7 @@ const FILTER_KEYS: (keyof CompetitionType)[] = [
   'club',
 ];
 
-const ADVANCED_FILTER_KEYS = ['fedes', 'competitionTypes', 'depts', 'displayPast', 'displayFuture', 'startDate', 'endDate'];
+const ADVANCED_FILTER_KEYS = ['fedes', 'competitionTypes', 'depts', 'startDate', 'endDate'];
 
 function parseUrlParams(searchParams: URLSearchParams): CompetitionPaginationParams {
   const offset = searchParams.get('offset');
@@ -88,14 +88,20 @@ export function useCompetitions() {
   const [searchParams, setSearchParams] = useSearchParams();
   const isAuthenticated = useUserStore(state => state.isAuthenticated);
 
-  const params = useMemo(() => parseUrlParams(searchParams), [searchParams]);
+  // Use toString() as dependency — React Router v7 with replace:true may return
+  // the same URLSearchParams reference (mutated), so Object.is comparison fails.
+  const searchParamsString = searchParams.toString();
+  const params = useMemo(() => parseUrlParams(searchParams), [searchParamsString]);
 
   const updateParams = useCallback(
     (newParams: Partial<CompetitionPaginationParams>) => {
-      const merged = { ...params, ...newParams };
-      setSearchParams(buildUrlParams(merged), { replace: true });
+      setSearchParams(prev => {
+        const currentParams = parseUrlParams(prev);
+        const merged = { ...currentParams, ...newParams };
+        return buildUrlParams(merged);
+      }, { replace: true });
     },
-    [params, setSearchParams]
+    [setSearchParams]
   );
 
   const query = useQuery({

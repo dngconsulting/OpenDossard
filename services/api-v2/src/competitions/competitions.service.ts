@@ -36,8 +36,6 @@ export class CompetitionsService {
       fedes,
       competitionTypes,
       depts,
-      displayPast,
-      displayFuture,
       startDate,
       endDate,
     } = filterDto;
@@ -107,13 +105,6 @@ export class CompetitionsService {
     }
 
     // Date filters
-    const now = new Date();
-    if (displayPast === true && displayFuture === false) {
-      queryBuilder.andWhere('competition.eventDate < :now', { now });
-    } else if (displayFuture === true && displayPast === false) {
-      queryBuilder.andWhere('competition.eventDate >= :now', { now });
-    }
-
     if (startDate) {
       queryBuilder.andWhere('competition.eventDate >= :startDate', { startDate });
     }

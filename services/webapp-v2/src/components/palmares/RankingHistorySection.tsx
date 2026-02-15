@@ -1,11 +1,13 @@
 import { ArrowUp, ArrowDown, Circle } from 'lucide-react';
+import { useMemo } from 'react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { COMPETITION_TYPES, COMPETITION_TYPE_LABELS, type CompetitionType } from '@/types/api';
 import type { CategoryChange } from '@/types/palmares';
 
 type Props = {
-  historyRoute: CategoryChange[];
-  historyCX: CategoryChange[];
+  categoryHistory: Record<string, CategoryChange[]>;
+  typeOrder?: string[];
 };
 
 const directionConfig = {
@@ -43,28 +45,41 @@ function CategoryTimeline({ history }: { history: CategoryChange[] }) {
   );
 }
 
-export function RankingHistorySection({ historyRoute, historyCX }: Props) {
-  if (historyRoute.length === 0 && historyCX.length === 0) return null;
+export function RankingHistorySection({ categoryHistory, typeOrder }: Props) {
+  const types = useMemo(() => {
+    const present = new Set(Object.keys(categoryHistory));
+    if (typeOrder) {
+      return typeOrder.filter(t => present.has(t));
+    }
+    return (COMPETITION_TYPES as readonly string[]).filter(t => present.has(t));
+  }, [categoryHistory, typeOrder]);
+
+  const hasAnyHistory = types.some(t => (categoryHistory[t]?.length ?? 0) > 0);
+  if (!hasAnyHistory) return null;
+
+  const defaultTab = types[0] ?? '';
 
   return (
     <div className="rounded-xl border bg-card">
-      <Tabs defaultValue="route">
+      <Tabs defaultValue={defaultTab}>
         <div className="px-5 pt-5 pb-0 flex items-center justify-between">
           <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
             Évolution de catégorie
           </h3>
           <TabsList>
-            <TabsTrigger value="route">Route</TabsTrigger>
-            <TabsTrigger value="cx">Cyclo-cross</TabsTrigger>
+            {types.map(t => (
+              <TabsTrigger key={t} value={t}>
+                {COMPETITION_TYPE_LABELS[t as CompetitionType] ?? t}
+              </TabsTrigger>
+            ))}
           </TabsList>
         </div>
         <div className="p-5 pt-3">
-          <TabsContent value="route" className="mt-0">
-            <CategoryTimeline history={historyRoute} />
-          </TabsContent>
-          <TabsContent value="cx" className="mt-0">
-            <CategoryTimeline history={historyCX} />
-          </TabsContent>
+          {types.map(t => (
+            <TabsContent key={t} value={t} className="mt-0">
+              <CategoryTimeline history={categoryHistory[t] ?? []} />
+            </TabsContent>
+          ))}
         </div>
       </Tabs>
     </div>

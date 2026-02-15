@@ -46,12 +46,6 @@ const buildQueryString = (params: CompetitionPaginationParams): string => {
   if (params.depts) {
     searchParams.set('depts', params.depts);
   }
-  if (params.displayPast) {
-    searchParams.set('displayPast', params.displayPast);
-  }
-  if (params.displayFuture) {
-    searchParams.set('displayFuture', params.displayFuture);
-  }
   if (params.startDate) {
     searchParams.set('startDate', params.startDate);
   }

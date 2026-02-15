@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsBoolean, IsDateString } from 'class-validator';
+import { IsOptional, IsString, IsDateString } from 'class-validator';
 import { PaginationDto } from '../../common/dto';
 
 export class FilterCompetitionDto extends PaginationDto {
@@ -47,16 +47,6 @@ export class FilterCompetitionDto extends PaginationDto {
   @IsOptional()
   @IsString()
   depts?: string;
-
-  @ApiPropertyOptional({ description: 'Show past competitions' })
-  @IsOptional()
-  @IsBoolean()
-  displayPast?: boolean;
-
-  @ApiPropertyOptional({ description: 'Show future competitions' })
-  @IsOptional()
-  @IsBoolean()
-  displayFuture?: boolean;
 
   @ApiPropertyOptional({ description: 'Start date filter' })
   @IsOptional()

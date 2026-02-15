@@ -1,14 +1,11 @@
 import {
   ArrowLeft,
-  Bike,
   Calendar,
   ChevronRight,
   Download,
   ExternalLink,
-  Mountain,
-  TreePine,
 } from 'lucide-react';
-import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { ChallengeRankingTable } from '@/components/challenges/ChallengeRankingTable';
@@ -25,16 +22,12 @@ import {
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { COMPETITION_TYPE_ICONS } from '@/config/competition-type.config';
 import { filterRiders, useChallenge, useChallengeRanking } from '@/hooks/useChallenges';
 import { COMPETITION_TYPE_LABELS } from '@/types/api';
 import type { GenderType } from '@/types/challenges';
 import { exportChallengePDF } from '@/utils/pdf-exports';
 
-const competitionTypeIcons: Record<string, ReactNode> = {
-  ROUTE: <Bike className="size-5" />,
-  CX: <TreePine className="size-5" />,
-  VTT: <Mountain className="size-5" />,
-};
 
 export default function ChallengePage() {
   const { id } = useParams<{ id: string }>();
@@ -112,8 +105,8 @@ export default function ChallengePage() {
     await exportChallengePDF(challenge, ranking);
   };
 
-  const icon = challenge?.competitionType
-    ? competitionTypeIcons[challenge.competitionType] || <Bike className="size-5" />
+  const Icon = challenge?.competitionType
+    ? COMPETITION_TYPE_ICONS[challenge.competitionType] ?? null
     : null;
   const typeLabel = challenge?.competitionType
     ? COMPETITION_TYPE_LABELS[challenge.competitionType] || challenge.competitionType
@@ -127,7 +120,7 @@ export default function ChallengePage() {
       {challenge && (
         <>
           <Badge className="bg-slate-600 text-white hover:bg-slate-600 gap-1">
-            {icon}
+            {Icon && <Icon className="size-5" />}
             {typeLabel}
           </Badge>
           <Badge

@@ -35,8 +35,8 @@ export type AuthResponseDto = components['schemas']['AuthResponseDto'];
 export const FEDERATIONS = ['FSGT', 'UFOLEP', 'FFC', 'CYCLOS', 'FFVELO', 'NL', 'FFTRI'] as const;
 export type Federation = CompetitionEntity['fede'];
 
-export const COMPETITION_TYPES = ['CX', 'ROUTE', 'VTT'] as const;
-export type CompetitionType = CompetitionEntity['competitionType'];
+export const COMPETITION_TYPES = ['CX', 'ROUTE', 'VTT', 'GRAVEL', 'RANDO'] as const;
+export type CompetitionType = (typeof COMPETITION_TYPES)[number];
 
 export const GENDERS = ['H', 'F'] as const;
 export type Gender = (typeof GENDERS)[number];
@@ -58,6 +58,8 @@ export const COMPETITION_TYPE_LABELS: Record<CompetitionType, string> = {
   CX: 'Cyclo-cross',
   ROUTE: 'Route',
   VTT: 'VTT',
+  GRAVEL: 'Gravel',
+  RANDO: 'Randonnée',
 };
 
 export const GENDER_LABELS: Record<Gender, string> = {

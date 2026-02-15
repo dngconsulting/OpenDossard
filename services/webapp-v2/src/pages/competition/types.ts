@@ -3,6 +3,7 @@ import {
   COMPETITION_TYPE_VALUES,
   FEDERATION_VALUES,
 } from '@/types/competitions';
+import { COMPETITION_TYPE_LABELS, type CompetitionType } from '@/types/api';
 
 // Profile options based on competition type
 export const getProfileOptions = (competitionType: string) => {
@@ -34,7 +35,7 @@ export const FEDE_OPTIONS_ALL = FEDERATION_VALUES.map(f => ({
 
 export const COMPETITION_TYPE_OPTIONS = COMPETITION_TYPE_VALUES.map(t => ({
   value: t,
-  label: t === 'CX' ? 'Cyclo-Cross' : t === 'VTT' ? 'VTT' : 'Route',
+  label: COMPETITION_TYPE_LABELS[t as CompetitionType] ?? t,
 }));
 
 // Zod schema for the form

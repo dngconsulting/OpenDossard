@@ -14,7 +14,7 @@ export const FedeEnum = {
 
 export type FedeEnum = (typeof FedeEnum)[keyof typeof FedeEnum];
 
-export type CompetitionType = 'ROUTE' | 'VTT' | 'CX';
+export type CompetitionType = 'ROUTE' | 'VTT' | 'CX' | 'GRAVEL' | 'RANDO';
 
 export interface CategoryValue {
   label: string;
@@ -34,7 +34,7 @@ export interface Federation {
   catea: CategoryAge[];
 }
 
-const ALL_COMPETITION_TYPES: CompetitionType[] = ['ROUTE', 'VTT', 'CX'];
+const ALL_COMPETITION_TYPES: CompetitionType[] = ['ROUTE', 'VTT', 'CX', 'GRAVEL', 'RANDO'];
 
 // Catégories de valeur FSGT/FFC/FFTRI
 const CATEV_BASE: CategoryValue[] = [

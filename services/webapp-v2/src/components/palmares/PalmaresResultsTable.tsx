@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/ui/data-table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { COMPETITION_TYPE_LABELS, type CompetitionType } from '@/types/api';
 import type { PalmaresRaceResult } from '@/types/palmares';
 
 import type { ColumnDef } from '@tanstack/react-table';
@@ -153,66 +154,63 @@ function sortResults(results: PalmaresRaceResult[], sort: SortConfig | null): Pa
 }
 
 export function PalmaresResultsTable({ results }: Props) {
-  const routeResults = results.filter(r => r.competitionType === 'ROUTE');
-  const cxResults = results.filter(r => r.competitionType === 'CX');
+  // Group results by type, then sort types by descending count
+  const { types, resultsByType } = useMemo(() => {
+    const map: Record<string, PalmaresRaceResult[]> = {};
+    for (const r of results) {
+      (map[r.competitionType] ??= []).push(r);
+    }
+    const sorted = Object.keys(map).sort((a, b) => map[b].length - map[a].length);
+    return { types: sorted, resultsByType: map };
+  }, [results]);
 
-  const [routeSort, setRouteSort] = useState<SortConfig | null>(null);
-  const [cxSort, setCxSort] = useState<SortConfig | null>(null);
+  const [sortByType, setSortByType] = useState<Record<string, SortConfig | null>>({});
 
-  const sortedRoute = useMemo(() => sortResults(routeResults, routeSort), [routeResults, routeSort]);
-  const sortedCx = useMemo(() => sortResults(cxResults, cxSort), [cxResults, cxSort]);
+  const defaultTab = types[0] ?? '';
 
-  const handleRouteSortChange = (column: string, direction: 'ASC' | 'DESC') => {
-    setRouteSort({ column, direction });
-  };
-
-  const handleCxSortChange = (column: string, direction: 'ASC' | 'DESC') => {
-    setCxSort({ column, direction });
-  };
+  if (types.length === 0) return null;
 
   return (
     <div className="rounded-xl border bg-card">
-      <Tabs defaultValue="route">
+      <Tabs defaultValue={defaultTab}>
         <div className="px-5 pt-5 pb-0 flex items-center justify-between">
           <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Résultats</h3>
           <TabsList>
-            <TabsTrigger value="route">Route ({routeResults.length})</TabsTrigger>
-            <TabsTrigger value="cx">Cyclo-cross ({cxResults.length})</TabsTrigger>
+            {types.map(t => (
+              <TabsTrigger key={t} value={t}>
+                {COMPETITION_TYPE_LABELS[t as CompetitionType] ?? t} ({resultsByType[t]?.length ?? 0})
+              </TabsTrigger>
+            ))}
           </TabsList>
         </div>
         <div className="p-5 pt-3">
-          <TabsContent value="route" className="mt-0">
-            {routeResults.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-8 text-center">Aucun résultat en Route</p>
-            ) : (
-              <DataTable
-                columns={columns}
-                data={sortedRoute}
-                showColumnFilters={false}
-                sorting={{
-                  sortColumn: routeSort?.column,
-                  sortDirection: routeSort?.direction,
-                  onSortChange: handleRouteSortChange,
-                }}
-              />
-            )}
-          </TabsContent>
-          <TabsContent value="cx" className="mt-0">
-            {cxResults.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-8 text-center">Aucun résultat en Cyclo-cross</p>
-            ) : (
-              <DataTable
-                columns={columns}
-                data={sortedCx}
-                showColumnFilters={false}
-                sorting={{
-                  sortColumn: cxSort?.column,
-                  sortDirection: cxSort?.direction,
-                  onSortChange: handleCxSortChange,
-                }}
-              />
-            )}
-          </TabsContent>
+          {types.map(t => {
+            const typeResults = resultsByType[t] ?? [];
+            const sort = sortByType[t] ?? null;
+            const sorted = sortResults(typeResults, sort);
+            return (
+              <TabsContent key={t} value={t} className="mt-0">
+                {typeResults.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-8 text-center">
+                    Aucun résultat en {COMPETITION_TYPE_LABELS[t as CompetitionType] ?? t}
+                  </p>
+                ) : (
+                  <DataTable
+                    columns={columns}
+                    data={sorted}
+                    showColumnFilters={false}
+                    sorting={{
+                      sortColumn: sort?.column,
+                      sortDirection: sort?.direction,
+                      onSortChange: (column: string, direction: 'ASC' | 'DESC') => {
+                        setSortByType(prev => ({ ...prev, [t]: { column, direction } }));
+                      },
+                    }}
+                  />
+                )}
+              </TabsContent>
+            );
+          })}
         </div>
       </Tabs>
     </div>

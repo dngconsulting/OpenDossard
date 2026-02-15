@@ -1,6 +1,7 @@
-import { Bike, Calendar, ExternalLink, Mountain, TreePine } from 'lucide-react';
+import { Calendar, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+import { COMPETITION_TYPE_ICONS } from '@/config/competition-type.config';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,11 +12,6 @@ type Props = {
   challenge: ChallengeType;
 };
 
-const competitionTypeIcons: Record<string, React.ReactNode> = {
-  ROUTE: <Bike className="size-5" />,
-  CX: <TreePine className="size-5" />,
-  VTT: <Mountain className="size-5" />,
-};
 
 export function ChallengeCard({ challenge }: Props) {
   const navigate = useNavigate();
@@ -31,7 +27,7 @@ export function ChallengeCard({ challenge }: Props) {
     }
   };
 
-  const icon = competitionTypeIcons[challenge.competitionType] || <Bike className="size-5" />;
+  const Icon = COMPETITION_TYPE_ICONS[challenge.competitionType] ?? null;
   const typeLabel = COMPETITION_TYPE_LABELS[challenge.competitionType] || challenge.competitionType;
   const nbCompetitions = challenge.competitionIds?.length || 0;
 
@@ -43,7 +39,7 @@ export function ChallengeCard({ challenge }: Props) {
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 text-muted-foreground">
-            {icon}
+            {Icon && <Icon className="size-5" />}
             <span className="text-sm font-medium">{typeLabel}</span>
           </div>
           <Badge variant={challenge.active ? 'default' : 'secondary'}>

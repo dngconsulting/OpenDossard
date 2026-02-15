@@ -75,16 +75,23 @@ export default function PalmaresPage() {
     return computeStats(filteredResults);
   }, [palmares, selectedSeason, filteredResults]);
 
-  const filteredHistoryRoute = useMemo(() => {
-    if (!palmares) return [];
-    if (selectedSeason === ALL_SEASONS) return palmares.categoryHistoryRoute;
-    return palmares.categoryHistoryRoute.filter(h => h.season === selectedSeason);
-  }, [palmares, selectedSeason]);
+  // Ordre des types par nombre de résultats décroissant
+  const typeOrder = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const r of filteredResults) {
+      counts[r.competitionType] = (counts[r.competitionType] ?? 0) + 1;
+    }
+    return Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  }, [filteredResults]);
 
-  const filteredHistoryCX = useMemo(() => {
-    if (!palmares) return [];
-    if (selectedSeason === ALL_SEASONS) return palmares.categoryHistoryCX;
-    return palmares.categoryHistoryCX.filter(h => h.season === selectedSeason);
+  const filteredCategoryHistory = useMemo(() => {
+    if (!palmares?.categoryHistory) return {};
+    if (selectedSeason === ALL_SEASONS) return palmares.categoryHistory;
+    const filtered: Record<string, typeof palmares.categoryHistory[string]> = {};
+    for (const [type, history] of Object.entries(palmares.categoryHistory)) {
+      filtered[type] = history.filter(h => h.season === selectedSeason);
+    }
+    return filtered;
   }, [palmares, selectedSeason]);
 
   const handleLicenceChange = (licence: LicenceType | null) => {
@@ -140,7 +147,7 @@ export default function PalmaresPage() {
           <>
             <RiderHeaderCard licence={palmares.licence} />
             <RiderStatsCards stats={filteredStats} />
-            <RankingHistorySection historyRoute={filteredHistoryRoute} historyCX={filteredHistoryCX} />
+            <RankingHistorySection categoryHistory={filteredCategoryHistory} typeOrder={typeOrder} />
             <PalmaresResultsTable results={filteredResults} />
           </>
         )}

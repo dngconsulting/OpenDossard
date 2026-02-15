@@ -133,12 +133,13 @@ export class PalmaresService {
       return history;
     };
 
-    const categoryHistoryRoute = buildCategoryHistory(
-      sortedAsc.filter(r => r.competitionType === 'ROUTE'),
-    );
-    const categoryHistoryCX = buildCategoryHistory(
-      sortedAsc.filter(r => r.competitionType === 'CX'),
-    );
+    const uniqueTypes = [...new Set(sortedAsc.map(r => r.competitionType))];
+    const categoryHistory: Record<string, PalmaresCategoryChangeDto[]> = {};
+    for (const type of uniqueTypes) {
+      categoryHistory[type] = buildCategoryHistory(
+        sortedAsc.filter(r => r.competitionType === type),
+      );
+    }
 
     // e) Map rows to PalmaresResultDto[]
     const results: PalmaresResultDto[] = rows.map(r => ({
@@ -158,7 +159,7 @@ export class PalmaresService {
     }));
 
     // f) Return full response
-    return { licence, stats, categoryHistoryRoute, categoryHistoryCX, results };
+    return { licence, stats, categoryHistory, results };
   }
 
   /**

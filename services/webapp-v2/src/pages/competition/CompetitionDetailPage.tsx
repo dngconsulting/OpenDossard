@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Bike, ChevronRight, Clock, Euro, Image, Info, Loader2, MapPin, Mountain, TreePine } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Clock, Euro, Image, Info, Loader2, MapPin } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { COMPETITION_TYPE_ICONS } from '@/config/competition-type.config';
 import { FEDERATIONS, type FedeEnum } from '@/config/federations';
 import {
   useCompetition,
@@ -27,11 +28,6 @@ import { MediasTab } from './MediasTab';
 import { TarifsTab } from './TarifsTab';
 import { competitionSchema, type FormValues, type TabValue, VALID_TABS } from './types';
 
-const competitionTypeIcons: Record<string, React.ReactNode> = {
-  ROUTE: <Bike className="size-4" />,
-  CX: <TreePine className="size-4" />,
-  VTT: <Mountain className="size-4" />,
-};
 
 export default function CompetitionDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -200,8 +196,8 @@ export default function CompetitionDetailPage() {
     }
   };
 
-  const typeIcon = competition?.competitionType
-    ? competitionTypeIcons[competition.competitionType] || <Bike className="size-4" />
+  const TypeIcon = competition?.competitionType
+    ? COMPETITION_TYPE_ICONS[competition.competitionType] ?? null
     : null;
   const typeLabel = competition?.competitionType
     ? COMPETITION_TYPE_LABELS[competition.competitionType] || competition.competitionType
@@ -276,7 +272,7 @@ export default function CompetitionDetailPage() {
       {competition && (
         <>
           <Badge className="bg-slate-600 text-white hover:bg-slate-600 gap-1">
-            {typeIcon}
+            {TypeIcon && <TypeIcon className="size-4" />}
             {typeLabel}
           </Badge>
           {competition.fede && (

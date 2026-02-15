@@ -9,6 +9,14 @@ import {
   loadOpenDossardLogo,
 } from './pdf-logo.utils';
 
+const COMPETITION_TYPE_LABELS: Record<string, string> = {
+  ROUTE: 'Route',
+  CX: 'Cyclo-cross',
+  VTT: 'VTT',
+  GRAVEL: 'Gravel',
+  RANDO: 'Randonnée',
+};
+
 function formatDateFr(dateStr: string | Date): string {
   const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
   const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
@@ -334,7 +342,8 @@ export async function generateFicheEpreuvePDF(competition: CompetitionEntity): P
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(0);
-  doc.text(`RÈGLEMENT ÉPREUVE ROUTE — Saison : ${saison}`, pageWidth / 2, bannerY + 5.5, {
+  const typeLabel = COMPETITION_TYPE_LABELS[competition.competitionType] ?? competition.competitionType;
+  doc.text(`RÈGLEMENT ÉPREUVE ${typeLabel.toUpperCase()} — Saison : ${saison}`, pageWidth / 2, bannerY + 5.5, {
     align: 'center',
   });
 
