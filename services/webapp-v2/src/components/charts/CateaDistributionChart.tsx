@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { Cell, Pie, PieChart, Label } from 'recharts';
+import { exportChartToPdf } from '@/utils/chart-pdf-export';
 
 import {
   Card,
@@ -40,6 +41,11 @@ type Props = {
 };
 
 export function CateaDistributionChart({ data, isLoading }: Props) {
+  const chartRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPdf = () => {
+    if (chartRef.current) exportChartToPdf(chartRef.current, "Répartition par catégorie d'âge");
+  };
   const { chartData, chartConfig, total, sortedAll } = useMemo(() => {
     if (!data?.length) {
       return { chartData: [], chartConfig: {} as ChartConfig, total: 0, sortedAll: [] };
@@ -67,6 +73,7 @@ export function CateaDistributionChart({ data, isLoading }: Props) {
 
   return (
     <CollapsibleChartCard
+      onExportPdf={handleExportPdf}
       header={
         <>
           <div className="h-10 w-1 rounded-full bg-gradient-to-b from-[var(--primary)] to-[var(--teal)]" />
@@ -80,7 +87,7 @@ export function CateaDistributionChart({ data, isLoading }: Props) {
         </>
       }
     >
-      <div className="flex flex-col sm:flex-row items-center gap-4">
+      <div ref={chartRef} className="flex flex-col sm:flex-row items-center gap-4">
         {/* Donut */}
         <ChartContainer config={chartConfig} className="aspect-square w-full max-w-[260px] shrink-0">
           <PieChart>

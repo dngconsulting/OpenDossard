@@ -1,5 +1,7 @@
+import { useRef } from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, LabelList } from 'recharts';
 import { useIsMobile } from '@/hooks/useMediaQuery';
+import { exportChartToPdf } from '@/utils/chart-pdf-export';
 
 import {
   Card,
@@ -36,6 +38,11 @@ function truncateLabel(label: string, maxLen = 40): string {
 
 export function ClubParticipationChart({ data, isLoading, defaultOpen }: Props) {
   const isMobile = useIsMobile();
+  const chartRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPdf = () => {
+    if (chartRef.current) exportChartToPdf(chartRef.current, 'Participation des clubs');
+  };
 
   if (isLoading) return <ChartSkeleton />;
   if (!data?.length) return <ChartEmpty />;
@@ -48,6 +55,7 @@ export function ClubParticipationChart({ data, isLoading, defaultOpen }: Props) 
   return (
     <CollapsibleChartCard
       defaultOpen={defaultOpen}
+      onExportPdf={handleExportPdf}
       header={
         <>
           <div className="h-10 w-1 rounded-full bg-gradient-to-b from-[var(--accent-green)] to-[var(--teal)]" />
@@ -62,6 +70,7 @@ export function ClubParticipationChart({ data, isLoading, defaultOpen }: Props) 
         </>
       }
     >
+      <div ref={chartRef}>
       <ChartContainer config={chartConfig} className="w-full" style={{ height: Math.max(400, top20.length * 32) }}>
         <BarChart data={top20} layout="vertical" margin={{ left: 10, right: 50 }}>
           <defs>
@@ -92,6 +101,7 @@ export function ClubParticipationChart({ data, isLoading, defaultOpen }: Props) 
           </Bar>
         </BarChart>
       </ChartContainer>
+      </div>
     </CollapsibleChartCard>
   );
 }

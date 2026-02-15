@@ -1,5 +1,7 @@
+import { useRef } from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, LabelList } from 'recharts';
 import { useIsMobile } from '@/hooks/useMediaQuery';
+import { exportChartToPdf } from '@/utils/chart-pdf-export';
 
 import {
   Card,
@@ -36,6 +38,11 @@ function truncateLabel(label: string, maxLen = 40): string {
 
 export function RidersPerCompetitionChart({ data, isLoading, defaultOpen }: Props) {
   const isMobile = useIsMobile();
+  const chartRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPdf = () => {
+    if (chartRef.current) exportChartToPdf(chartRef.current, 'Nombre de coureurs par épreuve');
+  };
 
   if (isLoading) return <ChartSkeleton title="Nombre de coureurs par épreuve" />;
   if (!data?.length) return <ChartEmpty title="Nombre de coureurs par épreuve" />;
@@ -47,6 +54,7 @@ export function RidersPerCompetitionChart({ data, isLoading, defaultOpen }: Prop
   return (
     <CollapsibleChartCard
       defaultOpen={defaultOpen}
+      onExportPdf={handleExportPdf}
       header={
         <>
           <div className="h-10 w-1 rounded-full bg-gradient-to-b from-[var(--primary)] to-[var(--teal)]" />
@@ -60,6 +68,7 @@ export function RidersPerCompetitionChart({ data, isLoading, defaultOpen }: Prop
         </>
       }
     >
+      <div ref={chartRef}>
       <ChartContainer config={chartConfig} className="w-full" style={{ height: Math.max(400, data.length * 28) }}>
         <BarChart data={data} layout="vertical" margin={{ left: 10, right: 50 }}>
           <defs>
@@ -108,6 +117,7 @@ export function RidersPerCompetitionChart({ data, isLoading, defaultOpen }: Prop
       {data.length >= 100 && (
         <p className="text-xs text-muted-foreground text-center mt-2">Seules les 100 premières épreuves sont affichées</p>
       )}
+      </div>
     </CollapsibleChartCard>
   );
 }

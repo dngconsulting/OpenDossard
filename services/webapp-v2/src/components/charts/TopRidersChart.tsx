@@ -1,5 +1,7 @@
+import { useRef } from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, LabelList } from 'recharts';
 import { useIsMobile } from '@/hooks/useMediaQuery';
+import { exportChartToPdf } from '@/utils/chart-pdf-export';
 
 import {
   Card,
@@ -36,6 +38,11 @@ function truncateLabel(label: string, maxLen = 24): string {
 
 export function TopRidersChart({ data, isLoading, defaultOpen }: Props) {
   const isMobile = useIsMobile();
+  const chartRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPdf = () => {
+    if (chartRef.current) exportChartToPdf(chartRef.current, 'Top coureurs les plus assidus');
+  };
 
   if (isLoading) return <ChartSkeleton />;
   if (!data?.length) return <ChartEmpty />;
@@ -50,6 +57,7 @@ export function TopRidersChart({ data, isLoading, defaultOpen }: Props) {
   return (
     <CollapsibleChartCard
       defaultOpen={defaultOpen}
+      onExportPdf={handleExportPdf}
       header={
         <>
           <div className="h-10 w-1 rounded-full bg-gradient-to-b from-[var(--teal)] to-[var(--primary)]" />
@@ -62,6 +70,7 @@ export function TopRidersChart({ data, isLoading, defaultOpen }: Props) {
         </>
       }
     >
+      <div ref={chartRef}>
       <ChartContainer config={chartConfig} className="w-full" style={{ height: Math.max(400, chartData.length * 30) }}>
         <BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 50 }} barGap={4}>
           <defs>
@@ -104,6 +113,7 @@ export function TopRidersChart({ data, isLoading, defaultOpen }: Props) {
       {data.length >= 50 && (
         <p className="text-xs text-muted-foreground text-center mt-2">Seuls les 50 premiers coureurs sont affichés</p>
       )}
+      </div>
     </CollapsibleChartCard>
   );
 }
