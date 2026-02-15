@@ -233,7 +233,7 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange }:
         catev: data.catev || undefined,
         catevCX: data.catevCX || undefined,
         saison: data.saison || undefined,
-        comment: data.comment || undefined,
+        comment: data.comment ?? undefined,
       };
 
       if (isEditing && updatingLicence) {
