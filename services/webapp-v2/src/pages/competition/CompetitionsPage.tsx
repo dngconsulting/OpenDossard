@@ -33,23 +33,26 @@ export default function CompetitionsPage() {
   const isAll = !params.startDate && !params.endDate;
 
   const handleStartDateChange = (date: Date | undefined) => {
-    setAdvancedFilters({ startDate: date ? format(date, 'yyyy-MM-dd') : undefined });
+    setAdvancedFilters({
+      startDate: date ? format(date, 'yyyy-MM-dd') : undefined,
+      orderDirection: date ? 'ASC' : 'DESC',
+    });
   };
 
   const handleEndDateChange = (date: Date | undefined) => {
-    setAdvancedFilters({ endDate: date ? format(date, 'yyyy-MM-dd') : undefined });
+    setAdvancedFilters({ endDate: date ? format(date, 'yyyy-MM-dd') : undefined, orderDirection: 'DESC' });
   };
 
   const handleDisplayAllChange = () => {
-    setAdvancedFilters({ startDate: undefined, endDate: undefined });
+    setAdvancedFilters({ startDate: undefined, endDate: undefined, orderDirection: 'DESC' });
   };
 
   const handleDisplayFutureChange = () => {
-    setAdvancedFilters({ startDate: today, endDate: undefined });
+    setAdvancedFilters({ startDate: today, endDate: undefined, orderDirection: 'ASC' });
   };
 
   const handleDisplayPastChange = () => {
-    setAdvancedFilters({ startDate: undefined, endDate: today });
+    setAdvancedFilters({ startDate: undefined, endDate: today, orderDirection: 'DESC' });
   };
 
   const handleDuplicate = () => {
