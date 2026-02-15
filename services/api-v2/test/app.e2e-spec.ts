@@ -1,22 +1,46 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe, VersioningType } from '@nestjs/common';
 import * as request from 'supertest';
 import { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
+import { HealthModule } from './../src/health/health.module';
 
-describe('AppController (e2e)', () => {
+describe('API v2 (e2e)', () => {
   let app: INestApplication<App>;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [HealthModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.setGlobalPrefix('api');
+    app.enableVersioning({
+      type: VersioningType.URI,
+      defaultVersion: '2',
+    });
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        transform: true,
+        transformOptions: { enableImplicitConversion: true },
+      }),
+    );
     await app.init();
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer()).get('/').expect(200).expect('Hello World!');
+  afterAll(async () => {
+    await app.close();
+  });
+
+  describe('Health', () => {
+    it('GET /api/v2/health should return status ok', () => {
+      return request(app.getHttpServer())
+        .get('/api/v2/health')
+        .expect(200)
+        .expect(res => {
+          expect(res.body.status).toBe('ok');
+          expect(res.body.timestamp).toBeDefined();
+        });
+    });
   });
 });
