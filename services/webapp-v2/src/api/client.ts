@@ -47,94 +47,72 @@ async function refreshTokenOnce(): Promise<boolean> {
   return refreshPromise;
 }
 
-export async function apiClient<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const isFormData = options?.body instanceof FormData;
-  const headers: HeadersInit = {
-    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
-    ...options?.headers,
-  };
-
-  // Add auth header if we have a token
-  const token = getAccessToken?.();
-  if (token) {
-    (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
-  }
-
-  const fullEndpoint = `${options?.method || 'GET'} ${endpoint}`;
-
-  let response: Response;
-  try {
-    response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
-  } catch (error) {
-    // Network error (Failed to fetch, CORS, etc.)
+function doFetch(url: string, options: RequestInit, logEndpoint: string): Promise<Response> {
+  return fetch(url, options).catch((error) => {
     throw new ApiError({
       status: 0,
-      endpoint: fullEndpoint,
+      endpoint: logEndpoint,
       serverMessage: error instanceof Error ? error.message : 'Network error',
       stack: error instanceof Error ? error.stack : undefined,
     });
+  });
+}
+
+async function authenticatedFetch(endpoint: string, options?: RequestInit): Promise<Response> {
+  const isFormData = options?.body instanceof FormData;
+  const headers: Record<string, string> = {
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+    ...(options?.headers as Record<string, string>),
+  };
+
+  const token = getAccessToken?.();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
-  // Handle 401 Unauthorized - attempt token refresh before logging out
+  const fullEndpoint = `${options?.method || 'GET'} ${endpoint}`;
+  const fetchOptions: RequestInit = { ...options, headers };
+  const url = `${API_BASE_URL}${endpoint}`;
+
+  let response = await doFetch(url, fetchOptions, fullEndpoint);
+
+  // Handle 401 Unauthorized - attempt token refresh then retry once
   if (response.status === 401) {
     const refreshed = await refreshTokenOnce();
 
-    if (refreshed) {
-      // Retry the original request with the new token
-      const newToken = getAccessToken?.();
-      if (newToken) {
-        (headers as Record<string, string>)['Authorization'] = `Bearer ${newToken}`;
-      }
-
-      try {
-        response = await fetch(`${API_BASE_URL}${endpoint}`, {
-          ...options,
-          headers,
-        });
-      } catch (error) {
-        throw new ApiError({
-          status: 0,
-          endpoint: fullEndpoint,
-          serverMessage: error instanceof Error ? error.message : 'Network error',
-          stack: error instanceof Error ? error.stack : undefined,
-        });
-      }
-
-      // If still 401 after refresh, logout
-      if (response.status === 401) {
-        logoutFn?.();
-        throw new ApiError({
-          status: 401,
-          endpoint: fullEndpoint,
-          serverMessage: 'Session expirée',
-        });
-      }
-    } else {
-      // Refresh failed - logout
+    if (!refreshed) {
       logoutFn?.();
-      throw new ApiError({
-        status: 401,
-        endpoint: fullEndpoint,
-        serverMessage: 'Session expirée',
-      });
+      throw new ApiError({ status: 401, endpoint: fullEndpoint, serverMessage: 'Session expirée' });
+    }
+
+    const newToken = getAccessToken?.();
+    if (newToken) {
+      headers['Authorization'] = `Bearer ${newToken}`;
+    }
+
+    response = await doFetch(url, { ...options, headers }, fullEndpoint);
+
+    if (response.status === 401) {
+      logoutFn?.();
+      throw new ApiError({ status: 401, endpoint: fullEndpoint, serverMessage: 'Session expirée' });
     }
   }
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
-    // Pass the message as-is (can be string or array from NestJS validation)
-    // Also include error field if message is not available
-    const serverMessage = errorBody.message || errorBody.error || response.statusText;
     throw new ApiError({
       status: response.status,
       endpoint: fullEndpoint,
-      serverMessage,
+      serverMessage: errorBody.message || errorBody.error || response.statusText,
       stack: new Error().stack,
     });
   }
+
+  return response;
+}
+
+export async function apiClient<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const response = await authenticatedFetch(endpoint, options);
 
   // Handle empty responses (204 No Content)
   const text = await response.text();
@@ -143,4 +121,9 @@ export async function apiClient<T>(endpoint: string, options?: RequestInit): Pro
   }
 
   return JSON.parse(text);
+}
+
+export async function apiFetchBlob(endpoint: string): Promise<Blob> {
+  const response = await authenticatedFetch(endpoint);
+  return response.blob();
 }

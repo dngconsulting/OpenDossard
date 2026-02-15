@@ -66,7 +66,7 @@ export default function CompetitionsPage() {
       const token = useUserStore.getState().getAccessToken();
       const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v2';
       const response = await fetch(
-        `${baseUrl}/pdf-reports/fiche-epreuve/${comp.id}`,
+        `${baseUrl}/reports/pdf/fiche-epreuve/${comp.id}`,
         { headers: { Authorization: `Bearer ${token}` } },
       );
       if (!response.ok) {

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { LicenceEntity } from './entities/licence.entity';
 import { CreateLicenceDto, FilterLicenceDto, UpdateLicenceDto } from './dto';
 import { PaginatedResponseDto } from '../common/dto';
@@ -12,10 +12,8 @@ export class LicencesService {
     private licenceRepository: Repository<LicenceEntity>,
   ) {}
 
-  async findAll(filterDto: FilterLicenceDto): Promise<PaginatedResponseDto<LicenceEntity>> {
+  private buildFilteredQuery(filterDto: FilterLicenceDto): SelectQueryBuilder<LicenceEntity> {
     const {
-      offset = 0,
-      limit = 20,
       search,
       orderBy = 'name',
       orderDirection = 'ASC',
@@ -136,6 +134,14 @@ export class LicencesService {
       queryBuilder.orderBy(`licence.${orderField}`, orderDirection as 'ASC' | 'DESC');
     }
 
+    return queryBuilder;
+  }
+
+  async findAll(filterDto: FilterLicenceDto): Promise<PaginatedResponseDto<LicenceEntity>> {
+    const { offset = 0, limit = 20 } = filterDto;
+
+    const queryBuilder = this.buildFilteredQuery(filterDto);
+
     // Add races count as a correlated subquery
     queryBuilder.addSelect(
       '(SELECT COUNT(*) FROM race WHERE race.licence_id = licence.id)',
@@ -157,6 +163,11 @@ export class LicencesService {
     }));
 
     return new PaginatedResponseDto(data, total, offset, limit);
+  }
+
+  async findForExport(filterDto: FilterLicenceDto): Promise<LicenceEntity[]> {
+    const queryBuilder = this.buildFilteredQuery(filterDto);
+    return queryBuilder.take(1500).getMany();
   }
 
   async findOne(id: number): Promise<LicenceEntity> {

@@ -1,6 +1,4 @@
-import { saveAs } from 'file-saver';
-
-import type { LicenceType } from '@/types/licences';
+import { LicenceEntity } from '../../../licences/entities/licence.entity';
 
 interface CsvColumn {
   label: string;
@@ -28,29 +26,16 @@ interface TransformedLicence {
   authorLogin: string;
 }
 
-/**
- * Formats a date string to DD/MM/YYYY format
- */
-function formatDate(dateString?: string): string {
-  if (!dateString) return '';
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return '';
+function formatDate(date?: Date): string {
+  if (!date) return '';
   return date.toLocaleDateString('fr-FR');
 }
 
-/**
- * Formats a date string to HH:mm:ss format
- */
-function formatTime(dateString?: string): string {
-  if (!dateString) return '';
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return '';
+function formatTime(date?: Date): string {
+  if (!date) return '';
   return date.toLocaleTimeString('fr-FR');
 }
 
-/**
- * Parses author string (format: "login/nom/prenom") to extract parts
- */
 function parseAuthor(author?: string): { login: string; nomPrenom: string } {
   if (!author) return { login: '', nomPrenom: '' };
   const parts = author.split('/');
@@ -63,10 +48,7 @@ function parseAuthor(author?: string): { login: string; nomPrenom: string } {
   return { login: author, nomPrenom: '' };
 }
 
-/**
- * Transforms licence data for CSV export
- */
-function transformLicenceForCsv(licence: LicenceType): TransformedLicence {
+function transformLicence(licence: LicenceEntity): TransformedLicence {
   const { login, nomPrenom } = parseAuthor(licence.author);
 
   return {
@@ -93,17 +75,17 @@ function transformLicenceForCsv(licence: LicenceType): TransformedLicence {
 
 const CSV_COLUMNS: CsvColumn[] = [
   { label: 'ID', value: 'id' },
-  { label: 'Lic. N\u00b0', value: 'licenceNumber' },
+  { label: 'Lic. N°', value: 'licenceNumber' },
   { label: 'Nom', value: 'name' },
-  { label: 'Pr\u00e9nom', value: 'firstName' },
+  { label: 'Prénom', value: 'firstName' },
   { label: 'Club', value: 'club' },
   { label: 'H/F', value: 'gender' },
   { label: 'Dept', value: 'dept' },
-  { label: 'Ann\u00e9e', value: 'birthYear' },
-  { label: 'Cat\u00e9.A', value: 'catea' },
-  { label: 'Cat\u00e9.V', value: 'catev' },
-  { label: 'Cat\u00e9.CX', value: 'catevCX' },
-  { label: 'F\u00e9d\u00e9', value: 'fede' },
+  { label: 'Année', value: 'birthYear' },
+  { label: 'Caté.A', value: 'catea' },
+  { label: 'Caté.V', value: 'catev' },
+  { label: 'Caté.CX', value: 'catevCX' },
+  { label: 'Fédé', value: 'fede' },
   { label: 'Saison', value: 'saison' },
   { label: 'Com.', value: 'comment' },
   { label: 'Date MAJ', value: 'lastChanged' },
@@ -112,44 +94,26 @@ const CSV_COLUMNS: CsvColumn[] = [
   { label: 'Login Auteur', value: 'authorLogin' },
 ];
 
-/**
- * Escapes a CSV field value (handles quotes and delimiters)
- */
 function escapeCsvField(value: string | number): string {
   const stringValue = String(value);
-  // If value contains delimiter, quote, or newline, wrap in quotes and escape existing quotes
   if (stringValue.includes(';') || stringValue.includes('"') || stringValue.includes('\n')) {
     return `"${stringValue.replace(/"/g, '""')}"`;
   }
   return stringValue;
 }
 
-/**
- * Converts data to CSV string
- */
-function toCsv(data: TransformedLicence[], columns: CsvColumn[], delimiter = ';'): string {
-  // Header row
-  const header = columns.map(col => escapeCsvField(col.label)).join(delimiter);
+export function generateLicencesCSVBuffer(licences: LicenceEntity[]): Buffer {
+  const transformed = licences.map(transformLicence);
 
-  // Data rows
-  const rows = data.map(row =>
-    columns.map(col => escapeCsvField(row[col.value])).join(delimiter)
+  const header = CSV_COLUMNS.map(col => escapeCsvField(col.label)).join(';');
+  const rows = transformed.map(row =>
+    CSV_COLUMNS.map(col => escapeCsvField(row[col.value])).join(';'),
   );
+  const csv = [header, ...rows].join('\n');
 
-  return [header, ...rows].join('\n');
+  // BOM UTF-8 + CSV content
+  return Buffer.concat([
+    Buffer.from('\uFEFF', 'utf-8'),
+    Buffer.from(csv, 'utf-8'),
+  ]);
 }
-
-/**
- * Generates a CSV file containing a table of licences
- * @param data - Array of licences to export
- */
-export const licencesCSV = (data: LicenceType[]): void => {
-  const transformedData = data.map(transformLicenceForCsv);
-  const csv = toCsv(transformedData, CSV_COLUMNS);
-
-  // Add BOM for proper Excel encoding
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
-
-  const date = new Date().toISOString().split('T')[0];
-  saveAs(blob, `licences - ${date}.csv`);
-};

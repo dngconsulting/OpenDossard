@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Logger } from '@nestjs/common';
-import { Federation } from '../../common/enums';
+import { Federation } from '../../../common/enums';
 
 const logger = new Logger('PdfLogoUtils');
 

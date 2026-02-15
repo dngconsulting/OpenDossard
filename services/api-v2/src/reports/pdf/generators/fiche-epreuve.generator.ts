@@ -2,7 +2,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { JSDOM } from 'jsdom';
 
-import { CompetitionEntity } from '../../competitions/entities/competition.entity';
+import { CompetitionEntity } from '../../../competitions/entities/competition.entity';
 import {
   addLogoToPdf,
   loadLogoAsDataUrl,
