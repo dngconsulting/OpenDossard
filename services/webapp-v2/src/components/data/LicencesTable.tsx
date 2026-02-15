@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table.tsx';
+import type { MultiSelectOption } from '@/components/ui/multi-select';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Tooltip,
@@ -63,6 +64,20 @@ function TableSkeleton() {
     </div>
   );
 }
+
+const DEPT_OPTIONS: MultiSelectOption[] = [
+  ...Array.from({ length: 19 }, (_, i) => {
+    const code = String(i + 1).padStart(2, '0');
+    return { value: code, label: code };
+  }),
+  { value: '2A', label: '2A' },
+  { value: '2B', label: '2B' },
+  ...Array.from({ length: 75 }, (_, i) => {
+    const code = String(i + 21).padStart(2, '0');
+    return { value: code, label: code };
+  }),
+  ...['971', '972', '973', '974', '976'].map(c => ({ value: c, label: c })),
+];
 
 type LicenceTableProps = {
   onEdit?: (row: LicenceType) => void;
@@ -147,7 +162,8 @@ export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
     {
       accessorKey: 'dept',
       header: 'Dept',
-      size: 80,
+      size: 100,
+      cell: ({ row }) => <span className="block text-center">{row.original.dept || '-'}</span>,
     },
     {
       accessorKey: 'birthYear',
@@ -215,6 +231,7 @@ export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
       onDeleteRow={onDelete}
       isLoading={isLoading}
       serverFilters={(params.filters as Record<string, string>) || {}}
+      multiSelectColumns={{ dept: { options: DEPT_OPTIONS } }}
       onFilterChange={(columnId, value) => setFilter(columnId as keyof LicenceType, value)}
       sorting={{
         sortColumn: params.orderBy,

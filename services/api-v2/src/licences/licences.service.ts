@@ -79,7 +79,12 @@ export class LicencesService {
       queryBuilder.andWhere('licence.club ILIKE :club', { club: `%${club}%` });
     }
     if (dept) {
-      queryBuilder.andWhere('licence.dept ILIKE :dept', { dept: `%${dept}%` });
+      if (dept.includes(',')) {
+        const deptsArray = dept.split(',').map(d => d.trim());
+        queryBuilder.andWhere('licence.dept IN (:...deptsArray)', { deptsArray });
+      } else {
+        queryBuilder.andWhere('licence.dept ILIKE :dept', { dept: `%${dept}%` });
+      }
     }
     if (fede) {
       queryBuilder.andWhere('licence.fede::text ILIKE :fede', { fede: `%${fede}%` });

@@ -47,6 +47,7 @@ import * as React from 'react';
 
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
+import { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-select';
 import {
   Select,
   SelectContent,
@@ -104,6 +105,7 @@ interface DataTableProps<TData, TValue> {
   sorting?: SortingProps;
   showColumnFilters?: boolean;
   renderBeforeRow?: (row: TData, index: number) => React.ReactNode | null;
+  multiSelectColumns?: Record<string, { options: MultiSelectOption[] }>;
 }
 
 interface SortableRowProps<TData> {
@@ -218,6 +220,7 @@ export function DataTable<TData, TValue>({
   sorting,
   showColumnFilters = true,
   renderBeforeRow,
+  multiSelectColumns,
 }: DataTableProps<TData, TValue>) {
   const isServerFiltering = !!onFilterChange;
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -266,6 +269,12 @@ export function DataTable<TData, TValue>({
     debounceTimers.current[columnId] = setTimeout(() => {
       onFilterChange?.(columnId, value);
     }, 500);
+  }, [onFilterChange]);
+
+  const handleMultiSelectChange = React.useCallback((columnId: string, values: string[]) => {
+    const joined = values.join(',');
+    setLocalFilters(prev => ({ ...prev, [columnId]: joined }));
+    onFilterChange?.(columnId, joined);
   }, [onFilterChange]);
 
   const handleSortChange = React.useCallback(
@@ -394,6 +403,24 @@ export function DataTable<TData, TValue>({
                     ? localFilters[columnId] || ''
                     : header.column.getFilterValue()?.toString() || ''
                   : '';
+                const multiSelectConfig = multiSelectColumns?.[columnId];
+                if (canFilter && multiSelectConfig) {
+                  const selected = filterValue ? filterValue.split(',') : [];
+                  return (
+                    <TableFilterCell
+                      key={header.id}
+                      style={hasFixedSize ? { width: header.getSize() } : undefined}
+                    >
+                      <MultiSelect
+                        options={multiSelectConfig.options}
+                        selected={selected}
+                        onChange={(values) => handleMultiSelectChange(columnId, values)}
+                        placeholder=""
+                        className="h-8 min-w-0 w-full text-xs"
+                      />
+                    </TableFilterCell>
+                  );
+                }
                 return (
                   <TableFilterCell
                     key={header.id}
@@ -405,7 +432,7 @@ export function DataTable<TData, TValue>({
                           <Search className="absolute left-1.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50 pointer-events-none" />
                         )}
                         <Input
-                          placeholder={columnId === 'club' ? 'Ex: Castan\u00e9en' : ''}
+                          placeholder={columnId === 'club' ? 'Ex: Castanéen' : ''}
                           value={filterValue}
                           onChange={event => {
                             if (isServerFiltering) {
