@@ -56,10 +56,10 @@ export default function Layout({ children, title, toolbar, toolbarLeft, noPaddin
           {isMobile ? <MobileHeader title={title} /> : <DesktopHeader title={title} />}
         </header>
         {(toolbar || toolbarLeft) && (
-          <div className="toolbar-area flex items-center gap-2 px-4 py-2">
-            {toolbarLeft && <div className="flex-1">{toolbarLeft}</div>}
-            {!toolbarLeft && <div className="flex-1" />}
-            <div className="flex items-center gap-2">{toolbar}</div>
+          <div className="toolbar-area flex flex-wrap items-center gap-2 px-4 py-2">
+            {toolbarLeft && <div className="flex-shrink-0">{toolbarLeft}</div>}
+            <div className="flex-1" />
+            <div className="flex flex-wrap items-center gap-2">{toolbar}</div>
           </div>
         )}
         <div className={`flex flex-1 flex-col gap-4 ${noPadding ? '' : 'p-4'}`}>{children}</div>
