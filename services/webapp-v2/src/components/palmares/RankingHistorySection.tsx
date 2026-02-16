@@ -64,15 +64,17 @@ export function RankingHistorySection({ categoryHistory, typeOrder }: Props) {
       <Tabs defaultValue={defaultTab}>
         <div className="px-5 pt-5 pb-0 flex items-center justify-between">
           <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-            Évolution de catégorie
+            Évolution de catégorie{types.length === 1 && ` · ${COMPETITION_TYPE_LABELS[types[0] as CompetitionType] ?? types[0]}`}
           </h3>
-          <TabsList>
-            {types.map(t => (
-              <TabsTrigger key={t} value={t}>
-                {COMPETITION_TYPE_LABELS[t as CompetitionType] ?? t}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          {types.length > 1 && (
+            <TabsList>
+              {types.map(t => (
+                <TabsTrigger key={t} value={t}>
+                  {COMPETITION_TYPE_LABELS[t as CompetitionType] ?? t}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          )}
         </div>
         <div className="p-5 pt-3">
           {types.map(t => (

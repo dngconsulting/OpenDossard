@@ -174,14 +174,18 @@ export function PalmaresResultsTable({ results }: Props) {
     <div className="rounded-xl border bg-card">
       <Tabs defaultValue={defaultTab}>
         <div className="px-5 pt-5 pb-0 flex items-center justify-between">
-          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Résultats</h3>
-          <TabsList>
-            {types.map(t => (
-              <TabsTrigger key={t} value={t}>
-                {COMPETITION_TYPE_LABELS[t as CompetitionType] ?? t} ({resultsByType[t]?.length ?? 0})
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+            Résultats{types.length === 1 && ` · ${COMPETITION_TYPE_LABELS[types[0] as CompetitionType] ?? types[0]}`}
+          </h3>
+          {types.length > 1 && (
+            <TabsList>
+              {types.map(t => (
+                <TabsTrigger key={t} value={t}>
+                  {COMPETITION_TYPE_LABELS[t as CompetitionType] ?? t} ({resultsByType[t]?.length ?? 0})
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          )}
         </div>
         <div className="p-5 pt-3">
           {types.map(t => {
