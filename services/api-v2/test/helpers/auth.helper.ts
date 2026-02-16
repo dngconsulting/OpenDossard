@@ -11,7 +11,7 @@ export class AuthHelper {
   constructor(app: INestApplication) {
     this.jwtService = app.get(JwtService);
     const configService = app.get(ConfigService);
-    this.jwtSecret = configService.get('JWT_SECRET', 'test-opendossard-secret-v2');
+    this.jwtSecret = configService.get('JWT_SECRET', 'opendossard-secret-v2');
   }
 
   /**
