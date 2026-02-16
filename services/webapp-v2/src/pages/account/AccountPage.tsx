@@ -104,7 +104,7 @@ export default function AccountPage() {
   };
 
   return (
-    <Layout title="Mon compte" noPadding>
+    <Layout title="Mon compte">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full">
           <Card>
@@ -211,7 +211,7 @@ export default function AccountPage() {
                           form={form}
                           label="Mot de passe actuel"
                           type="password"
-                          autoComplete="current-password"
+                          autoComplete="off"
                         />
                       </div>
                     </div>

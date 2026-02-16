@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority';
-import { Check, ChevronsUpDown, Plus } from 'lucide-react';
+import { Check, ChevronsUpDown, Eye, EyeOff, Plus } from 'lucide-react';
 import {
   type HTMLInputAutoCompleteAttribute,
   type HTMLInputTypeAttribute,
@@ -258,27 +258,46 @@ const ControlledStringField = ({
   description?: string;
   required?: boolean;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
-}) => (
-  <Field data-invalid={fieldState.invalid}>
-    <FieldLabel htmlFor={`${field.name}-input`}>
-      {label}
-      {required && <span className="text-destructive">*</span>}
-    </FieldLabel>
-    <Input
-      {...field}
-      id={`${field.name}-input`}
-      aria-invalid={fieldState.invalid}
-      autoComplete={autoComplete}
-      type={type}
-      onBlur={e => {
-        field.onBlur();
-        onBlur?.(e);
-      }}
-    />
-    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-    {description && !fieldState.invalid && <FieldDescription>{description}</FieldDescription>}
-  </Field>
-);
+}) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = type === 'password';
+  const inputType = isPassword && showPassword ? 'text' : type;
+
+  return (
+    <Field data-invalid={fieldState.invalid}>
+      <FieldLabel htmlFor={`${field.name}-input`}>
+        {label}
+        {required && <span className="text-destructive">*</span>}
+      </FieldLabel>
+      <div className="relative">
+        <Input
+          {...field}
+          id={`${field.name}-input`}
+          aria-invalid={fieldState.invalid}
+          autoComplete={autoComplete}
+          type={inputType}
+          className={isPassword ? 'pr-10' : ''}
+          onBlur={e => {
+            field.onBlur();
+            onBlur?.(e);
+          }}
+        />
+        {isPassword && (
+          <button
+            type="button"
+            tabIndex={-1}
+            onClick={() => setShowPassword(prev => !prev)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        )}
+      </div>
+      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+      {description && !fieldState.invalid && <FieldDescription>{description}</FieldDescription>}
+    </Field>
+  );
+};
 
 type StringFieldProps<T extends FieldValues> = {
   form: UseFormReturn<T>;
