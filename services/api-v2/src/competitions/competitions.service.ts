@@ -42,23 +42,7 @@ export class CompetitionsService {
 
     const queryBuilder = this.competitionRepository
       .createQueryBuilder('competition')
-      .leftJoinAndSelect('competition.club', 'club')
-      // Sous-requête pour compter les engagements
-      .addSelect(
-        subQuery =>
-          subQuery.select('COUNT(*)').from('race', 'r').where('r.competition_id = competition.id'),
-        'engagementsCount',
-      )
-      // Sous-requête pour compter les classements (avec ranking_scratch non null)
-      .addSelect(
-        subQuery =>
-          subQuery
-            .select('COUNT(*)')
-            .from('race', 'r')
-            .where('r.competition_id = competition.id')
-            .andWhere('r.ranking_scratch IS NOT NULL'),
-        'classementsCount',
-      );
+      .leftJoinAndSelect('competition.club', 'club');
 
     // Global search
     if (search) {
@@ -117,11 +101,23 @@ export class CompetitionsService {
     const orderField = validOrderFields.includes(orderBy) ? orderBy : 'eventDate';
     queryBuilder.orderBy(`competition.${orderField}`, orderDirection as 'ASC' | 'DESC');
 
-    // Get total count before pagination
+    // Get total count BEFORE adding race join (avoids unnecessary join for count)
     const total = await queryBuilder.getCount();
 
+    // LEFT JOIN race table and compute aggregated counts in a single pass
+    // (replaces 2 correlated subqueries per row → 1 join + GROUP BY)
+    queryBuilder
+      .leftJoin('race', 'r', 'r.competition_id = competition.id')
+      .addSelect('COUNT(r.id)', 'engagementsCount')
+      .addSelect(
+        'SUM(CASE WHEN r.ranking_scratch IS NOT NULL THEN 1 ELSE 0 END)',
+        'classementsCount',
+      )
+      .groupBy('competition.id')
+      .addGroupBy('club.id');
+
     // Pagination
-    queryBuilder.skip(offset).take(limit);
+    queryBuilder.offset(offset).limit(limit);
 
     // Execute and map results
     const rawResults = await queryBuilder.getRawAndEntities();
