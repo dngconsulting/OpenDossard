@@ -189,7 +189,7 @@ export function LicenceAutocomplete({
   };
 
   return (
-    <div className={hideLabel ? '' : 'space-y-2'}>
+    <div className={cn(!hideLabel && 'space-y-2')}>
       {!hideLabel && (
         <Label>
           Saisir coureur
@@ -256,7 +256,6 @@ export function LicenceAutocomplete({
           </div>
         )}
       </div>
-      {error && <p className="text-destructive text-sm">{error}</p>}
     </div>
   );
 }
