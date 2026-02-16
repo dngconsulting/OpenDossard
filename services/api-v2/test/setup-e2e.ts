@@ -56,6 +56,7 @@ beforeAll(async () => {
   // 5. Synchronize schema in the testcontainer DB
   //    (app.module.ts has synchronize: false — we handle it here, not in prod code)
   const dataSource = moduleFixture.get(DataSource);
+  await dataSource.query('CREATE EXTENSION IF NOT EXISTS unaccent');
   await dataSource.synchronize(true);
 
   app = moduleFixture.createNestApplication();

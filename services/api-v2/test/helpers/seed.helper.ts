@@ -4,6 +4,7 @@ import { DataSource } from 'typeorm';
 
 import { ClubEntity } from '../../src/clubs/entities/club.entity';
 import { Federation } from '../../src/common/enums';
+import { LicenceEntity } from '../../src/licences/entities/licence.entity';
 import { UserEntity } from '../../src/users/entities/user.entity';
 
 const TEST_PASSWORD_HASH = bcrypt.hashSync('testpass123', 10);
@@ -72,6 +73,57 @@ export class SeedHelper {
         elicenceName: 'RACING CLUB BORDELAIS',
       }),
     ]);
+  }
+
+  /** Crée 3 licences de test et retourne les entités */
+  async seedLicences(): Promise<LicenceEntity[]> {
+    const repo = this.dataSource.getRepository(LicenceEntity);
+    return repo.save([
+      repo.create({
+        name: 'DUPONT',
+        firstName: 'Jean',
+        licenceNumber: '12345678',
+        gender: 'H',
+        club: 'Vélo Club Toulousain',
+        dept: '31',
+        birthYear: '1985',
+        catea: 'S',
+        catev: '2',
+        fede: Federation.FSGT,
+        saison: '2025',
+      }),
+      repo.create({
+        name: 'MARTIN',
+        firstName: 'Marie',
+        licenceNumber: '87654321',
+        gender: 'F',
+        club: 'Cyclo Club Gascon',
+        dept: '32',
+        birthYear: '1990',
+        catea: 'FS',
+        catev: '3',
+        fede: Federation.FSGT,
+        saison: '2025',
+      }),
+      repo.create({
+        name: 'GARCÍA',
+        firstName: 'Pierre',
+        licenceNumber: '11223344',
+        gender: 'H',
+        club: 'Racing Club Bordelais',
+        dept: '33',
+        birthYear: '1978',
+        catea: 'V',
+        catev: '1',
+        fede: Federation.FFC,
+        saison: '2025',
+      }),
+    ]);
+  }
+
+  /** Supprime uniquement les licences */
+  async cleanLicences(): Promise<void> {
+    await this.dataSource.getRepository(LicenceEntity).query('TRUNCATE TABLE "licence" CASCADE');
   }
 
   /** Supprime toutes les données (TRUNCATE CASCADE) */
