@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/select';
 import { getCatevOptions, type CompetitionType } from '@/config/federations';
 import { useEngage } from '@/hooks/useRaces';
-import { cn } from '@/lib/utils';
 import type { LicenceType } from '@/types/licences';
 import type { RaceRowType } from '@/types/races';
 
