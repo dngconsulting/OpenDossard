@@ -468,10 +468,22 @@ export async function generateFicheEpreuvePDF(competition: CompetitionEntity): P
   // --- Non licenciés ---
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(200, 0, 0);
-  doc.text('Les non licenciés ne sont plus autorisés à participer aux épreuves.', margin, tarifY);
-  doc.setTextColor(0);
+  if (competition.openedNL) {
+    doc.setTextColor(0);
+    doc.text('Les non licenciés sont autorisés à participer à cette épreuve selon conditions.', margin, tarifY);
+  } else {
+    doc.setTextColor(200, 0, 0);
+    doc.text('Les non licenciés ne sont pas autorisés à participer à cette épreuve.', margin, tarifY);
+    doc.setTextColor(0);
+  }
   tarifY += 7;
+
+  // --- Épreuve chronométrée ---
+  if (competition.avecChrono) {
+    doc.setTextColor(0);
+    doc.text('Épreuve chronométrée.', margin, tarifY);
+    tarifY += 7;
+  }
 
   // --- Observations ---
   const pageHeight = doc.internal.pageSize.getHeight();
