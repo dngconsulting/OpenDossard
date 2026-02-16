@@ -214,9 +214,9 @@ export const CompetitionsDataTable = ({ onEdit, onDuplicate, onDelete, onExportF
   const renderBeforeRow = useCallback((row: CompetitionType, index: number) => {
     const rowDate = new Date(row.eventDate).setHours(0, 0, 0, 0);
     if (rowDate >= todayTs) return null;
-    // Insert only if this is the first past row (previous row is future or this is the first row)
+    // Insert only if previous row exists AND is today or in the future
     const prevRow = competitions[index - 1];
-    if (prevRow && new Date(prevRow.eventDate).setHours(0, 0, 0, 0) < todayTs) return null;
+    if (!prevRow || new Date(prevRow.eventDate).setHours(0, 0, 0, 0) < todayTs) return null;
     return (
       <TableRow className="bg-muted/50 hover:bg-muted/50 border-y-2 border-primary/30">
         <TableCell colSpan={10} className="py-1.5 text-center">
