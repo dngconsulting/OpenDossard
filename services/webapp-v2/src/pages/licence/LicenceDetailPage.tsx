@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Loader2, Save } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
@@ -16,6 +16,7 @@ export default function LicenceDetailPage() {
   const licenceId = id ? parseInt(id, 10) : undefined;
   const { data: licence, isLoading } = useLicence(licenceId);
   const [formValues, setFormValues] = useState<{ name: string; firstName: string }>({ name: '', firstName: '' });
+  const [isPending, setIsPending] = useState(false);
 
   const displayName = isCreating
     ? (formValues.firstName || formValues.name
@@ -62,6 +63,13 @@ export default function LicenceDetailPage() {
     </div>
   );
 
+  const toolbarRight = (
+    <Button type="submit" form="licence-form" size="sm" disabled={isPending}>
+      {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+      {!isCreating ? 'Sauvegarder' : 'Créer la licence'}
+    </Button>
+  );
+
   if (!isCreating && isLoading) {
     return (
       <Layout title={breadcrumb} toolbarLeft={toolbarLeft}>
@@ -71,11 +79,13 @@ export default function LicenceDetailPage() {
   }
 
   return (
-    <Layout title={breadcrumb} toolbarLeft={toolbarLeft}>
+    <Layout title={breadcrumb} toolbarLeft={toolbarLeft} toolbar={toolbarRight}>
       <LicencesForm
         updatingLicence={licence}
         onSuccess={() => navigate('/licences')}
         onFormValuesChange={setFormValues}
+        formId="licence-form"
+        onPendingChange={setIsPending}
       />
     </Layout>
   );

@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Building2, Save } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { showSuccessToast } from '@/utils/error-handler/error-handler';
@@ -37,9 +37,11 @@ type ClubFormProps = {
   club?: ClubType;
   isCreating: boolean;
   onSuccess: (club?: ClubType) => void;
+  formId?: string;
+  onPendingChange?: (isPending: boolean) => void;
 };
 
-export const ClubForm = ({ club, isCreating, onSuccess }: ClubFormProps) => {
+export const ClubForm = ({ club, isCreating, onSuccess, formId, onPendingChange }: ClubFormProps) => {
   const createClub = useCreateClub();
   const updateClub = useUpdateClub();
   const [propagateDialog, setPropagateDialog] = useState<{
@@ -61,6 +63,7 @@ export const ClubForm = ({ club, isCreating, onSuccess }: ClubFormProps) => {
   });
 
   const onSubmit = async (data: FormValues) => {
+    onPendingChange?.(true);
     if (isCreating) {
       try {
         const created = await createClub.mutateAsync({
@@ -74,6 +77,8 @@ export const ClubForm = ({ club, isCreating, onSuccess }: ClubFormProps) => {
         onSuccess(created);
       } catch {
         // Error handled by global handler
+      } finally {
+        onPendingChange?.(false);
       }
       return;
     }
@@ -84,6 +89,7 @@ export const ClubForm = ({ club, isCreating, onSuccess }: ClubFormProps) => {
     if (longNameChanged) {
       const references = await clubsApi.getReferences(club!.id);
       if (references.raceCount > 0 || references.licenceCount > 0) {
+        onPendingChange?.(false);
         setPropagateDialog({ references, formData: data });
         return;
       }
@@ -93,6 +99,7 @@ export const ClubForm = ({ club, isCreating, onSuccess }: ClubFormProps) => {
   };
 
   const saveClub = async (data: FormValues, propagate: boolean) => {
+    onPendingChange?.(true);
     try {
       await updateClub.mutateAsync({
         id: club!.id,
@@ -107,6 +114,8 @@ export const ClubForm = ({ club, isCreating, onSuccess }: ClubFormProps) => {
       showSuccessToast('Club mis à jour avec succès');
     } catch {
       // Error handled by global handler
+    } finally {
+      onPendingChange?.(false);
     }
   };
 
@@ -122,12 +131,11 @@ export const ClubForm = ({ club, isCreating, onSuccess }: ClubFormProps) => {
     await saveClub(propagateDialog.formData, false);
   };
 
-  const isPending = createClub.isPending || updateClub.isPending;
 
   return (
     <>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form id={formId} onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Card className="bg-slate-100 dark:bg-muted/50 border-slate-200 dark:border-muted">
             <CardHeader className="pb-0">
               <CardTitle className="flex items-center gap-2 text-base">
@@ -154,7 +162,7 @@ export const ClubForm = ({ club, isCreating, onSuccess }: ClubFormProps) => {
                         required
                       />
                     ) : (
-                      <div className="text-sm flex items-center">
+                      <div className="text-sm flex items-center pt-7">
                         <span className="text-muted-foreground">Fédération :</span>{' '}
                         <span className="font-medium ml-1">{club?.fede || '—'}</span>
                       </div>
@@ -165,12 +173,6 @@ export const ClubForm = ({ club, isCreating, onSuccess }: ClubFormProps) => {
             </CardContent>
           </Card>
 
-          <div className="flex justify-center">
-            <Button type="submit" size="sm" disabled={isPending} className="w-[150px]">
-              <Save className="h-4 w-4" />
-              {isPending ? 'Enregistrement...' : isCreating ? 'Créer' : 'Enregistrer'}
-            </Button>
-          </div>
         </form>
       </Form>
 

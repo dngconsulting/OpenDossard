@@ -225,17 +225,6 @@ export default function WelcomePage() {
                     Tableau de bord
                   </Link>
                 </Button>
-                <Button
-                  asChild
-                  size="lg"
-                  variant="outline"
-                  className="border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
-                >
-                  <Link to="/licences">
-                    Voir les licences
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
               </div>
             </div>
           </section>

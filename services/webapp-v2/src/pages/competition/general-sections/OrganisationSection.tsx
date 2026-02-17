@@ -23,7 +23,7 @@ export function OrganisationSection({ competitionType }: OrganisationSectionProp
     <div className="space-y-4">
       <h4 className="font-medium">
         <span className="text-emerald-700 dark:text-white relative pb-1 inline-block after:absolute after:bottom-0 after:left-0 after:-right-2 after:h-px after:bg-emerald-700/30 dark:after:bg-white/30 after:rounded-full">
-          Organisation (après création)
+          Organisation
         </span>
       </h4>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

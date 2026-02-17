@@ -1,4 +1,5 @@
-import { ArrowLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Loader2, Save } from 'lucide-react';
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { UserForm } from '@/components/forms/UserForm';
@@ -14,6 +15,14 @@ export default function UserDetailPage() {
   const userId = id ? parseInt(id, 10) : undefined;
 
   const { data: user, isLoading } = useUser(userId);
+  const [isPending, setIsPending] = useState(false);
+
+  const toolbarRight = (
+    <Button type="submit" form="user-form" size="sm" disabled={isPending}>
+      {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+      {isPending ? 'Enregistrement...' : 'Enregistrer'}
+    </Button>
+  );
 
   const breadcrumb = (
     <nav className="flex items-center gap-2 text-sm">
@@ -53,14 +62,14 @@ export default function UserDetailPage() {
   }
 
   return (
-    <Layout title={breadcrumb} toolbarLeft={toolbarLeft}>
-      <div className="max-w-3xl">
-        <UserForm
-          user={user}
-          isCreating={isCreating}
-          onSuccess={() => navigate('/users')}
-        />
-      </div>
+    <Layout title={breadcrumb} toolbarLeft={toolbarLeft} toolbar={toolbarRight}>
+      <UserForm
+        user={user}
+        isCreating={isCreating}
+        onSuccess={() => navigate('/users')}
+        formId="user-form"
+        onPendingChange={setIsPending}
+      />
     </Layout>
   );
 }

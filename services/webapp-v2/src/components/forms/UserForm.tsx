@@ -1,11 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Camera, Lock, Save, UserCircle } from 'lucide-react';
+import { Camera, Lock, UserCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { showSuccessToast } from '@/utils/error-handler/error-handler';
 import { z } from 'zod';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FieldGroup, FieldSet, StringField, Field, FieldLabel, FieldError } from '@/components/ui/field';
 import { Form } from '@/components/ui/form';
@@ -43,6 +42,8 @@ type UserFormProps = {
   user?: UserType;
   isCreating: boolean;
   onSuccess: () => void;
+  formId?: string;
+  onPendingChange?: (isPending: boolean) => void;
 };
 
 function getInitials(firstName?: string, lastName?: string): string {
@@ -51,7 +52,7 @@ function getInitials(firstName?: string, lastName?: string): string {
   return f + l || '?';
 }
 
-export const UserForm = ({ user, isCreating, onSuccess }: UserFormProps) => {
+export const UserForm = ({ user, isCreating, onSuccess, formId, onPendingChange }: UserFormProps) => {
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
 
@@ -75,6 +76,7 @@ export const UserForm = ({ user, isCreating, onSuccess }: UserFormProps) => {
   const watchedLastName = form.watch('lastName');
 
   const onSubmit = async (data: FormValues) => {
+    onPendingChange?.(true);
     try {
       if (isCreating) {
         await createUser.mutateAsync({
@@ -102,14 +104,14 @@ export const UserForm = ({ user, isCreating, onSuccess }: UserFormProps) => {
       onSuccess();
     } catch {
       // Error is handled by the global error handler
+    } finally {
+      onPendingChange?.(false);
     }
   };
 
-  const isPending = createUser.isPending || updateUser.isPending;
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form id={formId} onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* Profil */}
         <Card className="bg-slate-100 dark:bg-muted/50 border-slate-200 dark:border-muted">
           <CardHeader className="pb-0">
@@ -210,13 +212,6 @@ export const UserForm = ({ user, isCreating, onSuccess }: UserFormProps) => {
           </Card>
         )}
 
-        {/* Submit */}
-        <div className="flex justify-center">
-          <Button type="submit" size="sm" disabled={isPending} className="w-[150px]">
-            <Save className="h-4 w-4" />
-            {isPending ? 'Enregistrement...' : isCreating ? 'Créer' : 'Enregistrer'}
-          </Button>
-        </div>
       </form>
     </Form>
   );

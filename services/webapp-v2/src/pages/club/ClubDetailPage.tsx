@@ -1,4 +1,5 @@
-import { ArrowLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Loader2, Save } from 'lucide-react';
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { ClubForm } from '@/components/forms/ClubForm';
@@ -15,6 +16,7 @@ export default function ClubDetailPage() {
   const clubId = id ? parseInt(id, 10) : undefined;
 
   const { data: club, isLoading } = useClub(clubId);
+  const [isPending, setIsPending] = useState(false);
 
   const handleSuccess = (created?: ClubType) => {
     if (isCreating && created) {
@@ -51,6 +53,13 @@ export default function ClubDetailPage() {
     </div>
   );
 
+  const toolbarRight = (
+    <Button type="submit" form="club-form" size="sm" disabled={isPending}>
+      {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+      {isPending ? 'Enregistrement...' : 'Enregistrer'}
+    </Button>
+  );
+
   if (!isCreating && isLoading) {
     return (
       <Layout title={breadcrumb} toolbarLeft={toolbarLeft}>
@@ -72,10 +81,8 @@ export default function ClubDetailPage() {
   }
 
   return (
-    <Layout title={breadcrumb} toolbarLeft={toolbarLeft}>
-      <div className="max-w-3xl">
-        <ClubForm club={club} isCreating={isCreating} onSuccess={handleSuccess} />
-      </div>
+    <Layout title={breadcrumb} toolbarLeft={toolbarLeft} toolbar={toolbarRight}>
+      <ClubForm club={club} isCreating={isCreating} onSuccess={handleSuccess} formId="club-form" onPendingChange={setIsPending} />
     </Layout>
   );
 }

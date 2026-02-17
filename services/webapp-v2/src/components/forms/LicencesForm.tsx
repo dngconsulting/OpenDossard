@@ -1,12 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AlertTriangle, Award, FileText, IdCard, Info, Loader2, Save, UserCircle } from 'lucide-react';
+import { AlertTriangle, Award, FileText, IdCard, Info, UserCircle } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
 import { ClubAutocomplete } from '@/components/ClubAutocomplete';
-import { Button } from '@/components/ui/button.tsx';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.tsx';
 import {
   ComboboxField,
@@ -36,6 +35,8 @@ type Props = {
   updatingLicence?: LicenceType;
   onSuccess?: () => void;
   onFormValuesChange?: (values: { name: string; firstName: string }) => void;
+  formId?: string;
+  onPendingChange?: (isPending: boolean) => void;
 };
 
 const currentYear = new Date().getFullYear();
@@ -68,14 +69,13 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange }: Props) => {
+export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange, formId, onPendingChange }: Props) => {
   const navigate = useNavigate();
   const { data: departments, isLoading: isLoadingDepartments } = useDepartments();
   const createLicence = useCreateLicence();
   const updateLicence = useUpdateLicence();
 
   const isEditing = !!updatingLicence?.id;
-  const isSaving = createLicence.isPending || updateLicence.isPending;
 
   const licenceForm = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -219,6 +219,7 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange }:
       }
     }
 
+    onPendingChange?.(true);
     try {
       const licenceData = {
         name: data.name,
@@ -253,12 +254,14 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange }:
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erreur inconnue';
       showErrorToast("Erreur lors de l'enregistrement", message);
+    } finally {
+      onPendingChange?.(false);
     }
   };
 
   return (
     <Form {...licenceForm}>
-      <form onSubmit={licenceForm.handleSubmit(onSubmit)} className="space-y-6 max-w-4xl">
+      <form id={formId} onSubmit={licenceForm.handleSubmit(onSubmit)} className="space-y-6">
         {fede === 'FSGT' && (
           <div className="w-full flex items-center gap-2 p-2 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded text-sm text-amber-800 dark:text-amber-200">
             <AlertTriangle className="h-4 w-4 flex-shrink-0" />
@@ -465,13 +468,6 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange }:
           </div>
         )}
 
-        {/* Bouton Enregistrer */}
-        <div className="flex justify-center pt-4 border-t">
-          <Button type="submit" size="lg" disabled={isSaving}>
-            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            {isEditing ? 'Sauvegarder' : 'Créer la licence'}
-          </Button>
-        </div>
       </form>
     </Form>
   );
