@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { RaceEntity } from './entities/race.entity';
@@ -10,6 +10,8 @@ import { CreateEngagementDto, FilterRaceDto, RaceRowDto } from './dto';
 
 @Injectable()
 export class RacesService {
+  private readonly logger = new Logger(RacesService.name);
+
   constructor(
     @InjectRepository(RaceEntity)
     private readonly raceRepository: Repository<RaceEntity>,
@@ -108,7 +110,7 @@ export class RacesService {
    * Engage un coureur sur une compétition
    * Avec validations : licence existe, dossard pas pris, licence pas déjà inscrite
    */
-  async engage(dto: CreateEngagementDto): Promise<RaceEntity> {
+  async engage(dto: CreateEngagementDto, author?: string): Promise<RaceEntity> {
     // Run all 4 validation queries in parallel
     const [licence, competition, numberConflict, licenceConflict] = await Promise.all([
       this.licenceRepository.findOne({
@@ -157,7 +159,14 @@ export class RacesService {
     race.club = dto.club || licence.club;
     race.rankingScratch = dto.rankingScratch ?? null;
 
-    return this.raceRepository.save(race);
+    const saved = await this.raceRepository.save(race);
+    this.logger.log(
+      `Création de l'engagement #${saved.id} par ${author ?? 'inconnu'} | ` +
+        `Compétition: ${dto.competitionId} | Licence: ${dto.licenceId} | ` +
+        `Dossard: ${dto.riderNumber} | Course: ${dto.raceCode ?? '-'} | ` +
+        `CatéV: ${dto.catev ?? '-'} | CatéA: ${saved.catea ?? '-'} | Club: ${saved.club ?? '-'}`,
+    );
+    return saved;
   }
 
   /**

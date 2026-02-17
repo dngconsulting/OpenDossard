@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CompetitionEntity } from './entities/competition.entity';
@@ -9,6 +9,8 @@ import { ReorganizeCompetitionDto } from './dto/reorganize-competition.dto';
 
 @Injectable()
 export class CompetitionsService {
+  private readonly logger = new Logger(CompetitionsService.name);
+
   constructor(
     @InjectRepository(CompetitionEntity)
     private competitionRepository: Repository<CompetitionEntity>,
@@ -144,15 +146,27 @@ export class CompetitionsService {
     return competition;
   }
 
-  async create(competitionData: Partial<CompetitionEntity>): Promise<CompetitionEntity> {
+  async create(
+    competitionData: Partial<CompetitionEntity>,
+    author?: string,
+  ): Promise<CompetitionEntity> {
     const { id, ...data } = competitionData;
     const competition = this.competitionRepository.create(data);
-    return this.competitionRepository.save(competition);
+    const saved = await this.competitionRepository.save(competition);
+    this.logger.log(
+      `Création de la compétition #${saved.id} par ${author ?? 'inconnu'} | ` +
+        `${saved.name ?? '-'} | Date: ${saved.eventDate ? new Date(saved.eventDate).toLocaleDateString('fr-FR') : '-'} | ` +
+        `CP: ${saved.zipCode ?? '-'} | Dept: ${saved.dept ?? '-'} | ` +
+        `Fédé: ${saved.fede} | Type: ${saved.competitionType} | ` +
+        `Catégories: ${saved.categories ?? '-'} | Courses: ${saved.races ?? '-'}`,
+    );
+    return saved;
   }
 
   async update(
     id: number,
     competitionData: Partial<CompetitionEntity>,
+    author?: string,
   ): Promise<CompetitionEntity> {
     const competition = await this.findOne(id);
 
@@ -167,7 +181,15 @@ export class CompetitionsService {
     }
 
     Object.assign(competition, competitionData);
-    return this.competitionRepository.save(competition);
+    const saved = await this.competitionRepository.save(competition);
+    const fields = Object.keys(competitionData)
+      .filter(k => k !== 'id' && k !== 'club' && competitionData[k as keyof typeof competitionData] !== undefined)
+      .map(k => `${k}: ${competitionData[k as keyof typeof competitionData]}`)
+      .join(' | ');
+    this.logger.log(
+      `Mise à jour de la compétition #${id} par ${author ?? 'inconnu'} | ${saved.name ?? '-'} | ${fields}`,
+    );
+    return saved;
   }
 
   async remove(id: number): Promise<void> {

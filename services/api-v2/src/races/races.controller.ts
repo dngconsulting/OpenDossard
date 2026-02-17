@@ -33,6 +33,7 @@ import { LicenceEntity } from '../licences/entities/licence.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Role } from '../common/enums';
 import { PaginatedResponseDto } from '../common/dto';
 import {
@@ -144,8 +145,11 @@ export class RacesController {
     status: 400,
     description: 'Validation error (rider number taken, already registered)',
   })
-  async engage(@Body() dto: CreateEngagementDto): Promise<RaceEntity> {
-    return this.racesService.engage(dto);
+  async engage(
+    @Body() dto: CreateEngagementDto,
+    @CurrentUser('email') author: string,
+  ): Promise<RaceEntity> {
+    return this.racesService.engage(dto, author);
   }
 
   @Post('bulk')

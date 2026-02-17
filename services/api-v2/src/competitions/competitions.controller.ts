@@ -19,6 +19,7 @@ import { CompetitionEntity } from './entities/competition.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Role } from '../common/enums';
 import { PaginatedResponseDto } from '../common/dto';
 
@@ -54,8 +55,11 @@ export class CompetitionsController {
   @Roles(Role.ADMIN, Role.ORGANISATEUR)
   @ApiOperation({ summary: 'Create a new competition' })
   @ApiResponse({ status: 201, description: 'Competition created' })
-  async create(@Body() competitionData: Partial<CompetitionEntity>): Promise<CompetitionEntity> {
-    return this.competitionsService.create(competitionData);
+  async create(
+    @Body() competitionData: Partial<CompetitionEntity>,
+    @CurrentUser('email') author: string,
+  ): Promise<CompetitionEntity> {
+    return this.competitionsService.create(competitionData, author);
   }
 
   @Patch(':id')
@@ -65,8 +69,9 @@ export class CompetitionsController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() competitionData: Partial<CompetitionEntity>,
+    @CurrentUser('email') author: string,
   ): Promise<CompetitionEntity> {
-    return this.competitionsService.update(id, competitionData);
+    return this.competitionsService.update(id, competitionData, author);
   }
 
   @Delete(':id')

@@ -53,8 +53,11 @@ export class UsersController {
   @ApiOperation({ summary: 'Create a new user (admin only)' })
   @ApiResponse({ status: 201, description: 'User created' })
   @ApiResponse({ status: 409, description: 'Email already exists' })
-  async create(@Body() createUserDto: CreateUserDto): Promise<UserEntity> {
-    return this.usersService.create(createUserDto);
+  async create(
+    @Body() createUserDto: CreateUserDto,
+    @CurrentUser('email') author: string,
+  ): Promise<UserEntity> {
+    return this.usersService.create(createUserDto, author);
   }
 
   @Patch(':id')
@@ -64,8 +67,9 @@ export class UsersController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
+    @CurrentUser('email') author: string,
   ): Promise<UserEntity> {
-    return this.usersService.update(id, updateUserDto);
+    return this.usersService.update(id, updateUserDto, author);
   }
 
   @Patch(':id/password')

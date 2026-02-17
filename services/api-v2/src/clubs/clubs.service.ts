@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { ClubEntity } from './entities/club.entity';
@@ -12,6 +12,8 @@ import { UpdateClubDto } from './dto/update-club.dto';
 
 @Injectable()
 export class ClubsService {
+  private readonly logger = new Logger(ClubsService.name);
+
   constructor(
     @InjectRepository(ClubEntity)
     private clubRepository: Repository<ClubEntity>,
@@ -106,15 +108,22 @@ export class ClubsService {
     return club;
   }
 
-  async create(clubData: Partial<ClubEntity>): Promise<ClubEntity> {
+  async create(clubData: Partial<ClubEntity>, author?: string): Promise<ClubEntity> {
     const { id, ...data } = clubData;
     const club = this.clubRepository.create(data);
-    return this.clubRepository.save(club);
+    const saved = await this.clubRepository.save(club);
+    this.logger.log(
+      `Création du club #${saved.id} par ${author ?? 'inconnu'} | ` +
+        `${saved.longName} (${saved.shortName ?? '-'}) | Dept: ${saved.dept ?? '-'} | ` +
+        `Fédé: ${saved.fede ?? '-'} | eLicence: ${saved.elicenceName ?? '-'}`,
+    );
+    return saved;
   }
 
   async update(
     id: number,
     dto: UpdateClubDto,
+    author?: string,
   ): Promise<ClubEntity & { racesUpdated?: number; licencesUpdated?: number }> {
     const club = await this.findOne(id);
 
@@ -133,6 +142,13 @@ export class ClubsService {
     if (dto.dept !== undefined) club.dept = dto.dept;
 
     const saved = await this.clubRepository.save(club);
+    const fields = Object.keys(dto)
+      .filter(k => k !== 'propagate' && (dto as Record<string, unknown>)[k] !== undefined)
+      .map(k => `${k}: ${(dto as Record<string, unknown>)[k]}`)
+      .join(' | ');
+    this.logger.log(
+      `Mise à jour du club #${id} par ${author ?? 'inconnu'} | ${saved.longName} | ${fields}`,
+    );
     return { ...saved, racesUpdated, licencesUpdated };
   }
 

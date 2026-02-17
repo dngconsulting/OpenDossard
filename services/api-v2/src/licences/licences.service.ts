@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { LicenceEntity } from './entities/licence.entity';
@@ -7,6 +7,8 @@ import { PaginatedResponseDto } from '../common/dto';
 
 @Injectable()
 export class LicencesService {
+  private readonly logger = new Logger(LicencesService.name);
+
   constructor(
     @InjectRepository(LicenceEntity)
     private licenceRepository: Repository<LicenceEntity>,
@@ -205,7 +207,16 @@ export class LicencesService {
       author,
       lastChanged: new Date(),
     });
-    return this.licenceRepository.save(licence);
+    const saved = await this.licenceRepository.save(licence);
+    this.logger.log(
+      `Création de la licence #${saved.id} par ${author ?? 'inconnu'} | ` +
+        `${saved.name} ${saved.firstName} | N°${saved.licenceNumber ?? '-'} | ` +
+        `Club: ${saved.club ?? '-'} | Dept: ${saved.dept ?? '-'} | Fédé: ${saved.fede} | ` +
+        `Genre: ${saved.gender ?? '-'} | Année: ${saved.birthYear ?? '-'} | ` +
+        `CatéA: ${saved.catea ?? '-'} | CatéV: ${saved.catev ?? '-'} | CatéVCX: ${saved.catevCX ?? '-'} | ` +
+        `Saison: ${saved.saison ?? '-'}`,
+    );
+    return saved;
   }
 
   async update(
@@ -221,7 +232,16 @@ export class LicencesService {
       lastChanged: new Date(),
     });
 
-    return this.licenceRepository.save(licence);
+    const saved = await this.licenceRepository.save(licence);
+    const fields = Object.keys(updateLicenceDto)
+      .filter(k => (updateLicenceDto as Record<string, unknown>)[k] !== undefined)
+      .map(k => `${k}: ${(updateLicenceDto as Record<string, unknown>)[k]}`)
+      .join(' | ');
+    this.logger.log(
+      `Mise à jour de la licence #${id} par ${author ?? 'inconnu'} | ` +
+        `${saved.name} ${saved.firstName} | ${fields}`,
+    );
+    return saved;
   }
 
   async remove(id: number): Promise<void> {

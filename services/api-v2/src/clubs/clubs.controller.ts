@@ -18,6 +18,7 @@ import { ClubEntity } from './entities/club.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Role, Federation } from '../common/enums';
 import { PaginatedResponseDto } from '../common/dto/pagination.dto';
 import { FilterClubDto } from './dto/filter-club.dto';
@@ -74,8 +75,11 @@ export class ClubsController {
   @Roles(Role.ADMIN, Role.ORGANISATEUR)
   @ApiOperation({ summary: 'Create a new club' })
   @ApiResponse({ status: 201, description: 'Club created' })
-  async create(@Body() clubData: Partial<ClubEntity>): Promise<ClubEntity> {
-    return this.clubsService.create(clubData);
+  async create(
+    @Body() clubData: Partial<ClubEntity>,
+    @CurrentUser('email') author: string,
+  ): Promise<ClubEntity> {
+    return this.clubsService.create(clubData, author);
   }
 
   @Patch(':id')
@@ -85,8 +89,9 @@ export class ClubsController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateClubDto,
+    @CurrentUser('email') author: string,
   ): Promise<ClubEntity> {
-    return this.clubsService.update(id, dto);
+    return this.clubsService.update(id, dto, author);
   }
 
   @Delete(':id')

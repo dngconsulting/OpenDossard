@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
@@ -30,6 +30,8 @@ export interface UpdatePasswordDto {
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
@@ -91,7 +93,7 @@ export class UsersService {
     });
   }
 
-  async create(createUserDto: CreateUserDto): Promise<UserEntity> {
+  async create(createUserDto: CreateUserDto, author?: string): Promise<UserEntity> {
     const existingUser = await this.findByEmail(createUserDto.email);
     if (existingUser) {
       throw new ConflictException('Email already exists');
@@ -109,10 +111,16 @@ export class UsersService {
       roles,
     });
 
-    return this.userRepository.save(user);
+    const saved = await this.userRepository.save(user);
+    this.logger.log(
+      `Création de l'utilisateur #${saved.id} par ${author ?? 'inconnu'} | ` +
+        `${saved.email} | Prénom: ${saved.firstName ?? '-'} | Nom: ${saved.lastName ?? '-'} | ` +
+        `Rôles: ${saved.roles ?? '-'}`,
+    );
+    return saved;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<UserEntity> {
+  async update(id: number, updateUserDto: UpdateUserDto, author?: string): Promise<UserEntity> {
     const user = await this.findOne(id);
 
     if (updateUserDto.firstName !== undefined) user.firstName = updateUserDto.firstName;
@@ -120,7 +128,16 @@ export class UsersService {
     if (updateUserDto.phone !== undefined) user.phone = updateUserDto.phone;
     if (updateUserDto.roles !== undefined) user.roles = updateUserDto.roles.join(',');
 
-    return this.userRepository.save(user);
+    const saved = await this.userRepository.save(user);
+    const fields = Object.keys(updateUserDto)
+      .filter(k => k !== 'phone' && (updateUserDto as Record<string, unknown>)[k] !== undefined)
+      .map(k => `${k}: ${(updateUserDto as Record<string, unknown>)[k]}`)
+      .join(' | ');
+    this.logger.log(
+      `Mise à jour de l'utilisateur #${id} par ${author ?? 'inconnu'} | ` +
+        `${saved.email} | ${fields}`,
+    );
+    return saved;
   }
 
   async updatePassword(
