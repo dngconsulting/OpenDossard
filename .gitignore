@@ -20,6 +20,9 @@ services/webapp/debug.log
 # Local development SSL certificates (never commit)
 config/local-ssl/
 
+# Netdata overrides (managed on server)
+config/netdata/
+
 # Local docker-compose files (optional to commit)
 docker-compose.local-*.yml
 config/nginx.local-*.conf
