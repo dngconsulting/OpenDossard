@@ -16,3 +16,6 @@ services/webapp/debug.log
 **/public/workbox-*.js
 **/public/sw.js
 **/public/worker-*.js
+
+# Netdata overrides (managed on server)
+config/netdata/

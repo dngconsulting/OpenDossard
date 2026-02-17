@@ -59,6 +59,8 @@ services:
       - netdataconfig:/etc/netdata
       - netdatalib:/var/lib/netdata
       - netdatacache:/var/cache/netdata
+      - ./config/netdata/go.d/nginx.conf:/etc/netdata/go.d/nginx.conf:ro
+      - ./config/netdata/go.d/postgres.conf:/etc/netdata/go.d/postgres.conf:ro
       - /etc/passwd:/host/etc/passwd:ro
       - /etc/group:/host/etc/group:ro
       - /etc/localtime:/etc/localtime:ro
@@ -85,7 +87,8 @@ services:
       - /bin/sh
       - -c
       - |
-        printf '%s:%s\n' "$$NETDATA_USER" "$$(openssl passwd -apr1 "$$NETDATA_PASSWORD")" > /tmp/auth/netdata.htpasswd
+        apk add --no-cache apache2-utils > /dev/null 2>&1
+        htpasswd -cbB /tmp/auth/netdata.htpasswd "$$NETDATA_USER" "$$NETDATA_PASSWORD"
         exec /docker-entrypoint.sh nginx -g 'daemon off;'
     tmpfs:
       - /tmp/auth
