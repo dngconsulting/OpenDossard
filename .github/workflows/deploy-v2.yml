@@ -217,14 +217,14 @@ jobs:
             git checkout "$BRANCH"
             git pull origin "$BRANCH"
 
-            # Pull the new v2 images
-            docker compose -f docker-compose.prod.yml pull api-v2 webapp-v2
+            # Pull the new v2 images + netdata
+            docker compose -f docker-compose.prod.yml pull api-v2 webapp-v2 netdata
 
-            # Start/restart only v2 services (v1 remains untouched)
-            docker compose -f docker-compose.prod.yml up -d api-v2 webapp-v2
+            # Start/restart v2 services + monitoring (v1 remains untouched)
+            docker compose -f docker-compose.prod.yml up -d api-v2 webapp-v2 netdata
 
-            # Reload nginx to apply new config (no downtime)
-            docker compose -f docker-compose.prod.yml exec -T website nginx -s reload
+            # Restart nginx to regenerate htpasswd and apply new config
+            docker compose -f docker-compose.prod.yml up -d website
 
             # Cleanup old images
             docker image prune --all --force &
