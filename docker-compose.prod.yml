@@ -69,6 +69,35 @@ services:
       - "80"
 
   # ══════════════════════════════════════════════════════════
+  # MONITORING
+  # ══════════════════════════════════════════════════════════
+  netdata:
+    image: netdata/netdata:stable
+    container_name: netdata
+    hostname: monitoring.opendossard.com
+    restart: always
+    pid: host
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    expose:
+      - "19999"
+    volumes:
+      - netdataconfig:/etc/netdata
+      - netdatalib:/var/lib/netdata
+      - netdatacache:/var/cache/netdata
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /var/log:/host/var/log:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  # ══════════════════════════════════════════════════════════
   # REVERSE PROXY
   # ══════════════════════════════════════════════════════════
   website:
@@ -78,6 +107,17 @@ services:
     ports:
       - "443:443"
       - "80:80"
+    environment:
+      - NETDATA_USER
+      - NETDATA_PASSWORD
+    command:
+      - /bin/sh
+      - -c
+      - |
+        printf '%s:%s\n' "$$NETDATA_USER" "$$(openssl passwd -apr1 "$$NETDATA_PASSWORD")" > /tmp/auth/netdata.htpasswd
+        exec /docker-entrypoint.sh nginx -g 'daemon off;'
+    tmpfs:
+      - /tmp/auth
     volumes:
       - ./website/:/var/www/html
       - ./config/nginx.conf:/etc/nginx/nginx.conf
@@ -89,6 +129,10 @@ services:
       - api_webapp
       - api-v2
       - webapp-v2
+      - netdata
 
 volumes:
   postgres:
+  netdataconfig:
+  netdatalib:
+  netdatacache:
