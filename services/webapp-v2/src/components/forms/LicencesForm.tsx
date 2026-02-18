@@ -246,10 +246,10 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange, f
       } else {
         await createLicence.mutateAsync(licenceData);
         showSuccessToast('Licence créée', `${data.firstName} ${data.name}`);
-        onSuccess?.();
-        if (!onSuccess) {
-          navigate('/licences');
-        }
+      }
+      onSuccess?.();
+      if (!onSuccess) {
+        navigate('/licences');
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erreur inconnue';

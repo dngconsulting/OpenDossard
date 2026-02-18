@@ -247,7 +247,7 @@ export function EngagementForm({
               <span>
                 La licence de ce coureur est enregistrée pour la saison <strong>{selectedLicence?.saison || 'N/A'}</strong>.
                 Elle n'est pas à jour pour la saison en cours (<strong>{new Date().getFullYear()}</strong>).
-                {' '}<Link to={`/licence/${selectedLicence?.id}`} className="underline font-semibold hover:text-red-900 dark:hover:text-red-100">Mettre à jour la licence</Link>
+                {' '}<Link to={`/licence/${selectedLicence?.id}?from=engagements&competitionId=${competitionId}`} className="underline font-semibold hover:text-red-900 dark:hover:text-red-100">Mettre à jour la licence</Link>
               </span>
             </div>
           )}

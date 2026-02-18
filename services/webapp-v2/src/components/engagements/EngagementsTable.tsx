@@ -234,7 +234,7 @@ export function EngagementsTable({
                   {/* Coureur - lien vers fiche licence */}
                   <TableCell className="max-w-[200px]" title={engagement.name || undefined}>
                     <Link
-                      to={`/licence/${engagement.licenceId}`}
+                      to={`/licence/${engagement.licenceId}?from=engagements&competitionId=${competitionId}`}
                       className="hover:underline flex items-center gap-1"
                     >
                       <span className="truncate">{engagement.name}</span>

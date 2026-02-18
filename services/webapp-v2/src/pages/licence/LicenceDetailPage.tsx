@@ -1,6 +1,6 @@
 import { ArrowLeft, ChevronRight, Loader2, Save } from 'lucide-react';
 import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { LicencesForm } from '@/components/forms/LicencesForm.tsx';
 import Layout from '@/components/layout/Layout.tsx';
@@ -12,6 +12,9 @@ import { useLicence } from '@/hooks/useLicences';
 export default function LicenceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const from = searchParams.get('from');
+  const competitionId = searchParams.get('competitionId');
   const isCreating = !id;
   const licenceId = id ? parseInt(id, 10) : undefined;
   const { data: licence, isLoading } = useLicence(licenceId);
@@ -26,13 +29,19 @@ export default function LicenceDetailPage() {
       ? `${licence.firstName} ${licence.name}`
       : null;
 
+  const comesFromEngagements = from === 'engagements' && competitionId;
+  const backLink = comesFromEngagements
+    ? `/competition/${competitionId}/engagements`
+    : '/licences';
+  const backLabel = comesFromEngagements ? 'Engagements' : 'Licences';
+
   const breadcrumb = (
     <nav className="flex items-center gap-2 text-sm">
       <Link
-        to="/licences"
+        to={backLink}
         className="text-muted-foreground hover:text-white dark:hover:text-foreground transition-colors"
       >
-        Licences
+        {backLabel}
       </Link>
       <ChevronRight className="size-4 text-muted-foreground" />
       <span className="font-medium">
@@ -82,7 +91,7 @@ export default function LicenceDetailPage() {
     <Layout title={breadcrumb} toolbarLeft={toolbarLeft} toolbar={toolbarRight}>
       <LicencesForm
         updatingLicence={licence}
-        onSuccess={() => navigate('/licences')}
+        onSuccess={() => navigate(backLink)}
         onFormValuesChange={setFormValues}
         formId="licence-form"
         onPendingChange={setIsPending}
