@@ -22,6 +22,7 @@ config/local-ssl/
 
 # Netdata overrides (managed on server)
 config/netdata/
+config/netdata.htpasswd
 
 # Local docker-compose files (optional to commit)
 docker-compose.local-*.yml

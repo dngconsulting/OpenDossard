@@ -217,14 +217,17 @@ jobs:
             git checkout "$BRANCH"
             git pull origin "$BRANCH"
 
+            # Generate netdata auth file (persisted on disk, survives container restarts)
+            echo "${{ secrets.NETDATA_USER }}:$(openssl passwd -apr1 '${{ secrets.NETDATA_PASSWORD }}')" > config/netdata.htpasswd
+
             # Pull the new v2 images + netdata
             docker compose -f docker-compose.prod.yml pull api-v2 webapp-v2 netdata
 
             # Start/restart v2 services + monitoring (v1 remains untouched)
             docker compose -f docker-compose.prod.yml up -d api-v2 webapp-v2 netdata
 
-            # Restart nginx to regenerate htpasswd and apply new config
-            docker compose -f docker-compose.prod.yml up -d website
+            # Restart nginx with new config
+            docker compose -f docker-compose.prod.yml up -d --force-recreate website
 
             # Cleanup old images
             docker image prune --all --force &
