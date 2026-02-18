@@ -26,7 +26,7 @@ export default defineConfig({
         short_name: 'OpenDossard',
         description: 'Gestion des courses cyclistes',
         theme_color: '#0f172a',
-        background_color: '#ffffff',
+        background_color: '#1e2d4b',
         display: 'standalone',
         icons: [
           { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
