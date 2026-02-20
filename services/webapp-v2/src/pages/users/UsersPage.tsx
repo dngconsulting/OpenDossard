@@ -45,11 +45,9 @@ export default function UsersPage() {
     [updateUserMutation]
   );
 
-  const handleEditUser = useCallback(
-    (user: { id: number }) => {
-      navigate(`/user/${user.id}`);
-    },
-    [navigate]
+  const getEditUserHref = useCallback(
+    (user: { id: number }) => `/user/${user.id}`,
+    [],
   );
 
   const handleDeleteUser = useCallback((user: UserType) => {
@@ -131,7 +129,7 @@ export default function UsersPage() {
           onSortChange: setSort,
         }}
         onRolesChange={handleRolesChange}
-        onEditUser={handleEditUser}
+        getEditUserHref={getEditUserHref}
         onDeleteUser={handleDeleteUser}
       />
 

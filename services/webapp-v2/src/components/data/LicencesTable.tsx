@@ -80,11 +80,11 @@ const DEPT_OPTIONS: MultiSelectOption[] = [
 ];
 
 type LicenceTableProps = {
-  onEdit?: (row: LicenceType) => void;
+  getEditHref?: (row: LicenceType) => string;
   onDelete?: (row: LicenceType) => void;
 };
 
-export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
+export const LicencesDataTable = ({ getEditHref, onDelete }: LicenceTableProps) => {
   const {
     data,
     isLoading,
@@ -227,7 +227,7 @@ export const LicencesDataTable = ({ onEdit, onDelete }: LicenceTableProps) => {
     <DataTable
       columns={columns}
       data={data?.data || []}
-      onEditRow={onEdit}
+      getEditRowHref={getEditHref}
       onDeleteRow={onDelete}
       isLoading={isLoading}
       serverFilters={(params.filters as Record<string, string>) || {}}

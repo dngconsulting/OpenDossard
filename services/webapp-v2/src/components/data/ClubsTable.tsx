@@ -55,11 +55,11 @@ type Props = {
   };
   serverFilters?: Record<string, string>;
   onFilterChange?: (columnId: string, value: string) => void;
-  onEditClub?: (club: ClubType) => void;
+  getEditClubHref?: (club: ClubType) => string;
   onDeleteClub?: (club: ClubType) => void;
 };
 
-export const ClubsTable = ({ clubs, isLoading, pagination, sorting, serverFilters, onFilterChange, onEditClub, onDeleteClub }: Props) => {
+export const ClubsTable = ({ clubs, isLoading, pagination, sorting, serverFilters, onFilterChange, getEditClubHref, onDeleteClub }: Props) => {
   return (
     <DataTable
       columns={columns}
@@ -67,7 +67,7 @@ export const ClubsTable = ({ clubs, isLoading, pagination, sorting, serverFilter
       isLoading={isLoading}
       serverFilters={serverFilters}
       onFilterChange={onFilterChange}
-      onEditRow={onEditClub}
+      getEditRowHref={getEditClubHref}
       onDeleteRow={onDeleteClub}
       pagination={{
         enabled: true,

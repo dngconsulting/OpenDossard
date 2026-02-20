@@ -44,6 +44,7 @@ import {
   X,
 } from 'lucide-react';
 import * as React from 'react';
+import { Link } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
@@ -92,6 +93,7 @@ interface SortingProps {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  getEditRowHref?: (row: TData) => string;
   onEditRow?: (row: TData) => void;
   onDeleteRow?: (row: TData) => void;
   onOpenRow?: (row: TData) => void;
@@ -110,6 +112,7 @@ interface DataTableProps<TData, TValue> {
 
 interface SortableRowProps<TData> {
   row: Row<TData>;
+  getEditRowHref?: (row: TData) => string;
   onEditRow?: (row: TData) => void;
   onDeleteRow?: (row: TData) => void;
   onOpenRow?: (row: TData) => void;
@@ -119,6 +122,7 @@ interface SortableRowProps<TData> {
 
 function SortableRow<TData>({
   row,
+  getEditRowHref,
   onEditRow,
   onDeleteRow,
   onOpenRow,
@@ -162,16 +166,24 @@ function SortableRow<TData>({
           </Button>
         </TableCell>
       )}
-      {onEditRow && (
+      {(getEditRowHref || onEditRow) && (
         <TableCell style={{ width: 40 }}>
-          <Button
-            variant="outline"
-            size="icon-sm"
-            onClick={() => onEditRow(row.original)}
-            title="Éditer"
-          >
-            <Edit2 />
-          </Button>
+          {getEditRowHref ? (
+            <Button variant="outline" size="icon-sm" title="Éditer" asChild>
+              <Link to={getEditRowHref(row.original)}>
+                <Edit2 />
+              </Link>
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="icon-sm"
+              onClick={() => onEditRow!(row.original)}
+              title="Éditer"
+            >
+              <Edit2 />
+            </Button>
+          )}
         </TableCell>
       )}
       {row.getVisibleCells().map(cell => {
@@ -207,6 +219,7 @@ function SortableRow<TData>({
 export function DataTable<TData, TValue>({
   columns,
   data,
+  getEditRowHref,
   onEditRow,
   onDeleteRow,
   onOpenRow,
@@ -352,7 +365,7 @@ export function DataTable<TData, TValue>({
           <TableRow key={headerGroup.id}>
             {enableDragDrop && <TableHead className="w-8" />}
             {onOpenRow && <TableHead style={{ width: 40 }} />}
-            {onEditRow && <TableHead style={{ width: 40 }} />}
+            {(getEditRowHref || onEditRow) && <TableHead style={{ width: 40 }} />}
             {headerGroup.headers.map(header => {
               const columnId = header.column.id;
               const isSortable = sorting?.onSortChange && !header.isPlaceholder;
@@ -392,7 +405,7 @@ export function DataTable<TData, TValue>({
             <TableFilterRow key={headerGroup.id}>
               {enableDragDrop && <TableFilterCell className="w-8" />}
               {onOpenRow && <TableFilterCell style={{ width: 40 }} />}
-              {onEditRow && <TableFilterCell style={{ width: 40 }} />}
+              {(getEditRowHref || onEditRow) && <TableFilterCell style={{ width: 40 }} />}
               {headerGroup.headers.map(header => {
                 const columnId = header.column.id;
                 const hasFixedSize = header.column.columnDef.size !== undefined;
@@ -476,6 +489,7 @@ export function DataTable<TData, TValue>({
               <SortableRow
                 row={row}
                 rowId={getRowId(row.original)}
+                getEditRowHref={getEditRowHref}
                 onEditRow={onEditRow}
                 onDeleteRow={onDeleteRow}
                 onOpenRow={onOpenRow}

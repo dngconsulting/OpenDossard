@@ -175,7 +175,7 @@ export default function CompetitionsPage() {
       </div>
 
       <CompetitionsDataTable
-        onEdit={(row: CompetitionType) => navigate(`/competition/${row.id}`)}
+        getEditHref={(row: CompetitionType) => `/competition/${row.id}`}
         onDuplicate={(row: CompetitionType) => setDuplicateCompetition(row)}
         onDelete={handleDeleteRequest}
         onExportFiche={handleExportFiche}

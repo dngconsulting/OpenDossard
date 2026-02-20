@@ -56,7 +56,7 @@ function TableSkeleton() {
 }
 
 type CompetitionsTableProps = {
-  onEdit?: (row: CompetitionType) => void;
+  getEditHref?: (row: CompetitionType) => string;
   onDuplicate?: (row: CompetitionType) => void;
   onDelete?: (row: CompetitionType) => void;
   onExportFiche?: (row: CompetitionType) => void;
@@ -71,7 +71,7 @@ const formatDate = (dateString: string) => {
   });
 };
 
-export const CompetitionsDataTable = ({ onEdit, onDuplicate, onDelete, onExportFiche }: CompetitionsTableProps) => {
+export const CompetitionsDataTable = ({ getEditHref, onDuplicate, onDelete, onExportFiche }: CompetitionsTableProps) => {
   const {
     data,
     isLoading,
@@ -241,7 +241,7 @@ export const CompetitionsDataTable = ({ onEdit, onDuplicate, onDelete, onExportF
     <DataTable
       columns={columns}
       data={competitions}
-      onEditRow={onEdit}
+      getEditRowHref={getEditHref}
       onDeleteRow={onDelete}
       isLoading={isLoading}
       renderBeforeRow={renderBeforeRow}

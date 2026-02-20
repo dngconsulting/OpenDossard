@@ -53,11 +53,9 @@ export default function ClubsPage() {
   const { exportPDF, isExporting: isExportingPDF } = useExportClubsPDF(params, totalClubs);
   const { exportCSV, isExporting: isExportingCSV } = useExportClubsCSV(params, totalClubs);
 
-  const handleEditClub = useCallback(
-    (club: ClubType) => {
-      navigate(`/club/${club.id}`);
-    },
-    [navigate],
+  const getEditClubHref = useCallback(
+    (club: ClubType) => `/club/${club.id}`,
+    [],
   );
 
   const handleDeleteClub = useCallback((club: ClubType) => {
@@ -186,7 +184,7 @@ export default function ClubsPage() {
         }}
         serverFilters={(params.filters as Record<string, string>) || {}}
         onFilterChange={(columnId, value) => setFilter(columnId as keyof ClubType, value)}
-        onEditClub={handleEditClub}
+        getEditClubHref={getEditClubHref}
         onDeleteClub={handleDeleteClub}
       />
 

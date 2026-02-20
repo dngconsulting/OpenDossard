@@ -160,7 +160,7 @@ export default function LicencesPage() {
   return (
     <Layout title="Licences" toolbar={toolbar} toolbarLeft={toolbarLeft}>
       <LicencesDataTable
-        onEdit={(row: LicenceType) => navigate(`/licence/${row.id}`)}
+        getEditHref={(row: LicenceType) => `/licence/${row.id}`}
         onDelete={(row: LicenceType) => setDeleteLicence(row)}
       />
       <input

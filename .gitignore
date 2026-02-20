@@ -27,3 +27,6 @@ config/netdata.htpasswd
 # Local docker-compose files (optional to commit)
 docker-compose.local-*.yml
 config/nginx.local-*.conf
+
+# k6 performance tests (local only)
+k6perf/
