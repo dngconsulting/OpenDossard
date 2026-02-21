@@ -1,6 +1,7 @@
 import type { ColumnDef } from '@tanstack/react-table';
 
 import { DataTable } from '@/components/ui/data-table';
+import { DEPT_FILTER_OPTIONS, FEDE_FILTER_OPTIONS } from '@/config/federations';
 import type { ClubType } from '@/types/clubs';
 import type { PaginationMeta } from '@/types/users';
 
@@ -67,6 +68,10 @@ export const ClubsTable = ({ clubs, isLoading, pagination, sorting, serverFilter
       isLoading={isLoading}
       serverFilters={serverFilters}
       onFilterChange={onFilterChange}
+      multiSelectColumns={{
+        dept: { options: DEPT_FILTER_OPTIONS },
+        fede: { options: FEDE_FILTER_OPTIONS },
+      }}
       getEditRowHref={getEditClubHref}
       onDeleteRow={onDeleteClub}
       pagination={{

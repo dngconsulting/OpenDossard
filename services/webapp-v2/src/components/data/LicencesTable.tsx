@@ -3,13 +3,13 @@ import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table.tsx';
-import type { MultiSelectOption } from '@/components/ui/multi-select';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { DEPT_FILTER_OPTIONS } from '@/config/federations';
 import { useLicences } from '@/hooks/useLicences';
 import type { LicenceType } from '@/types/licences.ts';
 
@@ -64,20 +64,6 @@ function TableSkeleton() {
     </div>
   );
 }
-
-const DEPT_OPTIONS: MultiSelectOption[] = [
-  ...Array.from({ length: 19 }, (_, i) => {
-    const code = String(i + 1).padStart(2, '0');
-    return { value: code, label: code };
-  }),
-  { value: '2A', label: '2A' },
-  { value: '2B', label: '2B' },
-  ...Array.from({ length: 75 }, (_, i) => {
-    const code = String(i + 21).padStart(2, '0');
-    return { value: code, label: code };
-  }),
-  ...['971', '972', '973', '974', '976'].map(c => ({ value: c, label: c })),
-];
 
 type LicenceTableProps = {
   getEditHref?: (row: LicenceType) => string;
@@ -231,7 +217,7 @@ export const LicencesDataTable = ({ getEditHref, onDelete }: LicenceTableProps) 
       onDeleteRow={onDelete}
       isLoading={isLoading}
       serverFilters={(params.filters as Record<string, string>) || {}}
-      multiSelectColumns={{ dept: { options: DEPT_OPTIONS } }}
+      multiSelectColumns={{ dept: { options: DEPT_FILTER_OPTIONS } }}
       onFilterChange={(columnId, value) => setFilter(columnId as keyof LicenceType, value)}
       sorting={{
         sortColumn: params.orderBy,

@@ -242,3 +242,28 @@ export const FIELD_HELPER_TEXTS = {
  * Vérifie si une fédération est "Non Licencié"
  */
 export const isNonLicencie = (fede: string | undefined) => fede === FedeEnum.NL;
+
+/**
+ * Options multi-select pour le filtre par département (tous les départements français)
+ */
+export const DEPT_FILTER_OPTIONS: { value: string; label: string }[] = [
+  ...Array.from({ length: 19 }, (_, i) => {
+    const code = String(i + 1).padStart(2, '0');
+    return { value: code, label: code };
+  }),
+  { value: '2A', label: '2A' },
+  { value: '2B', label: '2B' },
+  ...Array.from({ length: 75 }, (_, i) => {
+    const code = String(i + 21).padStart(2, '0');
+    return { value: code, label: code };
+  }),
+  ...['971', '972', '973', '974', '976'].map(c => ({ value: c, label: c })),
+];
+
+/**
+ * Options multi-select pour le filtre par fédération
+ */
+export const FEDE_FILTER_OPTIONS: { value: string; label: string }[] = Object.values(FedeEnum).map(f => ({
+  value: f,
+  label: f,
+}));

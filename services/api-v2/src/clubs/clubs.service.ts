@@ -77,10 +77,20 @@ export class ClubsService {
       qb.andWhere('club.shortName ILIKE :shortName', { shortName: `%${shortName}%` });
     }
     if (dept) {
-      qb.andWhere('club.dept ILIKE :dept', { dept: `%${dept}%` });
+      if (dept.includes(',')) {
+        const deptsArray = dept.split(',').map(d => d.trim());
+        qb.andWhere('club.dept IN (:...deptsArray)', { deptsArray });
+      } else {
+        qb.andWhere('club.dept ILIKE :dept', { dept: `%${dept}%` });
+      }
     }
     if (fede) {
-      qb.andWhere('club.fede::text ILIKE :fede', { fede: `%${fede}%` });
+      if (fede.includes(',')) {
+        const fedesArray = fede.split(',').map(f => f.trim());
+        qb.andWhere('club.fede::text IN (:...fedesArray)', { fedesArray });
+      } else {
+        qb.andWhere('club.fede::text ILIKE :fede', { fede: `%${fede}%` });
+      }
     }
     if (longName) {
       qb.andWhere('club.longName ILIKE :longName', { longName: `%${longName}%` });
