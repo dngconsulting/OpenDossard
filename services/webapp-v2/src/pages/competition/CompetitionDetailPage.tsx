@@ -99,14 +99,16 @@ export default function CompetitionDetailPage() {
   const watchedEventDate = form.watch('eventDate');
   const watchedCompetitionType = form.watch('competitionType');
   const watchedFede = form.watch('fede');
+  const watchedClubId = form.watch('clubId');
 
-  // Les 5 champs obligatoires doivent être remplis pour activer le bouton Enregistrer
+  // Les 6 champs obligatoires doivent être remplis pour activer le bouton Enregistrer
   const canSave = Boolean(
     watchedName &&
       watchedEventDate &&
       watchedCompetitionType &&
       watchedFede &&
-      watchedZipCode?.length === 5,
+      watchedZipCode?.length === 5 &&
+      watchedClubId,
   );
 
   const deptFromZip = useMemo(() => {

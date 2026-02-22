@@ -244,7 +244,7 @@ export function GeneralTab({ isCreating, isDuplicating }: GeneralTabProps) {
               name="clubId"
               render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Club organisateur</FormLabel>
+                  <FormLabel>Club organisateur <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
                     <ClubAutocomplete
                       value={field.value ?? null}

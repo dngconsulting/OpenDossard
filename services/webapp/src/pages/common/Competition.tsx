@@ -2,7 +2,7 @@ import { apiCompetitions } from '../../util/api';
 import { CompetitionCreate } from '../../sdk';
 
 const isCompetitionValid = (competition: CompetitionCreate): boolean => {
-  return !!competition.name && !!competition?.eventDate && !!competition?.zipCode && !!competition?.races;
+  return !!competition.name && !!competition?.eventDate && !!competition?.zipCode && !!competition?.races && !!competition?.clubId;
 };
 export const saveCompetition = async ({
   competition,

@@ -50,7 +50,7 @@ export const competitionSchema = z.object({
     .max(5, 'Le code postal doit contenir 5 chiffres')
     .regex(/^\d{5}$/, 'Le code postal doit contenir 5 chiffres'),
   dept: z.string().optional(),
-  clubId: z.number().nullable().optional(),
+  clubId: z.number().nullable().refine(val => val != null && val > 0, { message: 'Le club organisateur est requis' }),
   longueurCircuit: z.string().optional(),
   info: z.string().optional(),
   contactName: z.string().optional(),
