@@ -6,10 +6,11 @@ import { LicenceImportService } from './licence-import.service';
 import { LicencesController } from './licences.controller';
 import { LicenceEntity } from './entities/licence.entity';
 import { ClubEntity } from '../clubs/entities/club.entity';
+import { RaceEntity } from '../races/entities/race.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([LicenceEntity, ClubEntity]),
+    TypeOrmModule.forFeature([LicenceEntity, ClubEntity, RaceEntity]),
     MulterModule.register({
       limits: {
         fileSize: 10 * 1024 * 1024, // 10MB

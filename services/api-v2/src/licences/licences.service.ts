@@ -1,7 +1,8 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { LicenceEntity } from './entities/licence.entity';
+import { RaceEntity } from '../races/entities/race.entity';
 import { CreateLicenceDto, FilterLicenceDto, UpdateLicenceDto } from './dto';
 import { PaginatedResponseDto } from '../common/dto';
 
@@ -12,6 +13,8 @@ export class LicencesService {
   constructor(
     @InjectRepository(LicenceEntity)
     private licenceRepository: Repository<LicenceEntity>,
+    @InjectRepository(RaceEntity)
+    private raceRepository: Repository<RaceEntity>,
   ) {}
 
   private buildFilteredQuery(filterDto: FilterLicenceDto): SelectQueryBuilder<LicenceEntity> {
@@ -246,6 +249,10 @@ export class LicencesService {
 
   async remove(id: number): Promise<void> {
     const licence = await this.findOne(id);
+    const raceCount = await this.raceRepository.count({ where: { licenceId: id } });
+    if (raceCount > 0) {
+      throw new ConflictException('Ce licencié a déjà participé à une épreuve, il ne peut être supprimé');
+    }
     await this.licenceRepository.remove(licence);
   }
 }

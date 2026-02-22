@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { LicencesDataTable } from '@/components/data/LicencesTable.tsx';
 import { useExportLicencesCSV } from '@/hooks/useExportLicencesCSV';
 import { useExportLicencesPDF } from '@/hooks/useExportLicencesPDF';
-import { useImportElicence, useLicences } from '@/hooks/useLicences';
+import { useDeleteLicence, useImportElicence, useLicences } from '@/hooks/useLicences';
 import { ImportResultDialog } from '@/components/licences/ImportResultDialog';
 import type { ImportResult } from '@/api/licences.api';
 import Layout from '@/components/layout/Layout.tsx';
@@ -36,6 +36,7 @@ export default function LicencesPage() {
   const { exportCSV, isExporting: isExportingCSV } = useExportLicencesCSV(params, totalLicences);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const importMutation = useImportElicence();
+  const deleteMutation = useDeleteLicence();
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
 
   const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,7 +65,22 @@ export default function LicencesPage() {
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => setDeleteLicence(undefined)}>Annuler</Button>
-          <Button variant="destructive">Supprimer</Button>
+          <Button
+            variant="destructive"
+            disabled={deleteMutation.isPending}
+            onClick={async () => {
+              if (!deleteLicence) return;
+              try {
+                await deleteMutation.mutateAsync(deleteLicence.id);
+              } catch {
+                // error handled by global MutationCache.onError
+              }
+              setDeleteLicence(undefined);
+            }}
+          >
+            {deleteMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Supprimer
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
