@@ -26,6 +26,7 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { Utility } from '../state/Utility';
 import { NavLink } from 'react-router-dom';
 import { styles } from './styles';
+import { getV2Url, V2_BANNER_HEIGHT } from './App.Bar';
 import PalmaresPage from '../pages/Palmares';
 import { UserEntity as User } from '../sdk';
 import { grey } from '@material-ui/core/colors';
@@ -94,6 +95,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
 
   public render(): JSX.Element {
     const { authentication, classes, utility, theme, isMobile } = this.props;
+    const v2BannerOffset = getV2Url() ? V2_BANNER_HEIGHT : 0;
     return (
       <Drawer
         hidden={!authentication}
@@ -104,7 +106,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
         open={utility.drawerOpen}
       >
         {utility.drawerOpen && (
-          <Box display="flex" bgcolor="background.paper" boxShadow={3}>
+          <Box display="flex" bgcolor="background.paper" boxShadow={3} style={v2BannerOffset ? { paddingTop: v2BannerOffset, backgroundColor: '#f57c00' } : undefined}>
             <Box flexGrow={1} bgcolor={cadtheme.palette.secondary.dark}>
               <List style={{ padding: '0px' }}>
                 <ListItem style={{ color: 'white', padding: '4px 0px 0px 5px' }}>
@@ -151,7 +153,7 @@ class AppDrawer extends React.Component<IAppDrawer, {}> {
           </Box>
         )}
         {!utility.drawerOpen && (
-          <div className={classes.toolbar}>
+          <div className={classes.toolbar} style={v2BannerOffset ? { marginTop: v2BannerOffset } : undefined}>
             <IconButton onClick={() => this.props.handleDrawer(utility.drawerOpen)}>
               {theme.direction === 'rtl' ? (
                 <ChevronRightIcon htmlColor={'#FFFFFF'} />

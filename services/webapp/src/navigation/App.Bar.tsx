@@ -28,6 +28,18 @@ import { LoaderIndicator } from '../components/LoaderIndicator';
 
 const classNames = require('classnames');
 
+export const V2_BANNER_HEIGHT = 36;
+
+export function getV2Url(): string | null {
+  const hostname = window.location.hostname;
+  const mapping: Record<string, string> = {
+    'app.opendossard.com': 'https://app-v2.opendossard.com',
+    'preprod.opendossard.com': 'https://preprod-v2.opendossard.com',
+    'test.opendossard.com': 'https://test-v2.opendossard.com',
+  };
+  return mapping[hostname] || null;
+}
+
 //#endregion
 
 interface IAppProps extends IApplicationProps {
@@ -99,8 +111,31 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
       const { anchorEl } = this.state;
       const open = Boolean(anchorEl);
 
+      const v2Url = getV2Url();
+
       return (
         <AppBar position="fixed" className={classNames(classes.appBar, utility.drawerOpen && classes.appBarShift)}>
+          {v2Url && (
+            <div style={{
+              height: V2_BANNER_HEIGHT,
+              backgroundColor: '#f57c00',
+              color: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 14,
+              gap: 8,
+            }}>
+              <span>La nouvelle version d'Open Dossard est disponible !</span>
+              <a href={v2Url} style={{
+                color: 'white',
+                fontWeight: 'bold',
+                textDecoration: 'underline',
+              }}>
+                Découvrir la V2
+              </a>
+            </div>
+          )}
           <Toolbar disableGutters={!utility.drawerOpen}>
             <IconButton
               color="inherit"
@@ -192,7 +227,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
         {this.renderDrawer()}
 
         <main className={classes.content}>
-          <div className={classes.toolbar} />
+          <div className={classes.toolbar} style={getV2Url() && this.props.authentication ? { marginTop: V2_BANNER_HEIGHT } : undefined} />
           <CadSnackBar>
             <AppRoutes renderAccount={this.renderAccount} />
             {this.renderAlert()}
