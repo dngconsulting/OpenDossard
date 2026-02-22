@@ -168,6 +168,7 @@ jobs:
   deploy:
     name: Deploy to ${{ github.event.inputs.envname }}
     needs: build-and-push
+    if: ${{ always() && needs.build-and-push.result == 'success' }}
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.envname }}
 
