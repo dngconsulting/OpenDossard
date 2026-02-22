@@ -151,6 +151,9 @@ export class CompetitionsService {
     author?: string,
   ): Promise<CompetitionEntity> {
     const { id, ...data } = competitionData;
+    if (Array.isArray(data.photoUrls) && data.photoUrls.length === 0) {
+      data.photoUrls = null;
+    }
     const competition = this.competitionRepository.create(data);
     const saved = await this.competitionRepository.save(competition);
     this.logger.log(
@@ -180,6 +183,9 @@ export class CompetitionsService {
       }
     }
 
+    if (Array.isArray(competitionData.photoUrls) && competitionData.photoUrls.length === 0) {
+      competitionData.photoUrls = null;
+    }
     Object.assign(competition, competitionData);
     const saved = await this.competitionRepository.save(competition);
     const fields = Object.keys(competitionData)

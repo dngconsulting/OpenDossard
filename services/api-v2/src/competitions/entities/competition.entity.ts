@@ -145,7 +145,7 @@ export class CompetitionEntity {
 
   @ApiPropertyOptional({ type: () => [Object] })
   @Column({ name: 'photo_urls', type: 'json', nullable: true })
-  photoUrls: LinkInfo[];
+  photoUrls: LinkInfo[] | null;
 
   @ApiPropertyOptional({ type: () => [Object] })
   @Column({ name: 'ranking_urls', type: 'json', nullable: true })
