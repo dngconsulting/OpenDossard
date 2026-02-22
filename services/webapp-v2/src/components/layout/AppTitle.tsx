@@ -1,5 +1,6 @@
 'use client';
 
+import { ENV_CONFIG } from '@/config/environment.config';
 import { SidebarMenu, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 
 export function AppTitle({
@@ -42,6 +43,14 @@ export function AppTitle({
               >
                 v{app.version}
               </a>
+              {ENV_CONFIG.show && (
+                <span
+                  className="mt-1 inline-block rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+                  style={{ backgroundColor: ENV_CONFIG.color, color: '#fff' }}
+                >
+                  {ENV_CONFIG.name}
+                </span>
+              )}
             </div>
           )}
         </div>

@@ -2,6 +2,7 @@ import { Menu } from 'lucide-react';
 import * as React from 'react';
 
 import { AppSidebar } from '@/components/layout/AppSidebar.tsx';
+import { EnvironmentBanner } from '@/components/layout/EnvironmentBanner';
 import { Button } from '@/components/ui/button.tsx';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
@@ -52,6 +53,7 @@ export default function Layout({ children, title, toolbar, toolbarLeft, noPaddin
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
+        <EnvironmentBanner />
         <header className="header-sidebar flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           {isMobile ? <MobileHeader title={title} /> : <DesktopHeader title={title} />}
         </header>

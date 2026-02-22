@@ -6,6 +6,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { showInfoToast } from '@/utils/error-handler/error-handler';
 import { z } from 'zod';
 
+import { EnvironmentBanner } from '@/components/layout/EnvironmentBanner';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -64,6 +65,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center p-4 bg-gradient-hero relative overflow-hidden">
+      <EnvironmentBanner fixed />
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-radial from-primary/20 to-transparent rounded-full blur-3xl" />
