@@ -68,7 +68,7 @@ function drawField(
       doc.text(text, x + labelWidth, y);
       return 1;
     }
-    const lines: string[] = doc.splitTextToSize(value, maxWidth);
+    const lines = doc.splitTextToSize(value, maxWidth) as string[];
     doc.text(lines, x + labelWidth, y);
     return lines.length;
   }
@@ -139,7 +139,7 @@ function renderHtmlToPdf(
     return curX;
   }
 
-  function renderInline(node: any, curX: number, bold: boolean, italic: boolean): number {
+  function renderInline(node: Node, curX: number, bold: boolean, italic: boolean): number {
     if (truncated) {
       return curX;
     }
@@ -155,7 +155,8 @@ function renderHtmlToPdf(
     }
 
     if (node.nodeType === NODE_ELEMENT) {
-      const tag = node.tagName.toLowerCase();
+      const el = node as Element;
+      const tag = el.tagName.toLowerCase();
       if (tag === 'br') {
         y += lineH;
         if (isOverflow()) {
@@ -166,8 +167,8 @@ function renderHtmlToPdf(
       }
 
       if (tag === 'a') {
-        const href = node.getAttribute('href') || '';
-        const linkText = node.textContent || href;
+        const href = el.getAttribute('href') || '';
+        const linkText = el.textContent || href;
         const style = bold ? 'bold' : 'normal';
         let cx = renderTextSegment(linkText, curX, style, href);
         if (href && linkText !== href) {
@@ -191,14 +192,14 @@ function renderHtmlToPdf(
     return curX;
   }
 
-  function renderBlock(el: any): void {
+  function renderBlock(el: Element): void {
     if (truncated) {
       return;
     }
     const tag = el.tagName.toLowerCase();
 
-    if (tag === 'p' || tag === 'div' || tag.match(/^h[1-6]$/)) {
-      const isHeading = !!tag.match(/^h[1-6]$/);
+    if (tag === 'p' || tag === 'div' || /^h[1-6]$/.test(tag)) {
+      const isHeading = /^h[1-6]$/.test(tag);
       const prevSize = fontSize;
       if (isHeading) {
         fontSize = prevSize + (4 - parseInt(tag[1])) * 1.5;
@@ -214,7 +215,7 @@ function renderHtmlToPdf(
     } else if (tag === 'ul' || tag === 'ol') {
       const ordered = tag === 'ol';
       let idx = 1;
-      for (const child of Array.from(el.children) as Element[]) {
+      for (const child of Array.from(el.children)) {
         if (truncated) {
           break;
         }
@@ -239,7 +240,7 @@ function renderHtmlToPdf(
         y += 0.5;
       }
     } else {
-      for (const child of Array.from(el.childNodes) as ChildNode[]) {
+      for (const child of Array.from(el.childNodes)) {
         if (truncated) {
           break;
         }
@@ -259,12 +260,12 @@ function renderHtmlToPdf(
     }
   }
 
-  for (const child of Array.from(document.body.childNodes) as any[]) {
+  for (const child of Array.from(document.body.childNodes)) {
     if (truncated) {
       break;
     }
     if (child.nodeType === NODE_ELEMENT) {
-      renderBlock(child);
+      renderBlock(child as Element);
     } else if (child.nodeType === NODE_TEXT && child.textContent?.trim()) {
       renderInline(child, x, false, false);
       if (!truncated) {
@@ -302,7 +303,7 @@ function drawCheckbox(doc: jsPDF, label: string, x: number, y: number, checked: 
   doc.text(label, x + boxSize + 2, y);
 }
 
-export async function generateFicheEpreuvePDF(competition: CompetitionEntity): Promise<Buffer> {
+export function generateFicheEpreuvePDF(competition: CompetitionEntity): Buffer {
   const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 10;
