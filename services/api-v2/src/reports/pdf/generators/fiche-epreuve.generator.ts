@@ -214,7 +214,7 @@ function renderHtmlToPdf(
     } else if (tag === 'ul' || tag === 'ol') {
       const ordered = tag === 'ol';
       let idx = 1;
-      for (const child of Array.from(el.children)) {
+      for (const child of Array.from(el.children) as Element[]) {
         if (truncated) {
           break;
         }
@@ -239,12 +239,12 @@ function renderHtmlToPdf(
         y += 0.5;
       }
     } else {
-      for (const child of Array.from(el.childNodes)) {
+      for (const child of Array.from(el.childNodes) as ChildNode[]) {
         if (truncated) {
           break;
         }
         if (child.nodeType === NODE_ELEMENT) {
-          renderBlock(child);
+          renderBlock(child as Element);
         } else if (child.nodeType === NODE_TEXT && child.textContent?.trim()) {
           renderInline(child, x, false, false);
           if (!truncated) {
