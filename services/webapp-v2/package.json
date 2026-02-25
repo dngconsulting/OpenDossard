@@ -1,7 +1,7 @@
 {
   "name": "backoffice-v2",
   "private": true,
-  "version": "2.3.42",
+  "version": "2.3.43",
   "type": "module",
   "pnpm": {
     "onlyBuiltDependencies": [
