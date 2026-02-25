@@ -3,11 +3,7 @@ import autoTable from 'jspdf-autotable';
 import { JSDOM } from 'jsdom';
 
 import { CompetitionEntity } from '../../../competitions/entities/competition.entity';
-import {
-  addLogoToPdf,
-  loadLogoAsDataUrl,
-  loadOpenDossardLogo,
-} from './pdf-logo.utils';
+import { addLogoToPdf, loadLogoAsDataUrl, loadOpenDossardLogo } from './pdf-logo.utils';
 
 const COMPETITION_TYPE_LABELS: Record<string, string> = {
   ROUTE: 'Route',
@@ -21,8 +17,18 @@ function formatDateFr(dateStr: string | Date): string {
   const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
   const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
   const months = [
-    'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
-    'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+    'janvier',
+    'février',
+    'mars',
+    'avril',
+    'mai',
+    'juin',
+    'juillet',
+    'août',
+    'septembre',
+    'octobre',
+    'novembre',
+    'décembre',
   ];
 
   return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
@@ -97,12 +103,7 @@ function renderHtmlToPdf(
     return maxY != null && y >= maxY;
   }
 
-  function renderTextSegment(
-    text: string,
-    curX: number,
-    style: string,
-    linkUrl?: string,
-  ): number {
+  function renderTextSegment(text: string, curX: number, style: string, linkUrl?: string): number {
     doc.setFont('helvetica', style);
     doc.setFontSize(fontSize);
     if (linkUrl) {
@@ -179,7 +180,7 @@ function renderHtmlToPdf(
       const isItalic = italic || tag === 'em' || tag === 'i';
 
       let cx = curX;
-      for (const child of Array.from(node.childNodes) as any[]) {
+      for (const child of Array.from(node.childNodes)) {
         if (truncated) {
           break;
         }
@@ -213,7 +214,7 @@ function renderHtmlToPdf(
     } else if (tag === 'ul' || tag === 'ol') {
       const ordered = tag === 'ol';
       let idx = 1;
-      for (const child of Array.from(el.children) as any[]) {
+      for (const child of Array.from(el.children)) {
         if (truncated) {
           break;
         }
@@ -238,7 +239,7 @@ function renderHtmlToPdf(
         y += 0.5;
       }
     } else {
-      for (const child of Array.from(el.childNodes) as any[]) {
+      for (const child of Array.from(el.childNodes)) {
         if (truncated) {
           break;
         }
@@ -320,7 +321,7 @@ export async function generateFicheEpreuvePDF(competition: CompetitionEntity): P
   doc.setTextColor(0);
   doc.text('Fédération Sportive et Gymnique du Travail', pageWidth / 2, 14, { align: 'center' });
   doc.setFontSize(12);
-  doc.text('Commission Cycliste Haute-Garonne', pageWidth / 2, 21, { align: 'center' });
+  doc.text('Fiche épreuve', pageWidth / 2, 21, { align: 'center' });
 
   if (openDossardLogo) {
     const logoHeight = 14;
@@ -342,10 +343,16 @@ export async function generateFicheEpreuvePDF(competition: CompetitionEntity): P
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(0);
-  const typeLabel = COMPETITION_TYPE_LABELS[competition.competitionType] ?? competition.competitionType;
-  doc.text(`RÈGLEMENT ÉPREUVE ${typeLabel.toUpperCase()} — Saison : ${saison}`, pageWidth / 2, bannerY + 5.5, {
-    align: 'center',
-  });
+  const typeLabel =
+    COMPETITION_TYPE_LABELS[competition.competitionType] ?? competition.competitionType;
+  doc.text(
+    `RÈGLEMENT ÉPREUVE ${typeLabel.toUpperCase()} — Saison : ${saison}`,
+    pageWidth / 2,
+    bannerY + 5.5,
+    {
+      align: 'center',
+    },
+  );
 
   // --- Champs formulaire (2 colonnes) ---
   const fieldStartY = 44;
@@ -356,34 +363,68 @@ export async function generateFicheEpreuvePDF(competition: CompetitionEntity): P
 
   const epreuveMaxWidth = contentWidth - labelW;
   const epreuveLines = drawField(
-    doc, 'Épreuve', competition.name, col1X, fieldStartY, labelW, epreuveMaxWidth, false, true,
+    doc,
+    'Épreuve',
+    competition.name,
+    col1X,
+    fieldStartY,
+    labelW,
+    epreuveMaxWidth,
+    false,
+    true,
   );
   const epreuveExtraH = epreuveLines > 1 ? (epreuveLines - 1) * 4.5 : 0;
 
   const gridY = fieldStartY + lineHeight + epreuveExtraH;
   drawField(doc, 'Comité', competition.dept || '', col1X, gridY, labelW);
-  drawField(doc, 'Date', capitalize(formatDateFr(competition.eventDate)), col1X, gridY + lineHeight, labelW);
+  drawField(
+    doc,
+    'Date',
+    capitalize(formatDateFr(competition.eventDate)),
+    col1X,
+    gridY + lineHeight,
+    labelW,
+  );
 
   drawField(
-    doc, 'CP + Ville',
+    doc,
+    'CP + Ville',
     (competition.zipCode || '') + ' ' + (competition.lieuDossard || ''),
-    col2X, gridY, labelW,
+    col2X,
+    gridY,
+    labelW,
   );
   drawField(doc, 'Contact', competition.contactName || '', col2X, gridY + lineHeight, labelW);
-  drawField(doc, 'Téléphone', competition.contactPhone || '', col2X, gridY + lineHeight * 2, labelW);
+  drawField(
+    doc,
+    'Téléphone',
+    competition.contactPhone || '',
+    col2X,
+    gridY + lineHeight * 2,
+    labelW,
+  );
   drawField(doc, 'Email', competition.contactEmail || '', col1X, gridY + lineHeight * 2, labelW);
 
   const clubY = gridY + lineHeight * 3;
   const clubLines = drawField(
-    doc, 'Club', competition.club?.longName || '', col1X, clubY, labelW, epreuveMaxWidth,
+    doc,
+    'Club',
+    competition.club?.longName || '',
+    col1X,
+    clubY,
+    labelW,
+    epreuveMaxWidth,
   );
   const clubExtraH = clubLines > 1 ? (clubLines - 1) * 4.5 : 0;
 
   const row2Y = clubY + lineHeight + clubExtraH;
   drawField(
-    doc, 'Longueur',
+    doc,
+    'Longueur',
     competition.longueurCircuit ? `${competition.longueurCircuit} km` : '',
-    col1X, row2Y, labelW,
+    col1X,
+    row2Y,
+    labelW,
   );
   drawField(doc, 'Type (profil)', competition.info || '', col2X, row2Y, labelW);
 
@@ -391,8 +432,14 @@ export async function generateFicheEpreuvePDF(competition: CompetitionEntity): P
   drawField(doc, 'OpenRunner', openRunner, col1X, row2Y + lineHeight, labelW);
 
   drawField(
-    doc, 'Commissaires', competition.commissaires || '',
-    col1X, row2Y + lineHeight * 2, labelW, contentWidth - labelW, true,
+    doc,
+    'Commissaires',
+    competition.commissaires || '',
+    col1X,
+    row2Y + lineHeight * 2,
+    labelW,
+    contentWidth - labelW,
+    true,
   );
 
   // --- Ouverture aux autres fédérations ---
@@ -416,13 +463,21 @@ export async function generateFicheEpreuvePDF(competition: CompetitionEntity): P
       startY: catTableY,
       head: [['Catégorie', 'Heure dossards', 'Heure départ', 'Nombre de tours', 'Total kms']],
       headStyles: {
-        fontSize: 10, fontStyle: 'bold', halign: 'center',
-        fillColor: [255, 255, 255], textColor: [0, 0, 0],
-        lineColor: [0, 0, 0], lineWidth: 0.3, cellPadding: 2.5,
+        fontSize: 10,
+        fontStyle: 'bold',
+        halign: 'center',
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+        lineColor: [0, 0, 0],
+        lineWidth: 0.3,
+        cellPadding: 2.5,
       },
       bodyStyles: {
-        fontSize: 10, cellPadding: 2.5, minCellHeight: 8,
-        lineColor: [0, 0, 0], lineWidth: 0.2,
+        fontSize: 10,
+        cellPadding: 2.5,
+        minCellHeight: 8,
+        lineColor: [0, 0, 0],
+        lineWidth: 0.2,
       },
       columnStyles: {
         0: { halign: 'left' },
@@ -470,10 +525,18 @@ export async function generateFicheEpreuvePDF(competition: CompetitionEntity): P
   doc.setFont('helvetica', 'bold');
   if (competition.openedNL) {
     doc.setTextColor(0);
-    doc.text('Les non licenciés sont autorisés à participer à cette épreuve selon conditions.', margin, tarifY);
+    doc.text(
+      'Les non licenciés sont autorisés à participer à cette épreuve selon conditions.',
+      margin,
+      tarifY,
+    );
   } else {
     doc.setTextColor(200, 0, 0);
-    doc.text('Les non licenciés ne sont pas autorisés à participer à cette épreuve.', margin, tarifY);
+    doc.text(
+      'Les non licenciés ne sont pas autorisés à participer à cette épreuve.',
+      margin,
+      tarifY,
+    );
     doc.setTextColor(0);
   }
   tarifY += 7;
@@ -504,7 +567,13 @@ export async function generateFicheEpreuvePDF(competition: CompetitionEntity): P
 
   if (competition.observations) {
     const result = renderHtmlToPdf(
-      doc, competition.observations, obsContentX, contentEndY, obsMaxWidth, 7, obsLimitY,
+      doc,
+      competition.observations,
+      obsContentX,
+      contentEndY,
+      obsMaxWidth,
+      7,
+      obsLimitY,
     );
     contentEndY = result.y;
 
@@ -531,11 +600,14 @@ export async function generateFicheEpreuvePDF(competition: CompetitionEntity): P
   doc.setTextColor(120);
   doc.text(
     `Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`,
-    margin, pageHeight - 5,
+    margin,
+    pageHeight - 5,
   );
   doc.text(
     'Généré par Open Dossard — https://www.opendossard.com',
-    pageWidth - margin, pageHeight - 5, { align: 'right' },
+    pageWidth - margin,
+    pageHeight - 5,
+    { align: 'right' },
   );
 
   return Buffer.from(doc.output('arraybuffer'));
