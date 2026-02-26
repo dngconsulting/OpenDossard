@@ -219,6 +219,23 @@ export const getCateaOptions = (fede: string, gender: string) => {
 };
 
 /**
+ * Libellés dynamiques pour info1/info2 selon la fédération
+ */
+export const getCompetitionInfoLabels = (fede: string): { info1Label: string; info1Placeholder: string; info2Label: string; info2Placeholder: string } => {
+  switch (fede) {
+    case FedeEnum.FSGT:
+    case FedeEnum.UFOLEP:
+      return { info1Label: 'Tours', info1Placeholder: 'ex: 10', info2Label: 'Distance', info2Placeholder: 'ex: 58kms' };
+    case FedeEnum.FFC:
+    case FedeEnum.FFVELO:
+    case FedeEnum.CYCLOS:
+      return { info1Label: 'Distance', info1Placeholder: 'ex: 150 Kms', info2Label: 'Dénivelé', info2Placeholder: 'ex: 1500m de D+' };
+    default:
+      return { info1Label: 'Info 1', info1Placeholder: '', info2Label: 'Info 2', info2Placeholder: '' };
+  }
+};
+
+/**
  * Helper texts pour les champs du formulaire
  */
 export const FIELD_HELPER_TEXTS = {

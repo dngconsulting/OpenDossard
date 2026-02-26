@@ -28,6 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { getCompetitionInfoLabels } from '@/config/federations';
 import type { CompetitionInfoItem } from '@/types/competitions';
 
 import { SortableTableRow } from './SortableTableRow';
@@ -35,6 +36,8 @@ import type { FormValues } from './types';
 
 export function HorairesTab() {
   const form = useFormContext<FormValues>();
+  const fede = form.watch('fede');
+  const { info1Label, info1Placeholder, info2Label, info2Placeholder } = getCompetitionInfoLabels(fede);
 
   const [horaireForm, setHoraireForm] = useState<CompetitionInfoItem>({
     course: '',
@@ -154,19 +157,19 @@ export function HorairesTab() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Tours</Label>
+            <Label>{info1Label}</Label>
             <Input
               value={horaireForm.info1}
               onChange={e => setHoraireForm({ ...horaireForm, info1: e.target.value })}
-              placeholder="ex: 10"
+              placeholder={info1Placeholder}
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Distance</Label>
+            <Label>{info2Label}</Label>
             <Input
               value={horaireForm.info2}
               onChange={e => setHoraireForm({ ...horaireForm, info2: e.target.value })}
-              placeholder="ex: 58kms"
+              placeholder={info2Placeholder}
             />
           </div>
           <div className="space-y-1.5">
@@ -216,8 +219,8 @@ export function HorairesTab() {
                     <TableHead className="w-[140px]">Catégorie</TableHead>
                     <TableHead className="w-[100px]">Dossard</TableHead>
                     <TableHead className="w-[80px]">Départ</TableHead>
-                    <TableHead className="w-[60px]">Tours</TableHead>
-                    <TableHead className="w-[80px]">Distance</TableHead>
+                    <TableHead className="w-[60px]">{info1Label}</TableHead>
+                    <TableHead className="w-[80px]">{info2Label}</TableHead>
                     <TableHead className="w-[50px]">Lien</TableHead>
                     <TableHead className="w-[90px]">Actions</TableHead>
                   </TableRow>
