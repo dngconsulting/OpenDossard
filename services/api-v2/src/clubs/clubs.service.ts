@@ -120,6 +120,17 @@ export class ClubsService {
 
   async create(clubData: Partial<ClubEntity>, author?: string): Promise<ClubEntity> {
     const { id, ...data } = clubData;
+
+    if (data.longName) {
+      const existing = await this.clubRepository
+        .createQueryBuilder('club')
+        .where('LOWER(TRIM(club.longName)) = LOWER(TRIM(:longName))', { longName: data.longName })
+        .getOne();
+      if (existing) {
+        throw new ConflictException('Ce club existe déjà');
+      }
+    }
+
     const club = this.clubRepository.create(data);
     const saved = await this.clubRepository.save(club);
     this.logger.log(
