@@ -505,25 +505,34 @@ export async function exportPodiumsPDF(
       return;
     }
 
-    // Calculer les podiums (top 3)
+    // Séparer hommes et femmes classés
     const ranked = categoryEngagements
       .filter(e => e.rankingScratch != null && e.comment == null)
       .sort((a, b) => (a.rankingScratch ?? 0) - (b.rankingScratch ?? 0));
 
-    // Calculer le rang dans la catégorie
-    const podiums = ranked.slice(0, 3).map((r, index) => ({
+    const rankedMen = ranked.filter(e => e.gender !== 'F');
+    const rankedWomen = ranked.filter(e => e.gender === 'F');
+
+    // Podiums hommes (top 3) + podiums femmes (top 3)
+    const podiumsMen = rankedMen.slice(0, 3).map((r, index) => ({
+      ...r,
+      rankInCate: index + 1,
+    }));
+    const podiumsWomen = rankedWomen.slice(0, 3).map((r, index) => ({
       ...r,
       rankInCate: index + 1,
     }));
 
-    if (podiums.length === 0) {
+    const allPodiums = [...podiumsMen, ...podiumsWomen];
+
+    if (allPodiums.length === 0) {
       return;
     }
 
     // Trouver le vainqueur du challenge
     const challengeWinner = categoryEngagements.find(e => e.sprintchallenge);
 
-    const rowsToDisplay: (string | number)[][] = podiums.map(r => [
+    const rowsToDisplay: (string | number)[][] = allPodiums.map(r => [
       r.rankInCate,
       r.rankingScratch ?? '',
       displayDossard(r.riderNumber),

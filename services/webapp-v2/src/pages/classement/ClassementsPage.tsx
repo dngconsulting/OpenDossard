@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronRight, ClipboardList } from 'lucide-react';
+import { ArrowLeft, ChevronRight, ClipboardList, RefreshCw } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 
@@ -27,7 +27,7 @@ export default function ClassementsPage() {
 
   // Charger les données
   const { data: competition, isLoading: isLoadingCompetition } = useCompetition(competitionId);
-  const { data: engagements = [], isLoading: isLoadingEngagements } =
+  const { data: engagements = [], isLoading: isLoadingEngagements, refetch: refetchEngagements, isFetching: isFetchingEngagements } =
     useCompetitionRaces(competitionId);
 
   // Liste des courses triées pour l'affichage des onglets
@@ -107,6 +107,14 @@ export default function ClassementsPage() {
 
   const toolbar = (
     <div className="flex flex-col sm:flex-row gap-2">
+      <Button
+        variant="outline"
+        onClick={() => refetchEngagements()}
+        disabled={isFetchingEngagements}
+        title="Rafraîchir les données"
+      >
+        <RefreshCw className={`h-4 w-4 ${isFetchingEngagements ? 'animate-spin' : ''}`} />
+      </Button>
       {competition && (
         <ImportClassementButton competitionId={competition.id} />
       )}

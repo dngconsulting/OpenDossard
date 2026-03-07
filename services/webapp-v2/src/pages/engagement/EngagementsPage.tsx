@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronRight, Shuffle, Trophy } from 'lucide-react';
+import { ArrowLeft, ChevronRight, RefreshCw, Shuffle, Trophy } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 
@@ -28,7 +28,7 @@ export default function EngagementsPage() {
 
   // Charger les données
   const { data: competition, isLoading: isLoadingCompetition } = useCompetition(competitionId);
-  const { data: engagements = [], isLoading: isLoadingEngagements } =
+  const { data: engagements = [], isLoading: isLoadingEngagements, refetch: refetchEngagements, isFetching: isFetchingEngagements } =
     useCompetitionRaces(competitionId);
 
   // Liste des courses dans l'ordre original (pour la réorganisation)
@@ -133,6 +133,14 @@ export default function EngagementsPage() {
 
   const toolbar = (
     <div className="flex flex-col sm:flex-row gap-2">
+      <Button
+        variant="outline"
+        onClick={() => refetchEngagements()}
+        disabled={isFetchingEngagements}
+        title="Rafraîchir les données"
+      >
+        <RefreshCw className={`h-4 w-4 ${isFetchingEngagements ? 'animate-spin' : ''}`} />
+      </Button>
       <Button
         variant="outline"
         disabled={hasAnyRanking || hasDuplicateRiderNumbers}
