@@ -418,12 +418,19 @@ export function ClassementsTable({
         return;
       }
 
+      // Calculer le bon rankingScratch : nombre de classés non-DNF + 1
+      // (le nouveau classé se place toujours après les classés existants, avant les DNF)
+      const nextRank =
+        raceEngagements.filter(
+          (e) => e.rankingScratch != null && e.comment == null
+        ).length + 1;
+
       // Mettre à jour le classement
       const dto: UpdateRankingDto = {
         riderNumber: dossardNum,
         raceCode: currentRaceCode,
         competitionId,
-        rankingScratch: position,
+        rankingScratch: nextRank,
       };
 
       try {
