@@ -185,9 +185,14 @@ export function EngagementForm({
           </Label>
           <Input
             id="riderNumber"
-            type="number"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
             value={riderNumber}
-            onChange={e => setRiderNumber(e.target.value)}
+            onChange={e => {
+              const v = e.target.value;
+              if (v === '' || /^\d+$/.test(v)) setRiderNumber(v);
+            }}
             onKeyDown={e => { if (e.key === 'Enter' && canSubmit) handleSubmit(); }}
             className={isRiderNumberTaken ? 'border-destructive focus:border-destructive focus-visible:ring-destructive/50' : ''}
           />

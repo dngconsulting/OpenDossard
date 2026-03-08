@@ -980,11 +980,9 @@ export async function exportChallengePDF(
   const pageWidth = doc.internal.pageSize.getWidth();
   const availableWidth = pageWidth - 2 * pageMargin;
 
-  // Définir les catégories selon le type de compétition
-  const categories =
-    challenge.competitionType === 'CX'
-      ? ['1', '2', '3', '4', '5', 'DAMES']
-      : ['1', '2', '3', '4', '5'];
+  // Extraire les catégories uniques depuis les riders
+  const categories = [...new Set(allRiders.map(r => r.currentLicenceCatev).filter(Boolean))]
+    .sort((a, b) => a!.localeCompare(b!, undefined, { numeric: true })) as string[];
 
   // Définir les genres à parcourir
   const genders: (GenderType | undefined)[] = ['H', 'F'];
