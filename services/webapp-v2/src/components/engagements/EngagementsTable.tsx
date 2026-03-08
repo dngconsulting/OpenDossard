@@ -97,6 +97,11 @@ export function EngagementsTable({
     const filtered = engagements.filter(e => e.raceCode === currentRaceCode);
 
     return filtered.sort((a, b) => {
+      // Les coureurs avec un commentaire (ABD, NC, CHT...) sont toujours en dernier
+      const aHasComment = !!a.comment;
+      const bHasComment = !!b.comment;
+      if (aHasComment !== bHasComment) return aHasComment ? 1 : -1;
+
       const aVal = a[sortColumn];
       const bVal = b[sortColumn];
 

@@ -89,71 +89,79 @@ export function transformRows(
     return [];
   }
 
-  // Séparer classés (avec rankingScratch ou comment)
-  const ranked = raceEngagements
-    .filter((e) => e.rankingScratch != null || e.comment != null)
-    .sort((a, b) => {
-      // DNF (avec comment) en bas des classés
-      if (a.comment && !b.comment) return 1;
-      if (!a.comment && b.comment) return -1;
-      // Sinon tri par rankingScratch
-      return (a.rankingScratch ?? 999) - (b.rankingScratch ?? 999);
-    });
+  // Séparer classés (avec rankingScratch, sans comment DNF) et DNF (avec comment)
+  const classedOnly = raceEngagements
+    .filter((e) => e.rankingScratch != null && e.comment == null)
+    .sort((a, b) => (a.rankingScratch ?? 0) - (b.rankingScratch ?? 0));
+
+  const dnfOnly = raceEngagements
+    .filter((e) => e.comment != null);
+
+  // Tous les classés (pour le calcul de rankOfCate)
+  const allRanked = [...classedOnly, ...dnfOnly];
 
   // Nombre total de lignes = nombre d'engagés
   const totalLines = raceEngagements.length;
+  const emptyCount = totalLines - classedOnly.length - dnfOnly.length;
 
-  // Générer les lignes transformées
+  // Ordre : classés → lignes vides → DNF
   const rows: TransformedRow[] = [];
 
-  for (let i = 0; i < totalLines; i++) {
-    const rankedRow = ranked[i];
+  const toRow = (e: RaceRowType, position: number): TransformedRow => ({
+    position,
+    id: e.id,
+    riderNumber: e.riderNumber,
+    rankingScratch: e.rankingScratch ?? null,
+    comment: e.comment ?? null,
+    name: e.name ?? e.riderName ?? null,
+    club: e.club ?? null,
+    gender: e.gender ?? null,
+    dept: e.dept ?? null,
+    catev: e.catev ?? null,
+    catea: e.catea ?? null,
+    fede: e.fede ?? null,
+    birthYear: e.birthYear ?? null,
+    chrono: e.chrono ?? null,
+    tours: e.tours ?? null,
+    sprintchallenge: e.sprintchallenge ?? false,
+    licenceNumber: e.licenceNumber ?? null,
+    rankOfCate: rankOfCate(e, allRanked),
+  });
 
-    if (rankedRow) {
-      // Ligne avec coureur classé
-      rows.push({
-        position: i + 1,
-        id: rankedRow.id,
-        riderNumber: rankedRow.riderNumber,
-        rankingScratch: rankedRow.rankingScratch ?? null,
-        comment: rankedRow.comment ?? null,
-        name: rankedRow.name ?? rankedRow.riderName ?? null,
-        club: rankedRow.club ?? null,
-        gender: rankedRow.gender ?? null,
-        dept: rankedRow.dept ?? null,
-        catev: rankedRow.catev ?? null,
-        catea: rankedRow.catea ?? null,
-        fede: rankedRow.fede ?? null,
-        birthYear: rankedRow.birthYear ?? null,
-        chrono: rankedRow.chrono ?? null,
-        tours: rankedRow.tours ?? null,
-        sprintchallenge: rankedRow.sprintchallenge ?? false,
-        licenceNumber: rankedRow.licenceNumber ?? null,
-        rankOfCate: rankOfCate(rankedRow, ranked),
-      });
-    } else {
-      // Ligne vide (à remplir)
-      rows.push({
-        position: i + 1,
-        id: null,
-        riderNumber: null,
-        rankingScratch: null,
-        comment: null,
-        name: null,
-        club: null,
-        gender: null,
-        dept: null,
-        catev: null,
-        catea: null,
-        fede: null,
-        birthYear: null,
-        chrono: null,
-        tours: null,
-        sprintchallenge: false,
-        licenceNumber: null,
-        rankOfCate: null,
-      });
-    }
+  let pos = 1;
+
+  // 1. Classés
+  for (const e of classedOnly) {
+    rows.push(toRow(e, pos++));
+  }
+
+  // 2. Lignes vides
+  for (let i = 0; i < emptyCount; i++) {
+    rows.push({
+      position: pos++,
+      id: null,
+      riderNumber: null,
+      rankingScratch: null,
+      comment: null,
+      name: null,
+      club: null,
+      gender: null,
+      dept: null,
+      catev: null,
+      catea: null,
+      fede: null,
+      birthYear: null,
+      chrono: null,
+      tours: null,
+      sprintchallenge: false,
+      licenceNumber: null,
+      rankOfCate: null,
+    });
+  }
+
+  // 3. DNF (ABD, NC, CHT...) tout en bas
+  for (const e of dnfOnly) {
+    rows.push(toRow(e, pos++));
   }
 
   return rows;
