@@ -1,8 +1,9 @@
-import { Plus, AlertTriangle } from 'lucide-react';
-import { useState, useEffect, useMemo } from 'react';
+import { Plus, AlertTriangle, Calendar, CreditCard, MapPin, Shield, Trophy, User, Users } from 'lucide-react';
+import { useRef, useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
 import { LicenceAutocomplete } from '@/components/LicenceAutocomplete';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import { getCatevOptions, type CompetitionType } from '@/config/federations';
 import { useEngage } from '@/hooks/useRaces';
+import { cn } from '@/lib/utils';
 import type { LicenceType } from '@/types/licences';
 import type { RaceRowType } from '@/types/races';
 
@@ -37,6 +39,7 @@ export function EngagementForm({
   existingEngagements,
   onSuccess,
 }: EngagementFormProps) {
+  const licenceInputRef = useRef<HTMLInputElement>(null);
   const [selectedLicence, setSelectedLicence] = useState<LicenceType | null>(null);
   const [riderNumber, setRiderNumber] = useState('');
   const [catev, setCatev] = useState('');
@@ -154,6 +157,9 @@ export function EngagementForm({
       setShowFedeWarning(false);
       setShowSaisonWarning(false);
 
+      // Remettre le focus sur la saisie coureur
+      setTimeout(() => licenceInputRef.current?.focus(), 0);
+
       onSuccess?.();
     } catch (error) {
       console.error('Erreur lors de l\'engagement:', error);
@@ -172,6 +178,7 @@ export function EngagementForm({
             competitionFede={competitionFede}
             error={isLicenceAlreadyEngaged ? ' ' : undefined}
             required
+            inputRef={licenceInputRef}
           />
         </div>
 
@@ -228,6 +235,68 @@ export function EngagementForm({
           )}
         </Button>
       </div>
+
+      {/* Card récapitulative du coureur sélectionné */}
+      {selectedLicence && (
+        <div className="flex items-center gap-4 px-4 py-3 bg-background border border-border/60 rounded-lg shadow-sm">
+          <div
+            className={cn(
+              'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white',
+              selectedLicence.gender === 'F' ? 'bg-pink-500' : 'bg-blue-500',
+            )}
+          >
+            {`${selectedLicence.firstName?.[0] || ''}${selectedLicence.name?.[0] || ''}`.toUpperCase()}
+          </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Users className="h-3.5 w-3.5" />
+              <span className="font-medium text-foreground">{selectedLicence.club || '—'}</span>
+            </span>
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Trophy className="h-3.5 w-3.5" />
+              <Badge variant="outline" className="text-xs font-medium">{licenceCatevValue || '—'}</Badge>
+            </span>
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <User className="h-3.5 w-3.5" />
+              <Badge variant="outline" className="text-xs font-medium">{selectedLicence.catea || '—'}</Badge>
+            </span>
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Calendar className="h-3.5 w-3.5" />
+              {selectedLicence.birthYear || '—'}
+            </span>
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <MapPin className="h-3.5 w-3.5" />
+              {selectedLicence.dept || '—'}
+            </span>
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Shield className="h-3.5 w-3.5" />
+              <Badge
+                variant="outline"
+                className={cn(
+                  'text-xs font-medium',
+                  selectedLicence.fede !== competitionFede && 'border-amber-500 text-amber-700 dark:text-amber-400',
+                )}
+              >
+                {selectedLicence.fede}
+              </Badge>
+            </span>
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <CreditCard className="h-3.5 w-3.5" />
+              <Badge
+                variant="outline"
+                className={cn(
+                  'text-xs font-medium',
+                  selectedLicence.saison === new Date().getFullYear().toString()
+                    ? 'border-green-500 text-green-700 dark:text-green-400'
+                    : 'border-red-500 text-red-700 dark:text-red-400',
+                )}
+              >
+                {selectedLicence.saison || 'N/A'}
+              </Badge>
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Erreur licence déjà engagée */}
       {isLicenceAlreadyEngaged && (

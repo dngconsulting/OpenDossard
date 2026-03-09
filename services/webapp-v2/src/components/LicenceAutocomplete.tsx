@@ -16,6 +16,7 @@ type LicenceAutocompleteProps = {
   error?: string;
   required?: boolean;
   hideLabel?: boolean;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
 };
 
 /**
@@ -138,6 +139,7 @@ export function LicenceAutocomplete({
   error,
   required,
   hideLabel = false,
+  inputRef,
 }: LicenceAutocompleteProps) {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
@@ -198,6 +200,7 @@ export function LicenceAutocomplete({
       )}
       <div className="relative">
         <Input
+          ref={inputRef}
           placeholder="Rechercher par nom, prénom ou numéro de licence..."
           value={inputValue}
           onChange={handleInputChange}
