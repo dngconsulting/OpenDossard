@@ -1,6 +1,6 @@
 import { Injectable, Logger, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { Brackets, Repository, SelectQueryBuilder } from 'typeorm';
 import { LicenceEntity } from './entities/licence.entity';
 import { RaceEntity } from '../races/entities/race.entity';
 import { CreateLicenceDto, FilterLicenceDto, UpdateLicenceDto } from './dto';
@@ -189,18 +189,35 @@ export class LicencesService {
   ): void {
     const tokens = searchTerm.trim().split(/\s+/).filter(Boolean);
 
+    // Compact form: search term without spaces (e.g. "DEMARCHI" for "DE MARCHI")
+    const compactTerm = tokens.join('');
+
     if (tokens.length === 1) {
       qb.andWhere(
-        `(unaccent(licence.name) ILIKE unaccent(:sToken) OR unaccent(licence.firstName) ILIKE unaccent(:sToken) OR licence.licenceNumber ILIKE :sSubstr OR licence.club ILIKE :sSubstr)`,
-        { sToken: `${tokens[0]}%`, sSubstr: `%${tokens[0]}%` },
+        `(unaccent(licence.name) ILIKE unaccent(:sToken) OR unaccent(licence.firstName) ILIKE unaccent(:sToken) OR licence.licenceNumber ILIKE :sSubstr OR licence.club ILIKE :sSubstr OR REPLACE(unaccent(licence.name), ' ', '') ILIKE unaccent(:sCompact) OR REPLACE(unaccent(licence.firstName), ' ', '') ILIKE unaccent(:sCompact))`,
+        { sToken: `${tokens[0]}%`, sSubstr: `%${tokens[0]}%`, sCompact: `${compactTerm}%` },
       );
     } else {
-      tokens.forEach((token, i) => {
-        qb.andWhere(
-          `(unaccent(licence.name) ILIKE unaccent(:sToken${i}) OR unaccent(licence.firstName) ILIKE unaccent(:sToken${i}))`,
-          { [`sToken${i}`]: `${token}%` },
-        );
-      });
+      qb.andWhere(
+        new Brackets(sub => {
+          // Branch 1: each token must be found as substring in name or firstName
+          sub.where(
+            new Brackets(tokenSub => {
+              tokens.forEach((token, i) => {
+                tokenSub.andWhere(
+                  `(unaccent(licence.name) ILIKE unaccent(:sToken${i}) OR unaccent(licence.firstName) ILIKE unaccent(:sToken${i}) OR REPLACE(unaccent(licence.name), ' ', '') ILIKE unaccent(:sToken${i}) OR REPLACE(unaccent(licence.firstName), ' ', '') ILIKE unaccent(:sToken${i}))`,
+                  { [`sToken${i}`]: `%${token}%` },
+                );
+              });
+            }),
+          );
+          // Branch 2: compact form against space-stripped name or firstName
+          sub.orWhere(
+            `(REPLACE(unaccent(licence.name), ' ', '') ILIKE unaccent(:sCompact) OR REPLACE(unaccent(licence.firstName), ' ', '') ILIKE unaccent(:sCompact))`,
+            { sCompact: `${compactTerm}%` },
+          );
+        }),
+      );
     }
   }
 

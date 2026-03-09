@@ -112,6 +112,96 @@ describe('Licences (e2e)', () => {
       expect(body.data[0].name).toBe('DUPONT');
     });
 
+    describe('compound name search (#268)', () => {
+      beforeEach(async () => {
+        await getSeedHelper().seedCompoundNameLicences();
+      });
+
+      it('should find "DE MARCHI" with multi-word search "DE MARCHI"', async () => {
+        const res = await request(getApp().getHttpServer())
+          .get(API)
+          .query({ search: 'DE MARCHI' })
+          .set('Authorization', `Bearer ${adminToken}`)
+          .expect(200);
+
+        const body = res.body as PaginatedResponse<LicenceEntity>;
+        expect(body.data).toHaveLength(1);
+        expect(body.data[0].name).toBe('DE MARCHI');
+      });
+
+      it('should find "DE MARCHI" with compact search "DEMARCHI"', async () => {
+        const res = await request(getApp().getHttpServer())
+          .get(API)
+          .query({ search: 'DEMARCHI' })
+          .set('Authorization', `Bearer ${adminToken}`)
+          .expect(200);
+
+        const body = res.body as PaginatedResponse<LicenceEntity>;
+        expect(body.data).toHaveLength(1);
+        expect(body.data[0].name).toBe('DE MARCHI');
+      });
+
+      it('should find "DA SILVA" with multi-word search "DA SILVA"', async () => {
+        const res = await request(getApp().getHttpServer())
+          .get(API)
+          .query({ search: 'DA SILVA' })
+          .set('Authorization', `Bearer ${adminToken}`)
+          .expect(200);
+
+        const body = res.body as PaginatedResponse<LicenceEntity>;
+        expect(body.data).toHaveLength(1);
+        expect(body.data[0].name).toBe('DA SILVA');
+      });
+
+      it('should find "DA SILVA" with compact search "DASILVA"', async () => {
+        const res = await request(getApp().getHttpServer())
+          .get(API)
+          .query({ search: 'DASILVA' })
+          .set('Authorization', `Bearer ${adminToken}`)
+          .expect(200);
+
+        const body = res.body as PaginatedResponse<LicenceEntity>;
+        expect(body.data).toHaveLength(1);
+        expect(body.data[0].name).toBe('DA SILVA');
+      });
+
+      it('should find "DE MARCHI" with firstName+name search "Victor DE"', async () => {
+        const res = await request(getApp().getHttpServer())
+          .get(API)
+          .query({ search: 'Victor DE' })
+          .set('Authorization', `Bearer ${adminToken}`)
+          .expect(200);
+
+        const body = res.body as PaginatedResponse<LicenceEntity>;
+        expect(body.data).toHaveLength(1);
+        expect(body.data[0].name).toBe('DE MARCHI');
+      });
+
+      it('should find "DE MARCHI" with compact+firstName search "demarchi victor"', async () => {
+        const res = await request(getApp().getHttpServer())
+          .get(API)
+          .query({ search: 'demarchi victor' })
+          .set('Authorization', `Bearer ${adminToken}`)
+          .expect(200);
+
+        const body = res.body as PaginatedResponse<LicenceEntity>;
+        expect(body.data).toHaveLength(1);
+        expect(body.data[0].name).toBe('DE MARCHI');
+      });
+
+      it('should be case-insensitive for compound names', async () => {
+        const res = await request(getApp().getHttpServer())
+          .get(API)
+          .query({ search: 'de marchi' })
+          .set('Authorization', `Bearer ${adminToken}`)
+          .expect(200);
+
+        const body = res.body as PaginatedResponse<LicenceEntity>;
+        expect(body.data).toHaveLength(1);
+        expect(body.data[0].name).toBe('DE MARCHI');
+      });
+    });
+
     it('should sort by name DESC', async () => {
       await getSeedHelper().seedLicences();
 

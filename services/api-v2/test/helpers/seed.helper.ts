@@ -124,6 +124,39 @@ export class SeedHelper {
     ]);
   }
 
+  /** Crée des licences avec noms composés pour tester la recherche */
+  async seedCompoundNameLicences(): Promise<LicenceEntity[]> {
+    const repo = this.dataSource.getRepository(LicenceEntity);
+    return repo.save([
+      repo.create({
+        name: 'DE MARCHI',
+        firstName: 'Victor',
+        licenceNumber: '55551111',
+        gender: 'H',
+        club: 'TOAC',
+        dept: '31',
+        birthYear: '1992',
+        catea: 'S',
+        catev: '2',
+        fede: Federation.FSGT,
+        saison: '2025',
+      }),
+      repo.create({
+        name: 'DA SILVA',
+        firstName: 'Manu',
+        licenceNumber: '55552222',
+        gender: 'H',
+        club: 'Cyclo Club Gascon',
+        dept: '32',
+        birthYear: '1988',
+        catea: 'S',
+        catev: '3',
+        fede: Federation.FSGT,
+        saison: '2025',
+      }),
+    ]);
+  }
+
   /** Crée 3 compétitions de test et retourne les entités */
   async seedCompetitions(clubs?: ClubEntity[]): Promise<CompetitionEntity[]> {
     const repo = this.dataSource.getRepository(CompetitionEntity);
