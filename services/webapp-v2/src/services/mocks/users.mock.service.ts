@@ -58,7 +58,13 @@ export const mockUsersService = {
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userWithoutPassword } = user;
-    const newUser: UserType = { ...userWithoutPassword, id: nextId++ };
+    const newUser: UserType = {
+      ...userWithoutPassword,
+      id: nextId++,
+      firstName: userWithoutPassword.firstName ?? '',
+      lastName: userWithoutPassword.lastName ?? '',
+      phone: userWithoutPassword.phone ?? '',
+    };
     usersData.push(newUser);
     return newUser;
   },
