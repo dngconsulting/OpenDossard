@@ -9,9 +9,9 @@ export type UserType = {
 
 export type CreateUserInput = {
   email: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
+  firstName: string | null;
+  lastName: string | null;
+  phone: string | null;
   roles: string;
   password: string;
 };

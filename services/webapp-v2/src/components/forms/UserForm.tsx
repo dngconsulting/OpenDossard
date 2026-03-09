@@ -81,9 +81,9 @@ export const UserForm = ({ user, isCreating, onSuccess, formId, onPendingChange 
       if (isCreating) {
         await createUser.mutateAsync({
           email: data.email,
-          firstName: data.firstName || '',
-          lastName: data.lastName || '',
-          phone: data.phone || '',
+          firstName: data.firstName || null,
+          lastName: data.lastName || null,
+          phone: data.phone || null,
           roles: data.roles,
           password: data.password!,
         });
