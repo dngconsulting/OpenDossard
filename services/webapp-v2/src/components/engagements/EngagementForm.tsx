@@ -1,4 +1,4 @@
-import { Plus, AlertTriangle, Calendar, CreditCard, MapPin, Shield, Trophy, User, Users } from 'lucide-react';
+import { Plus, AlertTriangle, Calendar, CreditCard, MapPin, MessageCircle, Shield, Trophy, User, Users } from 'lucide-react';
 import { useRef, useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { getCatevOptions, type CompetitionType } from '@/config/federations';
 import { useEngage } from '@/hooks/useRaces';
 import { cn } from '@/lib/utils';
@@ -294,6 +295,20 @@ export function EngagementForm({
                 {selectedLicence.saison || 'N/A'}
               </Badge>
             </span>
+            {selectedLicence.comment && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="flex items-center gap-1.5 cursor-help">
+                      <MessageCircle className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">{selectedLicence.comment}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         </div>
       )}
