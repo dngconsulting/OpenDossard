@@ -122,12 +122,15 @@ export class ClubsService {
     const { id, ...data } = clubData;
 
     if (data.longName) {
-      const existing = await this.clubRepository
+      const qb = this.clubRepository
         .createQueryBuilder('club')
-        .where('LOWER(TRIM(club.longName)) = LOWER(TRIM(:longName))', { longName: data.longName })
-        .getOne();
+        .where('LOWER(TRIM(club.longName)) = LOWER(TRIM(:longName))', { longName: data.longName });
+      if (data.fede) {
+        qb.andWhere('club.fede = :fede', { fede: data.fede });
+      }
+      const existing = await qb.getOne();
       if (existing) {
-        throw new ConflictException('Ce club existe déjà');
+        throw new ConflictException('Ce club existe déjà pour cette fédération');
       }
     }
 
