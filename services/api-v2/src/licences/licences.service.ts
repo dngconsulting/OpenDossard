@@ -17,6 +17,24 @@ export class LicencesService {
     private raceRepository: Repository<RaceEntity>,
   ) {}
 
+  private applyFilter(
+    qb: SelectQueryBuilder<LicenceEntity>,
+    field: string,
+    value: string,
+    options?: { multiValue?: boolean; cast?: string },
+  ): void {
+    const col = options?.cast ? `licence.${field}::${options.cast}` : `licence.${field}`;
+    if (value === '__empty__') {
+      const emptyCol = options?.cast ? `licence.${field}::${options.cast}` : `licence.${field}`;
+      qb.andWhere(`(${emptyCol} IS NULL OR ${emptyCol} = '')`);
+    } else if (options?.multiValue && value.includes(',')) {
+      const values = value.split(',').map(v => v.trim());
+      qb.andWhere(`${col} IN (:...${field}Array)`, { [`${field}Array`]: values });
+    } else {
+      qb.andWhere(`${col} ILIKE :${field}`, { [field]: `%${value}%` });
+    }
+  }
+
   private buildFilteredQuery(filterDto: FilterLicenceDto): SelectQueryBuilder<LicenceEntity> {
     const {
       search,
@@ -49,51 +67,18 @@ export class LicencesService {
     if (id) {
       queryBuilder.andWhere('licence.id = :id', { id });
     }
-    if (name) {
-      queryBuilder.andWhere('licence.name ILIKE :name', { name: `%${name}%` });
-    }
-    if (firstName) {
-      queryBuilder.andWhere('licence.firstName ILIKE :firstName', {
-        firstName: `%${firstName}%`,
-      });
-    }
-    if (licenceNumber) {
-      queryBuilder.andWhere('licence.licenceNumber ILIKE :licenceNumber', {
-        licenceNumber: `%${licenceNumber}%`,
-      });
-    }
-    if (club) {
-      queryBuilder.andWhere('licence.club ILIKE :club', { club: `%${club}%` });
-    }
-    if (dept) {
-      if (dept.includes(',')) {
-        const deptsArray = dept.split(',').map(d => d.trim());
-        queryBuilder.andWhere('licence.dept IN (:...deptsArray)', { deptsArray });
-      } else {
-        queryBuilder.andWhere('licence.dept ILIKE :dept', { dept: `%${dept}%` });
-      }
-    }
-    if (fede) {
-      queryBuilder.andWhere('licence.fede::text ILIKE :fede', { fede: `%${fede}%` });
-    }
-    if (gender) {
-      queryBuilder.andWhere('licence.gender ILIKE :gender', { gender: `%${gender}%` });
-    }
-    if (birthYear) {
-      queryBuilder.andWhere('licence.birthYear ILIKE :birthYear', { birthYear: `%${birthYear}%` });
-    }
-    if (catea) {
-      queryBuilder.andWhere('licence.catea ILIKE :catea', { catea: `%${catea}%` });
-    }
-    if (catev) {
-      queryBuilder.andWhere('licence.catev ILIKE :catev', { catev: `%${catev}%` });
-    }
-    if (catevCX) {
-      queryBuilder.andWhere('licence.catevCX ILIKE :catevCX', { catevCX: `%${catevCX}%` });
-    }
-    if (saison) {
-      queryBuilder.andWhere('licence.saison ILIKE :saison', { saison: `%${saison}%` });
-    }
+    if (name) this.applyFilter(queryBuilder, 'name', name);
+    if (firstName) this.applyFilter(queryBuilder, 'firstName', firstName);
+    if (licenceNumber) this.applyFilter(queryBuilder, 'licenceNumber', licenceNumber);
+    if (club) this.applyFilter(queryBuilder, 'club', club);
+    if (dept) this.applyFilter(queryBuilder, 'dept', dept, { multiValue: true });
+    if (fede) this.applyFilter(queryBuilder, 'fede', fede, { cast: 'text' });
+    if (gender) this.applyFilter(queryBuilder, 'gender', gender);
+    if (birthYear) this.applyFilter(queryBuilder, 'birthYear', birthYear);
+    if (catea) this.applyFilter(queryBuilder, 'catea', catea);
+    if (catev) this.applyFilter(queryBuilder, 'catev', catev);
+    if (catevCX) this.applyFilter(queryBuilder, 'catevCX', catevCX);
+    if (saison) this.applyFilter(queryBuilder, 'saison', saison);
     if (withoutNumber) {
       queryBuilder.andWhere('(licence.licenceNumber IS NULL OR licence.licenceNumber = :empty)', {
         empty: '',

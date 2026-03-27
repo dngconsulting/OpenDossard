@@ -25,6 +25,7 @@ export class LicenceEntity {
 
   @ApiPropertyOptional()
   @Column({ nullable: true })
+  @Index()
   gender: string;
 
   @ApiPropertyOptional()

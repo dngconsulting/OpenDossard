@@ -441,35 +441,70 @@ export function DataTable<TData, TValue>({
                   >
                     {canFilter ? (
                       <div className="relative">
-                        {!filterValue && (
-                          <Search className="absolute left-1.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50 pointer-events-none" />
-                        )}
-                        <Input
-                          placeholder={columnId === 'club' ? 'Ex: Castanéen' : ''}
-                          value={filterValue}
-                          onChange={event => {
-                            if (isServerFiltering) {
-                              handleFilterChange(columnId, event.target.value);
-                            } else {
-                              header.column.setFilterValue(event.target.value);
-                            }
-                          }}
-                          className={`h-8 text-sm text-left ${filterValue ? 'pl-2' : 'pl-6'} ${showClear ? 'pr-7' : ''} bg-background/80 border-border/50 focus:border-primary/50 ${columnId === 'club' ? 'placeholder:italic' : ''}`}
-                        />
-                        {showClear && filterValue && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (isServerFiltering) {
-                                handleFilterChange(columnId, '');
-                              } else {
-                                header.column.setFilterValue('');
-                              }
-                            }}
-                            className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            <X className="h-3.5 w-3.5" />
-                          </button>
+                        {filterValue === '__empty__' ? (
+                          <div className="flex items-center gap-1 h-8 px-2 bg-amber-50 dark:bg-amber-950 border border-amber-300 dark:border-amber-700 rounded-md">
+                            <span className="text-xs text-amber-700 dark:text-amber-300 font-medium truncate">Vide</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (isServerFiltering) {
+                                  handleFilterChange(columnId, '');
+                                } else {
+                                  header.column.setFilterValue('');
+                                }
+                              }}
+                              className="ml-auto text-amber-500 hover:text-amber-700 dark:hover:text-amber-200 transition-colors"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            {!filterValue && (
+                              <Search className="absolute left-1.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50 pointer-events-none" />
+                            )}
+                            <Input
+                              placeholder={columnId === 'club' ? 'Ex: Castanéen' : ''}
+                              value={filterValue}
+                              onChange={event => {
+                                if (isServerFiltering) {
+                                  handleFilterChange(columnId, event.target.value);
+                                } else {
+                                  header.column.setFilterValue(event.target.value);
+                                }
+                              }}
+                              className={`h-8 text-sm text-left ${filterValue ? 'pl-2' : 'pl-6'} ${showClear ? 'pr-14' : ''} bg-background/80 border-border/50 focus:border-primary/50 ${columnId === 'club' ? 'placeholder:italic' : ''}`}
+                            />
+                            {showClear && (
+                              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+                                {isServerFiltering && !filterValue && (
+                                  <button
+                                    type="button"
+                                    title="Filtrer les valeurs vides"
+                                    onClick={() => handleFilterChange(columnId, '__empty__')}
+                                    className="text-muted-foreground/50 hover:text-amber-600 dark:hover:text-amber-400 transition-colors p-0.5"
+                                  >
+                                    <span className="text-xs font-bold leading-none">&#8709;</span>
+                                  </button>
+                                )}
+                                {filterValue && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (isServerFiltering) {
+                                        handleFilterChange(columnId, '');
+                                      } else {
+                                        header.column.setFilterValue('');
+                                      }
+                                    }}
+                                    className="text-muted-foreground hover:text-foreground transition-colors p-0.5"
+                                  >
+                                    <X className="h-3.5 w-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     ) : null}

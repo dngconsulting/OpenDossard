@@ -80,10 +80,10 @@ export class UsersController {
   async updatePassword(
     @Param('id', ParseIntPipe) id: number,
     @Body() updatePasswordDto: UpdatePasswordDto,
-    @CurrentUser() currentUser: UserEntity,
+    @CurrentUser() currentUser: { id: number; roles: string[] },
   ): Promise<{ success: boolean }> {
     // Users can only update their own password, unless admin
-    if (currentUser.id !== id && !currentUser.hasRole(Role.ADMIN)) {
+    if (currentUser.id !== id && !currentUser.roles.includes(Role.ADMIN)) {
       throw new Error('Unauthorized');
     }
     return this.usersService.updatePassword(id, updatePasswordDto);

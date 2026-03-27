@@ -5,6 +5,7 @@ import { PricingInfo, CompetitionInfo, LinkInfo } from '../../common/types';
 import { ClubEntity } from '../../clubs/entities/club.entity';
 
 @Entity('competition')
+@Index(['fede', 'competitionType'])
 export class CompetitionEntity {
   @ApiProperty()
   @PrimaryGeneratedColumn()

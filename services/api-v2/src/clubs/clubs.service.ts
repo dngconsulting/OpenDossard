@@ -51,6 +51,24 @@ export class ClubsService {
     return qb.take(1500).getMany();
   }
 
+  private applyFilter(
+    qb: SelectQueryBuilder<ClubEntity>,
+    field: string,
+    value: string,
+    options?: { multiValue?: boolean; cast?: string },
+  ): void {
+    const col = options?.cast ? `club.${field}::${options.cast}` : `club.${field}`;
+    if (value === '__empty__') {
+      const emptyCol = options?.cast ? `club.${field}::${options.cast}` : `club.${field}`;
+      qb.andWhere(`(${emptyCol} IS NULL OR ${emptyCol} = '')`);
+    } else if (options?.multiValue && value.includes(',')) {
+      const values = value.split(',').map(v => v.trim());
+      qb.andWhere(`${col} IN (:...${field}Array)`, { [`${field}Array`]: values });
+    } else {
+      qb.andWhere(`${col} ILIKE :${field}`, { [field]: `%${value}%` });
+    }
+  }
+
   private buildFilteredQuery(filterDto: FilterClubDto): SelectQueryBuilder<ClubEntity> {
     const {
       search,
@@ -73,31 +91,11 @@ export class ClubsService {
     }
 
     // Column-level filters
-    if (shortName) {
-      qb.andWhere('club.shortName ILIKE :shortName', { shortName: `%${shortName}%` });
-    }
-    if (dept) {
-      if (dept.includes(',')) {
-        const deptsArray = dept.split(',').map(d => d.trim());
-        qb.andWhere('club.dept IN (:...deptsArray)', { deptsArray });
-      } else {
-        qb.andWhere('club.dept ILIKE :dept', { dept: `%${dept}%` });
-      }
-    }
-    if (fede) {
-      if (fede.includes(',')) {
-        const fedesArray = fede.split(',').map(f => f.trim());
-        qb.andWhere('club.fede::text IN (:...fedesArray)', { fedesArray });
-      } else {
-        qb.andWhere('club.fede::text ILIKE :fede', { fede: `%${fede}%` });
-      }
-    }
-    if (longName) {
-      qb.andWhere('club.longName ILIKE :longName', { longName: `%${longName}%` });
-    }
-    if (elicenceName) {
-      qb.andWhere('club.elicenceName ILIKE :elicenceName', { elicenceName: `%${elicenceName}%` });
-    }
+    if (shortName) this.applyFilter(qb, 'shortName', shortName);
+    if (dept) this.applyFilter(qb, 'dept', dept, { multiValue: true });
+    if (fede) this.applyFilter(qb, 'fede', fede, { multiValue: true, cast: 'text' });
+    if (longName) this.applyFilter(qb, 'longName', longName);
+    if (elicenceName) this.applyFilter(qb, 'elicenceName', elicenceName);
 
     const validOrderFields = ['id', 'shortName', 'longName', 'dept', 'fede', 'elicenceName'];
     const orderField = validOrderFields.includes(orderBy) ? orderBy : 'shortName';
