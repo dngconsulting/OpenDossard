@@ -205,6 +205,7 @@ export function exportClassementsCsv(
 ): void {
   const headers = [
     'Cl.Scratch',
+    'Cl.Caté',
     'Dossard',
     'Nom',
     'Club',
@@ -214,7 +215,6 @@ export function exportClassementsCsv(
     'CatéV',
     'CatéA',
     ...(avecChrono ? ['Chrono', 'Tours'] : []),
-    'Cl.Caté',
     'Licence',
     'Fédé',
     'Course',
@@ -224,6 +224,7 @@ export function exportClassementsCsv(
     .filter((row) => row.riderNumber != null)
     .map((row) => [
       row.comment ?? row.rankingScratch ?? '',
+      row.rankOfCate ?? '',
       row.riderNumber ?? '',
       row.name ?? '',
       row.club ?? '',
@@ -233,7 +234,6 @@ export function exportClassementsCsv(
       row.catev ?? '',
       row.catea ?? '',
       ...(avecChrono ? [row.chrono ?? '', row.tours ?? ''] : []),
-      row.rankOfCate ?? '',
       row.licenceNumber ?? '',
       row.fede ?? '',
       raceCode,
@@ -264,6 +264,7 @@ export function exportAllClassementsCsv(
 ): void {
   const headers = [
     'Cl.Scratch',
+    'Cl.Caté',
     'Dossard',
     'Nom',
     'Club',
@@ -273,7 +274,6 @@ export function exportAllClassementsCsv(
     'CatéV',
     'CatéA',
     ...(avecChrono ? ['Chrono', 'Tours'] : []),
-    'Cl.Caté',
     'Licence',
     'Fédé',
     'Course',
@@ -287,6 +287,7 @@ export function exportAllClassementsCsv(
       .filter((row) => row.riderNumber != null)
       .map((row) => [
         String(row.comment ?? row.rankingScratch ?? ''),
+        String(row.rankOfCate ?? ''),
         String(row.riderNumber ?? ''),
         row.name ?? '',
         row.club ?? '',
@@ -296,7 +297,6 @@ export function exportAllClassementsCsv(
         row.catev ?? '',
         row.catea ?? '',
         ...(avecChrono ? [row.chrono ?? '', String(row.tours ?? '')] : []),
-        String(row.rankOfCate ?? ''),
         row.licenceNumber ?? '',
         row.fede ?? '',
         raceCode,
