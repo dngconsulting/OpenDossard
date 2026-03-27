@@ -10,7 +10,10 @@ import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -25,7 +28,6 @@ type EngagementFormProps = {
   competitionId: number;
   competitionFede: string;
   competitionType: CompetitionType;
-  competitionRaces: string;
   currentRaceCode: string;
   existingEngagements: RaceRowType[];
   onSuccess?: () => void;
@@ -35,7 +37,6 @@ export function EngagementForm({
   competitionId,
   competitionFede,
   competitionType,
-  competitionRaces,
   currentRaceCode,
   existingEngagements,
   onSuccess,
@@ -57,35 +58,35 @@ export function EngagementForm({
       : selectedLicence.catev;
   }, [selectedLicence, competitionType]);
 
-  // Options de catégorie basées sur la fédération de la compétition + catégories personnalisées
-  const catevOptions = useMemo(() => {
+  // Options de catégorie : catégories de la course courante + catégories fédération
+  const { customCategories, fedeCategories } = useMemo(() => {
     const fedeOptions = getCatevOptions(competitionFede, competitionType);
-    const allValues = new Set(fedeOptions.map(opt => opt.value));
+    const fedeValues = new Set(fedeOptions.map(opt => opt.value));
 
-    // Extraire les catégories personnalisées depuis competition.races
-    // Format: "A,B,C,1/2" -> séparer par "," puis par "/" pour obtenir A, B, C, 1, 2
-    const customCategories: { value: string; label: string }[] = [];
-    if (competitionRaces) {
-      const categories = competitionRaces
-        .split(/[,/]/)
-        .map(r => r.trim())
+    // Extraire les catégories personnalisées UNIQUEMENT de la course courante
+    // currentRaceCode ex: "1/2" -> catégories "1" et "2"
+    const custom: { value: string; label: string }[] = [];
+    const addedValues = new Set<string>();
+    if (currentRaceCode) {
+      const categories = currentRaceCode
+        .split('/')
+        .map(c => c.trim())
         .filter(Boolean);
       for (const cat of categories) {
-        if (!allValues.has(cat)) {
-          customCategories.push({ value: cat, label: cat });
-          allValues.add(cat);
+        if (!fedeValues.has(cat) && !addedValues.has(cat)) {
+          custom.push({ value: cat, label: cat });
+          addedValues.add(cat);
         }
       }
     }
 
     // Ajouter le catev de la licence s'il n'est pas déjà dans les options
-    if (licenceCatevValue && !allValues.has(licenceCatevValue)) {
-      customCategories.push({ value: licenceCatevValue, label: licenceCatevValue });
+    if (licenceCatevValue && !fedeValues.has(licenceCatevValue) && !addedValues.has(licenceCatevValue)) {
+      custom.push({ value: licenceCatevValue, label: licenceCatevValue });
     }
 
-    // Retourner les catégories personnalisées en premier, puis les options de la fédé
-    return [...customCategories, ...fedeOptions];
-  }, [competitionFede, competitionType, competitionRaces, licenceCatevValue]);
+    return { customCategories: custom, fedeCategories: fedeOptions };
+  }, [competitionFede, competitionType, currentRaceCode, licenceCatevValue]);
 
   // Reset du formulaire quand la course change
   useEffect(() => {
@@ -135,6 +136,7 @@ export function EngagementForm({
     catev &&
     !isRiderNumberTaken &&
     !isLicenceAlreadyEngaged &&
+    !showSaisonWarning &&
     !engageMutation.isPending;
 
   const handleSubmit = async () => {
@@ -216,11 +218,27 @@ export function EngagementForm({
               <SelectValue placeholder="Catégorie" />
             </SelectTrigger>
             <SelectContent>
-              {catevOptions.map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
+              {customCategories.length > 0 && (
+                <SelectGroup>
+                  <SelectLabel className="text-xs text-muted-foreground font-semibold">Mes Catés</SelectLabel>
+                  {customCategories.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              )}
+              {customCategories.length > 0 && <SelectSeparator />}
+              <SelectGroup>
+                {customCategories.length > 0 && (
+                  <SelectLabel className="text-xs text-muted-foreground font-semibold">Caté. {competitionFede}</SelectLabel>
+                )}
+                {fedeCategories.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
         </div>

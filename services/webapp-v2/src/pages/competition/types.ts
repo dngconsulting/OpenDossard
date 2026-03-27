@@ -86,9 +86,9 @@ export const competitionSchema = z.object({
         course: z.string(),
         horaireEngagement: z.string(),
         horaireDepart: z.string(),
-        info1: z.string(),
-        info2: z.string(),
-        info3: z.string().optional(),
+        info1: z.any().pipe(z.coerce.string()),
+        info2: z.any().pipe(z.coerce.string()),
+        info3: z.any().pipe(z.coerce.string()).optional(),
       }),
     )
     .optional(),

@@ -253,6 +253,12 @@ function SortableRow({
       {/* Dept */}
       <TableCell className="w-[60px] text-center hidden sm:table-cell">{row.dept}</TableCell>
 
+      {/* Année */}
+      <TableCell className="w-[60px] text-center hidden sm:table-cell">{row.birthYear}</TableCell>
+
+      {/* CatéA */}
+      <TableCell className="w-[70px] text-center hidden sm:table-cell">{row.catea}</TableCell>
+
       {/* CatéV */}
       <TableCell className="w-[70px] text-center">{row.catev}</TableCell>
 
@@ -575,6 +581,8 @@ export function ClassementsTable({
                 <TableHead className="w-[120px]">Club</TableHead>
                 <TableHead className="w-[50px] text-center hidden sm:table-cell">H/F</TableHead>
                 <TableHead className="w-[60px] text-center hidden sm:table-cell">Dept</TableHead>
+                <TableHead className="w-[60px] text-center hidden sm:table-cell">Année</TableHead>
+                <TableHead className="w-[70px] text-center hidden sm:table-cell">Caté.A</TableHead>
                 <TableHead className="w-[70px] text-center">CatéV</TableHead>
                 <TableHead className="w-[70px] text-center">Fédé</TableHead>
                 <TableHead className="w-[80px]"></TableHead>

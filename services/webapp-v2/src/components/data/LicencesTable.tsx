@@ -105,11 +105,6 @@ export const LicencesDataTable = ({ getEditHref, onDelete }: LicenceTableProps) 
       },
     },
     {
-      accessorKey: 'id',
-      header: 'ID',
-      size: 70,
-    },
-    {
       accessorKey: 'fede',
       header: 'Fédé',
       size: 90,

@@ -2,7 +2,7 @@ import { ArrowLeft, ChevronRight, RefreshCw, Shuffle, Trophy } from 'lucide-reac
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 
-import { EngagementForm, EngagementsTable, ExportMenu, ReorganizeRacesDialog } from '@/components/engagements';
+import { EngagementForm, EngagementsTable, ExportMenu, RaceInfoDialog, ReorganizeRacesDialog } from '@/components/engagements';
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -112,6 +112,8 @@ export default function EngagementsPage() {
         Épreuves
       </Link>
       <ChevronRight className="size-4 text-muted-foreground" />
+      <span className="text-muted-foreground">Engagements</span>
+      <ChevronRight className="size-4 text-muted-foreground" />
       <span className="font-medium">
         {competition ? `${competition.name} (${new Date(competition.eventDate).toLocaleDateString('fr-FR')})` : <Skeleton className="h-4 w-32 inline-block" />}
       </span>
@@ -141,6 +143,12 @@ export default function EngagementsPage() {
       >
         <RefreshCw className={`h-4 w-4 ${isFetchingEngagements ? 'animate-spin' : ''}`} />
       </Button>
+      {competition && (
+        <RaceInfoDialog
+          competition={competition}
+          showAboyeur={competition.competitionType === 'CX'}
+        />
+      )}
       <Button
         variant="outline"
         disabled={hasAnyRanking || hasDuplicateRiderNumbers}
@@ -221,7 +229,6 @@ export default function EngagementsPage() {
             competitionId={competition.id}
             competitionFede={competition.fede}
             competitionType={competition.competitionType as CompetitionTypeEnum}
-            competitionRaces={competition.races || ''}
             currentRaceCode={currentRaceCode}
             existingEngagements={engagements}
           />

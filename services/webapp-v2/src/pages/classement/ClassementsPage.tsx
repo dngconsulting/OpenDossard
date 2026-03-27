@@ -3,6 +3,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 
 import { ClassementsTable, ExportMenu, ImportClassementButton } from '@/components/classements';
+import { RaceInfoDialog } from '@/components/engagements';
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -86,6 +87,8 @@ export default function ClassementsPage() {
         Épreuves
       </Link>
       <ChevronRight className="size-4 text-muted-foreground" />
+      <span className="text-muted-foreground">Classements</span>
+      <ChevronRight className="size-4 text-muted-foreground" />
       <span className="font-medium">
         {competition ? `${competition.name} (${new Date(competition.eventDate).toLocaleDateString('fr-FR')})` : <Skeleton className="h-4 w-32 inline-block" />}
       </span>
@@ -115,6 +118,12 @@ export default function ClassementsPage() {
       >
         <RefreshCw className={`h-4 w-4 ${isFetchingEngagements ? 'animate-spin' : ''}`} />
       </Button>
+      {competition && (
+        <RaceInfoDialog
+          competition={competition}
+          showAboyeur={competition.competitionType === 'CX'}
+        />
+      )}
       {competition && (
         <ImportClassementButton competitionId={competition.id} />
       )}

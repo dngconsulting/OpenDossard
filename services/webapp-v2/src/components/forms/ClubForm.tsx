@@ -16,11 +16,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { FieldGroup, FieldSet, StringField, SelectField } from '@/components/ui/field';
+import { FieldGroup, FieldSet, StringField, SelectField, ComboboxField } from '@/components/ui/field';
 import { Form } from '@/components/ui/form';
 import { useCreateClub, useUpdateClub } from '@/hooks/useClubs';
 import { FEDERATION_OPTIONS } from '@/types/api';
 import type { ClubType, ClubReferences } from '@/types/clubs';
+import { useDepartments } from '@/hooks/useDepartments';
 
 const createFormSchema = (isCreating: boolean) =>
   z.object({
@@ -44,6 +45,7 @@ type ClubFormProps = {
 export const ClubForm = ({ club, isCreating, onSuccess, formId, onPendingChange }: ClubFormProps) => {
   const createClub = useCreateClub();
   const updateClub = useUpdateClub();
+  const { data: departments, isLoading: isLoadingDepartments } = useDepartments();
   const [propagateDialog, setPropagateDialog] = useState<{
     references: ClubReferences;
     formData: FormValues;
@@ -152,7 +154,14 @@ export const ClubForm = ({ club, isCreating, onSuccess, formId, onPendingChange 
                   </div>
                   <StringField field="elicenceName" form={form} label="Nom eLicence" />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <StringField field="dept" form={form} label="Département" required />
+                    <ComboboxField
+                      field="dept"
+                      form={form}
+                      label="Département"
+                      options={departments?.map(d => ({ value: d.code, label: `${d.code} - ${d.name}` })) ?? []}
+                      isLoading={isLoadingDepartments}
+                      required
+                    />
                     {isCreating ? (
                       <SelectField
                         field="fede"
