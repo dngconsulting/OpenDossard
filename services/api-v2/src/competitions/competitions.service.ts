@@ -56,7 +56,7 @@ export class CompetitionsService {
             .select('COUNT(*)')
             .from('race', 'r')
             .where('r.competition_id = competition.id')
-            .andWhere('r.ranking_scratch IS NOT NULL'),
+            .andWhere('(r.ranking_scratch IS NOT NULL OR r.comment IS NOT NULL)'),
         'classementsCount',
       );
 

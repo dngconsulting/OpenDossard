@@ -7,8 +7,8 @@ import { RaceInfoDialog } from '@/components/engagements';
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { RaceTabsList, RaceTabsTrigger } from '@/components/ui/race-tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs } from '@/components/ui/tabs';
 import { useCompetition } from '@/hooks/useCompetitions';
 import { useCompetitionRaces } from '@/hooks/useRaces';
@@ -33,7 +33,7 @@ export default function ClassementsPage() {
 
   // Liste des courses triées pour l'affichage des onglets
   const races = useMemo(() => {
-    if (!competition?.races) return [];
+    if (!competition?.races) {return [];}
     const racesArray =
       typeof competition.races === 'string'
         ? competition.races.split(',').map((r) => r.trim()).filter(Boolean)

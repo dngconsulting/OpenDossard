@@ -1,64 +1,80 @@
 import { format } from 'date-fns';
 import { Plus } from 'lucide-react';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { downloadFromApi } from '@/utils/download';
-import { showSuccessToast, showErrorToast } from '@/utils/error-handler/error-handler';
 import { CompetitionsDataTable } from '@/components/data/CompetitionsTable';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { useCompetitions, useDeleteCompetition } from '@/hooks/useCompetitions';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DatePicker } from '@/components/ui/date-picker';
-import type { CompetitionType } from '@/types/competitions';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { useCompetitions, useDeleteCompetition } from '@/hooks/useCompetitions';
+import { FEDERATION_VALUES, type CompetitionType } from '@/types/competitions';
+import { downloadFromApi } from '@/utils/download';
+import { showSuccessToast, showErrorToast } from '@/utils/error-handler/error-handler';
+
+const STORAGE_KEY = 'opendossard:competitions-filters';
+const FEDE_OPTIONS = FEDERATION_VALUES.map(f => ({ label: f, value: f }));
 
 export default function CompetitionsPage() {
   const navigate = useNavigate();
   const [duplicateCompetition, setDuplicateCompetition] = useState<CompetitionType | undefined>(undefined);
   const [deleteCompetition, setDeleteCompetition] = useState<CompetitionType | undefined>(undefined);
+  const [searchParams] = useSearchParams();
   const { data, setAdvancedFilters, params } = useCompetitions();
   const { mutate: deleteComp, isPending: isDeleting } = useDeleteCompetition();
   const totalCompetitions = data?.meta?.total ?? 0;
 
-  // Date filters
   const today = format(new Date(), 'yyyy-MM-dd');
+  const selectedFedes = params.fedes ? params.fedes.split(',') : [];
+
+  // Restaurer les filtres au montage
+  const initialized = useRef(false);
+  useEffect(() => {
+    if (initialized.current) {return;}
+    initialized.current = true;
+    if (searchParams.has('startDate') || searchParams.has('endDate') || searchParams.has('fedes')) {return;}
+
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setAdvancedFilters({
+          startDate: parsed.startDate || undefined,
+          endDate: parsed.endDate || undefined,
+          fedes: parsed.fedes || undefined,
+          orderDirection: parsed.orderDirection || 'DESC',
+        });
+        return;
+      } catch { /* fallback ci-dessous */ }
+    }
+    setAdvancedFilters({ startDate: today, orderDirection: 'ASC' });
+  }, [searchParams, setAdvancedFilters, today]);
+
+  // Sauvegarder dans localStorage après initialisation
+  useEffect(() => {
+    if (!initialized.current) {return;}
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      startDate: params.startDate,
+      endDate: params.endDate,
+      fedes: params.fedes,
+      orderDirection: params.orderDirection,
+    }));
+  }, [params.startDate, params.endDate, params.fedes, params.orderDirection]);
+
   const startDate = params.startDate ? new Date(params.startDate) : undefined;
   const endDate = params.endDate ? new Date(params.endDate) : undefined;
 
-  // Checkbox state derived from dates
-  const isFuture = params.startDate === today && !params.endDate;
-  const isPast = params.endDate === today && !params.startDate;
-  const isAll = !params.startDate && !params.endDate;
+  const datePresets = [
+    { id: 'all', label: 'Toutes', checked: !params.startDate && !params.endDate, startDate: undefined, endDate: undefined, order: 'DESC' },
+    { id: 'future', label: 'Futures', checked: params.startDate === today && !params.endDate, startDate: today, endDate: undefined, order: 'ASC' },
+    { id: 'past', label: 'Passées', checked: params.endDate === today && !params.startDate, startDate: undefined, endDate: today, order: 'DESC' },
+  ] as const;
 
-  const handleStartDateChange = (date: Date | undefined) => {
-    setAdvancedFilters({
-      startDate: date ? format(date, 'yyyy-MM-dd') : undefined,
-      orderDirection: date ? 'ASC' : 'DESC',
-    });
-  };
-
-  const handleEndDateChange = (date: Date | undefined) => {
-    setAdvancedFilters({ endDate: date ? format(date, 'yyyy-MM-dd') : undefined, orderDirection: 'DESC' });
-  };
-
-  const handleDisplayAllChange = () => {
-    setAdvancedFilters({ startDate: undefined, endDate: undefined, orderDirection: 'DESC' });
-  };
-
-  const handleDisplayFutureChange = () => {
-    setAdvancedFilters({ startDate: today, endDate: undefined, orderDirection: 'ASC' });
-  };
-
-  const handleDisplayPastChange = () => {
-    setAdvancedFilters({ startDate: undefined, endDate: today, orderDirection: 'DESC' });
-  };
-
-  const handleDuplicate = () => {
-    if (!duplicateCompetition) return;
-    setDuplicateCompetition(undefined);
-    navigate(`/competition/new?duplicateFrom=${duplicateCompetition.id}`);
+  const applyDateFilters = ({ startDate: start, endDate: end, orderDirection: order }: { startDate?: string; endDate?: string; orderDirection: 'ASC' | 'DESC' }) => {
+    setAdvancedFilters({ startDate: start, endDate: end, fedes: params.fedes, orderDirection: order });
   };
 
   const handleExportFiche = async (comp: CompetitionType) => {
@@ -82,7 +98,7 @@ export default function CompetitionsPage() {
   };
 
   const handleDelete = () => {
-    if (!deleteCompetition) return;
+    if (!deleteCompetition) {return;}
     deleteComp(deleteCompetition.id, {
       onSuccess: () => {
         showSuccessToast(`Épreuve "${deleteCompetition.name}" supprimée`);
@@ -94,17 +110,6 @@ export default function CompetitionsPage() {
     });
   };
 
-  const duplicateDialog = (
-    <ConfirmDialog
-      open={!!duplicateCompetition}
-      onOpenChange={open => !open && setDuplicateCompetition(undefined)}
-      title="Dupliquer une épreuve"
-      description={`Voulez-vous dupliquer l'épreuve "${duplicateCompetition?.name}" ?`}
-      confirmLabel="Dupliquer"
-      onConfirm={handleDuplicate}
-    />
-  );
-
   const toolbarLeft = (
     <span className="text-sm text-muted-foreground">
       Nombre d'épreuves : <strong className="text-foreground">{totalCompetitions}</strong>
@@ -112,12 +117,9 @@ export default function CompetitionsPage() {
   );
 
   const toolbar = (
-    <>
-      <Button variant="success" onClick={() => navigate('/competition/new')}>
-        <Plus /> Créer une épreuve
-      </Button>
-      {duplicateDialog}
-    </>
+    <Button variant="success" onClick={() => navigate('/competition/new')}>
+      <Plus /> Créer une épreuve
+    </Button>
   );
 
   return (
@@ -127,50 +129,50 @@ export default function CompetitionsPage() {
           <span className="text-sm font-medium text-foreground whitespace-nowrap">Date de début :</span>
           <DatePicker
             value={startDate}
-            onChange={handleStartDateChange}
+            onChange={date => applyDateFilters({
+              startDate: date ? format(date, 'yyyy-MM-dd') : undefined,
+              orderDirection: date ? 'ASC' : 'DESC',
+            })}
           />
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-foreground whitespace-nowrap">Date de fin :</span>
           <DatePicker
             value={endDate}
-            onChange={handleEndDateChange}
+            onChange={date => applyDateFilters({
+              endDate: date ? format(date, 'yyyy-MM-dd') : undefined,
+              orderDirection: 'DESC',
+            })}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-foreground whitespace-nowrap">Fédé :</span>
+          <MultiSelect
+            options={FEDE_OPTIONS}
+            selected={selectedFedes}
+            onChange={values => setAdvancedFilters({ fedes: values.length > 0 ? values.join(',') : undefined })}
+            placeholder="Toutes"
+            className="h-9 min-w-[140px]"
           />
         </div>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5">
-            <Checkbox
-              className="border-2"
-              id="display-all"
-              checked={isAll}
-              onCheckedChange={handleDisplayAllChange}
-            />
-            <label htmlFor="display-all" className="text-sm font-medium text-foreground whitespace-nowrap cursor-pointer">
-              Toutes
-            </label>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Checkbox
-              className="border-2"
-              id="display-future"
-              checked={isFuture}
-              onCheckedChange={handleDisplayFutureChange}
-            />
-            <label htmlFor="display-future" className="text-sm font-medium text-foreground whitespace-nowrap cursor-pointer">
-              Futures
-            </label>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Checkbox
-              className="border-2"
-              id="display-past"
-              checked={isPast}
-              onCheckedChange={handleDisplayPastChange}
-            />
-            <label htmlFor="display-past" className="text-sm font-medium text-foreground whitespace-nowrap cursor-pointer">
-              Passées
-            </label>
-          </div>
+          {datePresets.map(preset => (
+            <div key={preset.id} className="flex items-center gap-1.5">
+              <Checkbox
+                className="border-2"
+                id={`display-${preset.id}`}
+                checked={preset.checked}
+                onCheckedChange={() => applyDateFilters({
+                  startDate: preset.startDate,
+                  endDate: preset.endDate,
+                  orderDirection: preset.order,
+                })}
+              />
+              <label htmlFor={`display-${preset.id}`} className="text-sm font-medium text-foreground whitespace-nowrap cursor-pointer">
+                {preset.label}
+              </label>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -179,6 +181,19 @@ export default function CompetitionsPage() {
         onDuplicate={(row: CompetitionType) => setDuplicateCompetition(row)}
         onDelete={handleDeleteRequest}
         onExportFiche={handleExportFiche}
+      />
+
+      <ConfirmDialog
+        open={!!duplicateCompetition}
+        onOpenChange={open => !open && setDuplicateCompetition(undefined)}
+        title="Dupliquer une épreuve"
+        description={`Voulez-vous dupliquer l'épreuve "${duplicateCompetition?.name}" ?`}
+        confirmLabel="Dupliquer"
+        onConfirm={() => {
+          if (!duplicateCompetition) {return;}
+          setDuplicateCompetition(undefined);
+          navigate(`/competition/new?duplicateFrom=${duplicateCompetition.id}`);
+        }}
       />
 
       <ConfirmDialog
