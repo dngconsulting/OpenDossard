@@ -52,19 +52,19 @@ export default function Layout({ children, title, toolbar, toolbarLeft, noPaddin
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="h-svh overflow-hidden">
         <EnvironmentBanner />
         <header className="header-sidebar flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           {isMobile ? <MobileHeader title={title} /> : <DesktopHeader title={title} />}
         </header>
         {(toolbar || toolbarLeft) && (
-          <div className="toolbar-area flex flex-wrap items-center gap-2 px-4 py-2">
+          <div className="toolbar-area flex flex-wrap shrink-0 items-center gap-2 px-4 py-2">
             {toolbarLeft && <div className="flex-shrink-0">{toolbarLeft}</div>}
             <div className="flex-1" />
             <div className="flex flex-wrap items-center gap-2">{toolbar}</div>
           </div>
         )}
-        <div className={`flex flex-1 flex-col gap-4 ${noPadding ? '' : 'p-4'}`}>{children}</div>
+        <div className={`flex flex-1 flex-col gap-4 overflow-auto min-h-0 ${noPadding ? '' : 'p-4'}`}>{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );
