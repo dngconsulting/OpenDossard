@@ -1,14 +1,18 @@
-import { AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, ExternalLink, Trash2 } from 'lucide-react';
+import { AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, ExternalLink, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
   TableCell,
+  TableFilter,
+  TableFilterCell,
+  TableFilterRow,
   TableHead,
   TableHeader,
   TableRow,
@@ -80,7 +84,12 @@ export function EngagementsTable({
   const [deleteTarget, setDeleteTarget] = useState<RaceRowType | null>(null);
   const [sortColumn, setSortColumn] = useState<SortColumn>('riderNumber');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [filters, setFilters] = useState<Record<string, string>>({});
   const deleteMutation = useDeleteRace();
+
+  const handleFilterChange = useCallback((column: string, value: string) => {
+    setFilters(prev => ({ ...prev, [column]: value }));
+  }, []);
 
   // Toggle sort on column click
   const handleSort = useCallback((column: SortColumn) => {
@@ -94,21 +103,27 @@ export function EngagementsTable({
 
   // Filtrer et trier par course courante
   const filteredEngagements = useMemo(() => {
-    const filtered = engagements.filter(e => e.raceCode === currentRaceCode);
+    const filtered = engagements.filter(e => {
+      if (e.raceCode !== currentRaceCode) {return false;}
+      for (const [col, filterValue] of Object.entries(filters)) {
+        if (!filterValue) {continue;}
+        const raw = e[col as keyof RaceRowType];
+        const cellValue = col === 'riderNumber' && raw != null
+          ? String(raw).padStart(3, '0')
+          : String(raw ?? '');
+        if (!cellValue.toLowerCase().includes(filterValue.toLowerCase())) {return false;}
+      }
+      return true;
+    });
 
     return filtered.sort((a, b) => {
-      // Les coureurs avec un commentaire (ABD, NC, CHT...) sont toujours en dernier
-      const aHasComment = !!a.comment;
-      const bHasComment = !!b.comment;
-      if (aHasComment !== bHasComment) return aHasComment ? 1 : -1;
-
       const aVal = a[sortColumn];
       const bVal = b[sortColumn];
 
       // Handle null/undefined
-      if (aVal == null && bVal == null) return 0;
-      if (aVal == null) return sortDirection === 'asc' ? 1 : -1;
-      if (bVal == null) return sortDirection === 'asc' ? -1 : 1;
+      if (aVal == null && bVal == null) {return 0;}
+      if (aVal == null) {return sortDirection === 'asc' ? 1 : -1;}
+      if (bVal == null) {return sortDirection === 'asc' ? -1 : 1;}
 
       // Compare based on type
       let comparison: number;
@@ -120,7 +135,7 @@ export function EngagementsTable({
 
       return sortDirection === 'asc' ? comparison : -comparison;
     });
-  }, [engagements, currentRaceCode, sortColumn, sortDirection]);
+  }, [engagements, currentRaceCode, sortColumn, sortDirection, filters]);
 
   // Vérifier si on peut supprimer (pas classé et pas de commentaire type ABD/DNF)
   const canDelete = useCallback((engagement: RaceRowType) => {
@@ -165,9 +180,10 @@ export function EngagementsTable({
 
   return (
     <>
-      <div className="border rounded-lg overflow-x-auto">
+      <div className="border rounded-lg flex flex-col max-h-[calc(100vh-280px)]">
+        <div className="overflow-auto flex-1">
         <Table className="min-w-[900px]">
-          <TableHeader className="bg-muted/50">
+          <TableHeader className="bg-muted/50 sticky top-0 z-10">
             <TableRow>
               {hasAnyDeletable && <TableHead className="w-[60px]">Actions</TableHead>}
               <SortableHeader column="riderNumber" currentColumn={sortColumn} direction={sortDirection} onSort={handleSort} className="w-[70px]">
@@ -199,6 +215,40 @@ export function EngagementsTable({
               </SortableHeader>
             </TableRow>
           </TableHeader>
+          <TableFilter className="sticky top-8 z-10 bg-muted/50">
+            <TableFilterRow>
+              {hasAnyDeletable && <TableFilterCell className="w-[60px]" />}
+              {(['riderNumber', 'name', 'club'] as const).map(col => (
+                <TableFilterCell key={col}>
+                  <div className="relative">
+                    {!filters[col] && (
+                      <Search className="absolute left-1.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50 pointer-events-none" />
+                    )}
+                    <Input
+                      value={filters[col] || ''}
+                      onChange={e => handleFilterChange(col, e.target.value)}
+                      className={`h-8 text-sm ${filters[col] ? 'pl-2 pr-7' : 'pl-6'} bg-background/80 border-border/50 focus:border-primary/50`}
+                    />
+                    {filters[col] && (
+                      <button
+                        type="button"
+                        onClick={() => handleFilterChange(col, '')}
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </TableFilterCell>
+              ))}
+              <TableFilterCell />
+              <TableFilterCell />
+              <TableFilterCell />
+              <TableFilterCell />
+              <TableFilterCell />
+              <TableFilterCell />
+            </TableFilterRow>
+          </TableFilter>
           <TableBody>
             {filteredEngagements.map(engagement => {
               const surclassed = isSurclassed(engagement.catev, currentRaceCode);
@@ -232,7 +282,7 @@ export function EngagementsTable({
                       to={`/palmares/${engagement.licenceId}`}
                       className="font-medium text-primary hover:underline"
                     >
-                      {engagement.riderNumber}
+                      {String(engagement.riderNumber).padStart(3, '0')}
                     </Link>
                   </TableCell>
 
@@ -287,6 +337,7 @@ export function EngagementsTable({
             })}
           </TableBody>
         </Table>
+        </div>
       </div>
 
       {/* Dialog de confirmation de suppression */}
