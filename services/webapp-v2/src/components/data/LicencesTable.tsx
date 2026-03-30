@@ -1,5 +1,6 @@
 import { MessageCircle, Trophy } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table.tsx';
@@ -92,7 +93,7 @@ export const LicencesDataTable = ({ getEditHref, onDelete }: LicenceTableProps) 
       enableColumnFilter: false,
       cell: ({ row }) => {
         const count = row.original.racesCount ?? 0;
-        if (count === 0) return null;
+        if (count === 0) {return null;}
         return (
           <Link
             to={`/palmares/${row.original.id}`}
@@ -108,6 +109,11 @@ export const LicencesDataTable = ({ getEditHref, onDelete }: LicenceTableProps) 
       accessorKey: 'fede',
       header: 'Fédé',
       size: 90,
+    },
+    {
+      accessorKey: 'id',
+      header: 'ID',
+      size: 60,
     },
     {
       accessorKey: 'licenceNumber',
@@ -181,7 +187,7 @@ export const LicencesDataTable = ({ getEditHref, onDelete }: LicenceTableProps) 
       enableColumnFilter: false,
       cell: ({ row }) => {
         const comment = row.original.comment;
-        if (!comment) return <span className="block text-center text-muted-foreground">-</span>;
+        if (!comment) {return <span className="block text-center text-muted-foreground">-</span>;}
         return (
           <Tooltip>
             <TooltipTrigger asChild>
