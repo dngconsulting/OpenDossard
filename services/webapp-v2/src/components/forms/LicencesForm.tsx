@@ -124,29 +124,29 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange, f
 
   // Options de catégories basées sur la fédération et le genre
   const cateaOptions = useMemo(() => {
-    if (!fede || !gender) return [];
+    if (!fede || !gender) {return [];}
     return getCateaOptions(fede, gender);
   }, [fede, gender]);
 
   const catevOptions = useMemo(() => {
-    if (!fede) return [];
+    if (!fede) {return [];}
     return getCatevOptions(fede, 'ROUTE');
   }, [fede]);
 
   const catevCXOptions = useMemo(() => {
-    if (!fede) return [];
+    if (!fede) {return [];}
     return getCatevCXOptions(fede);
   }, [fede]);
 
   // Helper text dynamique pour le prénom selon la fédération
   const firstNameHelperText = useMemo(() => {
-    if (fede === 'FSGT') return FIELD_HELPER_TEXTS.firstName.FSGT;
+    if (fede === 'FSGT') {return FIELD_HELPER_TEXTS.firstName.FSGT;}
     return FIELD_HELPER_TEXTS.firstName.default;
   }, [fede]);
 
   // Helper text dynamique pour le club selon la fédération
   const clubHelperText = useMemo(() => {
-    if (fede === 'UFOLEP' || fede === 'FFC') return FIELD_HELPER_TEXTS.club.UFOLEP;
+    if (fede === 'UFOLEP' || fede === 'FFC') {return FIELD_HELPER_TEXTS.club.UFOLEP;}
     return FIELD_HELPER_TEXTS.club.default;
   }, [fede]);
 
@@ -185,10 +185,10 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange, f
   // Auto-calcul de la catégorie d'âge
   useEffect(() => {
     if (gender && birthYear && birthYear.length === 4 && saison) {
-      const newCatea = computeAgeCategory(gender, parseInt(birthYear, 10), saison);
+      const newCatea = computeAgeCategory(gender, parseInt(birthYear, 10), saison, fede);
       licenceForm.setValue('catea', newCatea);
     }
-  }, [gender, birthYear, saison, licenceForm]);
+  }, [gender, birthYear, saison, fede, licenceForm]);
 
   const onSubmit = async (data: FormValues) => {
     // Validation supplémentaire selon les règles v1

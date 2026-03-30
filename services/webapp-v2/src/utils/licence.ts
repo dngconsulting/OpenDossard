@@ -1,3 +1,5 @@
+import { getCateaOptions } from '@/config/federations';
+
 const AGE_CATEGORIES = [
   { min: 5, max: 6, code: 'MO' },
   { min: 7, max: 8, code: 'PO' },
@@ -14,12 +16,23 @@ const AGE_CATEGORIES = [
   { min: 70, max: Infinity, code: 'SA' },
 ] as const;
 
-export const computeAgeCategory = (gender: string, birthYear: number, season: string): string => {
+export const computeAgeCategory = (gender: string, birthYear: number, season: string, fede?: string): string => {
   const seasonYear = season ? parseInt(season) : new Date().getFullYear();
   const age = seasonYear - birthYear;
 
   const prefix = gender === 'F' ? 'F' : '';
   const ageCategory = AGE_CATEGORIES.find(({ min, max }) => age >= min && age <= max);
+  const computed = prefix + (ageCategory?.code ?? '');
 
-  return prefix + (ageCategory?.code ?? '');
+  // Si la fédération est renseignée, vérifier que la catégorie existe
+  if (fede && computed) {
+    const validOptions = getCateaOptions(fede, gender);
+    const isValid = validOptions.some(opt => opt.value === computed);
+    if (!isValid && validOptions.length > 0) {
+      // Retourner la dernière catégorie disponible (ex: "A" pour UFOLEP au lieu de "SA")
+      return validOptions[0].value;
+    }
+  }
+
+  return computed;
 };
