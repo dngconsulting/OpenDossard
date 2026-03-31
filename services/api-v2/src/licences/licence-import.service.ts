@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { LicenceEntity } from './entities/licence.entity';
@@ -25,7 +25,13 @@ export class LicenceImportService {
    * Import licences from e-licence CSV file
    */
   async importFromCsv(fileContent: string, author?: string): Promise<ImportResultDto> {
-    const rows = parseElicenceCsv(fileContent);
+    let rows;
+    try {
+      rows = parseElicenceCsv(fileContent);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new BadRequestException(`Erreur de parsing CSV : ${message}`);
+    }
 
     const result: ImportResultDto = {
       summary: { total: rows.length, created: 0, updated: 0, unchanged: 0, skipped: 0 },
@@ -42,12 +48,10 @@ export class LicenceImportService {
     }
 
     // Pre-load existing licences by licence number (FSGT only)
-    const licenceNumbers = rows
-      .map(r => r.licenceNumber)
-      .filter((num): num is string => !!num);
+    const licenceNumbers = rows.map(r => r.licenceNumber).filter((num): num is string => !!num);
     const uniqueNumbers = [...new Set(licenceNumbers)];
 
-    let licenceByNumber = new Map<string, LicenceEntity>();
+    const licenceByNumber = new Map<string, LicenceEntity>();
     if (uniqueNumbers.length > 0) {
       // Batch fetch in chunks to avoid query parameter limits
       const chunkSize = 500;
@@ -108,7 +112,14 @@ export class LicenceImportService {
       }
 
       if (existing) {
-        await this.updateExistingLicence(existing, row, changes, result, author, clubByElicenceName);
+        await this.updateExistingLicence(
+          existing,
+          row,
+          changes,
+          result,
+          author,
+          clubByElicenceName,
+        );
       } else {
         await this.createNewLicence(row, result, author, clubByElicenceName);
       }

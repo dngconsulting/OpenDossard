@@ -63,12 +63,18 @@ export function computeCateaFromBirthYear(birthYear: string, gender: string): st
  */
 export function parseElicenceCsv(content: string): ElicenceCsvRow[] {
   const cleaned = stripBOM(content);
+
+  // Détecter le délimiteur : tab si présent dans la première ligne, sinon point-virgule
+  const firstLine = cleaned.split('\n')[0] ?? '';
+  const delimiter = firstLine.includes('\t') ? '\t' : ';';
+
   const records: Record<string, string>[] = parse(cleaned, {
-    delimiter: ';',
+    delimiter,
     columns: true,
     skip_empty_lines: true,
     trim: true,
     relax_column_count: true,
+    relax_quotes: true,
   });
 
   const deptPattern = /\d+$/;
