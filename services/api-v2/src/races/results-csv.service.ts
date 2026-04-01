@@ -89,7 +89,7 @@ export class ResultsCsvService {
     buffer: Buffer,
   ): { Dossard: string; Chrono: string; Tours: string; Classement: string }[] {
     const content = buffer.toString('utf-8').replace(/^\uFEFF/, '');
-    const lines = content.split(/\r?\n/).filter(l => l.trim());
+    const lines = content.split(/\r\n|\r|\n/).filter(l => l.trim());
     if (lines.length < 2) {
       throw new BadRequestException("Le fichier CSV est vide ou ne contient que l'en-tête");
     }
