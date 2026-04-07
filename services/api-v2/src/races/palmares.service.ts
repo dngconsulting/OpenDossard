@@ -28,44 +28,75 @@ export class PalmaresService {
       throw new NotFoundException(`Licence with ID ${licenceId} not found`);
     }
 
-    // b) Single SQL query with rankingInCategory and totalInCategory
+    // b) Requête optimisée en une seule passe avec window functions PostgreSQL.
+    //
+    // Stratégie :
+    //  1. CTE `rider_races` : récupère les triplets (competition_id, race_code, catev)
+    //     du coureur — scan via index licence_id, ensemble très restreint.
+    //  2. CTE `peers` : ramène toutes les lignes de race appartenant à ces mêmes
+    //     triplets (= les "concurrents directs" du coureur dans chacun de ses départs).
+    //     On réduit ainsi drastiquement le volume scanné par le windowing.
+    //  3. CTE `ranked` : calcule en une seule passe :
+    //       - rankingInCategory  = ROW_NUMBER() partitionné par (compet, départ, catev),
+    //         ordonné par ranking_scratch — NULL pour les commentés (non classés au rang).
+    //       - totalInCategory    = COUNT(*) partitionné identiquement — compte finishers
+    //         ET commentés (ABD, NC, DSQ…), conformément à la sémantique demandée.
+    //  4. SELECT final : ne garde que les lignes du coureur, joint la compétition.
+    //
+    // Comparé à l'ancienne version (deux sous-requêtes corrélées par ligne, soit
+    // O(n) round-trips logiques côté planner), cette version est O(P log P) où P
+    // est le nombre total de participants dans les départs où le coureur a couru.
+    // Compatible avec NULL sur race_code/catev grâce à IS NOT DISTINCT FROM.
     const query = `
+      WITH rider_races AS (
+        SELECT DISTINCT competition_id, race_code, catev
+        FROM race
+        WHERE licence_id = $1
+          AND (ranking_scratch IS NOT NULL OR comment IS NOT NULL)
+      ),
+      peers AS (
+        SELECT r.*
+        FROM race r
+        JOIN rider_races rr
+          ON r.competition_id = rr.competition_id
+         AND r.race_code IS NOT DISTINCT FROM rr.race_code
+         AND r.catev      IS NOT DISTINCT FROM rr.catev
+        WHERE r.ranking_scratch IS NOT NULL OR r.comment IS NOT NULL
+      ),
+      ranked AS (
+        SELECT
+          p.*,
+          CASE
+            WHEN p.comment IS NULL AND p.ranking_scratch IS NOT NULL THEN
+              ROW_NUMBER() OVER (
+                PARTITION BY p.competition_id, p.race_code, p.catev
+                ORDER BY p.ranking_scratch
+              )
+            ELSE NULL
+          END AS "rankingInCategory",
+          COUNT(*) OVER (
+            PARTITION BY p.competition_id, p.race_code, p.catev
+          ) AS "totalInCategory"
+        FROM peers p
+      )
       SELECT
-        r.id,
-        r.competition_id AS "competitionId",
-        c.event_date AS "date",
-        c.name AS "competitionName",
-        c.competition_type AS "competitionType",
-        r.race_code AS "raceCode",
-        r.ranking_scratch AS "rankingScratch",
-        r.comment,
-        r.catev,
-        r.catea,
-        r.club,
-        CASE
-          WHEN r.ranking_scratch IS NOT NULL AND r.comment IS NULL THEN
-            (SELECT COUNT(*)
-             FROM race rr
-             WHERE rr.competition_id = r.competition_id
-               AND rr.race_code = r.race_code
-               AND rr.catev = r.catev
-               AND rr.ranking_scratch IS NOT NULL
-               AND rr.comment IS NULL
-               AND rr.ranking_scratch <= r.ranking_scratch)
-          ELSE NULL
-        END AS "rankingInCategory",
-        (SELECT COUNT(*)
-         FROM race rr
-         WHERE rr.competition_id = r.competition_id
-           AND rr.race_code = r.race_code
-           AND rr.catev = r.catev
-           AND rr.ranking_scratch IS NOT NULL
-           AND rr.comment IS NULL) AS "totalInCategory"
-      FROM race r
-      JOIN competition c ON r.competition_id = c.id
-      WHERE r.licence_id = $1
-        AND (r.ranking_scratch IS NOT NULL OR r.comment IS NOT NULL)
-      ORDER BY c.event_date DESC, r.id DESC
+        ranked.id,
+        ranked.competition_id           AS "competitionId",
+        c.event_date                    AS "date",
+        c.name                          AS "competitionName",
+        c.competition_type              AS "competitionType",
+        ranked.race_code                AS "raceCode",
+        ranked.ranking_scratch          AS "rankingScratch",
+        ranked.comment,
+        ranked.catev,
+        ranked.catea,
+        ranked.club,
+        ranked."rankingInCategory",
+        ranked."totalInCategory"
+      FROM ranked
+      JOIN competition c ON c.id = ranked.competition_id
+      WHERE ranked.licence_id = $1
+      ORDER BY c.event_date DESC, ranked.id DESC
     `;
 
     const rows: Array<{
