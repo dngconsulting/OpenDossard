@@ -35,8 +35,8 @@ function RankingCell({ row }: { row: PalmaresRaceResult }) {
     return (
       <span className="inline-flex items-center gap-1.5 text-base">
         {podiumColor && <Trophy className={`h-4 w-4 ${podiumColor}`} />}
-        <span className="font-semibold">{row.rankingScratch}</span>
-        <span className="text-muted-foreground text-sm">({row.rankingInCategory}/{row.totalInCategory})</span>
+        <span className="font-semibold">{row.rankingInCategory}</span>
+        <span className="text-muted-foreground text-sm">/{row.totalInCategory} (scr. {row.rankingScratch})</span>
       </span>
     );
   }
@@ -131,8 +131,8 @@ function sortResults(results: PalmaresRaceResult[], sort: SortConfig | null): Pa
 
     switch (sort.column) {
       case 'ranking': {
-        const aRank = a.rankingScratch ?? Infinity;
-        const bRank = b.rankingScratch ?? Infinity;
+        const aRank = a.rankingInCategory ?? Infinity;
+        const bRank = b.rankingInCategory ?? Infinity;
         return (aRank - bRank) * dir;
       }
       case 'date':
