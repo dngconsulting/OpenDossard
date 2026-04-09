@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   closestCenter,
   DndContext,
@@ -14,6 +13,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { Copy, Edit2, Plus, Save, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,7 @@ import {
 import type { PricingItem } from '@/types/competitions';
 
 import { SortableTableRow } from './SortableTableRow';
+
 import type { FormValues } from './types';
 
 export function TarifsTab() {
@@ -71,28 +72,20 @@ export function TarifsTab() {
       return;
     }
 
-    const cleanedPricing = {
-      ...pricingForm,
-      tarif: (pricingForm.tarif || '').replace(/[€\s]+/g, '').trim(),
-    };
-
     if (editingPricingIndex !== null) {
-      updatePricing(editingPricingIndex, cleanedPricing);
+      updatePricing(editingPricingIndex, pricingForm);
       setEditingPricingIndex(null);
     } else {
-      appendPricing(cleanedPricing);
+      appendPricing(pricingForm);
     }
     setPricingForm({ name: '', tarif: '' });
   };
 
   const handleEditPricing = (index: number) => {
     const item = pricingFields[index] as PricingItem;
-    const rawTarif = item.tarif || '';
-    // Remove non-numeric chars except dots and commas, then convert comma to dot for number input
-    const cleanedTarif = rawTarif.replace(/[^0-9.,]/g, '').replace(',', '.').trim();
     setPricingForm({
       name: item.name || '',
-      tarif: cleanedTarif,
+      tarif: item.tarif || '',
     });
     setEditingPricingIndex(index);
   };
@@ -123,12 +116,11 @@ export function TarifsTab() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Montant (€)</Label>
+            <Label>Montant</Label>
             <Input
-              type="number"
               value={pricingForm.tarif}
               onChange={e => setPricingForm({ ...pricingForm, tarif: e.target.value })}
-              placeholder="ex: 7"
+              placeholder="ex: 7 €"
             />
           </div>
           <div className="flex items-end gap-2">
@@ -162,7 +154,7 @@ export function TarifsTab() {
               <Table className="min-w-[400px]">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[40px]"></TableHead>
+                    <TableHead className="w-[40px]" />
                     <TableHead>Tarif</TableHead>
                     <TableHead>Montant</TableHead>
                     <TableHead className="w-[130px]">Actions</TableHead>
@@ -179,7 +171,7 @@ export function TarifsTab() {
                           {(field as PricingItem).name}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
-                          {((field as PricingItem).tarif || '').replace(/[€\s]+/g, '').trim()} €
+                          {(field as PricingItem).tarif || ''}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
