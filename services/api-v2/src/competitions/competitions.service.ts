@@ -40,6 +40,7 @@ export class CompetitionsService {
       depts,
       startDate,
       endDate,
+      openedToOtherFede,
     } = filterDto;
 
     const queryBuilder = this.competitionRepository
@@ -102,6 +103,11 @@ export class CompetitionsService {
     if (depts) {
       const deptsArray = depts.split(',');
       queryBuilder.andWhere('competition.dept IN (:...deptsArray)', { deptsArray });
+    }
+
+    // Access filters
+    if (openedToOtherFede) {
+      queryBuilder.andWhere('competition.opened_to_other_fede = TRUE');
     }
 
     // Date filters

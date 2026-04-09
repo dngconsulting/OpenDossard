@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsDateString } from 'class-validator';
+import { IsOptional, IsString, IsDateString, IsBoolean } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { PaginationDto } from '../../common/dto';
 
 export class FilterCompetitionDto extends PaginationDto {
@@ -57,4 +58,10 @@ export class FilterCompetitionDto extends PaginationDto {
   @IsOptional()
   @IsDateString()
   endDate?: string;
+
+  @ApiPropertyOptional({ description: 'Only competitions opened to other federations' })
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  openedToOtherFede?: boolean;
 }
