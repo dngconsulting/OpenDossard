@@ -11,6 +11,7 @@ import {
   UseInterceptors,
   UploadedFile,
   ParseIntPipe,
+  ParseBoolPipe,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -82,12 +83,24 @@ export class LicencesController {
   @Post()
   @Roles(Role.ADMIN, Role.ORGANISATEUR)
   @ApiOperation({ summary: 'Create a new licence' })
+  @ApiQuery({
+    name: 'force',
+    required: false,
+    type: Boolean,
+    description: 'Si true, ignore la vérification de doublon (nom + prénom + fédé + dept)',
+  })
   @ApiResponse({ status: 201, description: 'Licence created' })
+  @ApiResponse({
+    status: 409,
+    description:
+      'Une licence identique existe déjà (body.code = LICENCE_DUPLICATE, body.existing = licence existante)',
+  })
   async create(
     @Body() createLicenceDto: CreateLicenceDto,
     @CurrentUser('email') author: string,
+    @Query('force', new ParseBoolPipe({ optional: true })) force?: boolean,
   ): Promise<LicenceEntity> {
-    return this.licencesService.create(createLicenceDto, author);
+    return this.licencesService.create(createLicenceDto, author, force);
   }
 
   @Patch(':id')

@@ -69,6 +69,7 @@ export interface ApiErrorParams {
   status: number;
   endpoint?: string;
   serverMessage?: unknown; // Can be string, array (NestJS validation), or object
+  data?: unknown; // Full error body payload (for structured errors like duplicates)
   stack?: string;
 }
 
@@ -97,6 +98,7 @@ export class ApiError extends Error implements ErrorDetails {
   timestamp: Date;
   status: number;
   endpoint?: string;
+  data?: unknown;
 
   constructor(params: ApiErrorParams) {
     const category = categorizeByStatus(params.status);
@@ -115,6 +117,7 @@ export class ApiError extends Error implements ErrorDetails {
     this.userMessage = userMessage;
     this.status = params.status;
     this.endpoint = params.endpoint;
+    this.data = params.data;
     this.timestamp = new Date();
 
     this.technicalDetails = formatTechnicalDetails({

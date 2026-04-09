@@ -206,7 +206,68 @@ export class LicencesService {
     }
   }
 
-  async create(createLicenceDto: CreateLicenceDto, author?: string): Promise<LicenceEntity> {
+  /**
+   * Recherche une licence existante ayant les mêmes critères d'identité :
+   * nom, prénom, fédération et département.
+   * - Nom et prénom : comparaison insensible à la casse et aux accents.
+   * - Fédération et département : égalité NULL-safe (NULL = NULL = match).
+   *
+   * Note: cette vérification est **consultative**, pas un verrou. Deux POSTs
+   * simultanés avec les mêmes critères peuvent tous les deux passer la
+   * vérification et créer un doublon — l'utilisateur peut toujours corriger
+   * manuellement a posteriori. Le flag `force=true` court-circuite ce contrôle.
+   *
+   * Retourne uniquement les champs affichés dans la modale côté front —
+   * les champs internes (author, lastChanged, comment) ne sont pas exposés.
+   */
+  private async findDuplicate(dto: CreateLicenceDto): Promise<Partial<LicenceEntity> | null> {
+    return this.licenceRepository
+      .createQueryBuilder('licence')
+      .select([
+        'licence.id',
+        'licence.licenceNumber',
+        'licence.name',
+        'licence.firstName',
+        'licence.gender',
+        'licence.club',
+        'licence.dept',
+        'licence.birthYear',
+        'licence.catea',
+        'licence.catev',
+        'licence.catevCX',
+        'licence.fede',
+        'licence.saison',
+      ])
+      .where('unaccent(lower(licence.name)) = unaccent(lower(:name))', { name: dto.name })
+      .andWhere('unaccent(lower(licence.firstName)) = unaccent(lower(:firstName))', {
+        firstName: dto.firstName,
+      })
+      .andWhere('licence.fede IS NOT DISTINCT FROM :fede', { fede: dto.fede ?? null })
+      .andWhere('licence.dept IS NOT DISTINCT FROM :dept', { dept: dto.dept ?? null })
+      .getOne();
+  }
+
+  async create(
+    createLicenceDto: CreateLicenceDto,
+    author?: string,
+    force?: boolean,
+  ): Promise<LicenceEntity> {
+    if (!force) {
+      const duplicate = await this.findDuplicate(createLicenceDto);
+      if (duplicate) {
+        throw new ConflictException({
+          code: 'LICENCE_DUPLICATE',
+          message: 'Une licence identique existe déjà',
+          existing: duplicate,
+        });
+      }
+    } else {
+      this.logger.warn(
+        `Création de licence avec force=true (bypass vérification doublon) par ${author ?? 'inconnu'} | ` +
+          `${createLicenceDto.name} ${createLicenceDto.firstName} | Fédé: ${createLicenceDto.fede ?? '-'} | Dept: ${createLicenceDto.dept ?? '-'}`,
+      );
+    }
+
     const licence = this.licenceRepository.create({
       ...createLicenceDto,
       author,

@@ -166,7 +166,8 @@ export function useCreateLicence() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (licence: CreateLicenceDto) => licencesApi.create(licence),
+    mutationFn: ({ data, force }: { data: CreateLicenceDto; force?: boolean }) =>
+      licencesApi.create(data, force),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['licences'] });
     },

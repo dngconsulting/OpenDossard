@@ -58,8 +58,8 @@ export const licencesApi = {
 
   getById: (id: number): Promise<LicenceType> => apiClient<LicenceType>(`/licences/${id}`),
 
-  create: (licence: CreateLicenceDto): Promise<LicenceType> =>
-    apiClient<LicenceType>('/licences', {
+  create: (licence: CreateLicenceDto, force?: boolean): Promise<LicenceType> =>
+    apiClient<LicenceType>(`/licences${force ? '?force=true' : ''}`, {
       method: 'POST',
       body: JSON.stringify(licence),
     }),

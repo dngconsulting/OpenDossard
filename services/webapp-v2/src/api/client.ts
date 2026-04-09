@@ -104,6 +104,7 @@ async function authenticatedFetch(endpoint: string, options?: RequestInit): Prom
       status: response.status,
       endpoint: fullEndpoint,
       serverMessage: errorBody.message || errorBody.error || response.statusText,
+      data: errorBody,
       stack: new Error().stack,
     });
   }

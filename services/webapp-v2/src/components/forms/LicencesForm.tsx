@@ -1,11 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertTriangle, Award, FileText, IdCard, Info, UserCircle } from 'lucide-react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
+import type { CreateLicenceDto } from '@/api/licences.api';
 import { ClubAutocomplete } from '@/components/ClubAutocomplete';
+import { DuplicateLicenceDialog } from '@/components/licences/DuplicateLicenceDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.tsx';
 import {
   ComboboxField,
@@ -29,6 +31,7 @@ import { useDepartments } from '@/hooks/useDepartments.ts';
 import { useCreateLicence, useUpdateLicence } from '@/hooks/useLicences';
 import type { LicenceType } from '@/types/licences.ts';
 import { showErrorToast, showSuccessToast } from '@/utils/error-handler/error-handler';
+import { ApiError } from '@/utils/error-handler/error-types';
 import { computeAgeCategory } from '@/utils/licence.ts';
 
 type Props = {
@@ -40,6 +43,18 @@ type Props = {
 };
 
 const currentYear = new Date().getFullYear();
+
+type DuplicateErrorData = { code: string; existing: LicenceType };
+
+function isDuplicateError(
+  err: unknown,
+): err is ApiError & { data: DuplicateErrorData } {
+  if (!(err instanceof ApiError) || err.status !== 409) {
+    return false;
+  }
+  const data = err.data as Partial<DuplicateErrorData> | undefined;
+  return data?.code === 'LICENCE_DUPLICATE' && !!data?.existing;
+}
 
 const formSchema = z.object({
   licenceNumber: z.string().optional(),
@@ -76,6 +91,12 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange, f
   const updateLicence = useUpdateLicence();
 
   const isEditing = !!updatingLicence?.id;
+
+  const [duplicateDialog, setDuplicateDialog] = useState<{
+    open: boolean;
+    existing: LicenceType | null;
+    pendingData: CreateLicenceDto | null;
+  }>({ open: false, existing: null, pendingData: null });
 
   const licenceForm = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -190,6 +211,32 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange, f
     }
   }, [gender, birthYear, saison, fede, licenceForm]);
 
+  const doCreate = async (licenceData: CreateLicenceDto, force: boolean) => {
+    onPendingChange?.(true);
+    try {
+      await createLicence.mutateAsync({ data: licenceData, force });
+      showSuccessToast('Licence créée', `${licenceData.firstName} ${licenceData.name}`);
+      setDuplicateDialog({ open: false, existing: null, pendingData: null });
+      onSuccess?.();
+      if (!onSuccess) {
+        navigate('/licences');
+      }
+    } catch (error) {
+      if (isDuplicateError(error)) {
+        setDuplicateDialog({
+          open: true,
+          existing: error.data.existing,
+          pendingData: licenceData,
+        });
+        return;
+      }
+      const message = error instanceof Error ? error.message : 'Erreur inconnue';
+      showErrorToast("Erreur lors de l'enregistrement", message);
+    } finally {
+      onPendingChange?.(false);
+    }
+  };
+
   const onSubmit = async (data: FormValues) => {
     // Validation supplémentaire selon les règles v1
     if (!data.fede) {
@@ -219,47 +266,63 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange, f
       }
     }
 
-    onPendingChange?.(true);
-    try {
-      const licenceData = {
-        name: data.name,
-        firstName: data.firstName,
-        licenceNumber: data.licenceNumber || undefined,
-        gender: data.gender,
-        birthYear: data.birthYear,
-        dept: data.dept,
-        fede: data.fede,
-        club: data.club || undefined,
-        catea: data.catea,
-        catev: data.catev || undefined,
-        catevCX: data.catevCX || undefined,
-        saison: data.saison || undefined,
-        comment: data.comment ?? undefined,
-      };
+    const licenceData: CreateLicenceDto = {
+      name: data.name,
+      firstName: data.firstName,
+      licenceNumber: data.licenceNumber || undefined,
+      gender: data.gender,
+      birthYear: data.birthYear,
+      dept: data.dept,
+      fede: data.fede,
+      club: data.club || undefined,
+      catea: data.catea,
+      catev: data.catev || undefined,
+      catevCX: data.catevCX || undefined,
+      saison: data.saison || undefined,
+      comment: data.comment ?? undefined,
+    };
 
-      if (isEditing && updatingLicence) {
+    if (isEditing && updatingLicence) {
+      onPendingChange?.(true);
+      try {
         await updateLicence.mutateAsync({
           id: updatingLicence.id,
           updates: licenceData,
         });
         showSuccessToast('Licence mise à jour', `${data.firstName} ${data.name}`);
-      } else {
-        await createLicence.mutateAsync(licenceData);
-        showSuccessToast('Licence créée', `${data.firstName} ${data.name}`);
+        onSuccess?.();
+        if (!onSuccess) {
+          navigate('/licences');
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Erreur inconnue';
+        showErrorToast("Erreur lors de l'enregistrement", message);
+      } finally {
+        onPendingChange?.(false);
       }
-      onSuccess?.();
-      if (!onSuccess) {
-        navigate('/licences');
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erreur inconnue';
-      showErrorToast("Erreur lors de l'enregistrement", message);
-    } finally {
-      onPendingChange?.(false);
+      return;
     }
+
+    await doCreate(licenceData, false);
   };
 
   return (
+    <>
+      {duplicateDialog.existing && (
+        <DuplicateLicenceDialog
+          open={duplicateDialog.open}
+          onOpenChange={open =>
+            setDuplicateDialog(prev => ({ ...prev, open }))
+          }
+          existingLicence={duplicateDialog.existing}
+          isLoading={createLicence.isPending}
+          onConfirm={() => {
+            if (duplicateDialog.pendingData) {
+              void doCreate(duplicateDialog.pendingData, true);
+            }
+          }}
+        />
+      )}
     <Form {...licenceForm}>
       <form id={formId} onSubmit={licenceForm.handleSubmit(onSubmit)} className="space-y-6">
         {fede === 'FSGT' && (
@@ -470,5 +533,6 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange, f
 
       </form>
     </Form>
+    </>
   );
 };
