@@ -110,12 +110,13 @@ export class CompetitionsService {
       queryBuilder.andWhere('competition.opened_to_other_fede = TRUE');
     }
 
-    // Date filters
+    // Date filters — comparaison au jour (inclusif des deux côtés) pour qu'une
+    // épreuve du jour apparaisse à la fois dans "passé" et "futur".
     if (startDate) {
-      queryBuilder.andWhere('competition.eventDate >= :startDate', { startDate });
+      queryBuilder.andWhere('DATE(competition.eventDate) >= :startDate', { startDate });
     }
     if (endDate) {
-      queryBuilder.andWhere('competition.eventDate <= :endDate', { endDate });
+      queryBuilder.andWhere('DATE(competition.eventDate) <= :endDate', { endDate });
     }
 
     // Ordering - TypeORM handles property to column mapping for orderBy
