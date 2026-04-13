@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Res, Header } from '@nestjs/common';
+import { Controller, Get, Param, Res, Header, VERSION_NEUTRAL } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import { Response } from 'express';
 import { InjectDataSource } from '@nestjs/typeorm';
@@ -14,7 +14,7 @@ const APP_SCHEME = 'dossardeur://';
  * et les fichiers .well-known pour Universal Links / App Links.
  */
 @ApiExcludeController()
-@Controller()
+@Controller({ version: VERSION_NEUTRAL })
 export class DeepLinksController {
   constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 

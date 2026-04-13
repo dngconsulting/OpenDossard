@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ClassSerializerInterceptor, ValidationPipe, VersioningType } from '@nestjs/common';
+import { ClassSerializerInterceptor, RequestMethod, ValidationPipe, VersioningType } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as compression from 'compression';
@@ -15,7 +15,11 @@ async function bootstrap() {
 
   // API Versioning - /api/v2/* (deep-links et .well-known exclus du prefix)
   app.setGlobalPrefix('api', {
-    exclude: ['.well-known/(.*)', 'app/(.*)'],
+    exclude: [
+      { path: '.well-known/apple-app-site-association', method: RequestMethod.GET },
+      { path: '.well-known/assetlinks.json', method: RequestMethod.GET },
+      { path: 'app/(.*)', method: RequestMethod.GET },
+    ],
   });
   app.enableVersioning({
     type: VersioningType.URI,
