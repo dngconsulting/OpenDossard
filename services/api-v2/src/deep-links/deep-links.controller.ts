@@ -57,7 +57,7 @@ export class DeepLinksController {
 
   @Get('app/app-icon.png')
   serveAppIcon(@Res() res: Response) {
-    res.sendFile(join(__dirname, '..', '..', 'assets', 'app-icon.png'));
+    res.sendFile(join(__dirname, '..', 'assets', 'app-icon.png'));
   }
 
   @Get('app/epreuve/:id')
