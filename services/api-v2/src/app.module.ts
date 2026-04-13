@@ -11,6 +11,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { UsersModule } from './users/users.module';
 import { HealthModule } from './health/health.module';
 import { ReportsModule } from './reports/reports.module';
+import { DeepLinksModule } from './deep-links/deep-links.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { ReportsModule } from './reports/reports.module';
     UsersModule,
     HealthModule,
     ReportsModule,
+    DeepLinksModule,
   ],
 })
 export class AppModule {}

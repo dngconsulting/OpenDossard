@@ -13,8 +13,10 @@ async function bootstrap() {
   // Compression
   app.use(compression());
 
-  // API Versioning - /api/v2/*
-  app.setGlobalPrefix('api');
+  // API Versioning - /api/v2/* (deep-links et .well-known exclus du prefix)
+  app.setGlobalPrefix('api', {
+    exclude: ['.well-known/(.*)', 'app/(.*)'],
+  });
   app.enableVersioning({
     type: VersioningType.URI,
     defaultVersion: '2',
