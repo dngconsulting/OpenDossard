@@ -30,6 +30,7 @@ export class PalmaresResultDto {
   @ApiPropertyOptional() rankingInCategory: number | null;
   @ApiProperty() totalInCategory: number;
   @ApiPropertyOptional() comment: string | null;
+  @ApiPropertyOptional() sprintchallenge: boolean | null;
 }
 
 export class PalmaresResponseDto {

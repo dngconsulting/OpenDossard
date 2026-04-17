@@ -91,6 +91,7 @@ export class PalmaresService {
         ranked.catev,
         ranked.catea,
         ranked.club,
+        ranked.sprintchallenge,
         ranked."rankingInCategory",
         ranked."totalInCategory"
       FROM ranked
@@ -111,6 +112,7 @@ export class PalmaresService {
       catev: string;
       catea: string | null;
       club: string | null;
+      sprintchallenge: boolean | null;
       rankingInCategory: number | null;
       totalInCategory: number;
     }> = await this.dataSource.query(query, [licenceId]);
@@ -187,6 +189,7 @@ export class PalmaresService {
       rankingInCategory: r.rankingInCategory != null ? Number(r.rankingInCategory) : null,
       totalInCategory: Number(r.totalInCategory),
       comment: r.comment,
+      sprintchallenge: r.sprintchallenge,
     }));
 
     // f) Return full response
