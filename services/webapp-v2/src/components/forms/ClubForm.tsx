@@ -106,10 +106,10 @@ export const ClubForm = ({ club, isCreating, onSuccess, formId, onPendingChange 
       await updateClub.mutateAsync({
         id: club!.id,
         updates: {
-          shortName: data.shortName || undefined,
+          shortName: data.shortName || null,
           longName: data.longName,
-          elicenceName: data.elicenceName || undefined,
-          dept: data.dept || undefined,
+          elicenceName: data.elicenceName || null,
+          dept: data.dept || null,
           propagate,
         },
       });

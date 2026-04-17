@@ -8,10 +8,10 @@ export type ClubType = {
 };
 
 export type UpdateClubInput = {
-  shortName?: string;
+  shortName?: string | null;
   longName?: string;
-  elicenceName?: string;
-  dept?: string;
+  elicenceName?: string | null;
+  dept?: string | null;
   propagate?: boolean;
 };
 
