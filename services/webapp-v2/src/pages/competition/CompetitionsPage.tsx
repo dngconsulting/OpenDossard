@@ -131,6 +131,7 @@ export default function CompetitionsPage() {
             value={startDate}
             onChange={date => applyDateFilters({
               startDate: date ? format(date, 'yyyy-MM-dd') : undefined,
+              endDate: params.endDate,
               orderDirection: date ? 'ASC' : 'DESC',
             })}
           />
@@ -140,6 +141,7 @@ export default function CompetitionsPage() {
           <DatePicker
             value={endDate}
             onChange={date => applyDateFilters({
+              startDate: params.startDate,
               endDate: date ? format(date, 'yyyy-MM-dd') : undefined,
               orderDirection: 'DESC',
             })}
