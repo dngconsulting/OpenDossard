@@ -126,7 +126,7 @@ class MiniDrawer extends React.Component<IAppProps, IState> {
               fontSize: 14,
               gap: 8,
             }}>
-              <span>La nouvelle version d'Open Dossard est disponible !</span>
+              <span>La nouvelle version d'Open Dossard est disponible (dans quelques jours vous n'aurez plus accès à cette version) !</span>
               <a href={v2Url} style={{
                 color: 'white',
                 fontWeight: 'bold',
