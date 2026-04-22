@@ -2,7 +2,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="website/assets/images/logoblanc.svg">
-  <img src="website/assets/images/logocolor.svg" alt="Open Dossard" width="520" />
+  <img src="website/assets/images/logocolor.svg" alt="Open Dossard" width="260" />
 </picture>
 
 ### Le dossard digital pour vos épreuves sportives
