@@ -9,7 +9,7 @@
 
 Plateforme open source de gestion d'épreuves cyclistes — engagements, résultats, classements et statistiques multi-fédérations.
 
-[**Site web**](https://www.opendossard.com) · [**Application**](https://app.opendossard.com) · [**Contact**](mailto:contact@opendossard.com)
+[**Site web**](https://www.opendossard.com) · [**Contact**](mailto:contact@opendossard.com)
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![NestJS](https://img.shields.io/badge/NestJS-11-E0234E?logo=nestjs&logoColor=white)
@@ -185,6 +185,5 @@ Projet open source sous licence **MIT** maintenu par **DNG Consulting**. Pour to
 
 - **Contact** : [contact@opendossard.com](mailto:contact@opendossard.com)
 - **Site** : [www.opendossard.com](https://www.opendossard.com)
-- **Application** : [app.opendossard.com](https://app.opendossard.com)
 
 Les pull requests sont les bienvenues.
