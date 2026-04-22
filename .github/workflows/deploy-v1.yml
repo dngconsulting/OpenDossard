@@ -1,0 +1,172 @@
+name: Deploy V1
+run-name: "Deploy V1 → ${{ inputs.envname }}${{ inputs.release != 'no' && format(' ({0})', inputs.release) || '' }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      envname:
+        type: choice
+        description: Environnement cible
+        options:
+          - TEST
+          - PREPROD
+          - PROD
+        required: true
+      release:
+        type: choice
+        description: Créer une release ?
+        options:
+          - 'no'
+          - patch
+          - minor
+          - major
+        required: true
+        default: 'no'
+      branch:
+        type: string
+        description: Branche à déployer (défaut = branche courante)
+        required: false
+        default: ''
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE: ghcr.io/dngconsulting/opendossard_api_webapp
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    if: ${{ inputs.release != 'no' }}
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.branch || github.ref_name }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: services/webapp/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./services/webapp
+        run: npm ci
+
+      - name: Setup git identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Run release-it
+        working-directory: ./services/webapp
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx release-it ${{ inputs.release }} --ci
+
+  build-and-push:
+    name: Build & Push api_webapp
+    runs-on: ubuntu-latest
+    needs: [release]
+    if: ${{ always() && inputs.release != 'no' && needs.release.result == 'success' }}
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.branch || github.ref_name }}
+
+      - name: Pull latest changes (after release)
+        run: git pull origin ${{ inputs.branch || github.ref_name }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ github.sha }}
+          cache-from: type=gha,scope=api_webapp
+          cache-to: type=gha,mode=max,scope=api_webapp
+
+  deploy:
+    name: Deploy to ${{ inputs.envname }}
+    needs: build-and-push
+    if: ${{ always() && (needs.build-and-push.result == 'success' || (inputs.release == 'no' && needs.build-and-push.result == 'skipped')) }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.envname }}
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+          POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_EXPIRE: ${{ secrets.JWT_EXPIRE }}
+          MONITORING_PASSWORD: ${{ secrets.MONITORING_PASSWORD }}
+          MONITORING_USER: ${{ secrets.MONITORING_USER }}
+        with:
+          host: ${{ secrets.HOSTNAME }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          envs: POSTGRES_HOST,POSTGRES_PORT,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,JWT_EXPIRE,MONITORING_PASSWORD,MONITORING_USER
+          script: |
+            export POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}
+            export POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}
+            export POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+            export POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+            export POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            export JWT_SECRET=${{ secrets.JWT_SECRET }}
+            export JWT_EXPIRE=${{ secrets.JWT_EXPIRE }}
+            export MONITORING_PASSWORD=${{ secrets.MONITORING_PASSWORD }}
+            export MONITORING_USER=${{ secrets.MONITORING_USER }}
+
+            cd /home/dngconsulting/OpenDossard
+
+            BRANCH="${{ inputs.branch }}"
+            if [ -z "$BRANCH" ]; then
+              BRANCH="${{ github.ref_name }}"
+            fi
+            echo "📦 Deploying branch: $BRANCH"
+
+            git fetch origin "$BRANCH"
+            git checkout "$BRANCH"
+            git pull origin "$BRANCH"
+
+            # Pull uniquement l'image v1 (ne touche pas v2)
+            docker compose -f docker-compose.prod.yml pull api_webapp
+
+            # Restart uniquement api_webapp (ne touche pas v2)
+            docker compose -f docker-compose.prod.yml up -d api_webapp
+
+            # Reload nginx avec la nouvelle config si elle a changé
+            docker compose -f docker-compose.prod.yml up -d --force-recreate website
+
+            docker image prune --all --force &
+
+            echo "✅ V1 deployment complete!"
