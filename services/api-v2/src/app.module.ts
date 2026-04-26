@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { FirebaseModule } from './firebase/firebase.module';
 import { AuthModule } from './auth/auth.module';
+import { AuthFirebaseModule } from './auth-firebase/auth-firebase.module';
 import { LicencesModule } from './licences/licences.module';
 import { CompetitionsModule } from './competitions/competitions.module';
 import { RacesModule } from './races/races.module';
@@ -45,6 +46,7 @@ import { DeepLinksModule } from './deep-links/deep-links.module';
 
     // Feature modules
     AuthModule,
+    AuthFirebaseModule,
     LicencesModule,
     CompetitionsModule,
     RacesModule,
