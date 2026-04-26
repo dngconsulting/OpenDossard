@@ -11,7 +11,12 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as admin from 'firebase-admin';
+// Type-only import — `admin.app.App` and `admin.auth.DecodedIdToken` are used
+// purely as types here. A runtime `import * as admin` would load firebase-admin's
+// transitive gRPC stack at module evaluation time, which breaks pg in Jest e2e
+// (incident 2026-04-26). The actual `firebase-admin` runtime is required lazily
+// inside FirebaseModule's useFactory, only when the factory runs.
+import type * as admin from 'firebase-admin';
 
 import { UserEntity } from '../users/entities/user.entity';
 import { AuthResponseDto, TokensDto } from '../auth/dto';
