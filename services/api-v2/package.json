@@ -39,6 +39,7 @@
     "class-validator": "^0.14.3",
     "compression": "^1.8.1",
     "csv-parse": "^6.1.0",
+    "firebase-admin": "^13.8.0",
     "jsdom": "^28.0.0",
     "jspdf": "^4.1.0",
     "jspdf-autotable": "^5.0.7",

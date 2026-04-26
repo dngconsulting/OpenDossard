@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { FirebaseModule } from './firebase/firebase.module';
 import { AuthModule } from './auth/auth.module';
 import { LicencesModule } from './licences/licences.module';
 import { CompetitionsModule } from './competitions/competitions.module';
@@ -38,6 +39,9 @@ import { DeepLinksModule } from './deep-links/deep-links.module';
         maxQueryExecutionTime: 10000,
       }),
     }),
+
+    // Firebase Admin (global, injectable everywhere via FIREBASE_ADMIN token)
+    FirebaseModule,
 
     // Feature modules
     AuthModule,
