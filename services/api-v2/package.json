@@ -23,7 +23,9 @@
     "migration:create": "typeorm-ts-node-commonjs migration:create",
     "migration:run": "npm run typeorm -- migration:run",
     "migration:revert": "npm run typeorm -- migration:revert",
-    "migration:show": "npm run typeorm -- migration:show"
+    "migration:show": "npm run typeorm -- migration:show",
+    "migrate:users:firebase:dry": "ts-node scripts/migrate-users-to-firebase.ts --dry-run",
+    "migrate:users:firebase": "ts-node scripts/migrate-users-to-firebase.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
