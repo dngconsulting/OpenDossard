@@ -58,6 +58,49 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
+## Database migrations
+
+The schema is managed by TypeORM migrations. **Never** rely on `synchronize: true`. Migration files live under `src/migrations/` and are timestamp-prefixed.
+
+DB connection is read from env vars (`POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`) via `src/data-source.ts`. The CLI auto-loads `.env.local` then `.env` (same precedence as Nest's `ConfigModule`).
+
+### Generate a migration from current entity diff
+
+```bash
+# Compares current entities to the live DB schema, writes a migration with the diff
+$ npm run migration:generate -- src/migrations/<MeaningfulName>
+```
+
+The CLI requires the path **without** extension and **with** the directory prefix. Example: `npm run migration:generate -- src/migrations/AddFirebaseUidToUser`.
+
+### Create an empty migration manually (for raw SQL or data fixes)
+
+```bash
+$ npm run migration:create -- src/migrations/<MeaningfulName>
+```
+
+### Apply / revert / inspect
+
+```bash
+# Apply all pending migrations
+$ npm run migration:run
+
+# Revert the last applied migration
+$ npm run migration:revert
+
+# List applied vs pending migrations (no DB writes)
+$ npm run migration:show
+```
+
+### Workflow
+
+1. Modify an entity (`src/**/*.entity.ts`)
+2. Run `npm run migration:generate -- src/migrations/<Name>` to capture the diff
+3. **Review the generated `up()` / `down()` carefully** — TypeORM's diff is not always perfect (especially for renames, default values, indexes)
+4. Commit the migration file alongside the entity change
+5. Apply locally with `npm run migration:run`
+6. In CI/prod, `migration:run` is invoked at deployment time before the app boots
+
 ## Deployment
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
