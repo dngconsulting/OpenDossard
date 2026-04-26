@@ -222,6 +222,14 @@ jobs:
             # Pull the new v2 images + netdata
             docker compose -f docker-compose.prod.yml pull api-v2 webapp-v2 netdata
 
+            # Run TypeORM migrations against the DB BEFORE bringing up the new
+            # api-v2 container. Uses a one-shot container based on the freshly
+            # pulled image so we run with the new code's migration files. If
+            # this fails, the previous api-v2 container keeps serving traffic
+            # (we don't proceed to `up -d`). `--rm` cleans up after.
+            echo "🔧 Running database migrations..."
+            docker compose -f docker-compose.prod.yml run --rm api-v2 npm run migration:run:prod
+
             # Start/restart v2 services + monitoring (v1 remains untouched)
             docker compose -f docker-compose.prod.yml up -d api-v2 webapp-v2 netdata
 

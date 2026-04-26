@@ -23,7 +23,10 @@
     "migration:create": "typeorm-ts-node-commonjs migration:create",
     "migration:run": "npm run typeorm -- migration:run",
     "migration:revert": "npm run typeorm -- migration:revert",
-    "migration:show": "npm run typeorm -- migration:show"
+    "migration:show": "npm run typeorm -- migration:show",
+    "migration:run:prod": "typeorm -d dist/data-source.js migration:run",
+    "migration:revert:prod": "typeorm -d dist/data-source.js migration:revert",
+    "migration:show:prod": "typeorm -d dist/data-source.js migration:show"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
