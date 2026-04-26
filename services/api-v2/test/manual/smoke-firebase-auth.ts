@@ -19,6 +19,7 @@ import { existsSync, readFileSync } from 'fs';
 import { homedir } from 'os';
 import { resolve, join } from 'path';
 import * as dotenv from 'dotenv';
+import * as bcrypt from 'bcryptjs';
 import { DataSource } from 'typeorm';
 
 const SA_PATH = join(homedir(), '.config/firebase/dossardeur-test-sa.json');
@@ -51,12 +52,27 @@ admin.initializeApp({
   ),
 });
 
-const TEST_EMAIL = `smoke-${Date.now()}@dossardeur.local`;
-const OTHER_EMAIL = `smoke-other-${Date.now()}@dossardeur.local`;
+const STAMP = Date.now();
+const BOOTSTRAP_EMAIL = `smoke-bootstrap-${STAMP}@dossardeur.local`;
+const TEST_EMAIL = `smoke-${STAMP}@dossardeur.local`;
+const OTHER_EMAIL = `smoke-other-${STAMP}@dossardeur.local`;
 const TEST_PWD = 'SmokeTest!1234';
 
 let testUid: string | undefined;
 let otherUid: string | undefined;
+let bootstrapToken: string | undefined;
+
+const ds = new DataSource({
+  type: 'postgres',
+  host: process.env.POSTGRES_HOST ?? 'localhost',
+  port: Number(process.env.POSTGRES_PORT ?? 5432),
+  username: process.env.POSTGRES_USER ?? 'dossarduser',
+  password: process.env.POSTGRES_PASSWORD ?? 'dossardpassword',
+  database: process.env.POSTGRES_DB ?? 'dossarddb',
+  entities: [],
+  synchronize: false,
+  logging: false,
+});
 
 async function signInWithPassword(
   email: string,
@@ -79,10 +95,22 @@ async function api(
   method: string,
   path: string,
   body?: unknown,
+  opts: { auth?: boolean | string } = { auth: true },
 ): Promise<{ status: number; body: any }> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  // auth = true (default) → use bootstrap token
+  // auth = false → no auth header (used to test 401 from guard)
+  // auth = '<token>' → use that token verbatim
+  if (opts.auth === true && bootstrapToken) {
+    headers['Authorization'] = `Bearer ${bootstrapToken}`;
+  } else if (typeof opts.auth === 'string') {
+    headers['Authorization'] = `Bearer ${opts.auth}`;
+  }
   const res = await fetch(API_BASE + path, {
     method,
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   const text = await res.text();
@@ -127,7 +155,50 @@ async function main() {
   }
   console.log('API up.\n');
 
-  // Create test Firebase user
+  // === Bootstrap : créer un user MOBILE local + récupérer un JWT pour cocher
+  // l'exigence "tout endpoint requiert un token". Le compte est jetable et
+  // supprimé en cleanup, donc le smoke tourne dans n'importe quel env local
+  // sans réutiliser le compte technique anonyme prod.
+  console.log(`Creating bootstrap DB user ${BOOTSTRAP_EMAIL}`);
+  await ds.initialize();
+  const passwordHash = await bcrypt.hash(TEST_PWD, 12);
+  await ds.query(
+    `INSERT INTO "user" (first_name, last_name, email, password, roles)
+     VALUES ($1, $2, $3, $4, $5)`,
+    ['Smoke', 'Bootstrap', BOOTSTRAP_EMAIL, passwordHash, 'MOBILE'],
+  );
+
+  console.log('Logging in via /auth/login (legacy) to get anonymous JWT');
+  const loginRes = await fetch(API_BASE + '/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: BOOTSTRAP_EMAIL, password: TEST_PWD }),
+  });
+  if (!loginRes.ok) {
+    throw new Error(`Bootstrap /auth/login failed: ${loginRes.status} ${await loginRes.text()}`);
+  }
+  bootstrapToken = ((await loginRes.json()) as { accessToken: string })
+    .accessToken;
+  console.log('Bootstrap JWT obtained.\n');
+
+  // === S0 : guard rejette les appels sans token ===
+  let res = await api(
+    'POST',
+    '/auth/firebase/exchange',
+    { idToken: 'whatever' },
+    { auth: false },
+  );
+  check('S0: exchange without Authorization → 401', res.status === 401, `got ${res.status}`);
+
+  res = await api(
+    'POST',
+    '/auth/firebase/register',
+    { idToken: 'whatever', firstName: 'A', lastName: 'B' },
+    { auth: false },
+  );
+  check('S0: register without Authorization → 401', res.status === 401, `got ${res.status}`);
+
+  // === Setup user Firebase pour les scénarios suivants ===
   console.log(`Creating Firebase user ${TEST_EMAIL}`);
   const u = await admin.auth().createUser({
     email: TEST_EMAIL,
@@ -139,8 +210,8 @@ async function main() {
 
   // === Scenarios ===
 
-  // S1: register fresh
-  let res = await api('POST', '/auth/firebase/register', {
+  // S1: register fresh (avec Authorization Bearer bootstrap)
+  res = await api('POST', '/auth/firebase/register', {
     idToken,
     firstName: 'Smoke',
     lastName: 'Test',
@@ -237,23 +308,12 @@ async function cleanup() {
     }
   }
 
-  // Cleanup backend row from S1
+  // Cleanup backend rows : bootstrap user + S1-created user
   try {
-    const ds = new DataSource({
-      type: 'postgres',
-      host: process.env.POSTGRES_HOST ?? 'localhost',
-      port: Number(process.env.POSTGRES_PORT ?? 5432),
-      username: process.env.POSTGRES_USER ?? 'dossarduser',
-      password: process.env.POSTGRES_PASSWORD ?? 'dossardpassword',
-      database: process.env.POSTGRES_DB ?? 'dossarddb',
-      entities: [],
-      synchronize: false,
-      logging: false,
-    });
-    await ds.initialize();
+    if (!ds.isInitialized) await ds.initialize();
     const result = await ds.query(
-      'DELETE FROM "user" WHERE email = $1 OR email = $2',
-      [TEST_EMAIL, OTHER_EMAIL],
+      'DELETE FROM "user" WHERE email = ANY($1::text[])',
+      [[BOOTSTRAP_EMAIL, TEST_EMAIL, OTHER_EMAIL]],
     );
     console.log(`Backend rows deleted: ${result?.[1] ?? 0}`);
     await ds.destroy();

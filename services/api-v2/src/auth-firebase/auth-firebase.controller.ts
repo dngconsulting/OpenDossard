@@ -1,11 +1,14 @@
-import { Body, Controller, Post, HttpCode } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Post, HttpCode, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { AuthFirebaseService } from './auth-firebase.service';
 import { ExchangeDto, RegisterDto } from './dto';
 import { AuthResponseDto } from '../auth/dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('auth-firebase')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('auth/firebase')
 export class AuthFirebaseController {
   constructor(private readonly service: AuthFirebaseService) {}
