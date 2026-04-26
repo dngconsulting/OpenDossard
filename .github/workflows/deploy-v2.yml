@@ -183,12 +183,13 @@ jobs:
           JWT_ACCESS_EXPIRE: ${{ secrets.JWT_ACCESS_EXPIRE }}
           JWT_REFRESH_EXPIRE: ${{ secrets.JWT_REFRESH_EXPIRE }}
           JWT_EXPIRE_SECONDS: ${{ secrets.JWT_EXPIRE_SECONDS }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
         with:
           host: ${{ secrets.HOSTNAME }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          envs: POSTGRES_HOST,POSTGRES_PORT,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,JWT_EXPIRE_SECONDS
+          envs: POSTGRES_HOST,POSTGRES_PORT,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,JWT_EXPIRE_SECONDS,FIREBASE_SERVICE_ACCOUNT_JSON
           script: |
             export POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}
             export POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}
