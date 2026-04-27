@@ -108,6 +108,12 @@ interface DataTableProps<TData, TValue> {
   showColumnFilters?: boolean;
   renderBeforeRow?: (row: TData, index: number) => React.ReactNode | null;
   multiSelectColumns?: Record<string, { options: MultiSelectOption[] }>;
+  /**
+   * Si retourne true pour une row, les boutons Éditer et Supprimer sont
+   * désactivés sur cette row (toujours rendus pour préserver l'alignement
+   * des colonnes).
+   */
+  isRowReadOnly?: (row: TData) => boolean;
 }
 
 interface SortableRowProps<TData> {
@@ -118,6 +124,7 @@ interface SortableRowProps<TData> {
   onOpenRow?: (row: TData) => void;
   enableDragDrop?: boolean;
   rowId: string;
+  readOnly?: boolean;
 }
 
 function SortableRow<TData>({
@@ -128,6 +135,7 @@ function SortableRow<TData>({
   onOpenRow,
   enableDragDrop,
   rowId,
+  readOnly,
 }: SortableRowProps<TData>) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: rowId,
@@ -168,7 +176,16 @@ function SortableRow<TData>({
       )}
       {(getEditRowHref || onEditRow) && (
         <TableCell style={{ width: 40 }}>
-          {getEditRowHref ? (
+          {readOnly ? (
+            <Button
+              variant="outline"
+              size="icon-sm"
+              title="Lecture seule"
+              disabled
+            >
+              <Edit2 />
+            </Button>
+          ) : getEditRowHref ? (
             <Button variant="outline" size="icon-sm" title="Éditer" asChild>
               <Link to={getEditRowHref(row.original)}>
                 <Edit2 />
@@ -205,7 +222,8 @@ function SortableRow<TData>({
             variant="outline"
             size="icon-sm"
             onClick={() => onDeleteRow(row.original)}
-            title="Supprimer"
+            title={readOnly ? 'Lecture seule' : 'Supprimer'}
+            disabled={readOnly}
             className="text-destructive hover:text-destructive hover:bg-destructive/10"
           >
             <Trash2 />
@@ -234,6 +252,7 @@ export function DataTable<TData, TValue>({
   showColumnFilters = true,
   renderBeforeRow,
   multiSelectColumns,
+  isRowReadOnly,
 }: DataTableProps<TData, TValue>) {
   const isServerFiltering = !!onFilterChange;
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -529,6 +548,7 @@ export function DataTable<TData, TValue>({
                 onDeleteRow={onDeleteRow}
                 onOpenRow={onOpenRow}
                 enableDragDrop={enableDragDrop}
+                readOnly={isRowReadOnly?.(row.original)}
               />
             </React.Fragment>
           ))

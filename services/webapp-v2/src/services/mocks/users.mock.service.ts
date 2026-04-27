@@ -18,7 +18,7 @@ export const mockUsersService = {
       const searchLower = search.toLowerCase();
       filtered = filtered.filter(
         u =>
-          u.email.toLowerCase().includes(searchLower) ||
+          (u.email?.toLowerCase().includes(searchLower) ?? false) ||
           u.firstName.toLowerCase().includes(searchLower) ||
           u.lastName.toLowerCase().includes(searchLower)
       );

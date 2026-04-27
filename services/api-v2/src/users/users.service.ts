@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
@@ -123,6 +123,16 @@ export class UsersService {
   async update(id: number, updateUserDto: UpdateUserDto, author?: string): Promise<UserEntity> {
     const user = await this.findOne(id);
 
+    // Garde-fou : les users firebase sont read-only depuis le backoffice.
+    // Leur édition doit passer par l'app mobile (ou Firebase Console).
+    // Le mobile passe par le endpoint dédié `/auth/profile` qui ne traverse
+    // pas ce service.
+    if (user.firebaseUid) {
+      throw new ForbiddenException(
+        'Firebase users are read-only from the backoffice. Edit via the mobile app.',
+      );
+    }
+
     if (updateUserDto.firstName !== undefined) user.firstName = updateUserDto.firstName;
     if (updateUserDto.lastName !== undefined) user.lastName = updateUserDto.lastName;
     if (updateUserDto.phone !== undefined) user.phone = updateUserDto.phone;
@@ -173,6 +183,11 @@ export class UsersService {
 
   async remove(id: number): Promise<void> {
     const user = await this.findOne(id);
+    if (user.firebaseUid) {
+      throw new ForbiddenException(
+        'Firebase users cannot be deleted from the backoffice. Delete via Firebase Console.',
+      );
+    }
     await this.userRepository.remove(user);
   }
 }
