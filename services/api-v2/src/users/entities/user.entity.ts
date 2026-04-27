@@ -20,8 +20,10 @@ export class UserEntity {
   // n'est PAS persisté côté backend (source de vérité = Firebase Auth).
   // Reste obligatoire pour les users legacy backoffice (ADMIN/ORGANIZER) et
   // mobile pré-firebase, qui s'authentifient via /auth/login (email/password).
+  // `type: 'varchar'` explicite — sans ça TypeORM voit `string | null` comme
+  // `Object` via la reflection métadata et lève DataTypeNotSupportedError.
   @ApiPropertyOptional()
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   email: string | null;
 
   @ApiPropertyOptional()
