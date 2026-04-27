@@ -341,17 +341,36 @@ async function cleanup() {
   );
   if (remoteMode) {
     console.log('Backend cleanup skipped (REMOTE mode, no DB access).');
+    const uidList = [testUid, otherUid].filter(Boolean).join(', ');
     console.log(
-      `  Manual cleanup if needed: DELETE FROM "user" WHERE email IN ('${TEST_EMAIL}', '${OTHER_EMAIL}')`,
+      `  Manual cleanup if needed:
+    DELETE FROM "user" WHERE email = '${BOOTSTRAP_EMAIL}';
+    DELETE FROM "user" WHERE firebase_uid IN (${uidList ? `'${uidList.split(', ').join("', '")}'` : "''"});`,
     );
   } else {
     try {
       if (!ds.isInitialized) await ds.initialize();
-      const result = await ds.query(
-        'DELETE FROM "user" WHERE email = ANY($1::text[])',
-        [[BOOTSTRAP_EMAIL, TEST_EMAIL, OTHER_EMAIL]],
+      // Legacy bootstrap user : nettoyage par email.
+      const bootstrapResult = await ds.query(
+        'DELETE FROM "user" WHERE email = $1',
+        [BOOTSTRAP_EMAIL],
       );
-      console.log(`Backend rows deleted: ${result?.[1] ?? 0}`);
+      // Firebase users : leur email backend est NULL depuis la migration
+      // 1777318504557, donc on nettoie par firebase_uid.
+      const firebaseUids = [testUid, otherUid].filter(
+        (uid): uid is string => Boolean(uid),
+      );
+      let firebaseResult: unknown[] = [];
+      if (firebaseUids.length) {
+        firebaseResult = await ds.query(
+          'DELETE FROM "user" WHERE firebase_uid = ANY($1::text[])',
+          [firebaseUids],
+        );
+      }
+      const total =
+        ((bootstrapResult as unknown[])?.[1] as number ?? 0) +
+        ((firebaseResult as unknown[])?.[1] as number ?? 0);
+      console.log(`Backend rows deleted: ${total}`);
       await ds.destroy();
     } catch (e: unknown) {
       console.error('Backend cleanup failed:', e);

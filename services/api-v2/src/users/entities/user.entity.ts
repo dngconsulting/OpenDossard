@@ -16,9 +16,13 @@ export class UserEntity {
   @Column({ name: 'last_name', nullable: true })
   lastName: string;
 
-  @ApiProperty()
-  @Column()
-  email: string;
+  // Nullable depuis la v3 auth-firebase : pour les users mode firebase, l'email
+  // n'est PAS persisté côté backend (source de vérité = Firebase Auth).
+  // Reste obligatoire pour les users legacy backoffice (ADMIN/ORGANIZER) et
+  // mobile pré-firebase, qui s'authentifient via /auth/login (email/password).
+  @ApiPropertyOptional()
+  @Column({ nullable: true })
+  email: string | null;
 
   @ApiPropertyOptional()
   @Column({ nullable: true })

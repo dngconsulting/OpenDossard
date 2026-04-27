@@ -128,6 +128,26 @@ describe('AuthFirebaseService', () => {
         ForbiddenException,
       );
     });
+
+    it('sources email from decoded idToken, not from entity (which can be null)', async () => {
+      verifyIdToken.mockResolvedValueOnce({
+        uid: VALID_UID,
+        email: VALID_EMAIL,
+      });
+      // Entity avec email NULL (cas firebase user) — la réponse + JWT doivent
+      // récupérer l'email depuis le idToken vérifié, pas depuis l'entity.
+      userRepo.findOne.mockResolvedValueOnce(buildUser({ id: 42, email: null as any }));
+
+      const result = await service.exchange('valid-token');
+
+      expect(result.user.email).toBe(VALID_EMAIL);
+      const [payload] = jwtService.signAsync.mock.calls[0];
+      expect(payload).toEqual({
+        sub: 42,
+        email: VALID_EMAIL,
+        roles: ['MOBILE'],
+      });
+    });
   });
 
   describe('register()', () => {
@@ -162,7 +182,8 @@ describe('AuthFirebaseService', () => {
       expect(userRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
           firebaseUid: VALID_UID,
-          email: VALID_EMAIL,
+          // Email NON persisté pour les firebase users (source = Firebase Auth)
+          email: null,
           firstName: 'Sami',
           lastName: 'Jaber',
           roles: 'MOBILE',
@@ -170,6 +191,25 @@ describe('AuthFirebaseService', () => {
         }),
       );
       expect(userRepo.save).toHaveBeenCalled();
+    });
+
+    it('does not persist email on the created firebase user', async () => {
+      verifyIdToken.mockResolvedValueOnce({
+        uid: VALID_UID,
+        email: VALID_EMAIL,
+        firebase: { sign_in_provider: 'password' },
+      });
+      userRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+      setupCreateAndSave();
+
+      const result = await service.register(validDto);
+
+      // Création : email volontairement null
+      const createArg = userRepo.create.mock.calls[0][0] as any;
+      expect(createArg.email).toBeNull();
+
+      // Réponse : email présent et sourcé du idToken (pas de l'entity)
+      expect(result.user.email).toBe(VALID_EMAIL);
     });
 
     it('throws UnauthorizedException on invalid token', async () => {

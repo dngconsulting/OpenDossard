@@ -38,6 +38,9 @@ export class AuthFirebaseService {
   /**
    * Login : lookup strict par firebase_uid, JAMAIS de création.
    * Si introuvable → 403 (le client doit avoir appelé /register au signup).
+   *
+   * L'email du user firebase n'étant PAS persisté en base, on le source
+   * directement depuis le idToken (vérifié) pour la réponse et le JWT.
    */
   async exchange(idToken: string): Promise<AuthResponseDto> {
     const decoded = await this.verifyAndRequireEmail(idToken);
@@ -52,14 +55,19 @@ export class AuthFirebaseService {
       throw new ForbiddenException('No backend account for this Firebase user');
     }
 
-    const tokens = await this.generateTokens(user);
-    return { ...tokens, user: this.toProfileResponse(user) };
+    const tokens = await this.generateTokens(user, decoded.email!);
+    return { ...tokens, user: this.toProfileResponse(user, decoded.email!) };
   }
 
   /**
    * Signup : crée la ligne backend pour un user Firebase fraîchement inscrit.
-   * Email pris du token (authentique), pas du body.
-   * Conflits possibles : firebase_uid déjà mappé OU email déjà utilisé.
+   *
+   * L'email n'est **PAS persisté** côté backend pour les users firebase :
+   * Firebase Auth est la source de vérité. Le check de conflit `existingByEmail`
+   * reste actif pour interdire qu'un email déjà utilisé par un user legacy
+   * (backoffice ADMIN/ORGANIZER ou MOBILE pré-firebase) soit ré-utilisé.
+   *
+   * Conflits possibles : firebase_uid déjà mappé OU email déjà utilisé par un legacy.
    */
   async register(dto: RegisterDto): Promise<AuthResponseDto> {
     const decoded = await this.verifyAndRequireEmail(dto.idToken);
@@ -83,7 +91,8 @@ export class AuthFirebaseService {
     const user = this.userRepo.create({
       firebaseUid: decoded.uid,
       signInProvider: decoded.firebase?.sign_in_provider ?? 'password',
-      email: decoded.email!,
+      // email volontairement non écrit : source de vérité = Firebase Auth.
+      email: null,
       firstName: dto.firstName.trim(),
       lastName: dto.lastName.trim(),
       password: null as unknown as string, // Firebase = source de vérité
@@ -95,8 +104,8 @@ export class AuthFirebaseService {
       `register: created user id=${user.id} uid=${decoded.uid} provider=${user.signInProvider}`,
     );
 
-    const tokens = await this.generateTokens(user);
-    return { ...tokens, user: this.toProfileResponse(user) };
+    const tokens = await this.generateTokens(user, decoded.email!);
+    return { ...tokens, user: this.toProfileResponse(user, decoded.email!) };
   }
 
   private async verifyAndRequireEmail(
@@ -119,10 +128,14 @@ export class AuthFirebaseService {
     return decoded;
   }
 
-  private toProfileResponse(user: UserEntity) {
+  /**
+   * Construit la réponse profil. L'email est passé en paramètre car il n'est
+   * pas garanti d'être persisté côté entity (firebase mode = NULL).
+   */
+  private toProfileResponse(user: UserEntity, email: string) {
     return {
       id: user.id,
-      email: user.email,
+      email,
       firstName: user.firstName,
       lastName: user.lastName,
       roles: user.getRolesArray(),
@@ -130,11 +143,16 @@ export class AuthFirebaseService {
     };
   }
 
-  private async generateTokens(user: UserEntity): Promise<TokensDto> {
+  private async generateTokens(
+    user: UserEntity,
+    email: string,
+  ): Promise<TokensDto> {
     // Payload STRICTEMENT identique à AuthService.generateTokens() (auth.service.ts legacy)
+    // L'email est sourcé du idToken Firebase (param `email`) plutôt que de
+    // `user.email` qui peut être NULL pour les firebase users.
     const payload = {
       sub: user.id,
-      email: user.email,
+      email,
       roles: user.getRolesArray(),
     };
 

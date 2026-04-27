@@ -103,7 +103,9 @@ export class AuthService {
   private toProfileResponse(user: UserEntity) {
     return {
       id: user.id,
-      email: user.email,
+      // Legacy login = lookup par email → email garanti non-null. L'assertion
+      // `!` évite de polluer l'API avec un `null` impossible en pratique sur ce flow.
+      email: user.email!,
       firstName: user.firstName,
       lastName: user.lastName,
       roles: user.getRolesArray(),
@@ -114,7 +116,7 @@ export class AuthService {
   private async generateTokens(user: UserEntity): Promise<TokensDto> {
     const payload = {
       sub: user.id,
-      email: user.email,
+      email: user.email!,
       roles: user.getRolesArray(),
     };
 
