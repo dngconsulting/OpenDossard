@@ -15,6 +15,7 @@
  */
 
 import 'reflect-metadata';
+import { randomBytes } from 'crypto';
 import { existsSync, readFileSync } from 'fs';
 import { homedir } from 'os';
 import { resolve, join } from 'path';
@@ -56,7 +57,10 @@ const STAMP = Date.now();
 const BOOTSTRAP_EMAIL = `smoke-bootstrap-${STAMP}@dossardeur.local`;
 const TEST_EMAIL = `smoke-${STAMP}@dossardeur.local`;
 const OTHER_EMAIL = `smoke-other-${STAMP}@dossardeur.local`;
-const TEST_PWD = 'SmokeTest!1234';
+// Random per-run password — pas de literal credential dans le fichier source.
+// Ce mdp ne sert qu'à créer des users Firebase + un user bootstrap DB locaux,
+// tous supprimés en cleanup avant la fin du process.
+const TEST_PWD = `Smk-${randomBytes(16).toString('hex')}`;
 
 let testUid: string | undefined;
 let otherUid: string | undefined;
@@ -155,31 +159,52 @@ async function main() {
   }
   console.log('API up.\n');
 
-  // === Bootstrap : créer un user MOBILE local + récupérer un JWT pour cocher
-  // l'exigence "tout endpoint requiert un token". Le compte est jetable et
-  // supprimé en cleanup, donc le smoke tourne dans n'importe quel env local
-  // sans réutiliser le compte technique anonyme prod.
-  console.log(`Creating bootstrap DB user ${BOOTSTRAP_EMAIL}`);
-  await ds.initialize();
-  const passwordHash = await bcrypt.hash(TEST_PWD, 12);
-  await ds.query(
-    `INSERT INTO "user" (first_name, last_name, email, password, roles)
-     VALUES ($1, $2, $3, $4, $5)`,
-    ['Smoke', 'Bootstrap', BOOTSTRAP_EMAIL, passwordHash, 'MOBILE'],
-  );
+  // Two modes for obtaining the "anonymous" JWT required by the JwtAuthGuard:
+  //   - LOCAL mode (default) : create a throwaway MOBILE user via direct
+  //     postgres write, then login via /auth/login. Works against a local API
+  //     where we have full DB access.
+  //   - REMOTE mode (env SMOKE_LOGIN_EMAIL + SMOKE_LOGIN_PASSWORD set) :
+  //     reuse credentials of an existing test user on the target env. No DB
+  //     access needed. The TEST_EMAIL row created by /register stays in the
+  //     remote DB after the run (manual cleanup if needed).
+  const remoteEmail = process.env.SMOKE_LOGIN_EMAIL;
+  const remotePwd = process.env.SMOKE_LOGIN_PASSWORD;
+  const remoteMode = !!(remoteEmail && remotePwd);
+
+  let loginEmail: string;
+  let loginPwd: string;
+
+  if (remoteMode) {
+    console.log(
+      `[REMOTE mode] Using provided creds for /auth/login (no DB bootstrap)`,
+    );
+    loginEmail = remoteEmail!;
+    loginPwd = remotePwd!;
+  } else {
+    console.log(`[LOCAL mode] Creating bootstrap DB user ${BOOTSTRAP_EMAIL}`);
+    await ds.initialize();
+    const passwordHash = await bcrypt.hash(TEST_PWD, 12);
+    await ds.query(
+      `INSERT INTO "user" (first_name, last_name, email, password, roles)
+       VALUES ($1, $2, $3, $4, $5)`,
+      ['Smoke', 'Bootstrap', BOOTSTRAP_EMAIL, passwordHash, 'MOBILE'],
+    );
+    loginEmail = BOOTSTRAP_EMAIL;
+    loginPwd = TEST_PWD;
+  }
 
   console.log('Logging in via /auth/login (legacy) to get anonymous JWT');
   const loginRes = await fetch(API_BASE + '/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: BOOTSTRAP_EMAIL, password: TEST_PWD }),
+    body: JSON.stringify({ email: loginEmail, password: loginPwd }),
   });
   if (!loginRes.ok) {
-    throw new Error(`Bootstrap /auth/login failed: ${loginRes.status} ${await loginRes.text()}`);
+    throw new Error(`/auth/login failed: ${loginRes.status} ${await loginRes.text()}`);
   }
   bootstrapToken = ((await loginRes.json()) as { accessToken: string })
     .accessToken;
-  console.log('Bootstrap JWT obtained.\n');
+  console.log('Anonymous JWT obtained.\n');
 
   // === S0 : guard rejette les appels sans token ===
   let res = await api(
@@ -308,17 +333,29 @@ async function cleanup() {
     }
   }
 
-  // Cleanup backend rows : bootstrap user + S1-created user
-  try {
-    if (!ds.isInitialized) await ds.initialize();
-    const result = await ds.query(
-      'DELETE FROM "user" WHERE email = ANY($1::text[])',
-      [[BOOTSTRAP_EMAIL, TEST_EMAIL, OTHER_EMAIL]],
+  // Cleanup backend rows — only in LOCAL mode (we have DB access).
+  // REMOTE mode leaves the TEST_EMAIL row behind (no postgres connection
+  // to the remote DB available; cleanup is manual if needed).
+  const remoteMode = !!(
+    process.env.SMOKE_LOGIN_EMAIL && process.env.SMOKE_LOGIN_PASSWORD
+  );
+  if (remoteMode) {
+    console.log('Backend cleanup skipped (REMOTE mode, no DB access).');
+    console.log(
+      `  Manual cleanup if needed: DELETE FROM "user" WHERE email IN ('${TEST_EMAIL}', '${OTHER_EMAIL}')`,
     );
-    console.log(`Backend rows deleted: ${result?.[1] ?? 0}`);
-    await ds.destroy();
-  } catch (e: unknown) {
-    console.error('Backend cleanup failed:', e);
+  } else {
+    try {
+      if (!ds.isInitialized) await ds.initialize();
+      const result = await ds.query(
+        'DELETE FROM "user" WHERE email = ANY($1::text[])',
+        [[BOOTSTRAP_EMAIL, TEST_EMAIL, OTHER_EMAIL]],
+      );
+      console.log(`Backend rows deleted: ${result?.[1] ?? 0}`);
+      await ds.destroy();
+    } catch (e: unknown) {
+      console.error('Backend cleanup failed:', e);
+    }
   }
 }
 
