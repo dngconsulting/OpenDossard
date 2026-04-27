@@ -63,11 +63,15 @@ export class AuthFirebaseService {
    * Signup : crée la ligne backend pour un user Firebase fraîchement inscrit.
    *
    * L'email n'est **PAS persisté** côté backend pour les users firebase :
-   * Firebase Auth est la source de vérité. Le check de conflit `existingByEmail`
-   * reste actif pour interdire qu'un email déjà utilisé par un user legacy
-   * (backoffice ADMIN/ORGANIZER ou MOBILE pré-firebase) soit ré-utilisé.
+   * Firebase Auth est la source de vérité.
    *
-   * Conflits possibles : firebase_uid déjà mappé OU email déjà utilisé par un legacy.
+   * **Pas de check d'unicité d'email avec les users legacy**. Décision
+   * 2026-04-27 : une row firebase et une row legacy peuvent coexister pour
+   * "la même personne" — ce sont deux identités fonctionnelles distinctes
+   * (rôles différents, méthodes d'auth différentes, ressources disjointes).
+   * L'autorisation reste portée par les `roles` du JWT, pas par l'identité.
+   *
+   * Seul conflit possible : firebase_uid déjà mappé (re-register du même user).
    */
   async register(dto: RegisterDto): Promise<AuthResponseDto> {
     const decoded = await this.verifyAndRequireEmail(dto.idToken);
@@ -77,15 +81,6 @@ export class AuthFirebaseService {
     });
     if (existingByUid) {
       throw new ConflictException('User already registered');
-    }
-
-    const existingByEmail = await this.userRepo.findOne({
-      where: { email: decoded.email! },
-    });
-    if (existingByEmail) {
-      // Cas typique : un user backoffice (ADMIN/ORGANIZER) a déjà cet email,
-      // ou l'email a été migré en tant que MOBILE legacy. Refus dur en v1.
-      throw new ConflictException('Email already used by another account');
     }
 
     const user = this.userRepo.create({

@@ -170,9 +170,7 @@ describe('AuthFirebaseService', () => {
         email: VALID_EMAIL,
         firebase: { sign_in_provider: 'password' },
       });
-      userRepo.findOne
-        .mockResolvedValueOnce(null) // lookup by uid
-        .mockResolvedValueOnce(null); // lookup by email
+      userRepo.findOne.mockResolvedValueOnce(null); // lookup by uid only
       setupCreateAndSave();
 
       const result = await service.register(validDto);
@@ -199,7 +197,7 @@ describe('AuthFirebaseService', () => {
         email: VALID_EMAIL,
         firebase: { sign_in_provider: 'password' },
       });
-      userRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+      userRepo.findOne.mockResolvedValueOnce(null);
       setupCreateAndSave();
 
       const result = await service.register(validDto);
@@ -210,6 +208,26 @@ describe('AuthFirebaseService', () => {
 
       // Réponse : email présent et sourcé du idToken (pas de l'entity)
       expect(result.user.email).toBe(VALID_EMAIL);
+    });
+
+    it('allows registration even if a legacy user already has the same email', async () => {
+      // Décision 2026-04-27 : on ne déduplique plus sur l'email entre rows
+      // legacy et firebase. Un humain peut avoir 2 rows backend (rôles
+      // différents, méthodes d'auth différentes) — c'est intentionnel.
+      verifyIdToken.mockResolvedValueOnce({
+        uid: VALID_UID,
+        email: VALID_EMAIL,
+      });
+      userRepo.findOne.mockResolvedValueOnce(null); // lookup by uid → not found
+      // (pas de lookup par email — il a été supprimé du flow)
+      setupCreateAndSave();
+
+      const result = await service.register(validDto);
+
+      expect(result.accessToken).toBe('signed-token');
+      expect(userRepo.findOne).toHaveBeenCalledTimes(1);
+      expect(userRepo.create).toHaveBeenCalled();
+      expect(userRepo.save).toHaveBeenCalled();
     });
 
     it('throws UnauthorizedException on invalid token', async () => {
@@ -243,28 +261,13 @@ describe('AuthFirebaseService', () => {
       expect(userRepo.create).not.toHaveBeenCalled();
     });
 
-    it('throws ConflictException when email already used by another account', async () => {
-      verifyIdToken.mockResolvedValueOnce({
-        uid: VALID_UID,
-        email: VALID_EMAIL,
-      });
-      userRepo.findOne
-        .mockResolvedValueOnce(null) // uid not found
-        .mockResolvedValueOnce(buildUser({ id: 7 })); // email found (other account)
-
-      await expect(service.register(validDto)).rejects.toBeInstanceOf(
-        ConflictException,
-      );
-      expect(userRepo.create).not.toHaveBeenCalled();
-    });
-
     it('defaults sign_in_provider to "password" when missing in token', async () => {
       verifyIdToken.mockResolvedValueOnce({
         uid: VALID_UID,
         email: VALID_EMAIL,
         // no firebase.sign_in_provider
       });
-      userRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+      userRepo.findOne.mockResolvedValueOnce(null);
       setupCreateAndSave();
 
       await service.register(validDto);
@@ -279,7 +282,7 @@ describe('AuthFirebaseService', () => {
         uid: VALID_UID,
         email: VALID_EMAIL,
       });
-      userRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+      userRepo.findOne.mockResolvedValueOnce(null);
       setupCreateAndSave();
 
       await service.register({
