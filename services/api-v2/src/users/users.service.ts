@@ -23,11 +23,6 @@ export interface UpdateUserDto {
   roles?: string[];
 }
 
-export interface UpdatePasswordDto {
-  currentPassword: string;
-  newPassword: string;
-}
-
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
@@ -148,30 +143,6 @@ export class UsersService {
         `${saved.email} | ${fields}`,
     );
     return saved;
-  }
-
-  async updatePassword(
-    id: number,
-    updatePasswordDto: UpdatePasswordDto,
-  ): Promise<{ success: boolean }> {
-    const user = await this.userRepository.findOne({
-      where: { id },
-      select: ['id', 'password'],
-    });
-
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
-
-    const isPasswordValid = await bcrypt.compare(updatePasswordDto.currentPassword, user.password);
-    if (!isPasswordValid) {
-      throw new ConflictException('Current password is incorrect');
-    }
-
-    const hashedPassword = await bcrypt.hash(updatePasswordDto.newPassword, 12);
-    await this.userRepository.update(id, { password: hashedPassword });
-
-    return { success: true };
   }
 
   async resetPassword(id: number, newPassword: string): Promise<{ success: boolean }> {
