@@ -2,12 +2,12 @@ import { ArrowLeft, ChevronRight, RefreshCw, Shuffle, Trophy } from 'lucide-reac
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 
-import { EngagementForm, EngagementsTable, ExportMenu, RaceInfoDialog, ReorganizeRacesDialog } from '@/components/engagements';
+import { EngagementForm, EngagementsTable, ExportMenu, ImportMenu, RaceInfoDialog, ReorganizeRacesDialog } from '@/components/engagements';
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { RaceTabsList, RaceTabsTrigger } from '@/components/ui/race-tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs } from '@/components/ui/tabs';
 import { type CompetitionType as CompetitionTypeEnum } from '@/config/federations';
 import { useCompetition } from '@/hooks/useCompetitions';
@@ -34,7 +34,7 @@ export default function EngagementsPage() {
   // Liste des courses dans l'ordre original (pour la réorganisation)
   // races peut être un string (comma-separated) ou déjà un array
   const racesOriginalOrder = useMemo(() => {
-    if (!competition?.races) return [];
+    if (!competition?.races) {return [];}
     const racesArray = typeof competition.races === 'string'
       ? competition.races.split(',').map(r => r.trim()).filter(Boolean)
       : competition.races;
@@ -172,6 +172,7 @@ export default function EngagementsPage() {
           competition={competition}
         />
       )}
+      {competition && <ImportMenu competitionId={competition.id} />}
       <Button
         className="bg-emerald-600 hover:bg-emerald-700 text-white disabled:bg-emerald-600/50"
         disabled={totalEngagements === 0}
