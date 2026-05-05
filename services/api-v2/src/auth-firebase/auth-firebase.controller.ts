@@ -1,10 +1,11 @@
-import { Body, Controller, Post, HttpCode, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Post, HttpCode, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { AuthFirebaseService } from './auth-firebase.service';
 import { ExchangeDto, RegisterDto } from './dto';
 import { AuthResponseDto } from '../auth/dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('auth-firebase')
 @ApiBearerAuth()
@@ -46,5 +47,21 @@ compte (409 — typiquement collision avec un user backoffice).
   @ApiResponse({ status: 409, description: 'firebase_uid déjà enregistré ou email déjà pris' })
   async register(@Body() dto: RegisterDto): Promise<AuthResponseDto> {
     return this.service.register(dto);
+  }
+
+  @Delete('me')
+  @HttpCode(204)
+  @ApiOperation({
+    summary: 'Delete the current Firebase-managed account (RGPD)',
+    description: `Supprime le compte courant côté Firebase Auth (via firebase-admin)
+puis la ligne backend correspondante. Idempotent : supprimer un compte déjà
+supprimé renvoie 204 silencieusement. Refuse 403 si le user résolu n'est
+pas un user mobile firebase (garde-fou anti-suppression d'admin backoffice
+via cet endpoint).`,
+  })
+  @ApiResponse({ status: 204, description: 'Compte supprimé' })
+  @ApiResponse({ status: 403, description: 'Compte non éligible (non firebase)' })
+  async deleteMe(@CurrentUser('id') userId: number): Promise<void> {
+    await this.service.deleteAccount(userId);
   }
 }

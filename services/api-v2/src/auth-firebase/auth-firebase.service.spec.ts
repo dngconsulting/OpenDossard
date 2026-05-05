@@ -43,12 +43,14 @@ describe('AuthFirebaseService', () => {
   let service: AuthFirebaseService;
   let userRepo: jest.Mocked<Repository<UserEntity>>;
   let verifyIdToken: jest.Mock;
+  let deleteUser: jest.Mock;
   let jwtService: { signAsync: jest.Mock };
   let configService: { getOrThrow: jest.Mock; get: jest.Mock };
 
   beforeEach(async () => {
     verifyIdToken = jest.fn();
-    const firebaseApp = { auth: () => ({ verifyIdToken }) };
+    deleteUser = jest.fn().mockResolvedValue(undefined);
+    const firebaseApp = { auth: () => ({ verifyIdToken, deleteUser }) };
 
     jwtService = { signAsync: jest.fn().mockResolvedValue('signed-token') };
     configService = {
@@ -65,6 +67,7 @@ describe('AuthFirebaseService', () => {
             findOne: jest.fn(),
             create: jest.fn(),
             save: jest.fn(),
+            delete: jest.fn(),
           },
         },
         { provide: FIREBASE_ADMIN, useValue: firebaseApp },
@@ -331,6 +334,65 @@ describe('AuthFirebaseService', () => {
         email: VALID_EMAIL,
         roles: ['MOBILE', 'ORGANIZER'],
       });
+    });
+  });
+
+  describe('deleteAccount()', () => {
+    it('deletes Firebase user then backend row', async () => {
+      userRepo.findOne.mockResolvedValueOnce(
+        buildUser({ id: 42, firebaseUid: VALID_UID }),
+      );
+
+      await service.deleteAccount(42);
+
+      expect(deleteUser).toHaveBeenCalledWith(VALID_UID);
+      expect(userRepo.delete).toHaveBeenCalledWith({ id: 42 });
+    });
+
+    it('is idempotent when backend user already gone', async () => {
+      userRepo.findOne.mockResolvedValueOnce(null);
+
+      await expect(service.deleteAccount(42)).resolves.toBeUndefined();
+
+      expect(deleteUser).not.toHaveBeenCalled();
+      expect(userRepo.delete).not.toHaveBeenCalled();
+    });
+
+    it('rejects with 403 when target is a non-firebase (backoffice) user', async () => {
+      userRepo.findOne.mockResolvedValueOnce(
+        buildUser({ id: 7, firebaseUid: null }),
+      );
+
+      await expect(service.deleteAccount(7)).rejects.toThrow(
+        ForbiddenException,
+      );
+      expect(deleteUser).not.toHaveBeenCalled();
+      expect(userRepo.delete).not.toHaveBeenCalled();
+    });
+
+    it('continues to DB delete when Firebase user is already gone', async () => {
+      userRepo.findOne.mockResolvedValueOnce(
+        buildUser({ id: 42, firebaseUid: VALID_UID }),
+      );
+      const fbErr: any = new Error('not found');
+      fbErr.code = 'auth/user-not-found';
+      deleteUser.mockRejectedValueOnce(fbErr);
+
+      await service.deleteAccount(42);
+
+      expect(userRepo.delete).toHaveBeenCalledWith({ id: 42 });
+    });
+
+    it('aborts before DB delete when Firebase delete fails for unknown reason', async () => {
+      userRepo.findOne.mockResolvedValueOnce(
+        buildUser({ id: 42, firebaseUid: VALID_UID }),
+      );
+      const fbErr: any = new Error('boom');
+      fbErr.code = 'auth/internal-error';
+      deleteUser.mockRejectedValueOnce(fbErr);
+
+      await expect(service.deleteAccount(42)).rejects.toThrow('boom');
+      expect(userRepo.delete).not.toHaveBeenCalled();
     });
   });
 });

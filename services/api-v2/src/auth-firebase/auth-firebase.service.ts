@@ -103,6 +103,54 @@ export class AuthFirebaseService {
     return { ...tokens, user: this.toProfileResponse(user, decoded.email!) };
   }
 
+  /**
+   * Suppression du compte (RGPD — droit à l'effacement). Idempotent.
+   *
+   * Ordre : Firebase Auth d'abord (le user perd l'accès immédiatement),
+   * puis row backend. Si Firebase delete échoue (autre que `user-not-found`),
+   * on bail avant de toucher la DB pour ne pas créer un row orphelin sans
+   * delete Firebase. Si la suppression Firebase a déjà eu lieu (admin console,
+   * autre device), on continue tranquillement vers la DB.
+   *
+   * Garde-fou : on refuse la suppression d'un user backoffice (firebase_uid
+   * NULL) via cet endpoint — il a un autre flow d'admin.
+   */
+  async deleteAccount(userId: number): Promise<void> {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) {
+      // Idempotent : déjà supprimé, succès silencieux.
+      return;
+    }
+    if (!user.firebaseUid) {
+      throw new ForbiddenException(
+        'Endpoint reserved for Firebase-managed accounts',
+      );
+    }
+
+    try {
+      await this.firebaseApp.auth().deleteUser(user.firebaseUid);
+    } catch (e: unknown) {
+      const code =
+        typeof e === 'object' && e !== null && 'code' in e
+          ? (e as { code?: string }).code
+          : undefined;
+      if (code !== 'auth/user-not-found') {
+        this.logger.warn(
+          `deleteAccount: firebase deleteUser failed uid=${user.firebaseUid} code=${code}`,
+        );
+        throw e;
+      }
+      this.logger.log(
+        `deleteAccount: firebase user already gone uid=${user.firebaseUid}`,
+      );
+    }
+
+    await this.userRepo.delete({ id: user.id });
+    this.logger.log(
+      `deleteAccount: deleted user id=${user.id} uid=${user.firebaseUid}`,
+    );
+  }
+
   private async verifyAndRequireEmail(
     idToken: string,
   ): Promise<admin.auth.DecodedIdToken> {
