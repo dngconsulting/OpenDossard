@@ -26,11 +26,15 @@ export class DeepLinksController {
         apps: [],
         details: [
           {
-            appIDs: [
-              'N676M59J43.com.dossardeur', // TODO: remplacer TEAM_ID par le vrai Apple Team ID
-            ],
+            appIDs: ['N676M59J43.com.dossardeur'],
             components: [
+              // Pages de partage (épreuve, classement, palmarès) — fallback web
+              // si l'app n'est pas installée, sinon ouverture directe dans l'app.
               { '/': '/app/*' },
+              // Liens Firebase (reset password, verify email) — l'app est
+              // toujours installée par construction (l'user a déjà un compte).
+              // Wildcard `*` pour matcher les query strings (mode, oobCode).
+              { '/': '/auth/action*' },
             ],
           },
         ],
