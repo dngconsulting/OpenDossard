@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Post, HttpCode, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, HttpCode, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { AuthFirebaseService } from './auth-firebase.service';
@@ -47,6 +47,27 @@ compte (409 — typiquement collision avec un user backoffice).
   @ApiResponse({ status: 409, description: 'firebase_uid déjà enregistré ou email déjà pris' })
   async register(@Body() dto: RegisterDto): Promise<AuthResponseDto> {
     return this.service.register(dto);
+  }
+
+  @Get('me')
+  @ApiOperation({
+    summary: 'Get the current Firebase-managed user profile',
+    description: `Pendant firebase du legacy GET /auth/me — à appeler uniquement quand
+le client mobile est en mode firebase. Re-vérifie que le user existe encore
+côté Firebase Auth ; si l'admin a supprimé le user via la console (le JWT
+backend reste valide tant qu'il n'expire pas), on renvoie 404 et le client
+fallback automatiquement sur le compte technique anonyme.
+Refuse 403 si le user résolu n'a pas de firebase_uid (les users legacy/
+backoffice doivent passer par GET /auth/me classique).`,
+  })
+  @ApiResponse({ status: 200, description: 'Profil Firebase user' })
+  @ApiResponse({ status: 403, description: 'User legacy (firebase_uid NULL) — utiliser GET /auth/me' })
+  @ApiResponse({ status: 404, description: 'User supprimé côté Firebase ou côté backend' })
+  async getProfile(
+    @CurrentUser('id') userId: number,
+    @CurrentUser('email') email: string,
+  ) {
+    return this.service.getProfile(userId, email);
   }
 
   @Delete('me')

@@ -32,7 +32,7 @@ import { DeepLinksModule } from './deep-links/deep-links.module';
         host: configService.get('POSTGRES_HOST', 'localhost'),
         port: configService.get<number>('POSTGRES_PORT', 5432),
         username: configService.get('POSTGRES_USER', 'dossarduser'),
-        password: configService.get('POSTGRES_PASSWORD', 'dossardpassword'),
+        password: configService.getOrThrow('POSTGRES_PASSWORD'),
         database: configService.get('POSTGRES_DB', 'dossarddb'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: false, // Never true in production

@@ -6,6 +6,7 @@ import {
   BadRequestException,
   ForbiddenException,
   ConflictException,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -115,6 +116,55 @@ export class AuthFirebaseService {
    * Garde-fou : on refuse la suppression d'un user backoffice (firebase_uid
    * NULL) via cet endpoint — il a un autre flow d'admin.
    */
+  /**
+   * Profile : retourne les infos backend du user firebase courant, après
+   * vérif que le user existe encore côté Firebase (ne pas conserver une
+   * session "fantôme" si l'admin a supprimé le user via la console).
+   *
+   * - 404 `auth/user-not-found` côté Firebase → 404 NotFound (le client
+   *   mobile fallback automatiquement sur le compte technique anonyme).
+   * - Autre erreur Firebase Admin (réseau, quota) : log + on sert le profil
+   *   quand même (fail-open). Mieux vaut une donnée légèrement périmée que
+   *   d'éjecter un user sain pour un hiccup transitoire de l'API Firebase.
+   * - User legacy (firebaseUid NULL) qui appellerait cet endpoint → 403 :
+   *   garde-fou, ces users doivent passer par le `/auth/me` legacy.
+   *
+   * `jwtEmail` vient du payload JWT (sourcé du Firebase ID token au moment
+   * de l'exchange/register) — fallback si le client n'arrive pas à lire
+   * `getAuth().currentUser.email`.
+   */
+  async getProfile(userId: number, jwtEmail: string) {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (!user.firebaseUid) {
+      throw new ForbiddenException(
+        'Endpoint reserved for Firebase-managed accounts',
+      );
+    }
+
+    try {
+      await this.firebaseApp.auth().getUser(user.firebaseUid);
+    } catch (e: unknown) {
+      const code =
+        typeof e === 'object' && e !== null && 'code' in e
+          ? (e as { code?: string }).code
+          : undefined;
+      if (code === 'auth/user-not-found') {
+        this.logger.warn(
+          `getProfile: firebase user gone uid=${user.firebaseUid} id=${user.id} — client should fallback to anonymous`,
+        );
+        throw new NotFoundException('Firebase user not found');
+      }
+      this.logger.warn(
+        `getProfile: firebase getUser failed uid=${user.firebaseUid} code=${code} — serving cached profile (fail-open)`,
+      );
+    }
+
+    return this.toProfileResponse(user, jwtEmail);
+  }
+
   async deleteAccount(userId: number): Promise<void> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) {

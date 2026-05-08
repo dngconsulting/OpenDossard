@@ -18,7 +18,7 @@ import { UserEntity } from '../users/entities/user.entity';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET', 'opendossard-secret-v2'),
+        secret: configService.getOrThrow('JWT_SECRET'),
         signOptions: {
           expiresIn: configService.get('JWT_ACCESS_EXPIRE', '15m'),
         },
