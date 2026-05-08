@@ -48,6 +48,11 @@ beforeAll(async () => {
   process.env.POSTGRES_PASSWORD = 'testpass';
   process.env.POSTGRES_DB = 'testdb';
   process.env.NODE_ENV = 'test';
+  // JWT secrets : valeurs jetables pour la suite e2e. Le code prod utilise
+  // `configService.getOrThrow()` (pas de fallback), ces 2 vars deviennent donc
+  // obligatoires pour booter le module Auth en e2e.
+  process.env.JWT_SECRET = 'e2e-jwt-secret';
+  process.env.JWT_REFRESH_SECRET = 'e2e-jwt-refresh-secret';
 
   // 4. Create the module — AppModule reads env vars via ConfigService.
   //    Override FIREBASE_ADMIN with a stub so FirebaseModule's factory never
