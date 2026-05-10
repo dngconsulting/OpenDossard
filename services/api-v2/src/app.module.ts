@@ -45,7 +45,11 @@ import { DeepLinksModule } from './deep-links/deep-links.module';
         // "column X does not exist" plus tard).
         migrations: [__dirname + '/migrations/*{.js,.ts}'],
         migrationsTableName: 'typeorm_migrations',
-        migrationsRun: true,
+        // Désactivé en e2e : `setup-e2e.ts` reconstruit le schéma via
+        // `dataSource.synchronize(true)` (plus rapide et déterministe pour
+        // les tests) — laisser `migrationsRun` actif provoquerait des
+        // conflits entre migrations et auto-sync.
+        migrationsRun: configService.get('NODE_ENV') !== 'test',
         synchronize: false, // Never true in production
         logging: configService.get('NODE_ENV') === 'development',
         maxQueryExecutionTime: 10000,
