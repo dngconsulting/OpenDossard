@@ -35,6 +35,17 @@ import { DeepLinksModule } from './deep-links/deep-links.module';
         password: configService.getOrThrow('POSTGRES_PASSWORD'),
         database: configService.get('POSTGRES_DB', 'dossarddb'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        // Auto-migrations au boot. Avec le pattern d'image promue
+        // (TEST → PREPROD → PROD sans rebuild), `migrationsRun: true`
+        // garantit que chaque container applique les migrations de l'image
+        // qu'il déploie, sans dépendre d'un step CI séparé qui peut tourner
+        // sur une ancienne image en cas de pull pas synchro.
+        // En cas de migration en échec → boot du container crash → état
+        // dégradé visible immédiatement (au lieu d'erreurs runtime du genre
+        // "column X does not exist" plus tard).
+        migrations: [__dirname + '/migrations/*{.js,.ts}'],
+        migrationsTableName: 'typeorm_migrations',
+        migrationsRun: true,
         synchronize: false, // Never true in production
         logging: configService.get('NODE_ENV') === 'development',
         maxQueryExecutionTime: 10000,
