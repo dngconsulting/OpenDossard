@@ -7,6 +7,54 @@ import type {
 
 import { apiClient } from './client';
 
+export type ImportEngagesFieldDiff = {
+  field: string;
+  csv?: string;
+  db?: string;
+};
+
+export type ImportEngagesAnomaly = {
+  line: number;
+  kind: 'missing' | 'divergent' | 'dossardCollision';
+  licenceNumber?: string;
+  rider?: string;
+  missingFields?: string[];
+  diffs?: ImportEngagesFieldDiff[];
+  message?: string;
+};
+
+export type ImportEngagesResult = {
+  summary: {
+    total: number;
+    inserted: number;
+    duplicates: number;
+    unknownLicences: number;
+    anomalies: number;
+  };
+  details: {
+    inserted: Array<{
+      line: number;
+      riderNumber?: number;
+      rider: string;
+      licenceNumber: string;
+      raceCode: string;
+    }>;
+    duplicates: Array<{
+      line: number;
+      rider: string;
+      licenceNumber: string;
+      raceCode: string;
+      existingRaceCode: string;
+    }>;
+    unknownLicences: Array<{
+      line: number;
+      licenceNumber: string;
+      rider: string;
+    }>;
+    anomalies: ImportEngagesAnomaly[];
+  };
+};
+
 export const racesApi = {
   /**
    * Récupère tous les engagements d'une compétition
@@ -98,5 +146,17 @@ export const racesApi = {
         body: formData,
       },
     );
+  },
+
+  /**
+   * Import engagés depuis un CSV exporté par OpenDossard pour une compétition
+   */
+  importEngages: (competitionId: number, file: File): Promise<ImportEngagesResult> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient<ImportEngagesResult>(`/races/import/${competitionId}`, {
+      method: 'POST',
+      body: formData,
+    });
   },
 };

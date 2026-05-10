@@ -8,11 +8,12 @@ import { CompetitionEntity } from '../competitions/entities/competition.entity';
 import { PalmaresService } from './palmares.service';
 import { RankingService } from './ranking.service';
 import { ResultsCsvService } from './results-csv.service';
+import { RaceImportService } from './race-import.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([RaceEntity, LicenceEntity, CompetitionEntity])],
   controllers: [RacesController],
-  providers: [RacesService, PalmaresService, RankingService, ResultsCsvService],
-  exports: [RacesService, PalmaresService, RankingService, ResultsCsvService],
+  providers: [RacesService, PalmaresService, RankingService, ResultsCsvService, RaceImportService],
+  exports: [RacesService, PalmaresService, RankingService, ResultsCsvService, RaceImportService],
 })
 export class RacesModule {}

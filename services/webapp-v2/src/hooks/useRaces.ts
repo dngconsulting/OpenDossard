@@ -189,3 +189,20 @@ export function useUploadResultsCsv() {
   });
 }
 
+/**
+ * Hook pour importer les engagés depuis un CSV
+ */
+export function useImportEngages() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ competitionId, file }: { competitionId: number; file: File }) =>
+      racesApi.importEngages(competitionId, file),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: racesKeys.competition(variables.competitionId),
+      });
+    },
+  });
+}
+

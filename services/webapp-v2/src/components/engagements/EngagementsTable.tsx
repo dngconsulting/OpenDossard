@@ -101,10 +101,16 @@ export function EngagementsTable({
     }
   }, [sortColumn]);
 
+  // Engagements de la course courante (avant filtres user) — sert à distinguer
+  // "aucun engagé sur cette course" de "filtre actif sans résultat".
+  const engagementsForRace = useMemo(
+    () => engagements.filter(e => e.raceCode === currentRaceCode),
+    [engagements, currentRaceCode],
+  );
+
   // Filtrer et trier par course courante
   const filteredEngagements = useMemo(() => {
-    const filtered = engagements.filter(e => {
-      if (e.raceCode !== currentRaceCode) {return false;}
+    const filtered = engagementsForRace.filter(e => {
       for (const [col, filterValue] of Object.entries(filters)) {
         if (!filterValue) {continue;}
         const raw = e[col as keyof RaceRowType];
@@ -135,7 +141,7 @@ export function EngagementsTable({
 
       return sortDirection === 'asc' ? comparison : -comparison;
     });
-  }, [engagements, currentRaceCode, sortColumn, sortDirection, filters]);
+  }, [engagementsForRace, sortColumn, sortDirection, filters]);
 
   // Vérifier si on peut supprimer (pas classé et pas de commentaire type ABD/DNF)
   const canDelete = useCallback((engagement: RaceRowType) => {
@@ -143,9 +149,11 @@ export function EngagementsTable({
   }, []);
 
   // Vérifier si au moins un engagement peut être supprimé
+  // (basé sur les engagements de la course, pas le filtre user, pour stabiliser
+  // l'affichage de la colonne Actions quand l'utilisateur tape dans un filtre).
   const hasAnyDeletable = useMemo(() => {
-    return filteredEngagements.some(e => canDelete(e));
-  }, [filteredEngagements, canDelete]);
+    return engagementsForRace.some(e => canDelete(e));
+  }, [engagementsForRace, canDelete]);
 
   const handleDelete = async () => {
     if (!deleteTarget) {
@@ -170,7 +178,8 @@ export function EngagementsTable({
     );
   }
 
-  if (filteredEngagements.length === 0) {
+  // Aucun engagé sur cette course → message simple, pas besoin d'afficher la table.
+  if (engagementsForRace.length === 0) {
     return (
       <div className="flex items-center justify-center p-8 text-muted-foreground border rounded-lg">
         Aucun coureur engagé sur cette course

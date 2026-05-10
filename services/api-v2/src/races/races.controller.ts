@@ -23,11 +23,13 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiBody,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import { RacesService } from './races.service';
 import { PalmaresService } from './palmares.service';
 import { RankingService } from './ranking.service';
 import { ResultsCsvService } from './results-csv.service';
+import { RaceImportService } from './race-import.service';
 import { RaceEntity } from './entities/race.entity';
 import { LicenceEntity } from '../licences/entities/licence.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -46,6 +48,7 @@ import {
   UpdateChronoDto,
   UpdateToursDto,
   ReorderRankingItemDto,
+  ImportEngagesResultDto,
 } from './dto';
 
 @ApiTags('Races')
@@ -58,6 +61,7 @@ export class RacesController {
     private readonly palmaresService: PalmaresService,
     private readonly rankingService: RankingService,
     private readonly resultsCsvService: ResultsCsvService,
+    private readonly raceImportService: RaceImportService,
   ) {}
 
   // ==================== QUERIES ====================
@@ -278,6 +282,31 @@ export class RacesController {
   }
 
   // ==================== UPLOAD CSV ====================
+
+  @UseInterceptors(FileInterceptor('file'))
+  @Post('import/:competitionId')
+  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @ApiOperation({
+    summary: 'Import engagés from CSV file (mirror of export Engagés)',
+    operationId: 'importEngagesCsv',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiParam({ name: 'competitionId', type: Number })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { file: { type: 'string', format: 'binary' } },
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Import result', type: ImportEngagesResultDto })
+  async importEngagesCsv(
+    @UploadedFile() file: Express.Multer.File,
+    @Param('competitionId', ParseIntPipe) competitionId: number,
+    @CurrentUser('email') author: string,
+  ): Promise<ImportEngagesResultDto> {
+    const content = file.buffer.toString('utf-8');
+    return this.raceImportService.importFromCsv(competitionId, content, author);
+  }
 
   @UseInterceptors(FileInterceptor('file'))
   @Post('results/upload/:competitionId')
