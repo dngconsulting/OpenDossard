@@ -5,6 +5,7 @@ import { DataSource } from 'typeorm';
 import { App } from 'supertest/types';
 
 import { AppModule } from '../src/app.module';
+import { FIREBASE_ADMIN } from '../src/firebase/firebase.module';
 import { AuthHelper } from './helpers/auth.helper';
 import { SeedHelper } from './helpers/seed.helper';
 
@@ -47,11 +48,34 @@ beforeAll(async () => {
   process.env.POSTGRES_PASSWORD = 'testpass';
   process.env.POSTGRES_DB = 'testdb';
   process.env.NODE_ENV = 'test';
+  // JWT secrets : valeurs jetables pour la suite e2e. Le code prod utilise
+  // `configService.getOrThrow()` (pas de fallback), ces 2 vars deviennent donc
+  // obligatoires pour booter le module Auth en e2e.
+  process.env.JWT_SECRET = 'e2e-jwt-secret';
+  process.env.JWT_REFRESH_SECRET = 'e2e-jwt-refresh-secret';
 
-  // 4. Create the module — AppModule reads env vars via ConfigService
+  // 4. Create the module — AppModule reads env vars via ConfigService.
+  //    Override FIREBASE_ADMIN with a stub so FirebaseModule's factory never
+  //    runs in shared e2e setup. The factory require()s `firebase-admin` whose
+  //    transitive gRPC + native deps pollute Jest's module resolution and break
+  //    pg.Pool (incident 2026-04-26). Tests that need real Firebase must use
+  //    a dedicated setup with their own override.
+  const fakeFirebaseApp = {
+    auth: () => ({
+      verifyIdToken: () =>
+        Promise.reject(
+          new Error(
+            'firebase-admin not configured in shared e2e setup; override FIREBASE_ADMIN per-spec to test real flows',
+          ),
+        ),
+    }),
+  };
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AppModule],
-  }).compile();
+  })
+    .overrideProvider(FIREBASE_ADMIN)
+    .useValue(fakeFirebaseApp)
+    .compile();
 
   // 5. Synchronize schema in the testcontainer DB
   //    (app.module.ts has synchronize: false — we handle it here, not in prod code)

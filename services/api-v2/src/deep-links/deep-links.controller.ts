@@ -26,11 +26,15 @@ export class DeepLinksController {
         apps: [],
         details: [
           {
-            appIDs: [
-              'N676M59J43.com.dossardeur', // TODO: remplacer TEAM_ID par le vrai Apple Team ID
-            ],
+            appIDs: ['N676M59J43.com.dossardeur'],
             components: [
+              // Pages de partage (épreuve, classement, palmarès) — fallback web
+              // si l'app n'est pas installée, sinon ouverture directe dans l'app.
               { '/': '/app/*' },
+              // NB Firebase email links (reset password, verify email) ne
+              // passent plus par ce host : ils sont servis par Firebase Hosting
+              // sur `auth-test.opendossard.com` / `auth.opendossard.com` (cf.
+              // `app.config.ts > LINK_DOMAIN`), qui auto-sert son AASA.
             ],
           },
         ],
@@ -48,7 +52,8 @@ export class DeepLinksController {
           namespace: 'android_app',
           package_name: 'com.dossardeur',
           sha256_cert_fingerprints: [
-            '03:43:AB:3E:F1:83:26:F9:76:25:D9:8E:96:CE:31:E5:EC:87:8C:A3:B9:14:B5:A5:5B:CA:B6:2A:CA:D8:5D:2F'
+            '03:43:AB:3E:F1:83:26:F9:76:25:D9:8E:96:CE:31:E5:EC:87:8C:A3:B9:14:B5:A5:5B:CA:B6:2A:CA:D8:5D:2F',
+            'A7:3C:33:6A:25:69:C5:F4:42:E0:0B:55:73:EA:56:93:21:18:F8:11:F0:54:8A:61:E3:23:AA:87:48:22:99:49',
           ],
         },
       },

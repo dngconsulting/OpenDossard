@@ -183,12 +183,13 @@ jobs:
           JWT_ACCESS_EXPIRE: ${{ secrets.JWT_ACCESS_EXPIRE }}
           JWT_REFRESH_EXPIRE: ${{ secrets.JWT_REFRESH_EXPIRE }}
           JWT_EXPIRE_SECONDS: ${{ secrets.JWT_EXPIRE_SECONDS }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
         with:
           host: ${{ secrets.HOSTNAME }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          envs: POSTGRES_HOST,POSTGRES_PORT,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,JWT_EXPIRE_SECONDS
+          envs: POSTGRES_HOST,POSTGRES_PORT,POSTGRES_DB,POSTGRES_USER,POSTGRES_PASSWORD,JWT_SECRET,JWT_REFRESH_SECRET,JWT_ACCESS_EXPIRE,JWT_REFRESH_EXPIRE,JWT_EXPIRE_SECONDS,FIREBASE_SERVICE_ACCOUNT_JSON
           script: |
             export POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}
             export POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}
@@ -220,6 +221,14 @@ jobs:
 
             # Pull the new v2 images + netdata
             docker compose -f docker-compose.prod.yml pull api-v2 webapp-v2 netdata
+
+            # Migrations TypeORM : appliquées au démarrage du container par
+            # l'app elle-même (`migrationsRun: true` dans app.module.ts). Si
+            # une migration foire, le container api-v2 crash au boot et
+            # docker-compose remonte l'état dégradé. Plus de step manuel ici
+            # — le step pré-`up` s'exécutait sur l'image courante du serveur,
+            # ce qui masquait les bugs de pull non-sync (bug 2026-05-10 en
+            # `release=no` sur PREPROD).
 
             # Start/restart v2 services + monitoring (v1 remains untouched)
             docker compose -f docker-compose.prod.yml up -d api-v2 webapp-v2 netdata

@@ -22,7 +22,7 @@ import { PaginatedResponseDto } from '../common/dto/pagination.dto';
 import { Role } from '../common/enums';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { UserEntity } from './entities/user.entity';
-import { UsersService, CreateUserDto, UpdateUserDto, UpdatePasswordDto } from './users.service';
+import { UsersService, CreateUserDto, UpdateUserDto } from './users.service';
 
 @ApiTags('Users')
 @ApiBearerAuth('JWT-auth')
@@ -70,23 +70,6 @@ export class UsersController {
     @CurrentUser('email') author: string,
   ): Promise<UserEntity> {
     return this.usersService.update(id, updateUserDto, author);
-  }
-
-  @Patch(':id/password')
-  @Roles(Role.ADMIN, Role.ORGANISATEUR)
-  @ApiOperation({ summary: 'Update user password' })
-  @ApiResponse({ status: 200, description: 'Password updated' })
-  @ApiResponse({ status: 409, description: 'Current password is incorrect' })
-  async updatePassword(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updatePasswordDto: UpdatePasswordDto,
-    @CurrentUser() currentUser: { id: number; roles: string[] },
-  ): Promise<{ success: boolean }> {
-    // Users can only update their own password, unless admin
-    if (currentUser.id !== id && !currentUser.roles.includes(Role.ADMIN)) {
-      throw new Error('Unauthorized');
-    }
-    return this.usersService.updatePassword(id, updatePasswordDto);
   }
 
   @Post(':id/reset-password')

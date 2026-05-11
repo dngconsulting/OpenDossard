@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
@@ -21,11 +21,6 @@ export interface UpdateUserDto {
   lastName?: string;
   phone?: string;
   roles?: string[];
-}
-
-export interface UpdatePasswordDto {
-  currentPassword: string;
-  newPassword: string;
 }
 
 @Injectable()
@@ -123,6 +118,16 @@ export class UsersService {
   async update(id: number, updateUserDto: UpdateUserDto, author?: string): Promise<UserEntity> {
     const user = await this.findOne(id);
 
+    // Garde-fou : les users firebase sont read-only depuis le backoffice.
+    // Leur édition doit passer par l'app mobile (ou Firebase Console).
+    // Le mobile passe par le endpoint dédié `/auth/profile` qui ne traverse
+    // pas ce service.
+    if (user.firebaseUid) {
+      throw new ForbiddenException(
+        'Firebase users are read-only from the backoffice. Edit via the mobile app.',
+      );
+    }
+
     if (updateUserDto.firstName !== undefined) user.firstName = updateUserDto.firstName;
     if (updateUserDto.lastName !== undefined) user.lastName = updateUserDto.lastName;
     if (updateUserDto.phone !== undefined) user.phone = updateUserDto.phone;
@@ -140,30 +145,6 @@ export class UsersService {
     return saved;
   }
 
-  async updatePassword(
-    id: number,
-    updatePasswordDto: UpdatePasswordDto,
-  ): Promise<{ success: boolean }> {
-    const user = await this.userRepository.findOne({
-      where: { id },
-      select: ['id', 'password'],
-    });
-
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
-
-    const isPasswordValid = await bcrypt.compare(updatePasswordDto.currentPassword, user.password);
-    if (!isPasswordValid) {
-      throw new ConflictException('Current password is incorrect');
-    }
-
-    const hashedPassword = await bcrypt.hash(updatePasswordDto.newPassword, 12);
-    await this.userRepository.update(id, { password: hashedPassword });
-
-    return { success: true };
-  }
-
   async resetPassword(id: number, newPassword: string): Promise<{ success: boolean }> {
     await this.findOne(id);
     const hashedPassword = await bcrypt.hash(newPassword, 12);
@@ -173,6 +154,11 @@ export class UsersService {
 
   async remove(id: number): Promise<void> {
     const user = await this.findOne(id);
+    if (user.firebaseUid) {
+      throw new ForbiddenException(
+        'Firebase users cannot be deleted from the backoffice. Delete via Firebase Console.',
+      );
+    }
     await this.userRepository.remove(user);
   }
 }

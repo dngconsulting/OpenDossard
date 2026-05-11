@@ -1,0 +1,390 @@
+/**
+ * Smoke test manuel des endpoints /auth/firebase/* contre l'API en local +
+ * le projet Firebase `dossardeur-test`.
+ *
+ * Pré-requis :
+ *   - API tournant sur http://localhost:3500 (`npm run start` avec
+ *     FIREBASE_SERVICE_ACCOUNT_JSON exporté)
+ *   - DB postgres locale (`dossarddb`) avec migration `firebase_uid` appliquée
+ *   - SA Firebase à `~/.config/firebase/dossardeur-test-sa.json`
+ *
+ * Crée un user Firebase jetable, déroule les scénarios, supprime le user
+ * Firebase + la ligne backend en cleanup.
+ *
+ * Usage : `npx ts-node test/manual/smoke-firebase-auth.ts`
+ */
+
+import 'reflect-metadata';
+import { randomBytes } from 'crypto';
+import { existsSync, readFileSync } from 'fs';
+import { homedir } from 'os';
+import { resolve, join } from 'path';
+import * as dotenv from 'dotenv';
+import * as bcrypt from 'bcryptjs';
+import { DataSource } from 'typeorm';
+
+const SA_PATH = join(homedir(), '.config/firebase/dossardeur-test-sa.json');
+// API key publique du projet dossardeur-test (extraite de config/firebase/test/google-services.json,
+// platform Android — fonctionne aussi pour Identity Toolkit REST). C'est une clé publique
+// embarquée dans tous les builds mobile, pas un secret.
+const WEB_API_KEY = 'AIzaSyAY5ru3foIGaBhJDAOL8JKMVj8PIYgmd2s';
+const API_BASE = process.env.API_BASE ?? 'http://localhost:3500/api/v2';
+
+// Load .env for postgres credentials (cleanup)
+for (const path of [
+  resolve(__dirname, '../../.env.local'),
+  resolve(__dirname, '../../.env'),
+]) {
+  if (existsSync(path)) dotenv.config({ path, override: false });
+}
+
+if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+  if (!existsSync(SA_PATH)) {
+    throw new Error(`SA file missing at ${SA_PATH}`);
+  }
+  process.env.FIREBASE_SERVICE_ACCOUNT_JSON = readFileSync(SA_PATH, 'utf-8');
+}
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const admin = require('firebase-admin') as typeof import('firebase-admin');
+admin.initializeApp({
+  credential: admin.credential.cert(
+    JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON!),
+  ),
+});
+
+const STAMP = Date.now();
+const BOOTSTRAP_EMAIL = `smoke-bootstrap-${STAMP}@dossardeur.local`;
+const TEST_EMAIL = `smoke-${STAMP}@dossardeur.local`;
+const OTHER_EMAIL = `smoke-other-${STAMP}@dossardeur.local`;
+// Random per-run password — pas de literal credential dans le fichier source.
+// Ce mdp ne sert qu'à créer des users Firebase + un user bootstrap DB locaux,
+// tous supprimés en cleanup avant la fin du process.
+const TEST_PWD = `Smk-${randomBytes(16).toString('hex')}`;
+
+let testUid: string | undefined;
+let otherUid: string | undefined;
+let bootstrapToken: string | undefined;
+
+const ds = new DataSource({
+  type: 'postgres',
+  host: process.env.POSTGRES_HOST ?? 'localhost',
+  port: Number(process.env.POSTGRES_PORT ?? 5432),
+  username: process.env.POSTGRES_USER ?? 'dossarduser',
+  password: process.env.POSTGRES_PASSWORD ?? 'dossardpassword',
+  database: process.env.POSTGRES_DB ?? 'dossarddb',
+  entities: [],
+  synchronize: false,
+  logging: false,
+});
+
+async function signInWithPassword(
+  email: string,
+  password: string,
+): Promise<string> {
+  const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${WEB_API_KEY}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, returnSecureToken: true }),
+  });
+  if (!res.ok) {
+    throw new Error(`signInWithPassword ${res.status}: ${await res.text()}`);
+  }
+  const data = (await res.json()) as { idToken: string };
+  return data.idToken;
+}
+
+async function api(
+  method: string,
+  path: string,
+  body?: unknown,
+  opts: { auth?: boolean | string } = { auth: true },
+): Promise<{ status: number; body: any }> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  // auth = true (default) → use bootstrap token
+  // auth = false → no auth header (used to test 401 from guard)
+  // auth = '<token>' → use that token verbatim
+  if (opts.auth === true && bootstrapToken) {
+    headers['Authorization'] = `Bearer ${bootstrapToken}`;
+  } else if (typeof opts.auth === 'string') {
+    headers['Authorization'] = `Bearer ${opts.auth}`;
+  }
+  const res = await fetch(API_BASE + path, {
+    method,
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  const text = await res.text();
+  let parsed: any;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    parsed = text;
+  }
+  return { status: res.status, body: parsed };
+}
+
+let pass = 0;
+let fail = 0;
+function check(label: string, ok: boolean, detail?: string) {
+  if (ok) {
+    console.log(`✅ ${label}`);
+    pass++;
+  } else {
+    console.error(`❌ ${label}${detail ? ': ' + detail : ''}`);
+    fail++;
+  }
+}
+
+async function main() {
+  // Wait for API
+  console.log(`Polling API at ${API_BASE} ...`);
+  const start = Date.now();
+  let apiReady = false;
+  while (Date.now() - start < 30_000) {
+    try {
+      const r = await fetch(API_BASE + '/docs-json');
+      if (r.ok) {
+        apiReady = true;
+        break;
+      }
+    } catch {}
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  if (!apiReady) {
+    throw new Error('API not reachable within 30s');
+  }
+  console.log('API up.\n');
+
+  // Two modes for obtaining the "anonymous" JWT required by the JwtAuthGuard:
+  //   - LOCAL mode (default) : create a throwaway MOBILE user via direct
+  //     postgres write, then login via /auth/login. Works against a local API
+  //     where we have full DB access.
+  //   - REMOTE mode (env SMOKE_LOGIN_EMAIL + SMOKE_LOGIN_PASSWORD set) :
+  //     reuse credentials of an existing test user on the target env. No DB
+  //     access needed. The TEST_EMAIL row created by /register stays in the
+  //     remote DB after the run (manual cleanup if needed).
+  const remoteEmail = process.env.SMOKE_LOGIN_EMAIL;
+  const remotePwd = process.env.SMOKE_LOGIN_PASSWORD;
+  const remoteMode = !!(remoteEmail && remotePwd);
+
+  let loginEmail: string;
+  let loginPwd: string;
+
+  if (remoteMode) {
+    console.log(
+      `[REMOTE mode] Using provided creds for /auth/login (no DB bootstrap)`,
+    );
+    loginEmail = remoteEmail!;
+    loginPwd = remotePwd!;
+  } else {
+    console.log(`[LOCAL mode] Creating bootstrap DB user ${BOOTSTRAP_EMAIL}`);
+    await ds.initialize();
+    const passwordHash = await bcrypt.hash(TEST_PWD, 12);
+    await ds.query(
+      `INSERT INTO "user" (first_name, last_name, email, password, roles)
+       VALUES ($1, $2, $3, $4, $5)`,
+      ['Smoke', 'Bootstrap', BOOTSTRAP_EMAIL, passwordHash, 'MOBILE'],
+    );
+    loginEmail = BOOTSTRAP_EMAIL;
+    loginPwd = TEST_PWD;
+  }
+
+  console.log('Logging in via /auth/login (legacy) to get anonymous JWT');
+  const loginRes = await fetch(API_BASE + '/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: loginEmail, password: loginPwd }),
+  });
+  if (!loginRes.ok) {
+    throw new Error(`/auth/login failed: ${loginRes.status} ${await loginRes.text()}`);
+  }
+  bootstrapToken = ((await loginRes.json()) as { accessToken: string })
+    .accessToken;
+  console.log('Anonymous JWT obtained.\n');
+
+  // === S0 : guard rejette les appels sans token ===
+  let res = await api(
+    'POST',
+    '/auth/firebase/exchange',
+    { idToken: 'whatever' },
+    { auth: false },
+  );
+  check('S0: exchange without Authorization → 401', res.status === 401, `got ${res.status}`);
+
+  res = await api(
+    'POST',
+    '/auth/firebase/register',
+    { idToken: 'whatever', firstName: 'A', lastName: 'B' },
+    { auth: false },
+  );
+  check('S0: register without Authorization → 401', res.status === 401, `got ${res.status}`);
+
+  // === Setup user Firebase pour les scénarios suivants ===
+  console.log(`Creating Firebase user ${TEST_EMAIL}`);
+  const u = await admin.auth().createUser({
+    email: TEST_EMAIL,
+    password: TEST_PWD,
+  });
+  testUid = u.uid;
+
+  const idToken = await signInWithPassword(TEST_EMAIL, TEST_PWD);
+
+  // === Scenarios ===
+
+  // S1: register fresh (avec Authorization Bearer bootstrap)
+  res = await api('POST', '/auth/firebase/register', {
+    idToken,
+    firstName: 'Smoke',
+    lastName: 'Test',
+  });
+  check(
+    'S1: register fresh user → 201',
+    res.status === 201,
+    `got ${res.status} ${JSON.stringify(res.body)}`,
+  );
+  check('S1: has accessToken', !!res.body?.accessToken);
+  check('S1: has refreshToken', !!res.body?.refreshToken);
+  check('S1: user.email matches', res.body?.user?.email === TEST_EMAIL);
+
+  // S2: register same idToken twice → 409
+  res = await api('POST', '/auth/firebase/register', {
+    idToken,
+    firstName: 'Smoke',
+    lastName: 'Test',
+  });
+  check(
+    'S2: re-register same user → 409',
+    res.status === 409,
+    `got ${res.status}`,
+  );
+
+  // S3: exchange after register → 200
+  res = await api('POST', '/auth/firebase/exchange', { idToken });
+  check(
+    'S3: exchange after register → 200',
+    res.status === 200,
+    `got ${res.status}`,
+  );
+  check('S3: tokens emitted', !!res.body?.accessToken);
+  check('S3: roles include MOBILE', res.body?.user?.roles?.includes('MOBILE'));
+
+  // S4: exchange of unregistered Firebase user → 403
+  console.log(`Creating second Firebase user ${OTHER_EMAIL} (not registered)`);
+  const u2 = await admin.auth().createUser({
+    email: OTHER_EMAIL,
+    password: TEST_PWD,
+  });
+  otherUid = u2.uid;
+  const otherIdToken = await signInWithPassword(OTHER_EMAIL, TEST_PWD);
+  res = await api('POST', '/auth/firebase/exchange', { idToken: otherIdToken });
+  check(
+    'S4: exchange of unregistered user → 403',
+    res.status === 403,
+    `got ${res.status}`,
+  );
+
+  // S5: missing idToken → 400 (class-validator)
+  res = await api('POST', '/auth/firebase/exchange', {});
+  check('S5: missing idToken → 400', res.status === 400, `got ${res.status}`);
+
+  // S6: register missing firstName → 400
+  res = await api('POST', '/auth/firebase/register', {
+    idToken: otherIdToken,
+    lastName: 'NoFirstName',
+  });
+  check(
+    'S6: register missing firstName → 400',
+    res.status === 400,
+    `got ${res.status}`,
+  );
+
+  // S7: invalid idToken (signature/format) → 401
+  res = await api('POST', '/auth/firebase/exchange', {
+    idToken: 'totally-not-a-token',
+  });
+  check(
+    'S7: invalid idToken → 401',
+    res.status === 401,
+    `got ${res.status}`,
+  );
+}
+
+async function cleanup() {
+  console.log('\n=== Cleanup ===');
+
+  if (testUid) {
+    try {
+      await admin.auth().deleteUser(testUid);
+      console.log(`Firebase user ${TEST_EMAIL} deleted`);
+    } catch (e: unknown) {
+      console.error(`Failed to delete ${TEST_EMAIL}:`, e);
+    }
+  }
+  if (otherUid) {
+    try {
+      await admin.auth().deleteUser(otherUid);
+      console.log(`Firebase user ${OTHER_EMAIL} deleted`);
+    } catch (e: unknown) {
+      console.error(`Failed to delete ${OTHER_EMAIL}:`, e);
+    }
+  }
+
+  // Cleanup backend rows — only in LOCAL mode (we have DB access).
+  // REMOTE mode leaves the TEST_EMAIL row behind (no postgres connection
+  // to the remote DB available; cleanup is manual if needed).
+  const remoteMode = !!(
+    process.env.SMOKE_LOGIN_EMAIL && process.env.SMOKE_LOGIN_PASSWORD
+  );
+  if (remoteMode) {
+    console.log('Backend cleanup skipped (REMOTE mode, no DB access).');
+    const uidList = [testUid, otherUid].filter(Boolean).join(', ');
+    console.log(
+      `  Manual cleanup if needed:
+    DELETE FROM "user" WHERE email = '${BOOTSTRAP_EMAIL}';
+    DELETE FROM "user" WHERE firebase_uid IN (${uidList ? `'${uidList.split(', ').join("', '")}'` : "''"});`,
+    );
+  } else {
+    try {
+      if (!ds.isInitialized) await ds.initialize();
+      // Legacy bootstrap user : nettoyage par email.
+      const bootstrapResult = await ds.query(
+        'DELETE FROM "user" WHERE email = $1',
+        [BOOTSTRAP_EMAIL],
+      );
+      // Firebase users : leur email backend est NULL depuis la migration
+      // 1777318504557, donc on nettoie par firebase_uid.
+      const firebaseUids = [testUid, otherUid].filter(
+        (uid): uid is string => Boolean(uid),
+      );
+      let firebaseResult: unknown[] = [];
+      if (firebaseUids.length) {
+        firebaseResult = await ds.query(
+          'DELETE FROM "user" WHERE firebase_uid = ANY($1::text[])',
+          [firebaseUids],
+        );
+      }
+      const total =
+        ((bootstrapResult as unknown[])?.[1] as number ?? 0) +
+        ((firebaseResult as unknown[])?.[1] as number ?? 0);
+      console.log(`Backend rows deleted: ${total}`);
+      await ds.destroy();
+    } catch (e: unknown) {
+      console.error('Backend cleanup failed:', e);
+    }
+  }
+}
+
+main()
+  .catch((e) => {
+    console.error('\nSMOKE TEST CRASHED:', e);
+    fail++;
+  })
+  .finally(async () => {
+    await cleanup();
+    console.log(`\n=== Result: ${pass} passed, ${fail} failed ===`);
+    process.exit(fail > 0 ? 1 : 0);
+  });

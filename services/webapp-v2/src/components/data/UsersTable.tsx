@@ -11,7 +11,24 @@ type ColumnsProps = {
 const createColumns = ({ onRolesChange }: ColumnsProps): ColumnDef<UserType>[] => [
   {
     accessorKey: 'email',
-    header: 'Email',
+    header: 'Email / Identifiant',
+    cell: ({ row }) => {
+      const user = row.original;
+      // Pour les users firebase, l'email n'est pas persisté côté backend.
+      // On affiche le firebase_uid (identifiant unique Firebase) à la place,
+      // en monospace pour signaler qu'il s'agit d'un identifiant technique.
+      if (user.firebaseUid) {
+        return (
+          <span
+            className="font-mono text-xs text-muted-foreground"
+            title="Identifiant Firebase Auth (utilisateur mobile)"
+          >
+            {user.firebaseUid}
+          </span>
+        );
+      }
+      return user.email ?? '—';
+    },
   },
   {
     accessorKey: 'firstName',
@@ -30,13 +47,20 @@ const createColumns = ({ onRolesChange }: ColumnsProps): ColumnDef<UserType>[] =
     accessorKey: 'roles',
     header: 'Rôles',
     size: 180,
-    cell: ({ row }) => (
-      <RolesMultiSelect
-        roles={row.original.roles}
-        onChange={onRolesChange ? roles => onRolesChange(row.original.id, roles) : undefined}
-        disabled={!onRolesChange}
-      />
-    ),
+    cell: ({ row }) => {
+      const isReadOnly = Boolean(row.original.firebaseUid);
+      return (
+        <RolesMultiSelect
+          roles={row.original.roles}
+          onChange={
+            onRolesChange && !isReadOnly
+              ? roles => onRolesChange(row.original.id, roles)
+              : undefined
+          }
+          disabled={!onRolesChange || isReadOnly}
+        />
+      );
+    },
   },
 ];
 
@@ -71,6 +95,9 @@ export const UsersTable = ({ users, isLoading, pagination, sorting, onRolesChang
       showColumnFilters={false}
       getEditRowHref={getEditUserHref}
       onDeleteRow={onDeleteUser}
+      // Users firebase = read-only côté backoffice (Firebase Auth = source
+      // de vérité, leur édition/suppression doit passer par l'app mobile).
+      isRowReadOnly={user => Boolean(user.firebaseUid)}
       pagination={{
         enabled: true,
         meta: pagination.meta,

@@ -1,10 +1,16 @@
 export type UserType = {
   id: number;
-  email: string;
+  email: string | null;
   firstName: string;
   lastName: string;
   phone: string;
   roles: string;
+  /**
+   * UID Firebase Auth — set uniquement pour les users mobile firebase.
+   * Quand renseigné, la row est en lecture seule côté backoffice :
+   * Firebase Auth est la source de vérité pour ces users.
+   */
+  firebaseUid?: string | null;
 };
 
 export type CreateUserInput = {

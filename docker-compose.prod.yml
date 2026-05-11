@@ -6,6 +6,7 @@ services:
       - postgres:/var/lib/postgresql/data:rw
     ports:
       - "5432:5432"
+    restart: always
     logging:
       driver: json-file
       options:
@@ -72,6 +73,7 @@ services:
       - JWT_ACCESS_EXPIRE
       - JWT_REFRESH_EXPIRE
       - JWT_REFRESH_SECRET
+      - FIREBASE_SERVICE_ACCOUNT_JSON
       - NODE_ENV=production
     depends_on:
       - dossarddb
