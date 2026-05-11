@@ -52,7 +52,8 @@ export class DeepLinksController {
           namespace: 'android_app',
           package_name: 'com.dossardeur',
           sha256_cert_fingerprints: [
-            '03:43:AB:3E:F1:83:26:F9:76:25:D9:8E:96:CE:31:E5:EC:87:8C:A3:B9:14:B5:A5:5B:CA:B6:2A:CA:D8:5D:2F'
+            '03:43:AB:3E:F1:83:26:F9:76:25:D9:8E:96:CE:31:E5:EC:87:8C:A3:B9:14:B5:A5:5B:CA:B6:2A:CA:D8:5D:2F',
+            'A7:3C:33:6A:25:69:C5:F4:42:E0:0B:55:73:EA:56:93:21:18:F8:11:F0:54:8A:61:E3:23:AA:87:48:22:99:49',
           ],
         },
       },
