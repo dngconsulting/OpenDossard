@@ -25,6 +25,7 @@ import EngagementsPage from '@/pages/engagement/EngagementsPage.tsx';
 import LicenceDetailPage from '@/pages/licence/LicenceDetailPage.tsx';
 import LicencesPage from '@/pages/licence/LicencesPage.tsx';
 import PalmaresPage from '@/pages/palmares/PalmaresPage.tsx';
+import { PaymentResultPage } from '@/pages/payment/PaymentResultPage';
 import NotFoundPage from '@/pages/status/NotFoundPage.tsx';
 import UsersPage from '@/pages/users/UsersPage.tsx';
 import WelcomePage from '@/pages/WelcomePage.tsx';
@@ -69,6 +70,13 @@ export default function App() {
             <HelloAssoLandingHandler />
             <Routes>
               <Route path="/login" element={<LoginPage />} />
+
+              {/* Pages fallback retour paiement HelloAsso — publiques, statiques
+                  (l'app mobile poll côté backend). Atteintes quand le deep link
+                  dossardeur:// n'a pas été suivi (test desktop, etc.). */}
+              <Route path="/payment/success" element={<PaymentResultPage variant="success" />} />
+              <Route path="/payment/error" element={<PaymentResultPage variant="error" />} />
+              <Route path="/payment/cancelled" element={<PaymentResultPage variant="cancelled" />} />
 
               <Route element={<ProtectedRoute />}>
                 <Route path="/" element={<WelcomePage />} />
