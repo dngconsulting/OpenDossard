@@ -53,6 +53,25 @@ beforeAll(async () => {
   // obligatoires pour booter le module Auth en e2e.
   process.env.JWT_SECRET = 'e2e-jwt-secret';
   process.env.JWT_REFRESH_SECRET = 'e2e-jwt-refresh-secret';
+  // HelloAsso : même pattern que JWT — `HelloAssoConfig` lit ces 11 vars via
+  // `requireNonEmpty()` (getOrThrow + check non-vide) au boot du module.
+  // Sans stubs, AppModule crash dès l'instanciation de HelloAssoConfig en CI
+  // (où aucun `.env` n'est présent). Les tests E2E ne touchent jamais l'API
+  // HelloAsso elle-même (pas de checkout/webhook depuis ces suites), donc des
+  // valeurs jetables suffisent. `HELLOASSO_TOKEN_ENCRYPTION_KEY` doit décoder
+  // à exactement 32 octets (contrainte AES-256-GCM) — Buffer.alloc(32) → 44
+  // caractères base64 'AAAAAAAA...=' valides.
+  process.env.HELLOASSO_CLIENT_ID = 'e2e-helloasso-client-id';
+  process.env.HELLOASSO_CLIENT_SECRET = 'e2e-helloasso-client-secret';
+  process.env.HELLOASSO_OAUTH_BASE_URL = 'https://auth.helloasso-sandbox.com';
+  process.env.HELLOASSO_API_BASE_URL = 'https://api.helloasso-sandbox.com';
+  process.env.HELLOASSO_REDIRECT_URI = 'https://e2e.local/api/v2/helloasso/oauth/callback';
+  process.env.HELLOASSO_FRONT_RESULT_URL = 'https://e2e.local';
+  process.env.HELLOASSO_TOKEN_ENCRYPTION_KEY = Buffer.alloc(32).toString('base64');
+  process.env.HELLOASSO_WEBHOOK_SIGNATURE_KEY = 'e2e-helloasso-webhook-signature-key';
+  process.env.HELLOASSO_PAYMENT_RETURN_URL_SUCCESS = 'https://e2e.local/payment/success';
+  process.env.HELLOASSO_PAYMENT_RETURN_URL_ERROR = 'https://e2e.local/payment/error';
+  process.env.HELLOASSO_PAYMENT_RETURN_URL_CANCELLED = 'https://e2e.local/payment/cancelled';
 
   // 4. Create the module — AppModule reads env vars via ConfigService.
   //    Override FIREBASE_ADMIN with a stub so FirebaseModule's factory never
