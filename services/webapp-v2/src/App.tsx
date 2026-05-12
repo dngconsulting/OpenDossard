@@ -9,6 +9,7 @@ import { ProtectedRoute } from '@/components/navigation/ProtectedRoute.tsx';
 import { OfflineBanner } from '@/components/pwa/OfflineBanner';
 import { UpdatePrompt } from '@/components/pwa/UpdatePrompt';
 import { ThemeProvider } from '@/components/theme-provider';
+import { useHelloAssoLanding } from '@/hooks/useHelloAssoLanding';
 import AccountPage from '@/pages/account/AccountPage.tsx';
 import LoginPage from '@/pages/account/LoginPage.tsx';
 import UserDetailPage from '@/pages/account/UserDetailPage.tsx';
@@ -54,12 +55,18 @@ const queryClient = new QueryClient({
   }),
 });
 
+function HelloAssoLandingHandler() {
+  useHelloAssoLanding();
+  return null;
+}
+
 export default function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="backoffice-ui-theme">
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <AuthProvider>
+            <HelloAssoLandingHandler />
             <Routes>
               <Route path="/login" element={<LoginPage />} />
 

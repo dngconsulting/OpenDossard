@@ -5,10 +5,12 @@ import { ClubEntity } from './entities/club.entity';
 import { LicenceEntity } from '../licences/entities/licence.entity';
 import { RaceEntity } from '../races/entities/race.entity';
 import { CompetitionEntity } from '../competitions/entities/competition.entity';
+import { HelloAssoDetailsEntity } from '../helloasso/helloasso-details.entity';
 import { Federation } from '../common/enums';
 import { PaginatedResponseDto } from '../common/dto/pagination.dto';
 import { FilterClubDto } from './dto/filter-club.dto';
 import { UpdateClubDto } from './dto/update-club.dto';
+import { slugify } from '../helloasso/util/slugify.util';
 
 @Injectable()
 export class ClubsService {
@@ -23,7 +25,24 @@ export class ClubsService {
     private raceRepository: Repository<RaceEntity>,
     @InjectRepository(CompetitionEntity)
     private competitionRepository: Repository<CompetitionEntity>,
+    @InjectRepository(HelloAssoDetailsEntity)
+    private helloAssoDetailsRepository: Repository<HelloAssoDetailsEntity>,
   ) {}
+
+  /**
+   * Refuse toute édition/suppression d'un club qui possède une liaison HelloAsso.
+   * Pour reprendre la main, l'admin doit d'abord délier (DELETE /helloasso/clubs/:id).
+   * Évite notamment qu'un rename de `elicenceName` casse le slug HelloAsso et
+   * laisse une ligne `helloasso_details` orpheline.
+   */
+  private async assertNotLinkedToHelloAsso(clubId: number, action: 'update' | 'remove'): Promise<void> {
+    const linked = await this.helloAssoDetailsRepository.findOne({ where: { clubId } });
+    if (linked) {
+      throw new ConflictException(
+        `Ce club est lié à HelloAsso (${linked.organizationSlug}). Délier d'abord pour ${action === 'update' ? 'modifier' : 'supprimer'}.`,
+      );
+    }
+  }
 
   async findAll(fede?: Federation, dept?: string): Promise<ClubEntity[]> {
     const queryBuilder = this.clubRepository.createQueryBuilder('club');
@@ -116,6 +135,25 @@ export class ClubsService {
     return club;
   }
 
+  /**
+   * Résout un `organization_slug` HelloAsso vers le club correspondant en
+   * appliquant la convention `slugify(elicenceName)`.
+   *
+   * Implémentation : pas de colonne `slug` en DB, on récupère donc tous les
+   * clubs avec `elicenceName` non vide puis on filtre en mémoire. Le volume
+   * total reste de l'ordre du millier, l'appel n'a lieu qu'au callback OAuth
+   * HelloAsso (rare) — pas un hot path.
+   */
+  async findByElicenceSlug(slug: string): Promise<ClubEntity | null> {
+    if (!slug) return null;
+    const candidates = await this.clubRepository
+      .createQueryBuilder('club')
+      .where('club.elicenceName IS NOT NULL')
+      .andWhere("club.elicenceName != ''")
+      .getMany();
+    return candidates.find(c => slugify(c.elicenceName) === slug) ?? null;
+  }
+
   async create(clubData: Partial<ClubEntity>, author?: string): Promise<ClubEntity> {
     const { id, ...data } = clubData;
 
@@ -148,6 +186,7 @@ export class ClubsService {
     author?: string,
   ): Promise<ClubEntity & { racesUpdated?: number; licencesUpdated?: number }> {
     const club = await this.findOne(id);
+    await this.assertNotLinkedToHelloAsso(id, 'update');
 
     // Propagate longName change to races/licences BEFORE updating the club
     let racesUpdated: number | undefined;
@@ -201,6 +240,7 @@ export class ClubsService {
 
   async remove(id: number): Promise<void> {
     const club = await this.findOne(id);
+    await this.assertNotLinkedToHelloAsso(id, 'remove');
     const { raceCount, licenceCount, competitionCount } = await this.countReferences(id);
 
     const errors: string[] = [];

@@ -1,7 +1,6 @@
 import { FileSpreadsheet, FileText, Loader2, MoreHorizontal, Plus, Search, X } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { showSuccessToast } from '@/utils/error-handler/error-handler';
 
 import { ClubsTable } from '@/components/data/ClubsTable';
 import Layout from '@/components/layout/Layout';
@@ -25,6 +24,7 @@ import { useClubsPaginated, useDeleteClub } from '@/hooks/useClubs';
 import { useExportClubsCSV } from '@/hooks/useExportClubsCSV';
 import { useExportClubsPDF } from '@/hooks/useExportClubsPDF';
 import type { ClubType } from '@/types/clubs';
+import { showSuccessToast } from '@/utils/error-handler/error-handler';
 
 export default function ClubsPage() {
   const navigate = useNavigate();
@@ -63,7 +63,7 @@ export default function ClubsPage() {
   }, []);
 
   const confirmDelete = useCallback(async () => {
-    if (!clubToDelete) return;
+    if (!clubToDelete) {return;}
     try {
       await deleteClubMutation.mutateAsync(clubToDelete.id);
       showSuccessToast('Club supprimé avec succès');

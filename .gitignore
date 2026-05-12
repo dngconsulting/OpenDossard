@@ -11,8 +11,6 @@ var
 /services/api/src/coverage/
 /node_modules/
 services/webapp/debug.log
-config/dev.env
-services/webapp/debug.log
 **/public/workbox-*.js
 **/public/sw.js
 **/public/worker-*.js
@@ -30,3 +28,6 @@ config/nginx.local-*.conf
 
 # k6 performance tests (local only)
 k6perf/
+
+# mkcert local HTTPS certs (dev only)
+services/api-v2/certs/

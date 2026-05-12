@@ -40,9 +40,11 @@ type ClubFormProps = {
   onSuccess: (club?: ClubType) => void;
   formId?: string;
   onPendingChange?: (isPending: boolean) => void;
+  /** Mode lecture seule (cascade `disabled` via `<fieldset>`). */
+  readOnly?: boolean;
 };
 
-export const ClubForm = ({ club, isCreating, onSuccess, formId, onPendingChange }: ClubFormProps) => {
+export const ClubForm = ({ club, isCreating, onSuccess, formId, onPendingChange, readOnly = false }: ClubFormProps) => {
   const createClub = useCreateClub();
   const updateClub = useUpdateClub();
   const { data: departments, isLoading: isLoadingDepartments } = useDepartments();
@@ -147,7 +149,7 @@ export const ClubForm = ({ club, isCreating, onSuccess, formId, onPendingChange 
             </CardHeader>
             <CardContent>
               <FieldGroup>
-                <FieldSet>
+                <FieldSet disabled={readOnly}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <StringField field="shortName" form={form} label="Nom court" />
                     <StringField field="longName" form={form} label="Nom long" required />

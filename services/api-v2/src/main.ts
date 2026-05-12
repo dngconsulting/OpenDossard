@@ -1,12 +1,48 @@
 import { NestFactory } from '@nestjs/core';
-import { ClassSerializerInterceptor, RequestMethod, ValidationPipe, VersioningType } from '@nestjs/common';
+import {
+  ClassSerializerInterceptor,
+  Logger,
+  RequestMethod,
+  ValidationPipe,
+  VersioningType,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as compression from 'compression';
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { AppModule } from './app.module';
 
+/**
+ * Charge les certs HTTPS locaux (mkcert) pour le mode dev.
+ *
+ * Activé uniquement si `HTTPS=true` dans l'env — typiquement utile pour les
+ * intégrations OAuth qui exigent HTTPS sur le redirect_uri (HelloAsso, etc.).
+ *
+ * En TEST/PREPROD/PROD, c'est le reverse proxy (Cloud Run, ALB…) qui termine
+ * TLS — laisser `HTTPS` non défini.
+ *
+ * Génération des certs :
+ *   brew install mkcert && mkcert -install
+ *   mkdir -p certs && mkcert -key-file certs/localhost-key.pem \
+ *                            -cert-file certs/localhost.pem localhost 127.0.0.1
+ */
+function loadDevHttpsOptions(): { key: Buffer; cert: Buffer } {
+  const certDir = resolve(process.cwd(), 'certs');
+  const keyPath = resolve(certDir, 'localhost-key.pem');
+  const certPath = resolve(certDir, 'localhost.pem');
+  if (!existsSync(keyPath) || !existsSync(certPath)) {
+    throw new Error(
+      `HTTPS=true mais certs introuvables (${keyPath}, ${certPath}). Génère-les avec mkcert (cf. main.ts).`,
+    );
+  }
+  return { key: readFileSync(keyPath), cert: readFileSync(certPath) };
+}
+
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const useHttps = process.env.HTTPS === 'true';
+  const httpsOptions = useHttps ? loadDevHttpsOptions() : undefined;
+  const app = await NestFactory.create(AppModule, httpsOptions ? { httpsOptions } : {});
 
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
@@ -85,7 +121,8 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3500;
   await app.listen(port);
-  console.log(`🚀 API v2 running on http://localhost:${port}/api/v2`);
-  console.log(`📚 Swagger docs: http://localhost:${port}/api/v2/docs`);
+  const scheme = useHttps ? 'https' : 'http';
+  Logger.log(`🚀 API v2 running on ${scheme}://localhost:${port}/api/v2`, 'Bootstrap');
+  Logger.log(`📚 Swagger docs: ${scheme}://localhost:${port}/api/v2/docs`, 'Bootstrap');
 }
 bootstrap();

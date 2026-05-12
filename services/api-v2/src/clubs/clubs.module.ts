@@ -6,9 +6,18 @@ import { ClubEntity } from './entities/club.entity';
 import { LicenceEntity } from '../licences/entities/licence.entity';
 import { RaceEntity } from '../races/entities/race.entity';
 import { CompetitionEntity } from '../competitions/entities/competition.entity';
+import { HelloAssoDetailsEntity } from '../helloasso/helloasso-details.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ClubEntity, LicenceEntity, RaceEntity, CompetitionEntity])],
+  imports: [
+    TypeOrmModule.forFeature([
+      ClubEntity,
+      LicenceEntity,
+      RaceEntity,
+      CompetitionEntity,
+      HelloAssoDetailsEntity,
+    ]),
+  ],
   controllers: [ClubsController],
   providers: [ClubsService],
   exports: [ClubsService],

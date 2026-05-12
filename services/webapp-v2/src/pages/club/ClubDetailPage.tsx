@@ -1,12 +1,15 @@
-import { ArrowLeft, ChevronRight, Loader2, Save } from 'lucide-react';
+import { AlertCircle, ArrowLeft, ChevronRight, Loader2, Save } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { ClubForm } from '@/components/forms/ClubForm';
+import { HelloAssoConnectButton } from '@/components/HelloAssoConnectButton';
+import { HelloAssoUnlinkButton } from '@/components/HelloAssoUnlinkButton';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useClub } from '@/hooks/useClubs';
+import { useHelloAssoStatus } from '@/hooks/useHelloAssoAuth';
 import type { ClubType } from '@/types/clubs';
 
 export default function ClubDetailPage() {
@@ -16,6 +19,9 @@ export default function ClubDetailPage() {
   const clubId = id ? parseInt(id, 10) : undefined;
 
   const { data: club, isLoading } = useClub(clubId);
+  const { data: helloAssoStatus } = useHelloAssoStatus(clubId);
+  const isLinkedToHelloAsso = helloAssoStatus?.linked === true;
+  const linkedSlug = helloAssoStatus?.linked ? helloAssoStatus.slug : undefined;
   const [isPending, setIsPending] = useState(false);
 
   const handleSuccess = (created?: ClubType) => {
@@ -54,10 +60,18 @@ export default function ClubDetailPage() {
   );
 
   const toolbarRight = (
-    <Button type="submit" form="club-form" size="sm" disabled={isPending}>
-      {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-      {isPending ? 'Enregistrement...' : 'Enregistrer'}
-    </Button>
+    <div className="flex items-center gap-2">
+      {club?.elicenceName && clubId !== undefined ? <HelloAssoConnectButton clubId={clubId} /> : null}
+      {isLinkedToHelloAsso && clubId !== undefined ? (
+        <HelloAssoUnlinkButton clubId={clubId} slug={linkedSlug} />
+      ) : null}
+      {!isLinkedToHelloAsso && (
+        <Button type="submit" form="club-form" size="sm" disabled={isPending}>
+          {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          {isPending ? 'Enregistrement...' : 'Enregistrer'}
+        </Button>
+      )}
+    </div>
   );
 
   if (!isCreating && isLoading) {
@@ -82,7 +96,23 @@ export default function ClubDetailPage() {
 
   return (
     <Layout title={breadcrumb} toolbarLeft={toolbarLeft} toolbar={toolbarRight}>
-      <ClubForm club={club} isCreating={isCreating} onSuccess={handleSuccess} formId="club-form" onPendingChange={setIsPending} />
+      {isLinkedToHelloAsso && (
+        <div className="mb-4 flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div>
+            <strong>Édition désactivée — ce club est lié à HelloAsso{linkedSlug ? ` (${linkedSlug})` : ''}.</strong>{' '}
+            Cliquez sur <strong>Délier</strong> pour reprendre la main. La liaison est réversible via la mire.
+          </div>
+        </div>
+      )}
+      <ClubForm
+        club={club}
+        isCreating={isCreating}
+        onSuccess={handleSuccess}
+        formId="club-form"
+        onPendingChange={setIsPending}
+        readOnly={isLinkedToHelloAsso}
+      />
     </Layout>
   );
 }
