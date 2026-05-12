@@ -1,18 +1,17 @@
 export interface PricingInfo {
+  /**
+   * Libellé du tarif — sert aussi de clé de lookup quand on engage un paiement
+   * en ligne. Doit être unique dans `competition.pricing[]` quand
+   * `competition.online_registration_enabled = true`.
+   */
   name: string;
-  tarif: string;
   /**
-   * Identifiant stable du tarif — REQUIS dès que la compétition active le
-   * paiement en ligne (`competition.online_registration_enabled = true`).
-   * Sert de clé snapshot dans la table `helloasso_payment.tarif_id` et dans
-   * la metadata HelloAsso. Slug `[a-z0-9-]+`. Une fois utilisé dans un
-   * paiement, devient read-only côté UI (rename = bris de cohérence).
+   * Valeur du tarif :
+   *   - **paiement en ligne OFF** : string libre d'affichage (ex: "8 €", "10€ sur place")
+   *   - **paiement en ligne ON** : MUST parser en `number` positif (en euros, décimales OK).
+   *     Soit déjà un `number`, soit une string numérique ("8", "8.5", "8,50").
+   * Le backend convertit en cents (`Math.round(amount * 100)`) au moment du
+   * checkout HelloAsso. Le toggle ON côté UI nettoie les valeurs non-numériques.
    */
-  id?: string;
-  /**
-   * Montant en centimes (entier ≥ 50) — REQUIS si paiement en ligne activé.
-   * Source de vérité pour le `totalAmount` HelloAsso. Le champ `tarif`
-   * (string libre) reste pour l'affichage (ex: "10€ (12€ sur place)").
-   */
-  amountCents?: number;
+  tarif: string | number;
 }

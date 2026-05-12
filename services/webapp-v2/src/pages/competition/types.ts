@@ -1,9 +1,12 @@
 import { z } from 'zod';
+
+import { COMPETITION_TYPE_LABELS, type CompetitionType } from '@/types/api';
 import {
   COMPETITION_TYPE_VALUES,
   FEDERATION_VALUES,
 } from '@/types/competitions';
-import { COMPETITION_TYPE_LABELS, type CompetitionType } from '@/types/api';
+
+import { parseTarifAmount } from './pricing-utils';
 
 // Profile options based on competition type
 export const getProfileOptions = (competitionType: string) => {
@@ -96,8 +99,8 @@ export const competitionSchema = z.object({
   pricing: z
     .array(
       z.object({
-        name: z.string(),
-        tarif: z.string(),
+        name: z.string().min(1, 'Le nom du tarif est requis'),
+        tarif: z.union([z.string(), z.number()]),
       }),
     )
     .optional(),
@@ -109,6 +112,44 @@ export const competitionSchema = z.object({
       }),
     )
     .optional(),
+}).superRefine((data, ctx) => {
+  // Si le paiement en ligne est activé : chaque tarif doit parser en number > 0
+  // (le tarif sert de montant payable). Les noms doivent aussi être uniques
+  // (le nom sert de clé de lookup côté backend).
+  if (!data.onlineRegistrationEnabled) {return;}
+
+  if (!data.pricing || data.pricing.length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Au moins un tarif est requis quand le paiement en ligne est activé',
+      path: ['pricing'],
+    });
+    return;
+  }
+
+  data.pricing.forEach((p, i) => {
+    if (parseTarifAmount(p.tarif) == null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Tarif doit être un nombre positif (paiement en ligne activé)',
+        path: ['pricing', i, 'tarif'],
+      });
+    }
+  });
+
+  const seen = new Set<string>();
+  const dupes = new Set<string>();
+  for (const p of data.pricing) {
+    if (seen.has(p.name)) {dupes.add(p.name);}
+    seen.add(p.name);
+  }
+  if (dupes.size > 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `Doublons de nom de tarif : ${[...dupes].join(', ')}`,
+      path: ['pricing'],
+    });
+  }
 });
 
 export type FormValues = z.infer<typeof competitionSchema>;

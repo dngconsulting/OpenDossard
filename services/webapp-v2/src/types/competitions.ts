@@ -19,7 +19,13 @@ export type CompetitionInfoItem = {
 
 export type PricingItem = {
   name: string;
-  tarif: string;
+  /**
+   * Tarif :
+   *   - paiement en ligne OFF : string libre ("8 €", "10€ sur place"…)
+   *   - paiement en ligne ON : doit parser en `number` positif (en euros, décimales OK)
+   * Le toggle ON sur l'épreuve nettoie les valeurs non-numériques.
+   */
+  tarif: string | number;
 };
 
 export type LinkItem = {

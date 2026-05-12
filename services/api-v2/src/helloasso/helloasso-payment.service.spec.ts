@@ -21,7 +21,7 @@ import { HelloAssoPaymentService } from './helloasso-payment.service';
 function makeDto(overrides: Partial<CreateCheckoutIntentDto> = {}): CreateCheckoutIntentDto {
   return {
     competitionId: 32,
-    tarifId: 'adulte',
+    tarifName: 'Adulte',
     licenceNumber: '12345',
     payerProfile: { firstName: 'Sami', lastName: 'Jaber', email: 'sami@example.com' },
     ...overrides,
@@ -86,8 +86,8 @@ function competitionFixture(overrides: Partial<CompetitionEntity> = {}): Competi
     clubId: 782,
     onlineRegistrationEnabled: true,
     pricing: [
-      { name: 'Adulte', tarif: '10€', id: 'adulte', amountCents: 1000 },
-      { name: 'Jeune', tarif: '5€', id: 'jeune', amountCents: 500 },
+      { name: 'Adulte', tarif: 10 },
+      { name: 'Jeune', tarif: 5 },
     ],
     ...overrides,
   } as CompetitionEntity;
@@ -138,22 +138,46 @@ describe('HelloAssoPaymentService', () => {
       ).rejects.toBeInstanceOf(UnprocessableEntityException);
     });
 
-    it('throws NotFoundException if tarifId not in pricing', async () => {
+    it('throws NotFoundException if tarifName not in pricing', async () => {
       const m = makeService();
       m.userRepo.findOne.mockResolvedValue(userFixture());
       m.competitionRepo.findOne.mockResolvedValue(competitionFixture());
       m.details.findByClubId.mockResolvedValue(detailsFixture());
 
       await expect(
-        m.service.createCheckoutIntent({ dto: makeDto({ tarifId: 'inconnu' }), payerUserId: 55 }),
+        m.service.createCheckoutIntent({ dto: makeDto({ tarifName: 'Inconnu' }), payerUserId: 55 }),
       ).rejects.toBeInstanceOf(NotFoundException);
     });
 
-    it('throws UnprocessableEntity if tarif missing amountCents', async () => {
+    it('accepts tarif as string fr-FR ("12,50") and converts to cents', async () => {
       const m = makeService();
       m.userRepo.findOne.mockResolvedValue(userFixture());
       const competition = competitionFixture();
-      competition.pricing = [{ name: 'Adulte', tarif: '10€', id: 'adulte' }]; // no amountCents
+      competition.pricing = [{ name: 'Adulte', tarif: '12,50' }];
+      m.competitionRepo.findOne.mockResolvedValue(competition);
+      m.details.findByClubId.mockResolvedValue(detailsFixture());
+      m.licenceRepo.findOne.mockResolvedValue(licenceFixture());
+      m.paymentRepo.findOne.mockResolvedValue(null);
+      m.paymentRepo.save.mockResolvedValue({ id: 42, amountCents: 1250 } as HelloAssoPaymentEntity);
+      m.api.createCheckoutIntent.mockResolvedValue({ id: 1, redirectUrl: 'https://x' });
+
+      await m.service.createCheckoutIntent({ dto: makeDto(), payerUserId: 55 });
+
+      expect(m.paymentRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ amountCents: 1250 }),
+      );
+      expect(m.api.createCheckoutIntent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          body: expect.objectContaining({ totalAmount: 1250, initialAmount: 1250 }),
+        }),
+      );
+    });
+
+    it('throws UnprocessableEntity if tarif not numeric (online payment enabled)', async () => {
+      const m = makeService();
+      m.userRepo.findOne.mockResolvedValue(userFixture());
+      const competition = competitionFixture();
+      competition.pricing = [{ name: 'Adulte', tarif: '10€ sur place' }]; // non parsable
       m.competitionRepo.findOne.mockResolvedValue(competition);
       m.details.findByClubId.mockResolvedValue(detailsFixture());
 
@@ -215,7 +239,7 @@ describe('HelloAssoPaymentService', () => {
           payerUserId: 55,
           payerFirebaseUid: 'fb-uid-abc',
           status: HelloAssoPaymentStatus.PENDING,
-          tarifId: 'adulte',
+          tarifId: 'Adulte',
           tarifLabelSnapshot: 'Adulte',
           amountCents: 1000,
           helloAssoCheckoutIntentId: null,
@@ -241,7 +265,7 @@ describe('HelloAssoPaymentService', () => {
               competitionName: 'Critérium FSGT Castanet',
               licenceId: 1234,
               licenceNumber: '12345',
-              tarifId: 'adulte',
+              tarifName: 'Adulte',
             },
           }),
         }),
@@ -309,9 +333,8 @@ describe('HelloAssoPaymentService', () => {
         status: HelloAssoPaymentStatus.PAID,
         competitionId: 32,
         licenceId: 1234,
-        tarifId: 'adulte',
-        tarifLabelSnapshot: 'Adulte',
-        amountCents: 1000,
+        tarifName: 'Adulte',
+        montant: 10,
         paidAt: '2026-05-12T10:00:00.000Z',
         createdAt: '2026-05-12T09:00:00.000Z',
       });

@@ -3,6 +3,9 @@ import { useFormContext } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { useHelloAssoStatus } from '@/hooks/useHelloAssoAuth';
+import type { PricingItem } from '@/types/competitions';
+
+import { parseTarifAmount } from '../pricing-utils';
 
 import type { FormValues } from '../types';
 
@@ -12,9 +15,9 @@ import type { FormValues } from '../types';
  * Si la liaison est expirée (refresh_token > 30j), affiche un warning incitant
  * l'admin à re-passer par la mire avant que des coureurs essaient de payer.
  *
- * Retourne `null` si pas de club sélectionné ou pas de liaison. Le parent
- * est en charge du `<Separator>` (il appelle `useHelloAssoStatus` lui-même
- * via TanStack Query — la requête est dédupliquée, pas de double appel HTTP).
+ * Transition OFF→ON : nettoie chaque `pricing.tarif` — si parsable en number
+ * positif, on coerce en number ; sinon on vide (la string libre ne peut plus
+ * servir de montant payable). L'admin doit re-saisir les valeurs vidées.
  */
 export function HelloAssoOnlinePaymentSection() {
   const form = useFormContext<FormValues>();
@@ -59,7 +62,21 @@ export function HelloAssoOnlinePaymentSection() {
           <FormControl>
             <Switch
               checked={field.value ?? false}
-              onCheckedChange={field.onChange}
+              onCheckedChange={(checked) => {
+                if (checked && !field.value) {
+                  // OFF → ON : nettoie les tarifs non-numériques
+                  const pricing = (form.getValues('pricing') ?? []) as PricingItem[];
+                  const cleaned = pricing.map(p => {
+                    const parsed = parseTarifAmount(p.tarif);
+                    return parsed != null ? { ...p, tarif: parsed } : { ...p, tarif: '' };
+                  });
+                  form.setValue('pricing', cleaned, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  });
+                }
+                field.onChange(checked);
+              }}
             />
           </FormControl>
         </FormItem>

@@ -30,14 +30,22 @@ import {
 } from '@/components/ui/table';
 import type { PricingItem } from '@/types/competitions';
 
+import { parseTarifAmount, tarifToDisplay, tarifToInput } from './pricing-utils';
 import { SortableTableRow } from './SortableTableRow';
 
 import type { FormValues } from './types';
 
 export function TarifsTab() {
   const form = useFormContext<FormValues>();
+  const onlinePayment = form.watch('onlineRegistrationEnabled') ?? false;
 
-  const [pricingForm, setPricingForm] = useState<PricingItem>({ name: '', tarif: '' });
+  // Saisie locale toujours en string pour préserver les séparateurs ("12,5" en cours
+  // de frappe). À l'add/save : si paiement en ligne ON, on parse en number ; sinon
+  // on garde la string libre telle quelle.
+  const [pricingForm, setPricingForm] = useState<{ name: string; tarif: string }>({
+    name: '',
+    tarif: '',
+  });
   const [editingPricingIndex, setEditingPricingIndex] = useState<number | null>(null);
 
   const {
@@ -67,32 +75,58 @@ export function TarifsTab() {
     }
   };
 
+  const resetForm = () => {
+    setPricingForm({ name: '', tarif: '' });
+    setEditingPricingIndex(null);
+  };
+
   const handleAddPricing = () => {
-    if (!pricingForm.name) {
-      return;
+    if (!pricingForm.name) {return;}
+
+    // Si paiement en ligne ON et la saisie parse en number → on stocke en number.
+    // Sinon (paiement OFF, ou saisie non numérique) → on stocke en string telle quelle.
+    // La validation zod surfacera l'erreur si online ON + tarif non numérique.
+    let tarifValue: string | number = pricingForm.tarif;
+    if (onlinePayment) {
+      const parsed = parseTarifAmount(pricingForm.tarif);
+      if (parsed != null) {tarifValue = parsed;}
     }
 
+    const item: PricingItem = { name: pricingForm.name, tarif: tarifValue };
+
     if (editingPricingIndex !== null) {
-      updatePricing(editingPricingIndex, pricingForm);
-      setEditingPricingIndex(null);
+      updatePricing(editingPricingIndex, item);
     } else {
-      appendPricing(pricingForm);
+      appendPricing(item);
     }
-    setPricingForm({ name: '', tarif: '' });
+    resetForm();
   };
 
   const handleEditPricing = (index: number) => {
-    const item = pricingFields[index] as PricingItem;
+    const item = pricingFields[index] as unknown as PricingItem;
     setPricingForm({
       name: item.name || '',
-      tarif: item.tarif || '',
+      tarif: tarifToInput(item.tarif),
     });
     setEditingPricingIndex(index);
   };
 
-  const handleCancelEdit = () => {
-    setEditingPricingIndex(null);
-    setPricingForm({ name: '', tarif: '' });
+  /** Suffixe ` (copie)` (puis `(copie 2)`, etc.) jusqu'à trouver un nom libre.
+   *  Le `name` est la clé de lookup quand paiement en ligne ON — on garantit
+   *  l'unicité dès la duplication pour ne pas faire échouer la validation. */
+  const nextCopyName = (baseName: string): string => {
+    const existing = new Set(
+      pricingFields.map(f => (f as unknown as PricingItem).name),
+    );
+    const candidate = `${baseName} (copie)`;
+    if (!existing.has(candidate)) {return candidate;}
+    let n = 2;
+    while (existing.has(`${baseName} (copie ${n})`)) {n++;}
+    return `${baseName} (copie ${n})`;
+  };
+
+  const handleDuplicate = (item: PricingItem) => {
+    appendPricing({ ...item, name: nextCopyName(item.name) });
   };
 
   return (
@@ -103,7 +137,15 @@ export function TarifsTab() {
             Tarifs
           </span>
         </CardTitle>
-        <CardDescription>Définissez les différents tarifs d'inscription</CardDescription>
+        <CardDescription>
+          Définissez les différents tarifs d&apos;inscription
+          {onlinePayment && (
+            <span className="ml-1">
+              — <strong>Paiement en ligne activé</strong> : le montant doit être un nombre
+              (ex: <code>8</code>, <code>12,50</code>)
+            </span>
+          )}
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
@@ -118,9 +160,10 @@ export function TarifsTab() {
           <div className="space-y-1.5">
             <Label>Montant</Label>
             <Input
+              inputMode={onlinePayment ? 'decimal' : 'text'}
               value={pricingForm.tarif}
               onChange={e => setPricingForm({ ...pricingForm, tarif: e.target.value })}
-              placeholder="ex: 7 €"
+              placeholder={onlinePayment ? 'ex: 7,50' : 'ex: 7 € (10 € sur place)'}
             />
           </div>
           <div className="flex items-end gap-2">
@@ -133,11 +176,7 @@ export function TarifsTab() {
               {editingPricingIndex !== null ? 'Enregistrer' : 'Ajouter'}
             </Button>
             {editingPricingIndex !== null && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancelEdit}
-              >
+              <Button type="button" variant="outline" onClick={resetForm}>
                 Annuler
               </Button>
             )}
@@ -165,65 +204,64 @@ export function TarifsTab() {
                     items={pricingFields.map(f => f.id)}
                     strategy={verticalListSortingStrategy}
                   >
-                    {pricingFields.map((field, index) => (
-                      <SortableTableRow key={field.id} id={field.id}>
-                        <TableCell className="whitespace-nowrap">
-                          {(field as PricingItem).name}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          {(field as PricingItem).tarif || ''}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleEditPricing(index)}
-                              title="Modifier"
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => {
-                                const item = pricingFields[index] as PricingItem;
-                                appendPricing({ ...item });
-                              }}
-                              title="Dupliquer"
-                            >
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => removePricing(index)}
-                              title="Supprimer"
-                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </SortableTableRow>
-                    ))}
+                    {pricingFields.map((field, index) => {
+                      const item = field as unknown as PricingItem;
+                      const invalid = onlinePayment && parseTarifAmount(item.tarif) == null;
+                      return (
+                        <SortableTableRow key={field.id} id={field.id}>
+                          <TableCell className="whitespace-nowrap">{item.name}</TableCell>
+                          <TableCell
+                            className={`whitespace-nowrap ${invalid ? 'text-destructive' : ''}`}
+                          >
+                            {invalid ? 'à corriger en chiffres' : tarifToDisplay(item.tarif)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEditPricing(index)}
+                                title="Modifier"
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDuplicate(item)}
+                                title="Dupliquer"
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removePricing(index)}
+                                title="Supprimer"
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </SortableTableRow>
+                      );
+                    })}
                   </SortableContext>
                 </TableBody>
               </Table>
             </div>
           </DndContext>
         ) : (
-          <p className="text-muted-foreground text-center py-8">
-            Aucun tarif encore ajouté
-          </p>
+          <p className="text-muted-foreground text-center py-8">Aucun tarif encore ajouté</p>
         )}
 
         {pricingFields.length > 0 && (
           <p className="text-sm text-muted-foreground text-center">
-            <strong>N'oubliez pas de sauvegarder l'épreuve !</strong>
+            <strong>N&apos;oubliez pas de sauvegarder l&apos;épreuve !</strong>
           </p>
         )}
       </CardContent>

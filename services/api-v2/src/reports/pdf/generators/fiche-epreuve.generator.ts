@@ -512,7 +512,8 @@ export function generateFicheEpreuvePDF(competition: CompetitionEntity): Buffer 
     tarifY += 6;
 
     competition.pricing.forEach(p => {
-      const tarif = p.tarif && !p.tarif.includes('€') ? `${p.tarif} €` : p.tarif;
+      const tarifStr = typeof p.tarif === 'number' ? String(p.tarif) : (p.tarif ?? '');
+      const tarif = tarifStr && !tarifStr.includes('€') ? `${tarifStr} €` : tarifStr;
       const label = tarif ? `${p.name} : ${tarif}` : p.name;
       drawCheckbox(doc, label, margin + 2, tarifY, true);
       tarifY += 6;

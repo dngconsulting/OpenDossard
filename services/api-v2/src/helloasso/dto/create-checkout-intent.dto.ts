@@ -11,10 +11,10 @@ export class CreateCheckoutIntentDto {
   @Type(() => Number)
   competitionId: number;
 
-  @ApiProperty({ description: 'Identifiant stable du tarif choisi (clé `PricingInfo.id`).' })
+  @ApiProperty({ description: 'Libellé du tarif choisi (clé `PricingInfo.name`).' })
   @IsString()
   @MinLength(1)
-  tarifId: string;
+  tarifName: string;
 
   @ApiProperty({ description: 'Numéro de licence (clé business) du coureur à engager.' })
   @IsString()

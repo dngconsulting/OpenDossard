@@ -89,15 +89,17 @@ export class HelloAssoPaymentService {
       );
     }
 
-    const tarif = this.findTarif(competition.pricing, dto.tarifId);
+    const tarif = this.findTarif(competition.pricing, dto.tarifName);
     if (!tarif) {
-      throw new NotFoundException(`Tarif "${dto.tarifId}" introuvable sur cette épreuve`);
+      throw new NotFoundException(`Tarif "${dto.tarifName}" introuvable sur cette épreuve`);
     }
-    if (!tarif.amountCents || tarif.amountCents <= 0) {
+    const amountEuros = parseTarifAmount(tarif.tarif);
+    if (amountEuros == null) {
       throw new UnprocessableEntityException(
-        `Tarif "${dto.tarifId}" mal configuré (amountCents manquant ou ≤ 0)`,
+        `Tarif "${dto.tarifName}" non parsable en montant numérique (paiement en ligne activé)`,
       );
     }
+    const amountCents = Math.round(amountEuros * 100);
 
     const licence = await this.licenceRepo.findOne({
       where: { licenceNumber: dto.licenceNumber },
@@ -120,6 +122,8 @@ export class HelloAssoPaymentService {
     }
 
     // 2. INSERT pending row (intent_id=NULL — sera renseigné après HelloAsso)
+    // `tarif_id` est VARCHAR(64), on tronque le name au cas où.
+    // Cette colonne sera retirée par une migration future (cf. design simplifié).
     const payment = await this.paymentRepo.save(
       this.paymentRepo.create({
         competitionId: competition.id,
@@ -130,13 +134,15 @@ export class HelloAssoPaymentService {
         payerLastName: dto.payerProfile.lastName,
         helloAssoCheckoutIntentId: null,
         status: HelloAssoPaymentStatus.PENDING,
-        tarifId: tarif.id ?? '',
+        tarifId: tarif.name.slice(0, 64),
         tarifLabelSnapshot: tarif.name,
-        amountCents: tarif.amountCents,
+        amountCents,
       }),
     );
 
-    // 3. Appel HelloAsso via withHelloAssoClubAccessToken (gère refresh-on-401 inline)
+    // 3. Appel HelloAsso via withHelloAssoClubAccessToken (gère refresh-on-401 inline).
+    // On passe le `amountCents` déjà calculé (single source of truth) plutôt
+    // que de re-parser `tarif.tarif` côté builder.
     let intentResponse: { id: number; redirectUrl: string };
     try {
       intentResponse = await this.helloAssoDetails.withHelloAssoClubAccessToken(
@@ -150,6 +156,7 @@ export class HelloAssoPaymentService {
               competition,
               licence,
               tarif,
+              amountCents,
               payerProfile: dto.payerProfile,
             }),
           }),
@@ -170,7 +177,7 @@ export class HelloAssoPaymentService {
     });
 
     this.logger.log(
-      `createCheckoutIntent: paymentId=${payment.id} competition=${competition.id} licence=${licence.id} tarif=${tarif.id} amount=${tarif.amountCents} intentId=${intentResponse.id}`,
+      `createCheckoutIntent: paymentId=${payment.id} competition=${competition.id} licence=${licence.id} tarif="${tarif.name}" amount=${amountEuros}€ intentId=${intentResponse.id}`,
     );
 
     return { paymentId: payment.id, redirectUrl: intentResponse.redirectUrl };
@@ -187,9 +194,9 @@ export class HelloAssoPaymentService {
     return this.toDto(payment);
   }
 
-  private findTarif(pricing: PricingInfo[] | null | undefined, tarifId: string): PricingInfo | undefined {
+  private findTarif(pricing: PricingInfo[] | null | undefined, tarifName: string): PricingInfo | undefined {
     if (!pricing || !Array.isArray(pricing)) return undefined;
-    return pricing.find(p => p.id === tarifId);
+    return pricing.find(p => p.name === tarifName);
   }
 
   private buildCheckoutBody(args: {
@@ -197,14 +204,15 @@ export class HelloAssoPaymentService {
     competition: CompetitionEntity;
     licence: LicenceEntity;
     tarif: PricingInfo;
+    amountCents: number;
     payerProfile: { firstName: string; lastName: string; email: string };
   }): CheckoutIntentRequestBody {
-    const { payment, competition, licence, tarif, payerProfile } = args;
+    const { payment, competition, licence, tarif, amountCents, payerProfile } = args;
     const competitionName = competition.name ?? `Épreuve #${competition.id}`;
     const itemName = truncate(`Inscription ${competitionName} — ${tarif.name}`, 250);
     return {
-      totalAmount: tarif.amountCents!,
-      initialAmount: tarif.amountCents!,
+      totalAmount: amountCents,
+      initialAmount: amountCents,
       itemName,
       backUrl: this.config.paymentReturnUrlCancelled,
       errorUrl: this.config.paymentReturnUrlError,
@@ -217,7 +225,7 @@ export class HelloAssoPaymentService {
         competitionName,
         licenceId: licence.id,
         licenceNumber: licence.licenceNumber,
-        tarifId: tarif.id,
+        tarifName: tarif.name,
       },
     };
   }
@@ -233,9 +241,8 @@ function toPaymentDto(payment: HelloAssoPaymentEntity): HelloAssoPaymentDto {
     status: payment.status,
     competitionId: payment.competitionId,
     licenceId: payment.licenceId,
-    tarifId: payment.tarifId,
-    tarifLabelSnapshot: payment.tarifLabelSnapshot,
-    amountCents: payment.amountCents,
+    tarifName: payment.tarifLabelSnapshot,
+    montant: payment.amountCents / 100,
     paidAt: payment.paidAt?.toISOString() ?? null,
     createdAt: payment.createdAt.toISOString(),
   };
@@ -243,4 +250,20 @@ function toPaymentDto(payment: HelloAssoPaymentEntity): HelloAssoPaymentDto {
 
 function truncate(s: string, max: number): string {
   return s.length <= max ? s : `${s.slice(0, max - 1)}…`;
+}
+
+/**
+ * Parse la valeur de `tarif` (string | number) en euros.
+ * Accepte `12,50` / `12.50` / `12,3` / `12` / number direct.
+ * Renvoie `undefined` si vide, non parsable, ou ≤ 0.
+ */
+export function parseTarifAmount(tarif: string | number | undefined): number | undefined {
+  if (typeof tarif === 'number') {
+    return Number.isFinite(tarif) && tarif > 0 ? tarif : undefined;
+  }
+  if (typeof tarif !== 'string') return undefined;
+  const cleaned = tarif.trim().replace(',', '.');
+  if (!cleaned) return undefined;
+  const n = Number(cleaned);
+  return Number.isFinite(n) && n > 0 ? n : undefined;
 }

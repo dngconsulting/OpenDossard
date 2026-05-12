@@ -21,14 +21,11 @@ export class HelloAssoPaymentDto {
   @ApiProperty()
   licenceId: number;
 
-  @ApiProperty()
-  tarifId: string;
+  @ApiProperty({ description: 'Libellé du tarif au moment de l\'engagement (snapshot).' })
+  tarifName: string;
 
-  @ApiProperty()
-  tarifLabelSnapshot: string;
-
-  @ApiProperty()
-  amountCents: number;
+  @ApiProperty({ description: 'Montant payé en euros (snapshot).' })
+  montant: number;
 
   @ApiPropertyOptional({ description: 'ISO 8601 — null tant que le paiement n\'est pas confirmé.' })
   paidAt: string | null;
