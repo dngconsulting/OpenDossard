@@ -1,11 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-  UnprocessableEntityException,
-} from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -13,14 +6,12 @@ import {
   HelloAssoPaymentEntity,
   HelloAssoPaymentStatus,
 } from './entities/helloasso-payment.entity';
-import { HelloAssoApiClient } from './helloasso-api.client';
 import { HelloAssoConfig } from './helloasso.config';
-import { HelloAssoOAuthService } from './helloasso-oauth.service';
 import { verifyHelloAssoSignature } from './util/webhook-signature.util';
 
 /**
- * Mapping des `PaymentState` HelloAsso vers nos statuts internes (cf. design
- * `[[helloasso-implementation]]` §2.6.E).
+ * Mapping `PaymentState` HelloAsso → statuts internes.
+ * Tous les autres états (Pending, Waiting*, Registered, etc.) = no-op silencieux.
  */
 const STATE_TO_STATUS_MAP: Record<string, HelloAssoPaymentStatus | undefined> = {
   Authorized: HelloAssoPaymentStatus.PAID,
@@ -35,27 +26,35 @@ const STATE_TO_STATUS_MAP: Record<string, HelloAssoPaymentStatus | undefined> = 
 export interface WebhookResult {
   /** `true` si la signature est valide. `false` ⇒ 401 côté controller. */
   signatureValid: boolean;
-  /** Description courte du traitement effectué (pour log + debug ops). */
+  /** Description courte du traitement (pour log + debug ops). */
   outcome: string;
 }
 
 /**
- * Réception et traitement des webhooks HelloAsso (`POST /helloasso/webhooks`).
+ * Sous-ensemble du body webhook qu'on consomme. Tout est optionnel : on garde
+ * la validation runtime explicite (HelloAsso peut envoyer des events partiels).
+ */
+interface WebhookPayload {
+  eventType?: string;
+  metadata?: { openDossardPaymentId?: unknown };
+  data?: {
+    id?: unknown;
+    state?: unknown;
+    order?: { id?: unknown };
+  };
+}
+
+/**
+ * Receiver webhook HelloAsso (`POST /helloasso/webhooks`).
  *
- * Flow :
- *   1. Vérif signature HMAC-SHA256 sur le raw body (cf. webhook-signature.util)
- *   2. Parse JSON
- *   3. Filtre `eventType !== 'Payment'` → ignore (on s'abonne via `notificationType: 'Payment'`
- *      à la souscription, mais défensif)
- *   4. Idempotence : `metadata.id` est l'event id HelloAsso, loggué pour corrélation
- *   5. Réconciliation pour retrouver la ligne `helloasso_payment` :
- *      a. Cache : `SELECT * FROM helloasso_payment WHERE helloasso_payment_id = data.id`
- *      b. Fallback (1er webhook par paymentId) : `GET /v5/payments/{data.id}` (auth partenaire)
- *         → récupère `order.checkoutIntentId` → lookup local par `helloasso_checkout_intent_id`
- *      c. Si toujours rien trouvé → log warning + return 200 (rien à faire, rien à retry)
- *   6. State machine : UPDATE WHERE status='pending' (transition d'état idempotente)
+ * Le match avec notre payment local se fait via `metadata.openDossardPaymentId`
+ * qu'on injecte dans le checkout-intent à la création. HelloAsso renvoie cette
+ * metadata telle quelle dans le body du webhook → zéro appel HelloAsso ici.
  *
- * Toujours retourner 200 (sauf signature KO) — sinon HelloAsso retry pendant 24h.
+ * Idempotence : `applyStatusTransition` ne UPDATE que si `status = prerequisite`.
+ * Un webhook rejoué sur un payment déjà transitionné = no-op silencieux.
+ *
+ * Toujours répondre 200 (sauf signature KO) — sinon HelloAsso retry 24h.
  */
 @Injectable()
 export class HelloAssoWebhookService {
@@ -64,8 +63,6 @@ export class HelloAssoWebhookService {
   constructor(
     @InjectRepository(HelloAssoPaymentEntity)
     private readonly paymentRepo: Repository<HelloAssoPaymentEntity>,
-    private readonly api: HelloAssoApiClient,
-    private readonly oauth: HelloAssoOAuthService,
     private readonly config: HelloAssoConfig,
   ) {}
 
@@ -78,60 +75,66 @@ export class HelloAssoWebhookService {
       throw new UnauthorizedException('Invalid webhook signature');
     }
 
-    let parsed: any;
+    let parsed: WebhookPayload;
     try {
-      parsed = JSON.parse((rawBody as Buffer).toString('utf8'));
+      parsed = JSON.parse((rawBody as Buffer).toString('utf8')) as WebhookPayload;
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      this.logger.warn(`handleWebhook: invalid JSON: ${msg}`);
+      this.logger.warn(
+        `handleWebhook: invalid JSON: ${e instanceof Error ? e.message : String(e)}`,
+      );
       return { signatureValid: true, outcome: 'invalid_json' };
     }
 
-    const eventType = parsed?.eventType;
-    const eventId = parsed?.metadata?.id;
-    const data = parsed?.data;
-    const helloAssoPaymentId: number | undefined = data?.id;
-    const state: string | undefined = data?.state;
-
+    const eventType = parsed.eventType;
     if (eventType !== 'Payment') {
-      this.logger.log(`handleWebhook: ignoring non-Payment event eventType=${eventType} eventId=${eventId}`);
-      return { signatureValid: true, outcome: `ignored_event_type:${eventType}` };
+      this.logger.log(`handleWebhook: ignoring eventType=${eventType ?? '<missing>'}`);
+      return { signatureValid: true, outcome: `ignored_event_type:${eventType ?? '<missing>'}` };
     }
-    if (typeof helloAssoPaymentId !== 'number' || !state) {
-      this.logger.warn(`handleWebhook: malformed payload (missing data.id or data.state) eventId=${eventId}`);
+
+    const helloAssoPaymentId = parsed.data?.id;
+    const state = parsed.data?.state;
+    const orderId = parsed.data?.order?.id;
+    const openDossardPaymentId = parsed.metadata?.openDossardPaymentId;
+
+    if (typeof helloAssoPaymentId !== 'number' || typeof state !== 'string') {
+      this.logger.warn('handleWebhook: malformed payload (missing data.id or data.state)');
       return { signatureValid: true, outcome: 'malformed_payload' };
+    }
+    if (typeof openDossardPaymentId !== 'number') {
+      // Webhook pour un payment non originé par OpenDossard (autre intégration partenaire) — ignorer
+      this.logger.log(
+        `handleWebhook: no openDossardPaymentId in metadata, ignoring helloAssoPaymentId=${helloAssoPaymentId}`,
+      );
+      return { signatureValid: true, outcome: 'foreign_payment' };
     }
 
     this.logger.log(
-      `handleWebhook: received Payment event eventId=${eventId} helloAssoPaymentId=${helloAssoPaymentId} state=${state}`,
+      `handleWebhook: paymentId=${openDossardPaymentId} helloAssoPaymentId=${helloAssoPaymentId} state=${state}`,
     );
 
     const mappedStatus = STATE_TO_STATUS_MAP[state];
     if (!mappedStatus) {
-      this.logger.log(
-        `handleWebhook: state=${state} maps to no-op (transient or unknown) eventId=${eventId}`,
-      );
+      this.logger.log(`handleWebhook: state=${state} maps to no-op`);
       return { signatureValid: true, outcome: `noop_state:${state}` };
     }
 
-    const payment = await this.resolvePayment(helloAssoPaymentId);
+    const payment = await this.paymentRepo.findOne({ where: { id: openDossardPaymentId } });
     if (!payment) {
       this.logger.warn(
-        `handleWebhook: no local payment matches helloAssoPaymentId=${helloAssoPaymentId} eventId=${eventId} — orphan webhook, returning 200`,
+        `handleWebhook: paymentId=${openDossardPaymentId} introuvable (orphan), returning 200`,
       );
       return { signatureValid: true, outcome: 'orphan_no_local_payment' };
     }
 
-    const orderId: number | undefined = data?.order?.id;
     const updated = await this.applyStatusTransition({
       payment,
       newStatus: mappedStatus,
       helloAssoPaymentId,
-      helloAssoOrderId: orderId,
+      helloAssoOrderId: typeof orderId === 'number' ? orderId : undefined,
     });
 
     this.logger.log(
-      `handleWebhook: paymentId=${payment.id} previousStatus=${payment.status} → ${mappedStatus} updated=${updated} eventId=${eventId}`,
+      `handleWebhook: paymentId=${payment.id} ${payment.status}→${mappedStatus} updated=${updated}`,
     );
     return {
       signatureValid: true,
@@ -142,119 +145,12 @@ export class HelloAssoWebhookService {
   }
 
   /**
-   * Mode pull : force une réconciliation manuelle d'un paiement local par
-   * son `id` OpenDossard. Sert de filet de sécurité si un webhook a été
-   * manqué (HelloAsso down, retry épuisé, signature KO côté nous, etc.).
+   * UPDATE atomique idempotent : ne transite que si `status = prerequisite`.
+   * Replay = no-op silencieux (0 row affected).
    *
-   * Limitation MVP : ne fonctionne que si la ligne a déjà un `helloasso_payment_id`
-   * (= au moins un webhook a déjà été reçu et a posé cette valeur). Si seulement
-   * `helloasso_checkout_intent_id` est connu, on throw 422 — il faudra étendre
-   * la méthode pour aller chercher via `GET /organizations/{slug}/checkout-intents/{id}`,
-   * à implémenter quand le besoin se présentera concrètement.
-   *
-   * Renvoie l'entité telle que persistée après la transition (no-op si état stable
-   * ou non-transitable, e.g. déjà refunded).
-   */
-  async reconcilePaymentById(paymentId: number): Promise<HelloAssoPaymentEntity> {
-    const payment = await this.paymentRepo.findOne({ where: { id: paymentId } });
-    if (!payment) {
-      throw new NotFoundException(`Paiement #${paymentId} introuvable`);
-    }
-    if (!payment.helloAssoPaymentId) {
-      throw new UnprocessableEntityException(
-        `Paiement #${paymentId} sans helloasso_payment_id — aucun webhook reçu, réconciliation pull non supportée (cf. Lot 6 limitation)`,
-      );
-    }
-
-    const helloAssoPaymentId = Number(payment.helloAssoPaymentId);
-    const partnerToken = await this.oauth.getPartnerAccessToken();
-    const detail = await this.api.getPayment({ helloAssoPaymentId, accessToken: partnerToken });
-
-    this.logger.log(
-      `reconcilePaymentById: paymentId=${paymentId} helloAssoPaymentId=${helloAssoPaymentId} remoteState=${detail.state}`,
-    );
-
-    const mappedStatus = STATE_TO_STATUS_MAP[detail.state];
-    if (mappedStatus) {
-      await this.applyStatusTransition({
-        payment,
-        newStatus: mappedStatus,
-        helloAssoPaymentId,
-        helloAssoOrderId: detail.order?.id,
-      });
-    } else {
-      this.logger.log(
-        `reconcilePaymentById: state=${detail.state} maps to no-op for paymentId=${paymentId}`,
-      );
-    }
-
-    const refreshed = await this.paymentRepo.findOne({ where: { id: paymentId } });
-    if (!refreshed) {
-      // Cas anormal — la ligne ne peut pas disparaître entre le SELECT initial et celui-ci
-      throw new NotFoundException(`Paiement #${paymentId} disparu pendant la réconciliation`);
-    }
-    return refreshed;
-  }
-
-  /**
-   * Résout la ligne `helloasso_payment` correspondant à un `helloAssoPaymentId` :
-   * d'abord par cache local (`helloasso_payment_id`), puis fallback via
-   * `GET /v5/payments/{id}` → `checkoutIntentId` → lookup local par
-   * `helloasso_checkout_intent_id`. Cache `helloasso_payment_id` au passage pour
-   * éviter de re-appeler l'API HelloAsso sur les webhooks suivants pour ce paiement.
-   */
-  private async resolvePayment(
-    helloAssoPaymentId: number,
-  ): Promise<HelloAssoPaymentEntity | null> {
-    const cached = await this.paymentRepo.findOne({
-      where: { helloAssoPaymentId: String(helloAssoPaymentId) },
-    });
-    if (cached) return cached;
-
-    // Fallback : on appelle HelloAsso pour récupérer checkoutIntentId
-    let detail;
-    try {
-      const partnerToken = await this.oauth.getPartnerAccessToken();
-      detail = await this.api.getPayment({ helloAssoPaymentId, accessToken: partnerToken });
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      this.logger.warn(
-        `resolvePayment: HelloAsso GET /payments/${helloAssoPaymentId} failed: ${msg}`,
-      );
-      return null;
-    }
-
-    const checkoutIntentId = detail?.order?.checkoutIntentId;
-    if (typeof checkoutIntentId !== 'number') {
-      this.logger.warn(
-        `resolvePayment: HelloAsso did not return order.checkoutIntentId for paymentId=${helloAssoPaymentId}`,
-      );
-      return null;
-    }
-
-    const local = await this.paymentRepo.findOne({
-      where: { helloAssoCheckoutIntentId: String(checkoutIntentId) },
-    });
-    if (!local) return null;
-
-    // Cache pour les webhooks suivants sur le même paymentId
-    await this.paymentRepo.update(local.id, {
-      helloAssoPaymentId: String(helloAssoPaymentId),
-    });
-    return { ...local, helloAssoPaymentId: String(helloAssoPaymentId) };
-  }
-
-  /**
-   * Applique la transition d'état atomiquement et idempotemment.
-   *
-   *   pending → paid       (Authorized) — UPDATE seulement si encore pending
-   *   pending → refused    (Refused/Error/Abandoned/Canceled) — idem
-   *   paid    → refunded   (Refunded) — UPDATE seulement si encore paid
-   *
-   * Le `WHERE status = <pré-requis>` garantit qu'un webhook rejoué ne casse
-   * pas la cohérence : un UPDATE qui ne matche aucune ligne = no-op silencieux.
-   *
-   * Retourne true si UPDATE a changé au moins une ligne.
+   *   pending → paid       (Authorized)
+   *   pending → refused    (Refused/Error/Abandoned/Canceled)
+   *   paid    → refunded   (Refunded)
    */
   private async applyStatusTransition(args: {
     payment: HelloAssoPaymentEntity;
@@ -264,12 +160,10 @@ export class HelloAssoWebhookService {
   }): Promise<boolean> {
     const { payment, newStatus, helloAssoPaymentId, helloAssoOrderId } = args;
 
-    let prerequisiteStatus: HelloAssoPaymentStatus;
-    if (newStatus === HelloAssoPaymentStatus.REFUNDED) {
-      prerequisiteStatus = HelloAssoPaymentStatus.PAID;
-    } else {
-      prerequisiteStatus = HelloAssoPaymentStatus.PENDING;
-    }
+    const prerequisiteStatus =
+      newStatus === HelloAssoPaymentStatus.REFUNDED
+        ? HelloAssoPaymentStatus.PAID
+        : HelloAssoPaymentStatus.PENDING;
 
     const update: Partial<HelloAssoPaymentEntity> = {
       status: newStatus,

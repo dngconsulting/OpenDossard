@@ -227,11 +227,7 @@ export class HelloAssoPaymentService {
   }
 }
 
-/**
- * Mapping `HelloAssoPaymentEntity` → `HelloAssoPaymentDto`. Exporté pour réutilisation
- * par les autres services / controllers (typiquement le reconcile endpoint Lot 6).
- */
-export function toPaymentDto(payment: HelloAssoPaymentEntity): HelloAssoPaymentDto {
+function toPaymentDto(payment: HelloAssoPaymentEntity): HelloAssoPaymentDto {
   return {
     id: payment.id,
     status: payment.status,

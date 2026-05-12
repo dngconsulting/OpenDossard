@@ -27,7 +27,8 @@
     "migration:run:prod": "typeorm -d dist/data-source.js migration:run",
     "migration:revert:prod": "typeorm -d dist/data-source.js migration:revert",
     "migration:show:prod": "typeorm -d dist/data-source.js migration:show",
-    "decrypt:helloasso": "ts-node scripts/decrypt-helloasso-tokens.ts"
+    "decrypt:helloasso": "ts-node scripts/decrypt-helloasso-tokens.ts",
+    "register:helloasso-webhook": "ts-node scripts/register-helloasso-webhook.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

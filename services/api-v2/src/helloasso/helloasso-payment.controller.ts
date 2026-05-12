@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  Param,
-  ParseIntPipe,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -18,8 +9,7 @@ import { Role } from '../common/enums';
 import { CheckoutIntentCreatedDto } from './dto/checkout-intent-created.dto';
 import { CreateCheckoutIntentDto } from './dto/create-checkout-intent.dto';
 import { HelloAssoPaymentDto } from './dto/helloasso-payment.dto';
-import { HelloAssoPaymentService, toPaymentDto } from './helloasso-payment.service';
-import { HelloAssoWebhookService } from './helloasso-webhook.service';
+import { HelloAssoPaymentService } from './helloasso-payment.service';
 
 /**
  * Endpoints paiement HelloAsso côté payeur (app Dossardeur).
@@ -28,8 +18,7 @@ import { HelloAssoWebhookService } from './helloasso-webhook.service';
  *   GET  /api-v2/helloasso/payments/:id               [JWT, ADMIN|ORGANISATEUR|MOBILE, owner only]
  *
  * Owner = user dont l'`id` correspond à `payment.payer_user_id`. Vérification
- * faite dans le service. Pas de filtre rôle sur l'identité du payeur (un MOBILE
- * peut payer pour sa propre licence ; un ADMIN peut payer pour la sienne aussi).
+ * faite dans le service.
  */
 @ApiTags('helloasso-payments')
 @Controller('helloasso/payments')
@@ -37,10 +26,7 @@ import { HelloAssoWebhookService } from './helloasso-webhook.service';
 @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
 @ApiBearerAuth()
 export class HelloAssoPaymentController {
-  constructor(
-    private readonly payments: HelloAssoPaymentService,
-    private readonly webhook: HelloAssoWebhookService,
-  ) {}
+  constructor(private readonly payments: HelloAssoPaymentService) {}
 
   @Post('checkout-intent')
   @HttpCode(201)
@@ -61,27 +47,6 @@ le \`paymentId\` OpenDossard + l'\`redirectUrl\` HelloAsso à ouvrir côté app.
     @CurrentUser('id') payerUserId: number,
   ): Promise<CheckoutIntentCreatedDto> {
     return this.payments.createCheckoutIntent({ dto, payerUserId });
-  }
-
-  @Post(':id/reconcile')
-  @HttpCode(200)
-  @Roles(Role.ADMIN)
-  @ApiOperation({
-    summary: 'Forcer la réconciliation d\'un paiement (admin)',
-    description: `Filet de sécurité quand un webhook HelloAsso a été perdu (panne,
-retry expiré, signature KO côté nous). Appelle HelloAsso \`GET /v5/payments/{id}\`,
-applique la state machine, retourne le paiement à jour.
-
-Limitation MVP : ne fonctionne que si le paiement a déjà reçu au moins un webhook
-(\`helloasso_payment_id\` posé). Sinon 422.`,
-  })
-  @ApiResponse({ status: 200, type: HelloAssoPaymentDto })
-  @ApiResponse({ status: 404, description: 'Paiement introuvable' })
-  @ApiResponse({ status: 422, description: 'Pas encore de helloasso_payment_id (jamais webhooké)' })
-  @ApiResponse({ status: 502, description: 'HelloAsso indisponible' })
-  async reconcile(@Param('id', ParseIntPipe) id: number): Promise<HelloAssoPaymentDto> {
-    const payment = await this.webhook.reconcilePaymentById(id);
-    return toPaymentDto(payment);
   }
 
   @Get(':id')
