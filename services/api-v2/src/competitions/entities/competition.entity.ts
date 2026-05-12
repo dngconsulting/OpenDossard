@@ -159,4 +159,13 @@ export class CompetitionEntity {
   @ApiPropertyOptional({ type: () => [Object] })
   @Column({ name: 'registration_urls', type: 'json', nullable: true })
   registrationUrls: LinkInfo[];
+
+  /**
+   * Active le paiement en ligne via HelloAsso pour cette compétition.
+   * Quand `true`, tous les tarifs du tableau `pricing[]` doivent avoir un
+   * `id` stable + `amountCents` non-vides (validé côté service).
+   */
+  @ApiProperty()
+  @Column({ name: 'online_registration_enabled', type: 'boolean', default: false })
+  onlineRegistrationEnabled: boolean;
 }

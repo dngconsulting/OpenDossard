@@ -42,7 +42,14 @@ function loadDevHttpsOptions(): { key: Buffer; cert: Buffer } {
 async function bootstrap() {
   const useHttps = process.env.HTTPS === 'true';
   const httpsOptions = useHttps ? loadDevHttpsOptions() : undefined;
-  const app = await NestFactory.create(AppModule, httpsOptions ? { httpsOptions } : {});
+  // `rawBody: true` permet d'injecter @RawBody() Buffer dans les controllers
+  // — requis pour vérifier la signature HMAC du webhook HelloAsso sur les bytes
+  // bruts avant tout reparsing. Le body parser JSON continue de fonctionner
+  // normalement en parallèle (les autres endpoints reçoivent toujours @Body() parsé).
+  const app = await NestFactory.create(AppModule, {
+    rawBody: true,
+    ...(httpsOptions ? { httpsOptions } : {}),
+  });
 
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 

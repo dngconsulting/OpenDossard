@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository, SelectQueryBuilder } from 'typeorm';
 import { LicenceEntity } from './entities/licence.entity';
 import { RaceEntity } from '../races/entities/race.entity';
-import { CreateLicenceDto, FilterLicenceDto, UpdateLicenceDto } from './dto';
+import { CreateLicenceDto, FilterLicenceDto, LicenceLookupResponseDto, UpdateLicenceDto } from './dto';
 import { PaginatedResponseDto } from '../common/dto';
 
 @Injectable()
@@ -153,6 +153,32 @@ export class LicencesService {
       throw new NotFoundException(`Licence with ID ${id} not found`);
     }
     return licence;
+  }
+
+  /**
+   * Lookup d'une licence par son numéro (clé business). Utilisé par le flux
+   * de paiement HelloAsso pour confirmer l'identité du coureur avant engagement.
+   * Retourne un DTO restreint (pas l'entité complète) — exclut les champs
+   * internes (author, comment, lastChanged) qui n'ont rien à faire côté payeur.
+   */
+  async findByLicenceNumber(licenceNumber: string): Promise<LicenceLookupResponseDto> {
+    const licence = await this.licenceRepository.findOne({ where: { licenceNumber } });
+    if (!licence) {
+      throw new NotFoundException(`Licence avec numéro "${licenceNumber}" introuvable`);
+    }
+    return {
+      id: licence.id,
+      licenceNumber: licence.licenceNumber,
+      firstName: licence.firstName,
+      lastName: licence.name,
+      gender: licence.gender,
+      club: licence.club,
+      dept: licence.dept,
+      birthYear: licence.birthYear,
+      catea: licence.catea,
+      catev: licence.catev,
+      fede: licence.fede,
+    };
   }
 
   async search(query: string, _competitionType?: string): Promise<LicenceEntity[]> {

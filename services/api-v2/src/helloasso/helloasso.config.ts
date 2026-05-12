@@ -46,6 +46,21 @@ export class HelloAssoConfig {
    * encrypt en prod).
    */
   readonly tokenEncryptionKey: Buffer;
+  /**
+   * URLs (typiquement des deep links Dossardeur `dossardeur://payment/*`) vers
+   * lesquelles HelloAsso redirige le navigateur après paiement. Passées telles
+   * quelles dans `backUrl`/`errorUrl`/`returnUrl` du checkout-intent.
+   */
+  readonly paymentReturnUrlSuccess: string;
+  readonly paymentReturnUrlError: string;
+  readonly paymentReturnUrlCancelled: string;
+  /**
+   * Clé de signature webhook fournie par HelloAsso à l'enregistrement de
+   * l'URL de notification (`PUT /v5/partners/me/api-notifications`). Sert
+   * de secret partagé HMAC-SHA256 pour vérifier les webhooks entrants.
+   * Chaîne opaque, stockée telle quelle en env.
+   */
+  readonly webhookSignatureKey: string;
 
   constructor(configService: ConfigService) {
     // requireNonEmpty (vs `getOrThrow`) : `getOrThrow` ne plante que sur clé
@@ -64,6 +79,10 @@ export class HelloAssoConfig {
     this.tokenEncryptionKey = decodeEncryptionKey(
       requireNonEmpty(configService, 'HELLOASSO_TOKEN_ENCRYPTION_KEY'),
     );
+    this.paymentReturnUrlSuccess = requireNonEmpty(configService, 'HELLOASSO_PAYMENT_RETURN_URL_SUCCESS');
+    this.paymentReturnUrlError = requireNonEmpty(configService, 'HELLOASSO_PAYMENT_RETURN_URL_ERROR');
+    this.paymentReturnUrlCancelled = requireNonEmpty(configService, 'HELLOASSO_PAYMENT_RETURN_URL_CANCELLED');
+    this.webhookSignatureKey = requireNonEmpty(configService, 'HELLOASSO_WEBHOOK_SIGNATURE_KEY');
   }
 
   get authorizeEndpoint(): string {

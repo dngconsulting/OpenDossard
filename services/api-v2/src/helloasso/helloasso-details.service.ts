@@ -1,8 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { HelloAssoDetailsEntity } from './helloasso-details.entity';
+import { HelloAssoDetailsEntity } from './entities/helloasso-details.entity';
 import { HelloAssoConfig } from './helloasso.config';
+import { HelloAssoOAuthService, HelloAssoTokens } from './helloasso-oauth.service';
 import { decryptToken, encryptToken } from './util/token-crypto.util';
 
 const REFRESH_TOKEN_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 jours
@@ -32,10 +33,12 @@ export type HelloAssoLinkStatus =
  * Persistance des liaisons HelloAsso ↔ Club. Les tokens sont chiffrés au
  * repos (AES-256-GCM) via `util/token-crypto.util` + `HelloAssoConfig.tokenEncryptionKey`.
  *
- * UPSERT par `clubId` : si une ligne existe déjà pour ce club, on écrase
- * les tokens et on met à jour `last_refreshed_at` / `linked_at` / audit.
- * C'est le cas normal d'une re-liaison (refresh_token expiré ⇒ l'admin
- * repasse par la mire).
+ * Trois opérations d'écriture distinctes :
+ *  - `upsertLink` : re-passage explicite par la mire OAuth (initial OU re-liaison
+ *    par l'admin). Reset `linked_at`, `linked_by_user_id`, `last_refreshed_at = null`.
+ *  - `updateAfterRefresh` : refresh OAuth automatique inline (cf. `withHelloAssoClubAccessToken`).
+ *    Préserve `linked_at` / `linked_by_user_id`, met à jour `last_refreshed_at`.
+ *  - `deleteByClubId` : déliaison par l'admin (bouton "Délier" côté UI).
  */
 @Injectable()
 export class HelloAssoDetailsService {
@@ -45,6 +48,7 @@ export class HelloAssoDetailsService {
     @InjectRepository(HelloAssoDetailsEntity)
     private readonly repo: Repository<HelloAssoDetailsEntity>,
     private readonly config: HelloAssoConfig,
+    private readonly oauth: HelloAssoOAuthService,
   ) {}
 
   async findByClubId(clubId: number): Promise<HelloAssoDetailsEntity | null> {
@@ -135,6 +139,82 @@ export class HelloAssoDetailsService {
     const removedSlug = existing.organizationSlug;
     await this.repo.remove(existing);
     this.logger.log(`deleteByClubId: removed link id=${removedId} clubId=${clubId} slug=${removedSlug}`);
+  }
+
+  /**
+   * Persiste les nouveaux tokens après un refresh OAuth réussi. **Ne touche
+   * pas à `linked_at` ni `linked_by_user_id`** — ce n'est PAS une re-liaison.
+   * Met à jour `last_refreshed_at`, les 2 tokens chiffrés et leurs expirations.
+   *
+   * HelloAsso rotate le refresh_token à chaque usage (pratique OAuth standard) —
+   * donc le `refreshTokenExpiresAt` est reseté à now + 30j à chaque refresh.
+   */
+  async updateAfterRefresh(clubId: number, newTokens: HelloAssoTokens): Promise<void> {
+    const now = new Date();
+    const accessTokenExpiresAt = new Date(now.getTime() + newTokens.expiresIn * 1000);
+    const refreshTokenExpiresAt = new Date(now.getTime() + REFRESH_TOKEN_TTL_SECONDS * 1000);
+    const key = this.config.tokenEncryptionKey;
+
+    await this.repo.update(
+      { clubId },
+      {
+        accessTokenEncrypted: encryptToken(newTokens.accessToken, key),
+        refreshTokenEncrypted: encryptToken(newTokens.refreshToken, key),
+        accessTokenExpiresAt,
+        refreshTokenExpiresAt,
+        lastRefreshedAt: now,
+      },
+    );
+    this.logger.log(`updateAfterRefresh: refreshed tokens for clubId=${clubId}`);
+  }
+
+  /**
+   * Exécute `fn(accessToken)` avec le token courant du club. Sur 401, refresh
+   * inline + retry une seule fois ; pas de mutex (cf. design Lot 5). Si le
+   * refresh lui-même échoue (refresh_token mort) → propage `UnauthorizedException`
+   * avec un message explicite pour l'admin (re-passer par la mire).
+   *
+   * Choix design assumé : stateless, pas de sérialisation. Risque résiduel
+   * marginal en cas de N callers concurrents qui expirent simultanément
+   * (HelloAsso rotate les refresh_tokens → seul le 1er refresh gagne).
+   * Acceptable pour la fréquence/volume OpenDossard.
+   */
+  async withHelloAssoClubAccessToken<T>(
+    clubId: number,
+    fn: (accessToken: string) => Promise<T>,
+  ): Promise<T> {
+    const details = await this.findByClubId(clubId);
+    if (!details) {
+      throw new NotFoundException(`Aucune liaison HelloAsso pour clubId=${clubId}`);
+    }
+    const { accessToken, refreshToken } = this.decryptTokens(details);
+
+    try {
+      return await fn(accessToken);
+    } catch (e) {
+      if (!(e instanceof UnauthorizedException)) {
+        throw e;
+      }
+      this.logger.log(`withHelloAssoClubAccessToken: 401 on clubId=${clubId} — attempting refresh`);
+
+      let newTokens: HelloAssoTokens;
+      try {
+        newTokens = await this.oauth.refreshTokens(refreshToken);
+      } catch (refreshError: unknown) {
+        const msg = refreshError instanceof Error ? refreshError.message : String(refreshError);
+        this.logger.warn(
+          `withHelloAssoClubAccessToken: refresh failed for clubId=${clubId} (${msg}) — admin must re-link via mire`,
+        );
+        throw new UnauthorizedException(
+          `Liaison HelloAsso expirée pour le club ${clubId} — l'admin doit re-passer par la mire`,
+        );
+      }
+
+      await this.updateAfterRefresh(clubId, newTokens);
+
+      // Retry UNE seule fois. Si encore 401 → propagation, pas de boucle infinie.
+      return await fn(newTokens.accessToken);
+    }
   }
 
   /**

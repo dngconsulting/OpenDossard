@@ -1,5 +1,15 @@
 import { AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
+import { useState } from 'react';
 
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useHelloAssoAuth, useHelloAssoStatus } from '@/hooks/useHelloAssoAuth';
 import { showErrorToast } from '@/utils/error-handler/error-handler';
 
@@ -12,6 +22,7 @@ type Variant = 'unlinked' | 'linked' | 'expired';
 export function HelloAssoConnectButton({ clubId }: Props) {
   const mutation = useHelloAssoAuth();
   const status = useHelloAssoStatus(clubId);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const variant: Variant = !status.data || !status.data.linked
     ? 'unlinked'
@@ -19,15 +30,7 @@ export function HelloAssoConnectButton({ clubId }: Props) {
       ? 'expired'
       : 'linked';
 
-  const onClick = async () => {
-    if (variant === 'linked') {
-      const confirmed = window.confirm(
-        'Ce club est déjà connecté à HelloAsso. Voulez-vous recommencer la liaison ? Les modifications non enregistrées seront perdues.',
-      );
-      if (!confirmed) {
-        return;
-      }
-    }
+  const runAuthorize = async () => {
     try {
       const { authorizeUrl } = await mutation.mutateAsync();
       window.location.href = authorizeUrl;
@@ -37,35 +40,81 @@ export function HelloAssoConnectButton({ clubId }: Props) {
     }
   };
 
+  const onClick = () => {
+    if (variant === 'linked') {
+      setConfirmOpen(true);
+      return;
+    }
+    void runAuthorize();
+  };
+
+  const onConfirm = async () => {
+    setConfirmOpen(false);
+    await runAuthorize();
+  };
+
   const palette = PALETTES[variant];
   const isBusy = mutation.isPending || status.isLoading;
+  const slug = status.data?.linked ? status.data.slug : undefined;
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={isBusy}
-      title={titleFor(variant, status.data)}
-      style={{
-        ...styles.button,
-        background: palette.bg,
-        borderColor: palette.border,
-        color: palette.text,
-      }}
-    >
-      {mutation.isPending ? (
-        <Loader2 className="animate-spin" style={{ color: palette.text, width: 18, height: 18 }} />
-      ) : (
-        <img
-          src="https://api.helloasso.com/v5/img/logo-ha.svg"
-          alt=""
-          style={styles.logo}
-        />
-      )}
-      <span style={styles.label}>{LABELS[variant]}</span>
-      {variant === 'linked' && <CheckCircle2 style={{ width: 16, height: 16 }} />}
-      {variant === 'expired' && <AlertTriangle style={{ width: 16, height: 16 }} />}
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={isBusy}
+        title={titleFor(variant, status.data)}
+        style={{
+          ...styles.button,
+          background: palette.bg,
+          borderColor: palette.border,
+          color: palette.text,
+        }}
+      >
+        {mutation.isPending ? (
+          <Loader2 className="animate-spin" style={{ color: palette.text, width: 18, height: 18 }} />
+        ) : (
+          <img
+            src="https://api.helloasso.com/v5/img/logo-ha.svg"
+            alt=""
+            style={styles.logo}
+          />
+        )}
+        <span style={styles.label}>{LABELS[variant]}</span>
+        {variant === 'linked' && <CheckCircle2 style={{ width: 16, height: 16 }} />}
+        {variant === 'expired' && <AlertTriangle style={{ width: 16, height: 16 }} />}
+      </button>
+
+      <Dialog
+        open={confirmOpen}
+        onOpenChange={next => !mutation.isPending && setConfirmOpen(next)}
+      >
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Recommencer la liaison HelloAsso ?</DialogTitle>
+            <DialogDescription>
+              Ce club est déjà connecté à HelloAsso
+              {slug ? (
+                <>
+                  {' '}(<strong>{slug}</strong>)
+                </>
+              ) : null}
+              {' '}. Recommencer la liaison vous renverra sur la mire d&apos;autorisation
+              HelloAsso. Les modifications non enregistrées de cette page seront perdues.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={mutation.isPending}>
+              Annuler
+            </Button>
+            <Button onClick={onConfirm} disabled={mutation.isPending}>
+              {mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Recommencer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

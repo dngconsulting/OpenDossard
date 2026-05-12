@@ -5,7 +5,7 @@ import { ClubEntity } from './entities/club.entity';
 import { LicenceEntity } from '../licences/entities/licence.entity';
 import { RaceEntity } from '../races/entities/race.entity';
 import { CompetitionEntity } from '../competitions/entities/competition.entity';
-import { HelloAssoDetailsEntity } from '../helloasso/helloasso-details.entity';
+import { HelloAssoDetailsEntity } from '../helloasso/entities/helloasso-details.entity';
 import { Federation } from '../common/enums';
 import { PaginatedResponseDto } from '../common/dto/pagination.dto';
 import { FilterClubDto } from './dto/filter-club.dto';

@@ -112,6 +112,33 @@ export class HelloAssoOAuthService {
     });
   }
 
+  /**
+   * Récupère un access_token partenaire (clientCredentials flow). Sert aux
+   * appels HelloAsso "système" (typiquement `GET /v5/payments/{id}` au webhook)
+   * indépendamment de tout club. Le token est mis en cache en mémoire jusqu'à
+   * 60s avant expiration pour éviter de re-authentifier à chaque webhook.
+   *
+   * Cache in-memory : OK en single-replica. Si scale-out, déplacer en Redis.
+   */
+  async getPartnerAccessToken(): Promise<string> {
+    const now = Date.now();
+    if (this.cachedPartnerToken && this.cachedPartnerToken.expiresAt - now > 60_000) {
+      return this.cachedPartnerToken.accessToken;
+    }
+    const tokens = await this.postToken({
+      grant_type: 'client_credentials',
+      client_id: this.config.clientId,
+      client_secret: this.config.clientSecret,
+    });
+    this.cachedPartnerToken = {
+      accessToken: tokens.accessToken,
+      expiresAt: now + tokens.expiresIn * 1000,
+    };
+    return tokens.accessToken;
+  }
+
+  private cachedPartnerToken: { accessToken: string; expiresAt: number } | null = null;
+
   private async exchangeAuthorizationCode(
     code: string,
     codeVerifier: string,

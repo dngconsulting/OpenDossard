@@ -16,7 +16,7 @@
  *   - HELLOASSO_TOKEN_ENCRYPTION_KEY (32 octets base64) lu depuis le même .env
  */
 import dataSource from '../src/data-source';
-import { HelloAssoDetailsEntity } from '../src/helloasso/helloasso-details.entity';
+import { HelloAssoDetailsEntity } from '../src/helloasso/entities/helloasso-details.entity';
 import { decryptToken } from '../src/helloasso/util/token-crypto.util';
 
 interface CliArgs {
