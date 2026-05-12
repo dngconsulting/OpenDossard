@@ -28,7 +28,8 @@
     "migration:revert:prod": "typeorm -d dist/data-source.js migration:revert",
     "migration:show:prod": "typeorm -d dist/data-source.js migration:show",
     "decrypt:helloasso": "ts-node scripts/decrypt-helloasso-tokens.ts",
-    "register:helloasso-webhook": "ts-node scripts/register-helloasso-webhook.ts"
+    "register:helloasso-webhook": "ts-node scripts/register-helloasso-webhook.ts",
+    "register:helloasso-api-client": "ts-node scripts/register-helloasso-api-client.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
