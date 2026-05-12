@@ -18,7 +18,8 @@ import { Role } from '../common/enums';
 import { CheckoutIntentCreatedDto } from './dto/checkout-intent-created.dto';
 import { CreateCheckoutIntentDto } from './dto/create-checkout-intent.dto';
 import { HelloAssoPaymentDto } from './dto/helloasso-payment.dto';
-import { HelloAssoPaymentService } from './helloasso-payment.service';
+import { HelloAssoPaymentService, toPaymentDto } from './helloasso-payment.service';
+import { HelloAssoWebhookService } from './helloasso-webhook.service';
 
 /**
  * Endpoints paiement HelloAsso côté payeur (app Dossardeur).
@@ -36,7 +37,10 @@ import { HelloAssoPaymentService } from './helloasso-payment.service';
 @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
 @ApiBearerAuth()
 export class HelloAssoPaymentController {
-  constructor(private readonly payments: HelloAssoPaymentService) {}
+  constructor(
+    private readonly payments: HelloAssoPaymentService,
+    private readonly webhook: HelloAssoWebhookService,
+  ) {}
 
   @Post('checkout-intent')
   @HttpCode(201)
@@ -57,6 +61,27 @@ le \`paymentId\` OpenDossard + l'\`redirectUrl\` HelloAsso à ouvrir côté app.
     @CurrentUser('id') payerUserId: number,
   ): Promise<CheckoutIntentCreatedDto> {
     return this.payments.createCheckoutIntent({ dto, payerUserId });
+  }
+
+  @Post(':id/reconcile')
+  @HttpCode(200)
+  @Roles(Role.ADMIN)
+  @ApiOperation({
+    summary: 'Forcer la réconciliation d\'un paiement (admin)',
+    description: `Filet de sécurité quand un webhook HelloAsso a été perdu (panne,
+retry expiré, signature KO côté nous). Appelle HelloAsso \`GET /v5/payments/{id}\`,
+applique la state machine, retourne le paiement à jour.
+
+Limitation MVP : ne fonctionne que si le paiement a déjà reçu au moins un webhook
+(\`helloasso_payment_id\` posé). Sinon 422.`,
+  })
+  @ApiResponse({ status: 200, type: HelloAssoPaymentDto })
+  @ApiResponse({ status: 404, description: 'Paiement introuvable' })
+  @ApiResponse({ status: 422, description: 'Pas encore de helloasso_payment_id (jamais webhooké)' })
+  @ApiResponse({ status: 502, description: 'HelloAsso indisponible' })
+  async reconcile(@Param('id', ParseIntPipe) id: number): Promise<HelloAssoPaymentDto> {
+    const payment = await this.webhook.reconcilePaymentById(id);
+    return toPaymentDto(payment);
   }
 
   @Get(':id')

@@ -59,6 +59,7 @@ export type CompetitionDetailType = {
   openedToOtherFede?: boolean;
   openedNL?: boolean;
   avecChrono?: boolean;
+  onlineRegistrationEnabled?: boolean;
   commissaires?: string;
   speaker?: string;
   aboyeur?: string;

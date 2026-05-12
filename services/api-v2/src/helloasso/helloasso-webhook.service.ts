@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -133,6 +139,61 @@ export class HelloAssoWebhookService {
         ? `transitioned:${payment.status}→${mappedStatus}`
         : `noop_no_transition_from:${payment.status}`,
     };
+  }
+
+  /**
+   * Mode pull : force une réconciliation manuelle d'un paiement local par
+   * son `id` OpenDossard. Sert de filet de sécurité si un webhook a été
+   * manqué (HelloAsso down, retry épuisé, signature KO côté nous, etc.).
+   *
+   * Limitation MVP : ne fonctionne que si la ligne a déjà un `helloasso_payment_id`
+   * (= au moins un webhook a déjà été reçu et a posé cette valeur). Si seulement
+   * `helloasso_checkout_intent_id` est connu, on throw 422 — il faudra étendre
+   * la méthode pour aller chercher via `GET /organizations/{slug}/checkout-intents/{id}`,
+   * à implémenter quand le besoin se présentera concrètement.
+   *
+   * Renvoie l'entité telle que persistée après la transition (no-op si état stable
+   * ou non-transitable, e.g. déjà refunded).
+   */
+  async reconcilePaymentById(paymentId: number): Promise<HelloAssoPaymentEntity> {
+    const payment = await this.paymentRepo.findOne({ where: { id: paymentId } });
+    if (!payment) {
+      throw new NotFoundException(`Paiement #${paymentId} introuvable`);
+    }
+    if (!payment.helloAssoPaymentId) {
+      throw new UnprocessableEntityException(
+        `Paiement #${paymentId} sans helloasso_payment_id — aucun webhook reçu, réconciliation pull non supportée (cf. Lot 6 limitation)`,
+      );
+    }
+
+    const helloAssoPaymentId = Number(payment.helloAssoPaymentId);
+    const partnerToken = await this.oauth.getPartnerAccessToken();
+    const detail = await this.api.getPayment({ helloAssoPaymentId, accessToken: partnerToken });
+
+    this.logger.log(
+      `reconcilePaymentById: paymentId=${paymentId} helloAssoPaymentId=${helloAssoPaymentId} remoteState=${detail.state}`,
+    );
+
+    const mappedStatus = STATE_TO_STATUS_MAP[detail.state];
+    if (mappedStatus) {
+      await this.applyStatusTransition({
+        payment,
+        newStatus: mappedStatus,
+        helloAssoPaymentId,
+        helloAssoOrderId: detail.order?.id,
+      });
+    } else {
+      this.logger.log(
+        `reconcilePaymentById: state=${detail.state} maps to no-op for paymentId=${paymentId}`,
+      );
+    }
+
+    const refreshed = await this.paymentRepo.findOne({ where: { id: paymentId } });
+    if (!refreshed) {
+      // Cas anormal — la ligne ne peut pas disparaître entre le SELECT initial et celui-ci
+      throw new NotFoundException(`Paiement #${paymentId} disparu pendant la réconciliation`);
+    }
+    return refreshed;
   }
 
   /**

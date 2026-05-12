@@ -1,4 +1,4 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { NotFoundException, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common';
 import { createHmac } from 'node:crypto';
 import { Repository } from 'typeorm';
 
@@ -262,6 +262,65 @@ describe('HelloAssoWebhookService', () => {
       const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
 
       expect(result.outcome).toBe('orphan_no_local_payment');
+    });
+  });
+
+  describe('reconcilePaymentById (Lot 6)', () => {
+    it('happy path: GET /payments → Authorized → applies pending→paid transition', async () => {
+      const m = makeService();
+      const stored = {
+        id: 42,
+        status: HelloAssoPaymentStatus.PENDING,
+        helloAssoPaymentId: '13790',
+      } as HelloAssoPaymentEntity;
+      const updated = {
+        ...stored,
+        status: HelloAssoPaymentStatus.PAID,
+        helloAssoOrderId: '22707',
+        paidAt: new Date(),
+      } as HelloAssoPaymentEntity;
+      // 1st findOne = load before, 2nd findOne = refresh after
+      m.paymentRepo.findOne.mockResolvedValueOnce(stored).mockResolvedValueOnce(updated);
+      m.api.getPayment.mockResolvedValue({
+        id: 13790,
+        amount: 1000,
+        state: 'Authorized',
+        order: { id: 22707 },
+      });
+
+      const result = await m.service.reconcilePaymentById(42);
+
+      expect(m.oauth.getPartnerAccessToken).toHaveBeenCalledTimes(1);
+      expect(m.api.getPayment).toHaveBeenCalledWith({
+        helloAssoPaymentId: 13790,
+        accessToken: 'partner-token',
+      });
+      // applyStatusTransition (qb mock affected=1)
+      expect(m.paymentRepo.createQueryBuilder).toHaveBeenCalled();
+      expect(result).toBe(updated);
+    });
+
+    it('throws NotFoundException if payment id does not exist', async () => {
+      const m = makeService();
+      m.paymentRepo.findOne.mockResolvedValue(null);
+
+      await expect(m.service.reconcilePaymentById(999)).rejects.toBeInstanceOf(NotFoundException);
+      expect(m.api.getPayment).not.toHaveBeenCalled();
+    });
+
+    it('throws UnprocessableEntity if helloasso_payment_id missing (no webhook received yet)', async () => {
+      const m = makeService();
+      m.paymentRepo.findOne.mockResolvedValue({
+        id: 42,
+        status: HelloAssoPaymentStatus.PENDING,
+        helloAssoPaymentId: null,
+        helloAssoCheckoutIntentId: '500001',
+      } as HelloAssoPaymentEntity);
+
+      await expect(m.service.reconcilePaymentById(42)).rejects.toBeInstanceOf(
+        UnprocessableEntityException,
+      );
+      expect(m.api.getPayment).not.toHaveBeenCalled();
     });
   });
 });

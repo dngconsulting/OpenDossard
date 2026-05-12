@@ -73,6 +73,7 @@ export const competitionSchema = z.object({
   openedToOtherFede: z.boolean().optional(),
   openedNL: z.boolean().optional(),
   avecChrono: z.boolean().optional(),
+  onlineRegistrationEnabled: z.boolean().optional(),
   observations: z.string().optional(),
   commissaires: z.string().optional(),
   speaker: z.string().optional(),
