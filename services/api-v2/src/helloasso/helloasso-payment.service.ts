@@ -272,13 +272,18 @@ export class HelloAssoPaymentService {
     const licenceFullName = [licence.firstName, licence.name].filter(Boolean).join(' ').trim();
     const itemSuffix = licenceFullName ? ` — ${licenceFullName}` : '';
     const itemName = truncate(`Inscription ${competitionName} — ${tarif.name}${itemSuffix}`, 250);
+    // On append `paymentId=<id>` aux 3 URLs de retour pour que l'app puisse
+    // mapper exactement le bon `competitionId` côté MMKV (`PaymentReturnRedirect`)
+    // au lieu de prendre "le dernier pending" — robuste si plusieurs paiements
+    // simultanés. HelloAsso préserve les query existantes et y append les
+    // siennes (checkoutIntentId, code, orderId) → la query finale aura tout.
     return {
       totalAmount: amountCents,
       initialAmount: amountCents,
       itemName,
-      backUrl: this.config.paymentReturnUrlCancelled,
-      errorUrl: this.config.paymentReturnUrlError,
-      returnUrl: this.config.paymentReturnUrlSuccess,
+      backUrl: appendPaymentId(this.config.paymentReturnUrlCancelled, payment.id),
+      errorUrl: appendPaymentId(this.config.paymentReturnUrlError, payment.id),
+      returnUrl: appendPaymentId(this.config.paymentReturnUrlSuccess, payment.id),
       containsDonation: false,
       payer: payerProfile,
       metadata: {
@@ -334,6 +339,16 @@ function toPaymentListDto(
 
 function truncate(s: string, max: number): string {
   return s.length <= max ? s : `${s.slice(0, max - 1)}…`;
+}
+
+/**
+ * Ajoute `paymentId=<id>` à la query string d'une URL, en préservant les
+ * éventuels params déjà présents (`?` vs `&` selon le cas). Ne valide pas
+ * l'URL — la conf est validée au boot via `requireNonEmpty`.
+ */
+function appendPaymentId(url: string, paymentId: number): string {
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}paymentId=${paymentId}`;
 }
 
 /**
