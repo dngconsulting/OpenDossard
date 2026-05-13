@@ -124,9 +124,8 @@ export class HelloAssoPaymentService {
       );
     }
 
-    // 2. INSERT pending row (intent_id=NULL — sera renseigné après HelloAsso)
-    // `tarif_id` est VARCHAR(64), on tronque le name au cas où.
-    // Cette colonne sera retirée par une migration future (cf. design simplifié).
+    // 2. INSERT pending row (intent_id=NULL — sera renseigné après HelloAsso).
+    // `tarif_id` est varchar(255) et stocke directement le label du tarif.
     const payment = await this.paymentRepo.save(
       this.paymentRepo.create({
         competitionId: competition.id,
@@ -137,8 +136,7 @@ export class HelloAssoPaymentService {
         payerLastName: dto.payerProfile.lastName,
         helloAssoCheckoutIntentId: null,
         status: HelloAssoPaymentStatus.PENDING,
-        tarifId: tarif.name.slice(0, 64),
-        tarifLabelSnapshot: tarif.name,
+        tarifId: tarif.name,
         amountCents,
       }),
     );
@@ -305,7 +303,7 @@ function toPaymentDto(payment: HelloAssoPaymentEntity): HelloAssoPaymentDto {
     status: payment.status,
     competitionId: payment.competitionId,
     licenceId: payment.licenceId,
-    tarifName: payment.tarifLabelSnapshot,
+    tarifName: payment.tarifId,
     montant: payment.amountCents / 100,
     paidAt: payment.paidAt?.toISOString() ?? null,
     createdAt: payment.createdAt.toISOString(),

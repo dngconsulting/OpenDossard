@@ -103,13 +103,14 @@ export class HelloAssoPaymentEntity {
   })
   status: HelloAssoPaymentStatus;
 
-  /** Snapshot `PricingInfo.id` au moment du paiement. */
-  @Column({ name: 'tarif_id', type: 'varchar', length: 64 })
+  /**
+   * Snapshot du `PricingInfo.name` (= label affiché) au moment du paiement.
+   * Le label sert à la fois de clé fonctionnelle (pour matcher côté admin)
+   * et d'affichage utilisateur — on conserve donc une seule colonne plutôt
+   * que de dupliquer entre `tarif_id` court et `tarif_label_snapshot` long.
+   */
+  @Column({ name: 'tarif_id', type: 'varchar', length: 255 })
   tarifId: string;
-
-  /** Snapshot `PricingInfo.name` — préservé même si le tarif est renommé après. */
-  @Column({ name: 'tarif_label_snapshot', type: 'varchar', length: 255 })
-  tarifLabelSnapshot: string;
 
   /** Snapshot `PricingInfo.amountCents` — montant facturé HelloAsso. */
   @Column({ name: 'amount_cents', type: 'int' })
