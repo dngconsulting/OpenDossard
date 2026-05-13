@@ -38,6 +38,20 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         navigateFallback: 'index.html',
+        // Paths qui DOIVENT atteindre le réseau (backend NestJS via nginx) au
+        // lieu d'être renvoyés vers `index.html` par le SW :
+        //  - `/api/*`        : routes API (dont `/api/v2/helloasso/oauth/callback`)
+        //  - `/app/*`        : deeplinks Universal Links (épreuve / classement / palmarès)
+        //  - `/payment/*`    : retour HelloAsso post-paiement
+        //  - `/.well-known/*`: AASA, assetlinks.json
+        // Sans ça, le SW intercepte ces navigations et sert la SPA, qui
+        // affiche un 404 stylisé (cf. bug observé sur le callback OAuth).
+        navigateFallbackDenylist: [
+          /^\/api\//,
+          /^\/app\//,
+          /^\/payment\//,
+          /^\/\.well-known\//,
+        ],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
         runtimeCaching: [
           {
