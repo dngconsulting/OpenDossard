@@ -19,7 +19,10 @@ import { HelloAssoPaymentDto } from './dto/helloasso-payment.dto';
 import { HelloAssoApiClient, CheckoutIntentRequestBody } from './helloasso-api.client';
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoDetailsService } from './helloasso-details.service';
-import { HelloAssoPaymentEntity, HelloAssoPaymentStatus } from './entities/helloasso-payment.entity';
+import {
+  HelloAssoPaymentEntity,
+  HelloAssoPaymentStatus,
+} from './entities/helloasso-payment.entity';
 
 export interface CreatePaymentInput {
   dto: CreateCheckoutIntentDto;
@@ -147,7 +150,7 @@ export class HelloAssoPaymentService {
     try {
       intentResponse = await this.helloAssoDetails.withHelloAssoClubAccessToken(
         competition.clubId,
-        (accessToken) =>
+        accessToken =>
           this.helloAssoApi.createCheckoutIntent({
             organizationSlug: details.organizationSlug,
             accessToken,
@@ -194,7 +197,35 @@ export class HelloAssoPaymentService {
     return this.toDto(payment);
   }
 
-  private findTarif(pricing: PricingInfo[] | null | undefined, tarifName: string): PricingInfo | undefined {
+  /**
+   * Liste les paiements actifs (`pending` ou `paid`) du user courant sur une
+   * compétition donnée. Utilisé par l'app Dossardeur pour afficher le badge
+   * "✓ Inscription payée" ou "⏳ Inscription en cours" sur l'écran épreuve.
+   *
+   * Filtre intentionnellement les statuts `refused` / `refunded` — ces états
+   * ne correspondent pas à une inscription active et n'intéressent pas le
+   * badge mobile. Si on a besoin de l'historique complet plus tard, on ajoutera
+   * un query param `status` à l'endpoint.
+   */
+  async listActiveForOwnerByCompetition(
+    competitionId: number,
+    payerUserId: number,
+  ): Promise<HelloAssoPaymentDto[]> {
+    const payments = await this.paymentRepo.find({
+      where: {
+        competitionId,
+        payerUserId,
+        status: In([HelloAssoPaymentStatus.PENDING, HelloAssoPaymentStatus.PAID]),
+      },
+      order: { createdAt: 'DESC' },
+    });
+    return payments.map(toPaymentDto);
+  }
+
+  private findTarif(
+    pricing: PricingInfo[] | null | undefined,
+    tarifName: string,
+  ): PricingInfo | undefined {
     if (!pricing || !Array.isArray(pricing)) return undefined;
     return pricing.find(p => p.name === tarifName);
   }

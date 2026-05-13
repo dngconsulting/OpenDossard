@@ -15,7 +15,10 @@ import { HelloAssoApiClient } from './helloasso-api.client';
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoDetailsEntity } from './entities/helloasso-details.entity';
 import { HelloAssoDetailsService } from './helloasso-details.service';
-import { HelloAssoPaymentEntity, HelloAssoPaymentStatus } from './entities/helloasso-payment.entity';
+import {
+  HelloAssoPaymentEntity,
+  HelloAssoPaymentStatus,
+} from './entities/helloasso-payment.entity';
 import { HelloAssoPaymentService } from './helloasso-payment.service';
 
 function makeDto(overrides: Partial<CreateCheckoutIntentDto> = {}): CreateCheckoutIntentDto {
@@ -30,17 +33,29 @@ function makeDto(overrides: Partial<CreateCheckoutIntentDto> = {}): CreateChecko
 
 interface Mocks {
   service: HelloAssoPaymentService;
-  paymentRepo: { findOne: jest.Mock; save: jest.Mock; create: jest.Mock; update: jest.Mock; delete: jest.Mock };
+  paymentRepo: {
+    findOne: jest.Mock;
+    find: jest.Mock;
+    save: jest.Mock;
+    create: jest.Mock;
+    update: jest.Mock;
+    delete: jest.Mock;
+  };
   competitionRepo: { findOne: jest.Mock };
   licenceRepo: { findOne: jest.Mock };
   userRepo: { findOne: jest.Mock };
-  details: { findByClubId: jest.Mock; decryptTokens: jest.Mock; withHelloAssoClubAccessToken: jest.Mock };
+  details: {
+    findByClubId: jest.Mock;
+    decryptTokens: jest.Mock;
+    withHelloAssoClubAccessToken: jest.Mock;
+  };
   api: { createCheckoutIntent: jest.Mock };
 }
 
 function makeService(): Mocks {
   const paymentRepo = {
     findOne: jest.fn(),
+    find: jest.fn(),
     save: jest.fn(),
     create: jest.fn((x: Partial<HelloAssoPaymentEntity>) => x as HelloAssoPaymentEntity),
     update: jest.fn(),
@@ -54,8 +69,8 @@ function makeService(): Mocks {
     decryptTokens: jest.fn(() => ({ accessToken: 'access-tok', refreshToken: 'refresh-tok' })),
     // Par défaut, withHelloAssoClubAccessToken forwarde le token au callback sans refresh.
     // Les tests qui veulent tester le refresh redéfinissent ce mock localement.
-    withHelloAssoClubAccessToken: jest.fn((_clubId: number, fn: (token: string) => Promise<unknown>) =>
-      fn('access-tok'),
+    withHelloAssoClubAccessToken: jest.fn(
+      (_clubId: number, fn: (token: string) => Promise<unknown>) => fn('access-tok'),
     ),
   };
   const api = { createCheckoutIntent: jest.fn() };
@@ -98,11 +113,22 @@ function detailsFixture(): HelloAssoDetailsEntity {
 }
 
 function userFixture(overrides: Partial<UserEntity> = {}): UserEntity {
-  return { id: 55, email: 'sami@example.com', firebaseUid: 'fb-uid-abc', ...overrides } as UserEntity;
+  return {
+    id: 55,
+    email: 'sami@example.com',
+    firebaseUid: 'fb-uid-abc',
+    ...overrides,
+  } as UserEntity;
 }
 
 function licenceFixture(overrides: Partial<LicenceEntity> = {}): LicenceEntity {
-  return { id: 1234, licenceNumber: '12345', firstName: 'Sami', name: 'Jaber', ...overrides } as LicenceEntity;
+  return {
+    id: 1234,
+    licenceNumber: '12345',
+    firstName: 'Sami',
+    name: 'Jaber',
+    ...overrides,
+  } as LicenceEntity;
 }
 
 describe('HelloAssoPaymentService', () => {
@@ -120,7 +146,9 @@ describe('HelloAssoPaymentService', () => {
     it('throws UnprocessableEntity if online registration disabled', async () => {
       const m = makeService();
       m.userRepo.findOne.mockResolvedValue(userFixture());
-      m.competitionRepo.findOne.mockResolvedValue(competitionFixture({ onlineRegistrationEnabled: false }));
+      m.competitionRepo.findOne.mockResolvedValue(
+        competitionFixture({ onlineRegistrationEnabled: false }),
+      );
 
       await expect(
         m.service.createCheckoutIntent({ dto: makeDto(), payerUserId: 55 }),
@@ -204,7 +232,10 @@ describe('HelloAssoPaymentService', () => {
       m.competitionRepo.findOne.mockResolvedValue(competitionFixture());
       m.details.findByClubId.mockResolvedValue(detailsFixture());
       m.licenceRepo.findOne.mockResolvedValue(licenceFixture());
-      m.paymentRepo.findOne.mockResolvedValue({ id: 999, status: HelloAssoPaymentStatus.PENDING } as HelloAssoPaymentEntity);
+      m.paymentRepo.findOne.mockResolvedValue({
+        id: 999,
+        status: HelloAssoPaymentStatus.PENDING,
+      } as HelloAssoPaymentEntity);
 
       await expect(
         m.service.createCheckoutIntent({ dto: makeDto(), payerUserId: 55 }),
@@ -225,7 +256,10 @@ describe('HelloAssoPaymentService', () => {
         payerUserId: 55,
         amountCents: 1000,
       } as HelloAssoPaymentEntity);
-      m.api.createCheckoutIntent.mockResolvedValue({ id: 90001, redirectUrl: 'https://helloasso-sandbox.com/pay/X' });
+      m.api.createCheckoutIntent.mockResolvedValue({
+        id: 90001,
+        redirectUrl: 'https://helloasso-sandbox.com/pay/X',
+      });
 
       const result = await m.service.createCheckoutIntent({ dto: makeDto(), payerUserId: 55 });
 
@@ -306,7 +340,10 @@ describe('HelloAssoPaymentService', () => {
 
     it('throws ForbiddenException if caller is not the payer', async () => {
       const m = makeService();
-      m.paymentRepo.findOne.mockResolvedValue({ id: 42, payerUserId: 99 } as HelloAssoPaymentEntity);
+      m.paymentRepo.findOne.mockResolvedValue({
+        id: 42,
+        payerUserId: 99,
+      } as HelloAssoPaymentEntity);
 
       await expect(m.service.findByIdForOwner(42, 55)).rejects.toBeInstanceOf(ForbiddenException);
     });
@@ -338,6 +375,72 @@ describe('HelloAssoPaymentService', () => {
         paidAt: '2026-05-12T10:00:00.000Z',
         createdAt: '2026-05-12T09:00:00.000Z',
       });
+    });
+  });
+
+  describe('listActiveForOwnerByCompetition', () => {
+    it('returns an empty array when the user has no payment on this competition', async () => {
+      const m = makeService();
+      m.paymentRepo.find.mockResolvedValue([]);
+
+      const result = await m.service.listActiveForOwnerByCompetition(32, 55);
+
+      expect(result).toEqual([]);
+      expect(m.paymentRepo.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            competitionId: 32,
+            payerUserId: 55,
+          }),
+          order: { createdAt: 'DESC' },
+        }),
+      );
+    });
+
+    it('returns mapped DTOs when the user has active payments', async () => {
+      const m = makeService();
+      m.paymentRepo.find.mockResolvedValue([
+        {
+          id: 42,
+          payerUserId: 55,
+          status: HelloAssoPaymentStatus.PAID,
+          competitionId: 32,
+          licenceId: 1234,
+          tarifId: 'adulte',
+          tarifLabelSnapshot: 'Adulte',
+          amountCents: 1000,
+          paidAt: new Date('2026-05-12T10:00:00Z'),
+          createdAt: new Date('2026-05-12T09:00:00Z'),
+        },
+      ] as HelloAssoPaymentEntity[]);
+
+      const result = await m.service.listActiveForOwnerByCompetition(32, 55);
+
+      expect(result).toEqual([
+        {
+          id: 42,
+          status: HelloAssoPaymentStatus.PAID,
+          competitionId: 32,
+          licenceId: 1234,
+          tarifName: 'Adulte',
+          montant: 10,
+          paidAt: '2026-05-12T10:00:00.000Z',
+          createdAt: '2026-05-12T09:00:00.000Z',
+        },
+      ]);
+    });
+
+    it('scopes the query strictly to the caller (payerUserId)', async () => {
+      const m = makeService();
+      m.paymentRepo.find.mockResolvedValue([]);
+
+      await m.service.listActiveForOwnerByCompetition(32, 999);
+
+      expect(m.paymentRepo.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ payerUserId: 999 }),
+        }),
+      );
     });
   });
 });

@@ -1,5 +1,15 @@
-import { Body, Controller, Get, HttpCode, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -15,6 +25,7 @@ import { HelloAssoPaymentService } from './helloasso-payment.service';
  * Endpoints paiement HelloAsso côté payeur (app Dossardeur).
  *
  *   POST /api-v2/helloasso/payments/checkout-intent   [JWT, ADMIN|ORGANISATEUR|MOBILE]
+ *   GET  /api-v2/helloasso/payments?competitionId=X   [JWT, ADMIN|ORGANISATEUR|MOBILE, scope=me]
  *   GET  /api-v2/helloasso/payments/:id               [JWT, ADMIN|ORGANISATEUR|MOBILE, owner only]
  *
  * Owner = user dont l'`id` correspond à `payment.payer_user_id`. Vérification
@@ -40,7 +51,10 @@ le \`paymentId\` OpenDossard + l'\`redirectUrl\` HelloAsso à ouvrir côté app.
   @ApiResponse({ status: 201, type: CheckoutIntentCreatedDto })
   @ApiResponse({ status: 404, description: 'Compétition, tarif ou licence introuvable' })
   @ApiResponse({ status: 409, description: 'Licence déjà engagée sur cette épreuve' })
-  @ApiResponse({ status: 422, description: 'Paiement en ligne désactivé / club non lié / tarif mal configuré' })
+  @ApiResponse({
+    status: 422,
+    description: 'Paiement en ligne désactivé / club non lié / tarif mal configuré',
+  })
   @ApiResponse({ status: 502, description: 'HelloAsso indisponible ou access_token rejeté' })
   createCheckoutIntent(
     @Body() dto: CreateCheckoutIntentDto,
@@ -49,9 +63,31 @@ le \`paymentId\` OpenDossard + l'\`redirectUrl\` HelloAsso à ouvrir côté app.
     return this.payments.createCheckoutIntent({ dto, payerUserId });
   }
 
+  @Get()
+  @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
+  @ApiOperation({
+    summary: 'Lister les paiements actifs du user courant sur une compétition',
+    description: `Retourne les paiements (\`pending\` ou \`paid\`) du user appelant pour la
+compétition donnée, ordonnés par \`createdAt\` décroissant. Les paiements
+\`refused\` / \`refunded\` sont volontairement exclus (utilisé par l'app pour
+afficher un badge "déjà inscrit" sur l'écran épreuve).
+
+Scope implicite : \`payerUserId = currentUser.id\`. Pas d'option pour interroger
+les paiements d'autres users (même pour ADMIN — passer par un endpoint admin
+dédié si besoin futur).`,
+  })
+  @ApiQuery({ name: 'competitionId', type: Number, required: true })
+  @ApiResponse({ status: 200, type: HelloAssoPaymentDto, isArray: true })
+  listMyActivePayments(
+    @Query('competitionId', ParseIntPipe) competitionId: number,
+    @CurrentUser('id') payerUserId: number,
+  ): Promise<HelloAssoPaymentDto[]> {
+    return this.payments.listActiveForOwnerByCompetition(competitionId, payerUserId);
+  }
+
   @Get(':id')
   @ApiOperation({
-    summary: 'État d\'un paiement HelloAsso (owner only)',
+    summary: "État d'un paiement HelloAsso (owner only)",
     description: `Retourne le statut du paiement et la date paidAt si confirmé.
 Utilisé par le polling app après retour deep link HelloAsso.`,
   })
