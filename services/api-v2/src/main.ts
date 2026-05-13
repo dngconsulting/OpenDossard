@@ -62,6 +62,7 @@ async function bootstrap() {
       { path: '.well-known/apple-app-site-association', method: RequestMethod.GET },
       { path: '.well-known/assetlinks.json', method: RequestMethod.GET },
       { path: 'app/(.*)', method: RequestMethod.GET },
+      { path: 'payment/(.*)', method: RequestMethod.GET },
     ],
   });
   app.enableVersioning({
