@@ -31,6 +31,25 @@ function makeDto(overrides: Partial<CreateCheckoutIntentDto> = {}): CreateChecko
   };
 }
 
+interface QueryBuilderMock {
+  leftJoinAndMapOne: jest.Mock;
+  where: jest.Mock;
+  andWhere: jest.Mock;
+  orderBy: jest.Mock;
+  getMany: jest.Mock;
+}
+
+function makeQueryBuilderMock(getManyResult: unknown[] = []): QueryBuilderMock {
+  const qb: QueryBuilderMock = {
+    leftJoinAndMapOne: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    getMany: jest.fn().mockResolvedValue(getManyResult),
+  };
+  return qb;
+}
+
 interface Mocks {
   service: HelloAssoPaymentService;
   paymentRepo: {
@@ -40,6 +59,7 @@ interface Mocks {
     create: jest.Mock;
     update: jest.Mock;
     delete: jest.Mock;
+    createQueryBuilder: jest.Mock;
   };
   competitionRepo: { findOne: jest.Mock };
   licenceRepo: { findOne: jest.Mock };
@@ -60,6 +80,7 @@ function makeService(): Mocks {
     create: jest.fn((x: Partial<HelloAssoPaymentEntity>) => x as HelloAssoPaymentEntity),
     update: jest.fn(),
     delete: jest.fn(),
+    createQueryBuilder: jest.fn(),
   };
   const competitionRepo = { findOne: jest.fn() };
   const licenceRepo = { findOne: jest.fn() };
@@ -378,28 +399,21 @@ describe('HelloAssoPaymentService', () => {
     });
   });
 
-  describe('listActiveForOwnerByCompetition', () => {
-    it('returns an empty array when the user has no payment on this competition', async () => {
+  describe('listForOwner', () => {
+    it('returns an empty array when the user has no payment', async () => {
       const m = makeService();
-      m.paymentRepo.find.mockResolvedValue([]);
+      const qb = makeQueryBuilderMock([]);
+      m.paymentRepo.createQueryBuilder.mockReturnValue(qb);
 
-      const result = await m.service.listActiveForOwnerByCompetition(32, 55);
+      const result = await m.service.listForOwner(55);
 
       expect(result).toEqual([]);
-      expect(m.paymentRepo.find).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            competitionId: 32,
-            payerUserId: 55,
-          }),
-          order: { createdAt: 'DESC' },
-        }),
-      );
+      expect(qb.orderBy).toHaveBeenCalledWith('payment.createdAt', 'DESC');
     });
 
-    it('returns mapped DTOs when the user has active payments', async () => {
+    it('maps payments to DTO including competition fields from the JOIN', async () => {
       const m = makeService();
-      m.paymentRepo.find.mockResolvedValue([
+      const qb = makeQueryBuilderMock([
         {
           id: 42,
           payerUserId: 55,
@@ -411,16 +425,26 @@ describe('HelloAssoPaymentService', () => {
           amountCents: 1000,
           paidAt: new Date('2026-05-12T10:00:00Z'),
           createdAt: new Date('2026-05-12T09:00:00Z'),
-        },
-      ] as HelloAssoPaymentEntity[]);
+          competition: {
+            id: 32,
+            name: 'Grand Prix Castanet',
+            eventDate: new Date('2026-06-15T00:00:00Z'),
+            fede: 'FSGT',
+          },
+        } as HelloAssoPaymentEntity & { competition: CompetitionEntity },
+      ]);
+      m.paymentRepo.createQueryBuilder.mockReturnValue(qb);
 
-      const result = await m.service.listActiveForOwnerByCompetition(32, 55);
+      const result = await m.service.listForOwner(55);
 
       expect(result).toEqual([
         {
           id: 42,
           status: HelloAssoPaymentStatus.PAID,
           competitionId: 32,
+          competitionName: 'Grand Prix Castanet',
+          competitionDate: '2026-06-15T00:00:00.000Z',
+          competitionFede: 'FSGT',
           licenceId: 1234,
           tarifName: 'Adulte',
           montant: 10,
@@ -430,17 +454,64 @@ describe('HelloAssoPaymentService', () => {
       ]);
     });
 
-    it('scopes the query strictly to the caller (payerUserId)', async () => {
+    it('applies optional competitionId filter when provided', async () => {
       const m = makeService();
-      m.paymentRepo.find.mockResolvedValue([]);
+      const qb = makeQueryBuilderMock([]);
+      m.paymentRepo.createQueryBuilder.mockReturnValue(qb);
 
-      await m.service.listActiveForOwnerByCompetition(32, 999);
+      await m.service.listForOwner(55, { competitionId: 32 });
 
-      expect(m.paymentRepo.find).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({ payerUserId: 999 }),
-        }),
-      );
+      expect(qb.andWhere).toHaveBeenCalledWith('payment.competitionId = :competitionId', {
+        competitionId: 32,
+      });
+    });
+
+    it('applies optional status filter when provided', async () => {
+      const m = makeService();
+      const qb = makeQueryBuilderMock([]);
+      m.paymentRepo.createQueryBuilder.mockReturnValue(qb);
+
+      await m.service.listForOwner(55, { status: HelloAssoPaymentStatus.PAID });
+
+      expect(qb.andWhere).toHaveBeenCalledWith('payment.status = :status', {
+        status: HelloAssoPaymentStatus.PAID,
+      });
+    });
+
+    it('does NOT add filter clauses when no filter is provided', async () => {
+      const m = makeService();
+      const qb = makeQueryBuilderMock([]);
+      m.paymentRepo.createQueryBuilder.mockReturnValue(qb);
+
+      await m.service.listForOwner(55);
+
+      // Aucun andWhere appelé : seul le where initial (payerUserId) est posé
+      expect(qb.andWhere).not.toHaveBeenCalled();
+    });
+
+    /**
+     * **Broken Access Control safeguard** : ce test est CRITIQUE.
+     * Il garantit que la clause WHERE filtre TOUJOURS par `payerUserId` issu
+     * du caller (qui doit lui-même venir de `@CurrentUser('id')` côté
+     * controller — cf. doc bloc class). Si cette clause sautait, n'importe
+     * quel user authentifié pourrait lire les paiements d'autres users.
+     */
+    it('Broken Access Control: WHERE always scopes by payerUserId (no leak across users)', async () => {
+      const m = makeService();
+      const qb = makeQueryBuilderMock([]);
+      m.paymentRepo.createQueryBuilder.mockReturnValue(qb);
+
+      await m.service.listForOwner(999);
+
+      expect(qb.where).toHaveBeenCalledTimes(1);
+      expect(qb.where).toHaveBeenCalledWith('payment.payerUserId = :payerUserId', {
+        payerUserId: 999,
+      });
+
+      // Vérifie aussi que la clause where utilise bien le param `payerUserId`
+      // (pas un autre nom) — défensif contre un refacto qui casserait le scope.
+      const whereCall = qb.where.mock.calls[0];
+      expect(String(whereCall[0])).toContain('payerUserId');
     });
   });
 });

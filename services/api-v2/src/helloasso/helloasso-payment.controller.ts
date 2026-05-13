@@ -9,7 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -19,17 +19,21 @@ import { Role } from '../common/enums';
 import { CheckoutIntentCreatedDto } from './dto/checkout-intent-created.dto';
 import { CreateCheckoutIntentDto } from './dto/create-checkout-intent.dto';
 import { HelloAssoPaymentDto } from './dto/helloasso-payment.dto';
+import { ListPaymentsQueryDto } from './dto/list-payments-query.dto';
 import { HelloAssoPaymentService } from './helloasso-payment.service';
 
 /**
  * Endpoints paiement HelloAsso côté payeur (app Dossardeur).
  *
- *   POST /api-v2/helloasso/payments/checkout-intent   [JWT, ADMIN|ORGANISATEUR|MOBILE]
- *   GET  /api-v2/helloasso/payments?competitionId=X   [JWT, ADMIN|ORGANISATEUR|MOBILE, scope=me]
- *   GET  /api-v2/helloasso/payments/:id               [JWT, ADMIN|ORGANISATEUR|MOBILE, owner only]
+ *   POST /api-v2/helloasso/payments/checkout-intent          [JWT, ADMIN|ORGANISATEUR|MOBILE]
+ *   GET  /api-v2/helloasso/payments?competitionId=&status=   [JWT, ADMIN|ORGANISATEUR|MOBILE, scope=me]
+ *   GET  /api-v2/helloasso/payments/:id                      [JWT, ADMIN|ORGANISATEUR|MOBILE, owner only]
  *
- * Owner = user dont l'`id` correspond à `payment.payer_user_id`. Vérification
- * faite dans le service.
+ * **Broken Access Control safeguard** : sur les 3 endpoints, l'identité du
+ * payeur est lue depuis `@CurrentUser('id')` (issu du JWT validé) et JAMAIS
+ * depuis une query string, header ou body. Aucun query param `userId` n'est
+ * exposé (cf. `ListPaymentsQueryDto`). Un user ne peut donc voir / engager
+ * que ses propres paiements.
  */
 @ApiTags('helloasso-payments')
 @Controller('helloasso/payments')
@@ -66,23 +70,31 @@ le \`paymentId\` OpenDossard + l'\`redirectUrl\` HelloAsso à ouvrir côté app.
   @Get()
   @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
   @ApiOperation({
-    summary: 'Lister les paiements actifs du user courant sur une compétition',
-    description: `Retourne les paiements (\`pending\` ou \`paid\`) du user appelant pour la
-compétition donnée, ordonnés par \`createdAt\` décroissant. Les paiements
-\`refused\` / \`refunded\` sont volontairement exclus (utilisé par l'app pour
-afficher un badge "déjà inscrit" sur l'écran épreuve).
+    summary: 'Lister les paiements du user courant (filtres optionnels)',
+    description: `Retourne les paiements du user appelant, ordonnés par \`createdAt\`
+décroissant. Filtres optionnels :
+- \`competitionId\` : limite à une compétition (cas badge "déjà inscrit" sur l'écran épreuve)
+- \`status\` : limite à un statut (\`pending\`/\`paid\`/\`refused\`/\`refunded\`)
+- sans filtre : tous les paiements de toutes les compétitions (écran "Mes paiements")
 
-Scope implicite : \`payerUserId = currentUser.id\`. Pas d'option pour interroger
-les paiements d'autres users (même pour ADMIN — passer par un endpoint admin
-dédié si besoin futur).`,
+Les champs \`competitionName\` / \`competitionDate\` / \`competitionFede\` sont
+populés ici via LEFT JOIN (évite N+1 côté mobile). Pour le polling
+\`GET /:id\`, ces champs sont omis.
+
+**Scope strict** : \`payerUserId = currentUser.id\` (JWT). Pas d'option pour
+interroger les paiements d'autres users — même pour ADMIN. Si un endpoint
+admin global s'avère nécessaire, faire un endpoint dédié avec son propre
+guard, pas un override sur celui-ci.`,
   })
-  @ApiQuery({ name: 'competitionId', type: Number, required: true })
   @ApiResponse({ status: 200, type: HelloAssoPaymentDto, isArray: true })
-  listMyActivePayments(
-    @Query('competitionId', ParseIntPipe) competitionId: number,
+  listMyPayments(
+    @Query() query: ListPaymentsQueryDto,
     @CurrentUser('id') payerUserId: number,
   ): Promise<HelloAssoPaymentDto[]> {
-    return this.payments.listActiveForOwnerByCompetition(competitionId, payerUserId);
+    return this.payments.listForOwner(payerUserId, {
+      competitionId: query.competitionId,
+      status: query.status,
+    });
   }
 
   @Get(':id')

@@ -198,28 +198,49 @@ export class HelloAssoPaymentService {
   }
 
   /**
-   * Liste les paiements actifs (`pending` ou `paid`) du user courant sur une
-   * compétition donnée. Utilisé par l'app Dossardeur pour afficher le badge
-   * "✓ Inscription payée" ou "⏳ Inscription en cours" sur l'écran épreuve.
+   * Liste les paiements du user courant, avec filtres optionnels (compétition,
+   * statut). 1 seule requête : LEFT JOIN sur `competition` pour récupérer
+   * name/eventDate/fede d'un coup (évite N+1 côté app Dossardeur).
    *
-   * Filtre intentionnellement les statuts `refused` / `refunded` — ces états
-   * ne correspondent pas à une inscription active et n'intéressent pas le
-   * badge mobile. Si on a besoin de l'historique complet plus tard, on ajoutera
-   * un query param `status` à l'endpoint.
+   * **Broken Access Control safeguard** : `payerUserId` est TOUJOURS dans la
+   * clause WHERE, jamais optionnel — un user ne peut voir QUE ses propres
+   * paiements. Le caller (controller) doit lire `payerUserId` depuis
+   * `@CurrentUser('id')` (JWT) et JAMAIS depuis une query string ou body.
+   *
+   * Usage côté Dossardeur :
+   *  - Badge épreuve : `{ competitionId, status: 'pending' | 'paid' }` (filter en mémoire mobile)
+   *  - Écran Mes paiements : `{}` (tous statuts, toutes compets)
    */
-  async listActiveForOwnerByCompetition(
-    competitionId: number,
+  async listForOwner(
     payerUserId: number,
+    filters: { competitionId?: number; status?: HelloAssoPaymentStatus } = {},
   ): Promise<HelloAssoPaymentDto[]> {
-    const payments = await this.paymentRepo.find({
-      where: {
-        competitionId,
-        payerUserId,
-        status: In([HelloAssoPaymentStatus.PENDING, HelloAssoPaymentStatus.PAID]),
-      },
-      order: { createdAt: 'DESC' },
-    });
-    return payments.map(toPaymentDto);
+    const qb = this.paymentRepo
+      .createQueryBuilder('payment')
+      // `leftJoinAndMapOne` injecte la compétition jointe sur `payment.competition`
+      // (propriété virtuelle, pas dans l'entité — d'où le cast côté mapping).
+      .leftJoinAndMapOne(
+        'payment.competition',
+        CompetitionEntity,
+        'competition',
+        'competition.id = payment.competitionId',
+      )
+      .where('payment.payerUserId = :payerUserId', { payerUserId });
+
+    if (filters.competitionId !== undefined) {
+      qb.andWhere('payment.competitionId = :competitionId', {
+        competitionId: filters.competitionId,
+      });
+    }
+    if (filters.status !== undefined) {
+      qb.andWhere('payment.status = :status', { status: filters.status });
+    }
+    qb.orderBy('payment.createdAt', 'DESC');
+
+    const payments = (await qb.getMany()) as Array<
+      HelloAssoPaymentEntity & { competition?: CompetitionEntity }
+    >;
+    return payments.map(toPaymentListDto);
   }
 
   private findTarif(
@@ -276,6 +297,22 @@ function toPaymentDto(payment: HelloAssoPaymentEntity): HelloAssoPaymentDto {
     montant: payment.amountCents / 100,
     paidAt: payment.paidAt?.toISOString() ?? null,
     createdAt: payment.createdAt.toISOString(),
+  };
+}
+
+/**
+ * Variante enrichie pour l'endpoint liste : populate `competition*` quand
+ * la JOIN a chargé la compétition. Le polling `GET /:id` n'utilise pas cette
+ * variante (pas besoin de réloader la competition côté mobile).
+ */
+function toPaymentListDto(
+  payment: HelloAssoPaymentEntity & { competition?: CompetitionEntity },
+): HelloAssoPaymentDto {
+  return {
+    ...toPaymentDto(payment),
+    competitionName: payment.competition?.name ?? undefined,
+    competitionDate: payment.competition?.eventDate?.toISOString() ?? undefined,
+    competitionFede: payment.competition?.fede ?? undefined,
   };
 }
 
