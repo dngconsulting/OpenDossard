@@ -411,7 +411,7 @@ describe('HelloAssoPaymentService', () => {
       expect(qb.orderBy).toHaveBeenCalledWith('payment.createdAt', 'DESC');
     });
 
-    it('maps payments to DTO including competition fields from the JOIN', async () => {
+    it('maps payments to DTO including competition + licence fields from the JOINs', async () => {
       const m = makeService();
       const qb = makeQueryBuilderMock([
         {
@@ -431,7 +431,16 @@ describe('HelloAssoPaymentService', () => {
             eventDate: new Date('2026-06-15T00:00:00Z'),
             fede: 'FSGT',
           },
-        } as HelloAssoPaymentEntity & { competition: CompetitionEntity },
+          licence: {
+            id: 1234,
+            firstName: 'Sami',
+            // `LicenceEntity.name` est le lastName dans le schéma OpenDossard.
+            name: 'Jaber',
+          },
+        } as HelloAssoPaymentEntity & {
+          competition: CompetitionEntity;
+          licence: LicenceEntity;
+        },
       ]);
       m.paymentRepo.createQueryBuilder.mockReturnValue(qb);
 
@@ -446,6 +455,8 @@ describe('HelloAssoPaymentService', () => {
           competitionDate: '2026-06-15T00:00:00.000Z',
           competitionFede: 'FSGT',
           licenceId: 1234,
+          licenceFirstName: 'Sami',
+          licenceLastName: 'Jaber',
           tarifName: 'Adulte',
           montant: 10,
           paidAt: '2026-05-12T10:00:00.000Z',

@@ -35,6 +35,12 @@ export class HelloAssoPaymentDto {
   @ApiProperty()
   licenceId: number;
 
+  @ApiPropertyOptional({ description: 'Prénom du coureur engagé (liste uniquement).' })
+  licenceFirstName?: string;
+
+  @ApiPropertyOptional({ description: 'Nom de famille du coureur engagé (liste uniquement).' })
+  licenceLastName?: string;
+
   @ApiProperty({ description: "Libellé du tarif au moment de l'engagement (snapshot)." })
   tarifName: string;
 

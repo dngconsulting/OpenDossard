@@ -217,13 +217,20 @@ export class HelloAssoPaymentService {
   ): Promise<HelloAssoPaymentDto[]> {
     const qb = this.paymentRepo
       .createQueryBuilder('payment')
-      // `leftJoinAndMapOne` injecte la compétition jointe sur `payment.competition`
-      // (propriété virtuelle, pas dans l'entité — d'où le cast côté mapping).
+      // `leftJoinAndMapOne` injecte les entités jointes sur des propriétés
+      // virtuelles (`payment.competition` / `payment.licence`, non dans
+      // l'entité — d'où les casts côté mapping).
       .leftJoinAndMapOne(
         'payment.competition',
         CompetitionEntity,
         'competition',
         'competition.id = payment.competitionId',
+      )
+      .leftJoinAndMapOne(
+        'payment.licence',
+        LicenceEntity,
+        'licence',
+        'licence.id = payment.licenceId',
       )
       .where('payment.payerUserId = :payerUserId', { payerUserId });
 
@@ -238,7 +245,7 @@ export class HelloAssoPaymentService {
     qb.orderBy('payment.createdAt', 'DESC');
 
     const payments = (await qb.getMany()) as Array<
-      HelloAssoPaymentEntity & { competition?: CompetitionEntity }
+      HelloAssoPaymentEntity & { competition?: CompetitionEntity; licence?: LicenceEntity }
     >;
     return payments.map(toPaymentListDto);
   }
@@ -261,7 +268,12 @@ export class HelloAssoPaymentService {
   }): CheckoutIntentRequestBody {
     const { payment, competition, licence, tarif, amountCents, payerProfile } = args;
     const competitionName = competition.name ?? `Épreuve #${competition.id}`;
-    const itemName = truncate(`Inscription ${competitionName} — ${tarif.name}`, 250);
+    // Inclut le nom+prénom du licencié dans le libellé HelloAsso pour faciliter
+    // l'identification côté back-office orga (utile quand le payeur ≠ coureur,
+    // ex. parent qui paie pour son enfant).
+    const licenceFullName = [licence.firstName, licence.name].filter(Boolean).join(' ').trim();
+    const itemSuffix = licenceFullName ? ` — ${licenceFullName}` : '';
+    const itemName = truncate(`Inscription ${competitionName} — ${tarif.name}${itemSuffix}`, 250);
     return {
       totalAmount: amountCents,
       initialAmount: amountCents,
@@ -306,13 +318,19 @@ function toPaymentDto(payment: HelloAssoPaymentEntity): HelloAssoPaymentDto {
  * variante (pas besoin de réloader la competition côté mobile).
  */
 function toPaymentListDto(
-  payment: HelloAssoPaymentEntity & { competition?: CompetitionEntity },
+  payment: HelloAssoPaymentEntity & {
+    competition?: CompetitionEntity;
+    licence?: LicenceEntity;
+  },
 ): HelloAssoPaymentDto {
   return {
     ...toPaymentDto(payment),
     competitionName: payment.competition?.name ?? undefined,
     competitionDate: payment.competition?.eventDate?.toISOString() ?? undefined,
     competitionFede: payment.competition?.fede ?? undefined,
+    licenceFirstName: payment.licence?.firstName ?? undefined,
+    // `LicenceEntity.name` est le lastName dans le schéma OpenDossard.
+    licenceLastName: payment.licence?.name ?? undefined,
   };
 }
 
