@@ -48,10 +48,15 @@ export class HelloAssoPaymentEntity {
   @Index()
   licenceId: number;
 
-  /** User Firebase (Dossardeur) qui a initié le paiement. FK ON DELETE RESTRICT. */
-  @Column({ name: 'payer_user_id', type: 'int' })
+  /**
+   * User Firebase (Dossardeur) qui a initié le paiement. FK ON DELETE SET NULL :
+   * la suppression du compte (RGPD) NULL-ifie cette colonne pour préserver
+   * l'historique comptable. Les snapshots ci-dessous sont anonymisés en
+   * parallèle par `AuthFirebaseService.deleteAccount`.
+   */
+  @Column({ name: 'payer_user_id', type: 'int', nullable: true })
   @Index()
-  payerUserId: number;
+  payerUserId: number | null;
 
   /**
    * Snapshot du `firebase_uid` au moment du paiement — audit indépendant

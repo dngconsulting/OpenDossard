@@ -20,6 +20,7 @@ import { Repository } from 'typeorm';
 import type * as admin from 'firebase-admin';
 
 import { UserEntity } from '../users/entities/user.entity';
+import { HelloAssoPaymentEntity } from '../helloasso/entities/helloasso-payment.entity';
 import { AuthResponseDto, TokensDto } from '../auth/dto';
 import { RegisterDto } from './dto';
 import { FIREBASE_ADMIN } from '../firebase/firebase.module';
@@ -31,6 +32,8 @@ export class AuthFirebaseService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
+    @InjectRepository(HelloAssoPaymentEntity)
+    private readonly helloAssoPaymentRepo: Repository<HelloAssoPaymentEntity>,
     @Inject(FIREBASE_ADMIN) private readonly firebaseApp: admin.app.App,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
@@ -195,9 +198,23 @@ export class AuthFirebaseService {
       );
     }
 
+    // RGPD : anonymise les snapshots de paiement AVANT de supprimer le user.
+    // La FK passe ensuite en SET NULL automatiquement via ON DELETE SET NULL.
+    // L'historique comptable (montant, dates, IDs HelloAsso) est conservé.
+    const anonymized = await this.helloAssoPaymentRepo
+      .createQueryBuilder()
+      .update()
+      .set({
+        payerFirstName: null,
+        payerLastName: null,
+        payerFirebaseUid: null,
+      })
+      .where('payer_user_id = :id', { id: user.id })
+      .execute();
+
     await this.userRepo.delete({ id: user.id });
     this.logger.log(
-      `deleteAccount: deleted user id=${user.id} uid=${user.firebaseUid}`,
+      `deleteAccount: deleted user id=${user.id} uid=${user.firebaseUid} anonymized_payments=${anonymized.affected ?? 0}`,
     );
   }
 
