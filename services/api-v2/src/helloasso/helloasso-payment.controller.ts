@@ -112,4 +112,29 @@ Utilisé par le polling app après retour deep link HelloAsso.`,
   ): Promise<HelloAssoPaymentDto> {
     return this.payments.findByIdForOwner(id, payerUserId);
   }
+
+  @Post(':id/cancel')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Annuler un paiement pending (owner only)',
+    description: `Appelé par l'app au retour du deep link \`payment/cancelled\` pour
+libérer immédiatement le slot (competition, licence) dans l'index partial unique
+sans attendre le webhook HelloAsso \`Canceled\` (latence variable, parfois jamais
+si l'user a fermé le webview brutalement).
+
+Comportement :
+- \`status=pending\` → \`refused\` (UPDATE atomique guarded)
+- \`status=paid|refused|refunded\` → no-op idempotent, renvoie l'état actuel
+- Un webhook \`Canceled\` arrivant après ce cancel est lui-même no-op (même guard)
+- 403 si l'appelant n'est pas le payeur du paiement`,
+  })
+  @ApiResponse({ status: 200, type: HelloAssoPaymentDto })
+  @ApiResponse({ status: 403, description: 'Pas le payeur de ce paiement' })
+  @ApiResponse({ status: 404, description: 'Paiement introuvable' })
+  cancel(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('id') payerUserId: number,
+  ): Promise<HelloAssoPaymentDto> {
+    return this.payments.cancelByOwner(id, payerUserId);
+  }
 }

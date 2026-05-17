@@ -196,6 +196,65 @@ export class HelloAssoPaymentService {
   }
 
   /**
+   * Annulation explicite par le payeur (appel app au deep link
+   * `payment/cancelled`). Marque le `pending` en `refused` pour libérer
+   * immédiatement le partial unique index `(competition, licence) WHERE
+   * status IN ('pending','paid')` sans attendre le webhook HelloAsso
+   * `Canceled` (qui peut traîner ou ne jamais arriver si l'user a juste
+   * fermé le webview).
+   *
+   * Idempotent et race-safe :
+   *  - UPDATE atomique guarded par `status = 'pending'` (même pattern
+   *    que `applyStatusTransition` côté webhook)
+   *  - Si le webhook a transitioné entre-temps (paid/refused/refunded),
+   *    le WHERE ne matche pas → 0 row affected → on retourne l'état
+   *    courant rafraîchi sans erreur
+   *  - Un webhook ultérieur `Canceled` arrivant après ce cancel app
+   *    sera lui-même un no-op grâce au même guard
+   *
+   * Auth : `payerUserId` doit matcher `payment.payerUserId` (extrait du
+   * JWT côté controller). 403 sinon.
+   */
+  async cancelByOwner(paymentId: number, payerUserId: number): Promise<HelloAssoPaymentDto> {
+    const payment = await this.paymentRepo.findOne({ where: { id: paymentId } });
+    if (!payment) {
+      throw new NotFoundException(`Paiement #${paymentId} introuvable`);
+    }
+    if (payment.payerUserId !== payerUserId) {
+      throw new ForbiddenException(`Vous n'êtes pas le payeur de ce paiement`);
+    }
+
+    if (payment.status !== HelloAssoPaymentStatus.PENDING) {
+      this.logger.log(
+        `cancelByOwner: paymentId=${paymentId} already in status=${payment.status} (no-op)`,
+      );
+      return this.toDto(payment);
+    }
+
+    const result = await this.paymentRepo
+      .createQueryBuilder()
+      .update(HelloAssoPaymentEntity)
+      .set({ status: HelloAssoPaymentStatus.REFUSED })
+      .where('id = :id AND status = :prerequisite', {
+        id: payment.id,
+        prerequisite: HelloAssoPaymentStatus.PENDING,
+      })
+      .execute();
+
+    if ((result.affected ?? 0) > 0) {
+      this.logger.log(`cancelByOwner: paymentId=${paymentId} pending→refused`);
+      return this.toDto({ ...payment, status: HelloAssoPaymentStatus.REFUSED });
+    }
+    // Race avec un webhook qui a transitioné entre le findOne et l'UPDATE :
+    // refetch pour un DTO refletant le vrai état final.
+    const fresh = await this.paymentRepo.findOne({ where: { id: paymentId } });
+    this.logger.log(
+      `cancelByOwner: paymentId=${paymentId} race-with-webhook, current=${fresh?.status ?? 'gone'}`,
+    );
+    return this.toDto(fresh ?? payment);
+  }
+
+  /**
    * Liste les paiements du user courant, avec filtres optionnels (compétition,
    * statut). 1 seule requête : LEFT JOIN sur `competition` pour récupérer
    * name/eventDate/fede d'un coup (évite N+1 côté app Dossardeur).
