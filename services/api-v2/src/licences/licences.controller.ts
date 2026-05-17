@@ -29,7 +29,13 @@ import {
 import { LicencesService } from './licences.service';
 import { LicenceImportService } from './licence-import.service';
 import { LicenceEntity } from './entities/licence.entity';
-import { CreateLicenceDto, UpdateLicenceDto, FilterLicenceDto, ImportResultDto, LicenceLookupResponseDto } from './dto';
+import {
+  CreateLicenceDto,
+  UpdateLicenceDto,
+  FilterLicenceDto,
+  ImportResultDto,
+  LicenceLookupResponseDto,
+} from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -73,7 +79,7 @@ export class LicencesController {
   @Get('by-number/:licenceNumber')
   @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
   @ApiOperation({
-    summary: 'Lookup d\'une licence par numéro (clé business)',
+    summary: "Lookup d'une licence par numéro (clé business)",
     description: `Utilisé par le flux de paiement HelloAsso côté mobile pour
 confirmer l'identité du coureur avant engagement. Retourne un DTO restreint
 (pas l'entité complète) — exclut author/comment/lastChanged. 404 si introuvable.`,

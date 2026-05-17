@@ -79,9 +79,18 @@ export class HelloAssoConfig {
     this.tokenEncryptionKey = decodeEncryptionKey(
       requireNonEmpty(configService, 'HELLOASSO_TOKEN_ENCRYPTION_KEY'),
     );
-    this.paymentReturnUrlSuccess = requireNonEmpty(configService, 'HELLOASSO_PAYMENT_RETURN_URL_SUCCESS');
-    this.paymentReturnUrlError = requireNonEmpty(configService, 'HELLOASSO_PAYMENT_RETURN_URL_ERROR');
-    this.paymentReturnUrlCancelled = requireNonEmpty(configService, 'HELLOASSO_PAYMENT_RETURN_URL_CANCELLED');
+    this.paymentReturnUrlSuccess = requireNonEmpty(
+      configService,
+      'HELLOASSO_PAYMENT_RETURN_URL_SUCCESS',
+    );
+    this.paymentReturnUrlError = requireNonEmpty(
+      configService,
+      'HELLOASSO_PAYMENT_RETURN_URL_ERROR',
+    );
+    this.paymentReturnUrlCancelled = requireNonEmpty(
+      configService,
+      'HELLOASSO_PAYMENT_RETURN_URL_CANCELLED',
+    );
     this.webhookSignatureKey = requireNonEmpty(configService, 'HELLOASSO_WEBHOOK_SIGNATURE_KEY');
   }
 

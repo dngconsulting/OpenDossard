@@ -58,7 +58,7 @@ function buildBody(
     metadata:
       overrides.metadata === null
         ? undefined
-        : overrides.metadata ?? { openDossardPaymentId: 42 },
+        : (overrides.metadata ?? { openDossardPaymentId: 42 }),
     data: {
       id: 13790,
       state: 'Authorized',

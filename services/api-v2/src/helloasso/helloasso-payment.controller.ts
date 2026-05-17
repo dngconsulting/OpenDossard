@@ -16,11 +16,15 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Role } from '../common/enums';
+import { PaginatedResponseDto } from '../common/dto/pagination.dto';
 import { CheckoutIntentCreatedDto } from './dto/checkout-intent-created.dto';
 import { CreateCheckoutIntentDto } from './dto/create-checkout-intent.dto';
 import { HelloAssoPaymentDto } from './dto/helloasso-payment.dto';
+import { ListPaymentsAdminQueryDto } from './dto/list-payments-admin-query.dto';
 import { ListPaymentsQueryDto } from './dto/list-payments-query.dto';
+import { PaymentAdminRowDto } from './dto/payment-admin-row.dto';
 import { HelloAssoPaymentService } from './helloasso-payment.service';
+import { HelloAssoPaymentsAdminService } from './helloasso-payments-admin.service';
 
 /**
  * Endpoints paiement HelloAsso côté payeur (app Dossardeur).
@@ -41,7 +45,55 @@ import { HelloAssoPaymentService } from './helloasso-payment.service';
 @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
 @ApiBearerAuth()
 export class HelloAssoPaymentController {
-  constructor(private readonly payments: HelloAssoPaymentService) {}
+  constructor(
+    private readonly payments: HelloAssoPaymentService,
+    private readonly adminPayments: HelloAssoPaymentsAdminService,
+  ) {}
+
+  /**
+   * **MOBILE INTERDIT** : le `@Roles()` ci-dessous override le `@Roles()` de
+   * classe (qui inclut MOBILE). Vérifié dans `RolesGuard.canActivate` via
+   * `getAllAndOverride([handler, class])` — la valeur du handler prime.
+   * Ne JAMAIS ajouter MOBILE ici : l'écran "Mes paiements" mobile passe par
+   * `GET /helloasso/payments` (scope=me).
+   */
+  @Get('admin/all')
+  @Roles(Role.ADMIN)
+  @ApiOperation({
+    summary: 'Lister tous les paiements (ADMIN)',
+    description: `Endpoint admin global : retourne tous les paiements (toutes
+compétitions, tous clubs) avec pagination/tri/filtre serveur. Tri par défaut :
+\`paid_at DESC NULLS LAST, created_at DESC\`. Whitelist orderBy stricte côté
+service (anti-SQL injection). MOBILE explicitement exclu via override @Roles().`,
+  })
+  @ApiResponse({ status: 200, type: PaymentAdminRowDto, isArray: true })
+  listAllAdmin(
+    @Query() query: ListPaymentsAdminQueryDto,
+  ): Promise<PaginatedResponseDto<PaymentAdminRowDto>> {
+    return this.adminPayments.list({ ...query });
+  }
+
+  /**
+   * **MOBILE INTERDIT** : mêmes raisons que `listAllAdmin`. ORGANISATEUR autorisé
+   * (scope large — pas de filtrage par club administré côté serveur, choix
+   * métier explicite).
+   */
+  @Get('admin/competition/:competitionId')
+  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @ApiOperation({
+    summary: "Lister les paiements d'une compétition (ADMIN | ORGANISATEUR)",
+    description: `Endpoint scopé compétition pour l'onglet "Paiements" sur l'écran
+des engagements. ORGANISATEUR : scope large, peut interroger n'importe quelle
+compétition (cf. design 2026-05-17). Pagination/tri/filtres identiques à
+\`/admin/all\`.`,
+  })
+  @ApiResponse({ status: 200, type: PaymentAdminRowDto, isArray: true })
+  listByCompetitionAdmin(
+    @Param('competitionId', ParseIntPipe) competitionId: number,
+    @Query() query: ListPaymentsAdminQueryDto,
+  ): Promise<PaginatedResponseDto<PaymentAdminRowDto>> {
+    return this.adminPayments.list({ ...query, competitionId });
+  }
 
   @Post('checkout-intent')
   @HttpCode(201)

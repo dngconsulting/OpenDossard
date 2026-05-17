@@ -1,22 +1,7 @@
 import type { LicenceType, PaginatedResponse, PaginationParams } from '@/types/licences';
 
+import { buildQueryString } from './_query-string';
 import { apiClient } from './client';
-
-const buildQueryString = (params: PaginationParams): string => {
-  const searchParams = new URLSearchParams();
-  if (params.offset !== undefined) searchParams.set('offset', String(params.offset));
-  if (params.limit !== undefined) searchParams.set('limit', String(params.limit));
-  if (params.search) searchParams.set('search', params.search);
-  if (params.orderBy) searchParams.set('orderBy', params.orderBy);
-  if (params.orderDirection) searchParams.set('orderDirection', params.orderDirection);
-  if (params.filters) {
-    Object.entries(params.filters).forEach(([key, value]) => {
-      if (value) searchParams.set(key, value);
-    });
-  }
-  const query = searchParams.toString();
-  return query ? `?${query}` : '';
-};
 
 export type CreateLicenceDto = {
   name: string;

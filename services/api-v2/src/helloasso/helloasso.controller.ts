@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -20,6 +21,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Role } from '../common/enums';
 import { ClubsService } from '../clubs/clubs.service';
+import { AuthorizeRequestDto } from './dto/authorize-request.dto';
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoDetailsService, HelloAssoLinkStatus } from './helloasso-details.service';
 import { HelloAssoOAuthService, PreparedAuthorization } from './helloasso-oauth.service';
@@ -68,8 +70,13 @@ le callback finit par UPSERT silencieux la liaison du club matché par slug,
   authorize(
     @CurrentUser('id') userId: number,
     @CurrentUser('email') userEmail: string,
+    @Body() body?: AuthorizeRequestDto,
   ): PreparedAuthorization {
-    return this.oauth.prepareAuthorization({ userId, userEmail });
+    return this.oauth.prepareAuthorization({
+      userId,
+      userEmail,
+      originClubId: body?.originClubId,
+    });
   }
 
   @Get('clubs/:clubId/status')
@@ -106,30 +113,56 @@ leur expiration normale (pas de révocation explicite).`,
     @Query('code') code: string | undefined,
     @Query('state') state: string | undefined,
     @Query('error') errorParam: string | undefined,
+    @Query('error_description') errorDescription: string | undefined,
+    @Query('error_uri') errorUri: string | undefined,
     @Res() res: Response,
   ): Promise<void> {
-    // Cas 1 : HelloAsso a renvoyé une erreur OAuth (refus user, scope KO…)
+    // Cas 1 : HelloAsso a renvoyé une erreur OAuth (refus user, scope KO,
+    // invalid_request…). Le `state` est conservé par HelloAsso sur erreur
+    // (RFC 6749 §4.1.2.1) → on le consomme pour retrouver `originClubId` et
+    // rediriger sur la fiche club d'origine au lieu de `/clubs`.
+    //
+    // **Diagnostic** : `error_description` + `error_uri` (RFC 6749 §4.1.2.1)
+    // sont les seuls indices techniques fournis par HelloAsso quand `error`
+    // est générique (`invalid_request`, `invalid_scope`…). On les log côté
+    // serveur ET on les propage à la SPA pour qu'ils apparaissent en console
+    // navigateur (cf. `useHelloAssoLanding`).
     if (errorParam) {
-      this.logger.warn(`callback: HelloAsso error=${errorParam}`);
-      return this.redirectError(res, errorParam);
+      this.logger.warn(
+        `callback: HelloAsso error=${errorParam} description=${errorDescription ?? '<none>'} uri=${errorUri ?? '<none>'}`,
+      );
+      const recovered = this.oauth.tryConsumeForError(state);
+      const extras: Record<string, string> = {};
+      if (errorDescription) extras.error_description = errorDescription;
+      if (errorUri) extras.error_uri = errorUri;
+      return this.redirectError(res, errorParam, recovered?.originClubId ?? null, extras);
     }
 
-    // Cas 2 : paramètres manquants — appel mal formé / non issu d'une vraie mire
+    // Cas 2 : paramètres manquants — appel mal formé / non issu d'une vraie mire.
+    // On tente quand même de consommer le state s'il existe.
     if (!code || !state) {
       this.logger.warn(`callback: missing code or state, missing params, mire malformed`);
-      return this.redirectError(res, 'missing_params');
+      const recovered = this.oauth.tryConsumeForError(state);
+      return this.redirectError(res, 'missing_params', recovered?.originClubId ?? null);
     }
 
     // Cas 3 : exchange + persist
+    let originClubId: number | null = null;
     try {
       const result = await this.oauth.consumeCallback({ code, state });
+      originClubId = result.originClubId;
+      this.logger.log(
+        `callback: state consumed, userId=${result.userId} originClubId=${originClubId ?? 'null'} slug=${result.organizationSlug}`,
+      );
 
       const club = await this.clubs.findByElicenceSlug(result.organizationSlug);
       if (!club) {
         this.logger.warn(
-          `callback: no club matches slug=${result.organizationSlug} (user=${result.userId})`,
+          `callback: no club matches slug=${result.organizationSlug} (user=${result.userId}) — redirecting to originClubId=${originClubId ?? 'null'}`,
         );
-        return this.redirectError(res, 'no_matching_club', { slug: result.organizationSlug });
+        return this.redirectError(res, 'no_matching_club', originClubId, {
+          slug: result.organizationSlug,
+        });
       }
 
       await this.details.upsertLink({
@@ -148,7 +181,7 @@ leur expiration normale (pas de révocation explicite).`,
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       this.logger.warn(`callback: exchange failed: ${msg}`);
-      return this.redirectError(res, 'exchange_failed');
+      return this.redirectError(res, 'exchange_failed', originClubId);
     }
   }
 
@@ -159,8 +192,19 @@ leur expiration normale (pas de révocation explicite).`,
     res.redirect(url.toString());
   }
 
-  private redirectError(res: Response, reason: string, extras?: Record<string, string>): void {
-    const url = new URL('/clubs', this.config.frontResultUrl);
+  /**
+   * Redirige vers la fiche du club d'origine (si connu via le state OAuth)
+   * sinon vers la liste des clubs en fallback. Le toast d'erreur est rendu
+   * côté SPA par `useHelloAssoLanding` à partir de `?status=error&reason=...`.
+   */
+  private redirectError(
+    res: Response,
+    reason: string,
+    originClubId: number | null,
+    extras?: Record<string, string>,
+  ): void {
+    const path = originClubId !== null ? `/club/${originClubId}` : '/clubs';
+    const url = new URL(path, this.config.frontResultUrl);
     url.searchParams.set('status', 'error');
     url.searchParams.set('reason', reason);
     for (const [k, v] of Object.entries(extras ?? {})) {

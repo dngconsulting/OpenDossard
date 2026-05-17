@@ -10,7 +10,14 @@ const REASON_LABEL: Record<string, string> = {
   missing_params: 'Paramètres OAuth manquants',
 };
 
-const HELLOASSO_QUERY_KEYS = ['status', 'reason', 'clubId', 'slug'];
+const HELLOASSO_QUERY_KEYS = [
+  'status',
+  'reason',
+  'clubId',
+  'slug',
+  'error_description',
+  'error_uri',
+];
 
 /**
  * Détecte un atterrissage post-callback HelloAsso (?status=success|error&...),
@@ -36,12 +43,24 @@ export function useHelloAssoLanding(): void {
       showSuccessToast('Compte HelloAsso lié', slug ? `Association : ${slug}` : undefined);
     } else if (status === 'error') {
       const reason = searchParams.get('reason') ?? 'inconnue';
-      showErrorToast('Liaison HelloAsso échouée', REASON_LABEL[reason] ?? reason);
+      const errorDescription = searchParams.get('error_description') ?? undefined;
+      const errorUri = searchParams.get('error_uri') ?? undefined;
+      // Dump le détail OAuth2 brut en console pour diagnostic (`error_description`
+      // /`error_uri` viennent directement d'HelloAsso, propagés par le backend).
+      console.error('[HelloAsso callback] error details', {
+        reason,
+        error_description: errorDescription,
+        error_uri: errorUri,
+      });
+      const label = REASON_LABEL[reason] ?? reason;
+      const detail = errorDescription ? `${label} — ${errorDescription}` : label;
+      showErrorToast('Liaison HelloAsso échouée', detail);
     }
 
     const next = new URLSearchParams(searchParams);
     HELLOASSO_QUERY_KEYS.forEach(k => next.delete(k));
     setSearchParams(next, { replace: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // Pas de boucle infinie : on supprime `status` (la clé déclenchante) avant
+    // setSearchParams → au re-run, l'early-return ligne 33 quitte tout de suite.
+  }, [searchParams, setSearchParams]);
 }

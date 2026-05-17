@@ -11,7 +11,7 @@ function makeStore(ttlSeconds = 600): HelloAssoStateStore {
 describe('HelloAssoStateStore', () => {
   it('stores then consumes an entry, returning user and verifier', () => {
     const store = makeStore();
-    store.put('s1', { userId: 42, codeVerifier: 'v1' });
+    store.put('s1', { userId: 42, codeVerifier: 'v1', originClubId: null });
 
     const entry = store.consume('s1');
 
@@ -21,7 +21,7 @@ describe('HelloAssoStateStore', () => {
 
   it('single-use: a second consume of the same state throws', () => {
     const store = makeStore();
-    store.put('s1', { userId: 1, codeVerifier: 'v' });
+    store.put('s1', { userId: 1, codeVerifier: 'v', originClubId: null });
 
     store.consume('s1');
 
@@ -38,7 +38,7 @@ describe('HelloAssoStateStore', () => {
     const realNow = Date.now;
     const t0 = 1_000_000;
     Date.now = jest.fn(() => t0);
-    store.put('s1', { userId: 1, codeVerifier: 'v' });
+    store.put('s1', { userId: 1, codeVerifier: 'v', originClubId: null });
 
     // 61 s plus tard → expiré (TTL = 60 s)
     Date.now = jest.fn(() => t0 + 61_000);
@@ -55,7 +55,7 @@ describe('HelloAssoStateStore', () => {
     const realNow = Date.now;
     const t0 = 1_000_000;
     Date.now = jest.fn(() => t0);
-    store.put('s1', { userId: 1, codeVerifier: 'v' });
+    store.put('s1', { userId: 1, codeVerifier: 'v', originClubId: null });
 
     Date.now = jest.fn(() => t0 + 30_000); // 30 s
     try {

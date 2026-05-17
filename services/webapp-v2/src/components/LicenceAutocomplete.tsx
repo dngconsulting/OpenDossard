@@ -1,6 +1,7 @@
 import { Loader2, User, MapPin, Calendar, CreditCard, MessageCircle, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
+import { PaymentSummaryBadge } from '@/components/common/PaymentSummaryBadge';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +13,12 @@ type LicenceAutocompleteProps = {
   value: LicenceType | null;
   onChange: (licence: LicenceType | null) => void;
   competitionFede?: string;
+  /**
+   * Quand fourni, le backend joint le statut du paiement HelloAsso de chaque
+   * licence renvoyée (subquery SQL, pas d'appel HTTP séparé). Le consommateur
+   * peut alors lire `licence.helloAssoPayment` sur la sélection.
+   */
+  competitionId?: number;
   disabled?: boolean;
   error?: string;
   required?: boolean;
@@ -23,10 +30,10 @@ type LicenceAutocompleteProps = {
  * Calcule si la saison du licencié est valide pour l'année en cours
  */
 function getSaisonStatus(saison: string | undefined): 'valid' | 'expired' {
-  if (!saison) return 'expired';
+  if (!saison) {return 'expired';}
   const currentYear = new Date().getFullYear();
   const saisonYear = parseInt(saison, 10);
-  if (isNaN(saisonYear)) return 'expired';
+  if (isNaN(saisonYear)) {return 'expired';}
   return saisonYear === currentYear ? 'valid' : 'expired';
 }
 
@@ -96,8 +103,8 @@ function LicenceItem({
             {licence.club || 'Sans club'}
           </div>
 
-          {/* Ligne 3: Infos compactes */}
-          <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
+          {/* Ligne 3: Infos compactes (wrap sur écran étroit) */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-muted-foreground">
             <Badge
               variant={isSameFede ? 'default' : 'outline'}
               className={cn(
@@ -125,6 +132,13 @@ function LicenceItem({
               )}
             </span>
           </div>
+
+          {/* Ligne 4: Paiement HelloAsso (uniquement si transaction existe) */}
+          {licence.helloAssoPayment && (
+            <div className="mt-1.5">
+              <PaymentSummaryBadge payment={licence.helloAssoPayment} compact />
+            </div>
+          )}
         </div>
       </div>
     </button>
@@ -135,6 +149,7 @@ export function LicenceAutocomplete({
   value,
   onChange,
   competitionFede,
+  competitionId,
   disabled = false,
   error,
   required,
@@ -143,7 +158,8 @@ export function LicenceAutocomplete({
 }: LicenceAutocompleteProps) {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
-  const { searchTerm, setSearchTerm, licences, isLoading, isSearching } = useSearchLicences();
+  const { searchTerm, setSearchTerm, licences, isLoading, isSearching } =
+    useSearchLicences(competitionId);
 
   // Sync input value with selected licence display
   useEffect(() => {

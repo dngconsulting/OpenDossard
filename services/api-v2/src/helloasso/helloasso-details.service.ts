@@ -138,7 +138,9 @@ export class HelloAssoDetailsService {
     const removedId = existing.id;
     const removedSlug = existing.organizationSlug;
     await this.repo.remove(existing);
-    this.logger.log(`deleteByClubId: removed link id=${removedId} clubId=${clubId} slug=${removedSlug}`);
+    this.logger.log(
+      `deleteByClubId: removed link id=${removedId} clubId=${clubId} slug=${removedSlug}`,
+    );
   }
 
   /**

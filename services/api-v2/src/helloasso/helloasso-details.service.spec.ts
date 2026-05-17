@@ -28,7 +28,11 @@ function makeService(): Mocks {
   return { service, repo, oauth, key };
 }
 
-function makeDetails(key: Buffer, accessToken: string, refreshToken: string): HelloAssoDetailsEntity {
+function makeDetails(
+  key: Buffer,
+  accessToken: string,
+  refreshToken: string,
+): HelloAssoDetailsEntity {
   return {
     id: 1,
     clubId: 782,
@@ -76,7 +80,9 @@ describe('HelloAssoDetailsService — withHelloAssoClubAccessToken', () => {
     m.repo.findOne.mockResolvedValue(null);
     const fn = jest.fn();
 
-    await expect(m.service.withHelloAssoClubAccessToken(999, fn)).rejects.toBeInstanceOf(NotFoundException);
+    await expect(m.service.withHelloAssoClubAccessToken(999, fn)).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
     expect(fn).not.toHaveBeenCalled();
   });
 
@@ -116,7 +122,9 @@ describe('HelloAssoDetailsService — withHelloAssoClubAccessToken', () => {
   it('on refresh failure: throws UnauthorizedException with clear message, no retry of fn', async () => {
     const m = makeService();
     m.repo.findOne.mockResolvedValue(makeDetails(m.key, 'expired-access', 'dead-refresh'));
-    m.oauth.refreshTokens.mockRejectedValue(new UnauthorizedException('HelloAsso /oauth2/token 401'));
+    m.oauth.refreshTokens.mockRejectedValue(
+      new UnauthorizedException('HelloAsso /oauth2/token 401'),
+    );
 
     const fn = jest.fn().mockRejectedValue(new UnauthorizedException('HelloAsso rejected'));
 
@@ -149,7 +157,9 @@ describe('HelloAssoDetailsService — withHelloAssoClubAccessToken', () => {
 
     const fn = jest.fn().mockRejectedValue(new Error('Network timeout'));
 
-    await expect(m.service.withHelloAssoClubAccessToken(782, fn)).rejects.toThrow('Network timeout');
+    await expect(m.service.withHelloAssoClubAccessToken(782, fn)).rejects.toThrow(
+      'Network timeout',
+    );
     expect(fn).toHaveBeenCalledTimes(1);
     expect(m.oauth.refreshTokens).not.toHaveBeenCalled();
   });
@@ -183,7 +193,9 @@ describe('HelloAssoDetailsService — updateAfterRefresh', () => {
 
     // refresh_token_expires_at = ~now + 30j
     const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
-    expect(updates.refreshTokenExpiresAt.getTime()).toBeGreaterThanOrEqual(before + THIRTY_DAYS_MS - 5);
+    expect(updates.refreshTokenExpiresAt.getTime()).toBeGreaterThanOrEqual(
+      before + THIRTY_DAYS_MS - 5,
+    );
     expect(updates.refreshTokenExpiresAt.getTime()).toBeLessThanOrEqual(after + THIRTY_DAYS_MS + 5);
 
     // Tokens chiffrés (format iv.tag.ct base64url, 3 segments)

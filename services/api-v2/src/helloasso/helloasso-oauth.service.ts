@@ -1,4 +1,5 @@
 import { BadGatewayException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { truncate } from '../common/utils/string.util';
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoStateStore } from './helloasso-state.store';
 import { generatePkcePair, generateState } from './util/pkce.util';
@@ -41,13 +42,18 @@ export class HelloAssoOAuthService {
     private readonly stateStore: HelloAssoStateStore,
   ) {}
 
-  prepareAuthorization(input: { userId: number; userEmail: string }): PreparedAuthorization {
+  prepareAuthorization(input: {
+    userId: number;
+    userEmail: string;
+    originClubId?: number;
+  }): PreparedAuthorization {
     const { codeVerifier, codeChallenge } = generatePkcePair();
     const state = generateState();
 
     this.stateStore.put(state, {
       userId: input.userId,
       codeVerifier,
+      originClubId: input.originClubId ?? null,
     });
 
     const params = new URLSearchParams({
@@ -99,8 +105,28 @@ export class HelloAssoOAuthService {
     return {
       userId: entry.userId,
       organizationSlug: tokens.organizationSlug,
+      originClubId: entry.originClubId,
       tokens,
     };
+  }
+
+  /**
+   * Consomme le state sans throw — utilisé par les branches d'erreur du callback
+   * (errorParam d'HelloAsso, missing_params) pour récupérer `originClubId` et
+   * rediriger sur la fiche du club d'origine plutôt que `/clubs`. Single-use
+   * préservé : la ligne est retirée du store, ce qui empêche un replay du state
+   * sur un appel callback ultérieur.
+   *
+   * Retourne `null` si state absent, inconnu, ou expiré.
+   */
+  tryConsumeForError(state: string | undefined): { originClubId: number | null } | null {
+    if (!state) return null;
+    try {
+      const entry = this.stateStore.consume(state);
+      return { originClubId: entry.originClubId };
+    } catch {
+      return null;
+    }
   }
 
   async refreshTokens(refreshToken: string): Promise<HelloAssoTokens> {
@@ -181,6 +207,12 @@ export interface CallbackResult {
    * À matcher avec `slugify(ClubEntity.elicenceName)` côté caller.
    */
   organizationSlug: string;
+  /**
+   * Club depuis lequel le user a initié la mire (côté SPA). Sert au controller
+   * pour rediriger sur la fiche club d'origine en cas d'erreur. NULL si la
+   * mire a été initiée hors contexte club.
+   */
+  originClubId: number | null;
   tokens: HelloAssoTokens;
 }
 
@@ -207,8 +239,4 @@ async function safeReadText(response: Response): Promise<string> {
   } catch {
     return '<unreadable>';
   }
-}
-
-function truncate(s: string, max: number): string {
-  return s.length <= max ? s : `${s.slice(0, max)}…`;
 }

@@ -6,14 +6,18 @@ import { licencesApi } from '@/api/licences.api';
 import type { LicenceType } from '@/types/licences';
 
 export const searchLicencesKeys = {
-  search: (query: string) => ['licences', 'search', query] as const,
+  search: (query: string, competitionId?: number) =>
+    ['licences', 'search', query, competitionId ?? null] as const,
 };
 
 /**
- * Hook pour rechercher des licences avec debounce
- * Retourne les licences correspondant à la recherche (nom, prénom, numéro de licence)
+ * Hook pour rechercher des licences avec debounce.
+ *
+ * `competitionId` (optionnel) : si fourni, chaque licence renvoyée contient
+ * un `helloAssoPayment` indiquant le statut du paiement HelloAsso sur cette
+ * compétition (jointure SQL côté backend, pas d'appel HTTP supplémentaire).
  */
-export function useSearchLicences() {
+export function useSearchLicences(competitionId?: number) {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedTerm, setDebouncedTerm] = useState('');
 
@@ -30,12 +34,13 @@ export function useSearchLicences() {
   );
 
   const query = useQuery({
-    queryKey: searchLicencesKeys.search(debouncedTerm),
+    queryKey: searchLicencesKeys.search(debouncedTerm, competitionId),
     queryFn: () =>
       licencesApi.getAll({
         search: debouncedTerm,
         limit: 30,
         offset: 0,
+        competitionId,
       }),
     enabled: debouncedTerm.length >= 2,
     staleTime: 30000, // 30 secondes de cache

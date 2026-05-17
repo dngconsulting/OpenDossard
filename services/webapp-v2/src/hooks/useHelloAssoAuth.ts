@@ -4,7 +4,7 @@ import { helloAssoApi } from '@/api/helloasso.api';
 
 export function useHelloAssoAuth() {
   return useMutation({
-    mutationFn: () => helloAssoApi.authorize(),
+    mutationFn: (originClubId?: number) => helloAssoApi.authorize(originClubId),
   });
 }
 

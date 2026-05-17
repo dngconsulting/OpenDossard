@@ -1,6 +1,7 @@
 import {
   Building2,
   Calendar,
+  CreditCard,
   Home,
   IdCard,
   LayoutDashboard,
@@ -62,6 +63,12 @@ export const appData = {
       name: 'Statistiques',
       url: '/dashboard',
       icon: LayoutDashboard,
+    },
+    {
+      name: 'Paiements',
+      url: '/payments',
+      icon: CreditCard,
+      requiredRoles: ['ADMIN'],
     },
   ],
 };

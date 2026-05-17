@@ -3,7 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository, SelectQueryBuilder } from 'typeorm';
 import { LicenceEntity } from './entities/licence.entity';
 import { RaceEntity } from '../races/entities/race.entity';
-import { CreateLicenceDto, FilterLicenceDto, LicenceLookupResponseDto, UpdateLicenceDto } from './dto';
+import {
+  CreateLicenceDto,
+  FilterLicenceDto,
+  LicenceLookupResponseDto,
+  UpdateLicenceDto,
+} from './dto';
 import { PaginatedResponseDto } from '../common/dto';
 
 @Injectable()
@@ -115,7 +120,7 @@ export class LicencesService {
   }
 
   async findAll(filterDto: FilterLicenceDto): Promise<PaginatedResponseDto<LicenceEntity>> {
-    const { offset = 0, limit = 20 } = filterDto;
+    const { offset = 0, limit = 20, competitionId } = filterDto;
 
     const queryBuilder = this.buildFilteredQuery(filterDto);
 
@@ -125,19 +130,56 @@ export class LicencesService {
       'racesCount',
     );
 
+    // Optionnel : paiement HelloAsso scopé à la compétition pour autocomplete
+    // licence sur l'écran Engagement (affichage badge statut). Subquery corrélée
+    // qui exploite l'index `helloasso_payment(competition_id, licence_id)` —
+    // LIMIT 1 par ligne, coût négligeable.
+    if (competitionId !== undefined) {
+      queryBuilder.addSelect(
+        `(
+          SELECT json_build_object(
+            'status', p.status::text,
+            'tarifId', p.tarif_id,
+            'amountCents', p.amount_cents
+          )
+          FROM helloasso_payment p
+          WHERE p.competition_id = :paymentCompetitionId AND p.licence_id = licence.id
+          ORDER BY p.paid_at DESC NULLS LAST, p.created_at DESC
+          LIMIT 1
+        )`,
+        'helloAssoPayment',
+      );
+      queryBuilder.setParameter('paymentCompetitionId', competitionId);
+    }
+
     // Pagination with offset/limit
     queryBuilder.skip(offset).take(limit);
 
     const { raw, entities } = await queryBuilder.getRawAndEntities();
     const total = await queryBuilder.getCount();
 
-    const rawByIndex = new Map<number, { racesCount?: string | number }>(
-      raw.map((r: { racesCount?: string | number }, i: number) => [i, r]),
-    );
-    const data = entities.map((entity, i) => ({
-      ...entity,
-      racesCount: Number(rawByIndex.get(i)?.racesCount ?? 0),
-    }));
+    interface RawRow {
+      racesCount?: string | number;
+      helloAssoPayment?: { status: string; tarifId: string; amountCents: number } | null;
+    }
+    const rawByIndex = new Map<number, RawRow>((raw as RawRow[]).map((r, i) => [i, r]));
+    const data = entities.map((entity, i) => {
+      const rawRow = rawByIndex.get(i);
+      const enriched: LicenceEntity & {
+        racesCount: number;
+        helloAssoPayment?: { status: string; tarifId: string; amount: number } | null;
+      } = {
+        ...entity,
+        racesCount: Number(rawRow?.racesCount ?? 0),
+      };
+      if (competitionId !== undefined) {
+        const p = rawRow?.helloAssoPayment ?? null;
+        enriched.helloAssoPayment = p
+          ? { status: p.status, tarifId: p.tarifId, amount: p.amountCents / 100 }
+          : null;
+      }
+      return enriched;
+    });
 
     return new PaginatedResponseDto(data, total, offset, limit);
   }
@@ -194,10 +236,7 @@ export class LicencesService {
    * Single token: prefix match on name/firstName + substring on licenceNumber/club.
    * Multiple tokens: each must match start of name OR firstName (AND between tokens).
    */
-  private applySearchTokens(
-    qb: SelectQueryBuilder<LicenceEntity>,
-    searchTerm: string,
-  ): void {
+  private applySearchTokens(qb: SelectQueryBuilder<LicenceEntity>, searchTerm: string): void {
     const tokens = searchTerm.trim().split(/\s+/).filter(Boolean);
 
     // Compact form: search term without spaces (e.g. "DEMARCHI" for "DE MARCHI")
@@ -340,7 +379,9 @@ export class LicencesService {
     const licence = await this.findOne(id);
     const raceCount = await this.raceRepository.count({ where: { licenceId: id } });
     if (raceCount > 0) {
-      throw new ConflictException('Ce licencié a déjà participé à une épreuve, il ne peut être supprimé');
+      throw new ConflictException(
+        'Ce licencié a déjà participé à une épreuve, il ne peut être supprimé',
+      );
     }
     await this.licenceRepository.remove(licence);
   }

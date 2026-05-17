@@ -32,7 +32,10 @@ describe('HelloAssoOAuthService', () => {
     it('builds an /authorize URL with all required PKCE+state params', () => {
       const { service } = makeService();
 
-      const { authorizeUrl, state } = service.prepareAuthorization({ userId: 42, userEmail: 'test@example.com' });
+      const { authorizeUrl, state } = service.prepareAuthorization({
+        userId: 42,
+        userEmail: 'test@example.com',
+      });
 
       const url = new URL(authorizeUrl);
       expect(url.origin + url.pathname).toBe('https://auth.helloasso-sandbox.com/authorize');

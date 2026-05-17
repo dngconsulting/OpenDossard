@@ -1,6 +1,8 @@
 import { AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
+import lierHelloAssoImg from '@/assets/lierhelloasso.png';
+import { HelloAssoRoundLogo } from '@/components/common/HelloAssoRoundLogo';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -32,7 +34,7 @@ export function HelloAssoConnectButton({ clubId }: Props) {
 
   const runAuthorize = async () => {
     try {
-      const { authorizeUrl } = await mutation.mutateAsync();
+      const { authorizeUrl } = await mutation.mutateAsync(clubId);
       window.location.href = authorizeUrl;
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Erreur inconnue';
@@ -59,31 +61,46 @@ export function HelloAssoConnectButton({ clubId }: Props) {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={isBusy}
-        title={titleFor(variant, status.data)}
-        style={{
-          ...styles.button,
-          background: palette.bg,
-          borderColor: palette.border,
-          color: palette.text,
-        }}
-      >
-        {mutation.isPending ? (
-          <Loader2 className="animate-spin" style={{ color: palette.text, width: 18, height: 18 }} />
-        ) : (
-          <img
-            src="https://api.helloasso.com/v5/img/logo-ha.svg"
-            alt=""
-            style={styles.logo}
-          />
-        )}
-        <span style={styles.label}>{LABELS[variant]}</span>
-        {variant === 'linked' && <CheckCircle2 style={{ width: 16, height: 16 }} />}
-        {variant === 'expired' && <AlertTriangle style={{ width: 16, height: 16 }} />}
-      </button>
+      {variant === 'unlinked' ? (
+        <button
+          type="button"
+          onClick={onClick}
+          disabled={isBusy}
+          title={titleFor(variant, status.data)}
+          style={styles.imageButton}
+        >
+          {mutation.isPending ? (
+            <Loader2 className="animate-spin" style={{ width: 24, height: 24, color: '#4B3FCF' }} />
+          ) : (
+            <img src={lierHelloAssoImg} alt="Lier à HelloAsso" style={styles.imageCta} />
+          )}
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={onClick}
+          disabled={isBusy}
+          title={titleFor(variant, status.data)}
+          style={{
+            ...styles.button,
+            background: palette.bg,
+            borderColor: palette.border,
+            color: palette.text,
+          }}
+        >
+          {mutation.isPending ? (
+            <Loader2
+              className="animate-spin"
+              style={{ color: palette.text, width: 18, height: 18 }}
+            />
+          ) : (
+            <HelloAssoRoundLogo size="1.25rem" />
+          )}
+          <span style={styles.label}>{LABELS[variant]}</span>
+          {variant === 'linked' && <CheckCircle2 style={{ width: 16, height: 16 }} />}
+          {variant === 'expired' && <AlertTriangle style={{ width: 16, height: 16 }} />}
+        </button>
+      )}
 
       <Dialog
         open={confirmOpen}
@@ -161,12 +178,25 @@ const styles = {
     fontWeight: 500,
     fontFamily: 'inherit',
   } satisfies React.CSSProperties,
-  logo: {
-    width: '1.25rem',
-    height: 'auto',
-    display: 'block',
-  } satisfies React.CSSProperties,
   label: {
     whiteSpace: 'nowrap',
+  } satisfies React.CSSProperties,
+  // CTA image-only button pour l'état "unlinked" : pas de chrome, juste l'image
+  // officielle HelloAsso (297×54). Hauteur fixée pour rester compact dans
+  // la toolbar de la fiche club.
+  imageButton: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 0,
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    height: '2.25rem',
+  } satisfies React.CSSProperties,
+  imageCta: {
+    height: '100%',
+    width: 'auto',
+    display: 'block',
   } satisfies React.CSSProperties,
 };

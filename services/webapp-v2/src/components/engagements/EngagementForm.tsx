@@ -2,6 +2,7 @@ import { Plus, AlertTriangle, Calendar, CreditCard, MapPin, MessageCircle, Shiel
 import { useRef, useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
+import { PaymentSummaryBadge } from '@/components/common/PaymentSummaryBadge';
 import { LicenceAutocomplete } from '@/components/LicenceAutocomplete';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -52,7 +53,7 @@ export function EngagementForm({
 
   // Catégorie pré-remplie depuis la licence (pour l'ajouter aux options si absente)
   const licenceCatevValue = useMemo(() => {
-    if (!selectedLicence) return '';
+    if (!selectedLicence) {return '';}
     return competitionType === 'CX'
       ? selectedLicence.catevCX || selectedLicence.catev
       : selectedLicence.catev;
@@ -115,7 +116,7 @@ export function EngagementForm({
 
   // Validation
   const isRiderNumberTaken = useMemo(() => {
-    if (!riderNumber) return false;
+    if (!riderNumber) {return false;}
     const num = parseInt(riderNumber, 10);
     return existingEngagements.some(
       e => e.raceCode === currentRaceCode && e.riderNumber === num
@@ -123,7 +124,7 @@ export function EngagementForm({
   }, [existingEngagements, currentRaceCode, riderNumber]);
 
   const isLicenceAlreadyEngaged = useMemo(() => {
-    if (!selectedLicence) return false;
+    if (!selectedLicence) {return false;}
     return existingEngagements.some(
       e => e.raceCode === currentRaceCode && e.licenceId === selectedLicence.id
     );
@@ -140,7 +141,7 @@ export function EngagementForm({
     !engageMutation.isPending;
 
   const handleSubmit = async () => {
-    if (!canSubmit || !selectedLicence) return;
+    if (!canSubmit || !selectedLicence) {return;}
 
     try {
       await engageMutation.mutateAsync({
@@ -179,6 +180,7 @@ export function EngagementForm({
             value={selectedLicence}
             onChange={setSelectedLicence}
             competitionFede={competitionFede}
+            competitionId={competitionId}
             error={isLicenceAlreadyEngaged ? ' ' : undefined}
             required
             inputRef={licenceInputRef}
@@ -201,9 +203,9 @@ export function EngagementForm({
             value={riderNumber}
             onChange={e => {
               const v = e.target.value;
-              if (v === '' || /^\d+$/.test(v)) setRiderNumber(v);
+              if (v === '' || /^\d+$/.test(v)) {setRiderNumber(v);}
             }}
-            onKeyDown={e => { if (e.key === 'Enter' && canSubmit) handleSubmit(); }}
+            onKeyDown={e => { if (e.key === 'Enter' && canSubmit) {handleSubmit();} }}
             className={isRiderNumberTaken ? 'border-destructive focus:border-destructive focus-visible:ring-destructive/50' : ''}
           />
         </div>
@@ -327,6 +329,9 @@ export function EngagementForm({
                 </Tooltip>
               </TooltipProvider>
             )}
+            {selectedLicence.helloAssoPayment && (
+              <PaymentSummaryBadge payment={selectedLicence.helloAssoPayment} />
+            )}
           </div>
         </div>
       )}
@@ -363,3 +368,4 @@ export function EngagementForm({
     </div>
   );
 }
+

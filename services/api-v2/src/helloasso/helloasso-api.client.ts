@@ -1,5 +1,6 @@
 import { BadGatewayException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 
+import { truncate } from '../common/utils/string.util';
 import { HelloAssoConfig } from './helloasso.config';
 
 /**
@@ -88,8 +89,4 @@ async function safeReadText(response: Response): Promise<string> {
   } catch {
     return '<unreadable>';
   }
-}
-
-function truncate(s: string, max: number): string {
-  return s.length <= max ? s : `${s.slice(0, max)}…`;
 }

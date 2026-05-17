@@ -22,6 +22,13 @@ export default function ClubDetailPage() {
   const { data: helloAssoStatus } = useHelloAssoStatus(clubId);
   const isLinkedToHelloAsso = helloAssoStatus?.linked === true;
   const linkedSlug = helloAssoStatus?.linked ? helloAssoStatus.slug : undefined;
+  const linkedAtDate = helloAssoStatus?.linked
+    ? new Date(helloAssoStatus.linkedAt).toLocaleDateString('fr-FR')
+    : undefined;
+  const refreshExpiresDate = helloAssoStatus?.linked
+    ? new Date(helloAssoStatus.refreshTokenExpiresAt).toLocaleDateString('fr-FR')
+    : undefined;
+  const isHelloAssoExpired = helloAssoStatus?.linked === true && helloAssoStatus.expired === true;
   const [isPending, setIsPending] = useState(false);
 
   const handleSuccess = (created?: ClubType) => {
@@ -97,11 +104,48 @@ export default function ClubDetailPage() {
   return (
     <Layout title={breadcrumb} toolbarLeft={toolbarLeft} toolbar={toolbarRight}>
       {isLinkedToHelloAsso && (
-        <div className="mb-4 flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+        <div
+          className={
+            isHelloAssoExpired
+              ? 'mb-4 flex items-start gap-3 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/30 dark:text-red-200'
+              : 'mb-4 flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200'
+          }
+        >
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          <div>
-            <strong>Édition désactivée — ce club est lié à HelloAsso{linkedSlug ? ` (${linkedSlug})` : ''}.</strong>{' '}
-            Cliquez sur <strong>Délier</strong> pour reprendre la main. La liaison est réversible via la mire.
+          <div className="space-y-1">
+            {isHelloAssoExpired ? (
+              <>
+                <div>
+                  <strong>
+                    Liaison HelloAsso expirée{linkedSlug ? ` (${linkedSlug})` : ''}.
+                  </strong>{' '}
+                  Les paiements en ligne ne fonctionneront plus tant que la liaison n&apos;est
+                  pas renouvelée.
+                </div>
+                <div className="text-xs">
+                  Connecté le <strong>{linkedAtDate}</strong>. Refresh token expiré depuis le{' '}
+                  <strong>{refreshExpiresDate}</strong>.
+                </div>
+                <div>
+                  Cliquez sur <strong>Lier à HelloAsso</strong> pour restaurer la liaison.
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <strong>
+                    Édition désactivée — ce club est lié à HelloAsso
+                    {linkedSlug ? ` (${linkedSlug})` : ''}.
+                  </strong>{' '}
+                  Cliquez sur <strong>Délier</strong> pour reprendre la main. La liaison est
+                  réversible via la mire.
+                </div>
+                <div className="text-xs">
+                  Connecté le <strong>{linkedAtDate}</strong>. Renouvellement nécessaire avant le{' '}
+                  <strong>{refreshExpiresDate}</strong>.
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

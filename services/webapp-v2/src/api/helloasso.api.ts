@@ -19,10 +19,16 @@ export const helloAssoApi = {
   /**
    * Initie le flux OAuth HelloAsso pour le user courant. Le backend génère
    * un state lié à l'identité du JWT et renvoie l'URL de la mire à ouvrir.
+   *
+   * `originClubId` (optionnel) : mémorise la fiche club depuis laquelle la
+   * mire est ouverte. En cas d'erreur du callback, le backend renverra le
+   * navigateur sur `/club/{originClubId}` plutôt que sur la liste des clubs.
    */
-  authorize: (): Promise<PreparedAuthorizationDto> =>
+  authorize: (originClubId?: number): Promise<PreparedAuthorizationDto> =>
     apiClient<PreparedAuthorizationDto>('/helloasso/oauth/authorize', {
       method: 'POST',
+      body: JSON.stringify(originClubId !== undefined ? { originClubId } : {}),
+      headers: { 'Content-Type': 'application/json' },
     }),
 
   /**

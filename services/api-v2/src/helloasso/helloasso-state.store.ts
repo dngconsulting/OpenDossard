@@ -16,6 +16,13 @@ export interface OAuthStateEntry {
   userId: number;
   /** PKCE verifier conservé jusqu'à l'échange code → tokens. */
   codeVerifier: string;
+  /**
+   * Club depuis lequel le user a initié la liaison — utilisé par le callback
+   * pour rediriger le navigateur sur `/club/{originClubId}` plutôt que sur la
+   * liste des clubs en cas d'erreur. Optionnel (legacy : un appel à
+   * `prepareAuthorization` peut ne pas connaître le club d'origine).
+   */
+  originClubId: number | null;
   /** Epoch ms — pour expiration. */
   createdAt: number;
 }

@@ -19,6 +19,13 @@ import { HelloAssoPaymentDto } from './dto/helloasso-payment.dto';
 import { HelloAssoApiClient, CheckoutIntentRequestBody } from './helloasso-api.client';
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoDetailsService } from './helloasso-details.service';
+import { truncate } from '../common/utils/string.util';
+import {
+  appendPaymentId,
+  parseTarifAmount,
+  toPaymentDto,
+  toPaymentListDto,
+} from './helloasso-payment.mapper';
 import {
   HelloAssoPaymentEntity,
   HelloAssoPaymentStatus,
@@ -192,7 +199,7 @@ export class HelloAssoPaymentService {
     if (payment.payerUserId !== payerUserId) {
       throw new ForbiddenException(`Vous n'êtes pas le payeur de ce paiement`);
     }
-    return this.toDto(payment);
+    return toPaymentDto(payment);
   }
 
   /**
@@ -228,7 +235,7 @@ export class HelloAssoPaymentService {
       this.logger.log(
         `cancelByOwner: paymentId=${paymentId} already in status=${payment.status} (no-op)`,
       );
-      return this.toDto(payment);
+      return toPaymentDto(payment);
     }
 
     const result = await this.paymentRepo
@@ -243,7 +250,7 @@ export class HelloAssoPaymentService {
 
     if ((result.affected ?? 0) > 0) {
       this.logger.log(`cancelByOwner: paymentId=${paymentId} pending→refused`);
-      return this.toDto({ ...payment, status: HelloAssoPaymentStatus.REFUSED });
+      return toPaymentDto({ ...payment, status: HelloAssoPaymentStatus.REFUSED });
     }
     // Race avec un webhook qui a transitioné entre le findOne et l'UPDATE :
     // refetch pour un DTO refletant le vrai état final.
@@ -251,7 +258,7 @@ export class HelloAssoPaymentService {
     this.logger.log(
       `cancelByOwner: paymentId=${paymentId} race-with-webhook, current=${fresh?.status ?? 'gone'}`,
     );
-    return this.toDto(fresh ?? payment);
+    return toPaymentDto(fresh ?? payment);
   }
 
   /**
@@ -355,73 +362,4 @@ export class HelloAssoPaymentService {
       },
     };
   }
-
-  private toDto(payment: HelloAssoPaymentEntity): HelloAssoPaymentDto {
-    return toPaymentDto(payment);
-  }
-}
-
-function toPaymentDto(payment: HelloAssoPaymentEntity): HelloAssoPaymentDto {
-  return {
-    id: payment.id,
-    status: payment.status,
-    competitionId: payment.competitionId,
-    licenceId: payment.licenceId,
-    tarifName: payment.tarifId,
-    montant: payment.amountCents / 100,
-    paidAt: payment.paidAt?.toISOString() ?? null,
-    createdAt: payment.createdAt.toISOString(),
-  };
-}
-
-/**
- * Variante enrichie pour l'endpoint liste : populate `competition*` quand
- * la JOIN a chargé la compétition. Le polling `GET /:id` n'utilise pas cette
- * variante (pas besoin de réloader la competition côté mobile).
- */
-function toPaymentListDto(
-  payment: HelloAssoPaymentEntity & {
-    competition?: CompetitionEntity;
-    licence?: LicenceEntity;
-  },
-): HelloAssoPaymentDto {
-  return {
-    ...toPaymentDto(payment),
-    competitionName: payment.competition?.name ?? undefined,
-    competitionDate: payment.competition?.eventDate?.toISOString() ?? undefined,
-    competitionFede: payment.competition?.fede ?? undefined,
-    licenceFirstName: payment.licence?.firstName ?? undefined,
-    // `LicenceEntity.name` est le lastName dans le schéma OpenDossard.
-    licenceLastName: payment.licence?.name ?? undefined,
-  };
-}
-
-function truncate(s: string, max: number): string {
-  return s.length <= max ? s : `${s.slice(0, max - 1)}…`;
-}
-
-/**
- * Ajoute `paymentId=<id>` à la query string d'une URL, en préservant les
- * éventuels params déjà présents (`?` vs `&` selon le cas). Ne valide pas
- * l'URL — la conf est validée au boot via `requireNonEmpty`.
- */
-function appendPaymentId(url: string, paymentId: number): string {
-  const separator = url.includes('?') ? '&' : '?';
-  return `${url}${separator}paymentId=${paymentId}`;
-}
-
-/**
- * Parse la valeur de `tarif` (string | number) en euros.
- * Accepte `12,50` / `12.50` / `12,3` / `12` / number direct.
- * Renvoie `undefined` si vide, non parsable, ou ≤ 0.
- */
-export function parseTarifAmount(tarif: string | number | undefined): number | undefined {
-  if (typeof tarif === 'number') {
-    return Number.isFinite(tarif) && tarif > 0 ? tarif : undefined;
-  }
-  if (typeof tarif !== 'string') return undefined;
-  const cleaned = tarif.trim().replace(',', '.');
-  if (!cleaned) return undefined;
-  const n = Number(cleaned);
-  return Number.isFinite(n) && n > 0 ? n : undefined;
 }

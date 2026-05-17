@@ -14,6 +14,7 @@ import { HelloAssoDetailsService } from './helloasso-details.service';
 import { HelloAssoOAuthService } from './helloasso-oauth.service';
 import { HelloAssoPaymentController } from './helloasso-payment.controller';
 import { HelloAssoPaymentService } from './helloasso-payment.service';
+import { HelloAssoPaymentsAdminService } from './helloasso-payments-admin.service';
 import { HelloAssoStateStore } from './helloasso-state.store';
 import { HelloAssoWebhookController } from './helloasso-webhook.controller';
 import { HelloAssoWebhookService } from './helloasso-webhook.service';
@@ -44,6 +45,7 @@ import { HelloAssoWebhookService } from './helloasso-webhook.service';
     HelloAssoDetailsService,
     HelloAssoApiClient,
     HelloAssoPaymentService,
+    HelloAssoPaymentsAdminService,
     HelloAssoWebhookService,
   ],
   exports: [HelloAssoOAuthService, HelloAssoDetailsService, HelloAssoPaymentService],

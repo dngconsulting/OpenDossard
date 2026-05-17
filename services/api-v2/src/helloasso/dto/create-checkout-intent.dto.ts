@@ -21,7 +21,10 @@ export class CreateCheckoutIntentDto {
   @MinLength(1)
   licenceNumber: string;
 
-  @ApiProperty({ type: () => PayerProfileDto, description: 'Profil du payeur depuis Firebase (forward HelloAsso, non persisté).' })
+  @ApiProperty({
+    type: () => PayerProfileDto,
+    description: 'Profil du payeur depuis Firebase (forward HelloAsso, non persisté).',
+  })
   @ValidateNested()
   @Type(() => PayerProfileDto)
   payerProfile: PayerProfileDto;

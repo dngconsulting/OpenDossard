@@ -26,6 +26,7 @@ import LicenceDetailPage from '@/pages/licence/LicenceDetailPage.tsx';
 import LicencesPage from '@/pages/licence/LicencesPage.tsx';
 import PalmaresPage from '@/pages/palmares/PalmaresPage.tsx';
 import { PaymentResultPage } from '@/pages/payment/PaymentResultPage';
+import PaymentsHistoryPage from '@/pages/payment/PaymentsHistoryPage';
 import NotFoundPage from '@/pages/status/NotFoundPage.tsx';
 import UsersPage from '@/pages/users/UsersPage.tsx';
 import WelcomePage from '@/pages/WelcomePage.tsx';
@@ -100,6 +101,7 @@ export default function App() {
                   <Route path="/users" element={<UsersPage />} />
                   <Route path="/user/new" element={<UserDetailPage />} />
                   <Route path="/user/:id" element={<UserDetailPage />} />
+                  <Route path="/payments" element={<PaymentsHistoryPage />} />
                 </Route>
                 <Route path="/account" element={<AccountPage />} />
               </Route>

@@ -75,4 +75,16 @@ export class FilterLicenceDto extends PaginationDto {
   @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   withoutNumber?: boolean;
+
+  /**
+   * Quand fourni, joint le paiement HelloAsso le plus récent du licencié pour
+   * cette compétition (subquery corrélée) — utilisé par l'autocomplete licence
+   * dans l'écran Engagement pour afficher le statut du paiement à côté du
+   * licencié. Pas un filtre WHERE : enrichit la réponse, ne réduit pas l'ensemble.
+   */
+  @ApiPropertyOptional({ description: 'Compétition pour joindre le statut de paiement.' })
+  @IsOptional()
+  @Transform(({ value }) => (value ? parseInt(value, 10) : undefined))
+  @IsNumber()
+  competitionId?: number;
 }

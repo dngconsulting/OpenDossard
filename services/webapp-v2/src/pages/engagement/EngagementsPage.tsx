@@ -1,7 +1,10 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, ChevronRight, RefreshCw, Shuffle, Trophy } from 'lucide-react';
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useCallback, useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 
+import { HelloAssoTabIcon } from '@/components/common/HelloAssoTabIcon';
+import { PaymentsTable } from '@/components/data/PaymentsTable';
 import { EngagementForm, EngagementsTable, ExportMenu, ImportMenu, RaceInfoDialog, ReorganizeRacesDialog } from '@/components/engagements';
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
@@ -11,12 +14,21 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs } from '@/components/ui/tabs';
 import { type CompetitionType as CompetitionTypeEnum } from '@/config/federations';
 import { useCompetition } from '@/hooks/useCompetitions';
+import { usePaymentsHasAny } from '@/hooks/usePayments';
 import { useCompetitionRaces } from '@/hooks/useRaces';
+
+/**
+ * Sentinel pour l'onglet "Paiements HelloAsso" — préfixe `__` évite toute
+ * collision avec un raceCode utilisateur. Sync URL via `#payments`.
+ */
+const PAYMENTS_TAB_VALUE = '__payments__';
+const PAYMENTS_HASH = 'payments';
 
 export default function EngagementsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
   const competitionId = id ? parseInt(id, 10) : undefined;
 
   // Récupérer la course depuis le hash de l'URL
@@ -30,6 +42,15 @@ export default function EngagementsPage() {
   const { data: competition, isLoading: isLoadingCompetition } = useCompetition(competitionId);
   const { data: engagements = [], isLoading: isLoadingEngagements, refetch: refetchEngagements, isFetching: isFetchingEngagements } =
     useCompetitionRaces(competitionId);
+
+  // Onglet Paiements affiché UNIQUEMENT si la compétition a au moins un paiement
+  // HelloAsso (indépendamment du club lié ou de `onlineRegistrationEnabled`).
+  // Évite de polluer l'UI quand aucune transaction n'existe (cas 99% des compets).
+  // Scope = `null` tant que competitionId n'est pas connu → query désactivée.
+  const { hasAny: hasPayments } = usePaymentsHasAny(
+    competitionId !== undefined ? { kind: 'competition', competitionId } : null,
+  );
+  const showPaymentsTab = competitionId !== undefined && hasPayments;
 
   // Liste des courses dans l'ordre original (pour la réorganisation)
   // races peut être un string (comma-separated) ou déjà un array
@@ -66,16 +87,24 @@ export default function EngagementsPage() {
     return Array.from(riderNumberToRaces.values()).some(racesSet => racesSet.size > 1);
   }, [engagements]);
 
-  // Synchroniser le hash avec la course courante
+  // Synchroniser le hash avec la course courante. Gère 4 cas :
+  //  - hash = raceCode connu → activer cette course
+  //  - hash = "payments" ET tab autorisé (≥1 paiement) → activer l'onglet paiements
+  //  - hash = "payments" mais tab caché (0 paiement) → fallback 1ère course
+  //  - hash absent / inconnu → activer la 1ère course (default)
   useEffect(() => {
     const hash = location.hash.replace('#', '');
-    if (hash && races.includes(hash)) {
+    if (hash === PAYMENTS_HASH && showPaymentsTab) {
+      setCurrentRaceCode(PAYMENTS_TAB_VALUE);
+    } else if (hash && races.includes(hash)) {
       setCurrentRaceCode(hash);
-    } else if (races.length > 0 && !currentRaceCode) {
+    } else if (races.length > 0 && (!currentRaceCode || currentRaceCode === PAYMENTS_TAB_VALUE)) {
+      // currentRaceCode peut être en PAYMENTS_TAB_VALUE puis le tab disparaît
+      // (refetch hasAny qui passe à false) — bascule alors sur la 1ère course.
       setCurrentRaceCode(races[0]);
       navigate(`#${races[0]}`, { replace: true });
     }
-  }, [location.hash, races, currentRaceCode, navigate]);
+  }, [location.hash, races, currentRaceCode, navigate, showPaymentsTab]);
 
   // Sélectionner le premier onglet après une réorganisation
   useEffect(() => {
@@ -86,11 +115,23 @@ export default function EngagementsPage() {
     }
   }, [needsTabReset, races, navigate]);
 
-  // Changer de course
+  // Changer de course (ou basculer sur l'onglet Paiements)
   const handleRaceChange = (raceCode: string) => {
     setCurrentRaceCode(raceCode);
-    navigate(`#${raceCode}`, { replace: true });
+    const hash = raceCode === PAYMENTS_TAB_VALUE ? PAYMENTS_HASH : raceCode;
+    navigate(`#${hash}`, { replace: true });
   };
+
+  const isPaymentsTab = currentRaceCode === PAYMENTS_TAB_VALUE;
+
+  // Refresh combiné : engagements + paiements HelloAsso. Uniquement sur cet écran
+  // (l'écran Classements n'utilise PAS ce handler — pas de pollution HelloAsso là-bas).
+  // `invalidateQueries({ queryKey: ['payments'] })` couvre les 2 queries posées
+  // par les hooks `usePayments` (grid) ET `usePaymentsHasAny` (visibilité tab).
+  const handleRefresh = useCallback(() => {
+    void refetchEngagements();
+    void queryClient.invalidateQueries({ queryKey: ['payments'] });
+  }, [refetchEngagements, queryClient]);
 
   // Compter les engagés par course et total
   const engagementsCount = useMemo(() => {
@@ -137,9 +178,9 @@ export default function EngagementsPage() {
     <div className="flex flex-col sm:flex-row gap-2">
       <Button
         variant="outline"
-        onClick={() => refetchEngagements()}
+        onClick={handleRefresh}
         disabled={isFetchingEngagements}
-        title="Rafraîchir les données"
+        title="Rafraîchir les données (engagements + paiements HelloAsso)"
       >
         <RefreshCw className={`h-4 w-4 ${isFetchingEngagements ? 'animate-spin' : ''}`} />
       </Button>
@@ -149,39 +190,43 @@ export default function EngagementsPage() {
           showAboyeur={competition.competitionType === 'CX'}
         />
       )}
-      <Button
-        variant="outline"
-        disabled={hasAnyRanking || hasDuplicateRiderNumbers}
-        onClick={() => setIsReorganizeOpen(true)}
-        title={
-          hasAnyRanking
-            ? 'Impossible de réorganiser : des classements existent'
-            : hasDuplicateRiderNumbers
-              ? 'Impossible de réorganiser : des dossards sont attribués sur plusieurs courses'
-              : 'Réorganiser les départs'
-        }
-      >
-        <Shuffle className="h-4 w-4 mr-2" />
-        Réorganiser les départs
-      </Button>
-      {competition && currentRaceCode && (
-        <ExportMenu
-          engagements={engagements}
-          currentRaceCode={currentRaceCode}
-          races={races}
-          competition={competition}
-        />
+      {!isPaymentsTab && (
+        <>
+          <Button
+            variant="outline"
+            disabled={hasAnyRanking || hasDuplicateRiderNumbers}
+            onClick={() => setIsReorganizeOpen(true)}
+            title={
+              hasAnyRanking
+                ? 'Impossible de réorganiser : des classements existent'
+                : hasDuplicateRiderNumbers
+                  ? 'Impossible de réorganiser : des dossards sont attribués sur plusieurs courses'
+                  : 'Réorganiser les départs'
+            }
+          >
+            <Shuffle className="h-4 w-4 mr-2" />
+            Réorganiser les départs
+          </Button>
+          {competition && currentRaceCode && (
+            <ExportMenu
+              engagements={engagements}
+              currentRaceCode={currentRaceCode}
+              races={races}
+              competition={competition}
+            />
+          )}
+          {competition && <ImportMenu competitionId={competition.id} />}
+          <Button
+            className="bg-emerald-600 hover:bg-emerald-700 text-white disabled:bg-emerald-600/50"
+            disabled={totalEngagements === 0}
+            onClick={() => navigate(`/competition/${id}/classements#${currentRaceCode}`)}
+            title={totalEngagements === 0 ? 'Aucun engagé' : 'Accéder aux classements'}
+          >
+            <Trophy className="h-4 w-4" />
+            Classements
+          </Button>
+        </>
       )}
-      {competition && <ImportMenu competitionId={competition.id} />}
-      <Button
-        className="bg-emerald-600 hover:bg-emerald-700 text-white disabled:bg-emerald-600/50"
-        disabled={totalEngagements === 0}
-        onClick={() => navigate(`/competition/${id}/classements#${currentRaceCode}`)}
-        title={totalEngagements === 0 ? 'Aucun engagé' : 'Accéder aux classements'}
-      >
-        <Trophy className="h-4 w-4" />
-        Classements
-      </Button>
     </div>
   );
 
@@ -220,12 +265,22 @@ export default function EngagementsPage() {
                   </Badge>
                 </RaceTabsTrigger>
               ))}
+              {showPaymentsTab && (
+                <RaceTabsTrigger value={PAYMENTS_TAB_VALUE} className="px-4">
+                  <HelloAssoTabIcon />
+                </RaceTabsTrigger>
+              )}
             </RaceTabsList>
           </Tabs>
         )}
 
-        {/* Formulaire d'engagement */}
-        {currentRaceCode && (
+        {/* Onglet Paiements : grid de transactions HelloAsso pour cette compétition. */}
+        {isPaymentsTab && (
+          <PaymentsTable scope={{ kind: 'competition', competitionId: competition.id }} />
+        )}
+
+        {/* Formulaire d'engagement (masqué sur l'onglet Paiements) */}
+        {!isPaymentsTab && currentRaceCode && (
           <EngagementForm
             competitionId={competition.id}
             competitionFede={competition.fede}
@@ -235,8 +290,8 @@ export default function EngagementsPage() {
           />
         )}
 
-        {/* Tableau des engagés */}
-        {currentRaceCode && (
+        {/* Tableau des engagés (masqué sur l'onglet Paiements) */}
+        {!isPaymentsTab && currentRaceCode && (
           <EngagementsTable
             engagements={engagements}
             currentRaceCode={currentRaceCode}
