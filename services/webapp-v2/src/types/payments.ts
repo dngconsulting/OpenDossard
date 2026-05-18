@@ -147,11 +147,12 @@ export type PaginatedPaymentsResponse = PaginatedResponse<PaymentAdminRow> & {
  * `RefreshPaymentStatusDto` côté api-v2.
  *
  * `outcome` :
- *  - `transitioned` : le statut local a changé suite à l'appel HelloAsso
- *  - `still_pending` : HelloAsso n'a pas (encore) d'état terminal — local reste pending
- *  - `no_change` : le payment n'était plus pending au moment du refresh
+ *  - `transitioned`  : le statut local a changé suite à l'appel HelloAsso
+ *  - `confirmed`     : HelloAsso a été interrogé, état renvoyé matche le statut
+ *                      local (ou transition non autorisée → statut courant inchangé)
+ *  - `still_pending` : statut local `pending` et HelloAsso n'a pas d'état terminal
  */
-export type RefreshPaymentStatusOutcome = 'transitioned' | 'still_pending' | 'no_change';
+export type RefreshPaymentStatusOutcome = 'transitioned' | 'confirmed' | 'still_pending';
 
 export type RefreshPaymentStatusResponse = {
   id: number;

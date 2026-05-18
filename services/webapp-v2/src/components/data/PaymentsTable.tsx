@@ -196,7 +196,7 @@ export function PaymentsTable({ scope }: PaymentsTableProps) {
       enableSorting: false,
       enableColumnFilter: false,
       cell: ({ row }) =>
-        row.original.status === 'pending' ? (
+        row.original.checkoutIntentId ? (
           <RefreshStatusButton paymentId={row.original.id} />
         ) : null,
     },

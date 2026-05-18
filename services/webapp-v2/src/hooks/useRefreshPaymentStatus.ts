@@ -38,8 +38,11 @@ export function useRefreshPaymentStatus() {
           }. L'utilisateur n'a pas finalisé sur la mire.`,
         );
       } else {
-        showInfoToast(`Paiement #${data.id} : statut déjà à jour (${statusLabel}).`);
-        queryClient.invalidateQueries({ queryKey: paymentsKeys.all });
+        showInfoToast(
+          `Paiement #${data.id} : statut confirmé (${statusLabel})${
+            data.helloAssoState ? ` — HelloAsso state=${data.helloAssoState}` : ''
+          }.`,
+        );
       }
     },
   });

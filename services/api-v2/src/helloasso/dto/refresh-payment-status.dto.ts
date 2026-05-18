@@ -5,11 +5,13 @@ import { HelloAssoPaymentStatus } from '../entities/helloasso-payment.entity';
 /**
  * Outcome de l'action admin "refresh status" (cf. `HelloAssoPaymentService.refreshStatusFromHelloAsso`) :
  *  - `transitioned`  : le statut local a changé suite à l'appel HelloAsso
- *  - `still_pending` : HelloAsso n'a pas (encore) d'état terminal — local reste `pending`
- *  - `no_change`     : le payment n'était plus `pending` au moment du refresh (race
- *                      avec un webhook concurrent qui a transitionné entre-temps)
+ *  - `confirmed`     : HelloAsso a été interrogé, l'état renvoyé matche le
+ *                      statut local — aucune transition nécessaire. Inclut le
+ *                      cas race-with-webhook (le statut courant est déjà le bon).
+ *  - `still_pending` : statut local `pending` et HelloAsso n'a pas (encore)
+ *                      d'état terminal (utilisateur n'a pas finalisé sur la mire).
  */
-export type RefreshPaymentStatusOutcome = 'transitioned' | 'still_pending' | 'no_change';
+export type RefreshPaymentStatusOutcome = 'transitioned' | 'confirmed' | 'still_pending';
 
 export class RefreshPaymentStatusDto {
   @ApiProperty()
@@ -30,6 +32,6 @@ la mire mais n'a rien finalisé).`,
   })
   helloAssoState: string | null;
 
-  @ApiProperty({ enum: ['transitioned', 'still_pending', 'no_change'] })
+  @ApiProperty({ enum: ['transitioned', 'confirmed', 'still_pending'] })
   outcome: RefreshPaymentStatusOutcome;
 }

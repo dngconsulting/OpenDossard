@@ -264,45 +264,39 @@ export class HelloAssoPaymentService {
   }
 
   /**
-   * Action admin — re-synchronise le statut d'un paiement bloqué en `pending`
-   * en interrogeant directement HelloAsso (`GET /v5/organizations/{slug}/
-   * checkout-intents/{id}`). Utile quand l'utilisateur a abandonné la mire
-   * sans déclencher d'event webhook côté HelloAsso (cas Steve : webview fermée
-   * → aucun `Canceled`/`Abandoned` envoyé).
+   * Action admin — re-synchronise le statut d'un paiement depuis HelloAsso
+   * (`GET /v5/organizations/{slug}/checkout-intents/{id}`). Utilisable sur
+   * **n'importe quel statut local** :
+   *
+   *   - `pending`  → utile quand l'utilisateur a abandonné la mire sans
+   *                  déclencher de webhook (`Canceled`/`Abandoned` jamais reçu).
+   *   - `paid`     → détecte un refund déclenché côté back-office HelloAsso
+   *                  (transition `paid → refunded` si HA renvoie `Refunded`).
+   *   - `refused`  → permet de vérifier qu'on est bien synchro (rare, sanity check).
+   *   - `refunded` → idem, terminal mais utile pour audit.
    *
    * Comportement :
-   *  - payment `status != pending` → no-op idempotent (`outcome: no_change`)
    *  - payment sans `intentId` (rollback orphelin) → 422
-   *  - HelloAsso retourne un `payment` dans un état mappé (Authorized, Refused,
-   *    Abandoned, Canceled, Refunded) → applique la transition via
-   *    `applyStatusTransition` (UPDATE guarded, idempotent, race-safe vs webhook)
-   *  - HelloAsso ne retourne aucun payment ou un état non mappé → no-op
-   *    (`outcome: still_pending`). L'admin peut ré-essayer plus tard ou annuler
-   *    manuellement.
+   *  - HelloAsso renvoie un `payment` dans un état mappé (Authorized, Refused,
+   *    Abandoned, Canceled, Refunded) → tente la transition via
+   *    `applyStatusTransition` (UPDATE guarded, idempotent, race-safe).
+   *    - Si le statut local est déjà à jour ou si la transition n'est pas
+   *      autorisée (ex: `refused → paid` jamais autorisé) → no-op DB,
+   *      `outcome: confirmed` avec le statut courant.
+   *  - HelloAsso ne renvoie aucun payment ou un état non mappé :
+   *    - statut local `pending` → `outcome: still_pending`
+   *    - statut local terminal → `outcome: confirmed` (HA n'a rien de nouveau)
    *
    * Mapping HelloAsso state → status local : `mapHelloAssoState` (shared avec
    * le webhook receiver, single source of truth).
    *
-   * Pas de check d'authz métier ici — le controller restreint déjà à
-   * `ADMIN | ORGANISATEUR`. Un ORGANISATEUR peut refresh n'importe quel
-   * paiement (scope large, identique à `listByCompetitionAdmin`).
+   * Pas de check d'authz métier ici — le controller restreint à `ADMIN |
+   * ORGANISATEUR` (scope large, identique à `listByCompetitionAdmin`).
    */
   async refreshStatusFromHelloAsso(paymentId: number): Promise<RefreshPaymentStatusDto> {
     const payment = await this.paymentRepo.findOne({ where: { id: paymentId } });
     if (!payment) {
       throw new NotFoundException(`Paiement #${paymentId} introuvable`);
-    }
-    if (payment.status !== HelloAssoPaymentStatus.PENDING) {
-      this.logger.log(
-        `refreshStatusFromHelloAsso: paymentId=${paymentId} already ${payment.status} (no-op)`,
-      );
-      return {
-        id: payment.id,
-        status: payment.status,
-        paidAt: payment.paidAt,
-        helloAssoState: null,
-        outcome: 'no_change',
-      };
     }
     if (!payment.helloAssoCheckoutIntentId) {
       throw new UnprocessableEntityException(
@@ -337,9 +331,9 @@ export class HelloAssoPaymentService {
         }),
     );
 
-    // Dernier payment côté HelloAsso : typiquement il n'y en a qu'un, mais HA
-    // peut en empiler en cas de retry (cf. doc PaymentState). On prend le plus
-    // récent qui mappe vers un statut terminal pour décider de la transition.
+    // Dernier payment côté HelloAsso qui mappe vers un statut terminal.
+    // HelloAsso peut empiler plusieurs entries en cas de retry (cf. doc
+    // PaymentState) ; on prend le plus récent avec un état exploitable.
     const haPayments = data.order?.payments ?? [];
     const terminalPayment = [...haPayments]
       .reverse()
@@ -348,19 +342,43 @@ export class HelloAssoPaymentService {
       terminalPayment?.state ?? haPayments[haPayments.length - 1]?.state ?? null;
     const mappedStatus = mapHelloAssoState(helloAssoState ?? undefined);
 
+    // Cas A : HelloAsso n'a aucun état terminal.
+    //   - local pending  → toujours en attente côté HA (user n'a pas finalisé)
+    //   - local terminal → confirmé (HA n'a rien de nouveau à dire)
     if (!mappedStatus || !terminalPayment) {
+      const outcome =
+        payment.status === HelloAssoPaymentStatus.PENDING ? 'still_pending' : 'confirmed';
       this.logger.log(
-        `refreshStatusFromHelloAsso: paymentId=${paymentId} HelloAsso state=${helloAssoState ?? '<none>'} → still pending`,
+        `refreshStatusFromHelloAsso: paymentId=${paymentId} local=${payment.status} HA state=${helloAssoState ?? '<none>'} → ${outcome}`,
       );
       return {
         id: payment.id,
         status: payment.status,
         paidAt: payment.paidAt,
         helloAssoState,
-        outcome: 'still_pending',
+        outcome,
       };
     }
 
+    // Cas B : HA state mappe vers le statut local courant — pas de transition
+    // nécessaire, mais on a vérifié la cohérence.
+    if (mappedStatus === payment.status) {
+      this.logger.log(
+        `refreshStatusFromHelloAsso: paymentId=${paymentId} HA state=${helloAssoState} matches local ${payment.status} (confirmed)`,
+      );
+      return {
+        id: payment.id,
+        status: payment.status,
+        paidAt: payment.paidAt,
+        helloAssoState,
+        outcome: 'confirmed',
+      };
+    }
+
+    // Cas C : HA state diffère du local — tente la transition.
+    // `applyStatusTransition` n'autorise que pending→paid/refused et paid→refunded.
+    // Une transition invalide (ex: refused → paid d'après HA, scénario suspect)
+    // sera no-op DB et tombera en `confirmed` avec le statut local inchangé.
     const updated = await this.applyStatusTransition({
       payment,
       newStatus: mappedStatus,
@@ -372,19 +390,19 @@ export class HelloAssoPaymentService {
     const fresh = await this.paymentRepo.findOne({ where: { id: paymentId } });
     if (!updated) {
       this.logger.log(
-        `refreshStatusFromHelloAsso: paymentId=${paymentId} race-with-webhook, current=${fresh?.status ?? 'gone'}`,
+        `refreshStatusFromHelloAsso: paymentId=${paymentId} HA=${mappedStatus} but transition rejected (race-with-webhook or invalid), current=${fresh?.status ?? 'gone'}`,
       );
       return {
         id: payment.id,
         status: fresh?.status ?? payment.status,
         paidAt: fresh?.paidAt ?? payment.paidAt,
         helloAssoState,
-        outcome: 'no_change',
+        outcome: 'confirmed',
       };
     }
 
     this.logger.log(
-      `refreshStatusFromHelloAsso: paymentId=${paymentId} pending → ${mappedStatus}`,
+      `refreshStatusFromHelloAsso: paymentId=${paymentId} ${payment.status} → ${mappedStatus}`,
     );
     return {
       id: payment.id,
