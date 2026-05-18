@@ -114,6 +114,13 @@ interface DataTableProps<TData, TValue> {
    * des colonnes).
    */
   isRowReadOnly?: (row: TData) => boolean;
+  /**
+   * Retourne une classe CSS optionnelle à appliquer au `<TableRow>` — utile
+   * pour des indicateurs visuels par ligne (ex: dim si engagé, surlignage,
+   * etc.). Non utilisé par défaut pour rester compatible avec les tables
+   * existantes.
+   */
+  rowClassName?: (row: TData) => string | undefined;
 }
 
 interface SortableRowProps<TData> {
@@ -125,6 +132,8 @@ interface SortableRowProps<TData> {
   enableDragDrop?: boolean;
   rowId: string;
   readOnly?: boolean;
+  /** Classe(s) optionnelles appliquées au `<TableRow>` (ex: dim engagé). */
+  rowClassName?: string;
 }
 
 function SortableRow<TData>({
@@ -136,6 +145,7 @@ function SortableRow<TData>({
   enableDragDrop,
   rowId,
   readOnly,
+  rowClassName,
 }: SortableRowProps<TData>) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: rowId,
@@ -148,7 +158,12 @@ function SortableRow<TData>({
   };
 
   return (
-    <TableRow ref={setNodeRef} style={style} data-state={row.getIsSelected() && 'selected'}>
+    <TableRow
+      ref={setNodeRef}
+      style={style}
+      data-state={row.getIsSelected() && 'selected'}
+      className={rowClassName}
+    >
       {enableDragDrop && (
         <TableCell className="w-8">
           <Button
@@ -253,6 +268,7 @@ export function DataTable<TData, TValue>({
   renderBeforeRow,
   multiSelectColumns,
   isRowReadOnly,
+  rowClassName,
 }: DataTableProps<TData, TValue>) {
   const isServerFiltering = !!onFilterChange;
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -549,6 +565,7 @@ export function DataTable<TData, TValue>({
                 onOpenRow={onOpenRow}
                 enableDragDrop={enableDragDrop}
                 readOnly={isRowReadOnly?.(row.original)}
+                rowClassName={rowClassName?.(row.original)}
               />
             </React.Fragment>
           ))

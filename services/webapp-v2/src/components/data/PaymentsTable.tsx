@@ -137,6 +137,16 @@ export function PaymentsTable({ scope }: PaymentsTableProps) {
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
+      accessorKey: 'licenceName',
+      header: 'Participant',
+      size: 160,
+      cell: ({ row }) => (
+        <span title={formatPersonName(row.original.licenceFirstName, row.original.licenceName)}>
+          {formatPersonName(row.original.licenceFirstName, row.original.licenceName)}
+        </span>
+      ),
+    },
+    {
       accessorKey: 'paidAt',
       header: 'Payé le',
       size: 130,
@@ -175,16 +185,6 @@ export function PaymentsTable({ scope }: PaymentsTableProps) {
       header: 'Payeur',
       size: 150,
       cell: ({ row }) => formatPersonName(row.original.payerFirstName, row.original.payerLastName),
-    },
-    {
-      accessorKey: 'licenceName',
-      header: 'Coureur',
-      size: 160,
-      cell: ({ row }) => (
-        <span title={formatPersonName(row.original.licenceFirstName, row.original.licenceName)}>
-          {formatPersonName(row.original.licenceFirstName, row.original.licenceName)}
-        </span>
-      ),
     },
     {
       accessorKey: 'checkoutIntentId',
@@ -300,6 +300,11 @@ export function PaymentsTable({ scope }: PaymentsTableProps) {
         sortDirection: params.orderDirection,
         onSortChange: setSort,
       }}
+      // Coureur engagé (race row existante) → ligne grisée pour signaler
+      // visuellement le statut "déjà inscrit sur cette compet". `opacity` est
+      // theme-agnostic (fonctionne identique en light/dark) — pas besoin de
+      // dupliquer en `dark:opacity-*`.
+      rowClassName={row => (row.raceCode != null ? 'opacity-60' : undefined)}
       pagination={
         data?.meta
           ? {
