@@ -314,7 +314,16 @@ export function PaymentsTable({ scope }: PaymentsTableProps) {
         // Coureur engagé (race row existante) → ligne grisée pour signaler
         // visuellement le statut "déjà inscrit sur cette compet". `opacity`
         // est theme-agnostic (fonctionne identique en light/dark).
-        rowClassName={row => (row.raceCode != null ? 'opacity-60' : undefined)}
+        //
+        // Scope `all` : la sémantique "engagé" perd son sens (chaque ligne
+        // pointe vers une compétition différente — un coureur engagé sur la
+        // compet A n'a aucune raison d'apparaître grisé quand on regarde la
+        // vue globale). On désactive le dim dans ce scope.
+        rowClassName={
+          scope.kind === 'competition'
+            ? row => (row.raceCode != null ? 'opacity-60' : undefined)
+            : undefined
+        }
         pagination={
           data?.meta
             ? {
