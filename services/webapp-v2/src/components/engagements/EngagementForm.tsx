@@ -257,9 +257,16 @@ export function EngagementForm({
         </Button>
       </div>
 
-      {/* Card récapitulative du coureur sélectionné */}
+      {/* Card récapitulative du coureur sélectionné — flat, fond emerald solide
+          subtil + bordure uniforme. Pas d'ombre, pas de stripe, pas de glow. */}
       {selectedLicence && (
-        <div className="flex items-center gap-4 px-4 py-3 bg-background border border-border/60 rounded-lg shadow-sm">
+        <div
+          className={cn(
+            'flex items-center gap-4 px-4 py-3 rounded-lg',
+            'bg-slate-200/80 dark:bg-slate-800/60',
+            'border border-slate-400/70 dark:border-slate-700/70',
+          )}
+        >
           <div
             className={cn(
               'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white',

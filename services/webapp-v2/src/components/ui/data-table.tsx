@@ -508,6 +508,14 @@ export function DataTable<TData, TValue>({
                                   header.column.setFilterValue(event.target.value);
                                 }
                               }}
+                              // `autocomplete="off"` désactive l'autofill Chrome
+                              // (popup "Save identity card?" etc.) — ces inputs
+                              // sont des filtres de table, pas des champs d'identité.
+                              autoComplete="off"
+                              // `data-1p-ignore` / `data-lpignore` empêchent 1Password
+                              // et LastPass de proposer du remplissage automatique.
+                              data-1p-ignore="true"
+                              data-lpignore="true"
                               className={`h-8 text-sm text-left ${filterValue ? 'pl-2' : 'pl-6'} ${showClear ? 'pr-14' : ''} bg-background/80 border-border/50 focus:border-primary/50 ${columnId === 'club' ? 'placeholder:italic' : ''}`}
                             />
                             {showClear && (
