@@ -1,4 +1,10 @@
-import { BadGatewayException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  BadGatewayException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 
 import { truncate } from '../common/utils/string.util';
 import { HelloAssoConfig } from './helloasso.config';
@@ -20,6 +26,24 @@ export class HelloAssoApiClient {
   }): Promise<CheckoutIntentResponse> {
     const url = `${this.config.apiBaseUrl}/v5/organizations/${encodeURIComponent(input.organizationSlug)}/checkout-intents`;
     return this.postJson<CheckoutIntentResponse>(url, input.accessToken, input.body);
+  }
+
+  /**
+   * Récupère l'état détaillé d'un checkout-intent existant. Utilisé par l'action
+   * admin "refresh status" pour rapatrier l'état réel d'un paiement bloqué en
+   * pending (cf. `HelloAssoPaymentService.refreshStatusFromHelloAsso`).
+   *
+   * 404 HelloAsso → `NotFoundException` (intent introuvable / périmé côté HA).
+   * 401/403 → `UnauthorizedException` (déclenche le refresh-on-401 du wrapper
+   *           `withHelloAssoClubAccessToken`).
+   */
+  async getCheckoutIntent(input: {
+    organizationSlug: string;
+    accessToken: string;
+    checkoutIntentId: string;
+  }): Promise<CheckoutIntentDetailsResponse> {
+    const url = `${this.config.apiBaseUrl}/v5/organizations/${encodeURIComponent(input.organizationSlug)}/checkout-intents/${encodeURIComponent(input.checkoutIntentId)}`;
+    return this.getJson<CheckoutIntentDetailsResponse>(url, input.accessToken);
   }
 
   private async postJson<T>(url: string, accessToken: string, body: unknown): Promise<T> {
@@ -60,6 +84,44 @@ export class HelloAssoApiClient {
 
     return (await response.json()) as T;
   }
+
+  private async getJson<T>(url: string, accessToken: string): Promise<T> {
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+    } catch (e) {
+      this.logger.error(
+        `getJson: network error to ${url}`,
+        e instanceof Error ? e.stack : String(e),
+      );
+      throw new BadGatewayException('HelloAsso API unreachable');
+    }
+
+    if (!response.ok) {
+      const bodyText = await safeReadText(response);
+      this.logger.warn(
+        `getJson: HelloAsso ${response.status} ${response.statusText} url=${url} body=${truncate(bodyText, 500)}`,
+      );
+      if (response.status === 401 || response.status === 403) {
+        throw new UnauthorizedException('HelloAsso rejected access token');
+      }
+      if (response.status === 404) {
+        throw new NotFoundException('HelloAsso resource not found');
+      }
+      if (response.status >= 400 && response.status < 500) {
+        throw new BadGatewayException(`HelloAsso rejected request (${response.status})`);
+      }
+      throw new BadGatewayException('HelloAsso API failed');
+    }
+
+    return (await response.json()) as T;
+  }
 }
 
 export interface CheckoutIntentRequestBody {
@@ -81,6 +143,25 @@ export interface CheckoutIntentRequestBody {
 export interface CheckoutIntentResponse {
   id: number;
   redirectUrl: string;
+}
+
+/**
+ * Sous-ensemble de la réponse `GET /v5/organizations/{slug}/checkout-intents/{id}`.
+ * On ne consomme que l'`order` et ses `payments` — le reste (metadata, payer,
+ * itemName) reste typé `unknown` pour ne pas se coupler au schéma complet.
+ */
+export interface CheckoutIntentDetailsResponse {
+  id?: number;
+  order?: {
+    id?: number;
+    payments?: Array<{
+      id?: number;
+      state?: string;
+      amount?: number;
+      date?: string;
+    }>;
+  };
+  metadata?: Record<string, unknown>;
 }
 
 async function safeReadText(response: Response): Promise<string> {

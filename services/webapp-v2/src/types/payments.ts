@@ -140,3 +140,23 @@ export type PaymentsSummaryByStatus = Record<
 export type PaginatedPaymentsResponse = PaginatedResponse<PaymentAdminRow> & {
   summary: PaymentsSummaryByStatus;
 };
+
+/**
+ * Réponse de `POST /helloasso/payments/admin/:id/refresh-status` (action admin
+ * "re-synchroniser depuis HelloAsso"). Miroir typé du DTO
+ * `RefreshPaymentStatusDto` côté api-v2.
+ *
+ * `outcome` :
+ *  - `transitioned` : le statut local a changé suite à l'appel HelloAsso
+ *  - `still_pending` : HelloAsso n'a pas (encore) d'état terminal — local reste pending
+ *  - `no_change` : le payment n'était plus pending au moment du refresh
+ */
+export type RefreshPaymentStatusOutcome = 'transitioned' | 'still_pending' | 'no_change';
+
+export type RefreshPaymentStatusResponse = {
+  id: number;
+  status: PaymentStatus;
+  paidAt: string | null;
+  helloAssoState: string | null;
+  outcome: RefreshPaymentStatusOutcome;
+};

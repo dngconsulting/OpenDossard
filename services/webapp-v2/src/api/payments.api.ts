@@ -2,6 +2,7 @@ import type {
   PaginatedPaymentsResponse,
   PaymentPaginationParams,
   PaymentsScope,
+  RefreshPaymentStatusResponse,
 } from '@/types/payments';
 
 import { buildQueryString } from './_query-string';
@@ -18,4 +19,10 @@ export const paymentsApi = {
     params: PaymentPaginationParams = {},
   ): Promise<PaginatedPaymentsResponse> =>
     apiClient<PaginatedPaymentsResponse>(`${buildBasePath(scope)}${buildQueryString(params)}`),
+
+  refreshStatus: (paymentId: number): Promise<RefreshPaymentStatusResponse> =>
+    apiClient<RefreshPaymentStatusResponse>(
+      `/helloasso/payments/admin/${paymentId}/refresh-status`,
+      { method: 'POST' },
+    ),
 };

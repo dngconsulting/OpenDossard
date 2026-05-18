@@ -22,6 +22,7 @@ import { HelloAssoPaymentDto } from './dto/helloasso-payment.dto';
 import { ListPaymentsAdminQueryDto } from './dto/list-payments-admin-query.dto';
 import { ListPaymentsQueryDto } from './dto/list-payments-query.dto';
 import { PaymentAdminRowDto } from './dto/payment-admin-row.dto';
+import { RefreshPaymentStatusDto } from './dto/refresh-payment-status.dto';
 import { HelloAssoPaymentService } from './helloasso-payment.service';
 import {
   HelloAssoPaymentsAdminService,
@@ -80,6 +81,37 @@ service (anti-SQL injection). MOBILE explicitement exclu via override @Roles().`
    * (scope large — pas de filtrage par club administré côté serveur, choix
    * métier explicite).
    */
+  /**
+   * **MOBILE INTERDIT** : action admin uniquement. ORGANISATEUR autorisé pour
+   * pouvoir débloquer un pending sur sa compet sans passer par un ADMIN
+   * (scope large, identique à `listByCompetitionAdmin`).
+   */
+  @Post('admin/:id/refresh-status')
+  @HttpCode(200)
+  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @ApiOperation({
+    summary: 'Re-synchroniser le statut HelloAsso (ADMIN | ORGANISATEUR)',
+    description: `Interroge HelloAsso (\`GET /v5/organizations/{slug}/checkout-intents/{id}\`)
+pour rapatrier l'état réel d'un paiement bloqué en \`pending\`. Typiquement
+utilisé quand l'utilisateur a abandonné la mire sans déclencher d'event
+webhook (\`Canceled\`/\`Abandoned\` jamais envoyé).
+
+Si HelloAsso renvoie un \`payment\` dans un état terminal (Authorized, Refused,
+Abandoned, Canceled, Refunded), applique la transition via le même UPDATE
+guarded que le webhook (idempotent, race-safe).
+
+Si HelloAsso ne renvoie aucun payment ou un état transitoire → no-op
+(\`outcome: still_pending\`). Si le payment local n'est plus \`pending\` → no-op
+(\`outcome: no_change\`).`,
+  })
+  @ApiResponse({ status: 200, type: RefreshPaymentStatusDto })
+  @ApiResponse({ status: 404, description: 'Paiement introuvable côté local ou HelloAsso' })
+  @ApiResponse({ status: 422, description: 'Payment sans intentId / club non lié HelloAsso' })
+  @ApiResponse({ status: 502, description: 'HelloAsso indisponible ou access_token rejeté' })
+  refreshStatus(@Param('id', ParseIntPipe) id: number): Promise<RefreshPaymentStatusDto> {
+    return this.payments.refreshStatusFromHelloAsso(id);
+  }
+
   @Get('admin/competition/:competitionId')
   @Roles(Role.ADMIN, Role.ORGANISATEUR)
   @ApiOperation({

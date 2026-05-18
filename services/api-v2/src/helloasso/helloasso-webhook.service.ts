@@ -7,21 +7,8 @@ import {
   HelloAssoPaymentStatus,
 } from './entities/helloasso-payment.entity';
 import { HelloAssoConfig } from './helloasso.config';
+import { mapHelloAssoState } from './helloasso-state.util';
 import { verifyHelloAssoSignature } from './util/webhook-signature.util';
-
-/**
- * Mapping `PaymentState` HelloAsso → statuts internes.
- * Tous les autres états (Pending, Waiting*, Registered, etc.) = no-op silencieux.
- */
-const STATE_TO_STATUS_MAP: Record<string, HelloAssoPaymentStatus | undefined> = {
-  Authorized: HelloAssoPaymentStatus.PAID,
-  AuthorizedPreprod: HelloAssoPaymentStatus.PAID,
-  Refused: HelloAssoPaymentStatus.REFUSED,
-  Error: HelloAssoPaymentStatus.REFUSED,
-  Abandoned: HelloAssoPaymentStatus.REFUSED,
-  Canceled: HelloAssoPaymentStatus.REFUSED,
-  Refunded: HelloAssoPaymentStatus.REFUNDED,
-};
 
 export interface WebhookResult {
   /** `true` si la signature est valide. `false` ⇒ 401 côté controller. */
@@ -112,7 +99,7 @@ export class HelloAssoWebhookService {
       `handleWebhook: paymentId=${openDossardPaymentId} helloAssoPaymentId=${helloAssoPaymentId} state=${state}`,
     );
 
-    const mappedStatus = STATE_TO_STATUS_MAP[state];
+    const mappedStatus = mapHelloAssoState(state);
     if (!mappedStatus) {
       this.logger.log(`handleWebhook: state=${state} maps to no-op`);
       return { signatureValid: true, outcome: `noop_state:${state}` };

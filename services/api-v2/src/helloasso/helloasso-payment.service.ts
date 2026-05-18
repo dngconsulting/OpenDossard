@@ -16,9 +16,11 @@ import { PricingInfo } from '../common/types';
 import { CheckoutIntentCreatedDto } from './dto/checkout-intent-created.dto';
 import { CreateCheckoutIntentDto } from './dto/create-checkout-intent.dto';
 import { HelloAssoPaymentDto } from './dto/helloasso-payment.dto';
+import { RefreshPaymentStatusDto } from './dto/refresh-payment-status.dto';
 import { HelloAssoApiClient, CheckoutIntentRequestBody } from './helloasso-api.client';
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoDetailsService } from './helloasso-details.service';
+import { mapHelloAssoState } from './helloasso-state.util';
 import { truncate } from '../common/utils/string.util';
 import {
   appendPaymentId,
@@ -259,6 +261,185 @@ export class HelloAssoPaymentService {
       `cancelByOwner: paymentId=${paymentId} race-with-webhook, current=${fresh?.status ?? 'gone'}`,
     );
     return toPaymentDto(fresh ?? payment);
+  }
+
+  /**
+   * Action admin — re-synchronise le statut d'un paiement bloqué en `pending`
+   * en interrogeant directement HelloAsso (`GET /v5/organizations/{slug}/
+   * checkout-intents/{id}`). Utile quand l'utilisateur a abandonné la mire
+   * sans déclencher d'event webhook côté HelloAsso (cas Steve : webview fermée
+   * → aucun `Canceled`/`Abandoned` envoyé).
+   *
+   * Comportement :
+   *  - payment `status != pending` → no-op idempotent (`outcome: no_change`)
+   *  - payment sans `intentId` (rollback orphelin) → 422
+   *  - HelloAsso retourne un `payment` dans un état mappé (Authorized, Refused,
+   *    Abandoned, Canceled, Refunded) → applique la transition via
+   *    `applyStatusTransition` (UPDATE guarded, idempotent, race-safe vs webhook)
+   *  - HelloAsso ne retourne aucun payment ou un état non mappé → no-op
+   *    (`outcome: still_pending`). L'admin peut ré-essayer plus tard ou annuler
+   *    manuellement.
+   *
+   * Mapping HelloAsso state → status local : `mapHelloAssoState` (shared avec
+   * le webhook receiver, single source of truth).
+   *
+   * Pas de check d'authz métier ici — le controller restreint déjà à
+   * `ADMIN | ORGANISATEUR`. Un ORGANISATEUR peut refresh n'importe quel
+   * paiement (scope large, identique à `listByCompetitionAdmin`).
+   */
+  async refreshStatusFromHelloAsso(paymentId: number): Promise<RefreshPaymentStatusDto> {
+    const payment = await this.paymentRepo.findOne({ where: { id: paymentId } });
+    if (!payment) {
+      throw new NotFoundException(`Paiement #${paymentId} introuvable`);
+    }
+    if (payment.status !== HelloAssoPaymentStatus.PENDING) {
+      this.logger.log(
+        `refreshStatusFromHelloAsso: paymentId=${paymentId} already ${payment.status} (no-op)`,
+      );
+      return {
+        id: payment.id,
+        status: payment.status,
+        paidAt: payment.paidAt,
+        helloAssoState: null,
+        outcome: 'no_change',
+      };
+    }
+    if (!payment.helloAssoCheckoutIntentId) {
+      throw new UnprocessableEntityException(
+        `Paiement #${paymentId} sans helloAssoCheckoutIntentId — refresh impossible (rollback orphelin ?)`,
+      );
+    }
+
+    const competition = await this.competitionRepo.findOne({
+      where: { id: payment.competitionId },
+    });
+    if (!competition?.clubId) {
+      throw new UnprocessableEntityException(
+        `Compétition #${payment.competitionId} sans clubId — refresh impossible`,
+      );
+    }
+
+    const details = await this.helloAssoDetails.findByClubId(competition.clubId);
+    if (!details) {
+      throw new UnprocessableEntityException(
+        `Club ${competition.clubId} non lié à HelloAsso — refresh impossible`,
+      );
+    }
+
+    const intentId = payment.helloAssoCheckoutIntentId;
+    const data = await this.helloAssoDetails.withHelloAssoClubAccessToken(
+      competition.clubId,
+      accessToken =>
+        this.helloAssoApi.getCheckoutIntent({
+          organizationSlug: details.organizationSlug,
+          accessToken,
+          checkoutIntentId: intentId,
+        }),
+    );
+
+    // Dernier payment côté HelloAsso : typiquement il n'y en a qu'un, mais HA
+    // peut en empiler en cas de retry (cf. doc PaymentState). On prend le plus
+    // récent qui mappe vers un statut terminal pour décider de la transition.
+    const haPayments = data.order?.payments ?? [];
+    const terminalPayment = [...haPayments]
+      .reverse()
+      .find(p => mapHelloAssoState(p.state) !== undefined);
+    const helloAssoState =
+      terminalPayment?.state ?? haPayments[haPayments.length - 1]?.state ?? null;
+    const mappedStatus = mapHelloAssoState(helloAssoState ?? undefined);
+
+    if (!mappedStatus || !terminalPayment) {
+      this.logger.log(
+        `refreshStatusFromHelloAsso: paymentId=${paymentId} HelloAsso state=${helloAssoState ?? '<none>'} → still pending`,
+      );
+      return {
+        id: payment.id,
+        status: payment.status,
+        paidAt: payment.paidAt,
+        helloAssoState,
+        outcome: 'still_pending',
+      };
+    }
+
+    const updated = await this.applyStatusTransition({
+      payment,
+      newStatus: mappedStatus,
+      helloAssoPaymentId:
+        typeof terminalPayment.id === 'number' ? terminalPayment.id : undefined,
+      helloAssoOrderId: typeof data.order?.id === 'number' ? data.order.id : undefined,
+    });
+
+    const fresh = await this.paymentRepo.findOne({ where: { id: paymentId } });
+    if (!updated) {
+      this.logger.log(
+        `refreshStatusFromHelloAsso: paymentId=${paymentId} race-with-webhook, current=${fresh?.status ?? 'gone'}`,
+      );
+      return {
+        id: payment.id,
+        status: fresh?.status ?? payment.status,
+        paidAt: fresh?.paidAt ?? payment.paidAt,
+        helloAssoState,
+        outcome: 'no_change',
+      };
+    }
+
+    this.logger.log(
+      `refreshStatusFromHelloAsso: paymentId=${paymentId} pending → ${mappedStatus}`,
+    );
+    return {
+      id: payment.id,
+      status: fresh?.status ?? mappedStatus,
+      paidAt: fresh?.paidAt ?? null,
+      helloAssoState,
+      outcome: 'transitioned',
+    };
+  }
+
+  /**
+   * UPDATE atomique idempotent — duplique volontairement la logique de
+   * `HelloAssoWebhookService.applyStatusTransition` pour découpler les deux
+   * surfaces (webhook receiver vs action admin). Si les règles de transition
+   * divergent un jour entre les deux chemins, on n'a pas à toucher l'autre.
+   *
+   *   pending → paid       (Authorized)
+   *   pending → refused    (Refused/Error/Abandoned/Canceled)
+   *   paid    → refunded   (Refunded)
+   */
+  private async applyStatusTransition(args: {
+    payment: HelloAssoPaymentEntity;
+    newStatus: HelloAssoPaymentStatus;
+    helloAssoPaymentId: number | undefined;
+    helloAssoOrderId: number | undefined;
+  }): Promise<boolean> {
+    const { payment, newStatus, helloAssoPaymentId, helloAssoOrderId } = args;
+
+    const prerequisiteStatus =
+      newStatus === HelloAssoPaymentStatus.REFUNDED
+        ? HelloAssoPaymentStatus.PAID
+        : HelloAssoPaymentStatus.PENDING;
+
+    const update: Partial<HelloAssoPaymentEntity> = { status: newStatus };
+    if (typeof helloAssoPaymentId === 'number') {
+      update.helloAssoPaymentId = String(helloAssoPaymentId);
+    }
+    if (typeof helloAssoOrderId === 'number') {
+      update.helloAssoOrderId = String(helloAssoOrderId);
+    }
+    if (newStatus === HelloAssoPaymentStatus.PAID) {
+      update.paidAt = new Date();
+    }
+
+    const result = await this.paymentRepo
+      .createQueryBuilder()
+      .update(HelloAssoPaymentEntity)
+      .set(update)
+      .where('id = :id AND status = :prerequisite', {
+        id: payment.id,
+        prerequisite: prerequisiteStatus,
+      })
+      .execute();
+
+    return (result.affected ?? 0) > 0;
   }
 
   /**

@@ -1,9 +1,19 @@
+import { Loader2, RefreshCw } from 'lucide-react';
+
 import { PaymentsSummaryHeader } from '@/components/common/PaymentsSummaryHeader';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table.tsx';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { DEPT_FILTER_OPTIONS } from '@/config/federations';
 import { usePayments } from '@/hooks/usePayments';
+import { useRefreshPaymentStatus } from '@/hooks/useRefreshPaymentStatus';
 import {
   PAYMENT_STATUS_META,
   type PaymentAdminRow,
@@ -59,6 +69,44 @@ function TableSkeleton({ columnCount }: { columnCount: number }) {
 function StatusBadge({ status }: { status: PaymentStatus }) {
   const meta = PAYMENT_STATUS_META[status];
   return <Badge className={meta.fillClassName}>{meta.label}</Badge>;
+}
+
+/**
+ * Bouton "rafraîchir le statut" affiché uniquement sur les rows `pending`.
+ * Déclenche `POST /helloasso/payments/admin/:id/refresh-status` qui interroge
+ * HelloAsso pour rapatrier l'état réel (cf. `useRefreshPaymentStatus`).
+ * Désactivé pendant la mutation (spinner inline).
+ */
+function RefreshStatusButton({ paymentId }: { paymentId: number }) {
+  const mutation = useRefreshPaymentStatus();
+  const isLoading = mutation.isPending && mutation.variables === paymentId;
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            disabled={isLoading}
+            onClick={e => {
+              e.stopPropagation();
+              mutation.mutate(paymentId);
+            }}
+            aria-label="Rafraîchir le statut depuis HelloAsso"
+          >
+            {isLoading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <RefreshCw className="h-3.5 w-3.5" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Re-synchroniser depuis HelloAsso</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
 }
 
 function formatAmount(cents: number): string {
@@ -140,6 +188,17 @@ export function PaymentsTable({ scope }: PaymentsTableProps) {
       header: 'Statut',
       size: 100,
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
+    },
+    {
+      id: 'actions',
+      header: '',
+      size: 40,
+      enableSorting: false,
+      enableColumnFilter: false,
+      cell: ({ row }) =>
+        row.original.status === 'pending' ? (
+          <RefreshStatusButton paymentId={row.original.id} />
+        ) : null,
     },
     {
       accessorKey: 'licenceName',
