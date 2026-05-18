@@ -83,7 +83,7 @@ export class HelloAssoPaymentService {
     }
     if (!competition.onlineRegistrationEnabled) {
       throw new UnprocessableEntityException(
-        `Le paiement en ligne n'est pas activé sur cette épreuve`,
+        `L'organisateur a désactivé le paiement en ligne pour cette épreuve.`,
       );
     }
     if (!competition.clubId) {
