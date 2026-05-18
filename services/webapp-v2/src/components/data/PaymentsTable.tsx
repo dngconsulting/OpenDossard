@@ -1,3 +1,4 @@
+import { PaymentsSummaryHeader } from '@/components/common/PaymentsSummaryHeader';
 import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/ui/data-table.tsx';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -291,6 +292,9 @@ export function PaymentsTable({ scope }: PaymentsTableProps) {
     // Pas de padding inter-rows (densité préservée). Scope local — n'affecte
     // pas les autres tables qui consomment `DataTable`.
     <div className="[&_tbody_tr:first-child_td]:pt-3 [&_tbody_tr:last-child_td]:pb-3">
+      {scope.kind === 'competition' && data?.summary && (
+        <PaymentsSummaryHeader summary={data.summary} />
+      )}
       <DataTable
         columns={columns}
         data={data?.data || []}

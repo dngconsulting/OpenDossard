@@ -16,7 +16,6 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Role } from '../common/enums';
-import { PaginatedResponseDto } from '../common/dto/pagination.dto';
 import { CheckoutIntentCreatedDto } from './dto/checkout-intent-created.dto';
 import { CreateCheckoutIntentDto } from './dto/create-checkout-intent.dto';
 import { HelloAssoPaymentDto } from './dto/helloasso-payment.dto';
@@ -24,7 +23,10 @@ import { ListPaymentsAdminQueryDto } from './dto/list-payments-admin-query.dto';
 import { ListPaymentsQueryDto } from './dto/list-payments-query.dto';
 import { PaymentAdminRowDto } from './dto/payment-admin-row.dto';
 import { HelloAssoPaymentService } from './helloasso-payment.service';
-import { HelloAssoPaymentsAdminService } from './helloasso-payments-admin.service';
+import {
+  HelloAssoPaymentsAdminService,
+  PaymentsAdminListResponse,
+} from './helloasso-payments-admin.service';
 
 /**
  * Endpoints paiement HelloAsso côté payeur (app Dossardeur).
@@ -69,7 +71,7 @@ service (anti-SQL injection). MOBILE explicitement exclu via override @Roles().`
   @ApiResponse({ status: 200, type: PaymentAdminRowDto, isArray: true })
   listAllAdmin(
     @Query() query: ListPaymentsAdminQueryDto,
-  ): Promise<PaginatedResponseDto<PaymentAdminRowDto>> {
+  ): Promise<PaymentsAdminListResponse> {
     return this.adminPayments.list({ ...query });
   }
 
@@ -91,7 +93,7 @@ compétition (cf. design 2026-05-17). Pagination/tri/filtres identiques à
   listByCompetitionAdmin(
     @Param('competitionId', ParseIntPipe) competitionId: number,
     @Query() query: ListPaymentsAdminQueryDto,
-  ): Promise<PaginatedResponseDto<PaymentAdminRowDto>> {
+  ): Promise<PaymentsAdminListResponse> {
     return this.adminPayments.list({ ...query, competitionId });
   }
 

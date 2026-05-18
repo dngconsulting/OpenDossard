@@ -22,6 +22,37 @@ import {
 } from './helloasso-payments-admin.helpers';
 
 /**
+ * Aggregate par statut pour la grille admin : montant total + nombre de
+ * paiements. Réagit aux filtres en cours (sauf pagination) — permet de voir
+ * la recette des résultats actuellement filtrés.
+ */
+export interface PaymentsSummaryByStatus {
+  paid: { amount: number; count: number };
+  pending: { amount: number; count: number };
+  refused: { amount: number; count: number };
+  refunded: { amount: number; count: number };
+}
+
+/**
+ * Réponse paginée enrichie avec `summary` (breakdown par statut). Étend
+ * `PaginatedResponseDto` sans le modifier (cohérence avec les autres listes).
+ */
+export class PaymentsAdminListResponse extends PaginatedResponseDto<PaymentAdminRowDto> {
+  summary: PaymentsSummaryByStatus;
+
+  constructor(
+    data: PaymentAdminRowDto[],
+    total: number,
+    offset: number,
+    limit: number,
+    summary: PaymentsSummaryByStatus,
+  ) {
+    super(data, total, offset, limit);
+    this.summary = summary;
+  }
+}
+
+/**
  * Service de lecture admin/organisateur des paiements HelloAsso.
  *
  * **Scope** : ces endpoints sont réservés ADMIN / ORGANISATEUR. La protection
@@ -29,11 +60,6 @@ import {
  * n'applique aucune restriction par user — c'est intentionnel : la sécurité
  * est en amont (guard). Si un futur endpoint MOBILE doit utiliser ce service,
  * il faudra ajouter un filtre `payerUserId` ici.
- *
- * **Pourquoi un service séparé** : le service payeur (`helloasso-payment.service`)
- * gère le flow d'écriture (create / cancel) avec scope=me strict. Mélanger
- * des lectures admin élargies dans le même fichier mélange les modèles de
- * sécurité et fait grossir le fichier. Split = clair.
  */
 @Injectable()
 export class HelloAssoPaymentsAdminService {
@@ -42,62 +68,101 @@ export class HelloAssoPaymentsAdminService {
     private readonly paymentRepo: Repository<HelloAssoPaymentEntity>,
   ) {}
 
-  async list(filters: ListPaymentsAdminFilters): Promise<PaginatedResponseDto<PaymentAdminRowDto>> {
+  async list(filters: ListPaymentsAdminFilters): Promise<PaymentsAdminListResponse> {
     const { offset = 0, limit = 20 } = filters;
-    const qb = this.buildQuery(filters);
-    qb.offset(offset).limit(limit);
+    const listQb = this.buildListQuery(filters);
+    listQb.offset(offset).limit(limit);
 
-    const [rawRows, total] = await Promise.all([qb.getRawMany<RawRow>(), qb.getCount()]);
+    const summaryQb = this.buildSummaryQuery(filters);
+
+    const [rawRows, total, summaryRows] = await Promise.all([
+      listQb.getRawMany<RawRow>(),
+      listQb.getCount(),
+      summaryQb.getRawMany<SummaryRawRow>(),
+    ]);
+
     const data = rawRows.map(mapRowToDto);
+    const summary = aggregateSummary(summaryRows);
 
-    return new PaginatedResponseDto(data, total, offset, limit);
+    return new PaymentsAdminListResponse(data, total, offset, limit, summary);
   }
 
-  private buildQuery(
+  /**
+   * Query de liste : SELECT enrichi + WHERE + ORDER BY.
+   * Race info via subqueries scalaires (pas de LEFT JOIN race) — l'index unique
+   * race est sur `(competition_id, licence_id, race_code)`, donc une licence
+   * engagée sur 2 raceCodes dupliquerait les lignes paiement avec un LEFT JOIN
+   * naïf. Subqueries scalaires = 0 risque de duplication.
+   */
+  private buildListQuery(
     filters: ListPaymentsAdminFilters,
   ): SelectQueryBuilder<HelloAssoPaymentEntity> {
-    // Race info via subqueries scalaires (pas de LEFT JOIN race) — l'index
-    // unique race est sur `(competition_id, licence_id, race_code)`, donc une
-    // licence engagée sur 2 raceCodes dupliquerait les lignes paiement avec
-    // un LEFT JOIN naïf. Subqueries scalaires = 0 risque de duplication.
+    const qb = this.baseQueryWithFilters(filters).select([
+      'p.id              AS p_id',
+      'p.status          AS p_status',
+      'p.competition_id  AS p_competition_id',
+      'p.licence_id      AS p_licence_id',
+      'p.payer_user_id   AS p_payer_user_id',
+      'p.payer_first_name AS p_payer_first_name',
+      'p.payer_last_name  AS p_payer_last_name',
+      'p.helloasso_checkout_intent_id AS p_checkout_intent_id',
+      'p.helloasso_order_id           AS p_order_id',
+      'p.helloasso_payment_id         AS p_payment_id',
+      'p.tarif_id        AS p_tarif_id',
+      'p.amount_cents    AS p_amount_cents',
+      'p.paid_at         AS p_paid_at',
+      'p.created_at      AS p_created_at',
+      'c.name            AS c_name',
+      'c.event_date      AS c_event_date',
+      'l.name            AS l_name',
+      'l.first_name      AS l_first_name',
+      'l.club            AS l_club',
+      'l.gender          AS l_gender',
+      'l.dept            AS l_dept',
+      'l.birth_year      AS l_birth_year',
+      'l.catea           AS l_catea',
+      'l.catev           AS l_catev',
+      'l.fede            AS l_fede',
+      `${RACE_RIDER_SUBQUERY} AS r_rider_number`,
+      `${RACE_CODE_SUBQUERY}  AS r_race_code`,
+      'u.first_name      AS u_first_name',
+      'u.last_name       AS u_last_name',
+    ]);
+
+    applyOrderBy(qb, filters.orderBy, filters.orderDirection);
+    return qb;
+  }
+
+  /**
+   * Query d'agrégat pour le `summary` : applique les MÊMES filtres que la liste
+   * (à part offset/limit) puis groupe par status. Permet à la SPA d'afficher
+   * un total recette qui réagit aux filtres en cours (cf. design 2026-05-17).
+   */
+  private buildSummaryQuery(
+    filters: ListPaymentsAdminFilters,
+  ): SelectQueryBuilder<HelloAssoPaymentEntity> {
+    return this.baseQueryWithFilters(filters)
+      .select('p.status', 'status')
+      .addSelect('COALESCE(SUM(p.amount_cents), 0)', 'amount_cents')
+      .addSelect('COUNT(*)', 'count')
+      .groupBy('p.status');
+  }
+
+  /**
+   * Base partagée : FROM + JOINs nécessaires aux filtres (competition, licence,
+   * user) + application des WHERE depuis `filters`. Pas de SELECT, pas de
+   * ORDER BY — c'est aux callers de spécialiser.
+   */
+  private baseQueryWithFilters(
+    filters: ListPaymentsAdminFilters,
+  ): SelectQueryBuilder<HelloAssoPaymentEntity> {
     const qb = this.paymentRepo
       .createQueryBuilder('p')
       .leftJoin('competition', 'c', 'c.id = p.competition_id')
       .leftJoin('licence', 'l', 'l.id = p.licence_id')
-      .leftJoin('user', 'u', 'u.id = p.payer_user_id')
-      .select([
-        'p.id              AS p_id',
-        'p.status          AS p_status',
-        'p.competition_id  AS p_competition_id',
-        'p.licence_id      AS p_licence_id',
-        'p.payer_user_id   AS p_payer_user_id',
-        'p.payer_first_name AS p_payer_first_name',
-        'p.payer_last_name  AS p_payer_last_name',
-        'p.helloasso_checkout_intent_id AS p_checkout_intent_id',
-        'p.helloasso_order_id           AS p_order_id',
-        'p.helloasso_payment_id         AS p_payment_id',
-        'p.tarif_id        AS p_tarif_id',
-        'p.amount_cents    AS p_amount_cents',
-        'p.paid_at         AS p_paid_at',
-        'p.created_at      AS p_created_at',
-        'c.name            AS c_name',
-        'c.event_date      AS c_event_date',
-        'l.name            AS l_name',
-        'l.first_name      AS l_first_name',
-        'l.club            AS l_club',
-        'l.gender          AS l_gender',
-        'l.dept            AS l_dept',
-        'l.birth_year      AS l_birth_year',
-        'l.catea           AS l_catea',
-        'l.catev           AS l_catev',
-        'l.fede            AS l_fede',
-        `${RACE_RIDER_SUBQUERY} AS r_rider_number`,
-        `${RACE_CODE_SUBQUERY}  AS r_race_code`,
-        'u.first_name      AS u_first_name',
-        'u.last_name       AS u_last_name',
-      ]);
+      .leftJoin('user', 'u', 'u.id = p.payer_user_id');
 
-    // Scope par compétition (lu depuis route param côté controller)
+    // Scope par compétition (route param côté controller)
     if (filters.competitionId !== undefined) {
       qb.andWhere('p.competition_id = :competitionId', { competitionId: filters.competitionId });
     }
@@ -124,10 +189,31 @@ export class HelloAssoPaymentsAdminService {
     applyIlike(qb, 'p.tarif_id', filters.tarifId);
     applyAmountFilter(qb, filters.amount);
 
-    applyOrderBy(qb, filters.orderBy, filters.orderDirection);
-
     return qb;
   }
+}
+
+interface SummaryRawRow {
+  status: HelloAssoPaymentStatus;
+  amount_cents: string | number;
+  count: string | number;
+}
+
+function aggregateSummary(rows: SummaryRawRow[]): PaymentsSummaryByStatus {
+  const init = { amount: 0, count: 0 };
+  const out: PaymentsSummaryByStatus = {
+    paid: { ...init },
+    pending: { ...init },
+    refused: { ...init },
+    refunded: { ...init },
+  };
+  for (const row of rows) {
+    out[row.status] = {
+      amount: Number(row.amount_cents) / 100,
+      count: Number(row.count),
+    };
+  }
+  return out;
 }
 
 export interface ListPaymentsAdminFilters {

@@ -128,4 +128,15 @@ export type PaymentPaginationParams = {
  */
 export type PaymentsScope = { kind: 'all' } | { kind: 'competition'; competitionId: number };
 
-export type PaginatedPaymentsResponse = PaginatedResponse<PaymentAdminRow>;
+/**
+ * Aggregate par statut pour la grille admin : montant total + nombre de
+ * paiements. Réagit aux filtres en cours (sauf pagination).
+ */
+export type PaymentsSummaryByStatus = Record<
+  PaymentStatus,
+  { amount: number; count: number }
+>;
+
+export type PaginatedPaymentsResponse = PaginatedResponse<PaymentAdminRow> & {
+  summary: PaymentsSummaryByStatus;
+};

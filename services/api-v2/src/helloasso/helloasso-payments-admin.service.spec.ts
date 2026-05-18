@@ -10,6 +10,8 @@ import { HelloAssoPaymentsAdminService } from './helloasso-payments-admin.servic
 interface QbMock {
   leftJoin: jest.Mock;
   select: jest.Mock;
+  addSelect: jest.Mock;
+  groupBy: jest.Mock;
   andWhere: jest.Mock;
   orderBy: jest.Mock;
   addOrderBy: jest.Mock;
@@ -34,6 +36,8 @@ function makeQbMock(rawRows: unknown[] = [], count = 0): QbMock {
 
   qb.leftJoin = jest.fn().mockReturnValue(qb);
   qb.select = jest.fn().mockReturnValue(qb);
+  qb.addSelect = jest.fn().mockReturnValue(qb);
+  qb.groupBy = jest.fn().mockReturnValue(qb);
   qb.andWhere = jest.fn().mockImplementation((sql: string, params?: Record<string, unknown>) => {
     qb.whereCalls.push({ sql, params });
     return qb;
