@@ -7,7 +7,7 @@ import {
   HelloAssoPaymentStatus,
 } from './entities/helloasso-payment.entity';
 import { HelloAssoConfig } from './helloasso.config';
-import { mapHelloAssoState } from './helloasso-state.util';
+import { mapHelloAssoState, prerequisitesForStatus } from './helloasso-state.util';
 import { verifyHelloAssoSignature } from './util/webhook-signature.util';
 
 export interface WebhookResult {
@@ -132,12 +132,9 @@ export class HelloAssoWebhookService {
   }
 
   /**
-   * UPDATE atomique idempotent : ne transite que si `status = prerequisite`.
-   * Replay = no-op silencieux (0 row affected).
-   *
-   *   pending → paid       (Authorized)
-   *   pending → refused    (Refused/Error/Abandoned/Canceled)
-   *   paid    → refunded   (Refunded)
+   * UPDATE atomique idempotent : ne transite que si `status` est dans la liste
+   * des pré-requis autorisés pour `newStatus` (cf. `prerequisitesForStatus`).
+   * Replay ou transition invalide = no-op silencieux (0 row affected).
    */
   private async applyStatusTransition(args: {
     payment: HelloAssoPaymentEntity;
@@ -147,10 +144,10 @@ export class HelloAssoWebhookService {
   }): Promise<boolean> {
     const { payment, newStatus, helloAssoPaymentId, helloAssoOrderId } = args;
 
-    const prerequisiteStatus =
-      newStatus === HelloAssoPaymentStatus.REFUNDED
-        ? HelloAssoPaymentStatus.PAID
-        : HelloAssoPaymentStatus.PENDING;
+    const prerequisites = prerequisitesForStatus(newStatus);
+    if (prerequisites.length === 0) {
+      return false;
+    }
 
     const update: Partial<HelloAssoPaymentEntity> = {
       status: newStatus,
@@ -167,9 +164,9 @@ export class HelloAssoWebhookService {
       .createQueryBuilder()
       .update(HelloAssoPaymentEntity)
       .set(update)
-      .where('id = :id AND status = :prerequisite', {
+      .where('id = :id AND status IN (:...prerequisites)', {
         id: payment.id,
-        prerequisite: prerequisiteStatus,
+        prerequisites,
       })
       .execute();
 

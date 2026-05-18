@@ -30,6 +30,7 @@ export interface PaymentsSummaryByStatus {
   paid: { amount: number; count: number };
   pending: { amount: number; count: number };
   refused: { amount: number; count: number };
+  refunding: { amount: number; count: number };
   refunded: { amount: number; count: number };
 }
 
@@ -205,6 +206,7 @@ function aggregateSummary(rows: SummaryRawRow[]): PaymentsSummaryByStatus {
     paid: { ...init },
     pending: { ...init },
     refused: { ...init },
+    refunding: { ...init },
     refunded: { ...init },
   };
   for (const row of rows) {

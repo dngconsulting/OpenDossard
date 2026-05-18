@@ -7,13 +7,15 @@ import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 
  *
  *   HelloAsso `Authorized` / `AuthorizedPreprod`  → `paid`
  *   HelloAsso `Refused` / `Error` / `Abandoned` / `Canceled` → `refused`
- *   HelloAsso `Refunded`                          → `refunded`
+ *   HelloAsso `Refunding`                         → `refunding`  (refund en cours, pas encore confirmé bancairement)
+ *   HelloAsso `Refunded`                          → `refunded`   (refund confirmé)
  *   Autres états transitoires (`Pending`, `Waiting*`, etc.) → log info + no-op
  */
 export enum HelloAssoPaymentStatus {
   PENDING = 'pending',
   PAID = 'paid',
   REFUSED = 'refused',
+  REFUNDING = 'refunding',
   REFUNDED = 'refunded',
 }
 

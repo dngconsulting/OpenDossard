@@ -152,9 +152,9 @@ describe('HelloAssoWebhookService', () => {
           paidAt: expect.any(Date),
         }),
       );
-      expect(qb.where).toHaveBeenCalledWith('id = :id AND status = :prerequisite', {
+      expect(qb.where).toHaveBeenCalledWith('id = :id AND status IN (:...prerequisites)', {
         id: 42,
-        prerequisite: HelloAssoPaymentStatus.PENDING,
+        prerequisites: [HelloAssoPaymentStatus.PENDING],
       });
     });
 
@@ -180,9 +180,9 @@ describe('HelloAssoWebhookService', () => {
       await m.service.handleWebhook(Buffer.from(body), headers(body));
 
       const qb = m.paymentRepo.createQueryBuilder.mock.results[0].value;
-      expect(qb.where).toHaveBeenCalledWith('id = :id AND status = :prerequisite', {
+      expect(qb.where).toHaveBeenCalledWith('id = :id AND status IN (:...prerequisites)', {
         id: 42,
-        prerequisite: HelloAssoPaymentStatus.PAID,
+        prerequisites: [HelloAssoPaymentStatus.PAID, HelloAssoPaymentStatus.REFUNDING],
       });
     });
 

@@ -1,6 +1,6 @@
 import type { PaginatedResponse } from './pagination';
 
-export type PaymentStatus = 'pending' | 'paid' | 'refused' | 'refunded';
+export type PaymentStatus = 'pending' | 'paid' | 'refused' | 'refunding' | 'refunded';
 
 /**
  * Résumé d'un paiement HelloAsso pour affichage compact (badge dans listes,
@@ -40,6 +40,11 @@ export const PAYMENT_STATUS_META: Record<
     label: 'Refusé',
     fillClassName: 'bg-rose-100 text-rose-900 hover:bg-rose-100 border-rose-200',
     outlineClassName: 'border-rose-500 text-rose-700 dark:text-rose-400',
+  },
+  refunding: {
+    label: 'Remb. en cours',
+    fillClassName: 'bg-violet-100 text-violet-900 hover:bg-violet-100 border-violet-200',
+    outlineClassName: 'border-violet-500 text-violet-700 dark:text-violet-400',
   },
   refunded: {
     label: 'Remboursé',

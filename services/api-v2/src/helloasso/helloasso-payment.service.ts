@@ -20,7 +20,7 @@ import { RefreshPaymentStatusDto } from './dto/refresh-payment-status.dto';
 import { HelloAssoApiClient, CheckoutIntentRequestBody } from './helloasso-api.client';
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoDetailsService } from './helloasso-details.service';
-import { mapHelloAssoState } from './helloasso-state.util';
+import { mapHelloAssoState, prerequisitesForStatus } from './helloasso-state.util';
 import { truncate } from '../common/utils/string.util';
 import {
   appendPaymentId,
@@ -124,7 +124,14 @@ export class HelloAssoPaymentService {
       where: {
         competitionId: competition.id,
         licenceId: licence.id,
-        status: In([HelloAssoPaymentStatus.PENDING, HelloAssoPaymentStatus.PAID]),
+        // Aligné sur le partial unique index `UQ_helloasso_payment_active` :
+        // pending/paid/refunding occupent le slot. Un refund non-confirmé
+        // (`refunding`) bloque une nouvelle inscription jusqu'à `refunded`.
+        status: In([
+          HelloAssoPaymentStatus.PENDING,
+          HelloAssoPaymentStatus.PAID,
+          HelloAssoPaymentStatus.REFUNDING,
+        ]),
       },
     });
     if (existing) {
@@ -419,9 +426,7 @@ export class HelloAssoPaymentService {
    * surfaces (webhook receiver vs action admin). Si les règles de transition
    * divergent un jour entre les deux chemins, on n'a pas à toucher l'autre.
    *
-   *   pending → paid       (Authorized)
-   *   pending → refused    (Refused/Error/Abandoned/Canceled)
-   *   paid    → refunded   (Refunded)
+   * Transitions autorisées : cf. `prerequisitesForStatus` dans le util.
    */
   private async applyStatusTransition(args: {
     payment: HelloAssoPaymentEntity;
@@ -431,10 +436,10 @@ export class HelloAssoPaymentService {
   }): Promise<boolean> {
     const { payment, newStatus, helloAssoPaymentId, helloAssoOrderId } = args;
 
-    const prerequisiteStatus =
-      newStatus === HelloAssoPaymentStatus.REFUNDED
-        ? HelloAssoPaymentStatus.PAID
-        : HelloAssoPaymentStatus.PENDING;
+    const prerequisites = prerequisitesForStatus(newStatus);
+    if (prerequisites.length === 0) {
+      return false;
+    }
 
     const update: Partial<HelloAssoPaymentEntity> = { status: newStatus };
     if (typeof helloAssoPaymentId === 'number') {
@@ -451,9 +456,9 @@ export class HelloAssoPaymentService {
       .createQueryBuilder()
       .update(HelloAssoPaymentEntity)
       .set(update)
-      .where('id = :id AND status = :prerequisite', {
+      .where('id = :id AND status IN (:...prerequisites)', {
         id: payment.id,
-        prerequisite: prerequisiteStatus,
+        prerequisites,
       })
       .execute();
 
