@@ -71,8 +71,20 @@ export function applyOrderBy(
   }
 }
 
+/**
+ * Sentinel envoyé par le bouton "Filtrer les valeurs vides" du `DataTable`
+ * (cf. data-table.tsx `handleFilterChange(columnId, '__empty__')`). Doit
+ * être interprété comme `IS NULL OR = ''` côté SQL, pas comme une recherche
+ * littérale de la chaîne `__empty__`.
+ */
+const FILTER_EMPTY_SENTINEL = '__empty__';
+
 export function applyIlike(qb: QB, expression: string, value: string | undefined): void {
   if (!value) return;
+  if (value === FILTER_EMPTY_SENTINEL) {
+    qb.andWhere(`(${expression} IS NULL OR ${expression} = '')`);
+    return;
+  }
   // Param name unique pour éviter collisions entre appels successifs sur le
   // même qb (TypeORM merge les params nommés). On hash l'expression.
   const param = `flt_${Math.abs(hashString(expression))}`;

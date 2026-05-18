@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { paymentsApi } from '@/api/payments.api';
 import useUserStore from '@/store/UserStore';
@@ -122,7 +122,9 @@ export function usePaymentsHasAny(scope: PaymentsScope | null) {
 }
 
 export function usePayments(scope: PaymentsScope) {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const isAuthenticated = useUserStore(s => s.isAuthenticated);
 
   const params = useMemo(() => parseUrlParams(searchParams), [searchParams]);
@@ -130,9 +132,18 @@ export function usePayments(scope: PaymentsScope) {
   const updateParams = useCallback(
     (newParams: Partial<PaymentPaginationParams>) => {
       const merged = { ...params, ...newParams };
-      setSearchParams(buildUrlParams(merged), { replace: true });
+      // `useSearchParams.setSearchParams` strip le `location.hash` en
+      // interne (`navigate("?" + searchParams)`) — incompatible avec
+      // l'onglet HelloAsso qui s'identifie par `#payments` sur
+      // EngagementsPage. On utilise `navigate` directement pour préserver
+      // le hash.
+      const q = buildUrlParams(merged).toString();
+      navigate(
+        { search: q ? `?${q}` : '', hash: location.hash },
+        { replace: true },
+      );
     },
-    [params, setSearchParams],
+    [params, navigate, location.hash],
   );
 
   const query = useQuery({
