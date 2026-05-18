@@ -1,4 +1,3 @@
-
 import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/ui/data-table.tsx';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -8,8 +7,8 @@ import {
   PAYMENT_STATUS_META,
   type PaymentAdminRow,
   type PaymentFilters,
-  type PaymentStatus,
   type PaymentsScope,
+  type PaymentStatus,
 } from '@/types/payments';
 
 import type { ColumnDef } from '@tanstack/react-table';
@@ -66,9 +65,13 @@ function formatAmount(cents: number): string {
 }
 
 function formatDate(iso: string | null, withTime = false): string {
-  if (!iso) {return '-';}
+  if (!iso) {
+    return '-';
+  }
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) {return '-';}
+  if (Number.isNaN(d.getTime())) {
+    return '-';
+  }
   return withTime ? DATETIME_FR.format(d) : DATE_FR.format(d);
 }
 
@@ -77,8 +80,9 @@ function formatPersonName(first: string | null, last: string | null): string {
   return parts.length > 0 ? parts.join(' ') : '-';
 }
 
-const STATUS_OPTIONS = (Object.entries(PAYMENT_STATUS_META) as [PaymentStatus, { label: string }][])
-  .map(([value, meta]) => ({ value, label: meta.label }));
+const STATUS_OPTIONS = (
+  Object.entries(PAYMENT_STATUS_META) as [PaymentStatus, { label: string }][]
+).map(([value, meta]) => ({ value, label: meta.label }));
 
 const GENDER_OPTIONS = [
   { value: 'H', label: 'H' },
@@ -200,18 +204,14 @@ export function PaymentsTable({ scope }: PaymentsTableProps) {
       header: 'N° commande',
       size: 110,
       enableSorting: false,
-      cell: ({ row }) => (
-        <span className="font-mono text-xs">{row.original.orderId ?? '-'}</span>
-      ),
+      cell: ({ row }) => <span className="font-mono text-xs">{row.original.orderId ?? '-'}</span>,
     },
     {
       accessorKey: 'paymentId',
       header: 'N° transaction',
       size: 110,
       enableSorting: false,
-      cell: ({ row }) => (
-        <span className="font-mono text-xs">{row.original.paymentId ?? '-'}</span>
-      ),
+      cell: ({ row }) => <span className="font-mono text-xs">{row.original.paymentId ?? '-'}</span>,
     },
     // --- Bloc licence (coureur engagé) ---
     {
@@ -284,39 +284,46 @@ export function PaymentsTable({ scope }: PaymentsTableProps) {
   }
 
   return (
-    <DataTable
-      columns={columns}
-      data={data?.data || []}
-      isLoading={isLoading}
-      serverFilters={(params.filters as Record<string, string>) || {}}
-      multiSelectColumns={{
-        gender: { options: GENDER_OPTIONS },
-        dept: { options: DEPT_FILTER_OPTIONS },
-        status: { options: STATUS_OPTIONS },
-      }}
-      onFilterChange={(columnId, value) => setFilter(columnId as keyof PaymentFilters, value)}
-      sorting={{
-        sortColumn: params.orderBy,
-        sortDirection: params.orderDirection,
-        onSortChange: setSort,
-      }}
-      // Coureur engagé (race row existante) → ligne grisée pour signaler
-      // visuellement le statut "déjà inscrit sur cette compet". `opacity` est
-      // theme-agnostic (fonctionne identique en light/dark) — pas besoin de
-      // dupliquer en `dark:opacity-*`.
-      rowClassName={row => (row.raceCode != null ? 'opacity-60' : undefined)}
-      pagination={
-        data?.meta
-          ? {
-              enabled: true,
-              meta: data.meta,
-              onPageChange: goToPage,
-              onPageSizeChange: setLimit,
-              currentPage,
-              totalPages,
-            }
-          : undefined
-      }
-    />
+    // Wrapper ciblant UNIQUEMENT la 1ère et la dernière row de la tbody :
+    //  - `:first-child td` → pt-3 (air entre filter row sticky et 1ère data row)
+    //  - `:last-child td` → pb-3 (air entre dernière data row et scrollbar
+    //    horizontale du conteneur overflow-auto)
+    // Pas de padding inter-rows (densité préservée). Scope local — n'affecte
+    // pas les autres tables qui consomment `DataTable`.
+    <div className="[&_tbody_tr:first-child_td]:pt-3 [&_tbody_tr:last-child_td]:pb-3">
+      <DataTable
+        columns={columns}
+        data={data?.data || []}
+        isLoading={isLoading}
+        serverFilters={(params.filters as Record<string, string>) || {}}
+        multiSelectColumns={{
+          gender: { options: GENDER_OPTIONS },
+          dept: { options: DEPT_FILTER_OPTIONS },
+          status: { options: STATUS_OPTIONS },
+        }}
+        onFilterChange={(columnId, value) => setFilter(columnId as keyof PaymentFilters, value)}
+        sorting={{
+          sortColumn: params.orderBy,
+          sortDirection: params.orderDirection,
+          onSortChange: setSort,
+        }}
+        // Coureur engagé (race row existante) → ligne grisée pour signaler
+        // visuellement le statut "déjà inscrit sur cette compet". `opacity`
+        // est theme-agnostic (fonctionne identique en light/dark).
+        rowClassName={row => (row.raceCode != null ? 'opacity-60' : undefined)}
+        pagination={
+          data?.meta
+            ? {
+                enabled: true,
+                meta: data.meta,
+                onPageChange: goToPage,
+                onPageSizeChange: setLimit,
+                currentPage,
+                totalPages,
+              }
+            : undefined
+        }
+      />
+    </div>
   );
 }
