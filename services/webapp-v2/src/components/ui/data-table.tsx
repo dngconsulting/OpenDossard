@@ -154,7 +154,11 @@ function SortableRow<TData>({
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    // `opacity` posé inline UNIQUEMENT pendant le drag — sinon `opacity: 1`
+    // écraserait toute classe Tailwind type `opacity-60` posée via
+    // `rowClassName` (les styles inline ont une spécificité plus forte que
+    // les CSS classes).
+    ...(isDragging ? { opacity: 0.5 } : {}),
   };
 
   return (
