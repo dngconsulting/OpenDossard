@@ -46,6 +46,11 @@ import { HelloAssoModule } from './helloasso/helloasso.module';
         // "column X does not exist" plus tard).
         migrations: [__dirname + '/migrations/*{.js,.ts}'],
         migrationsTableName: 'typeorm_migrations',
+        // `each` : chaque migration tourne dans sa propre transaction, et une
+        // migration peut opt-out via `transaction = false` (requis pour
+        // `ALTER TYPE ... ADD VALUE` suivi d'un usage de la nouvelle valeur).
+        // Le défaut `all` interdit l'override → erreur au boot.
+        migrationsTransactionMode: 'each',
         // Désactivé en e2e : `setup-e2e.ts` reconstruit le schéma via
         // `dataSource.synchronize(true)` (plus rapide et déterministe pour
         // les tests) — laisser `migrationsRun` actif provoquerait des
