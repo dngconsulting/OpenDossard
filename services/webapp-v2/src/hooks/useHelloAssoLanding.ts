@@ -43,18 +43,27 @@ export function useHelloAssoLanding(): void {
       showSuccessToast('Compte HelloAsso lié', slug ? `Association : ${slug}` : undefined);
     } else if (status === 'error') {
       const reason = searchParams.get('reason') ?? 'inconnue';
+      const slug = searchParams.get('slug') ?? '';
       const errorDescription = searchParams.get('error_description') ?? undefined;
       const errorUri = searchParams.get('error_uri') ?? undefined;
       // Dump le détail OAuth2 brut en console pour diagnostic (`error_description`
       // /`error_uri` viennent directement d'HelloAsso, propagés par le backend).
       console.error('[HelloAsso callback] error details', {
         reason,
+        slug,
         error_description: errorDescription,
         error_uri: errorUri,
       });
-      const label = REASON_LABEL[reason] ?? reason;
-      const detail = errorDescription ? `${label} — ${errorDescription}` : label;
-      showErrorToast('Liaison HelloAsso échouée', detail);
+      if (reason === 'no_matching_club') {
+        showErrorToast(
+          'Liaison HelloAsso échouée',
+          `L'association « ${slug || 'inconnue'} » n'existe pas dans la base Open Dossard. Merci de contacter l'administrateur pour l'ajouter.`,
+        );
+      } else {
+        const label = REASON_LABEL[reason] ?? reason;
+        const detail = errorDescription ? `${label} — ${errorDescription}` : label;
+        showErrorToast('Liaison HelloAsso échouée', detail);
+      }
     }
 
     const next = new URLSearchParams(searchParams);
