@@ -8,8 +8,8 @@ import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
-import { Skeleton } from '@/components/ui/skeleton';
 import { RaceTabsList, RaceTabsTrigger } from '@/components/ui/race-tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { COMPETITION_TYPE_ICONS } from '@/config/competition-type.config';
 import { FEDERATIONS, type FedeEnum } from '@/config/federations';
@@ -18,6 +18,7 @@ import {
   useCreateCompetition,
   useUpdateCompetition,
 } from '@/hooks/useCompetitions';
+import { collectFormErrorMessages } from '@/lib/form-errors';
 import { COMPETITION_TYPE_LABELS } from '@/types/api';
 import { downloadFromApi } from '@/utils/download';
 import { showErrorToast, showSuccessToast } from '@/utils/error-handler/error-handler';
@@ -121,7 +122,7 @@ export default function CompetitionDetailPage() {
 
   useEffect(() => {
     const source = isDuplicating ? sourceCompetition : competition;
-    if (!source) return;
+    if (!source) {return;}
 
     let eventDateLocal = '';
     if (!isDuplicating && source.eventDate) {
@@ -169,7 +170,7 @@ export default function CompetitionDetailPage() {
   // Génère les races par défaut basées sur les 6 premières catégories de la fédération
   const getDefaultRaces = (fede: string): string => {
     const federation = FEDERATIONS[fede as FedeEnum];
-    if (!federation) return '';
+    if (!federation) {return '';}
     const races = federation.catev.slice(0, 6).map(cat => cat.value);
     return races.join(',');
   };
@@ -224,7 +225,7 @@ export default function CompetitionDetailPage() {
   );
 
   const handleExportFiche = async () => {
-    if (!competition) return;
+    if (!competition) {return;}
     try {
       const filename = `Fiche_epreuve_${competition.name.replace(/\s/g, '_')}.pdf`;
       await downloadFromApi(`/reports/pdf/fiche-epreuve/${competition.id}`, filename);
@@ -245,7 +246,18 @@ export default function CompetitionDetailPage() {
       )}
       <Button
         onClick={() => {
-          form.handleSubmit(onSubmit, errors => console.error('Validation errors:', errors))();
+          form.handleSubmit(onSubmit, errors => {
+            const messages = collectFormErrorMessages(errors);
+            showErrorToast(
+              'Le formulaire contient des erreurs',
+              messages.length > 0
+                ? messages.join(' • ')
+                : 'Vérifie les champs surlignés en rouge.',
+            );
+            // Conservé pour le debug en dev : la structure complète est plus
+            // riche que le toast (ref, type, path).
+            console.error('Validation errors:', errors);
+          })();
         }}
         disabled={isSaving || !canSave}
       >
