@@ -13,7 +13,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useHelloAssoAuth, useHelloAssoStatus } from '@/hooks/useHelloAssoAuth';
-import { showErrorToast } from '@/utils/error-handler/error-handler';
 
 type Props = {
   clubId: number;
@@ -36,9 +35,11 @@ export function HelloAssoConnectButton({ clubId }: Props) {
     try {
       const { authorizeUrl } = await mutation.mutateAsync(clubId);
       window.location.href = authorizeUrl;
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Erreur inconnue';
-      showErrorToast('Impossible de démarrer la liaison HelloAsso', msg);
+    } catch {
+      // Erreur affichée par le `MutationCache.onError` global (cf. `App.tsx`).
+      // Le `catch` ici sert juste à éviter une unhandled promise rejection ;
+      // pas de toast manuel sinon doublon avec le toast global (cas 403 du
+      // scope par club notamment).
     }
   };
 
