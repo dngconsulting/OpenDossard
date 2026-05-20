@@ -70,21 +70,14 @@ compétitions, tous clubs) avec pagination/tri/filtre serveur. Tri par défaut :
 service (anti-SQL injection). MOBILE explicitement exclu via override @Roles().`,
   })
   @ApiResponse({ status: 200, type: PaymentAdminRowDto, isArray: true })
-  listAllAdmin(
-    @Query() query: ListPaymentsAdminQueryDto,
-  ): Promise<PaymentsAdminListResponse> {
+  listAllAdmin(@Query() query: ListPaymentsAdminQueryDto): Promise<PaymentsAdminListResponse> {
     return this.adminPayments.list({ ...query });
   }
 
   /**
-   * **MOBILE INTERDIT** : mêmes raisons que `listAllAdmin`. ORGANISATEUR autorisé
-   * (scope large — pas de filtrage par club administré côté serveur, choix
-   * métier explicite).
-   */
-  /**
    * **MOBILE INTERDIT** : action admin uniquement. ORGANISATEUR autorisé pour
-   * pouvoir débloquer un pending sur sa compet sans passer par un ADMIN
-   * (scope large, identique à `listByCompetitionAdmin`).
+   * pouvoir débloquer un pending sur une compet d'un club dont il est lié
+   * (cf. `assertCompetitionAccessById`).
    */
   @Post('admin/:id/refresh-status')
   @HttpCode(200)
@@ -109,6 +102,10 @@ Si HelloAsso ne renvoie aucun payment ou un état transitoire → no-op
   @ApiResponse({ status: 422, description: 'Payment sans intentId / club non lié HelloAsso' })
   @ApiResponse({ status: 502, description: 'HelloAsso indisponible ou access_token rejeté' })
   refreshStatus(@Param('id', ParseIntPipe) id: number): Promise<RefreshPaymentStatusDto> {
+    // Pas de scope club ici : la philosophie OpenDossard est que les
+    // organisateurs s'entraident sur les engagements/paiements même hors de
+    // leur propre club (cohérent avec l'absence de scope sur les engagements
+    // et licences). Toute action est tracée via les logs serveur.
     return this.payments.refreshStatusFromHelloAsso(id);
   }
 
@@ -117,9 +114,9 @@ Si HelloAsso ne renvoie aucun payment ou un état transitoire → no-op
   @ApiOperation({
     summary: "Lister les paiements d'une compétition (ADMIN | ORGANISATEUR)",
     description: `Endpoint scopé compétition pour l'onglet "Paiements" sur l'écran
-des engagements. ORGANISATEUR : scope large, peut interroger n'importe quelle
-compétition (cf. design 2026-05-17). Pagination/tri/filtres identiques à
-\`/admin/all\`.`,
+des engagements. Accessible à tout ORGANISATEUR sans restriction par club —
+les organisateurs se dépannent entre eux sur les engagements, et les paiements
+en font partie. La vue globale \`/admin/all\` reste ADMIN-only.`,
   })
   @ApiResponse({ status: 200, type: PaymentAdminRowDto, isArray: true })
   listByCompetitionAdmin(

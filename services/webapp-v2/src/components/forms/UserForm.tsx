@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Camera, Lock, UserCircle } from 'lucide-react';
+import { Camera, Info, Lock, UserCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { showSuccessToast } from '@/utils/error-handler/error-handler';
 import { z } from 'zod';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -11,6 +10,9 @@ import { Form } from '@/components/ui/form';
 import { RolesMultiSelect } from '@/components/ui/roles-multi-select';
 import { useCreateUser, useUpdateUser } from '@/hooks/useUsers';
 import type { UserType } from '@/types/users';
+import { showSuccessToast } from '@/utils/error-handler/error-handler';
+
+import { UserClubsSection } from './UserClubsSection';
 
 const createFormSchema = (isCreating: boolean) =>
   z
@@ -74,6 +76,8 @@ export const UserForm = ({ user, isCreating, onSuccess, formId, onPendingChange 
 
   const watchedFirstName = form.watch('firstName');
   const watchedLastName = form.watch('lastName');
+  const watchedRoles = form.watch('roles');
+  const isOrganisateur = watchedRoles?.split(',').includes('ORGANISATEUR') ?? false;
 
   const onSubmit = async (data: FormValues) => {
     onPendingChange?.(true);
@@ -174,6 +178,23 @@ export const UserForm = ({ user, isCreating, onSuccess, formId, onPendingChange 
             </div>
           </CardContent>
         </Card>
+
+        {/* Hint à la création : on ne peut pas associer de clubs sans userId.
+            Visible uniquement si l'organisateur est sélectionné, pour ne pas
+            polluer la création d'un ADMIN. */}
+        {isCreating && isOrganisateur && (
+          <div className="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-100">
+            <Info className="h-4 w-4 mt-0.5 shrink-0" aria-hidden />
+            <p>
+              Les <strong>clubs gérés</strong> par cet organisateur seront à associer{' '}
+              <strong>après la création</strong> : enregistre d&apos;abord ce nouvel utilisateur,
+              puis rouvre sa fiche pour accéder à la section &laquo;&nbsp;Clubs gérés&nbsp;&raquo;.
+            </p>
+          </div>
+        )}
+
+        {/* Clubs gérés — visible uniquement en édition d'un ORGANISATEUR */}
+        {!isCreating && user && isOrganisateur && <UserClubsSection userId={user.id} />}
 
         {/* Mot de passe (création uniquement) */}
         {isCreating && (

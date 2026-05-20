@@ -2,37 +2,7 @@ import type { ClubType, ClubPaginationParams, ClubReferences, UpdateClubInput } 
 import type { PaginatedResponse } from '@/types/users';
 
 import { apiClient } from './client';
-
-const buildQueryString = (params: ClubPaginationParams): string => {
-  const searchParams = new URLSearchParams();
-
-  if (params.offset && params.offset > 0) {
-    searchParams.set('offset', String(params.offset));
-  }
-  if (params.limit && params.limit !== 20) {
-    searchParams.set('limit', String(params.limit));
-  }
-  if (params.search) {
-    searchParams.set('search', params.search);
-  }
-  if (params.orderBy) {
-    searchParams.set('orderBy', params.orderBy);
-  }
-  if (params.orderDirection) {
-    searchParams.set('orderDirection', params.orderDirection);
-  }
-
-  if (params.filters) {
-    Object.entries(params.filters).forEach(([key, value]) => {
-      if (value) {
-        searchParams.set(key, value);
-      }
-    });
-  }
-
-  const qs = searchParams.toString();
-  return qs ? `?${qs}` : '';
-};
+import { buildQueryString } from './_query-string';
 
 export const clubsApi = {
   getAllPaginated: (params: ClubPaginationParams = {}): Promise<PaginatedResponse<ClubType>> =>
@@ -42,6 +12,20 @@ export const clubsApi = {
 
   getByFedeAndDept: (fede: string, dept: string): Promise<ClubType[]> =>
     apiClient<ClubType[]>(`/clubs/legacy?fede=${encodeURIComponent(fede)}&dept=${encodeURIComponent(dept)}`),
+
+  /**
+   * Recherche legacy multi-département. Utilise le param `dept` répété
+   * (`?dept=31&dept=81`). `fede` reste single.
+   */
+  searchLegacy: (params: { fede?: string; depts?: string[] }): Promise<ClubType[]> => {
+    const sp = new URLSearchParams();
+    if (params.fede) {sp.set('fede', params.fede);}
+    if (params.depts && params.depts.length > 0) {
+      params.depts.forEach(d => sp.append('dept', d));
+    }
+    const qs = sp.toString();
+    return apiClient<ClubType[]>(`/clubs/legacy${qs ? `?${qs}` : ''}`);
+  },
 
   getById: (id: number): Promise<ClubType> => apiClient<ClubType>(`/clubs/${id}`),
 

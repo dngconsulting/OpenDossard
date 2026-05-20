@@ -43,14 +43,20 @@ export class ClubsController {
   @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
   @ApiOperation({
     summary:
-      'Get all clubs (legacy, no pagination), optionally filtered by federation and department',
+      'Get all clubs (legacy, no pagination), optionally filtered by federation and department(s)',
   })
   @ApiQuery({ name: 'fede', required: false, enum: Federation })
-  @ApiQuery({ name: 'dept', required: false })
+  @ApiQuery({
+    name: 'dept',
+    required: false,
+    isArray: true,
+    description:
+      'Filtre par département(s). Répétable : `?dept=31&dept=81&dept=82`. NestJS accepte la même requête avec une valeur unique (`?dept=31`).',
+  })
   @ApiResponse({ status: 200, description: 'List of clubs' })
   async findAllLegacy(
     @Query('fede') fede?: Federation,
-    @Query('dept') dept?: string,
+    @Query('dept') dept?: string | string[],
   ): Promise<ClubEntity[]> {
     return this.clubsService.findAll(fede, dept);
   }
@@ -86,6 +92,10 @@ export class ClubsController {
   @Roles(Role.ADMIN, Role.ORGANISATEUR)
   @ApiOperation({ summary: 'Update a club' })
   @ApiResponse({ status: 200, description: 'Club updated' })
+  @ApiResponse({
+    status: 409,
+    description: 'Club lié à HelloAsso : délier (DELETE /helloasso/clubs/:id) avant de modifier',
+  })
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateClubDto,
@@ -99,7 +109,10 @@ export class ClubsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a club (only if unreferenced)' })
   @ApiResponse({ status: 200, description: 'Club deleted' })
-  @ApiResponse({ status: 409, description: 'Club is referenced and cannot be deleted' })
+  @ApiResponse({
+    status: 409,
+    description: 'Club lié à HelloAsso, ou référencé par des compétitions / courses / licences',
+  })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<{ success: boolean }> {
     await this.clubsService.remove(id);
     return { success: true };

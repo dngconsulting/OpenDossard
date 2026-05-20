@@ -44,17 +44,33 @@ export class ClubsService {
     }
   }
 
-  async findAll(fede?: Federation, dept?: string): Promise<ClubEntity[]> {
+  async findAll(fede?: Federation, dept?: string | string[]): Promise<ClubEntity[]> {
     const queryBuilder = this.clubRepository.createQueryBuilder('club');
 
     if (fede) {
       queryBuilder.andWhere('club.fede = :fede', { fede });
     }
-    if (dept) {
-      queryBuilder.andWhere('club.dept = :dept', { dept });
+    if (dept !== undefined) {
+      const depts = (Array.isArray(dept) ? dept : [dept]).filter(d => d.length > 0);
+      if (depts.length > 0) {
+        queryBuilder.andWhere('club.dept IN (:...depts)', { depts });
+      }
     }
 
     return queryBuilder.orderBy('club.longName', 'ASC').getMany();
+  }
+
+  /**
+   * Lookup batch par IDs. Retourne triés alphabétiquement sur `longName`.
+   * Une liste vide renvoie `[]` sans toucher la DB.
+   */
+  async findByIds(ids: number[]): Promise<ClubEntity[]> {
+    if (ids.length === 0) return [];
+    return this.clubRepository
+      .createQueryBuilder('club')
+      .where('club.id IN (:...ids)', { ids })
+      .orderBy('club.longName', 'ASC')
+      .getMany();
   }
 
   async findAllPaginated(filterDto: FilterClubDto): Promise<PaginatedResponseDto<ClubEntity>> {

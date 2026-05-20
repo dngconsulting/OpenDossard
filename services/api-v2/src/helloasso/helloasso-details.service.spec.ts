@@ -1,4 +1,4 @@
-import { NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
 import { Repository } from 'typeorm';
 
@@ -10,13 +10,20 @@ import { encryptToken } from './util/token-crypto.util';
 
 interface Mocks {
   service: HelloAssoDetailsService;
-  repo: { findOne: jest.Mock; update: jest.Mock };
+  repo: { findOne: jest.Mock; update: jest.Mock; save: jest.Mock; create: jest.Mock };
   oauth: { refreshTokens: jest.Mock };
   key: Buffer;
 }
 
 function makeService(): Mocks {
-  const repo = { findOne: jest.fn(), update: jest.fn() };
+  const repo = {
+    findOne: jest.fn(),
+    update: jest.fn(),
+    save: jest.fn().mockImplementation((e: HelloAssoDetailsEntity) => Promise.resolve(e)),
+    create: jest
+      .fn()
+      .mockImplementation((data: Partial<HelloAssoDetailsEntity>) => ({ id: 1, ...data })),
+  };
   const oauth = { refreshTokens: jest.fn() };
   const key = randomBytes(32);
   const config = { tokenEncryptionKey: key } as HelloAssoConfig;
@@ -201,5 +208,41 @@ describe('HelloAssoDetailsService — updateAfterRefresh', () => {
     // Tokens chiffrés (format iv.tag.ct base64url, 3 segments)
     expect(updates.accessTokenEncrypted.split('.')).toHaveLength(3);
     expect(updates.refreshTokenEncrypted.split('.')).toHaveLength(3);
+  });
+});
+
+describe('HelloAssoDetailsService — upsertLink (lot 3 : refus re-liaison slug différent)', () => {
+  const baseInput = {
+    clubId: 782,
+    organizationSlug: 'cyclo-club-castaneen',
+    accessToken: 'a',
+    refreshToken: 'r',
+    expiresInSeconds: 1800,
+    linkedByUserId: 55,
+  };
+
+  it('passe et UPDATE si aucune liaison existante', async () => {
+    const m = makeService();
+    m.repo.findOne.mockResolvedValueOnce(null);
+    await expect(m.service.upsertLink(baseInput)).resolves.toBeDefined();
+    expect(m.repo.create).toHaveBeenCalled();
+    expect(m.repo.save).toHaveBeenCalled();
+  });
+
+  it('passe si liaison existante avec le même slug (re-liaison normale, refresh expiré)', async () => {
+    const m = makeService();
+    m.repo.findOne.mockResolvedValueOnce(makeDetails(m.key, 'old', 'old'));
+    await expect(m.service.upsertLink(baseInput)).resolves.toBeDefined();
+    expect(m.repo.save).toHaveBeenCalled();
+    expect(m.repo.create).not.toHaveBeenCalled();
+  });
+
+  it('refuse avec ConflictException si liaison existante avec un slug DIFFÉRENT', async () => {
+    const m = makeService();
+    m.repo.findOne.mockResolvedValueOnce(makeDetails(m.key, 'old', 'old'));
+    await expect(
+      m.service.upsertLink({ ...baseInput, organizationSlug: 'orga-frauduleuse' }),
+    ).rejects.toBeInstanceOf(ConflictException);
+    expect(m.repo.save).not.toHaveBeenCalled();
   });
 });

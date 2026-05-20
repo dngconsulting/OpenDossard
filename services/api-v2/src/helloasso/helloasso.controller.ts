@@ -13,14 +13,19 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiExcludeEndpoint, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Response } from 'express';
+import { Repository } from 'typeorm';
 
+import { AuthorizationService } from '../auth/authorization.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { AuthenticatedUser } from '../auth/types/authenticated-user';
 import { Role } from '../common/enums';
 import { ClubsService } from '../clubs/clubs.service';
+import { UserEntity } from '../users/entities/user.entity';
 import { AuthorizeRequestDto } from './dto/authorize-request.dto';
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoDetailsService, HelloAssoLinkStatus } from './helloasso-details.service';
@@ -52,6 +57,9 @@ export class HelloAssoController {
     private readonly details: HelloAssoDetailsService,
     private readonly clubs: ClubsService,
     private readonly config: HelloAssoConfig,
+    private readonly authorizationService: AuthorizationService,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
   ) {}
 
   @Post('oauth/authorize')
@@ -67,15 +75,19 @@ lié à l'identité du user appelant, et retourne l'URL de la mire HelloAsso
 le callback finit par UPSERT silencieux la liaison du club matché par slug,
 écrasant une éventuelle liaison existante — pas un droit ouvert aux coureurs.`,
   })
-  authorize(
-    @CurrentUser('id') userId: number,
-    @CurrentUser('email') userEmail: string,
-    @Body() body?: AuthorizeRequestDto,
-  ): PreparedAuthorization {
+  async authorize(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: AuthorizeRequestDto,
+  ): Promise<PreparedAuthorization> {
+    // Lot 3 — l'utilisateur doit déjà avoir l'accès au club AVANT qu'on
+    // monte la mire HelloAsso. Sinon un ORGA lié au club A pourrait initier
+    // une mire au nom du club B (scénario D1 du threat model).
+    await this.authorizationService.assertClubAccess(user, body.originClubId);
+
     return this.oauth.prepareAuthorization({
-      userId,
-      userEmail,
-      originClubId: body?.originClubId,
+      userId: user.id,
+      userEmail: user.email,
+      originClubId: body.originClubId,
     });
   }
 
@@ -88,7 +100,11 @@ le callback finit par UPSERT silencieux la liaison du club matché par slug,
     description: `Lecture pure DB (aucun appel HelloAsso). \`expired=true\` ssi le
 refresh_token est hors fenêtre 30j et nécessite un re-passage par la mire.`,
   })
-  status(@Param('clubId', ParseIntPipe) clubId: number): Promise<HelloAssoLinkStatus> {
+  async status(
+    @Param('clubId', ParseIntPipe) clubId: number,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<HelloAssoLinkStatus> {
+    await this.authorizationService.assertClubAccess(user, clubId);
     return this.details.getStatus(clubId);
   }
 
@@ -103,7 +119,11 @@ refresh_token est hors fenêtre 30j et nécessite un re-passage par la mire.`,
 en re-passant par la mire. Les tokens HelloAsso restent valides côté HelloAsso jusqu'à
 leur expiration normale (pas de révocation explicite).`,
   })
-  async unlink(@Param('clubId', ParseIntPipe) clubId: number): Promise<void> {
+  async unlink(
+    @Param('clubId', ParseIntPipe) clubId: number,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<void> {
+    await this.authorizationService.assertClubAccess(user, clubId);
     await this.details.deleteByClubId(clubId);
   }
 
@@ -163,6 +183,47 @@ leur expiration normale (pas de révocation explicite).`,
         return this.redirectError(res, 'no_matching_club', originClubId, {
           slug: result.organizationSlug,
         });
+      }
+
+      // Lot 3 — Vérification critique : le club résolu par slug doit
+      // correspondre à l'`originClubId` annoncé au moment du `authorize`.
+      // Sinon, le user pourrait avoir initié une mire pour le club A mais
+      // autorisé une orga HelloAsso dont le slug matche le club B → s'il
+      // n'y avait pas ce contrôle, on lierait la liaison HelloAsso de B
+      // aux tokens d'une orga contrôlée par le user (scénario D1).
+      if (originClubId === null || club.id !== originClubId) {
+        this.logger.warn(
+          `callback: slug_mismatch_origin_club — slug=${result.organizationSlug} matche club=${club.id}, attendu originClubId=${originClubId ?? 'null'} (user=${result.userId})`,
+        );
+        return this.redirectError(res, 'slug_mismatch_origin_club', originClubId, {
+          slug: result.organizationSlug,
+          matched_club_id: String(club.id),
+        });
+      }
+
+      // Defense-in-depth : re-vérifier que l'utilisateur a toujours l'accès
+      // au club résolu, au cas où les liens user_club auraient changé entre
+      // `authorize` et le retour de la mire (admin retire l'accès pendant
+      // la fenêtre OAuth). Reconstruction d'un `AuthenticatedUser` à partir
+      // de la DB car le callback est PUBLIC (pas de JWT).
+      const userRow = await this.userRepository.findOne({ where: { id: result.userId } });
+      if (!userRow) {
+        this.logger.warn(`callback: user=${result.userId} introuvable en DB`);
+        return this.redirectError(res, 'user_not_found', originClubId);
+      }
+      const authenticatedUser: AuthenticatedUser = {
+        id: userRow.id,
+        email: userRow.email ?? '',
+        roles: userRow.getRolesArray(),
+      };
+      try {
+        await this.authorizationService.assertClubAccess(authenticatedUser, club.id);
+      } catch (authzError: unknown) {
+        const msg = authzError instanceof Error ? authzError.message : String(authzError);
+        this.logger.warn(
+          `callback: assertClubAccess REJECTED user=${result.userId} clubId=${club.id} — ${msg}`,
+        );
+        return this.redirectError(res, 'forbidden_club_access', originClubId);
       }
 
       await this.details.upsertLink({

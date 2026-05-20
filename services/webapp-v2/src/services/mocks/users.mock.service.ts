@@ -1,5 +1,12 @@
-import type { UserType, UserPaginationParams, PaginatedResponse, CreateUserInput } from '@/types/users';
 import { users as initialUsers } from '@/mocks/users.mocks';
+import type { ClubType } from '@/types/clubs';
+import type { UserType, UserPaginationParams, PaginatedResponse, CreateUserInput } from '@/types/users';
+
+type SetUserClubsResponse = {
+  clubs: ClubType[];
+  added: number[];
+  removed: number[];
+};
 
 let usersData: UserType[] = [...initialUsers];
 let nextId = usersData.length + 1;
@@ -89,5 +96,18 @@ export const mockUsersService = {
   delete: async (id: number): Promise<void> => {
     await delay();
     usersData = usersData.filter(u => u.id !== id);
+  },
+
+  // Stubs : la gestion user_club n'est pas implémentée en mock mode (feature
+  // ADMIN-only utilisée uniquement contre un backend réel). Retournent une
+  // réponse vide pour ne pas casser la SPA si mock mode est activé.
+  getClubs: async (_id: number): Promise<ClubType[]> => {
+    await delay();
+    return [];
+  },
+
+  setClubs: async (_id: number, _clubIds: number[]): Promise<SetUserClubsResponse> => {
+    await delay();
+    return { clubs: [], added: [], removed: [] };
   },
 };

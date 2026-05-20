@@ -1,20 +1,15 @@
-import type { UserType, UserPaginationParams, PaginatedResponse, CreateUserInput } from '@/types/users';
 import { isMockMode } from '@/config/api.config';
 import { mockUsersService } from '@/services/mocks/users.mock.service';
+import type { ClubType } from '@/types/clubs';
+import type { UserType, UserPaginationParams, PaginatedResponse, CreateUserInput } from '@/types/users';
 
 import { apiClient } from './client';
+import { buildQueryString } from './_query-string';
 
-const buildQueryString = (params: UserPaginationParams): string => {
-  const searchParams = new URLSearchParams();
-
-  if (params.offset && params.offset > 0) searchParams.set('offset', String(params.offset));
-  if (params.limit && params.limit !== 20) searchParams.set('limit', String(params.limit));
-  if (params.search) searchParams.set('search', params.search);
-  if (params.orderBy) searchParams.set('orderBy', params.orderBy);
-  if (params.orderDirection) searchParams.set('orderDirection', params.orderDirection);
-
-  const queryString = searchParams.toString();
-  return queryString ? `?${queryString}` : '';
+export type SetUserClubsResponse = {
+  clubs: ClubType[];
+  added: number[];
+  removed: number[];
 };
 
 const realUsersService = {
@@ -50,6 +45,14 @@ const realUsersService = {
   delete: (id: number): Promise<void> =>
     apiClient<void>(`/users/${id}`, {
       method: 'DELETE',
+    }),
+
+  getClubs: (id: number): Promise<ClubType[]> => apiClient<ClubType[]>(`/users/${id}/clubs`),
+
+  setClubs: (id: number, clubIds: number[]): Promise<SetUserClubsResponse> =>
+    apiClient<SetUserClubsResponse>(`/users/${id}/clubs`, {
+      method: 'PUT',
+      body: JSON.stringify({ clubIds }),
     }),
 };
 

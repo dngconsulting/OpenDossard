@@ -193,11 +193,11 @@ export default function CompetitionDetailPage() {
         await updateCompetition.mutateAsync({ id: competitionId!, data: formData as any });
         showSuccessToast('Epreuve mise à jour avec succès');
       }
-    } catch (error) {
-      showErrorToast(
-        "Erreur lors de l'enregistrement",
-        error instanceof Error ? error.message : String(error),
-      );
+    } catch {
+      // Erreur affichée par le `MutationCache.onError` global (cf. `App.tsx`).
+      // Le `catch` ici sert seulement à empêcher la propagation hors du form ;
+      // pas de `showErrorToast` manuel sinon on aurait 2 toasts pour la même
+      // erreur backend (cas 403 du modèle d'autorisation scopé notamment).
     }
   };
 

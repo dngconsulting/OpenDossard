@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tansta
 import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { usersApi } from '@/api/users.api';
+import { usersApi, type SetUserClubsResponse } from '@/api/users.api';
 import useUserStore from '@/store/UserStore';
 import type { UserType, UserPaginationParams, CreateUserInput } from '@/types/users';
 
@@ -10,6 +10,7 @@ export const usersKeys = {
   all: ['users'] as const,
   list: (params: UserPaginationParams) => ['users', 'list', params] as const,
   detail: (id: number) => ['users', id] as const,
+  clubs: (id: number) => ['users', id, 'clubs'] as const,
 };
 
 function parseUrlParams(searchParams: URLSearchParams): UserPaginationParams {
@@ -31,11 +32,11 @@ function parseUrlParams(searchParams: URLSearchParams): UserPaginationParams {
 function buildUrlParams(params: UserPaginationParams): URLSearchParams {
   const searchParams = new URLSearchParams();
 
-  if (params.offset && params.offset > 0) searchParams.set('offset', String(params.offset));
-  if (params.limit && params.limit !== 20) searchParams.set('limit', String(params.limit));
-  if (params.search) searchParams.set('search', params.search);
-  if (params.orderBy) searchParams.set('orderBy', params.orderBy);
-  if (params.orderDirection) searchParams.set('orderDirection', params.orderDirection);
+  if (params.offset && params.offset > 0) {searchParams.set('offset', String(params.offset));}
+  if (params.limit && params.limit !== 20) {searchParams.set('limit', String(params.limit));}
+  if (params.search) {searchParams.set('search', params.search);}
+  if (params.orderBy) {searchParams.set('orderBy', params.orderBy);}
+  if (params.orderDirection) {searchParams.set('orderDirection', params.orderDirection);}
 
   return searchParams;
 }
@@ -150,6 +151,27 @@ export function useDeleteUser() {
     mutationFn: (id: number) => usersApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+  });
+}
+
+export function useUserClubs(userId: number | undefined) {
+  const isAuthenticated = useUserStore(state => state.isAuthenticated);
+
+  return useQuery({
+    queryKey: usersKeys.clubs(userId!),
+    queryFn: () => usersApi.getClubs(userId!),
+    enabled: !!userId && isAuthenticated,
+  });
+}
+
+export function useSetUserClubs() {
+  const queryClient = useQueryClient();
+
+  return useMutation<SetUserClubsResponse, Error, { userId: number; clubIds: number[] }>({
+    mutationFn: ({ userId, clubIds }) => usersApi.setClubs(userId, clubIds),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: usersKeys.clubs(variables.userId) });
     },
   });
 }

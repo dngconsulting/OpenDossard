@@ -1,20 +1,24 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Min } from 'class-validator';
+import { IsInt, Min } from 'class-validator';
 
 /**
- * Payload optionnel pour `POST /helloasso/oauth/authorize`.
+ * Payload de `POST /helloasso/oauth/authorize`.
  *
- * `originClubId` permet au backend de mémoriser la fiche club depuis laquelle
- * la mire a été initiée — utilisé par le callback pour rediriger sur
- * `/club/{originClubId}` plutôt que `/clubs` en cas d'erreur. Sans cette info,
- * comportement legacy : redirection vers la liste des clubs.
+ * `originClubId` est **obligatoire** depuis le lot 3 du modèle d'autorisation
+ * scopé : c'est le club qu'on cherche à lier. Le backend vérifie que le user
+ * a effectivement le droit sur ce club (`assertClubAccess`) AVANT de monter
+ * la mire HelloAsso. Et au callback, on s'assure que le slug renvoyé par
+ * HelloAsso matche bien ce même `originClubId` — protection contre le
+ * scénario D1 (re-liaison silencieuse vers une orga frauduleuse).
  */
 export class AuthorizeRequestDto {
-  @ApiPropertyOptional({ description: 'Club depuis lequel la mire est initiée.' })
-  @IsOptional()
+  @ApiProperty({
+    description: 'Club que le user cherche à lier à son compte HelloAsso.',
+    example: 782,
+  })
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  originClubId?: number;
+  originClubId: number;
 }

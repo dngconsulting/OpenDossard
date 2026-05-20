@@ -1,8 +1,17 @@
-import { Injectable, Logger, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 
+import { UserClubService } from '../auth/user-club.service';
+import { ClubsService } from '../clubs/clubs.service';
+import { ClubEntity } from '../clubs/entities/club.entity';
 import { PaginatedResponseDto } from '../common/dto/pagination.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { UserEntity } from './entities/user.entity';
@@ -30,6 +39,8 @@ export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
+    private readonly userClubService: UserClubService,
+    private readonly clubsService: ClubsService,
   ) {}
 
   async findAll(filterDto: FilterUserDto): Promise<PaginatedResponseDto<UserEntity>> {
@@ -160,5 +171,47 @@ export class UsersService {
       );
     }
     await this.userRepository.remove(user);
+  }
+
+  /**
+   * Liste des clubs liés au user, triés alphabétiquement sur `longName`.
+   * 404 si le user n'existe pas.
+   */
+  async findUserClubs(userId: number): Promise<ClubEntity[]> {
+    await this.findOne(userId);
+    const clubIds = await this.userClubService.findClubIdsForUser(userId);
+    return this.clubsService.findByIds(clubIds);
+  }
+
+  /**
+   * Set complet des clubs liés au user. Valide que tous les `clubIds` existent
+   * en DB avant d'appliquer (sinon NotFoundException listant les manquants).
+   * Retourne l'état final + le diff appliqué (added/removed) pour log/UI.
+   */
+  async setUserClubs(
+    userId: number,
+    clubIds: number[],
+    author?: string,
+  ): Promise<{ clubs: ClubEntity[]; added: number[]; removed: number[] }> {
+    const user = await this.findOne(userId);
+
+    const uniqueIds = [...new Set(clubIds)];
+    if (uniqueIds.length > 0) {
+      const found = await this.clubsService.findByIds(uniqueIds);
+      if (found.length !== uniqueIds.length) {
+        const foundIds = new Set(found.map(c => c.id));
+        const missing = uniqueIds.filter(id => !foundIds.has(id));
+        throw new NotFoundException(`Clubs introuvables : ${missing.join(', ')}`);
+      }
+    }
+
+    const { added, removed } = await this.userClubService.setClubIdsForUser(userId, uniqueIds);
+
+    this.logger.log(
+      `Mise à jour des clubs de l'utilisateur #${userId} (${user.email ?? '-'}) par ${author ?? 'inconnu'} | +[${added.join(',')}] -[${removed.join(',')}]`,
+    );
+
+    const clubs = await this.clubsService.findByIds(uniqueIds);
+    return { clubs, added, removed };
   }
 }

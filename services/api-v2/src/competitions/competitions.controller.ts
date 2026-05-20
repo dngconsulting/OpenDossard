@@ -20,6 +20,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { AuthenticatedUser } from '../auth/types/authenticated-user';
 import { Role } from '../common/enums';
 import { PaginatedResponseDto } from '../common/dto';
 
@@ -57,9 +58,9 @@ export class CompetitionsController {
   @ApiResponse({ status: 201, description: 'Competition created' })
   async create(
     @Body() competitionData: Partial<CompetitionEntity>,
-    @CurrentUser('email') author: string,
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<CompetitionEntity> {
-    return this.competitionsService.create(competitionData, author);
+    return this.competitionsService.create(competitionData, user);
   }
 
   @Patch(':id')
@@ -69,9 +70,9 @@ export class CompetitionsController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() competitionData: Partial<CompetitionEntity>,
-    @CurrentUser('email') author: string,
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<CompetitionEntity> {
-    return this.competitionsService.update(id, competitionData, author);
+    return this.competitionsService.update(id, competitionData, user);
   }
 
   @Delete(':id')
@@ -79,8 +80,11 @@ export class CompetitionsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a competition' })
   @ApiResponse({ status: 200, description: 'Competition deleted' })
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<{ success: boolean }> {
-    await this.competitionsService.remove(id);
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<{ success: boolean }> {
+    await this.competitionsService.remove(id, user);
     return { success: true };
   }
 
@@ -88,16 +92,22 @@ export class CompetitionsController {
   @Roles(Role.ADMIN, Role.ORGANISATEUR)
   @ApiOperation({ summary: 'Duplicate a competition' })
   @ApiResponse({ status: 201, description: 'Competition duplicated' })
-  async duplicate(@Param('id', ParseIntPipe) id: number): Promise<CompetitionEntity> {
-    return this.competitionsService.duplicate(id);
+  async duplicate(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<CompetitionEntity> {
+    return this.competitionsService.duplicate(id, user);
   }
 
   @Post(':id/validate')
   @Roles(Role.ADMIN, Role.ORGANISATEUR)
   @ApiOperation({ summary: 'Validate competition results' })
   @ApiResponse({ status: 200, description: 'Results validated' })
-  async validate(@Param('id', ParseIntPipe) id: number): Promise<CompetitionEntity> {
-    return this.competitionsService.validate(id);
+  async validate(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<CompetitionEntity> {
+    return this.competitionsService.validate(id, user);
   }
 
   @Post('reorganize')
@@ -105,8 +115,11 @@ export class CompetitionsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Reorganize competition races' })
   @ApiResponse({ status: 200, description: 'Races reorganized' })
-  async reorganize(@Body() dto: ReorganizeCompetitionDto): Promise<{ success: boolean }> {
-    await this.competitionsService.reorganize(dto);
+  async reorganize(
+    @Body() dto: ReorganizeCompetitionDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<{ success: boolean }> {
+    await this.competitionsService.reorganize(dto, user);
     return { success: true };
   }
 }

@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { HelloAssoDetailsEntity } from './entities/helloasso-details.entity';
@@ -89,6 +95,20 @@ export class HelloAssoDetailsService {
 
     const existing = await this.repo.findOne({ where: { clubId: input.clubId } });
     if (existing) {
+      // Lot 3 — protection contre le scénario D1 du threat model : ne JAMAIS
+      // écraser silencieusement un slug existant par un slug différent. Sinon,
+      // un user qui aurait conservé l'accès au club côté OD pourrait re-lier
+      // le club vers une orga HelloAsso qu'il contrôle, et détourner les
+      // futurs paiements. Exiger un DELETE explicite avant pour acter le
+      // changement d'organisation HelloAsso.
+      if (existing.organizationSlug !== input.organizationSlug) {
+        this.logger.warn(
+          `upsertLink REJECTED: clubId=${input.clubId} déjà lié à slug=${existing.organizationSlug}, tentative de re-liaison vers slug=${input.organizationSlug} par user=${input.linkedByUserId}`,
+        );
+        throw new ConflictException(
+          `Ce club est déjà lié à une autre organisation HelloAsso (${existing.organizationSlug}). Délie d'abord la liaison existante avant de re-lier à une orga différente.`,
+        );
+      }
       existing.organizationSlug = input.organizationSlug;
       existing.accessTokenEncrypted = accessTokenEncrypted;
       existing.refreshTokenEncrypted = refreshTokenEncrypted;

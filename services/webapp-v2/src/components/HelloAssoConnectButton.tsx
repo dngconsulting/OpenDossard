@@ -16,7 +16,7 @@ import { useHelloAssoAuth, useHelloAssoStatus } from '@/hooks/useHelloAssoAuth';
 import { showErrorToast } from '@/utils/error-handler/error-handler';
 
 type Props = {
-  clubId?: number;
+  clubId: number;
 };
 
 type Variant = 'unlinked' | 'linked' | 'expired';

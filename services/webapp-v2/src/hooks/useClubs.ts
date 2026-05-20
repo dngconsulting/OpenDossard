@@ -26,7 +26,7 @@ function parseUrlParams(searchParams: URLSearchParams): ClubPaginationParams {
   const filters: ClubFilters = {};
   FILTER_KEYS.forEach(key => {
     const value = searchParams.get(key);
-    if (value) filters[key] = value;
+    if (value) {filters[key] = value;}
   });
 
   return {
@@ -42,15 +42,15 @@ function parseUrlParams(searchParams: URLSearchParams): ClubPaginationParams {
 function buildUrlParams(params: ClubPaginationParams): URLSearchParams {
   const searchParams = new URLSearchParams();
 
-  if (params.offset && params.offset > 0) searchParams.set('offset', String(params.offset));
-  if (params.limit && params.limit !== 20) searchParams.set('limit', String(params.limit));
-  if (params.search) searchParams.set('search', params.search);
-  if (params.orderBy) searchParams.set('orderBy', params.orderBy);
-  if (params.orderDirection) searchParams.set('orderDirection', params.orderDirection);
+  if (params.offset && params.offset > 0) {searchParams.set('offset', String(params.offset));}
+  if (params.limit && params.limit !== 20) {searchParams.set('limit', String(params.limit));}
+  if (params.search) {searchParams.set('search', params.search);}
+  if (params.orderBy) {searchParams.set('orderBy', params.orderBy);}
+  if (params.orderDirection) {searchParams.set('orderDirection', params.orderDirection);}
 
   if (params.filters) {
     Object.entries(params.filters).forEach(([key, value]) => {
-      if (value) searchParams.set(key, value);
+      if (value) {searchParams.set(key, value);}
     });
   }
 
@@ -146,6 +146,26 @@ export function useClubsByFedeAndDept(fede: string, dept: string) {
     queryKey: clubsKeys.byFedeAndDept(fede, dept),
     queryFn: () => clubsApi.getByFedeAndDept(fede, dept),
     enabled: !!fede && !!dept,
+  });
+}
+
+/**
+ * Recherche multi-département de clubs (endpoint legacy étendu).
+ * `depts` est un array de codes département. `fede` reste single.
+ *
+ * Le hook est désactivé si aucun filtre n'est posé (pour éviter de charger
+ * tous les clubs au montage). L'appelant peut filtrer par nom côté client
+ * sur le résultat.
+ */
+export function useClubsLegacySearch(params: { fede?: string; depts?: string[] }) {
+  const { fede, depts } = params;
+  const hasFilters = !!fede || (depts !== undefined && depts.length > 0);
+
+  return useQuery({
+    queryKey: ['clubs', 'legacy', 'search', { fede: fede ?? null, depts: depts ?? [] }] as const,
+    queryFn: () => clubsApi.searchLegacy({ fede, depts }),
+    enabled: hasFilters,
+    placeholderData: keepPreviousData,
   });
 }
 

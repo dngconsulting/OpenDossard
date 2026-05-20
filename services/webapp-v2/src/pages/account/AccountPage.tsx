@@ -1,9 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Key, KeyRound, Loader2, Mail, Phone, Save, Shield, User } from 'lucide-react';
+import { Building2, Key, KeyRound, Loader2, Mail, Phone, Save, Shield, User } from 'lucide-react';
+import { useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { authApi } from '@/api/auth.api';
+import { LinkedClubsList } from '@/components/forms/user-clubs/LinkedClubsList';
 import Layout from '@/components/layout/Layout.tsx';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar.tsx';
 import { Badge } from '@/components/ui/badge.tsx';
@@ -13,6 +15,8 @@ import { Field, FieldGroup, FieldLabel, FieldSet, StringField } from '@/componen
 import { Form } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator.tsx';
+import { useDepartments } from '@/hooks/useDepartments';
+import { useUserClubs } from '@/hooks/useUsers';
 import useUserStore from '@/store/UserStore.ts';
 import { showErrorToast, showSuccessToast } from '@/utils/error-handler/error-handler';
 
@@ -72,6 +76,16 @@ export default function AccountPage() {
 
   const initials = `${user!.firstName?.[0] || ''}${user!.lastName?.[0] || ''}`.toUpperCase();
   const fullName = `${user!.firstName} ${user!.lastName}`;
+
+  // Affichage des clubs gérés réservé aux ORGANISATEUR. ADMIN gère via la page
+  // d'édition d'un user dans `/users/:id`. MOBILE n'a pas de scope club.
+  const isOrganisateur = user!.roles?.includes('ORGANISATEUR') ?? false;
+  const userClubsQuery = useUserClubs(isOrganisateur ? user!.id : undefined);
+  const departmentsQuery = useDepartments();
+  const deptNameByCode = useMemo(
+    () => new Map((departmentsQuery.data ?? []).map(d => [d.code, d.name])),
+    [departmentsQuery.data],
+  );
 
   const onSubmit = async (data: AccountFormValues) => {
     try {
@@ -242,6 +256,35 @@ export default function AccountPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Clubs gérés — read-only, visible uniquement pour un ORGANISATEUR.
+              Inclus dans le form pour que le bouton "Enregistrer" reste en bas,
+              après cette section. La modification de ces liens reste réservée
+              à l'ADMIN via la page d'édition utilisateur. */}
+          {isOrganisateur && (
+            <Card>
+              <CardHeader className="pb-0">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Building2 className="h-4 w-4 text-primary" />
+                  Mes clubs gérés
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <p className="text-xs text-muted-foreground mb-4">
+                  Liste des clubs sur lesquels vous avez les droits d&apos;organisateur.
+                  Pour ajouter ou retirer un club, contactez un administrateur.
+                </p>
+                <LinkedClubsList
+                  linkedClubs={userClubsQuery.data ?? []}
+                  deptNameByCode={deptNameByCode}
+                  isLoading={userClubsQuery.isLoading}
+                  readOnly
+                  title="Clubs gérés"
+                  emptyMessage="Vous n'êtes rattaché à aucun club. Contactez un administrateur si c'est une erreur."
+                />
+              </CardContent>
+            </Card>
+          )}
 
           <div className="flex justify-center">
             <Button type="submit" size="sm" disabled={form.formState.isSubmitting} className="w-[150px]">

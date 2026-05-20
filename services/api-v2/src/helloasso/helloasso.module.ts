@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { AuthModule } from '../auth/auth.module';
 import { ClubsModule } from '../clubs/clubs.module';
 import { CompetitionEntity } from '../competitions/entities/competition.entity';
 import { LicenceEntity } from '../licences/entities/licence.entity';
@@ -35,6 +36,7 @@ import { HelloAssoWebhookService } from './helloasso-webhook.service';
       LicenceEntity,
       UserEntity,
     ]),
+    AuthModule,
     ClubsModule,
   ],
   controllers: [HelloAssoController, HelloAssoPaymentController, HelloAssoWebhookController],
