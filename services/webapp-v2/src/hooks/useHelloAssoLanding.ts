@@ -40,14 +40,14 @@ export function useHelloAssoLanding(): void {
       return;
     }
 
-    if (status === 'success') {
-      const slug = searchParams.get('slug') ?? '';
-      showSuccessToast('Compte HelloAsso lié', slug ? `Association : ${slug}` : undefined);
-    } else if (status === 'error') {
-      const reason = searchParams.get('reason') ?? 'inconnue';
-      const slug = searchParams.get('slug') ?? '';
-      const errorDescription = searchParams.get('error_description') ?? undefined;
-      const errorUri = searchParams.get('error_uri') ?? undefined;
+    // Snapshot des params AVANT le defer (searchParams sera nettoyé juste
+    // après par setSearchParams ci-dessous, le setTimeout les lirait à null).
+    const reason = searchParams.get('reason') ?? 'inconnue';
+    const slug = searchParams.get('slug') ?? '';
+    const errorDescription = searchParams.get('error_description') ?? undefined;
+    const errorUri = searchParams.get('error_uri') ?? undefined;
+
+    if (status === 'error') {
       // Dump le détail OAuth2 brut en console pour diagnostic (`error_description`
       // /`error_uri` viennent directement d'HelloAsso, propagés par le backend).
       console.error('[HelloAsso callback] error details', {
@@ -56,22 +56,44 @@ export function useHelloAssoLanding(): void {
         error_description: errorDescription,
         error_uri: errorUri,
       });
-      if (reason === 'no_matching_club') {
-        showErrorToast(
-          'Liaison HelloAsso échouée',
-          `L'association « ${slug || 'inconnue'} » n'existe pas dans la base Open Dossard. Merci de contacter l'administrateur pour l'ajouter.`,
-        );
-      } else {
-        const label = REASON_LABEL[reason] ?? reason;
-        const detail = errorDescription ? `${label} — ${errorDescription}` : label;
-        showErrorToast('Liaison HelloAsso échouée', detail);
-      }
     }
+
+    // Defer du `showXxxToast` au tick suivant : ce hook est monté sous
+    // `<BrowserRouter>` (dans <HelloAssoLandingHandler />), alors que le
+    // `<Toaster>` Sonner est sibling de `<BrowserRouter>` plus haut dans
+    // l'arbre. Les `useEffect` tournent enfant-first, donc le nôtre tire
+    // AVANT que le Toaster se soit abonné à son store interne. Un appel
+    // `toast.custom(...)` synchrone est alors perdu (aucun listener).
+    // Avec `setTimeout(0)`, l'appel est repoussé après tous les effects du
+    // commit initial, donc le Toaster est prêt à recevoir.
+    const timer = setTimeout(() => {
+      if (status === 'success') {
+        showSuccessToast('Compte HelloAsso lié', slug ? `Association : ${slug}` : undefined);
+      } else if (status === 'error') {
+        if (reason === 'no_matching_club') {
+          showErrorToast(
+            'Liaison HelloAsso échouée',
+            `L'association « ${slug || 'inconnue'} » n'existe pas dans la base Open Dossard. Merci de contacter l'administrateur pour l'ajouter.`,
+          );
+        } else {
+          const label = REASON_LABEL[reason] ?? reason;
+          const detail = errorDescription ? `${label} — ${errorDescription}` : label;
+          showErrorToast('Liaison HelloAsso échouée', detail);
+        }
+      }
+    }, 0);
 
     const next = new URLSearchParams(searchParams);
     HELLOASSO_QUERY_KEYS.forEach(k => next.delete(k));
     setSearchParams(next, { replace: true });
     // Pas de boucle infinie : on supprime `status` (la clé déclenchante) avant
-    // setSearchParams → au re-run, l'early-return ligne 33 quitte tout de suite.
+    // setSearchParams → au re-run, l'early-return en haut quitte tout de suite.
+    //
+    // Pas de cleanup du timer : si le composant est démonté entre le schedule
+    // et le tick (cas rare ; ce composant reste monté toute la durée de
+    // l'app), `toast.custom` peut être appelé même sans React monté — Sonner
+    // est un singleton global. Cleanup ici annulerait au contraire le toast
+    // en StrictMode (le 1er cleanup tuerait le timer scheduled par le 2e run).
+    void timer;
   }, [searchParams, setSearchParams]);
 }
