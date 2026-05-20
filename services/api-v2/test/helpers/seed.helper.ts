@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { DataSource } from 'typeorm';
 
+import { UserClubEntity } from '../../src/auth/entities/user-club.entity';
 import { ChallengeEntity } from '../../src/challenges/entities/challenge.entity';
 import { ClubEntity } from '../../src/clubs/entities/club.entity';
 import { CompetitionType, Federation } from '../../src/common/enums';
@@ -290,6 +291,22 @@ export class SeedHelper {
     await this.dataSource.getRepository(ClubEntity).query('TRUNCATE TABLE "club" CASCADE');
   }
 
+  /**
+   * Rattache un user à des clubs (modèle d'autorisation scopé). Indispensable
+   * pour les tests ORGANISATEUR qui touchent à des ressources scopées par club
+   * (compétitions, HelloAsso OAuth). ADMIN bypasse ce mécanisme — pas besoin
+   * d'appeler ce helper pour les tests ADMIN.
+   */
+  async seedUserClubs(links: { userId: number; clubId: number }[]): Promise<void> {
+    const repo = this.dataSource.getRepository(UserClubEntity);
+    await repo.save(links.map(l => repo.create(l)));
+  }
+
+  /** Supprime tous les liens user↔club (préserve users et clubs) */
+  async cleanUserClubs(): Promise<void> {
+    await this.dataSource.getRepository(UserClubEntity).query('TRUNCATE TABLE "user_club" CASCADE');
+  }
+
   /** Supprime uniquement les compétitions */
   async cleanCompetitions(): Promise<void> {
     await this.dataSource
@@ -311,8 +328,6 @@ export class SeedHelper {
 
   /** Supprime les utilisateurs ajoutés en test (préserve les 3 seed users) */
   async cleanUsers(): Promise<void> {
-    await this.dataSource
-      .getRepository(UserEntity)
-      .query('DELETE FROM "user" WHERE id > 3');
+    await this.dataSource.getRepository(UserEntity).query('DELETE FROM "user" WHERE id > 3');
   }
 }

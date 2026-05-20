@@ -28,6 +28,7 @@ describe('Competitions (e2e)', () => {
 
   afterEach(async () => {
     await getSeedHelper().cleanCompetitions();
+    await getSeedHelper().cleanUserClubs();
     await getSeedHelper().cleanClubs();
   });
 
@@ -222,7 +223,12 @@ describe('Competitions (e2e)', () => {
       expect(body.name).toBe('Course de Test');
     });
 
-    it('should create a competition as ORGANISATEUR', async () => {
+    it('should create a competition as ORGANISATEUR (rattaché au club)', async () => {
+      // L'ORGA doit fournir un `clubId` ET être lié à ce club via `user_club`
+      // (modèle d'autorisation scopé). Seed du lien avant l'appel POST.
+      const clubs = await getSeedHelper().seedClubs();
+      await getSeedHelper().seedUserClubs([{ userId: 2, clubId: clubs[0].id }]);
+
       await request(getApp().getHttpServer())
         .post(API)
         .set('Authorization', `Bearer ${orgaToken}`)
@@ -232,8 +238,26 @@ describe('Competitions (e2e)', () => {
           zipCode: '31000',
           categories: '1,2',
           races: '1,2',
+          clubId: clubs[0].id,
         })
         .expect(201);
+    });
+
+    it('should reject ORGANISATEUR not linked to the club (403)', async () => {
+      const clubs = await getSeedHelper().seedClubs();
+      // Pas de seedUserClubs ici : l'orga n'a aucun lien.
+      await request(getApp().getHttpServer())
+        .post(API)
+        .set('Authorization', `Bearer ${orgaToken}`)
+        .send({
+          name: 'Course Orga Forbidden',
+          eventDate: '2025-07-01T09:00:00Z',
+          zipCode: '31000',
+          categories: '1,2',
+          races: '1,2',
+          clubId: clubs[0].id,
+        })
+        .expect(403);
     });
 
     it('should reject MOBILE role', async () => {
