@@ -8,6 +8,8 @@ const REASON_LABEL: Record<string, string> = {
   access_denied: 'Autorisation refusée côté HelloAsso',
   exchange_failed: 'Échange du code OAuth échoué',
   missing_params: 'Paramètres OAuth manquants',
+  invalid_request:
+    'Requête invalide — configuration HelloAsso à vérifier (contacter un administrateur)',
 };
 
 const HELLOASSO_QUERY_KEYS = [

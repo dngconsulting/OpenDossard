@@ -19,17 +19,23 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { AuthenticatedUser } from '../auth/types/authenticated-user';
+import { AuthorizationService } from '../auth/authorization.service';
 import { Role, Federation } from '../common/enums';
 import { PaginatedResponseDto } from '../common/dto/pagination.dto';
 import { FilterClubDto } from './dto/filter-club.dto';
 import { UpdateClubDto } from './dto/update-club.dto';
+import { AccessibleClubsScopeDto } from './dto/accessible-clubs.dto';
 
 @ApiTags('Clubs')
 @ApiBearerAuth('JWT-auth')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('clubs')
 export class ClubsController {
-  constructor(private readonly clubsService: ClubsService) {}
+  constructor(
+    private readonly clubsService: ClubsService,
+    private readonly authorizationService: AuthorizationService,
+  ) {}
 
   @Get()
   @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
@@ -61,6 +67,21 @@ export class ClubsController {
     return this.clubsService.findAll(fede, dept);
   }
 
+  @Get('me/accessible')
+  @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
+  @ApiOperation({
+    summary: "Scope d'édition/suppression de clubs pour l'utilisateur courant",
+    description:
+      "ADMIN renvoie `{ scope: 'ALL' }`, les autres renvoient `{ scope: 'SCOPED', clubIds: [...] }`. " +
+      'Utilisé par le frontend pour griser les boutons édit/suppr sur la liste des clubs.',
+  })
+  @ApiResponse({ status: 200, type: AccessibleClubsScopeDto })
+  async getMyAccessibleScope(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<AccessibleClubsScopeDto> {
+    return this.authorizationService.getAccessibleClubsScope(user);
+  }
+
   @Get(':id')
   @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
   @ApiOperation({ summary: 'Get club by ID' })
@@ -83,9 +104,9 @@ export class ClubsController {
   @ApiResponse({ status: 201, description: 'Club created' })
   async create(
     @Body() clubData: Partial<ClubEntity>,
-    @CurrentUser('email') author: string,
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<ClubEntity> {
-    return this.clubsService.create(clubData, author);
+    return this.clubsService.create(clubData, user);
   }
 
   @Patch(':id')
@@ -93,15 +114,20 @@ export class ClubsController {
   @ApiOperation({ summary: 'Update a club' })
   @ApiResponse({ status: 200, description: 'Club updated' })
   @ApiResponse({
+    status: 403,
+    description: "L'utilisateur n'est pas lié à ce club (autorisation scopée).",
+  })
+  @ApiResponse({
     status: 409,
     description: 'Club lié à HelloAsso : délier (DELETE /helloasso/clubs/:id) avant de modifier',
   })
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateClubDto,
-    @CurrentUser('email') author: string,
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<ClubEntity> {
-    return this.clubsService.update(id, dto, author);
+    await this.authorizationService.assertClubAccess(user, id);
+    return this.clubsService.update(id, dto, user.email);
   }
 
   @Delete(':id')
@@ -110,10 +136,18 @@ export class ClubsController {
   @ApiOperation({ summary: 'Delete a club (only if unreferenced)' })
   @ApiResponse({ status: 200, description: 'Club deleted' })
   @ApiResponse({
+    status: 403,
+    description: "L'utilisateur n'est pas lié à ce club (autorisation scopée).",
+  })
+  @ApiResponse({
     status: 409,
     description: 'Club lié à HelloAsso, ou référencé par des compétitions / courses / licences',
   })
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<{ success: boolean }> {
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<{ success: boolean }> {
+    await this.authorizationService.assertClubAccess(user, id);
     await this.clubsService.remove(id);
     return { success: true };
   }

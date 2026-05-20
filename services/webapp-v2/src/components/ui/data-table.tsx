@@ -109,11 +109,15 @@ interface DataTableProps<TData, TValue> {
   renderBeforeRow?: (row: TData, index: number) => React.ReactNode | null;
   multiSelectColumns?: Record<string, { options: MultiSelectOption[] }>;
   /**
-   * Si retourne true pour une row, les boutons Éditer et Supprimer sont
-   * désactivés sur cette row (toujours rendus pour préserver l'alignement
-   * des colonnes).
+   * Si retourne `true` (ou une string non vide) pour une row, les boutons
+   * Éditer et Supprimer sont désactivés sur cette row (toujours rendus pour
+   * préserver l'alignement des colonnes).
+   *
+   * Si le retour est une string, elle est utilisée comme tooltip à la place
+   * du libellé par défaut "Lecture seule" — utile pour expliquer pourquoi
+   * la ligne est verrouillée (ex: "Vous n'êtes pas lié à ce club").
    */
-  isRowReadOnly?: (row: TData) => boolean;
+  isRowReadOnly?: (row: TData) => boolean | string | undefined;
   /**
    * Retourne une classe CSS optionnelle à appliquer au `<TableRow>` — utile
    * pour des indicateurs visuels par ligne (ex: dim si engagé, surlignage,
@@ -131,7 +135,7 @@ interface SortableRowProps<TData> {
   onOpenRow?: (row: TData) => void;
   enableDragDrop?: boolean;
   rowId: string;
-  readOnly?: boolean;
+  readOnly?: boolean | string;
   /** Classe(s) optionnelles appliquées au `<TableRow>` (ex: dim engagé). */
   rowClassName?: string;
 }
@@ -199,7 +203,7 @@ function SortableRow<TData>({
             <Button
               variant="outline"
               size="icon-sm"
-              title="Lecture seule"
+              title={typeof readOnly === 'string' ? readOnly : 'Lecture seule'}
               disabled
             >
               <Edit2 />
@@ -241,8 +245,8 @@ function SortableRow<TData>({
             variant="outline"
             size="icon-sm"
             onClick={() => onDeleteRow(row.original)}
-            title={readOnly ? 'Lecture seule' : 'Supprimer'}
-            disabled={readOnly}
+            title={readOnly ? (typeof readOnly === 'string' ? readOnly : 'Lecture seule') : 'Supprimer'}
+            disabled={Boolean(readOnly)}
             className="text-destructive hover:text-destructive hover:bg-destructive/10"
           >
             <Trash2 />

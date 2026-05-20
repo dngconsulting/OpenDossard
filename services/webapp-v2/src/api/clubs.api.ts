@@ -1,8 +1,14 @@
-import type { ClubType, ClubPaginationParams, ClubReferences, UpdateClubInput } from '@/types/clubs';
+import type {
+  ClubType,
+  ClubPaginationParams,
+  ClubReferences,
+  UpdateClubInput,
+  AccessibleClubsScope,
+} from '@/types/clubs';
 import type { PaginatedResponse } from '@/types/users';
 
-import { apiClient } from './client';
 import { buildQueryString } from './_query-string';
+import { apiClient } from './client';
 
 export const clubsApi = {
   getAllPaginated: (params: ClubPaginationParams = {}): Promise<PaginatedResponse<ClubType>> =>
@@ -26,6 +32,14 @@ export const clubsApi = {
     const qs = sp.toString();
     return apiClient<ClubType[]>(`/clubs/legacy${qs ? `?${qs}` : ''}`);
   },
+
+  /**
+   * Scope d'édition/suppression de clubs pour l'utilisateur courant.
+   * Utilisé par `useAccessibleClubs` pour griser les boutons édit/suppr
+   * des clubs hors scope dans la liste des clubs.
+   */
+  getMyAccessibleScope: (): Promise<AccessibleClubsScope> =>
+    apiClient<AccessibleClubsScope>('/clubs/me/accessible'),
 
   getById: (id: number): Promise<ClubType> => apiClient<ClubType>(`/clubs/${id}`),
 

@@ -72,6 +72,20 @@ export class AuthorizationService {
   }
 
   /**
+   * Forme "API-friendly" de `listAccessibleClubIds` : un objet discriminé
+   * exposable tel quel au frontend pour qu'il sache quels clubs il peut
+   * éditer/supprimer côté UI. ADMIN renvoie `{ scope: 'ALL' }`, les autres
+   * renvoient `{ scope: 'SCOPED', clubIds: [...] }` (potentiellement vide).
+   */
+  async getAccessibleClubsScope(
+    user: AuthenticatedUser,
+  ): Promise<{ scope: 'ALL' } | { scope: 'SCOPED'; clubIds: number[] }> {
+    const ids = await this.listAccessibleClubIds(user);
+    if (ids === 'ALL') return { scope: 'ALL' };
+    return { scope: 'SCOPED', clubIds: ids };
+  }
+
+  /**
    * Vérifie qu'un user a le droit d'agir sur une compétition donnée.
    *
    * - ADMIN passe toujours.

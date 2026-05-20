@@ -1,7 +1,9 @@
 import * as request from 'supertest';
+import { DataSource } from 'typeorm';
 
 import { getApp, getAuthHelper, getSeedHelper } from './setup-e2e';
 import { ClubEntity } from '../src/clubs/entities/club.entity';
+import { UserClubEntity } from '../src/auth/entities/user-club.entity';
 
 interface PaginatedResponse<T> {
   data: T[];
@@ -20,6 +22,9 @@ describe('Clubs (e2e)', () => {
   });
 
   afterEach(async () => {
+    // user_club d'abord car FK cascade sur club_id : éviter qu'un truncate
+    // CASCADE sur "club" ne laisse pas de surprise si l'ordre s'inverse.
+    await getSeedHelper().cleanUserClubs();
     await getSeedHelper().cleanClubs();
   });
 
@@ -86,8 +91,49 @@ describe('Clubs (e2e)', () => {
     });
   });
 
+  describe('GET /clubs/me/accessible', () => {
+    it('returns scope=ALL for ADMIN', async () => {
+      const res = await request(getApp().getHttpServer())
+        .get(`${API}/me/accessible`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+
+      expect(res.body).toEqual({ scope: 'ALL' });
+    });
+
+    it('returns scope=SCOPED + empty list for unlinked ORGA', async () => {
+      const res = await request(getApp().getHttpServer())
+        .get(`${API}/me/accessible`)
+        .set('Authorization', `Bearer ${orgaToken}`)
+        .expect(200);
+
+      expect(res.body).toEqual({ scope: 'SCOPED', clubIds: [] });
+    });
+
+    it('returns scope=SCOPED + clubIds for linked ORGA', async () => {
+      const [vct, ccg] = await getSeedHelper().seedClubs();
+      await getSeedHelper().seedUserClubs([
+        { userId: 2, clubId: vct.id },
+        { userId: 2, clubId: ccg.id },
+      ]);
+
+      const res = await request(getApp().getHttpServer())
+        .get(`${API}/me/accessible`)
+        .set('Authorization', `Bearer ${orgaToken}`)
+        .expect(200);
+
+      const body = res.body as { scope: string; clubIds: number[] };
+      expect(body.scope).toBe('SCOPED');
+      expect(new Set(body.clubIds)).toEqual(new Set([vct.id, ccg.id]));
+    });
+
+    it('rejects unauthenticated request', async () => {
+      await request(getApp().getHttpServer()).get(`${API}/me/accessible`).expect(401);
+    });
+  });
+
   describe('POST /clubs', () => {
-    it('should create a club as ADMIN', async () => {
+    it('should create a club as ADMIN (no auto-link)', async () => {
       const res = await request(getApp().getHttpServer())
         .post(API)
         .set('Authorization', `Bearer ${adminToken}`)
@@ -97,14 +143,27 @@ describe('Clubs (e2e)', () => {
       const body = res.body as ClubEntity;
       expect(body.id).toBeDefined();
       expect(body.longName).toBe('Club de Test');
+
+      const dataSource = getApp().get(DataSource);
+      const link = await dataSource
+        .getRepository(UserClubEntity)
+        .findOne({ where: { userId: 1, clubId: body.id } });
+      expect(link).toBeNull();
     });
 
-    it('should create a club as ORGANISATEUR', async () => {
-      await request(getApp().getHttpServer())
+    it('should create a club as ORGANISATEUR AND auto-link the creator', async () => {
+      const res = await request(getApp().getHttpServer())
         .post(API)
         .set('Authorization', `Bearer ${orgaToken}`)
         .send({ shortName: 'ORG', longName: 'Club Orga' })
         .expect(201);
+
+      const created = res.body as ClubEntity;
+      const dataSource = getApp().get(DataSource);
+      const link = await dataSource
+        .getRepository(UserClubEntity)
+        .findOne({ where: { userId: 2, clubId: created.id } });
+      expect(link).not.toBeNull();
     });
 
     it('should reject MOBILE role', async () => {
@@ -137,8 +196,8 @@ describe('Clubs (e2e)', () => {
     });
   });
 
-  describe('PATCH /clubs/:id', () => {
-    it('should update a club', async () => {
+  describe('PATCH /clubs/:id (scope par club)', () => {
+    it('ADMIN can update any club (bypass scope)', async () => {
       const [club] = await getSeedHelper().seedClubs();
 
       const res = await request(getApp().getHttpServer())
@@ -149,10 +208,31 @@ describe('Clubs (e2e)', () => {
 
       expect((res.body as ClubEntity).longName).toBe('Vélo Club Toulouse Métropole');
     });
+
+    it('ORGA linked to the club can update', async () => {
+      const [club] = await getSeedHelper().seedClubs();
+      await getSeedHelper().seedUserClubs([{ userId: 2, clubId: club.id }]);
+
+      await request(getApp().getHttpServer())
+        .patch(`${API}/${club.id}`)
+        .set('Authorization', `Bearer ${orgaToken}`)
+        .send({ shortName: 'VCT2' })
+        .expect(200);
+    });
+
+    it('ORGA NOT linked to the club gets 403', async () => {
+      const [club] = await getSeedHelper().seedClubs();
+
+      await request(getApp().getHttpServer())
+        .patch(`${API}/${club.id}`)
+        .set('Authorization', `Bearer ${orgaToken}`)
+        .send({ shortName: 'BAD' })
+        .expect(403);
+    });
   });
 
-  describe('DELETE /clubs/:id', () => {
-    it('should delete an unreferenced club', async () => {
+  describe('DELETE /clubs/:id (scope par club)', () => {
+    it('ADMIN can delete an unreferenced club', async () => {
       const [club] = await getSeedHelper().seedClubs();
 
       await request(getApp().getHttpServer())
@@ -160,14 +240,32 @@ describe('Clubs (e2e)', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
-      // Verify it's gone
       await request(getApp().getHttpServer())
         .get(`${API}/${club.id}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(404);
     });
 
-    it('should return 404 for non-existent club', async () => {
+    it('ORGA linked to the club can delete', async () => {
+      const [club] = await getSeedHelper().seedClubs();
+      await getSeedHelper().seedUserClubs([{ userId: 2, clubId: club.id }]);
+
+      await request(getApp().getHttpServer())
+        .delete(`${API}/${club.id}`)
+        .set('Authorization', `Bearer ${orgaToken}`)
+        .expect(200);
+    });
+
+    it('ORGA NOT linked to the club gets 403', async () => {
+      const [club] = await getSeedHelper().seedClubs();
+
+      await request(getApp().getHttpServer())
+        .delete(`${API}/${club.id}`)
+        .set('Authorization', `Bearer ${orgaToken}`)
+        .expect(403);
+    });
+
+    it('should return 404 for non-existent club (as ADMIN, scope bypass)', async () => {
       await request(getApp().getHttpServer())
         .delete(`${API}/99999`)
         .set('Authorization', `Bearer ${adminToken}`)

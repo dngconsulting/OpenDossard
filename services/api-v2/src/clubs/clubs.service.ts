@@ -1,12 +1,14 @@
 import { Injectable, Logger, NotFoundException, ConflictException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, Repository, SelectQueryBuilder } from 'typeorm';
 import { ClubEntity } from './entities/club.entity';
 import { LicenceEntity } from '../licences/entities/licence.entity';
 import { RaceEntity } from '../races/entities/race.entity';
 import { CompetitionEntity } from '../competitions/entities/competition.entity';
 import { HelloAssoDetailsEntity } from '../helloasso/entities/helloasso-details.entity';
-import { Federation } from '../common/enums';
+import { UserClubEntity } from '../auth/entities/user-club.entity';
+import { AuthenticatedUser } from '../auth/types/authenticated-user';
+import { Role, Federation } from '../common/enums';
 import { PaginatedResponseDto } from '../common/dto/pagination.dto';
 import { FilterClubDto } from './dto/filter-club.dto';
 import { UpdateClubDto } from './dto/update-club.dto';
@@ -27,6 +29,8 @@ export class ClubsService {
     private competitionRepository: Repository<CompetitionEntity>,
     @InjectRepository(HelloAssoDetailsEntity)
     private helloAssoDetailsRepository: Repository<HelloAssoDetailsEntity>,
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
   ) {}
 
   /**
@@ -35,7 +39,10 @@ export class ClubsService {
    * Évite notamment qu'un rename de `elicenceName` casse le slug HelloAsso et
    * laisse une ligne `helloasso_details` orpheline.
    */
-  private async assertNotLinkedToHelloAsso(clubId: number, action: 'update' | 'remove'): Promise<void> {
+  private async assertNotLinkedToHelloAsso(
+    clubId: number,
+    action: 'update' | 'remove',
+  ): Promise<void> {
     const linked = await this.helloAssoDetailsRepository.findOne({ where: { clubId } });
     if (linked) {
       throw new ConflictException(
@@ -170,7 +177,23 @@ export class ClubsService {
     return candidates.find(c => slugify(c.elicenceName) === slug) ?? null;
   }
 
-  async create(clubData: Partial<ClubEntity>, author?: string): Promise<ClubEntity> {
+  /**
+   * Crée un club. Si le créateur est un ORGANISATEUR non-ADMIN, l'ajoute
+   * automatiquement à `user_club` dans la même transaction : sans ça il ne
+   * pourrait plus éditer le club qu'il vient de créer (PATCH/DELETE sont
+   * scopés via `assertClubAccess`).
+   *
+   * Cette auto-liaison reflète le workflow réel : un ORGA crée un club à la
+   * volée pendant la saisie d'une licence (nom + dept). L'ADMIN n'est jamais
+   * lié explicitement (il bypass déjà via `Role.ADMIN`).
+   *
+   * Si l'insert `user_club` échoue, le `INSERT clubs` est rollback — on évite
+   * un club orphelin qu'aucun ORGA ne pourrait éditer.
+   */
+  async create(
+    clubData: Partial<ClubEntity>,
+    currentUser?: AuthenticatedUser,
+  ): Promise<ClubEntity> {
     const { id, ...data } = clubData;
 
     if (data.longName) {
@@ -186,12 +209,28 @@ export class ClubsService {
       }
     }
 
-    const club = this.clubRepository.create(data);
-    const saved = await this.clubRepository.save(club);
+    const shouldAutoLink =
+      currentUser !== undefined &&
+      currentUser.roles.includes(Role.ORGANISATEUR) &&
+      !currentUser.roles.includes(Role.ADMIN);
+
+    const saved = await this.dataSource.transaction(async manager => {
+      const club = manager.create(ClubEntity, data);
+      const persisted = await manager.save(ClubEntity, club);
+      if (shouldAutoLink) {
+        await manager.save(UserClubEntity, {
+          userId: currentUser.id,
+          clubId: persisted.id,
+        });
+      }
+      return persisted;
+    });
+
     this.logger.log(
-      `Création du club #${saved.id} par ${author ?? 'inconnu'} | ` +
+      `Création du club #${saved.id} par ${currentUser?.email ?? 'inconnu'} | ` +
         `${saved.longName} (${saved.shortName ?? '-'}) | Dept: ${saved.dept ?? '-'} | ` +
-        `Fédé: ${saved.fede ?? '-'} | eLicence: ${saved.elicenceName ?? '-'}`,
+        `Fédé: ${saved.fede ?? '-'} | eLicence: ${saved.elicenceName ?? '-'}` +
+        (shouldAutoLink ? ` | auto-link user #${currentUser.id}` : ''),
     );
     return saved;
   }

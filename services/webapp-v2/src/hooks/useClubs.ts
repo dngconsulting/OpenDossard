@@ -4,7 +4,13 @@ import { useSearchParams } from 'react-router-dom';
 
 import { clubsApi } from '@/api/clubs.api';
 import useUserStore from '@/store/UserStore';
-import type { ClubType, ClubPaginationParams, ClubFilters, UpdateClubInput } from '@/types/clubs';
+import type {
+  ClubType,
+  ClubPaginationParams,
+  ClubFilters,
+  UpdateClubInput,
+  AccessibleClubsScope,
+} from '@/types/clubs';
 
 const FILTER_KEYS: (keyof ClubType)[] = ['shortName', 'dept', 'fede', 'longName', 'elicenceName'];
 
@@ -14,6 +20,7 @@ export const clubsKeys = {
   byFedeAndDept: (fede: string, dept: string) => ['clubs', 'fede', fede, 'dept', dept] as const,
   detail: (id: number) => ['clubs', id] as const,
   references: (id: number) => ['clubs', id, 'references'] as const,
+  accessibleScope: ['clubs', 'me', 'accessible'] as const,
 };
 
 function parseUrlParams(searchParams: URLSearchParams): ClubPaginationParams {
@@ -219,4 +226,42 @@ export function useDeleteClub() {
       queryClient.invalidateQueries({ queryKey: ['clubs'] });
     },
   });
+}
+
+/**
+ * Scope des clubs sur lesquels l'utilisateur courant peut éditer/supprimer.
+ *
+ * Renvoie aussi un helper `canEditClub(clubId)` qui regroupe :
+ * - `true` tant que le scope n'est pas encore chargé (optimiste : on évite de
+ *   griser les boutons pendant le 1er fetch, le backend reste la source de
+ *   vérité et renverra 403 si l'utilisateur n'a pas les droits)
+ * - `true` si scope=ALL (ADMIN)
+ * - `clubIds.includes(clubId)` si scope=SCOPED
+ *
+ * Le scope est mis en cache 5min : il ne change que quand un ADMIN ajoute/
+ * retire un lien dans `UserForm`, ce qui invalide déjà la query côté gestion
+ * des liens (cf. `users.api.ts`).
+ */
+export function useAccessibleClubs() {
+  const isAuthenticated = useUserStore(state => state.isAuthenticated);
+
+  const query = useQuery({
+    queryKey: clubsKeys.accessibleScope,
+    queryFn: () => clubsApi.getMyAccessibleScope(),
+    enabled: isAuthenticated,
+    staleTime: 5 * 60_000,
+  });
+
+  const canEditClub = useCallback(
+    (clubId: number | null | undefined): boolean => {
+      if (clubId == null) {return false;}
+      const scope: AccessibleClubsScope | undefined = query.data;
+      if (!scope) {return true;}
+      if (scope.scope === 'ALL') {return true;}
+      return scope.clubIds.includes(clubId);
+    },
+    [query.data],
+  );
+
+  return { ...query, canEditClub };
 }

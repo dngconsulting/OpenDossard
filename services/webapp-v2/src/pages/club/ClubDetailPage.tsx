@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowLeft, ChevronRight, Loader2, Save } from 'lucide-react';
+import { AlertCircle, ArrowLeft, ChevronRight, Loader2, Lock, Save } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
@@ -8,7 +8,7 @@ import { HelloAssoUnlinkButton } from '@/components/HelloAssoUnlinkButton';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useClub } from '@/hooks/useClubs';
+import { useAccessibleClubs, useClub } from '@/hooks/useClubs';
 import { useHelloAssoStatus } from '@/hooks/useHelloAssoAuth';
 import type { ClubType } from '@/types/clubs';
 
@@ -20,6 +20,11 @@ export default function ClubDetailPage() {
 
   const { data: club, isLoading } = useClub(clubId);
   const { data: helloAssoStatus } = useHelloAssoStatus(clubId);
+  const { canEditClub, isLoading: isLoadingScope } = useAccessibleClubs();
+  // Hors scope = on connaît le scope ET il ne contient pas ce club. Pendant
+  // le chargement du scope on reste optimiste (canEditClub renvoie true) pour
+  // éviter de griser brièvement le formulaire au mount.
+  const isOutOfScope = !isCreating && !isLoadingScope && !canEditClub(clubId);
   const isLinkedToHelloAsso = helloAssoStatus?.linked === true;
   const linkedSlug = helloAssoStatus?.linked ? helloAssoStatus.slug : undefined;
   const linkedAtDate = helloAssoStatus?.linked
@@ -72,7 +77,7 @@ export default function ClubDetailPage() {
       {isLinkedToHelloAsso && clubId !== undefined ? (
         <HelloAssoUnlinkButton clubId={clubId} slug={linkedSlug} />
       ) : null}
-      {!isLinkedToHelloAsso && (
+      {!isLinkedToHelloAsso && !isOutOfScope && (
         <Button type="submit" form="club-form" size="sm" disabled={isPending}>
           {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           {isPending ? 'Enregistrement...' : 'Enregistrer'}
@@ -103,6 +108,16 @@ export default function ClubDetailPage() {
 
   return (
     <Layout title={breadcrumb} toolbarLeft={toolbarLeft} toolbar={toolbarRight}>
+      {isOutOfScope && (
+        <div className="mb-4 flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+          <Lock className="mt-0.5 h-4 w-4 shrink-0" />
+          <div>
+            <strong>Vous n&apos;êtes pas lié à ce club.</strong> Consultation en lecture seule —
+            demandez à un administrateur de vous y rattacher pour pouvoir modifier ses
+            informations.
+          </div>
+        </div>
+      )}
       {isLinkedToHelloAsso && (
         <div
           className={
@@ -155,7 +170,7 @@ export default function ClubDetailPage() {
         onSuccess={handleSuccess}
         formId="club-form"
         onPendingChange={setIsPending}
-        readOnly={isLinkedToHelloAsso}
+        readOnly={isLinkedToHelloAsso || isOutOfScope}
       />
     </Layout>
   );

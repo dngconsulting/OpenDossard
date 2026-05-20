@@ -31,3 +31,13 @@ export type ClubPaginationParams = {
   orderDirection?: 'ASC' | 'DESC';
   filters?: ClubFilters;
 };
+
+/**
+ * Scope d'édition/suppression de clubs pour l'utilisateur courant.
+ * - `ALL` : ADMIN, accès non scopé (peut éditer/supprimer tout club).
+ * - `SCOPED` : ORGA (ou autre rôle non-ADMIN), `clubIds` liste exhaustive
+ *   des clubs auxquels il est lié.
+ */
+export type AccessibleClubsScope =
+  | { scope: 'ALL' }
+  | { scope: 'SCOPED'; clubIds: number[] };

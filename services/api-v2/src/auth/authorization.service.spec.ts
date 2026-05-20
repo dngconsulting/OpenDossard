@@ -154,4 +154,30 @@ describe('AuthorizationService', () => {
       await expect(service.listAccessibleClubIds(ORGA_USER)).resolves.toEqual([12, 45, 78]);
     });
   });
+
+  describe('getAccessibleClubsScope', () => {
+    it("renvoie { scope: 'ALL' } pour un ADMIN (pas de clubIds exposés)", async () => {
+      await expect(service.getAccessibleClubsScope(ADMIN_USER)).resolves.toEqual({ scope: 'ALL' });
+      expect(repo.find).not.toHaveBeenCalled();
+    });
+
+    it("renvoie { scope: 'SCOPED', clubIds: [] } pour un ORGA sans lien", async () => {
+      repo.find.mockResolvedValue([]);
+      await expect(service.getAccessibleClubsScope(ORGA_USER)).resolves.toEqual({
+        scope: 'SCOPED',
+        clubIds: [],
+      });
+    });
+
+    it("renvoie { scope: 'SCOPED', clubIds: [...] } pour un ORGA lié", async () => {
+      repo.find.mockResolvedValue([
+        { userId: 2, clubId: 10, createdAt: new Date() },
+        { userId: 2, clubId: 11, createdAt: new Date() },
+      ]);
+      await expect(service.getAccessibleClubsScope(ORGA_USER)).resolves.toEqual({
+        scope: 'SCOPED',
+        clubIds: [10, 11],
+      });
+    });
+  });
 });
