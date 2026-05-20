@@ -5,8 +5,9 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, Repository } from 'typeorm';
+import { CompetitionEntity } from '../competitions/entities/competition.entity';
 import { HelloAssoDetailsEntity } from './entities/helloasso-details.entity';
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoOAuthService, HelloAssoTokens } from './helloasso-oauth.service';
@@ -55,6 +56,8 @@ export class HelloAssoDetailsService {
     private readonly repo: Repository<HelloAssoDetailsEntity>,
     private readonly config: HelloAssoConfig,
     private readonly oauth: HelloAssoOAuthService,
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
   ) {}
 
   async findByClubId(clubId: number): Promise<HelloAssoDetailsEntity | null> {
@@ -146,6 +149,18 @@ export class HelloAssoDetailsService {
    * Supprime la liaison HelloAsso d'un club. Réversible via re-passage par la mire.
    * Pas de révocation côté HelloAsso : leurs tokens deviennent simplement orphelins
    * côté OpenDossard mais restent valides côté HelloAsso jusqu'à expiration normale.
+   *
+   * **Effet de bord** : désactive aussi `online_registration_enabled` sur toutes
+   * les compétitions de ce club, dans la même transaction. Sans cette cascade,
+   * les compets gardent leur flag à `true` après le délink, l'UI cache le switch
+   * (car le club n'a plus de lien HA) mais les utilisateurs peuvent quand même
+   * initier des paiements qui échoueront au moment du POST checkout-intent avec
+   * "Paiement en ligne indisponible". On normalise donc l'état en DB pour
+   * matcher l'UI.
+   *
+   * **Hors scope** (intentionnel) : les paiements HelloAsso `pending` au moment
+   * du délink ne sont PAS annulés. Ils restent dans leur état actuel ; HelloAsso
+   * les traitera (ou pas) côté leur infra selon leur propre logique.
    */
   async deleteByClubId(clubId: number): Promise<void> {
     const existing = await this.repo.findOne({ where: { clubId } });
@@ -157,9 +172,22 @@ export class HelloAssoDetailsService {
     // Donc on capture les valeurs AVANT le remove pour le log.
     const removedId = existing.id;
     const removedSlug = existing.organizationSlug;
-    await this.repo.remove(existing);
+
+    const competitionsDisabled = await this.dataSource.transaction(async manager => {
+      const updateResult = await manager
+        .createQueryBuilder()
+        .update(CompetitionEntity)
+        .set({ onlineRegistrationEnabled: false })
+        .where('club_id = :clubId', { clubId })
+        .andWhere('online_registration_enabled = true')
+        .execute();
+      await manager.remove(existing);
+      return updateResult.affected ?? 0;
+    });
+
     this.logger.log(
-      `deleteByClubId: removed link id=${removedId} clubId=${clubId} slug=${removedSlug}`,
+      `deleteByClubId: removed link id=${removedId} clubId=${clubId} slug=${removedSlug} | ` +
+        `disabled online_registration_enabled on ${competitionsDisabled} competition(s)`,
     );
   }
 
