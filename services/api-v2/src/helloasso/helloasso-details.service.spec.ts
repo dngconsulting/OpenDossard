@@ -110,6 +110,7 @@ function makeDetails(
     linkedByUserId: 55,
     linkedAt: new Date('2026-05-12T11:30:00Z'),
     lastRefreshedAt: null,
+    isCashInCompliant: null,
     createdAt: new Date('2026-05-12T11:30:00Z'),
     updatedAt: new Date('2026-05-12T11:30:00Z'),
   };
@@ -278,6 +279,7 @@ describe('HelloAssoDetailsService — upsertLink (lot 3 : refus re-liaison slug 
     refreshToken: 'r',
     expiresInSeconds: 1800,
     linkedByUserId: 55,
+    isCashInCompliant: true,
   };
 
   it('passe et UPDATE si aucune liaison existante', async () => {
@@ -303,6 +305,66 @@ describe('HelloAssoDetailsService — upsertLink (lot 3 : refus re-liaison slug 
       m.service.upsertLink({ ...baseInput, organizationSlug: 'orga-frauduleuse' }),
     ).rejects.toBeInstanceOf(ConflictException);
     expect(m.repo.save).not.toHaveBeenCalled();
+  });
+
+  it('persiste isCashInCompliant à la création (true)', async () => {
+    const m = makeService();
+    m.repo.findOne.mockResolvedValueOnce(null);
+    await m.service.upsertLink({ ...baseInput, isCashInCompliant: true });
+    expect(m.repo.create).toHaveBeenCalledWith(
+      expect.objectContaining({ isCashInCompliant: true }),
+    );
+  });
+
+  it('persiste isCashInCompliant à la création (false)', async () => {
+    const m = makeService();
+    m.repo.findOne.mockResolvedValueOnce(null);
+    await m.service.upsertLink({ ...baseInput, isCashInCompliant: false });
+    expect(m.repo.create).toHaveBeenCalledWith(
+      expect.objectContaining({ isCashInCompliant: false }),
+    );
+  });
+
+  it('persiste isCashInCompliant=null si la valeur HA n’a pas pu être lue', async () => {
+    const m = makeService();
+    m.repo.findOne.mockResolvedValueOnce(null);
+    await m.service.upsertLink({ ...baseInput, isCashInCompliant: null });
+    expect(m.repo.create).toHaveBeenCalledWith(
+      expect.objectContaining({ isCashInCompliant: null }),
+    );
+  });
+
+  it('met à jour isCashInCompliant sur re-liaison (même slug)', async () => {
+    const m = makeService();
+    const existing = makeDetails(m.key, 'a', 'r');
+    existing.isCashInCompliant = false;
+    m.repo.findOne.mockResolvedValueOnce(existing);
+    await m.service.upsertLink({ ...baseInput, isCashInCompliant: true });
+    expect(m.repo.save).toHaveBeenCalledWith(expect.objectContaining({ isCashInCompliant: true }));
+  });
+});
+
+describe('HelloAssoDetailsService — setIsCashInCompliantBySlug', () => {
+  it('UPDATE par slug et renvoie le nombre de lignes affectées', async () => {
+    const m = makeService();
+    m.repo.update.mockResolvedValue({ affected: 1, raw: [], generatedMaps: [] });
+
+    const affected = await m.service.setIsCashInCompliantBySlug('club-de-judo', true);
+
+    expect(m.repo.update).toHaveBeenCalledWith(
+      { organizationSlug: 'club-de-judo' },
+      { isCashInCompliant: true },
+    );
+    expect(affected).toBe(1);
+  });
+
+  it('renvoie 0 quand aucune ligne ne correspond (slug orphelin)', async () => {
+    const m = makeService();
+    m.repo.update.mockResolvedValue({ affected: 0, raw: [], generatedMaps: [] });
+
+    const affected = await m.service.setIsCashInCompliantBySlug('unknown-slug', false);
+
+    expect(affected).toBe(0);
   });
 });
 

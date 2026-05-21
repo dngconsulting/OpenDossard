@@ -12,6 +12,12 @@ export type HelloAssoLinkStatusDto =
       linkedAt: string;
       refreshTokenExpiresAt: string;
       expired: boolean;
+      /**
+       * Drapeau `isCashInCompliant` côté HelloAsso. `null` = inconnu (liaison
+       * antérieure à l'intégration ou GET orga en échec). `false` = exigences
+       * admin HA non finalisées → aucun paiement n'est encaissé.
+       */
+      isCashInCompliant: boolean | null;
     };
 
 export const helloAssoApi = {

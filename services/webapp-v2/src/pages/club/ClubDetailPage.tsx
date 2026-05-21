@@ -34,6 +34,11 @@ export default function ClubDetailPage() {
     ? new Date(helloAssoStatus.refreshTokenExpiresAt).toLocaleDateString('fr-FR')
     : undefined;
   const isHelloAssoExpired = helloAssoStatus?.linked === true && helloAssoStatus.expired === true;
+  // Encaissement bloqué côté HelloAsso : l'asso n'a pas finalisé ses exigences
+  // admin (KYC, IBAN, statuts…). `null` = valeur inconnue → on n'affiche RIEN
+  // (pas la même chose que "false"). Seul `false` strict déclenche le warning.
+  const isHelloAssoCashInBlocked =
+    helloAssoStatus?.linked === true && helloAssoStatus.isCashInCompliant === false;
   const [isPending, setIsPending] = useState(false);
 
   const handleSuccess = (created?: ClubType) => {
@@ -54,11 +59,13 @@ export default function ClubDetailPage() {
       </Link>
       <ChevronRight className="size-4 text-muted-foreground" />
       <span className="font-medium">
-        {isCreating
-          ? 'Nouveau club'
-          : club
-            ? club.longName
-            : <Skeleton className="h-4 w-32 inline-block" />}
+        {isCreating ? (
+          'Nouveau club'
+        ) : club ? (
+          club.longName
+        ) : (
+          <Skeleton className="h-4 w-32 inline-block" />
+        )}
       </span>
     </nav>
   );
@@ -73,7 +80,9 @@ export default function ClubDetailPage() {
 
   const toolbarRight = (
     <div className="flex items-center gap-2">
-      {club?.elicenceName && clubId !== undefined ? <HelloAssoConnectButton clubId={clubId} /> : null}
+      {club?.elicenceName && clubId !== undefined ? (
+        <HelloAssoConnectButton clubId={clubId} />
+      ) : null}
       {isLinkedToHelloAsso && clubId !== undefined ? (
         <HelloAssoUnlinkButton clubId={clubId} slug={linkedSlug} />
       ) : null}
@@ -113,8 +122,18 @@ export default function ClubDetailPage() {
           <Lock className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
             <strong>Vous n&apos;êtes pas lié à ce club.</strong> Consultation en lecture seule —
-            demandez à un administrateur de vous y rattacher pour pouvoir modifier ses
-            informations.
+            demandez à un administrateur de vous y rattacher pour pouvoir modifier ses informations.
+          </div>
+        </div>
+      )}
+      {isHelloAssoCashInBlocked && (
+        <div className="mb-4 flex items-start gap-3 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/30 dark:text-red-200">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div>
+            <strong>Encaissement impossible{linkedSlug ? ` pour « ${linkedSlug} »` : ''}.</strong>{' '}
+            Votre association doit absolument finaliser ses exigences administratives
+            (justificatifs, IBAN, statuts…) dans son espace HelloAsso. Tant que ce point n&apos;est
+            pas réglé, aucun paiement ne peut être réalisé ni encaissé.
           </div>
         </div>
       )}
@@ -131,11 +150,9 @@ export default function ClubDetailPage() {
             {isHelloAssoExpired ? (
               <>
                 <div>
-                  <strong>
-                    Liaison HelloAsso expirée{linkedSlug ? ` (${linkedSlug})` : ''}.
-                  </strong>{' '}
-                  Les paiements en ligne ne fonctionneront plus tant que la liaison n&apos;est
-                  pas renouvelée.
+                  <strong>Liaison HelloAsso expirée{linkedSlug ? ` (${linkedSlug})` : ''}.</strong>{' '}
+                  Les paiements en ligne ne fonctionneront plus tant que la liaison n&apos;est pas
+                  renouvelée.
                 </div>
                 <div className="text-xs">
                   Connecté le <strong>{linkedAtDate}</strong>. Refresh token expiré depuis le{' '}

@@ -9,12 +9,22 @@
  *   1. POST {HELLOASSO_API_BASE_URL}/oauth2/token  (clientCredentials)
  *   2. PUT  {HELLOASSO_API_BASE_URL}/v5/partners/me/api-notifications
  *      body { url, notificationType: 'Payment' }
+ *   3. PUT  {HELLOASSO_API_BASE_URL}/v5/partners/me/api-notifications
+ *      body { url, notificationType: 'Organization' }
+ *
+ * Deux souscriptions distinctes sont nécessaires car l'API HA n'accepte
+ * qu'un `notificationType` par requête. `Payment` couvre les paiements ;
+ * `Organization` couvre les events orga (notamment `Organization.IsCashinCompliant`,
+ * qui pilote l'éligibilité d'une asso à l'encaissement côté UI).
  *
  * HelloAsso renvoie `{ url, apiNotificationType, signatureKey }`. La
  * `signatureKey` est le secret partagé HMAC-SHA256 utilisé pour vérifier
  * les webhooks entrants — elle doit être mise dans
  * `HELLOASSO_WEBHOOK_SIGNATURE_KEY` du `.env` backend, sinon les webhooks
- * seront rejetés en 401 par notre receiver.
+ * seront rejetés en 401 par notre receiver. Le script vérifie que les
+ * deux souscriptions retournent la MÊME signatureKey (sinon il faudrait
+ * étendre la config backend pour gérer deux clés ; à ce jour HA renvoie
+ * une clé partenaire unique, mais on se protège du contraire en abortant).
  *
  * Par défaut la clé est MASQUÉE en stdout et écrite (mode 0600) dans
  * `/tmp/helloasso-webhook-signature-key`. Le flag `--show-key` la révèle
@@ -141,6 +151,7 @@ async function registerWebhook(
   apiBaseUrl: string,
   accessToken: string,
   url: string,
+  notificationType: 'Payment' | 'Organization',
 ): Promise<RegisterResponse> {
   const response = await fetch(`${apiBaseUrl}/v5/partners/me/api-notifications`, {
     method: 'PUT',
@@ -148,12 +159,12 @@ async function registerWebhook(
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ url, notificationType: 'Payment' }),
+    body: JSON.stringify({ url, notificationType }),
   });
   if (!response.ok) {
     const body = await safeReadText(response);
     throw new Error(
-      `Souscription KO : HTTP ${response.status} ${response.statusText} body=${truncate(body, 500)}`,
+      `Souscription "${notificationType}" KO : HTTP ${response.status} ${response.statusText} body=${truncate(body, 500)}`,
     );
   }
   return (await response.json()) as RegisterResponse;
@@ -185,23 +196,48 @@ async function main(): Promise<void> {
   const accessToken = await getPartnerAccessToken(apiBaseUrl, clientId, clientSecret);
   console.log(`  ✓ token partenaire obtenu`);
 
-  console.log(
-    `→ PUT ${apiBaseUrl}/v5/partners/me/api-notifications  { url: ${args.url}, notificationType: "Payment" }`,
-  );
-  const result = await registerWebhook(apiBaseUrl, accessToken, args.url);
+  const notificationTypes: Array<'Payment' | 'Organization'> = ['Payment', 'Organization'];
+  const results: Array<{ type: 'Payment' | 'Organization'; response: RegisterResponse }> = [];
 
-  if (!result.signatureKey || result.signatureKey.trim().length === 0) {
+  for (const type of notificationTypes) {
+    console.log(
+      `→ PUT ${apiBaseUrl}/v5/partners/me/api-notifications  { url: ${args.url}, notificationType: "${type}" }`,
+    );
+    const response = await registerWebhook(apiBaseUrl, accessToken, args.url, type);
+    if (!response.signatureKey || response.signatureKey.trim().length === 0) {
+      throw new Error(
+        `Réponse HelloAsso inattendue (${type}) : signatureKey absent. body=${JSON.stringify(response)}`,
+      );
+    }
+    console.log(`  ✓ souscription "${type}" OK`);
+    results.push({ type, response });
+  }
+
+  console.log('');
+  for (const { type, response } of results) {
+    console.log(`  [${type}]`);
+    console.log(`    url:                 ${response.url ?? '<missing>'}`);
+    console.log(`    apiNotificationType: ${response.apiNotificationType ?? '<missing>'}`);
+    console.log(`    signatureKey:        ${args.showKey ? response.signatureKey : '****'}`);
+  }
+  console.log('');
+
+  // Le receiver côté backend n'utilise qu'UNE seule signatureKey
+  // (HELLOASSO_WEBHOOK_SIGNATURE_KEY). On vérifie que les deux souscriptions
+  // ont retourné la même valeur — c'est le contrat observé en sandbox HA.
+  // Si HA un jour rotate les clés par notificationType, on aboutera ici plutôt
+  // que d'avoir 50% des webhooks rejetés en 401 sans diagnostic.
+  const signatureKeys = new Set(results.map(r => r.response.signatureKey!));
+  if (signatureKeys.size > 1) {
     throw new Error(
-      `Réponse HelloAsso inattendue : signatureKey absent. body=${JSON.stringify(result)}`,
+      `HelloAsso a renvoyé des signatureKeys DIFFÉRENTES pour Payment et Organization. ` +
+        `Le receiver actuel ne sait gérer qu'une seule clé — étendre la config backend ` +
+        `(deux clés distinctes) avant d'aller plus loin.`,
     );
   }
 
-  console.log(`  ✓ souscription OK`);
-  console.log('');
-  console.log(`  url:                 ${result.url ?? '<missing>'}`);
-  console.log(`  apiNotificationType: ${result.apiNotificationType ?? '<missing>'}`);
-  console.log(`  signatureKey:        ${args.showKey ? result.signatureKey : '****'}`);
-  console.log('');
+  // À ce stade : 1 seule signatureKey unique pour les 2 souscriptions.
+  const result: RegisterResponse = results[0].response;
 
   if (args.showKey) {
     console.error(
@@ -211,7 +247,7 @@ async function main(): Promise<void> {
       '   Copier dans services/api-v2/.env (variable HELLOASSO_WEBHOOK_SIGNATURE_KEY) puis redémarrer le backend.',
     );
   } else {
-    writeFileSync(SIGNATURE_KEY_FILE, result.signatureKey, { mode: 0o600 });
+    writeFileSync(SIGNATURE_KEY_FILE, result.signatureKey ?? '', { mode: 0o600 });
     console.log(`Clé écrite dans ${SIGNATURE_KEY_FILE} (mode 0600).`);
     console.log('Étapes :');
     console.log(`  1. cat ${SIGNATURE_KEY_FILE}`);

@@ -29,6 +29,22 @@ export class HelloAssoApiClient {
   }
 
   /**
+   * GET `/v5/organizations/{slug}` — fiche orga HelloAsso.
+   *
+   * Appelé une fois au moment de la liaison pour récupérer la valeur initiale
+   * de `isCashInCompliant` (drapeau d'éligibilité à l'encaissement). Le suivi
+   * continu de ce drapeau passe par le webhook `Organization.IsCashinCompliant`,
+   * pas par un re-call périodique de cet endpoint.
+   */
+  async getOrganization(input: {
+    organizationSlug: string;
+    accessToken: string;
+  }): Promise<OrganizationResponse> {
+    const url = `${this.config.apiBaseUrl}/v5/organizations/${encodeURIComponent(input.organizationSlug)}`;
+    return this.getJson<OrganizationResponse>(url, input.accessToken);
+  }
+
+  /**
    * Récupère l'état détaillé d'un checkout-intent existant. Utilisé par l'action
    * admin "refresh status" pour rapatrier l'état réel d'un paiement bloqué en
    * pending (cf. `HelloAssoPaymentService.refreshStatusFromHelloAsso`).
@@ -143,6 +159,16 @@ export interface CheckoutIntentRequestBody {
 export interface CheckoutIntentResponse {
   id: number;
   redirectUrl: string;
+}
+
+/**
+ * Sous-ensemble de la réponse `GET /v5/organizations/{slug}` — on ne consomme
+ * que `isCashInCompliant`. Le reste (raison sociale, logo, etc.) reste hors
+ * scope pour éviter de se coupler au schéma complet.
+ */
+export interface OrganizationResponse {
+  organizationSlug?: string;
+  isCashInCompliant?: boolean;
 }
 
 /**

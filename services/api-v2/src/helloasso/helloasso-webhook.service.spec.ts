@@ -7,6 +7,7 @@ import {
   HelloAssoPaymentStatus,
 } from './entities/helloasso-payment.entity';
 import { HelloAssoConfig } from './helloasso.config';
+import { HelloAssoDetailsService } from './helloasso-details.service';
 import { HelloAssoWebhookService } from './helloasso-webhook.service';
 
 const SIGNATURE_KEY = 'super-secret-key';
@@ -22,6 +23,9 @@ interface Mocks {
     createQueryBuilder: jest.Mock;
   };
   updateQbExecute: jest.Mock;
+  detailsService: {
+    setIsCashInCompliantBySlug: jest.Mock;
+  };
 }
 
 function makeService(): Mocks {
@@ -37,13 +41,17 @@ function makeService(): Mocks {
     createQueryBuilder: jest.fn().mockReturnValue(updateQb),
   };
   const config = { webhookSignatureKey: SIGNATURE_KEY } as unknown as HelloAssoConfig;
+  const detailsService = {
+    setIsCashInCompliantBySlug: jest.fn().mockResolvedValue(1),
+  };
 
   const service = new HelloAssoWebhookService(
     paymentRepo as unknown as Repository<HelloAssoPaymentEntity>,
     config,
+    detailsService as unknown as HelloAssoDetailsService,
   );
 
-  return { service, paymentRepo, updateQbExecute };
+  return { service, paymentRepo, updateQbExecute, detailsService };
 }
 
 function buildBody(
@@ -205,6 +213,75 @@ describe('HelloAssoWebhookService', () => {
       const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
 
       expect(result.outcome).toBe('orphan_no_local_payment');
+    });
+  });
+
+  describe('Organization.IsCashinCompliant event', () => {
+    function cashinBody(slug: string | undefined, value: unknown): string {
+      return JSON.stringify({
+        eventType: 'Organization.IsCashinCompliant',
+        data: {
+          organization_slug: slug,
+          is_cashin_compliant: value,
+        },
+      });
+    }
+
+    it('updates the local link when slug matches (true)', async () => {
+      const m = makeService();
+      const body = cashinBody('club-de-judo', true);
+
+      const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
+
+      expect(m.detailsService.setIsCashInCompliantBySlug).toHaveBeenCalledWith(
+        'club-de-judo',
+        true,
+      );
+      expect(result.outcome).toBe('cashin_compliance_updated:club-de-judo:true');
+      expect(m.paymentRepo.findOne).not.toHaveBeenCalled();
+    });
+
+    it('updates the local link when slug matches (false)', async () => {
+      const m = makeService();
+      const body = cashinBody('club-de-judo', false);
+
+      const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
+
+      expect(m.detailsService.setIsCashInCompliantBySlug).toHaveBeenCalledWith(
+        'club-de-judo',
+        false,
+      );
+      expect(result.outcome).toBe('cashin_compliance_updated:club-de-judo:false');
+    });
+
+    it('returns orphan_no_local_link when slug is unknown locally', async () => {
+      const m = makeService();
+      m.detailsService.setIsCashInCompliantBySlug.mockResolvedValue(0);
+      const body = cashinBody('unknown-slug', true);
+
+      const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
+
+      expect(result.outcome).toBe('orphan_no_local_link:unknown-slug');
+    });
+
+    it('returns malformed_cashin_compliance_payload when slug is missing', async () => {
+      const m = makeService();
+      const body = cashinBody(undefined, true);
+
+      const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
+
+      expect(result.outcome).toBe('malformed_cashin_compliance_payload');
+      expect(m.detailsService.setIsCashInCompliantBySlug).not.toHaveBeenCalled();
+    });
+
+    it('returns malformed_cashin_compliance_payload when value is not boolean', async () => {
+      const m = makeService();
+      const body = cashinBody('club-de-judo', 'yes');
+
+      const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
+
+      expect(result.outcome).toBe('malformed_cashin_compliance_payload');
+      expect(m.detailsService.setIsCashInCompliantBySlug).not.toHaveBeenCalled();
     });
   });
 });

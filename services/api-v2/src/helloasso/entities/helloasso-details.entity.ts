@@ -59,6 +59,16 @@ export class HelloAssoDetailsEntity {
   @Column({ name: 'last_refreshed_at', type: 'timestamp', nullable: true })
   lastRefreshedAt: Date | null;
 
+  /**
+   * Éligibilité HelloAsso à encaisser. Reflet de `isCashInCompliant` côté HA.
+   * NULL = inconnu (liaison antérieure à l'intégration, ou échec du GET orga
+   * au moment de la liaison). `false` = l'asso n'a pas finalisé ses exigences
+   * administratives → aucun paiement ne sera encaissé. Mise à jour par webhook
+   * `Organization.IsCashinCompliant`.
+   */
+  @Column({ name: 'is_cash_in_compliant', type: 'boolean', nullable: true })
+  isCashInCompliant: boolean | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 

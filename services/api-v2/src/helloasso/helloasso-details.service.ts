@@ -22,6 +22,13 @@ export interface UpsertLinkInput {
   refreshToken: string;
   expiresInSeconds: number;
   linkedByUserId: number | null;
+  /**
+   * Valeur initiale de `isCashInCompliant` lue côté HelloAsso au moment de
+   * la liaison. `null` autorisé : si le GET orga échoue, on persiste null
+   * pour ne pas casser la liaison — la valeur sera rattrapée par le webhook
+   * `Organization.IsCashinCompliant` au prochain changement côté HA.
+   */
+  isCashInCompliant: boolean | null;
 }
 
 export type HelloAssoLinkStatus =
@@ -34,6 +41,13 @@ export type HelloAssoLinkStatus =
       /** ISO 8601 string. */
       refreshTokenExpiresAt: string;
       expired: boolean;
+      /**
+       * Reflet de `isCashInCompliant` côté HelloAsso (drapeau d'éligibilité à
+       * l'encaissement). `null` = inconnu (liaison avant intégration ou GET
+       * orga en échec). `false` = exigences admin HA non finalisées → aucun
+       * paiement ne sera encaissé.
+       */
+      isCashInCompliant: boolean | null;
     };
 
 /**
@@ -78,6 +92,7 @@ export class HelloAssoDetailsService {
       linkedAt: details.linkedAt.toISOString(),
       refreshTokenExpiresAt: details.refreshTokenExpiresAt.toISOString(),
       expired: details.refreshTokenExpiresAt.getTime() < Date.now(),
+      isCashInCompliant: details.isCashInCompliant,
     };
   }
 
@@ -120,6 +135,7 @@ export class HelloAssoDetailsService {
       existing.linkedByUserId = input.linkedByUserId;
       existing.linkedAt = now;
       existing.lastRefreshedAt = null;
+      existing.isCashInCompliant = input.isCashInCompliant;
       const saved = await this.repo.save(existing);
       this.logger.log(
         `upsertLink: refreshed link clubId=${input.clubId} slug=${input.organizationSlug} by user=${input.linkedByUserId}`,
@@ -137,6 +153,7 @@ export class HelloAssoDetailsService {
       linkedByUserId: input.linkedByUserId,
       linkedAt: now,
       lastRefreshedAt: null,
+      isCashInCompliant: input.isCashInCompliant,
     });
     const saved = await this.repo.save(created);
     this.logger.log(
@@ -189,6 +206,21 @@ export class HelloAssoDetailsService {
       `deleteByClubId: removed link id=${removedId} clubId=${clubId} slug=${removedSlug} | ` +
         `disabled online_registration_enabled on ${competitionsDisabled} competition(s)`,
     );
+  }
+
+  /**
+   * Met à jour le drapeau `isCashInCompliant` d'une liaison existante, identifiée
+   * par son `organizationSlug`. Renvoie le nombre de lignes affectées (0 si
+   * aucune liaison locale ne correspond au slug — webhook orphelin).
+   *
+   * Appelé par le receiver webhook `Organization.IsCashinCompliant`.
+   */
+  async setIsCashInCompliantBySlug(
+    organizationSlug: string,
+    isCashInCompliant: boolean,
+  ): Promise<number> {
+    const result = await this.repo.update({ organizationSlug }, { isCashInCompliant });
+    return result.affected ?? 0;
   }
 
   /**

@@ -7,6 +7,7 @@ import {
   HelloAssoPaymentStatus,
 } from './entities/helloasso-payment.entity';
 import { HelloAssoConfig } from './helloasso.config';
+import { HelloAssoDetailsService } from './helloasso-details.service';
 import { mapHelloAssoState, prerequisitesForStatus } from './helloasso-state.util';
 import { verifyHelloAssoSignature } from './util/webhook-signature.util';
 
@@ -28,6 +29,10 @@ interface WebhookPayload {
     id?: unknown;
     state?: unknown;
     order?: { id?: unknown };
+    /** Présent sur l'event `Organization.IsCashinCompliant` (snake_case côté HA). */
+    organization_slug?: unknown;
+    /** Présent sur l'event `Organization.IsCashinCompliant` (snake_case côté HA). */
+    is_cashin_compliant?: unknown;
   };
 }
 
@@ -51,6 +56,7 @@ export class HelloAssoWebhookService {
     @InjectRepository(HelloAssoPaymentEntity)
     private readonly paymentRepo: Repository<HelloAssoPaymentEntity>,
     private readonly config: HelloAssoConfig,
+    private readonly details: HelloAssoDetailsService,
   ) {}
 
   async handleWebhook(
@@ -73,6 +79,16 @@ export class HelloAssoWebhookService {
     }
 
     const eventType = parsed.eventType;
+
+    // Event `Organization.IsCashinCompliant` : HA notifie un changement
+    // d'éligibilité à l'encaissement pour une orga (slug + booléen). Mis à
+    // jour en best-effort dans `helloasso_details` ; un slug inconnu côté
+    // OpenDossard donne un 200 + no-op (orga liée à un autre partenaire HA
+    // mais notifiée à cause de notre souscription partenaire-wide).
+    if (eventType === 'Organization.IsCashinCompliant') {
+      return this.handleCashinComplianceEvent(parsed);
+    }
+
     if (eventType !== 'Payment') {
       this.logger.log(`handleWebhook: ignoring eventType=${eventType ?? '<missing>'}`);
       return { signatureValid: true, outcome: `ignored_event_type:${eventType ?? '<missing>'}` };
@@ -128,6 +144,44 @@ export class HelloAssoWebhookService {
       outcome: updated
         ? `transitioned:${payment.status}→${mappedStatus}`
         : `noop_no_transition_from:${payment.status}`,
+    };
+  }
+
+  /**
+   * Traite l'event `Organization.IsCashinCompliant` reçu d'HelloAsso.
+   *
+   * Payload attendu (snake_case côté HA) :
+   *   { eventType: 'Organization.IsCashinCompliant',
+   *     data: { organization_slug: '…', is_cashin_compliant: true|false } }
+   *
+   * Politique de retour : toujours 200 (cf. doc de classe). Un slug inconnu
+   * localement n'est PAS une erreur — HelloAsso pousse les events partenaire-wide,
+   * donc on peut recevoir des slugs d'orgas qui ne nous concernent pas.
+   */
+  private async handleCashinComplianceEvent(parsed: WebhookPayload): Promise<WebhookResult> {
+    const slug = parsed.data?.organization_slug;
+    const value = parsed.data?.is_cashin_compliant;
+    if (typeof slug !== 'string' || slug.trim().length === 0 || typeof value !== 'boolean') {
+      this.logger.warn(
+        `handleCashinComplianceEvent: malformed payload (slug=${String(slug)}, value=${String(value)})`,
+      );
+      return { signatureValid: true, outcome: 'malformed_cashin_compliance_payload' };
+    }
+
+    const affected = await this.details.setIsCashInCompliantBySlug(slug, value);
+    if (affected === 0) {
+      this.logger.log(
+        `handleCashinComplianceEvent: no local link for slug=${slug} — ignoring (foreign organization)`,
+      );
+      return { signatureValid: true, outcome: `orphan_no_local_link:${slug}` };
+    }
+
+    this.logger.log(
+      `handleCashinComplianceEvent: slug=${slug} isCashInCompliant=${value} (affected=${affected})`,
+    );
+    return {
+      signatureValid: true,
+      outcome: `cashin_compliance_updated:${slug}:${value}`,
     };
   }
 

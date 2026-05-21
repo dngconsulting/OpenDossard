@@ -27,6 +27,7 @@ import { Role } from '../common/enums';
 import { ClubsService } from '../clubs/clubs.service';
 import { UserEntity } from '../users/entities/user.entity';
 import { AuthorizeRequestDto } from './dto/authorize-request.dto';
+import { HelloAssoApiClient } from './helloasso-api.client';
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoDetailsService, HelloAssoLinkStatus } from './helloasso-details.service';
 import { HelloAssoOAuthService, PreparedAuthorization } from './helloasso-oauth.service';
@@ -58,6 +59,7 @@ export class HelloAssoController {
     private readonly clubs: ClubsService,
     private readonly config: HelloAssoConfig,
     private readonly authorizationService: AuthorizationService,
+    private readonly api: HelloAssoApiClient,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
   ) {}
@@ -226,6 +228,30 @@ leur expiration normale (pas de révocation explicite).`,
         return this.redirectError(res, 'forbidden_club_access', originClubId);
       }
 
+      // Lot — Cash-in compliance : seed initial du drapeau `isCashInCompliant`
+      // côté HA. Best-effort : si l'appel échoue (réseau, droits, etc.), on
+      // persiste `null` et on log un warning. La valeur sera rattrapée par le
+      // webhook `Organization.IsCashinCompliant` au prochain changement HA.
+      // On NE casse PAS la liaison pour ça — c'est de l'enrichissement.
+      let isCashInCompliant: boolean | null = null;
+      try {
+        const orgInfo = await this.api.getOrganization({
+          organizationSlug: result.organizationSlug,
+          accessToken: result.tokens.accessToken,
+        });
+        if (typeof orgInfo.isCashInCompliant === 'boolean') {
+          isCashInCompliant = orgInfo.isCashInCompliant;
+        }
+        this.logger.log(
+          `callback: getOrganization slug=${result.organizationSlug} isCashInCompliant=${isCashInCompliant}`,
+        );
+      } catch (orgError: unknown) {
+        const msg = orgError instanceof Error ? orgError.message : String(orgError);
+        this.logger.warn(
+          `callback: getOrganization failed for slug=${result.organizationSlug} (${msg}) — persisting isCashInCompliant=null`,
+        );
+      }
+
       await this.details.upsertLink({
         clubId: club.id,
         organizationSlug: result.organizationSlug,
@@ -233,6 +259,7 @@ leur expiration normale (pas de révocation explicite).`,
         refreshToken: result.tokens.refreshToken,
         expiresInSeconds: result.tokens.expiresIn,
         linkedByUserId: result.userId,
+        isCashInCompliant,
       });
 
       this.logger.log(
