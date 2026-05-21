@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowLeft, ChevronRight, Loader2, Lock, Save } from 'lucide-react';
+import { AlertCircle, ArrowLeft, ChevronRight, Heart, Loader2, Lock, Save } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
@@ -178,6 +178,18 @@ export default function ClubDetailPage() {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+      {isLinkedToHelloAsso && (
+        <div className="mb-4 flex items-start gap-3 rounded-md border border-green-300 bg-green-50 p-3 text-sm text-green-900 dark:border-green-800 dark:bg-green-950/30 dark:text-green-200">
+          <Heart className="mt-0.5 h-4 w-4 shrink-0" />
+          <div>
+            HelloAsso aide les associations à collecter des paiements en ligne et propose ses
+            services gratuitement. Elle prend à sa charge tous les frais de transaction pour que
+            vous puissiez bénéficier de la totalité des sommes versées par vos publics, sans frais.
+            Les contributions volontaires laissées par ces derniers sont leur unique source de
+            revenus.
           </div>
         </div>
       )}
