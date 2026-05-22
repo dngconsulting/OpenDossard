@@ -1,0 +1,851 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dossardeur — Kit graphique</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Martel:wght@400;700;900&family=Hind+Siliguri:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Primary brand */
+      --primary:        #4472C4;
+      --primary-light:  #5B8DEF;
+      --primary-dark:   #2d4889;
+
+      /* Accent */
+      --accent:         #10B981;
+      --accent-light:   #34D399;
+      --teal:           #14B8A6;
+
+      /* Navy / hero */
+      --navy-dark:      #0f172a;
+      --navy-mid:       #1e3a5f;
+      --navy-light:     #2d5a87;
+
+      /* Neutrals */
+      --bg:             #f8fafc;
+      --fg:             #0f172a;
+      --border:         #e2e8f0;
+      --muted:          #f1f5f9;
+      --muted-fg:       #64748b;
+
+      /* Semantic */
+      --success:        #10B981;
+      --warning:        #f59e0b;
+      --danger:         #ef4444;
+      --info:           #4472C4;
+
+      /* Logo invariants */
+      --logo-blue:      #365aaf;
+      --logo-bar:       #bfbfbf;
+
+      /* Effets */
+      --radius:         0.75rem;
+      --shadow-glass:   0 8px 32px rgba(68,114,196,.10);
+      --shadow-card:    0 1px 2px rgba(15,23,42,.05), 0 4px 12px rgba(15,23,42,.05);
+
+      --grad-primary:   linear-gradient(135deg, #4472C4 0%, #5B8DEF 100%);
+      --grad-accent:    linear-gradient(135deg, #10B981 0%, #14B8A6 100%);
+      --grad-hero:      linear-gradient(135deg, #4472C4 0%, #2d5a87 40%, #1e3a5f 70%, #0f172a 100%);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--fg);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+    }
+
+    /* ---------- Layout ---------- */
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      background: var(--grad-hero);
+      color: #fff;
+      padding: 80px 0 96px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: "";
+      position: absolute; inset: auto -10% -40% auto;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(16,185,129,.18) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero .wrap { position: relative; z-index: 1; }
+    .hero-logo {
+      display: inline-block;
+      width: 340px;
+      max-width: 80vw;
+    }
+    .hero-logo svg { width: 100%; height: auto; display: block; }
+    .hero h1 {
+      font-family: 'Martel', Georgia, serif;
+      font-weight: 900;
+      font-size: 56px;
+      letter-spacing: -.02em;
+      margin: 40px 0 8px;
+    }
+    .hero p.tagline {
+      font-size: 20px;
+      opacity: .85;
+      max-width: 640px;
+      margin: 0;
+    }
+    .hero .meta {
+      margin-top: 32px;
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      opacity: .7;
+    }
+    .hero .meta span { display: inline-flex; align-items: center; gap: 8px; }
+    .hero .meta span::before {
+      content: ""; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent-light);
+    }
+
+    /* ---------- Sections ---------- */
+    section { padding: 72px 0; border-bottom: 1px solid var(--border); }
+    section:last-of-type { border-bottom: 0; }
+    h2 {
+      font-family: 'Martel', Georgia, serif;
+      font-weight: 700;
+      font-size: 32px;
+      margin: 0 0 8px;
+      letter-spacing: -.01em;
+    }
+    h2 .num {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--primary);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .lead {
+      color: var(--muted-fg);
+      max-width: 640px;
+      margin: 0 0 40px;
+    }
+
+    /* ---------- Logo section ---------- */
+    .logo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .logo-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #fff;
+      box-shadow: var(--shadow-card);
+    }
+    .logo-card .preview {
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 36px;
+    }
+    .logo-card .preview svg { max-width: 100%; max-height: 100%; height: auto; }
+    .logo-card .preview.navy        { background: var(--navy-dark); }
+    .logo-card .preview.navy-mid    { background: var(--navy-mid); }
+    .logo-card .preview.primary-dark{ background: var(--primary-dark); }
+    .logo-card .preview.accent      { background: var(--accent); }
+    .logo-card .preview.black       { background: #000; }
+    .logo-card .preview.hero        { background: var(--grad-hero); }
+    .logo-card .info {
+      border-top: 1px solid var(--border);
+      padding: 14px 18px;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-card .info .name { font-weight: 600; }
+    .logo-card .info .usage {
+      font-size: 11px;
+      color: var(--muted-fg);
+      text-align: right;
+    }
+
+    /* ---------- Anatomie ---------- */
+    .anatomy {
+      background: var(--navy-dark);
+      border-radius: var(--radius);
+      padding: 36px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .anatomy svg { width: 100%; height: auto; }
+    .anatomy ul {
+      list-style: none;
+      padding: 0; margin: 0;
+      color: #fff;
+      font-size: 14px;
+    }
+    .anatomy li {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px dashed rgba(255,255,255,.12);
+    }
+    .anatomy li:last-child { border-bottom: 0; }
+    .anatomy li .dot {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .anatomy li code {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px;
+      color: rgba(255,255,255,.55);
+      margin-left: auto;
+    }
+    @media (max-width: 640px) { .anatomy { grid-template-columns: 1fr; } }
+
+    /* ---------- Couleurs ---------- */
+    .palette {
+      display: grid;
+      gap: 32px;
+    }
+    .palette-group h3 {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted-fg);
+      margin: 0 0 14px;
+    }
+    .swatches {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+    }
+    .swatch {
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+      background: #fff;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: transform .15s ease;
+    }
+    .swatch:hover { transform: translateY(-2px); }
+    .swatch .chip { height: 88px; width: 100%; }
+    .swatch .meta { padding: 12px 14px; }
+    .swatch .name { font-weight: 600; font-size: 14px; }
+    .swatch .hex {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 12px;
+      color: var(--muted-fg);
+      margin-top: 2px;
+    }
+    .swatch .var {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px;
+      color: var(--primary);
+      margin-top: 2px;
+    }
+
+    /* ---------- Typo ---------- */
+    .type-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      background: #fff;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-card);
+    }
+    .type-card header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 12px;
+      border-bottom: 1px dashed var(--border);
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+    }
+    .type-card h3 { margin: 0; font-size: 22px; font-weight: 700; }
+    .type-card .role {
+      font-size: 12px;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-weight: 600;
+    }
+    .type-card .weights {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 12px;
+      color: var(--muted-fg);
+    }
+    .type-sample.inter   { font-family: 'Inter', sans-serif; }
+    .type-sample.martel  { font-family: 'Martel', Georgia, serif; }
+    .type-sample.hind    { font-family: 'Hind Siliguri', sans-serif; }
+    .type-sample .display { font-size: 44px; line-height: 1.1; letter-spacing: -.02em; margin: 0 0 12px; }
+    .type-sample .body    { font-size: 16px; color: var(--muted-fg); margin: 0 0 8px; }
+    .type-sample .scale   {
+      display: flex; gap: 18px; flex-wrap: wrap;
+      margin-top: 18px; padding-top: 18px; border-top: 1px dashed var(--border);
+      align-items: baseline;
+    }
+    .scale .s1 { font-size: 12px; }
+    .scale .s2 { font-size: 14px; }
+    .scale .s3 { font-size: 16px; }
+    .scale .s4 { font-size: 20px; }
+    .scale .s5 { font-size: 28px; }
+    .scale .s6 { font-size: 40px; font-weight: 700; }
+
+    /* ---------- Gradients / effets ---------- */
+    .grad-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .grad-card {
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+      border: 1px solid var(--border);
+      background: #fff;
+    }
+    .grad-card .preview { height: 140px; }
+    .grad-card .info { padding: 14px 18px; }
+    .grad-card .info .name { font-weight: 600; font-size: 14px; }
+    .grad-card .info code {
+      display: block;
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--muted-fg);
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      word-break: break-all;
+    }
+
+    .effects {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .effect {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 24px;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+    .effect .demo {
+      width: 80px; height: 80px;
+      margin: 0 auto 16px;
+      background: var(--grad-primary);
+    }
+    .effect.r-sm .demo  { border-radius: 0.5rem; }
+    .effect.r-md .demo  { border-radius: 0.625rem; }
+    .effect.r-lg .demo  { border-radius: 0.75rem; }
+    .effect.r-xl .demo  { border-radius: 0.875rem; }
+    .effect.sh-glass .demo  { box-shadow: var(--shadow-glass); border-radius: var(--radius); }
+    .effect.sh-card  .demo  { box-shadow: var(--shadow-card);  border-radius: var(--radius); }
+    .effect .label { font-weight: 600; font-size: 13px; }
+    .effect code { display: block; margin-top: 4px; font-size: 11px; color: var(--muted-fg); font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+    /* ---------- Composants démo ---------- */
+    .comp-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 24px; }
+    .btn {
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 10px 18px;
+      border-radius: var(--radius);
+      border: 0;
+      cursor: pointer;
+    }
+    .btn-primary  { background: var(--grad-primary); color: #fff; box-shadow: var(--shadow-glass); }
+    .btn-accent   { background: var(--grad-accent);  color: #fff; }
+    .btn-outline  { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn-ghost    { background: transparent; color: var(--fg); }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-success { background: rgba(16,185,129,.12); color: var(--success); }
+    .badge-warning { background: rgba(245,158,11,.12); color: var(--warning); }
+    .badge-danger  { background: rgba(239,68,68,.12); color: var(--danger);  }
+    .badge-info    { background: rgba(68,114,196,.12); color: var(--info);   }
+
+    /* ---------- Footer ---------- */
+    footer {
+      padding: 40px 0 64px;
+      color: var(--muted-fg);
+      font-size: 13px;
+    }
+    footer code {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 12px;
+      background: var(--muted);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--fg);
+    }
+    footer ul { padding-left: 20px; margin: 12px 0; }
+    footer li { margin-bottom: 6px; }
+
+    @media print {
+      .hero { padding: 40px 0; }
+      section { padding: 40px 0; page-break-inside: avoid; }
+      .swatch, .logo-card, .grad-card { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============== HERO ============== -->
+  <header class="hero">
+    <div class="wrap">
+      <div class="hero-logo">
+        <!-- VRAI logo : D blanc, O = disque plein blanc, point bleu au centre du O, point blanc au centre du D, barre grise au milieu -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 590 320" preserveAspectRatio="xMidYMid meet" aria-label="Logo Dossardeur">
+          <path d="M295.86,291.49 L295.86,276.91 L309.31,276.91 C318.60,276.91 324.97,274.47 328.45,269.66 C331.21,265.30 332.57,256.25 332.57,242.43 L332.57,77.22 C332.57,62.12 331.13,52.99 328.25,49.79 C324.13,45.11 317.80,42.74 309.31,42.74 L295.86,42.74 L295.86,28.13 L403.73,28.13 C442.41,28.13 471.96,32.61 492.34,41.50 C513.13,50.55 529.02,64.89 540.03,84.51 C554.09,106.57 561.14,131.24 561.14,158.51 C561.14,177.73 557.97,195.54 551.69,211.96 C545.36,228.34 536.03,242.39 523.66,254.17 C511.24,265.90 495.87,275.07 477.53,281.64 C459.15,288.20 437.93,291.49 413.90,291.49 z M376.58,266.10 C389.80,269.06 401.81,270.54 412.70,270.54 C426.63,270.54 439.53,267.98 451.34,262.90 C463.19,257.81 473.44,250.52 482.13,241.03 C490.82,231.54 497.67,219.97 502.67,206.28 C507.68,192.62 510.20,177.33 510.20,160.39 C510.20,143.37 507.72,128.03 502.79,114.38 C497.87,100.72 491.02,89.19 482.29,79.70 C473.52,70.25 463.07,62.97 450.90,57.88 C438.77,52.79 425.51,50.23 411.18,50.23 C405.89,50.23 400.13,50.71 393.84,51.63 C387.55,52.55 381.79,53.64 376.58,54.92 z" fill="#fff"/>
+          <circle cx="146" cy="160" r="131" fill="#fff"/>
+          <line x1="146" y1="158" x2="443" y2="158" stroke="#bfbfbf" stroke-width="13"/>
+          <circle cx="443" cy="159" r="30" fill="#fff"/>
+          <circle cx="145" cy="160" r="30" fill="#365aaf"/>
+        </svg>
+      </div>
+
+      <h1>Dossardeur</h1>
+      <p class="tagline">Kit graphique &mdash; identité visuelle, palette de couleurs, typographie et composants de l'application.</p>
+
+      <div class="meta">
+        <span>Version 3.0.55</span>
+        <span>Extrait du code (webapp-v2 + website)</span>
+        <span>Mis à jour 2026-05-22</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============== LOGO ============== -->
+  <section>
+    <div class="wrap">
+      <h2><span class="num">01 — Logo</span>Pictogramme &amp; déclinaisons</h2>
+      <p class="lead">Le pictogramme évoque un vélo : roue arrière en disque plein (O), roue avant ajourée (D), essieu gris, moyeux bleu (arrière) et blanc (avant). Le pictogramme est conçu pour les fonds sombres — les éléments invariants (point bleu, point blanc, barre grise) restent identiques quelle que soit la déclinaison.</p>
+
+      <!-- Anatomie -->
+      <div class="anatomy">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 590 320">
+          <path d="M295.86,291.49 L295.86,276.91 L309.31,276.91 C318.60,276.91 324.97,274.47 328.45,269.66 C331.21,265.30 332.57,256.25 332.57,242.43 L332.57,77.22 C332.57,62.12 331.13,52.99 328.25,49.79 C324.13,45.11 317.80,42.74 309.31,42.74 L295.86,42.74 L295.86,28.13 L403.73,28.13 C442.41,28.13 471.96,32.61 492.34,41.50 C513.13,50.55 529.02,64.89 540.03,84.51 C554.09,106.57 561.14,131.24 561.14,158.51 C561.14,177.73 557.97,195.54 551.69,211.96 C545.36,228.34 536.03,242.39 523.66,254.17 C511.24,265.90 495.87,275.07 477.53,281.64 C459.15,288.20 437.93,291.49 413.90,291.49 z M376.58,266.10 C389.80,269.06 401.81,270.54 412.70,270.54 C426.63,270.54 439.53,267.98 451.34,262.90 C463.19,257.81 473.44,250.52 482.13,241.03 C490.82,231.54 497.67,219.97 502.67,206.28 C507.68,192.62 510.20,177.33 510.20,160.39 C510.20,143.37 507.72,128.03 502.79,114.38 C497.87,100.72 491.02,89.19 482.29,79.70 C473.52,70.25 463.07,62.97 450.90,57.88 C438.77,52.79 425.51,50.23 411.18,50.23 C405.89,50.23 400.13,50.71 393.84,51.63 C387.55,52.55 381.79,53.64 376.58,54.92 z" fill="#fff"/>
+          <circle cx="146" cy="160" r="131" fill="#fff"/>
+          <line x1="146" y1="158" x2="443" y2="158" stroke="#bfbfbf" stroke-width="13"/>
+          <circle cx="443" cy="159" r="30" fill="#fff"/>
+          <circle cx="145" cy="160" r="30" fill="#365aaf"/>
+        </svg>
+        <ul>
+          <li><span class="dot" style="background:#fff"></span> Roue arrière (O) — disque plein <code>#FFFFFF</code></li>
+          <li><span class="dot" style="background:#365aaf"></span> Moyeu arrière — toujours bleu <code>#365AAF</code></li>
+          <li><span class="dot" style="background:#bfbfbf"></span> Essieu — toujours gris <code>#BFBFBF</code></li>
+          <li><span class="dot" style="background:#fff"></span> Roue avant (D) — forme ajourée <code>#FFFFFF</code></li>
+          <li><span class="dot" style="background:#fff;border:1px solid rgba(255,255,255,.3)"></span> Moyeu avant — toujours blanc <code>#FFFFFF</code></li>
+        </ul>
+      </div>
+
+      <div class="logo-grid">
+
+        <!-- 1. Navy dark (canonical) -->
+        <div class="logo-card">
+          <div class="preview navy">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 590 320">
+              <path d="M295.86,291.49 L295.86,276.91 L309.31,276.91 C318.60,276.91 324.97,274.47 328.45,269.66 C331.21,265.30 332.57,256.25 332.57,242.43 L332.57,77.22 C332.57,62.12 331.13,52.99 328.25,49.79 C324.13,45.11 317.80,42.74 309.31,42.74 L295.86,42.74 L295.86,28.13 L403.73,28.13 C442.41,28.13 471.96,32.61 492.34,41.50 C513.13,50.55 529.02,64.89 540.03,84.51 C554.09,106.57 561.14,131.24 561.14,158.51 C561.14,177.73 557.97,195.54 551.69,211.96 C545.36,228.34 536.03,242.39 523.66,254.17 C511.24,265.90 495.87,275.07 477.53,281.64 C459.15,288.20 437.93,291.49 413.90,291.49 z M376.58,266.10 C389.80,269.06 401.81,270.54 412.70,270.54 C426.63,270.54 439.53,267.98 451.34,262.90 C463.19,257.81 473.44,250.52 482.13,241.03 C490.82,231.54 497.67,219.97 502.67,206.28 C507.68,192.62 510.20,177.33 510.20,160.39 C510.20,143.37 507.72,128.03 502.79,114.38 C497.87,100.72 491.02,89.19 482.29,79.70 C473.52,70.25 463.07,62.97 450.90,57.88 C438.77,52.79 425.51,50.23 411.18,50.23 C405.89,50.23 400.13,50.71 393.84,51.63 C387.55,52.55 381.79,53.64 376.58,54.92 z" fill="#fff"/>
+              <circle cx="146" cy="160" r="131" fill="#fff"/>
+              <line x1="146" y1="158" x2="443" y2="158" stroke="#bfbfbf" stroke-width="13"/>
+              <circle cx="443" cy="159" r="30" fill="#fff"/>
+              <circle cx="145" cy="160" r="30" fill="#365aaf"/>
+            </svg>
+          </div>
+          <div class="info">
+            <span class="name">Navy dark</span>
+            <span class="usage">Hero, sidebar<br>#0f172a</span>
+          </div>
+        </div>
+
+        <!-- 2. Navy mid -->
+        <div class="logo-card">
+          <div class="preview navy-mid">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 590 320">
+              <path d="M295.86,291.49 L295.86,276.91 L309.31,276.91 C318.60,276.91 324.97,274.47 328.45,269.66 C331.21,265.30 332.57,256.25 332.57,242.43 L332.57,77.22 C332.57,62.12 331.13,52.99 328.25,49.79 C324.13,45.11 317.80,42.74 309.31,42.74 L295.86,42.74 L295.86,28.13 L403.73,28.13 C442.41,28.13 471.96,32.61 492.34,41.50 C513.13,50.55 529.02,64.89 540.03,84.51 C554.09,106.57 561.14,131.24 561.14,158.51 C561.14,177.73 557.97,195.54 551.69,211.96 C545.36,228.34 536.03,242.39 523.66,254.17 C511.24,265.90 495.87,275.07 477.53,281.64 C459.15,288.20 437.93,291.49 413.90,291.49 z M376.58,266.10 C389.80,269.06 401.81,270.54 412.70,270.54 C426.63,270.54 439.53,267.98 451.34,262.90 C463.19,257.81 473.44,250.52 482.13,241.03 C490.82,231.54 497.67,219.97 502.67,206.28 C507.68,192.62 510.20,177.33 510.20,160.39 C510.20,143.37 507.72,128.03 502.79,114.38 C497.87,100.72 491.02,89.19 482.29,79.70 C473.52,70.25 463.07,62.97 450.90,57.88 C438.77,52.79 425.51,50.23 411.18,50.23 C405.89,50.23 400.13,50.71 393.84,51.63 C387.55,52.55 381.79,53.64 376.58,54.92 z" fill="#fff"/>
+              <circle cx="146" cy="160" r="131" fill="#fff"/>
+              <line x1="146" y1="158" x2="443" y2="158" stroke="#bfbfbf" stroke-width="13"/>
+              <circle cx="443" cy="159" r="30" fill="#fff"/>
+              <circle cx="145" cy="160" r="30" fill="#365aaf"/>
+            </svg>
+          </div>
+          <div class="info">
+            <span class="name">Navy mid</span>
+            <span class="usage">Bandeau secondaire<br>#1e3a5f</span>
+          </div>
+        </div>
+
+        <!-- 3. Primary dark -->
+        <div class="logo-card">
+          <div class="preview primary-dark">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 590 320">
+              <path d="M295.86,291.49 L295.86,276.91 L309.31,276.91 C318.60,276.91 324.97,274.47 328.45,269.66 C331.21,265.30 332.57,256.25 332.57,242.43 L332.57,77.22 C332.57,62.12 331.13,52.99 328.25,49.79 C324.13,45.11 317.80,42.74 309.31,42.74 L295.86,42.74 L295.86,28.13 L403.73,28.13 C442.41,28.13 471.96,32.61 492.34,41.50 C513.13,50.55 529.02,64.89 540.03,84.51 C554.09,106.57 561.14,131.24 561.14,158.51 C561.14,177.73 557.97,195.54 551.69,211.96 C545.36,228.34 536.03,242.39 523.66,254.17 C511.24,265.90 495.87,275.07 477.53,281.64 C459.15,288.20 437.93,291.49 413.90,291.49 z M376.58,266.10 C389.80,269.06 401.81,270.54 412.70,270.54 C426.63,270.54 439.53,267.98 451.34,262.90 C463.19,257.81 473.44,250.52 482.13,241.03 C490.82,231.54 497.67,219.97 502.67,206.28 C507.68,192.62 510.20,177.33 510.20,160.39 C510.20,143.37 507.72,128.03 502.79,114.38 C497.87,100.72 491.02,89.19 482.29,79.70 C473.52,70.25 463.07,62.97 450.90,57.88 C438.77,52.79 425.51,50.23 411.18,50.23 C405.89,50.23 400.13,50.71 393.84,51.63 C387.55,52.55 381.79,53.64 376.58,54.92 z" fill="#fff"/>
+              <circle cx="146" cy="160" r="131" fill="#fff"/>
+              <line x1="146" y1="158" x2="443" y2="158" stroke="#bfbfbf" stroke-width="13"/>
+              <circle cx="443" cy="159" r="30" fill="#fff"/>
+              <circle cx="145" cy="160" r="30" fill="#365aaf"/>
+            </svg>
+          </div>
+          <div class="info">
+            <span class="name">Primary dark</span>
+            <span class="usage">Variante saturée<br>#2d4889</span>
+          </div>
+        </div>
+
+        <!-- 5. Black (contraste max) -->
+        <div class="logo-card">
+          <div class="preview black">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 590 320">
+              <path d="M295.86,291.49 L295.86,276.91 L309.31,276.91 C318.60,276.91 324.97,274.47 328.45,269.66 C331.21,265.30 332.57,256.25 332.57,242.43 L332.57,77.22 C332.57,62.12 331.13,52.99 328.25,49.79 C324.13,45.11 317.80,42.74 309.31,42.74 L295.86,42.74 L295.86,28.13 L403.73,28.13 C442.41,28.13 471.96,32.61 492.34,41.50 C513.13,50.55 529.02,64.89 540.03,84.51 C554.09,106.57 561.14,131.24 561.14,158.51 C561.14,177.73 557.97,195.54 551.69,211.96 C545.36,228.34 536.03,242.39 523.66,254.17 C511.24,265.90 495.87,275.07 477.53,281.64 C459.15,288.20 437.93,291.49 413.90,291.49 z M376.58,266.10 C389.80,269.06 401.81,270.54 412.70,270.54 C426.63,270.54 439.53,267.98 451.34,262.90 C463.19,257.81 473.44,250.52 482.13,241.03 C490.82,231.54 497.67,219.97 502.67,206.28 C507.68,192.62 510.20,177.33 510.20,160.39 C510.20,143.37 507.72,128.03 502.79,114.38 C497.87,100.72 491.02,89.19 482.29,79.70 C473.52,70.25 463.07,62.97 450.90,57.88 C438.77,52.79 425.51,50.23 411.18,50.23 C405.89,50.23 400.13,50.71 393.84,51.63 C387.55,52.55 381.79,53.64 376.58,54.92 z" fill="#fff"/>
+              <circle cx="146" cy="160" r="131" fill="#fff"/>
+              <line x1="146" y1="158" x2="443" y2="158" stroke="#bfbfbf" stroke-width="13"/>
+              <circle cx="443" cy="159" r="30" fill="#fff"/>
+              <circle cx="145" cy="160" r="30" fill="#365aaf"/>
+            </svg>
+          </div>
+          <div class="info">
+            <span class="name">Noir</span>
+            <span class="usage">Impression,<br>contraste max</span>
+          </div>
+        </div>
+
+        <!-- 6. Hero gradient -->
+        <div class="logo-card">
+          <div class="preview hero">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 590 320">
+              <path d="M295.86,291.49 L295.86,276.91 L309.31,276.91 C318.60,276.91 324.97,274.47 328.45,269.66 C331.21,265.30 332.57,256.25 332.57,242.43 L332.57,77.22 C332.57,62.12 331.13,52.99 328.25,49.79 C324.13,45.11 317.80,42.74 309.31,42.74 L295.86,42.74 L295.86,28.13 L403.73,28.13 C442.41,28.13 471.96,32.61 492.34,41.50 C513.13,50.55 529.02,64.89 540.03,84.51 C554.09,106.57 561.14,131.24 561.14,158.51 C561.14,177.73 557.97,195.54 551.69,211.96 C545.36,228.34 536.03,242.39 523.66,254.17 C511.24,265.90 495.87,275.07 477.53,281.64 C459.15,288.20 437.93,291.49 413.90,291.49 z M376.58,266.10 C389.80,269.06 401.81,270.54 412.70,270.54 C426.63,270.54 439.53,267.98 451.34,262.90 C463.19,257.81 473.44,250.52 482.13,241.03 C490.82,231.54 497.67,219.97 502.67,206.28 C507.68,192.62 510.20,177.33 510.20,160.39 C510.20,143.37 507.72,128.03 502.79,114.38 C497.87,100.72 491.02,89.19 482.29,79.70 C473.52,70.25 463.07,62.97 450.90,57.88 C438.77,52.79 425.51,50.23 411.18,50.23 C405.89,50.23 400.13,50.71 393.84,51.63 C387.55,52.55 381.79,53.64 376.58,54.92 z" fill="#fff"/>
+              <circle cx="146" cy="160" r="131" fill="#fff"/>
+              <line x1="146" y1="158" x2="443" y2="158" stroke="#bfbfbf" stroke-width="13"/>
+              <circle cx="443" cy="159" r="30" fill="#fff"/>
+              <circle cx="145" cy="160" r="30" fill="#365aaf"/>
+            </svg>
+          </div>
+          <div class="info">
+            <span class="name">Gradient hero</span>
+            <span class="usage">Splash, bannière<br>marketing</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== COULEURS ============== -->
+  <section>
+    <div class="wrap">
+      <h2><span class="num">02 — Couleurs</span>Palette de couleurs</h2>
+      <p class="lead">Couleurs définies en CSS custom properties dans <code style="font-family:'JetBrains Mono',monospace;font-size:13px">services/webapp-v2/src/index.css</code>. Le bleu primaire et le vert accent forment la signature de la marque.</p>
+
+      <div class="palette">
+
+        <div class="palette-group">
+          <h3>Primary — bleu de marque</h3>
+          <div class="swatches">
+            <div class="swatch">
+              <div class="chip" style="background:#4472C4"></div>
+              <div class="meta"><div class="name">Primary</div><div class="hex">#4472C4</div><div class="var">--primary</div></div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background:#5B8DEF"></div>
+              <div class="meta"><div class="name">Primary light</div><div class="hex">#5B8DEF</div><div class="var">--primary-light</div></div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background:#2d4889"></div>
+              <div class="meta"><div class="name">Primary dark</div><div class="hex">#2d4889</div><div class="var">--primary-dark</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="palette-group">
+          <h3>Accent — vert / teal</h3>
+          <div class="swatches">
+            <div class="swatch">
+              <div class="chip" style="background:#10B981"></div>
+              <div class="meta"><div class="name">Accent</div><div class="hex">#10B981</div><div class="var">--accent</div></div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background:#34D399"></div>
+              <div class="meta"><div class="name">Accent light</div><div class="hex">#34D399</div><div class="var">--accent-light</div></div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background:#14B8A6"></div>
+              <div class="meta"><div class="name">Teal</div><div class="hex">#14B8A6</div><div class="var">--teal</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="palette-group">
+          <h3>Navy — hero / sidebar</h3>
+          <div class="swatches">
+            <div class="swatch">
+              <div class="chip" style="background:#0f172a"></div>
+              <div class="meta"><div class="name">Navy dark</div><div class="hex">#0f172a</div><div class="var">--navy-dark</div></div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background:#1e3a5f"></div>
+              <div class="meta"><div class="name">Navy mid</div><div class="hex">#1e3a5f</div><div class="var">--navy-mid</div></div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background:#2d5a87"></div>
+              <div class="meta"><div class="name">Navy light</div><div class="hex">#2d5a87</div><div class="var">--navy-light</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="palette-group">
+          <h3>Neutres — UI</h3>
+          <div class="swatches">
+            <div class="swatch">
+              <div class="chip" style="background:#f8fafc;border-bottom:1px solid #e2e8f0"></div>
+              <div class="meta"><div class="name">Background</div><div class="hex">#f8fafc</div><div class="var">--bg</div></div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background:#f1f5f9"></div>
+              <div class="meta"><div class="name">Muted</div><div class="hex">#f1f5f9</div><div class="var">--muted</div></div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background:#e2e8f0"></div>
+              <div class="meta"><div class="name">Border</div><div class="hex">#e2e8f0</div><div class="var">--border</div></div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background:#64748b"></div>
+              <div class="meta"><div class="name">Muted fg</div><div class="hex">#64748b</div><div class="var">--muted-fg</div></div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background:#0f172a"></div>
+              <div class="meta"><div class="name">Foreground</div><div class="hex">#0f172a</div><div class="var">--fg</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="palette-group">
+          <h3>Sémantique — états</h3>
+          <div class="swatches">
+            <div class="swatch">
+              <div class="chip" style="background:#10B981"></div>
+              <div class="meta"><div class="name">Success</div><div class="hex">#10B981</div><div class="var">--success</div></div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background:#f59e0b"></div>
+              <div class="meta"><div class="name">Warning</div><div class="hex">#f59e0b</div><div class="var">--warning</div></div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background:#ef4444"></div>
+              <div class="meta"><div class="name">Danger</div><div class="hex">#ef4444</div><div class="var">--danger</div></div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background:#4472C4"></div>
+              <div class="meta"><div class="name">Info</div><div class="hex">#4472C4</div><div class="var">--info</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="palette-group">
+          <h3>Logo — invariants</h3>
+          <div class="swatches">
+            <div class="swatch">
+              <div class="chip" style="background:#365aaf"></div>
+              <div class="meta"><div class="name">Moyeu arrière</div><div class="hex">#365AAF</div><div class="var">point bleu (O)</div></div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background:#bfbfbf"></div>
+              <div class="meta"><div class="name">Essieu</div><div class="hex">#BFBFBF</div><div class="var">barre grise</div></div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background:#ffffff;border-bottom:1px solid #e2e8f0"></div>
+              <div class="meta"><div class="name">Moyeu avant</div><div class="hex">#FFFFFF</div><div class="var">point blanc (D)</div></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== TYPOGRAPHIE ============== -->
+  <section>
+    <div class="wrap">
+      <h2><span class="num">03 — Typographie</span>Polices et hiérarchie</h2>
+      <p class="lead">Trois familles sont chargées : <strong>Inter</strong> pour l'UI, <strong>Martel</strong> pour les titres de section et le branding, <strong>Hind Siliguri</strong> sur le site marketing.</p>
+
+      <div class="type-card">
+        <header>
+          <div>
+            <div class="role">UI · corps de texte</div>
+            <h3 class="type-sample inter">Inter</h3>
+          </div>
+          <div class="weights">300 · 400 · 500 · 600 · 700 · 800</div>
+        </header>
+        <div class="type-sample inter">
+          <p class="display">Les coureurs s'élancent au signal du départ.</p>
+          <p class="body">Police utilisée pour toute l'interface de Dossardeur : tableaux d'engagement, classements, formulaires, navigation. Excellente lisibilité aux petites tailles, grande variété de graisses.</p>
+          <div class="scale">
+            <span class="s1">12 caption</span>
+            <span class="s2">14 small</span>
+            <span class="s3">16 body</span>
+            <span class="s4">20 lead</span>
+            <span class="s5">28 h3</span>
+            <span class="s6">40 h1</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="type-card">
+        <header>
+          <div>
+            <div class="role">Branding · titres</div>
+            <h3 class="type-sample martel">Martel</h3>
+          </div>
+          <div class="weights">400 · 700 · 900 (Heavy)</div>
+        </header>
+        <div class="type-sample martel">
+          <p class="display">Dossardeur, le portail des engagements FSGT.</p>
+          <p class="body" style="font-family:'Inter',sans-serif">Slab serif robuste. À réserver aux grands titres de section, au branding et aux supports imprimés. Ne pas utiliser pour le corps de texte.</p>
+          <div class="scale">
+            <span class="s3">16 reg</span>
+            <span class="s4">20 reg</span>
+            <span class="s5">28 bold</span>
+            <span class="s6">40 heavy</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="type-card">
+        <header>
+          <div>
+            <div class="role">Site marketing</div>
+            <h3 class="type-sample hind">Hind Siliguri</h3>
+          </div>
+          <div class="weights">300 · 600</div>
+        </header>
+        <div class="type-sample hind">
+          <p class="display">Gérez vos compétitions cyclistes en ligne.</p>
+          <p class="body" style="font-family:'Inter',sans-serif">Utilisée uniquement sur le site vitrine (<code style="font-family:'JetBrains Mono',monospace">website/css/main.css</code>). Sans-serif chaleureuse, complément du couple Inter / Martel sur les pages publiques.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== EFFETS ============== -->
+  <section>
+    <div class="wrap">
+      <h2><span class="num">04 — Dégradés &amp; effets</span>Surfaces et profondeur</h2>
+      <p class="lead">Trois dégradés signature et une échelle de border-radius / ombres pour les surfaces vitrées (cartes, modales, hero).</p>
+
+      <div class="grad-grid">
+        <div class="grad-card">
+          <div class="preview" style="background:linear-gradient(135deg,#4472C4 0%,#5B8DEF 100%)"></div>
+          <div class="info">
+            <div class="name">Gradient primary</div>
+            <code>linear-gradient(135deg, #4472C4 0%, #5B8DEF 100%)</code>
+          </div>
+        </div>
+        <div class="grad-card">
+          <div class="preview" style="background:linear-gradient(135deg,#10B981 0%,#14B8A6 100%)"></div>
+          <div class="info">
+            <div class="name">Gradient accent</div>
+            <code>linear-gradient(135deg, #10B981 0%, #14B8A6 100%)</code>
+          </div>
+        </div>
+        <div class="grad-card">
+          <div class="preview" style="background:linear-gradient(135deg,#4472C4 0%,#2d5a87 40%,#1e3a5f 70%,#0f172a 100%)"></div>
+          <div class="info">
+            <div class="name">Gradient hero</div>
+            <code>linear-gradient(135deg, #4472C4, #2d5a87 40%, #1e3a5f 70%, #0f172a)</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="effects">
+        <div class="effect r-sm"><div class="demo"></div><div class="label">radius sm</div><code>0.5rem</code></div>
+        <div class="effect r-md"><div class="demo"></div><div class="label">radius md</div><code>0.625rem</code></div>
+        <div class="effect r-lg"><div class="demo"></div><div class="label">radius lg (base)</div><code>0.75rem</code></div>
+        <div class="effect r-xl"><div class="demo"></div><div class="label">radius xl</div><code>0.875rem</code></div>
+        <div class="effect sh-glass"><div class="demo"></div><div class="label">shadow glass</div><code>0 8px 32px rgba(68,114,196,.10)</code></div>
+        <div class="effect sh-card"><div class="demo"></div><div class="label">shadow card</div><code>0 1px 2px / 0 4px 12px</code></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== COMPOSANTS ============== -->
+  <section>
+    <div class="wrap">
+      <h2><span class="num">05 — Composants</span>Boutons et badges</h2>
+      <p class="lead">Aperçu rapide des composants UI clés en utilisant les tokens ci-dessus.</p>
+
+      <div class="comp-row">
+        <button class="btn btn-primary">Action principale</button>
+        <button class="btn btn-accent">Action secondaire</button>
+        <button class="btn btn-outline">Outline</button>
+        <button class="btn btn-ghost">Ghost</button>
+      </div>
+
+      <div class="comp-row">
+        <span class="badge badge-success">Engagé</span>
+        <span class="badge badge-info">En cours</span>
+        <span class="badge badge-warning">À régulariser</span>
+        <span class="badge badge-danger">Annulé</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== FOOTER ============== -->
+  <footer>
+    <div class="wrap">
+      <strong>Sources extraites du repo :</strong>
+      <ul>
+        <li>Couleurs &amp; effets : <code>services/webapp-v2/src/index.css</code> (lignes 36-115)</li>
+        <li>PWA theme : <code>services/webapp-v2/vite.config.ts</code> (lignes 28-29)</li>
+        <li>Pictogramme : redessiné à partir du tracé de <code>website/assets/images/logoblanc.svg</code> — sans texte intégré</li>
+        <li>Polices : Inter + Martel + Hind Siliguri (chargées via Google Fonts)</li>
+      </ul>
+      <p>Invariants : moyeu arrière toujours bleu <code>#365AAF</code>, essieu toujours gris <code>#BFBFBF</code>, moyeu avant toujours blanc <code>#FFFFFF</code>. Seule la couleur de fond varie d'une déclinaison à l'autre.</p>
+    </div>
+  </footer>
+
+  <script>
+    /* Click sur un swatch → copie le hex dans le presse-papier */
+    document.querySelectorAll('.swatch').forEach(el => {
+      el.addEventListener('click', () => {
+        const hex = el.querySelector('.hex')?.textContent?.trim();
+        if (!hex) return;
+        navigator.clipboard?.writeText(hex);
+        const meta = el.querySelector('.meta .name');
+        const original = meta.textContent;
+        meta.textContent = '✓ copié ' + hex;
+        setTimeout(() => meta.textContent = original, 900);
+      });
+    });
+  </script>
+</body>
+</html>
