@@ -191,6 +191,7 @@ export class RaceImportService {
       race.catev = row.catev?.trim() || null;
       race.catea = licence.catea ?? null;
       race.club = licence.club ?? null;
+      this.stampAudit(race, author ? `${author}/RaceImportCSV` : undefined);
       toInsert.push(race);
 
       insertedKeys.add(`L_${licence.id}`);
@@ -232,6 +233,21 @@ export class RaceImportService {
     if (licenceId == null) return undefined;
     const l = await this.licenceRepository.findOne({ where: { id: licenceId } });
     return l?.licenceNumber;
+  }
+
+  /**
+   * Écrase systématiquement `author` et `lastChanged` avant `.save()`. Ne fait
+   * AUCUNE confiance aux valeurs entrantes : le body n'est jamais autoritatif
+   * sur ces deux champs — la source de vérité est le JWT (ou `null` pour les
+   * contextes sans utilisateur identifié).
+   */
+  private stampAudit<T extends { author?: string | null; lastChanged?: Date | null }>(
+    entity: T,
+    author: string | undefined,
+  ): T {
+    entity.author = author ?? null;
+    entity.lastChanged = new Date();
+    return entity;
   }
 }
 

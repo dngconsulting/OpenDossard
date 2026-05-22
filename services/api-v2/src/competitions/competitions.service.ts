@@ -154,10 +154,14 @@ export class CompetitionsService {
     // Execute and map results
     const rawResults = await queryBuilder.getRawAndEntities();
 
+    const rawRows = rawResults.raw as Array<{
+      engagementsCount?: string;
+      classementsCount?: string;
+    }>;
     const data = rawResults.entities.map((entity, index) => ({
       ...entity,
-      engagementsCount: parseInt(rawResults.raw[index]?.engagementsCount || '0', 10),
-      classementsCount: parseInt(rawResults.raw[index]?.classementsCount || '0', 10),
+      engagementsCount: parseInt(rawRows[index]?.engagementsCount || '0', 10),
+      classementsCount: parseInt(rawRows[index]?.classementsCount || '0', 10),
     }));
 
     return new PaginatedResponseDto(data, total, offset, limit);
@@ -178,7 +182,8 @@ export class CompetitionsService {
     competitionData: Partial<CompetitionEntity>,
     user: AuthenticatedUser,
   ): Promise<CompetitionEntity> {
-    const { id, ...data } = competitionData;
+    const { id: _id, ...data } = competitionData;
+    void _id;
 
     // Scope check : un ORGANISATEUR ne peut créer une compet QUE pour un club
     // dont il est lié. ADMIN bypass. Une compet sans clubId = ADMIN only.
@@ -191,6 +196,7 @@ export class CompetitionsService {
       data.photoUrls = null;
     }
     const competition = this.competitionRepository.create(data);
+    this.stampAudit(competition, user.email);
     const saved = await this.competitionRepository.save(competition);
     this.logger.log(
       `Création de la compétition #${saved.id} par ${user.email} | ` +
@@ -248,6 +254,7 @@ export class CompetitionsService {
       competitionData.photoUrls = null;
     }
     Object.assign(competition, competitionData);
+    this.stampAudit(competition, user.email);
     const saved = await this.competitionRepository.save(competition);
     const fields = Object.keys(competitionData)
       .filter(
@@ -256,7 +263,7 @@ export class CompetitionsService {
           k !== 'club' &&
           competitionData[k as keyof typeof competitionData] !== undefined,
       )
-      .map(k => `${k}: ${competitionData[k as keyof typeof competitionData]}`)
+      .map(k => `${k}: ${JSON.stringify(competitionData[k as keyof typeof competitionData])}`)
       .join(' | ');
     this.logger.log(
       `Mise à jour de la compétition #${id} par ${user.email} | ${saved.name ?? '-'} | ${fields}`,
@@ -274,11 +281,13 @@ export class CompetitionsService {
     const original = await this.findOne(id);
     await this.authorizationService.assertCompetitionAccess(user, original);
     const { id: _, ...competitionData } = original;
+    void _;
     const duplicate = this.competitionRepository.create({
       ...competitionData,
       name: `${original.name} (copie)`,
       resultsValidated: false,
     });
+    this.stampAudit(duplicate, user.email);
     return this.competitionRepository.save(duplicate);
   }
 
@@ -286,6 +295,7 @@ export class CompetitionsService {
     const competition = await this.findOne(id);
     await this.authorizationService.assertCompetitionAccess(user, competition);
     competition.resultsValidated = true;
+    this.stampAudit(competition, user.email);
     return this.competitionRepository.save(competition);
   }
 
@@ -318,11 +328,28 @@ export class CompetitionsService {
     }
 
     if (toSave.length > 0) {
+      toSave.forEach(r => this.stampAudit(r, user.email));
       await this.raceRepository.save(toSave);
     }
 
     // Update competition races (stored as comma-separated string)
     competition.races = cleanRaces.join(',');
+    this.stampAudit(competition, user.email);
     await this.competitionRepository.save(competition);
+  }
+
+  /**
+   * Écrase systématiquement `author` et `lastChanged` avant `.save()`. Ne fait
+   * AUCUNE confiance aux valeurs entrantes : le body n'est jamais autoritatif
+   * sur ces deux champs — la source de vérité est le JWT (ou `null` pour les
+   * contextes sans utilisateur identifié).
+   */
+  private stampAudit<T extends { author?: string | null; lastChanged?: Date | null }>(
+    entity: T,
+    author: string | undefined,
+  ): T {
+    entity.author = author ?? null;
+    entity.lastChanged = new Date();
+    return entity;
   }
 }

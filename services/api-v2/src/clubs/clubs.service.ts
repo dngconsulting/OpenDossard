@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository, SelectQueryBuilder } from 'typeorm';
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { ClubEntity } from './entities/club.entity';
 import { LicenceEntity } from '../licences/entities/licence.entity';
 import { RaceEntity } from '../races/entities/race.entity';
@@ -184,7 +185,8 @@ export class ClubsService {
     clubData: Partial<ClubEntity>,
     currentUser?: AuthenticatedUser,
   ): Promise<ClubEntity> {
-    const { id, ...data } = clubData;
+    const { id: _id, ...data } = clubData;
+    void _id;
 
     if (data.longName) {
       const qb = this.clubRepository
@@ -206,6 +208,7 @@ export class ClubsService {
 
     const saved = await this.dataSource.transaction(async manager => {
       const club = manager.create(ClubEntity, data);
+      this.stampAudit(club, currentUser?.email);
       const persisted = await manager.save(ClubEntity, club);
       if (shouldAutoLink) {
         await manager.save(UserClubEntity, {
@@ -237,7 +240,7 @@ export class ClubsService {
     let racesUpdated: number | undefined;
     let licencesUpdated: number | undefined;
     if (dto.propagate && dto.longName && dto.longName.trim() !== club.longName.trim()) {
-      const result = await this.propagateName(club.longName, dto.longName);
+      const result = await this.propagateName(club.longName, dto.longName, author);
       racesUpdated = result.racesUpdated;
       licencesUpdated = result.licencesUpdated;
     }
@@ -250,10 +253,11 @@ export class ClubsService {
       club.helloAssoSlug = dto.helloAssoSlug?.trim() ? dto.helloAssoSlug.trim() : null;
     }
 
+    this.stampAudit(club, author);
     const saved = await this.clubRepository.save(club);
     const fields = Object.keys(dto)
       .filter(k => k !== 'propagate' && (dto as Record<string, unknown>)[k] !== undefined)
-      .map(k => `${k}: ${(dto as Record<string, unknown>)[k]}`)
+      .map(k => `${k}: ${String((dto as Record<string, unknown>)[k])}`)
       .join(' | ');
     this.logger.log(
       `Mise à jour du club #${id} par ${author ?? 'inconnu'} | ${saved.longName} | ${fields}`,
@@ -308,14 +312,22 @@ export class ClubsService {
   private async propagateName(
     oldName: string,
     newName: string,
+    author?: string,
   ): Promise<{ racesUpdated: number; licencesUpdated: number }> {
     const trimmedOld = oldName.trim();
     const trimmedNew = newName.trim();
 
+    const raceSetValues: QueryDeepPartialEntity<RaceEntity> = {
+      club: trimmedNew,
+      lastChanged: () => 'CURRENT_TIMESTAMP',
+    };
+    if (author !== undefined) {
+      raceSetValues.author = author;
+    }
     const raceResult = await this.raceRepository
       .createQueryBuilder()
       .update(RaceEntity)
-      .set({ club: trimmedNew })
+      .set(raceSetValues)
       .where('TRIM(club) = :oldName', { oldName: trimmedOld })
       .execute();
 
@@ -330,5 +342,20 @@ export class ClubsService {
       racesUpdated: raceResult.affected ?? 0,
       licencesUpdated: licenceResult.affected ?? 0,
     };
+  }
+
+  /**
+   * Écrase systématiquement `author` et `lastChanged` avant `.save()`. Ne fait
+   * AUCUNE confiance aux valeurs entrantes : le body n'est jamais autoritatif
+   * sur ces deux champs — la source de vérité est le JWT (ou `null` pour les
+   * contextes sans utilisateur identifié).
+   */
+  private stampAudit<T extends { author?: string | null; lastChanged?: Date | null }>(
+    entity: T,
+    author: string | undefined,
+  ): T {
+    entity.author = author ?? null;
+    entity.lastChanged = new Date();
+    return entity;
   }
 }

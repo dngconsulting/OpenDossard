@@ -160,8 +160,11 @@ export class RacesController {
   @Roles(Role.ADMIN, Role.ORGANISATEUR)
   @ApiOperation({ summary: 'Create multiple race entries at once' })
   @ApiResponse({ status: 201, description: 'Races created' })
-  async createMany(@Body() racesData: Partial<RaceEntity>[]): Promise<RaceEntity[]> {
-    return this.racesService.createMany(racesData);
+  async createMany(
+    @Body() racesData: Partial<RaceEntity>[],
+    @CurrentUser('email') author: string,
+  ): Promise<RaceEntity[]> {
+    return this.racesService.createMany(racesData, author);
   }
 
   @Post('refresh/:licenceId/:competitionId')
@@ -176,8 +179,9 @@ export class RacesController {
   async refreshEngagement(
     @Param('licenceId', ParseIntPipe) licenceId: number,
     @Param('competitionId', ParseIntPipe) competitionId: number,
+    @CurrentUser('email') author: string,
   ): Promise<RaceEntity> {
-    return this.racesService.refreshEngagement(licenceId, competitionId);
+    return this.racesService.refreshEngagement(licenceId, competitionId, author);
   }
 
   // ==================== RANKINGS ====================
@@ -190,8 +194,11 @@ export class RacesController {
   })
   @ApiBody({ type: UpdateRankingDto })
   @ApiResponse({ status: 200, description: 'Ranking updated', type: RaceEntity })
-  async updateRanking(@Body() dto: UpdateRankingDto): Promise<RaceEntity> {
-    return this.rankingService.updateRanking(dto);
+  async updateRanking(
+    @Body() dto: UpdateRankingDto,
+    @CurrentUser('email') author: string,
+  ): Promise<RaceEntity> {
+    return this.rankingService.updateRanking(dto, author);
   }
 
   @Put('ranking/remove')
@@ -203,8 +210,11 @@ export class RacesController {
   })
   @ApiBody({ type: RemoveRankingDto })
   @ApiResponse({ status: 200, description: 'Ranking removed' })
-  async removeRanking(@Body() dto: RemoveRankingDto): Promise<{ success: boolean }> {
-    await this.rankingService.removeRanking(dto);
+  async removeRanking(
+    @Body() dto: RemoveRankingDto,
+    @CurrentUser('email') author: string,
+  ): Promise<{ success: boolean }> {
+    await this.rankingService.removeRanking(dto, author);
     return { success: true };
   }
 
@@ -217,8 +227,11 @@ export class RacesController {
   })
   @ApiBody({ type: [ReorderRankingItemDto] })
   @ApiResponse({ status: 200, description: 'Rankings reordered' })
-  async reorderRankings(@Body() items: ReorderRankingItemDto[]): Promise<{ success: boolean }> {
-    await this.rankingService.reorderRankings(items);
+  async reorderRankings(
+    @Body() items: ReorderRankingItemDto[],
+    @CurrentUser('email') author: string,
+  ): Promise<{ success: boolean }> {
+    await this.rankingService.reorderRankings(items, author);
     return { success: true };
   }
 
@@ -232,8 +245,11 @@ export class RacesController {
   })
   @ApiParam({ name: 'id', type: Number })
   @ApiResponse({ status: 200, description: 'Challenge flag toggled' })
-  async toggleSprintChallenge(@Param('id', ParseIntPipe) id: number): Promise<RaceEntity> {
-    return this.racesService.toggleSprintChallenge(id);
+  async toggleSprintChallenge(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('email') author: string,
+  ): Promise<RaceEntity> {
+    return this.racesService.toggleSprintChallenge(id, author);
   }
 
   @Patch(':id/chrono')
@@ -248,8 +264,9 @@ export class RacesController {
   async updateChrono(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateChronoDto,
+    @CurrentUser('email') author: string,
   ): Promise<RaceEntity> {
-    return this.racesService.updateChrono(id, dto.chrono);
+    return this.racesService.updateChrono(id, dto.chrono, author);
   }
 
   @Patch(':id/tours')
@@ -264,8 +281,9 @@ export class RacesController {
   async updateTours(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateToursDto,
+    @CurrentUser('email') author: string,
   ): Promise<RaceEntity> {
-    return this.racesService.updateTours(id, dto.tours ?? null);
+    return this.racesService.updateTours(id, dto.tours ?? null, author);
   }
 
   // ==================== GENERIC UPDATE ====================
@@ -277,8 +295,9 @@ export class RacesController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() raceData: Partial<RaceEntity>,
+    @CurrentUser('email') author: string,
   ): Promise<RaceEntity> {
-    return this.racesService.update(id, raceData);
+    return this.racesService.update(id, raceData, author);
   }
 
   // ==================== UPLOAD CSV ====================
@@ -321,8 +340,9 @@ export class RacesController {
   async uploadResultsCsv(
     @UploadedFile() file: Express.Multer.File,
     @Param('competitionId', ParseIntPipe) competitionId: number,
+    @CurrentUser('email') author: string,
   ): Promise<{ processed: number; errors: string[] }> {
-    return this.resultsCsvService.uploadResultsCsv(competitionId, file);
+    return this.resultsCsvService.uploadResultsCsv(competitionId, file, author);
   }
 
   // ==================== RESULTS ====================
@@ -341,8 +361,9 @@ export class RacesController {
       chrono?: string;
       tours?: number;
     }[],
+    @CurrentUser('email') author: string,
   ): Promise<RaceEntity[]> {
-    return this.racesService.updateResults(competitionId, results);
+    return this.racesService.updateResults(competitionId, results, author);
   }
 
   // ==================== DELETE ====================

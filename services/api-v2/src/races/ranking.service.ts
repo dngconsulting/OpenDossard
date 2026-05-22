@@ -16,7 +16,8 @@ export class RankingService {
   /**
    * Met à jour le classement d'un coureur
    */
-  async updateRanking(dto: UpdateRankingDto): Promise<RaceEntity> {
+  async updateRanking(dto: UpdateRankingDto, author?: string): Promise<RaceEntity> {
+    const stampAuthor = author ? `${author}/Ranking` : undefined;
     // Trouver le coureur à classer
     const rider = await this.raceRepository.findOne({
       where: {
@@ -54,6 +55,7 @@ export class RankingService {
         );
         existingRanked.rankingScratch = null;
         existingRanked.comment = null;
+        this.stampAudit(existingRanked, stampAuthor);
         await this.raceRepository.save(existingRanked);
       }
     }
@@ -61,6 +63,7 @@ export class RankingService {
     // Mettre à jour le classement
     rider.rankingScratch = dto.rankingScratch || null;
     rider.comment = dto.comment || null;
+    this.stampAudit(rider, stampAuthor);
 
     return this.raceRepository.save(rider);
   }
@@ -68,7 +71,8 @@ export class RankingService {
   /**
    * Retire un coureur du classement et réordonne les autres
    */
-  async removeRanking(dto: RemoveRankingDto): Promise<void> {
+  async removeRanking(dto: RemoveRankingDto, author?: string): Promise<void> {
+    const stampAuthor = author ? `${author}/Ranking` : undefined;
     const race = await this.raceRepository.findOne({
       where: { id: dto.id },
     });
@@ -85,17 +89,22 @@ export class RankingService {
     }
     race.chrono = null;
     race.sprintchallenge = false;
+    this.stampAudit(race, stampAuthor);
 
     await this.raceRepository.save(race);
 
     // Réordonner les classements de cette course pour combler les trous
-    await this.reorderRankingsForRace(dto.competitionId, dto.raceCode);
+    await this.reorderRankingsForRace(dto.competitionId, dto.raceCode, stampAuthor);
   }
 
   /**
    * Réordonne les classements pour une course donnée
    */
-  async reorderRankingsForRace(competitionId: number, raceCode: string): Promise<void> {
+  async reorderRankingsForRace(
+    competitionId: number,
+    raceCode: string,
+    stampAuthor?: string,
+  ): Promise<void> {
     const races = await this.raceRepository.find({
       where: { competitionId, raceCode },
       order: { rankingScratch: 'ASC' },
@@ -108,6 +117,7 @@ export class RankingService {
     for (const race of rankedRaces) {
       if (race.rankingScratch !== newRank) {
         race.rankingScratch = newRank;
+        this.stampAudit(race, stampAuthor);
         toSave.push(race);
       }
       newRank++;
@@ -121,7 +131,8 @@ export class RankingService {
   /**
    * Réordonne manuellement une liste de classements
    */
-  async reorderRankings(items: ReorderRankingItemDto[]): Promise<void> {
+  async reorderRankings(items: ReorderRankingItemDto[], author?: string): Promise<void> {
+    const stampAuthor = author ? `${author}/Ranking` : undefined;
     // Filtrer les items avec un ID et sans commentaire (pas ABD/DSQ)
     const validItems = items.filter(item => item.id && !item.comment);
 
@@ -148,6 +159,7 @@ export class RankingService {
 
       if (race && race.rankingScratch !== newRank && !race.comment) {
         race.rankingScratch = newRank;
+        this.stampAudit(race, stampAuthor);
         this.logger.debug(`Update ranking of rider ${race.riderNumber} to rank ${newRank}`);
         toSave.push(race);
       }
@@ -157,5 +169,20 @@ export class RankingService {
     if (toSave.length > 0) {
       await this.raceRepository.save(toSave);
     }
+  }
+
+  /**
+   * Écrase systématiquement `author` et `lastChanged` avant `.save()`. Ne fait
+   * AUCUNE confiance aux valeurs entrantes : le body n'est jamais autoritatif
+   * sur ces deux champs — la source de vérité est le JWT (ou `null` pour les
+   * contextes sans utilisateur identifié).
+   */
+  private stampAudit<T extends { author?: string | null; lastChanged?: Date | null }>(
+    entity: T,
+    author: string | undefined,
+  ): T {
+    entity.author = author ?? null;
+    entity.lastChanged = new Date();
+    return entity;
   }
 }

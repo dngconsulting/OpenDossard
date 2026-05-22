@@ -18,7 +18,9 @@ export class ResultsCsvService {
   async uploadResultsCsv(
     competitionId: number,
     file: Express.Multer.File,
+    author?: string,
   ): Promise<{ processed: number; errors: string[] }> {
+    const stampAuthor = author ? `${author}/ResultsImportCSV` : undefined;
     const VALID_COMMENTS = ['ABD', 'DSQ', 'NC', 'NP', 'CHT'];
     const results = this.parseCsvBuffer(file.buffer);
     const errors: string[] = [];
@@ -74,6 +76,7 @@ export class ResultsCsvService {
         race.rankingScratch = rank;
       }
 
+      this.stampAudit(race, stampAuthor);
       toSave.push(race);
     }
 
@@ -83,6 +86,21 @@ export class ResultsCsvService {
     }
 
     return { processed: results.length, errors };
+  }
+
+  /**
+   * Écrase systématiquement `author` et `lastChanged` avant `.save()`. Ne fait
+   * AUCUNE confiance aux valeurs entrantes : le body n'est jamais autoritatif
+   * sur ces deux champs — la source de vérité est le JWT (ou `null` pour les
+   * contextes sans utilisateur identifié).
+   */
+  private stampAudit<T extends { author?: string | null; lastChanged?: Date | null }>(
+    entity: T,
+    author: string | undefined,
+  ): T {
+    entity.author = author ?? null;
+    entity.lastChanged = new Date();
+    return entity;
   }
 
   private parseCsvBuffer(

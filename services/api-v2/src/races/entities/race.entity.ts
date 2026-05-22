@@ -86,4 +86,12 @@ export class RaceEntity {
   @ApiPropertyOptional()
   @Column({ type: 'int', nullable: true })
   tours: number | null;
+
+  @ApiPropertyOptional()
+  @Column({ type: 'varchar', nullable: true })
+  author: string | null;
+
+  @ApiPropertyOptional()
+  @Column({ name: 'last_changed', type: 'timestamp', nullable: true })
+  lastChanged: Date;
 }

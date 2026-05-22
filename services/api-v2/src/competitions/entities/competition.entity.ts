@@ -168,4 +168,12 @@ export class CompetitionEntity {
   @ApiProperty()
   @Column({ name: 'online_registration_enabled', type: 'boolean', default: false })
   onlineRegistrationEnabled: boolean;
+
+  @ApiPropertyOptional()
+  @Column({ type: 'varchar', nullable: true })
+  author: string | null;
+
+  @ApiPropertyOptional()
+  @Column({ name: 'last_changed', type: 'timestamp', nullable: true })
+  lastChanged: Date;
 }

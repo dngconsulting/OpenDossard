@@ -1,6 +1,6 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
-import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { RaceEntity } from './entities/race.entity';
 import { LicenceEntity } from '../licences/entities/licence.entity';
 import { CompetitionEntity } from '../competitions/entities/competition.entity';
@@ -158,6 +158,7 @@ export class RacesService {
     race.catea = dto.catea || licence.catea;
     race.club = dto.club || licence.club;
     race.rankingScratch = dto.rankingScratch ?? null;
+    this.stampAudit(race, author);
 
     const saved = await this.raceRepository.save(race);
     this.logger.log(
@@ -172,7 +173,11 @@ export class RacesService {
   /**
    * Rafraîchit l'engagement depuis les données de la licence
    */
-  async refreshEngagement(licenceId: number, competitionId: number): Promise<RaceEntity> {
+  async refreshEngagement(
+    licenceId: number,
+    competitionId: number,
+    author?: string,
+  ): Promise<RaceEntity> {
     const licence = await this.licenceRepository.findOne({
       where: { id: licenceId },
     });
@@ -195,6 +200,7 @@ export class RacesService {
       race.competition?.competitionType === CompetitionType.CX
         ? licence.catevCX || licence.catev
         : licence.catev;
+    this.stampAudit(race, author);
 
     return this.raceRepository.save(race);
   }
@@ -202,27 +208,30 @@ export class RacesService {
   /**
    * Toggle le flag sprint challenge
    */
-  async toggleSprintChallenge(id: number): Promise<RaceEntity> {
+  async toggleSprintChallenge(id: number, author?: string): Promise<RaceEntity> {
     const race = await this.findOne(id);
     race.sprintchallenge = !race.sprintchallenge;
+    this.stampAudit(race, author);
     return this.raceRepository.save(race);
   }
 
   /**
    * Met à jour le chrono d'un coureur
    */
-  async updateChrono(id: number, chrono: string): Promise<RaceEntity> {
+  async updateChrono(id: number, chrono: string, author?: string): Promise<RaceEntity> {
     const race = await this.findOne(id);
     race.chrono = chrono;
+    this.stampAudit(race, author);
     return this.raceRepository.save(race);
   }
 
   /**
    * Met à jour le nombre de tours d'un coureur
    */
-  async updateTours(id: number, tours: number | null): Promise<RaceEntity> {
+  async updateTours(id: number, tours: number | null, author?: string): Promise<RaceEntity> {
     const race = await this.findOne(id);
     race.tours = tours;
+    this.stampAudit(race, author);
     return this.raceRepository.save(race);
   }
 
@@ -244,17 +253,19 @@ export class RacesService {
   /**
    * Crée plusieurs engagements en une fois
    */
-  async createMany(racesData: Partial<RaceEntity>[]): Promise<RaceEntity[]> {
+  async createMany(racesData: Partial<RaceEntity>[], author?: string): Promise<RaceEntity[]> {
     const races = this.raceRepository.create(racesData);
+    races.forEach(r => this.stampAudit(r, author));
     return this.raceRepository.save(races);
   }
 
   /**
    * Met à jour une race générique
    */
-  async update(id: number, raceData: Partial<RaceEntity>): Promise<RaceEntity> {
+  async update(id: number, raceData: Partial<RaceEntity>, author?: string): Promise<RaceEntity> {
     const race = await this.findOne(id);
     Object.assign(race, raceData);
+    this.stampAudit(race, author);
     return this.raceRepository.save(race);
   }
 
@@ -270,6 +281,7 @@ export class RacesService {
       chrono?: string;
       tours?: number;
     }[],
+    author?: string,
   ): Promise<RaceEntity[]> {
     // Fetch all races for this competition in ONE query
     const allRaces = await this.raceRepository.find({
@@ -290,11 +302,27 @@ export class RacesService {
         race.rankingScratch = result.rankingScratch;
         if (result.chrono) race.chrono = result.chrono;
         if (result.tours !== undefined) race.tours = result.tours;
+        this.stampAudit(race, author);
         toSave.push(race);
       }
     }
 
     // Batch save
     return this.raceRepository.save(toSave);
+  }
+
+  /**
+   * Écrase systématiquement `author` et `lastChanged` avant `.save()`. Ne fait
+   * AUCUNE confiance aux valeurs entrantes : le body n'est jamais autoritatif
+   * sur ces deux champs — la source de vérité est le JWT (ou `null` pour les
+   * contextes sans utilisateur identifié).
+   */
+  private stampAudit<T extends { author?: string | null; lastChanged?: Date | null }>(
+    entity: T,
+    author: string | undefined,
+  ): T {
+    entity.author = author ?? null;
+    entity.lastChanged = new Date();
+    return entity;
   }
 }

@@ -41,4 +41,12 @@ export class ClubEntity {
   })
   @Column({ name: 'helloasso_slug', type: 'text', nullable: true })
   helloAssoSlug: string | null;
+
+  @ApiPropertyOptional()
+  @Column({ type: 'varchar', nullable: true })
+  author: string | null;
+
+  @ApiPropertyOptional()
+  @Column({ name: 'last_changed', type: 'timestamp', nullable: true })
+  lastChanged: Date;
 }
