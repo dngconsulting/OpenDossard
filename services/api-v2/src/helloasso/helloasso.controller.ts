@@ -177,29 +177,49 @@ leur expiration normale (pas de révocation explicite).`,
         `callback: state consumed, userId=${result.userId} originClubId=${originClubId ?? 'null'} slug=${result.organizationSlug}`,
       );
 
-      const club = await this.clubs.findByElicenceSlug(result.organizationSlug);
-      if (!club) {
+      // Lot 3 — Le club à lier est imposé par `originClubId` (transporté
+      // dans le `state` OAuth émis au `authorize`). On ne fait JAMAIS de
+      // lookup par slug HelloAsso seul : ça empêche par construction le
+      // scénario D1 (mire initiée pour club A, orga HelloAsso liée au
+      // club B). On charge le club d'origine puis on compare son
+      // `helloAssoSlug` (saisi à la main par un ADMIN/ORGA) au slug
+      // renvoyé par HelloAsso.
+      if (originClubId === null) {
         this.logger.warn(
-          `callback: no club matches slug=${result.organizationSlug} (user=${result.userId}) — redirecting to originClubId=${originClubId ?? 'null'}`,
+          `callback: missing_origin_club — state sans originClubId (user=${result.userId})`,
         );
-        return this.redirectError(res, 'no_matching_club', originClubId, {
+        return this.redirectError(res, 'missing_origin_club', null, {
           slug: result.organizationSlug,
         });
       }
 
-      // Lot 3 — Vérification critique : le club résolu par slug doit
-      // correspondre à l'`originClubId` annoncé au moment du `authorize`.
-      // Sinon, le user pourrait avoir initié une mire pour le club A mais
-      // autorisé une orga HelloAsso dont le slug matche le club B → s'il
-      // n'y avait pas ce contrôle, on lierait la liaison HelloAsso de B
-      // aux tokens d'une orga contrôlée par le user (scénario D1).
-      if (originClubId === null || club.id !== originClubId) {
+      const club = await this.clubs.findById(originClubId);
+      if (!club) {
         this.logger.warn(
-          `callback: slug_mismatch_origin_club — slug=${result.organizationSlug} matche club=${club.id}, attendu originClubId=${originClubId ?? 'null'} (user=${result.userId})`,
+          `callback: origin_club_not_found clubId=${originClubId} (user=${result.userId})`,
         );
-        return this.redirectError(res, 'slug_mismatch_origin_club', originClubId, {
+        return this.redirectError(res, 'origin_club_not_found', originClubId, {
           slug: result.organizationSlug,
-          matched_club_id: String(club.id),
+        });
+      }
+
+      const expectedSlug = club.helloAssoSlug?.trim() ?? '';
+      if (expectedSlug === '') {
+        this.logger.warn(
+          `callback: no_matching_club (helloAssoSlug vide) clubId=${club.id} slug=${result.organizationSlug} (user=${result.userId})`,
+        );
+        return this.redirectError(res, 'no_matching_club', originClubId, {
+          slug: result.organizationSlug,
+          originClubHasSlug: 'false',
+        });
+      }
+      if (expectedSlug !== result.organizationSlug) {
+        this.logger.warn(
+          `callback: no_matching_club (helloAssoSlug mismatch) clubId=${club.id} expected=${expectedSlug} got=${result.organizationSlug} (user=${result.userId})`,
+        );
+        return this.redirectError(res, 'no_matching_club', originClubId, {
+          slug: result.organizationSlug,
+          originClubHasSlug: 'true',
         });
       }
 

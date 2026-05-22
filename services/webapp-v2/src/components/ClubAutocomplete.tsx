@@ -87,6 +87,7 @@ export function ClubAutocomplete({
         dept: department,
         fede,
         elicenceName: null,
+        helloAssoSlug: null,
       });
       handleSelect(newClub.id, newClub.longName);
     } catch (err) {

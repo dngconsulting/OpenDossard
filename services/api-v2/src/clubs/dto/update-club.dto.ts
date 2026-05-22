@@ -22,6 +22,14 @@ export class UpdateClubDto {
   @IsString()
   dept?: string;
 
+  @ApiPropertyOptional({
+    description:
+      "Slug exact de l'association côté HelloAsso. Chaîne vide ou null pour réinitialiser.",
+  })
+  @IsOptional()
+  @IsString()
+  helloAssoSlug?: string | null;
+
   @ApiPropertyOptional({ description: 'If true, propagate longName change to races and licences' })
   @IsOptional()
   @IsBoolean()

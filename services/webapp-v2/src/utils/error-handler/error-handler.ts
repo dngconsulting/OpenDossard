@@ -40,14 +40,21 @@ interface ShowToastOptions {
   message: string;
   details?: string;
   persistent?: boolean;
+  /**
+   * Identifiant stable du toast. Si fourni, un second appel avec le même `id`
+   * met à jour le toast existant au lieu d'en empiler un second (utile pour
+   * dédupliquer les effets joués deux fois en StrictMode dev).
+   */
+  id?: string;
 }
 
-function showToast({ type, message, details, persistent = false }: ShowToastOptions) {
+function showToast({ type, message, details, persistent = false, id }: ShowToastOptions) {
   enforceMaxToasts();
 
-  const toastId = toast.custom(id => createElement(AppToast, { id, type, message, details }), {
+  const toastId = toast.custom(tid => createElement(AppToast, { id: tid, type, message, details }), {
     duration: persistent ? Infinity : 5000,
     position: 'top-center',
+    ...(id !== undefined ? { id } : {}),
   });
 
   activeToasts.push(toastId);
@@ -56,20 +63,20 @@ function showToast({ type, message, details, persistent = false }: ShowToastOpti
 }
 
 // Public API for all toast types
-export function showErrorToast(message: string, details?: string) {
-  return showToast({ type: 'error', message, details, persistent: true });
+export function showErrorToast(message: string, details?: string, options?: { id?: string }) {
+  return showToast({ type: 'error', message, details, persistent: true, id: options?.id });
 }
 
-export function showSuccessToast(message: string, details?: string) {
-  return showToast({ type: 'success', message, details });
+export function showSuccessToast(message: string, details?: string, options?: { id?: string }) {
+  return showToast({ type: 'success', message, details, id: options?.id });
 }
 
-export function showInfoToast(message: string, details?: string) {
-  return showToast({ type: 'info', message, details });
+export function showInfoToast(message: string, details?: string, options?: { id?: string }) {
+  return showToast({ type: 'info', message, details, id: options?.id });
 }
 
-export function showWarningToast(message: string, details?: string) {
-  return showToast({ type: 'warning', message, details });
+export function showWarningToast(message: string, details?: string, options?: { id?: string }) {
+  return showToast({ type: 'warning', message, details, id: options?.id });
 }
 
 // Global error handler for React Query and runtime errors

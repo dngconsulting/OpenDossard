@@ -12,7 +12,6 @@ import { Role, Federation } from '../common/enums';
 import { PaginatedResponseDto } from '../common/dto/pagination.dto';
 import { FilterClubDto } from './dto/filter-club.dto';
 import { UpdateClubDto } from './dto/update-club.dto';
-import { slugify } from '../helloasso/util/slugify.util';
 
 @Injectable()
 export class ClubsService {
@@ -159,22 +158,13 @@ export class ClubsService {
   }
 
   /**
-   * Résout un `organization_slug` HelloAsso vers le club correspondant en
-   * appliquant la convention `slugify(elicenceName)`.
-   *
-   * Implémentation : pas de colonne `slug` en DB, on récupère donc tous les
-   * clubs avec `elicenceName` non vide puis on filtre en mémoire. Le volume
-   * total reste de l'ordre du millier, l'appel n'a lieu qu'au callback OAuth
-   * HelloAsso (rare) — pas un hot path.
+   * Variante non-throwing de `findOne` : renvoie `null` si le club n'existe pas.
+   * Utilisée par le callback HelloAsso pour distinguer "club absent" (cas
+   * exceptionnel : la ligne a disparu entre `authorize` et le callback) du
+   * cas "club présent mais slug HelloAsso non/mal renseigné".
    */
-  async findByElicenceSlug(slug: string): Promise<ClubEntity | null> {
-    if (!slug) return null;
-    const candidates = await this.clubRepository
-      .createQueryBuilder('club')
-      .where('club.elicenceName IS NOT NULL')
-      .andWhere("club.elicenceName != ''")
-      .getMany();
-    return candidates.find(c => slugify(c.elicenceName) === slug) ?? null;
+  async findById(id: number): Promise<ClubEntity | null> {
+    return this.clubRepository.findOne({ where: { id } });
   }
 
   /**
@@ -256,6 +246,9 @@ export class ClubsService {
     if (dto.longName !== undefined) club.longName = dto.longName;
     if (dto.elicenceName !== undefined) club.elicenceName = dto.elicenceName;
     if (dto.dept !== undefined) club.dept = dto.dept;
+    if (dto.helloAssoSlug !== undefined) {
+      club.helloAssoSlug = dto.helloAssoSlug?.trim() ? dto.helloAssoSlug.trim() : null;
+    }
 
     const saved = await this.clubRepository.save(club);
     const fields = Object.keys(dto)

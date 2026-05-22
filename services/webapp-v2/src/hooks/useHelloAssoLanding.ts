@@ -8,6 +8,9 @@ const REASON_LABEL: Record<string, string> = {
   access_denied: 'Autorisation refusée côté HelloAsso',
   exchange_failed: 'Échange du code OAuth échoué',
   missing_params: 'Paramètres OAuth manquants',
+  missing_origin_club:
+    "Aucun club d'origine n'est associé à cette autorisation — relancez la liaison depuis la fiche du club concerné",
+  origin_club_not_found: "Le club d'origine n'existe plus en base",
   invalid_request:
     'Requête invalide — configuration HelloAsso à vérifier (contacter un administrateur)',
 };
@@ -17,6 +20,7 @@ const HELLOASSO_QUERY_KEYS = [
   'reason',
   'clubId',
   'slug',
+  'originClubHasSlug',
   'error_description',
   'error_uri',
 ];
@@ -44,6 +48,7 @@ export function useHelloAssoLanding(): void {
     // après par setSearchParams ci-dessous, le setTimeout les lirait à null).
     const reason = searchParams.get('reason') ?? 'inconnue';
     const slug = searchParams.get('slug') ?? '';
+    const originClubHasSlug = searchParams.get('originClubHasSlug');
     const errorDescription = searchParams.get('error_description') ?? undefined;
     const errorUri = searchParams.get('error_uri') ?? undefined;
 
@@ -53,6 +58,7 @@ export function useHelloAssoLanding(): void {
       console.error('[HelloAsso callback] error details', {
         reason,
         slug,
+        originClubHasSlug,
         error_description: errorDescription,
         error_uri: errorUri,
       });
@@ -66,19 +72,32 @@ export function useHelloAssoLanding(): void {
     // `toast.custom(...)` synchrone est alors perdu (aucun listener).
     // Avec `setTimeout(0)`, l'appel est repoussé après tous les effects du
     // commit initial, donc le Toaster est prêt à recevoir.
+    // `id` stable : Sonner dédup → en StrictMode dev l'effet joue deux fois,
+    // sans id on aurait deux toasts empilés. Avec id, le second appel met
+    // simplement à jour l'existant (même contenu → invisible pour l'user).
+    const toastId = 'helloasso-landing';
     const timer = setTimeout(() => {
       if (status === 'success') {
-        showSuccessToast('Compte HelloAsso lié', slug ? `Association : ${slug}` : undefined);
+        showSuccessToast('Compte HelloAsso lié', slug ? `Association : ${slug}` : undefined, {
+          id: toastId,
+        });
       } else if (status === 'error') {
         if (reason === 'no_matching_club') {
-          showErrorToast(
-            'Liaison HelloAsso échouée',
-            `L'association « ${slug || 'inconnue'} » n'existe pas dans la base Open Dossard. Merci de contacter l'administrateur pour l'ajouter.`,
-          );
+          // Deux sous-cas distingués par `originClubHasSlug` (propagé par le
+          // backend) : le champ HelloAsso slug du club d'origine est vide OU
+          // il est rempli mais ne matche pas le slug retourné par HelloAsso.
+          // Dans les deux cas, c'est un ADMIN/ORGA du club qui doit corriger
+          // le champ "HelloAsso slug" sur la fiche, plus un "contacter l'admin".
+          const slugLabel = slug || 'inconnu';
+          const detail =
+            originClubHasSlug === 'false'
+              ? `HelloAsso a retourné l'association « ${slugLabel} ». Renseignez ce slug exact dans le champ « HelloAsso slug » de la fiche club, puis relancez la liaison.`
+              : `Le slug retourné par HelloAsso (« ${slugLabel} ») ne correspond pas à celui enregistré sur ce club. Vérifiez et corrigez le champ « HelloAsso slug » de la fiche club, puis relancez la liaison.`;
+          showErrorToast('Liaison HelloAsso échouée', detail, { id: toastId });
         } else {
           const label = REASON_LABEL[reason] ?? reason;
           const detail = errorDescription ? `${label} — ${errorDescription}` : label;
-          showErrorToast('Liaison HelloAsso échouée', detail);
+          showErrorToast('Liaison HelloAsso échouée', detail, { id: toastId });
         }
       }
     }, 0);

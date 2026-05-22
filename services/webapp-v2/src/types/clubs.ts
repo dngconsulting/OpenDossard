@@ -5,6 +5,7 @@ export type ClubType = {
   dept: string | null;
   elicenceName: string | null;
   fede: string | null;
+  helloAssoSlug: string | null;
 };
 
 export type UpdateClubInput = {
@@ -12,6 +13,7 @@ export type UpdateClubInput = {
   longName?: string;
   elicenceName?: string | null;
   dept?: string | null;
+  helloAssoSlug?: string | null;
   propagate?: boolean;
 };
 

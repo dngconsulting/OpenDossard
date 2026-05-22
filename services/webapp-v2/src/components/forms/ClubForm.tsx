@@ -30,6 +30,7 @@ const createFormSchema = (isCreating: boolean) =>
     elicenceName: z.string().optional(),
     dept: z.string().min(1, 'Le département est requis'),
     fede: isCreating ? z.string().min(1, 'La fédération est requise') : z.string().optional(),
+    helloAssoSlug: z.string().optional(),
   });
 
 type FormValues = z.infer<ReturnType<typeof createFormSchema>>;
@@ -63,6 +64,7 @@ export const ClubForm = ({ club, isCreating, onSuccess, formId, onPendingChange,
       elicenceName: club?.elicenceName ?? '',
       dept: club?.dept ?? '',
       fede: club?.fede ?? '',
+      helloAssoSlug: club?.helloAssoSlug ?? '',
     },
   });
 
@@ -76,6 +78,7 @@ export const ClubForm = ({ club, isCreating, onSuccess, formId, onPendingChange,
           elicenceName: data.elicenceName || null,
           dept: data.dept || null,
           fede: data.fede || null,
+          helloAssoSlug: data.helloAssoSlug || null,
         });
         showSuccessToast('Club créé avec succès');
         onSuccess(created);
@@ -112,6 +115,7 @@ export const ClubForm = ({ club, isCreating, onSuccess, formId, onPendingChange,
           longName: data.longName,
           elicenceName: data.elicenceName || null,
           dept: data.dept || null,
+          helloAssoSlug: data.helloAssoSlug || null,
           propagate,
         },
       });
@@ -155,6 +159,12 @@ export const ClubForm = ({ club, isCreating, onSuccess, formId, onPendingChange,
                     <StringField field="longName" form={form} label="Nom long" required />
                   </div>
                   <StringField field="elicenceName" form={form} label="Nom eLicence" />
+                  <StringField
+                    field="helloAssoSlug"
+                    form={form}
+                    label="HelloAsso slug"
+                    description="Slug exact de l'association côté HelloAsso (ex. cyclo-club-castaneam). Visible dans l'URL de la page HelloAsso du club. Doit être renseigné avant la liaison OAuth HelloAsso."
+                  />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <ComboboxField
                       field="dept"

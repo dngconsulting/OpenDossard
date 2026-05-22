@@ -204,7 +204,7 @@ export interface CallbackResult {
   userId: number;
   /**
    * Slug de l'asso HelloAsso à laquelle le user vient d'accorder l'accès.
-   * À matcher avec `slugify(ClubEntity.elicenceName)` côté caller.
+   * À matcher avec `ClubEntity.helloAssoSlug` (saisie manuelle côté caller).
    */
   organizationSlug: string;
   /**
