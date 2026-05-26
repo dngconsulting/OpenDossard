@@ -12,6 +12,7 @@ import {
 
 import { AuthFirebaseService } from './auth-firebase.service';
 import { UserEntity } from '../users/entities/user.entity';
+import { HelloAssoPaymentEntity } from '../helloasso/entities/helloasso-payment.entity';
 import { FIREBASE_ADMIN } from '../firebase/firebase.module';
 
 const VALID_UID = 'firebase-uid-123';
@@ -68,6 +69,19 @@ describe('AuthFirebaseService', () => {
             create: jest.fn(),
             save: jest.fn(),
             delete: jest.fn(),
+          },
+        },
+        {
+          // RGPD : deleteAccount anonymise les snapshots de paiement via un
+          // query builder UPDATE avant de supprimer le user.
+          provide: getRepositoryToken(HelloAssoPaymentEntity),
+          useValue: {
+            createQueryBuilder: jest.fn(() => ({
+              update: jest.fn().mockReturnThis(),
+              set: jest.fn().mockReturnThis(),
+              where: jest.fn().mockReturnThis(),
+              execute: jest.fn().mockResolvedValue({ affected: 0 }),
+            })),
           },
         },
         { provide: FIREBASE_ADMIN, useValue: firebaseApp },

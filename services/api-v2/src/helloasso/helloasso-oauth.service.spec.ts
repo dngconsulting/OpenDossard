@@ -197,31 +197,74 @@ describe('HelloAssoOAuthService', () => {
     });
   });
 
-  describe('refreshTokens', () => {
-    it('POSTs grant_type=refresh_token and returns the new tokens', async () => {
+  describe('getPartnerAccessToken', () => {
+    it('POSTs grant_type=client_credentials and returns the partner access token', async () => {
       const { service } = makeService();
 
       const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue(
         jsonResponse(200, {
-          access_token: 'AT2',
-          refresh_token: 'RT2',
+          access_token: 'PARTNER_AT',
           token_type: 'bearer',
-          expires_in: '1800',
-          organization_slug: 'my-club',
+          expires_in: 1800,
         }),
       );
 
-      const tokens = await service.refreshTokens('OLD_RT');
+      const token = await service.getPartnerAccessToken();
 
-      expect(tokens.accessToken).toBe('AT2');
-      expect(tokens.refreshToken).toBe('RT2');
-      expect(tokens.expiresIn).toBe(1800); // string normalisé en number
+      expect(token).toBe('PARTNER_AT');
 
-      const body = new URLSearchParams((fetchSpy.mock.calls[0][1] as RequestInit).body as string);
-      expect(body.get('grant_type')).toBe('refresh_token');
+      const [calledUrl, calledInit] = fetchSpy.mock.calls[0];
+      expect(calledUrl).toBe('https://api.helloasso-sandbox.com/oauth2/token');
+      const body = new URLSearchParams((calledInit as RequestInit).body as string);
+      expect(body.get('grant_type')).toBe('client_credentials');
       expect(body.get('client_id')).toBe('cid');
       expect(body.get('client_secret')).toBe('csecret');
-      expect(body.get('refresh_token')).toBe('OLD_RT');
+      // pas de refresh_token ni de code dans le flux client_credentials
+      expect(body.get('refresh_token')).toBeNull();
+      expect(body.get('code')).toBeNull();
+    });
+
+    it('caches the token and does not refetch within its TTL', async () => {
+      const { service } = makeService();
+
+      const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue(
+        jsonResponse(200, {
+          access_token: 'PARTNER_AT',
+          token_type: 'bearer',
+          expires_in: 1800,
+        }),
+      );
+
+      const first = await service.getPartnerAccessToken();
+      const second = await service.getPartnerAccessToken();
+
+      expect(first).toBe('PARTNER_AT');
+      expect(second).toBe('PARTNER_AT');
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('refetches a fresh token once the cached one is within the expiry margin', async () => {
+      const { service } = makeService();
+
+      const fetchSpy = jest
+        .spyOn(global, 'fetch')
+        .mockResolvedValueOnce(
+          jsonResponse(200, { access_token: 'AT1', token_type: 'bearer', expires_in: 1800 }),
+        )
+        .mockResolvedValueOnce(
+          jsonResponse(200, { access_token: 'AT2', token_type: 'bearer', expires_in: 1800 }),
+        );
+
+      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(0);
+      const first = await service.getPartnerAccessToken();
+
+      // 1800s plus tard : au-delà de (expiresIn - marge 60s) → cache invalidé
+      nowSpy.mockReturnValue(1_800_000);
+      const second = await service.getPartnerAccessToken();
+
+      expect(first).toBe('AT1');
+      expect(second).toBe('AT2');
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
     });
   });
 });

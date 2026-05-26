@@ -4,6 +4,9 @@ import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoStateStore } from './helloasso-state.store';
 import { generatePkcePair, generateState } from './util/pkce.util';
 
+/** Marge avant expiration pour renouveler le token partenaire en cache (secondes). */
+const PARTNER_TOKEN_EXPIRY_MARGIN_SECONDS = 60;
+
 /**
  * Service OAuth2 + PKCE pour la mire d'autorisation HelloAsso.
  *
@@ -30,12 +33,21 @@ import { generatePkcePair, generateState } from './util/pkce.util';
  *        ensuite le matching slug → ClubEntity en base, et utilise `userId`
  *        pour l'audit (`linked_by_user_id`).
  *
- *   4. `refreshTokens(refreshToken)`
- *      → renouvellement avant expiration (access 30 min, refresh 30 jours).
+ *   4. `getPartnerAccessToken()`
+ *      → token partenaire (`client_credentials`) pour agir sur les orgas qui ont
+ *        autorisé le partenaire (checkout, lecture d'intent), indépendamment du
+ *        token OAuth par asso.
  */
 @Injectable()
 export class HelloAssoOAuthService {
   private readonly logger = new Logger(HelloAssoOAuthService.name);
+
+  /**
+   * Cache in-memory du token partenaire (`client_credentials`). Partner-wide
+   * (pas par club) : un seul token couvre tous les appels partenaire. Renouvelé
+   * dès qu'on entre dans la marge d'expiration (cf. {@link getPartnerAccessToken}).
+   */
+  private partnerTokenCache: { token: string; expiresAt: number } | null = null;
 
   constructor(
     private readonly config: HelloAssoConfig,
@@ -129,13 +141,37 @@ export class HelloAssoOAuthService {
     }
   }
 
-  async refreshTokens(refreshToken: string): Promise<HelloAssoTokens> {
-    return this.postToken({
-      grant_type: 'refresh_token',
+  /**
+   * Token partenaire via le flux OAuth2 `client_credentials`.
+   *
+   * Sert à agir sur les organisations qui ont autorisé le partenaire (création
+   * de checkout-intents, lecture de paiements) **sans dépendre du token OAuth
+   * par asso** : ce dernier expire (refresh 30 j) et peut être « cassé », alors
+   * que l'autorisation org → partenaire persiste côté HelloAsso. Le `clientId`
+   * partenaire doit avoir le privilège `Checkout` activé.
+   *
+   * Mis en cache in-memory et renouvelé dès qu'on entre dans une marge de 60 s
+   * avant l'expiration (évite d'utiliser un token au bord de l'invalidation).
+   * La réponse `client_credentials` ne porte ni `refresh_token` ni
+   * `organization_slug` — seuls `access_token` + `expires_in` sont exploités.
+   */
+  async getPartnerAccessToken(): Promise<string> {
+    const now = Date.now();
+    if (this.partnerTokenCache && now < this.partnerTokenCache.expiresAt) {
+      return this.partnerTokenCache.token;
+    }
+
+    const tokens = await this.postToken({
+      grant_type: 'client_credentials',
       client_id: this.config.clientId,
       client_secret: this.config.clientSecret,
-      refresh_token: refreshToken,
     });
+
+    this.partnerTokenCache = {
+      token: tokens.accessToken,
+      expiresAt: now + (tokens.expiresIn - PARTNER_TOKEN_EXPIRY_MARGIN_SECONDS) * 1000,
+    };
+    return tokens.accessToken;
   }
 
   private async exchangeAuthorizationCode(

@@ -15,6 +15,7 @@ import { HelloAssoApiClient } from './helloasso-api.client';
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoDetailsEntity } from './entities/helloasso-details.entity';
 import { HelloAssoDetailsService } from './helloasso-details.service';
+import { HelloAssoOAuthService } from './helloasso-oauth.service';
 import {
   HelloAssoPaymentEntity,
   HelloAssoPaymentStatus,
@@ -66,10 +67,9 @@ interface Mocks {
   userRepo: { findOne: jest.Mock };
   details: {
     findByClubId: jest.Mock;
-    decryptTokens: jest.Mock;
-    withHelloAssoClubAccessToken: jest.Mock;
   };
-  api: { createCheckoutIntent: jest.Mock };
+  oauth: { getPartnerAccessToken: jest.Mock };
+  api: { createCheckoutIntent: jest.Mock; getCheckoutIntent: jest.Mock };
 }
 
 function makeService(): Mocks {
@@ -87,14 +87,10 @@ function makeService(): Mocks {
   const userRepo = { findOne: jest.fn() };
   const details = {
     findByClubId: jest.fn(),
-    decryptTokens: jest.fn(() => ({ accessToken: 'access-tok', refreshToken: 'refresh-tok' })),
-    // Par défaut, withHelloAssoClubAccessToken forwarde le token au callback sans refresh.
-    // Les tests qui veulent tester le refresh redéfinissent ce mock localement.
-    withHelloAssoClubAccessToken: jest.fn(
-      (_clubId: number, fn: (token: string) => Promise<unknown>) => fn('access-tok'),
-    ),
   };
-  const api = { createCheckoutIntent: jest.fn() };
+  // Les checkouts utilisent le token PARTENAIRE (client_credentials), pas le token club.
+  const oauth = { getPartnerAccessToken: jest.fn().mockResolvedValue('partner-tok') };
+  const api = { createCheckoutIntent: jest.fn(), getCheckoutIntent: jest.fn() };
   const config = {
     apiBaseUrl: 'https://api.helloasso-sandbox.com',
     paymentReturnUrlSuccess: 'dossardeur://payment/success',
@@ -109,10 +105,11 @@ function makeService(): Mocks {
     userRepo as unknown as Repository<UserEntity>,
     details as unknown as HelloAssoDetailsService,
     api as unknown as HelloAssoApiClient,
+    oauth as unknown as HelloAssoOAuthService,
     config,
   );
 
-  return { service, paymentRepo, competitionRepo, licenceRepo, userRepo, details, api };
+  return { service, paymentRepo, competitionRepo, licenceRepo, userRepo, details, oauth, api };
 }
 
 function competitionFixture(overrides: Partial<CompetitionEntity> = {}): CompetitionEntity {
@@ -304,14 +301,16 @@ describe('HelloAssoPaymentService', () => {
       expect(m.api.createCheckoutIntent).toHaveBeenCalledWith(
         expect.objectContaining({
           organizationSlug: 'cyclo-club-castaneen',
-          accessToken: 'access-tok',
+          accessToken: 'partner-tok',
           body: expect.objectContaining({
             totalAmount: 1000,
             initialAmount: 1000,
             containsDonation: false,
-            backUrl: 'dossardeur://payment/cancelled',
-            errorUrl: 'dossardeur://payment/error',
-            returnUrl: 'dossardeur://payment/success',
+            // Les URLs de retour portent le paymentId (helper appendPaymentId) pour
+            // que le mobile/SPA retrouve le paiement au retour du deep link.
+            backUrl: 'dossardeur://payment/cancelled?paymentId=42',
+            errorUrl: 'dossardeur://payment/error?paymentId=42',
+            returnUrl: 'dossardeur://payment/success?paymentId=42',
             payer: { firstName: 'Sami', lastName: 'Jaber', email: 'sami@example.com' },
             metadata: {
               openDossardPaymentId: 42,
@@ -347,6 +346,37 @@ describe('HelloAssoPaymentService', () => {
 
       expect(m.paymentRepo.delete).toHaveBeenCalledWith(99);
       expect(m.paymentRepo.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('refreshStatusFromHelloAsso', () => {
+    it('reads the checkout intent with the PARTNER token (not the club token)', async () => {
+      const m = makeService();
+      m.paymentRepo.findOne.mockResolvedValue({
+        id: 42,
+        competitionId: 32,
+        status: HelloAssoPaymentStatus.PENDING,
+        paidAt: null,
+        helloAssoCheckoutIntentId: 'intent-abc',
+      } as HelloAssoPaymentEntity);
+      m.competitionRepo.findOne.mockResolvedValue(competitionFixture());
+      m.details.findByClubId.mockResolvedValue(detailsFixture());
+      // Aucun paiement terminal côté HelloAsso → cas "still_pending" (pas de transition)
+      m.api.getCheckoutIntent.mockResolvedValue({ order: { payments: [] } });
+
+      const result = await m.service.refreshStatusFromHelloAsso(42);
+
+      expect(m.oauth.getPartnerAccessToken).toHaveBeenCalledTimes(1);
+      expect(m.api.getCheckoutIntent).toHaveBeenCalledWith({
+        organizationSlug: 'cyclo-club-castaneen',
+        accessToken: 'partner-tok',
+        checkoutIntentId: 'intent-abc',
+      });
+      expect(result).toMatchObject({
+        id: 42,
+        status: HelloAssoPaymentStatus.PENDING,
+        outcome: 'still_pending',
+      });
     });
   });
 

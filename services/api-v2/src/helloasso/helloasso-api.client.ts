@@ -50,8 +50,8 @@ export class HelloAssoApiClient {
    * pending (cf. `HelloAssoPaymentService.refreshStatusFromHelloAsso`).
    *
    * 404 HelloAsso → `NotFoundException` (intent introuvable / périmé côté HA).
-   * 401/403 → `UnauthorizedException` (déclenche le refresh-on-401 du wrapper
-   *           `withHelloAssoClubAccessToken`).
+   * 401/403 → `UnauthorizedException` (token partenaire invalide / privilège
+   *           `Checkout` manquant côté HelloAsso).
    */
   async getCheckoutIntent(input: {
     organizationSlug: string;

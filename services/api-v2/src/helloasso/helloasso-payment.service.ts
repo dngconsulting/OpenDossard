@@ -20,6 +20,7 @@ import { RefreshPaymentStatusDto } from './dto/refresh-payment-status.dto';
 import { HelloAssoApiClient, CheckoutIntentRequestBody } from './helloasso-api.client';
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoDetailsService } from './helloasso-details.service';
+import { HelloAssoOAuthService } from './helloasso-oauth.service';
 import { mapHelloAssoState, prerequisitesForStatus } from './helloasso-state.util';
 import { truncate } from '../common/utils/string.util';
 import {
@@ -67,6 +68,7 @@ export class HelloAssoPaymentService {
     private readonly userRepo: Repository<UserEntity>,
     private readonly helloAssoDetails: HelloAssoDetailsService,
     private readonly helloAssoApi: HelloAssoApiClient,
+    private readonly oauth: HelloAssoOAuthService,
     private readonly config: HelloAssoConfig,
   ) {}
 
@@ -157,27 +159,26 @@ export class HelloAssoPaymentService {
       }),
     );
 
-    // 3. Appel HelloAsso via withHelloAssoClubAccessToken (gère refresh-on-401 inline).
-    // On passe le `amountCents` déjà calculé (single source of truth) plutôt
-    // que de re-parser `tarif.tarif` côté builder.
+    // 3. Appel HelloAsso avec le token PARTENAIRE (client_credentials), pas le
+    // token club : le paiement reste possible même si la liaison OAuth de l'asso
+    // est expirée/cassée, tant que l'autorisation org → partenaire persiste côté
+    // HelloAsso. On passe le `amountCents` déjà calculé (single source of truth)
+    // plutôt que de re-parser `tarif.tarif` côté builder.
     let intentResponse: { id: number; redirectUrl: string };
     try {
-      intentResponse = await this.helloAssoDetails.withHelloAssoClubAccessToken(
-        competition.clubId,
-        accessToken =>
-          this.helloAssoApi.createCheckoutIntent({
-            organizationSlug: details.organizationSlug,
-            accessToken,
-            body: this.buildCheckoutBody({
-              payment,
-              competition,
-              licence,
-              tarif,
-              amountCents,
-              payerProfile: dto.payerProfile,
-            }),
-          }),
-      );
+      const accessToken = await this.oauth.getPartnerAccessToken();
+      intentResponse = await this.helloAssoApi.createCheckoutIntent({
+        organizationSlug: details.organizationSlug,
+        accessToken,
+        body: this.buildCheckoutBody({
+          payment,
+          competition,
+          licence,
+          tarif,
+          amountCents,
+          payerProfile: dto.payerProfile,
+        }),
+      });
     } catch (e: unknown) {
       // Rollback : suppression de la ligne pending pour ne pas bloquer un retry
       await this.paymentRepo.delete(payment.id);
@@ -328,15 +329,12 @@ export class HelloAssoPaymentService {
     }
 
     const intentId = payment.helloAssoCheckoutIntentId;
-    const data = await this.helloAssoDetails.withHelloAssoClubAccessToken(
-      competition.clubId,
-      accessToken =>
-        this.helloAssoApi.getCheckoutIntent({
-          organizationSlug: details.organizationSlug,
-          accessToken,
-          checkoutIntentId: intentId,
-        }),
-    );
+    const accessToken = await this.oauth.getPartnerAccessToken();
+    const data = await this.helloAssoApi.getCheckoutIntent({
+      organizationSlug: details.organizationSlug,
+      accessToken,
+      checkoutIntentId: intentId,
+    });
 
     // Dernier payment côté HelloAsso qui mappe vers un statut terminal.
     // HelloAsso peut empiler plusieurs entries en cas de retry (cf. doc
@@ -389,8 +387,7 @@ export class HelloAssoPaymentService {
     const updated = await this.applyStatusTransition({
       payment,
       newStatus: mappedStatus,
-      helloAssoPaymentId:
-        typeof terminalPayment.id === 'number' ? terminalPayment.id : undefined,
+      helloAssoPaymentId: typeof terminalPayment.id === 'number' ? terminalPayment.id : undefined,
       helloAssoOrderId: typeof data.order?.id === 'number' ? data.order.id : undefined,
     });
 
