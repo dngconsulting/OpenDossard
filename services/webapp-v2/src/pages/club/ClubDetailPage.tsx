@@ -1,4 +1,13 @@
-import { AlertCircle, ArrowLeft, ChevronRight, Heart, Loader2, Lock, Save } from 'lucide-react';
+import {
+  AlertCircle,
+  ArrowLeft,
+  ChevronRight,
+  ExternalLink,
+  Heart,
+  Loader2,
+  Lock,
+  Save,
+} from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
@@ -129,11 +138,25 @@ export default function ClubDetailPage() {
       {isHelloAssoCashInBlocked && (
         <div className="mb-4 flex items-start gap-3 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/30 dark:text-red-200">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          <div>
-            <strong>Encaissement impossible{linkedSlug ? ` pour « ${linkedSlug} »` : ''}.</strong>{' '}
-            Votre association doit absolument finaliser ses exigences administratives
-            (justificatifs, IBAN, statuts…) dans son espace HelloAsso. Tant que ce point n&apos;est
-            pas réglé, aucun paiement ne peut être réalisé ni encaissé.
+          <div className="space-y-3">
+            <p>
+              Afin de pouvoir collecter des paiements en ligne, vous devez vérifier le compte
+              HelloAsso de votre association en envoyant le dossier de vérification sur la
+              plateforme. Tant que cette étape n&apos;est pas validée, vous ne pourrez encaisser
+              aucun paiement en ligne.
+            </p>
+            {linkedSlug && (
+              <Button asChild variant="outline" size="sm">
+                <a
+                  href={`https://admin.helloasso.com/${linkedSlug}/verification`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Vérifier mon compte HelloAsso
+                </a>
+              </Button>
+            )}
           </div>
         </div>
       )}
