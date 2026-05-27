@@ -75,10 +75,15 @@ export type CompetitionDetailType = {
   rankingUrls?: LinkItem[];
   registrationUrls?: LinkItem[];
   rankingUrl?: string;
+  author?: string | null;
+  lastChanged?: string | null;
 };
 
 // Type for creating/updating a competition
-export type CompetitionFormData = Omit<CompetitionDetailType, 'id' | 'club'> & {
+export type CompetitionFormData = Omit<
+  CompetitionDetailType,
+  'id' | 'club' | 'author' | 'lastChanged'
+> & {
   id?: number;
   clubId?: number;
 };

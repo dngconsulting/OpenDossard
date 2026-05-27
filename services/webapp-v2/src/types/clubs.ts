@@ -6,6 +6,8 @@ export type ClubType = {
   elicenceName: string | null;
   fede: string | null;
   helloAssoSlug: string | null;
+  author?: string | null;
+  lastChanged?: string | null;
 };
 
 export type UpdateClubInput = {

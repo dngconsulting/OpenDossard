@@ -4,6 +4,7 @@ import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
+import { LastModificationInfo } from '@/components/common/LastModificationInfo';
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -354,6 +355,11 @@ export default function CompetitionDetailPage() {
             </Tabs>
           </form>
         </Form>
+        <LastModificationInfo
+          author={competition?.author}
+          lastChanged={competition?.lastChanged}
+          className="mt-6"
+        />
       </FormProvider>
     </Layout>
   );

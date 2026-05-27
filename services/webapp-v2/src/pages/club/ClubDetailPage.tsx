@@ -11,6 +11,7 @@ import {
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
+import { LastModificationInfo } from '@/components/common/LastModificationInfo';
 import { ClubForm } from '@/components/forms/ClubForm';
 import { HelloAssoConnectButton } from '@/components/HelloAssoConnectButton';
 import { HelloAssoUnlinkButton } from '@/components/HelloAssoUnlinkButton';
@@ -224,6 +225,7 @@ export default function ClubDetailPage() {
         onPendingChange={setIsPending}
         readOnly={isLinkedToHelloAsso || isOutOfScope}
       />
+      <LastModificationInfo author={club?.author} lastChanged={club?.lastChanged} className="mt-6" />
     </Layout>
   );
 }

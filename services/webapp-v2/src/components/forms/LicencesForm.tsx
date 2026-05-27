@@ -7,6 +7,7 @@ import { z } from 'zod';
 
 import type { CreateLicenceDto } from '@/api/licences.api';
 import { ClubAutocomplete } from '@/components/ClubAutocomplete';
+import { LastModificationInfo } from '@/components/common/LastModificationInfo';
 import { DuplicateLicenceDialog } from '@/components/licences/DuplicateLicenceDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.tsx';
 import {
@@ -522,14 +523,10 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange, f
         </Card>
 
         {/* Informations de dernière modification - mode édition uniquement */}
-        {updatingLicence?.lastChanged && updatingLicence?.author && (
-          <div className="text-sm text-muted-foreground border-t pt-4">
-            Dernière modification le{' '}
-            {new Date(updatingLicence.lastChanged).toLocaleDateString('fr-FR')} à{' '}
-            {new Date(updatingLicence.lastChanged).toLocaleTimeString('fr-FR')} par{' '}
-            {updatingLicence.author}
-          </div>
-        )}
+        <LastModificationInfo
+          author={updatingLicence?.author}
+          lastChanged={updatingLicence?.lastChanged}
+        />
 
       </form>
     </Form>
