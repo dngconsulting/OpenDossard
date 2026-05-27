@@ -6,8 +6,8 @@ import {
   HelloAssoPaymentEntity,
   HelloAssoPaymentStatus,
 } from './entities/helloasso-payment.entity';
-import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoDetailsService } from './helloasso-details.service';
+import { HelloAssoWebhookKeysService } from './helloasso-webhook-keys.service';
 import { HelloAssoWebhookService } from './helloasso-webhook.service';
 
 const SIGNATURE_KEY = 'super-secret-key';
@@ -26,9 +26,13 @@ interface Mocks {
   detailsService: {
     setIsCashInCompliantBySlug: jest.Mock;
   };
+  keysProvider: {
+    getKeys: jest.Mock;
+    refresh: jest.Mock;
+  };
 }
 
-function makeService(): Mocks {
+function makeService(signatureKeys: string[] = [SIGNATURE_KEY]): Mocks {
   const updateQbExecute = jest.fn().mockResolvedValue({ affected: 1 });
   const updateQb = {
     update: jest.fn().mockReturnThis(),
@@ -40,18 +44,21 @@ function makeService(): Mocks {
     findOne: jest.fn(),
     createQueryBuilder: jest.fn().mockReturnValue(updateQb),
   };
-  const config = { webhookSignatureKey: SIGNATURE_KEY } as unknown as HelloAssoConfig;
+  const keysProvider = {
+    getKeys: jest.fn().mockReturnValue(signatureKeys),
+    refresh: jest.fn().mockResolvedValue(undefined),
+  };
   const detailsService = {
     setIsCashInCompliantBySlug: jest.fn().mockResolvedValue(1),
   };
 
   const service = new HelloAssoWebhookService(
     paymentRepo as unknown as Repository<HelloAssoPaymentEntity>,
-    config,
+    keysProvider as unknown as HelloAssoWebhookKeysService,
     detailsService as unknown as HelloAssoDetailsService,
   );
 
-  return { service, paymentRepo, updateQbExecute, detailsService };
+  return { service, paymentRepo, updateQbExecute, detailsService, keysProvider };
 }
 
 function buildBody(
@@ -96,6 +103,31 @@ describe('HelloAssoWebhookService', () => {
       await expect(m.service.handleWebhook(Buffer.from(body), {})).rejects.toBeInstanceOf(
         UnauthorizedException,
       );
+    });
+
+    it('accepte un webhook signé avec la 2e clé configurée (try-both)', async () => {
+      const SECOND_KEY = 'organization-signature-key';
+      const m = makeService([SIGNATURE_KEY, SECOND_KEY]);
+      // eventType ignoré → pas de traitement DB, on isole la vérif de signature.
+      const body = buildBody({ eventType: 'Form' });
+      const sig = createHmac('sha256', SECOND_KEY).update(body).digest('hex');
+      const result = await m.service.handleWebhook(Buffer.from(body), { 'x-ha-signature': sig });
+      expect(result.signatureValid).toBe(true);
+      expect(result.outcome).toContain('ignored_event_type');
+    });
+
+    it('refresh-on-miss : cache vide → refresh() puis acceptation', async () => {
+      const m = makeService([]); // cache initialement vide (HA injoignable au boot)
+      const body = buildBody({ eventType: 'Form' });
+      const sig = createHmac('sha256', SIGNATURE_KEY).update(body).digest('hex');
+      // refresh() peuple le cache (comme un fetch HA réussi)
+      m.keysProvider.refresh.mockImplementation(() => {
+        m.keysProvider.getKeys.mockReturnValue([SIGNATURE_KEY]);
+        return Promise.resolve();
+      });
+      const result = await m.service.handleWebhook(Buffer.from(body), { 'x-ha-signature': sig });
+      expect(m.keysProvider.refresh).toHaveBeenCalledTimes(1);
+      expect(result.signatureValid).toBe(true);
     });
   });
 

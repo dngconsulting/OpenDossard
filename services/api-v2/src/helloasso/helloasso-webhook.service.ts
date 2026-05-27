@@ -6,8 +6,8 @@ import {
   HelloAssoPaymentEntity,
   HelloAssoPaymentStatus,
 } from './entities/helloasso-payment.entity';
-import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoDetailsService } from './helloasso-details.service';
+import { HelloAssoWebhookKeysService } from './helloasso-webhook-keys.service';
 import { mapHelloAssoState, prerequisitesForStatus } from './helloasso-state.util';
 import { verifyHelloAssoSignature } from './util/webhook-signature.util';
 
@@ -55,17 +55,29 @@ export class HelloAssoWebhookService {
   constructor(
     @InjectRepository(HelloAssoPaymentEntity)
     private readonly paymentRepo: Repository<HelloAssoPaymentEntity>,
-    private readonly config: HelloAssoConfig,
+    private readonly keysProvider: HelloAssoWebhookKeysService,
     private readonly details: HelloAssoDetailsService,
   ) {}
+
+  private verifySignature(
+    rawBody: Buffer | undefined,
+    headers: Record<string, string | string[] | undefined>,
+  ): boolean {
+    return verifyHelloAssoSignature(rawBody, this.keysProvider.getKeys(), headers);
+  }
 
   async handleWebhook(
     rawBody: Buffer | undefined,
     headers: Record<string, string | string[] | undefined>,
   ): Promise<WebhookResult> {
-    if (!verifyHelloAssoSignature(rawBody, this.config.webhookSignatureKey, headers)) {
-      this.logger.warn('handleWebhook: invalid signature');
-      throw new UnauthorizedException('Invalid webhook signature');
+    if (!this.verifySignature(rawBody, headers)) {
+      // Cache vide (HelloAsso injoignable au boot) ou rotation de clé côté HA :
+      // on tente un refresh (throttlé) puis on revérifie une seule fois.
+      await this.keysProvider.refresh();
+      if (!this.verifySignature(rawBody, headers)) {
+        this.logger.warn('handleWebhook: signature invalide (après refresh des clés)');
+        throw new UnauthorizedException('Invalid webhook signature');
+      }
     }
 
     let parsed: WebhookPayload;

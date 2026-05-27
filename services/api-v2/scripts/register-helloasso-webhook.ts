@@ -17,18 +17,14 @@
  * `Organization` couvre les events orga (notamment `Organization.IsCashinCompliant`,
  * qui pilote l'éligibilité d'une asso à l'encaissement côté UI).
  *
- * HelloAsso renvoie `{ url, apiNotificationType, signatureKey }`. La
- * `signatureKey` est le secret partagé HMAC-SHA256 utilisé pour vérifier
- * les webhooks entrants — elle doit être mise dans
- * `HELLOASSO_WEBHOOK_SIGNATURE_KEY` du `.env` backend, sinon les webhooks
- * seront rejetés en 401 par notre receiver. Le script vérifie que les
- * deux souscriptions retournent la MÊME signatureKey (sinon il faudrait
- * étendre la config backend pour gérer deux clés ; à ce jour HA renvoie
- * une clé partenaire unique, mais on se protège du contraire en abortant).
+ * HelloAsso renvoie `{ url, apiNotificationType, signatureKey }`. Ce script
+ * ne sert qu'à (ré)enregistrer l'URL de notification : il n'y a PLUS aucune
+ * clé à reporter en env. Le backend récupère les `signatureKey` en direct via
+ * `GET /v5/partners/me` (HelloAssoWebhookKeysService, cache mémoire au boot +
+ * refresh-on-miss), vérif try-both. Un redémarrage suffit à rafraîchir.
  *
- * Par défaut la clé est MASQUÉE en stdout et écrite (mode 0600) dans
- * `/tmp/helloasso-webhook-signature-key`. Le flag `--show-key` la révèle
- * en stdout (avec warning stderr) — à n'utiliser qu'en local et JAMAIS
+ * Les signatureKey sont MASQUÉES en stdout par défaut ; `--show-key` les
+ * révèle (warning stderr) — à n'utiliser qu'en local pour debug, JAMAIS
  * coller la sortie ailleurs (chat, ticket, log partagé).
  *
  * Pré-requis :
@@ -39,7 +35,7 @@
  * (commande cloudflared, ré-enregistrement après relance du tunnel).
  */
 import * as dotenv from 'dotenv';
-import { existsSync, writeFileSync } from 'fs';
+import { existsSync } from 'fs';
 import { resolve } from 'path';
 
 interface CliArgs {
@@ -98,8 +94,8 @@ function parseArgs(argv: string[]): CliArgs {
 
 function printUsageAndExit(code: number): never {
   console.log(`Usage:
-  npm run register:helloasso-webhook -- --url <https-url>             # clé masquée + écrite dans /tmp/helloasso-webhook-signature-key (mode 0600)
-  npm run register:helloasso-webhook -- --url <https-url> --show-key  # clé en clair sur stdout (sensible)
+  npm run register:helloasso-webhook -- --url <https-url>             # enregistre l'URL ; clés masquées (récupérées en live par le backend)
+  npm run register:helloasso-webhook -- --url <https-url> --show-key  # affiche les clés en clair (debug local, sensible)
 
 L'URL doit être joignable publiquement depuis les datacenters HelloAsso
 (localhost ne fonctionne PAS pour les webhooks). En dev local utiliser
@@ -182,8 +178,6 @@ function truncate(s: string, max: number): string {
   return s.length > max ? `${s.slice(0, max)}…` : s;
 }
 
-const SIGNATURE_KEY_FILE = '/tmp/helloasso-webhook-signature-key';
-
 async function main(): Promise<void> {
   loadEnv();
   const args = parseArgs(process.argv.slice(2));
@@ -222,41 +216,15 @@ async function main(): Promise<void> {
   }
   console.log('');
 
-  // Le receiver côté backend n'utilise qu'UNE seule signatureKey
-  // (HELLOASSO_WEBHOOK_SIGNATURE_KEY). On vérifie que les deux souscriptions
-  // ont retourné la même valeur — c'est le contrat observé en sandbox HA.
-  // Si HA un jour rotate les clés par notificationType, on aboutera ici plutôt
-  // que d'avoir 50% des webhooks rejetés en 401 sans diagnostic.
-  const signatureKeys = new Set(results.map(r => r.response.signatureKey!));
-  if (signatureKeys.size > 1) {
-    throw new Error(
-      `HelloAsso a renvoyé des signatureKeys DIFFÉRENTES pour Payment et Organization. ` +
-        `Le receiver actuel ne sait gérer qu'une seule clé — étendre la config backend ` +
-        `(deux clés distinctes) avant d'aller plus loin.`,
-    );
-  }
-
-  // À ce stade : 1 seule signatureKey unique pour les 2 souscriptions.
-  const result: RegisterResponse = results[0].response;
-
-  if (args.showKey) {
-    console.error(
-      '⚠️  --show-key activé : signatureKey en clair ci-dessus. NE PAS partager cette sortie.',
-    );
-    console.error(
-      '   Copier dans services/api-v2/.env (variable HELLOASSO_WEBHOOK_SIGNATURE_KEY) puis redémarrer le backend.',
-    );
-  } else {
-    writeFileSync(SIGNATURE_KEY_FILE, result.signatureKey ?? '', { mode: 0o600 });
-    console.log(`Clé écrite dans ${SIGNATURE_KEY_FILE} (mode 0600).`);
-    console.log('Étapes :');
-    console.log(`  1. cat ${SIGNATURE_KEY_FILE}`);
-    console.log(
-      '  2. Coller la valeur dans services/api-v2/.env sur HELLOASSO_WEBHOOK_SIGNATURE_KEY=...',
-    );
-    console.log('  3. Redémarrer le backend pour recharger la config.');
-    console.log(`  4. Supprimer le fichier temporaire : rm ${SIGNATURE_KEY_FILE}`);
-  }
+  // Plus AUCUNE clé à coller en env : le backend récupère les signatureKey en
+  // direct via GET /v5/partners/me (HelloAssoWebhookKeysService, cache mémoire
+  // au boot + refresh-on-miss). Ce script ne sert qu'à (ré)enregistrer l'URL.
+  console.log('✓ URL de notification enregistrée (Payment + Organization).');
+  console.log(
+    'Aucune clé à reporter : le backend récupère les signatureKey en direct ' +
+      'depuis HelloAsso (GET /v5/partners/me) et les met en cache au démarrage. ' +
+      'Un simple redémarrage suffit à les rafraîchir après cette commande.',
+  );
 }
 
 main().catch((err: unknown) => {

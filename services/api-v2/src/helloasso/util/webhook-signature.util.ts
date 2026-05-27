@@ -22,7 +22,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
  */
 export function verifyHelloAssoSignature(
   rawBody: Buffer | undefined,
-  signatureKey: string,
+  signatureKeys: string[],
   headers: Record<string, string | string[] | undefined>,
 ): boolean {
   if (!rawBody || rawBody.length === 0) {
@@ -33,21 +33,21 @@ export function verifyHelloAssoSignature(
     return false;
   }
 
-  const computed = createHmac('sha256', signatureKey).update(rawBody).digest('hex');
+  // Signature reçue décodée une seule fois (Buffer.from hex ne throw pas : un
+  // hex invalide produit un buffer tronqué → longueur ≠ → rejet plus bas).
+  const a = Buffer.from(received, 'hex');
 
-  // Convertit en Buffer pour comparaison timing-safe (longueurs doivent matcher).
-  let a: Buffer;
-  let b: Buffer;
-  try {
-    a = Buffer.from(received, 'hex');
-    b = Buffer.from(computed, 'hex');
-  } catch {
-    return false;
-  }
-  if (a.length !== b.length) {
-    return false;
-  }
-  return timingSafeEqual(a, b);
+  // Try-both : la prod HelloAsso émet une signatureKey DISTINCTE par type de
+  // notification (Payment ≠ Organization). On accepte si la signature matche
+  // AU MOINS une des clés configurées. Comparaison timing-safe par clé.
+  return signatureKeys.some(key => {
+    if (!key) {
+      return false;
+    }
+    const computed = createHmac('sha256', key).update(rawBody).digest('hex');
+    const b = Buffer.from(computed, 'hex');
+    return a.length === b.length && timingSafeEqual(a, b);
+  });
 }
 
 function extractSignatureHeader(

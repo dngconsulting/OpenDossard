@@ -68,7 +68,6 @@ beforeAll(async () => {
   process.env.HELLOASSO_REDIRECT_URI = 'https://e2e.local/api/v2/helloasso/oauth/callback';
   process.env.HELLOASSO_FRONT_RESULT_URL = 'https://e2e.local';
   process.env.HELLOASSO_TOKEN_ENCRYPTION_KEY = Buffer.alloc(32).toString('base64');
-  process.env.HELLOASSO_WEBHOOK_SIGNATURE_KEY = 'e2e-helloasso-webhook-signature-key';
   process.env.HELLOASSO_PAYMENT_RETURN_URL_SUCCESS = 'https://e2e.local/payment/success';
   process.env.HELLOASSO_PAYMENT_RETURN_URL_ERROR = 'https://e2e.local/payment/error';
   process.env.HELLOASSO_PAYMENT_RETURN_URL_CANCELLED = 'https://e2e.local/payment/cancelled';
