@@ -27,13 +27,23 @@ export interface UpdateProfileRequest {
 
 export const authApi = {
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(credentials),
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+    } catch {
+      // `fetch` ne rejette QUE sur erreur réseau (serveur arrêté →
+      // ERR_CONNECTION_REFUSED, DNS, CORS bloqué). Le message natif
+      // « Failed to fetch » est cryptique pour l'utilisateur : on le remplace
+      // par un message parlant. Les erreurs HTTP (401, 400…) ne passent jamais
+      // ici — elles résolvent la promesse et sont gérées par `!response.ok`.
+      throw new Error('Le service est momentanément indisponible');
+    }
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
