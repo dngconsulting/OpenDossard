@@ -9,8 +9,13 @@ import { HelloAssoPaymentStatus } from '../entities/helloasso-payment.entity';
  * les identifiants HelloAsso (intent / order / payment), le snapshot payeur,
  * les colonnes licence (JOIN) et race (JOIN par `(competitionId, licenceId)`).
  *
- * Sécurité : ces endpoints sont ADMIN/ORGANISATEUR only — MOBILE doit JAMAIS
- * recevoir ce payload (qui peut révéler les paiements d'autrui).
+ * Sécurité : `GET /admin/all` et `/admin/:id/refresh-status` restent
+ * ADMIN/ORGANISATEUR only. EXCEPTION (décision produit) :
+ * `GET /admin/competition/:competitionId` est désormais accessible à MOBILE
+ * pour alimenter l'onglet "Inscrits" de l'app Dossardeur — ce payload complet
+ * (identité payeur + IDs transaction HelloAsso) est donc exposé aux
+ * utilisateurs mobiles sur ce seul endpoint. Trade-off de confidentialité
+ * assumé ; ne PAS étendre cette exception aux autres routes admin.
  */
 export class PaymentAdminRowDto {
   @ApiProperty()

@@ -110,13 +110,20 @@ Si HelloAsso ne renvoie aucun payment ou un état transitoire → no-op
   }
 
   @Get('admin/competition/:competitionId')
-  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
   @ApiOperation({
-    summary: "Lister les paiements d'une compétition (ADMIN | ORGANISATEUR)",
+    summary: "Lister les paiements d'une compétition (ADMIN | ORGANISATEUR | MOBILE)",
     description: `Endpoint scopé compétition pour l'onglet "Paiements" sur l'écran
 des engagements. Accessible à tout ORGANISATEUR sans restriction par club —
 les organisateurs se dépannent entre eux sur les engagements, et les paiements
-en font partie. La vue globale \`/admin/all\` reste ADMIN-only.`,
+en font partie. La vue globale \`/admin/all\` reste ADMIN-only.
+
+MOBILE est autorisé (décision produit) pour alimenter l'onglet "Inscrits" de
+l'écran classement de l'app Dossardeur : la liste des engagés d'une épreuve y
+est affichée comme une start-list. ⚠️ Contrairement aux autres endpoints MOBILE
+(scope=me), celui-ci renvoie le \`PaymentAdminRowDto\` complet — incluant
+l'identité du payeur et les identifiants de transaction HelloAsso — à tout
+utilisateur mobile authentifié. Trade-off de confidentialité assumé.`,
   })
   @ApiResponse({ status: 200, type: PaymentAdminRowDto, isArray: true })
   listByCompetitionAdmin(
