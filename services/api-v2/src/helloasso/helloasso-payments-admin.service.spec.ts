@@ -110,15 +110,17 @@ function makeRawRow(overrides: Record<string, unknown> = {}): Record<string, unk
 
 describe('HelloAssoPaymentsAdminService', () => {
   describe('list', () => {
-    it('applies default sort: paid_at DESC NULLS LAST, then created_at DESC', async () => {
+    it('applies default sort: paid_at DESC NULLS LAST, then created_at DESC, then id ASC', async () => {
       const qb = makeQbMock([], 0);
       const service = makeService(qb);
       await service.list({});
 
       expect(qb.orderByCalls).toHaveLength(1);
       expect(qb.orderByCalls[0]).toEqual({ sql: 'p.paid_at', dir: 'DESC', nulls: 'NULLS LAST' });
-      expect(qb.addOrderByCalls).toHaveLength(1);
+      // created_at DESC puis tie-breaker final déterministe sur la PK (p.id ASC).
+      expect(qb.addOrderByCalls).toHaveLength(2);
       expect(qb.addOrderByCalls[0]).toEqual({ sql: 'p.created_at', dir: 'DESC' });
+      expect(qb.addOrderByCalls[1]).toEqual({ sql: 'p.id', dir: 'ASC' });
     });
 
     it('falls back to default sort when orderBy is not whitelisted (anti-SQL injection)', async () => {
@@ -140,8 +142,9 @@ describe('HelloAssoPaymentsAdminService', () => {
         dir: 'ASC',
         nulls: 'NULLS LAST',
       });
-      // Tie-breaker reste created_at DESC
+      // Tie-breakers : created_at DESC puis PK déterministe p.id ASC.
       expect(qb.addOrderByCalls[0]).toEqual({ sql: 'p.created_at', dir: 'DESC' });
+      expect(qb.addOrderByCalls[1]).toEqual({ sql: 'p.id', dir: 'ASC' });
     });
 
     it('applies competitionId scope WHERE', async () => {

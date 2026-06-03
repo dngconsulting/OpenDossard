@@ -69,6 +69,10 @@ export function applyOrderBy(
     qb.orderBy('p.paid_at', 'DESC', 'NULLS LAST');
     qb.addOrderBy('p.created_at', 'DESC');
   }
+  // Tie-breaker final sur la clé primaire (unique, non-null) : garantit un ordre
+  // total déterministe, donc une pagination offset sans doublon/manquant en
+  // frontière de page — y compris si `created_at` collisionne (insert groupé).
+  qb.addOrderBy('p.id', 'ASC');
 }
 
 /**
