@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, ChevronRight, Clock, Euro, Image, Info, Loader2, MapPin } from 'lucide-react';
+import { ArrowLeft, ChevronRight, ClipboardList, Clock, Euro, Image, Info, Loader2, MapPin } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -240,6 +240,11 @@ export default function CompetitionDetailPage() {
 
   const toolbar = (
     <div className="flex items-center gap-2">
+      {!isCreating && competition && (
+        <Button variant="outline" onClick={() => navigate(`/competition/${id}/engagements`)}>
+          <ClipboardList className="h-4 w-4" /> Engagements
+        </Button>
+      )}
       {!isCreating && competition?.fede === 'FSGT' && (
         <Button variant="outline" onClick={handleExportFiche}>
           <img src="/logo/pdf-download.svg" alt="PDF" className="h-5 w-5" /> Fiche épreuve

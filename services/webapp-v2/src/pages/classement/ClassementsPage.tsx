@@ -1,9 +1,8 @@
-import { ArrowLeft, ChevronRight, ClipboardList, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ChevronRight, ClipboardList, Pencil, RefreshCw } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 
 import { ClassementsTable, ExportMenu, ImportClassementButton } from '@/components/classements';
-import { RaceInfoDialog } from '@/components/engagements';
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -119,10 +118,13 @@ export default function ClassementsPage() {
         <RefreshCw className={`h-4 w-4 ${isFetchingEngagements ? 'animate-spin' : ''}`} />
       </Button>
       {competition && (
-        <RaceInfoDialog
-          competition={competition}
-          showAboyeur={competition.competitionType === 'CX'}
-        />
+        <Button
+          variant="outline"
+          onClick={() => navigate(`/competition/${competition.id}`)}
+          title="Modifier l'épreuve"
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
       )}
       {competition && (
         <ImportClassementButton competitionId={competition.id} />

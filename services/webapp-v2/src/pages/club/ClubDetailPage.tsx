@@ -90,7 +90,7 @@ export default function ClubDetailPage() {
 
   const toolbarRight = (
     <div className="flex items-center gap-2">
-      {club?.elicenceName && clubId !== undefined ? (
+      {club && clubId !== undefined ? (
         <HelloAssoConnectButton clubId={clubId} />
       ) : null}
       {isLinkedToHelloAsso && clubId !== undefined ? (

@@ -1,11 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, ChevronRight, RefreshCw, Shuffle, Trophy } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Pencil, RefreshCw, Shuffle, Trophy } from 'lucide-react';
 import { useCallback, useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 
 import { HelloAssoTabIcon } from '@/components/common/HelloAssoTabIcon';
 import { PaymentsTable } from '@/components/data/PaymentsTable';
-import { EngagementForm, EngagementsTable, ExportMenu, ImportMenu, RaceInfoDialog, ReorganizeRacesDialog } from '@/components/engagements';
+import { EngagementForm, EngagementsTable, ExportMenu, ImportMenu, ReorganizeRacesDialog } from '@/components/engagements';
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -185,10 +185,13 @@ export default function EngagementsPage() {
         <RefreshCw className={`h-4 w-4 ${isFetchingEngagements ? 'animate-spin' : ''}`} />
       </Button>
       {competition && (
-        <RaceInfoDialog
-          competition={competition}
-          showAboyeur={competition.competitionType === 'CX'}
-        />
+        <Button
+          variant="outline"
+          onClick={() => navigate(`/competition/${id}`)}
+          title="Modifier l'épreuve"
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
       )}
       {!isPaymentsTab && (
         <>
