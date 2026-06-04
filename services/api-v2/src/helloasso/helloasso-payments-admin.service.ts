@@ -4,6 +4,7 @@ import { Repository, SelectQueryBuilder } from 'typeorm';
 
 import { OrderDirection, PaginatedResponseDto } from '../common/dto/pagination.dto';
 import { PaymentAdminRowDto } from './dto/payment-admin-row.dto';
+import { CompetitionPaymentDto } from './dto/competition-payment.dto';
 import {
   HelloAssoPaymentEntity,
   HelloAssoPaymentStatus,
@@ -86,6 +87,50 @@ export class HelloAssoPaymentsAdminService {
     const summary = aggregateSummary(summaryRows);
 
     return new PaymentsAdminListResponse(data, total, offset, limit, summary);
+  }
+
+  /**
+   * Liste SLIM des paiements d'une compétition pour l'app mobile (onglet
+   * "Inscrits").
+   *
+   * Différences clés avec `list()` :
+   *  - SELECT restreint aux colonnes affichées (licence + tarif/montant + statut)
+   *    — AUCUNE colonne payeur ni identifiant HelloAsso n'est rapatriée, donc
+   *    rien de sensible ne peut fuiter même si le DTO évoluait ;
+   *  - seuls les statuts `paid` et `pending` (engagements actifs) sont renvoyés ;
+   *  - pas de pagination (one-shot, borné par `COMPETITION_PAYMENTS_MAX`) ni de
+   *    filtres serveur — le filtrage se fait côté client (comme la grille
+   *    classement) ;
+   *  - tri par catégorie de valeur de la licence (`l.catev`), tie-breaker `p.id`.
+   */
+  async listCompetitionPayments(competitionId: number): Promise<CompetitionPaymentDto[]> {
+    const rows = await this.paymentRepo
+      .createQueryBuilder('p')
+      .leftJoin('licence', 'l', 'l.id = p.licence_id')
+      .select([
+        'p.id           AS p_id',
+        'p.status       AS p_status',
+        'p.licence_id   AS p_licence_id',
+        'p.tarif_id     AS p_tarif_id',
+        'p.amount_cents AS p_amount_cents',
+        'l.name         AS l_name',
+        'l.first_name   AS l_first_name',
+        'l.club         AS l_club',
+        'l.gender       AS l_gender',
+        'l.catea        AS l_catea',
+        'l.catev        AS l_catev',
+        'l.fede         AS l_fede',
+      ])
+      .andWhere('p.competition_id = :competitionId', { competitionId })
+      .andWhere('p.status IN (:...statuses)', {
+        statuses: [HelloAssoPaymentStatus.PAID, HelloAssoPaymentStatus.PENDING],
+      })
+      .orderBy('l.catev', 'ASC', 'NULLS LAST')
+      .addOrderBy('p.id', 'ASC')
+      .limit(COMPETITION_PAYMENTS_MAX)
+      .getRawMany<CompetitionPaymentRawRow>();
+
+    return rows.map(mapCompetitionPaymentRow);
   }
 
   /**
@@ -192,6 +237,41 @@ export class HelloAssoPaymentsAdminService {
 
     return qb;
   }
+}
+
+/** Borne de sécurité : aucune épreuve réelle n'a autant de paiements. */
+const COMPETITION_PAYMENTS_MAX = 5000;
+
+interface CompetitionPaymentRawRow {
+  p_id: number;
+  p_status: HelloAssoPaymentStatus;
+  p_licence_id: number;
+  p_tarif_id: string;
+  p_amount_cents: number;
+  l_name: string | null;
+  l_first_name: string | null;
+  l_club: string | null;
+  l_gender: string | null;
+  l_catea: string | null;
+  l_catev: string | null;
+  l_fede: string | null;
+}
+
+function mapCompetitionPaymentRow(row: CompetitionPaymentRawRow): CompetitionPaymentDto {
+  return {
+    id: row.p_id,
+    status: row.p_status,
+    licenceId: row.p_licence_id,
+    licenceName: row.l_name,
+    licenceFirstName: row.l_first_name,
+    club: row.l_club,
+    gender: row.l_gender,
+    catea: row.l_catea,
+    catev: row.l_catev,
+    fede: row.l_fede,
+    tarifId: row.p_tarif_id,
+    amount: row.p_amount_cents / 100,
+  };
 }
 
 interface SummaryRawRow {

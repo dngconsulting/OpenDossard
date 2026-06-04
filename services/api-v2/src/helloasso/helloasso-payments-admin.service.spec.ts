@@ -350,4 +350,65 @@ describe('HelloAssoPaymentsAdminService', () => {
       expect(riderCol).toMatch(/ORDER BY race\.race_code LIMIT 1/);
     });
   });
+
+  describe('listCompetitionPayments (vue SLIM mobile)', () => {
+    it('SELECT slim sans aucune colonne sensible (payeur / transaction HelloAsso)', async () => {
+      const qb = makeQbMock([]);
+      const service = makeService(qb);
+      await service.listCompetitionPayments(32);
+
+      const selectCall = qb.select.mock.calls[0] as unknown[];
+      const cols = selectCall[0] as string[];
+      const joined = cols.join(' ').toLowerCase();
+      expect(joined).not.toContain('payer');
+      expect(joined).not.toContain('checkout_intent');
+      expect(joined).not.toContain('order_id');
+      expect(joined).not.toContain('payment_id');
+      expect(joined).not.toContain('helloasso');
+      expect(joined).toContain('l.catev');
+    });
+
+    it('ne renvoie que les statuts paid + pending, scopé compétition', async () => {
+      const qb = makeQbMock([]);
+      const service = makeService(qb);
+      await service.listCompetitionPayments(32);
+
+      const statusWhere = qb.whereCalls.find(w => /status IN/i.test(w.sql));
+      expect(statusWhere?.params?.statuses).toEqual(['paid', 'pending']);
+      expect(qb.whereCalls.some(w => /p\.competition_id = :competitionId/.test(w.sql))).toBe(true);
+    });
+
+    it('trie par catégorie de licence (l.catev) puis tie-breaker p.id, borné à 5000', async () => {
+      const qb = makeQbMock([]);
+      const service = makeService(qb);
+      await service.listCompetitionPayments(32);
+
+      expect(qb.orderByCalls[0]).toEqual({ sql: 'l.catev', dir: 'ASC', nulls: 'NULLS LAST' });
+      expect(qb.addOrderByCalls[0]).toEqual({ sql: 'p.id', dir: 'ASC' });
+      expect(qb.paginationCalls.limit).toBe(5000);
+    });
+
+    it('mappe la ligne SLIM (montant en euros, colonnes licence)', async () => {
+      const qb = makeQbMock([makeRawRow()]);
+      const service = makeService(qb);
+      const res = await service.listCompetitionPayments(32);
+
+      expect(res).toEqual([
+        {
+          id: 1,
+          status: 'paid',
+          licenceId: 1234,
+          licenceName: 'Dupont',
+          licenceFirstName: 'Jean',
+          club: 'CC Castanet',
+          gender: 'H',
+          catea: 'SE',
+          catev: '3',
+          fede: 'FSGT',
+          tarifId: 'Adulte',
+          amount: 12.5,
+        },
+      ]);
+    });
+  });
 });

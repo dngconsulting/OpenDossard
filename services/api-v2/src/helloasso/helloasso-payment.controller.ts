@@ -22,6 +22,7 @@ import { HelloAssoPaymentDto } from './dto/helloasso-payment.dto';
 import { ListPaymentsAdminQueryDto } from './dto/list-payments-admin-query.dto';
 import { ListPaymentsQueryDto } from './dto/list-payments-query.dto';
 import { PaymentAdminRowDto } from './dto/payment-admin-row.dto';
+import { CompetitionPaymentDto } from './dto/competition-payment.dto';
 import { RefreshPaymentStatusDto } from './dto/refresh-payment-status.dto';
 import { HelloAssoPaymentService } from './helloasso-payment.service';
 import {
@@ -110,20 +111,17 @@ Si HelloAsso ne renvoie aucun payment ou un état transitoire → no-op
   }
 
   @Get('admin/competition/:competitionId')
-  @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
+  @Roles(Role.ADMIN, Role.ORGANISATEUR)
   @ApiOperation({
-    summary: "Lister les paiements d'une compétition (ADMIN | ORGANISATEUR | MOBILE)",
+    summary: "Lister les paiements d'une compétition (ADMIN | ORGANISATEUR)",
     description: `Endpoint scopé compétition pour l'onglet "Paiements" sur l'écran
 des engagements. Accessible à tout ORGANISATEUR sans restriction par club —
 les organisateurs se dépannent entre eux sur les engagements, et les paiements
 en font partie. La vue globale \`/admin/all\` reste ADMIN-only.
 
-MOBILE est autorisé (décision produit) pour alimenter l'onglet "Inscrits" de
-l'écran classement de l'app Dossardeur : la liste des engagés d'une épreuve y
-est affichée comme une start-list. ⚠️ Contrairement aux autres endpoints MOBILE
-(scope=me), celui-ci renvoie le \`PaymentAdminRowDto\` complet — incluant
-l'identité du payeur et les identifiants de transaction HelloAsso — à tout
-utilisateur mobile authentifié. Trade-off de confidentialité assumé.`,
+⚠️ MOBILE est EXCLU : ce \`PaymentAdminRowDto\` complet expose l'identité du
+payeur et les identifiants de transaction HelloAsso. L'app mobile passe par la
+vue SLIM \`GET competition/:competitionId\` (ci-dessous).`,
   })
   @ApiResponse({ status: 200, type: PaymentAdminRowDto, isArray: true })
   listByCompetitionAdmin(
@@ -131,6 +129,29 @@ utilisateur mobile authentifié. Trade-off de confidentialité assumé.`,
     @Query() query: ListPaymentsAdminQueryDto,
   ): Promise<PaymentsAdminListResponse> {
     return this.adminPayments.list({ ...query, competitionId });
+  }
+
+  @Get('competition/:competitionId')
+  @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
+  @ApiOperation({
+    summary: "Paiements d'une compétition — vue SLIM mobile (ADMIN | ORGANISATEUR | MOBILE)",
+    description: `Alimente l'onglet "Inscrits" de l'app Dossardeur. Renvoie la
+start-list complète (one-shot, non paginée) des paiements d'une compétition,
+triée par catégorie de valeur de la licence.
+
+Vue SLIM volontairement restreinte (\`CompetitionPaymentDto\`) : nom/club/
+catégorie/fédé du coureur + tarif/montant + statut. AUCUNE donnée sensible —
+pas d'identité du payeur, pas d'identifiants de transaction HelloAsso — d'où
+l'ouverture à MOBILE. Seuls les statuts \`paid\` et \`pending\` sont renvoyés
+(engagements actifs ; refused/refunding/refunded exclus côté serveur). Aucun
+filtre serveur : le filtrage (club, catégorie, âge, fédé, genre) se fait côté
+client comme la grille classement.`,
+  })
+  @ApiResponse({ status: 200, type: CompetitionPaymentDto, isArray: true })
+  listCompetitionPayments(
+    @Param('competitionId', ParseIntPipe) competitionId: number,
+  ): Promise<CompetitionPaymentDto[]> {
+    return this.adminPayments.listCompetitionPayments(competitionId);
   }
 
   @Post('checkout-intent')
