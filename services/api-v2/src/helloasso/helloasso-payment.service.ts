@@ -137,8 +137,61 @@ export class HelloAssoPaymentService {
       },
     });
     if (existing) {
-      throw new ConflictException(
-        `Cette licence est déjà engagée sur cette épreuve (paiement #${existing.id}, statut ${existing.status})`,
+      // Auto-supersede : si le MÊME payeur a déjà un `pending` sur ce slot,
+      // c'est un engagement abandonné (navigateur fermé sans payer, app tuée)
+      // — impossible à annuler de façon fiable côté client (sur Android,
+      // `WebBrowser.openBrowserAsync` ne détecte pas la fermeture). Un nouvel
+      // essai du même payeur le rend obsolète → on l'annule (pending→refused,
+      // UPDATE guarded) pour libérer le slot, puis on poursuit la création du
+      // nouvel intent. Un `paid`/`refunding`, ou un `pending` d'un AUTRE
+      // payeur, continue de bloquer (409).
+      //
+      // Identité payeur = `payerFirebaseUid` (l'individu), PAS `payerUserId`
+      // (qui peut être un compte backend partagé côté mobile). Garde anti-null :
+      // sans firebaseUid fiable, on ne supersede pas (fallback 409).
+      const supersedable =
+        existing.status === HelloAssoPaymentStatus.PENDING &&
+        payerFirebaseUid != null &&
+        existing.payerFirebaseUid === payerFirebaseUid;
+      if (!supersedable) {
+        throw new ConflictException(
+          `Cette licence est déjà engagée sur cette épreuve (paiement #${existing.id}, statut ${existing.status})`,
+        );
+      }
+      // Annulation directe (UPDATE guarded `status = 'pending'`, race-safe) —
+      // PAS `cancelByOwner` qui re-vérifie l'ownership par `payerUserId` (or on
+      // a déjà validé l'identité via `payerFirebaseUid`, et le payerUserId a pu
+      // changer entre-temps pour le même individu).
+      await this.paymentRepo
+        .createQueryBuilder()
+        .update(HelloAssoPaymentEntity)
+        .set({ status: HelloAssoPaymentStatus.REFUSED })
+        .where('id = :id AND status = :prerequisite', {
+          id: existing.id,
+          prerequisite: HelloAssoPaymentStatus.PENDING,
+        })
+        .execute();
+      // Re-check : si un webhook a fait passer le pending à `paid` entre le
+      // findOne et l'UPDATE (UPDATE = no-op guarded dans ce cas), le slot est
+      // toujours occupé → 409 honnête plutôt qu'une violation d'unique à l'INSERT.
+      const stillBlocking = await this.paymentRepo.findOne({
+        where: {
+          competitionId: competition.id,
+          licenceId: licence.id,
+          status: In([
+            HelloAssoPaymentStatus.PENDING,
+            HelloAssoPaymentStatus.PAID,
+            HelloAssoPaymentStatus.REFUNDING,
+          ]),
+        },
+      });
+      if (stillBlocking) {
+        throw new ConflictException(
+          `Cette licence est déjà engagée sur cette épreuve (paiement #${stillBlocking.id}, statut ${stillBlocking.status})`,
+        );
+      }
+      this.logger.log(
+        `createCheckoutIntent: superseded stale pending payment #${existing.id} (same payer firebaseUid=${payerFirebaseUid}) competition=${competition.id} licence=${licence.id}`,
       );
     }
 

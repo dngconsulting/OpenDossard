@@ -260,6 +260,66 @@ describe('HelloAssoPaymentService', () => {
       ).rejects.toBeInstanceOf(ConflictException);
     });
 
+    it('auto-supersedes a stale PENDING of the SAME payer (firebaseUid) then proceeds', async () => {
+      const m = makeService();
+      m.userRepo.findOne.mockResolvedValue(userFixture()); // firebaseUid 'fb-uid-abc'
+      m.competitionRepo.findOne.mockResolvedValue(competitionFixture());
+      m.details.findByClubId.mockResolvedValue(detailsFixture());
+      m.licenceRepo.findOne.mockResolvedValue(licenceFixture());
+      // 1er findOne = pending obsolète du même payeur ; 2e (re-check post-annulation) = libre
+      m.paymentRepo.findOne
+        .mockResolvedValueOnce({
+          id: 999,
+          status: HelloAssoPaymentStatus.PENDING,
+          payerFirebaseUid: 'fb-uid-abc',
+        } as HelloAssoPaymentEntity)
+        .mockResolvedValueOnce(null);
+      const execute = jest.fn().mockResolvedValue({ affected: 1 });
+      const qb = {
+        update: jest.fn().mockReturnThis(),
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        execute,
+      };
+      m.paymentRepo.createQueryBuilder.mockReturnValue(qb);
+      m.paymentRepo.save.mockResolvedValue({
+        id: 42,
+        competitionId: 32,
+        licenceId: 1234,
+        payerUserId: 55,
+        amountCents: 1000,
+      } as HelloAssoPaymentEntity);
+      m.api.createCheckoutIntent.mockResolvedValue({ id: 90001, redirectUrl: 'https://x' });
+
+      const result = await m.service.createCheckoutIntent({ dto: makeDto(), payerUserId: 55 });
+
+      // a annulé le pending obsolète via UPDATE guarded `status = 'pending'`
+      expect(qb.update).toHaveBeenCalled();
+      expect(qb.where).toHaveBeenCalledWith(
+        expect.stringContaining('status = :prerequisite'),
+        expect.objectContaining({ id: 999, prerequisite: HelloAssoPaymentStatus.PENDING }),
+      );
+      // puis a créé le nouvel intent
+      expect(result).toEqual({ paymentId: 42, redirectUrl: 'https://x' });
+    });
+
+    it('does NOT supersede an existing PAID even from the same payer (409)', async () => {
+      const m = makeService();
+      m.userRepo.findOne.mockResolvedValue(userFixture());
+      m.competitionRepo.findOne.mockResolvedValue(competitionFixture());
+      m.details.findByClubId.mockResolvedValue(detailsFixture());
+      m.licenceRepo.findOne.mockResolvedValue(licenceFixture());
+      m.paymentRepo.findOne.mockResolvedValue({
+        id: 999,
+        status: HelloAssoPaymentStatus.PAID,
+        payerFirebaseUid: 'fb-uid-abc',
+      } as HelloAssoPaymentEntity);
+
+      await expect(
+        m.service.createCheckoutIntent({ dto: makeDto(), payerUserId: 55 }),
+      ).rejects.toBeInstanceOf(ConflictException);
+    });
+
     it('happy path: inserts pending payment, calls HelloAsso, updates intent_id, returns {paymentId, redirectUrl}', async () => {
       const m = makeService();
       m.userRepo.findOne.mockResolvedValue(userFixture());
