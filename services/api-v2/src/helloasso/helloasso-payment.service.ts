@@ -115,11 +115,15 @@ export class HelloAssoPaymentService {
     }
     const amountCents = Math.round(amountEuros * 100);
 
+    // Résolution par `id` (clé unique) et NON par `licenceNumber` : ce dernier
+    // n'est pas unique — tous les non-licenciés partagent `'NC'`, donc un lookup
+    // par numéro renvoyait la mauvaise ligne (le 1er non-licencié) et engageait
+    // le mauvais coureur (faux 409 « déjà inscrit »).
     const licence = await this.licenceRepo.findOne({
-      where: { licenceNumber: dto.licenceNumber },
+      where: { id: dto.licenceId },
     });
     if (!licence) {
-      throw new NotFoundException(`Licence "${dto.licenceNumber}" introuvable`);
+      throw new NotFoundException(`Licence #${dto.licenceId} introuvable`);
     }
 
     const existing = await this.paymentRepo.findOne({

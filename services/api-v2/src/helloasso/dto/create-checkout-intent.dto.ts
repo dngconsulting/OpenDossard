@@ -1,6 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsString, MinLength, Min, ValidateNested } from 'class-validator';
+import { IsInt, IsOptional, IsString, MinLength, Min, ValidateNested } from 'class-validator';
 
 import { PayerProfileDto } from './payer-profile.dto';
 
@@ -16,10 +16,24 @@ export class CreateCheckoutIntentDto {
   @MinLength(1)
   tarifName: string;
 
-  @ApiProperty({ description: 'Numéro de licence (clé business) du coureur à engager.' })
+  @ApiProperty({
+    description:
+      "ID unique de la licence du coureur à engager. Clé d'identité — le " +
+      "`licenceNumber` n'est PAS unique (les non-licenciés partagent `'NC'`).",
+  })
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  licenceId: number;
+
+  @ApiPropertyOptional({
+    description:
+      'Numéro de licence — snapshot optionnel (affichage / compat ancienne app). ' +
+      "N'est PLUS utilisé pour résoudre la licence (cf. `licenceId`).",
+  })
+  @IsOptional()
   @IsString()
-  @MinLength(1)
-  licenceNumber: string;
+  licenceNumber?: string;
 
   @ApiProperty({
     type: () => PayerProfileDto,

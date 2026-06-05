@@ -26,6 +26,7 @@ function makeDto(overrides: Partial<CreateCheckoutIntentDto> = {}): CreateChecko
   return {
     competitionId: 32,
     tarifName: 'Adulte',
+    licenceId: 1234,
     licenceNumber: '12345',
     payerProfile: { firstName: 'Sami', lastName: 'Jaber', email: 'sami@example.com' },
     ...overrides,
