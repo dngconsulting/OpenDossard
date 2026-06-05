@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AuthModule } from '../auth/auth.module';
 import { ClubsModule } from '../clubs/clubs.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { CompetitionEntity } from '../competitions/entities/competition.entity';
 import { LicenceEntity } from '../licences/entities/licence.entity';
 import { UserEntity } from '../users/entities/user.entity';
@@ -39,6 +40,7 @@ import { HelloAssoWebhookService } from './helloasso-webhook.service';
     ]),
     AuthModule,
     ClubsModule,
+    NotificationsModule,
   ],
   controllers: [HelloAssoController, HelloAssoPaymentController, HelloAssoWebhookController],
   providers: [

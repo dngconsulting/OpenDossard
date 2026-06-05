@@ -30,6 +30,9 @@ interface Mocks {
     getKeys: jest.Mock;
     refresh: jest.Mock;
   };
+  notifications: {
+    sendToUser: jest.Mock;
+  };
 }
 
 function makeService(signatureKeys: string[] = [SIGNATURE_KEY]): Mocks {
@@ -51,14 +54,18 @@ function makeService(signatureKeys: string[] = [SIGNATURE_KEY]): Mocks {
   const detailsService = {
     setIsCashInCompliantBySlug: jest.fn().mockResolvedValue(1),
   };
+  const notifications = {
+    sendToUser: jest.fn().mockResolvedValue(undefined),
+  };
 
   const service = new HelloAssoWebhookService(
     paymentRepo as unknown as Repository<HelloAssoPaymentEntity>,
     keysProvider as unknown as HelloAssoWebhookKeysService,
     detailsService as unknown as HelloAssoDetailsService,
+    notifications as unknown as import('../notifications/notification.service').NotificationService,
   );
 
-  return { service, paymentRepo, updateQbExecute, detailsService, keysProvider };
+  return { service, paymentRepo, updateQbExecute, detailsService, keysProvider, notifications };
 }
 
 function buildBody(

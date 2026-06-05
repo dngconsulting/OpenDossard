@@ -10,6 +10,7 @@ import { HelloAssoDetailsService } from './helloasso-details.service';
 import { HelloAssoWebhookKeysService } from './helloasso-webhook-keys.service';
 import { mapHelloAssoState, prerequisitesForStatus } from './helloasso-state.util';
 import { verifyHelloAssoSignature } from './util/webhook-signature.util';
+import { NotificationService, type PushContent } from '../notifications/notification.service';
 
 export interface WebhookResult {
   /** `true` si la signature est valide. `false` ⇒ 401 côté controller. */
@@ -57,6 +58,7 @@ export class HelloAssoWebhookService {
     private readonly paymentRepo: Repository<HelloAssoPaymentEntity>,
     private readonly keysProvider: HelloAssoWebhookKeysService,
     private readonly details: HelloAssoDetailsService,
+    private readonly notifications: NotificationService,
   ) {}
 
   private verifySignature(
@@ -151,12 +153,41 @@ export class HelloAssoWebhookService {
     this.logger.log(
       `handleWebhook: paymentId=${payment.id} ${payment.status}→${mappedStatus} updated=${updated}`,
     );
+
+    // Push notification UNIQUEMENT sur transition réelle (`updated`) — pas de
+    // doublon si HelloAsso rejoue le même webhook. Best-effort et isolé : un
+    // échec FCM ne doit JAMAIS faire échouer/rejouer le webhook (réponse 200).
+    if (updated) {
+      await this.notifyPaymentTransition(payment, mappedStatus);
+    }
+
     return {
       signatureValid: true,
       outcome: updated
         ? `transitioned:${payment.status}→${mappedStatus}`
         : `noop_no_transition_from:${payment.status}`,
     };
+  }
+
+  /**
+   * Notifie le payeur du résultat de son paiement. Cible ses appareils via
+   * `payerUserId`. `paid`/`refused`/`refunded` → push ; les états transitoires
+   * (`refunding`) ne notifient pas. Jamais throw : tout échec est loggé et
+   * absorbé pour ne pas perturber la réponse webhook.
+   */
+  private async notifyPaymentTransition(
+    payment: HelloAssoPaymentEntity,
+    newStatus: HelloAssoPaymentStatus,
+  ): Promise<void> {
+    try {
+      if (payment.payerUserId == null) return;
+      const content = buildPaymentPushContent(payment, newStatus);
+      if (!content) return;
+      await this.notifications.sendToUser(payment.payerUserId, content);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.logger.warn(`notifyPaymentTransition: échec push paymentId=${payment.id}: ${msg}`);
+    }
   }
 
   /**
@@ -237,5 +268,40 @@ export class HelloAssoWebhookService {
       .execute();
 
     return (result.affected ?? 0) > 0;
+  }
+}
+
+/**
+ * Construit le contenu de la push selon le statut atteint. `null` = pas de push
+ * (statut transitoire `refunding`). Les valeurs `data` sont des strings
+ * (contrainte FCM) ; `competitionId` sert au deeplink vers l'épreuve.
+ */
+function buildPaymentPushContent(
+  payment: HelloAssoPaymentEntity,
+  newStatus: HelloAssoPaymentStatus,
+): PushContent | null {
+  const data: Record<string, string> = {
+    type: 'payment',
+    competitionId: String(payment.competitionId),
+    paymentId: String(payment.id),
+    status: newStatus,
+  };
+  switch (newStatus) {
+    case HelloAssoPaymentStatus.PAID:
+      return { title: 'Inscription confirmée', body: 'Votre paiement a été enregistré.', data };
+    case HelloAssoPaymentStatus.REFUSED:
+      return {
+        title: 'Paiement annulé ou refusé',
+        body: 'Vous pouvez réessayer depuis l’épreuve.',
+        data,
+      };
+    case HelloAssoPaymentStatus.REFUNDED:
+      return {
+        title: 'Paiement remboursé',
+        body: 'Votre inscription a été annulée.',
+        data,
+      };
+    default:
+      return null;
   }
 }

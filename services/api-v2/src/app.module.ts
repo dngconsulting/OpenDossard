@@ -15,6 +15,7 @@ import { HealthModule } from './health/health.module';
 import { ReportsModule } from './reports/reports.module';
 import { DeepLinksModule } from './deep-links/deep-links.module';
 import { HelloAssoModule } from './helloasso/helloasso.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -79,6 +80,7 @@ import { HelloAssoModule } from './helloasso/helloasso.module';
     ReportsModule,
     DeepLinksModule,
     HelloAssoModule,
+    NotificationsModule,
   ],
 })
 export class AppModule {}
