@@ -1,509 +1,472 @@
 <!doctype html>
-<html class="no-js" lang="zxx">
+<html lang="fr">
 
 <head>
     <meta charset="utf-8">
-    <meta name="author" content="John Doe">
-    <meta content="description" name="Calendrier cycliste amateur sous une forme innovante">
-    <meta name="keywords" content="Cyclosportives,Sport,Dossardeur">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- Title -->
-    <title>L'application Dossardeur</title>
-    <!-- Place favicon.ico in the root directory -->
-    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
-    <link rel="shortcut icon" type="image/png" href="favicon-16x16.png"/>
-    <!-- Plugin-CSS -->
-    <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/owl.carousel.min.css">
-    <link rel="stylesheet" href="css/themify-icons.css">
-    <link rel="stylesheet" href="css/magnific-popup.css">
-    <link rel="stylesheet" href="css/animate.css">
-    <!-- Main-Stylesheets -->
-    <link rel="stylesheet" href="css/normalize.css">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="css/responsive.css">
-    <script src="js/vendor/modernizr-2.8.3.min.js"></script>
 
-    <!--[if lt IE 9]>
-    <script src="//oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-    <script src="//oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
+    <title>Dossardeur — l'app du cycliste, de A à Z</title>
+    <meta name="description"
+          content="Dossardeur : le calendrier le plus complet des courses et cyclosportives, avec inscription et paiement en ligne, classements et résultats. Disponible sur iOS et Android.">
+    <meta name="keywords"
+          content="cyclisme, cyclosportive, calendrier course, inscription course vélo, paiement en ligne, FSGT, FFC, UFOLEP, FFVÉLO, classements, Dossardeur">
+    <meta name="author" content="DNG Consulting">
+    <meta name="theme-color" content="#0f172a">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Dossardeur — l'app du cycliste, de A à Z">
+    <meta property="og:description"
+          content="Trouve ta course, inscris-toi, paie en ligne et suis tes résultats. Le calendrier cycliste le plus complet, sur iOS et Android.">
+    <meta property="og:image" content="https://www.opendossard.com/dossardeur/images/v2-vues.png">
+    <meta property="og:url" content="https://www.opendossard.com/dossardeur/">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <link rel="icon" type="image/png" href="images/od-icon.png">
+    <link rel="apple-touch-icon" href="images/od-icon.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
 </head>
 
-<body style="overflow-x:hidden;" data-spy="scroll" data-target="#primary-menu">
+<body>
 
-<div class="preloader">
-    <div class="sk-folding-cube">
-        <div class="sk-cube1 sk-cube"></div>
-        <div class="sk-cube2 sk-cube"></div>
-        <div class="sk-cube4 sk-cube"></div>
-        <div class="sk-cube3 sk-cube"></div>
-    </div>
-</div>
-<!--Mainmenu-area-->
-<div class="mainmenu-area" data-spy="affix" data-offset-top="100">
-    <div class="container">
+<!-- ============ HEADER ============ -->
+<header class="site-header" id="top">
+    <div class="container nav">
+        <a class="brand" href="#top" aria-label="Dossardeur, accueil">
+            <img src="images/logo-dossardeur.svg" alt="" class="brand-logo">
+            <span class="brand-name">Dossardeur</span>
+        </a>
 
-        <!--Logo-->
-        <div class="navbar-header">
-            <a href="#" style="position:relative;top:20px;left: 15px">
-                <img width="70px" height="60px" src="images/logoblanc.svg" alt="">
-            </a>
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#primary-menu">
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-        </div>
-        <!--Logo/-->
-        <nav class="collapse navbar-collapse" id="primary-menu">
-            <ul class="nav navbar-nav navbar-right">
-                <li class="active"><a href="#home-page">Accueil</a></li>
-                <li><a href="#feature-page">Fonctionnalités</a></li>
-                <li><a href="#download">Télécharger</a></li>
-                <li><a href="#faq-page">FAQ</a></li>
-                <li><a href="#contact-page">Contact</a></li>
-            </ul>
+        <nav class="nav-links" id="nav-links">
+            <a href="#fonctionnalites">Fonctionnalités</a>
+            <a href="#paiement">Inscription &amp; paiement</a>
+            <a href="#faq">FAQ</a>
+            <a class="btn btn-primary btn-sm" href="#telecharger">Télécharger</a>
         </nav>
-    </div>
-</div>
-<!--Mainmenu-area/-->
 
-
-
-<!--Header-area-->
-<header class="header-area overlay full-height relative v-center" id="home-page">
-    <div class="absolute anlge-bg"></div>
-    <div class="container">
-        <div class="row v-center">
-            <div class="col-xs-12 col-md-7 header-text">
-                <div style="font-family: 'Martel ExtraBold';font-size: 40px">Dossardeur</div>
-                <p>Dossardeur est une application mobile Android et iOS innovante destinée à assister les sportifs (cyclistes
-                    essentiellement) dans leur recherche d'épreuves sportives. Que ce soit les courses de fédérations ou
-                    les cyclosportives, Dossardeur répertorie les évènements et propose une vue à 3 dimensions : <strong>Quand</strong>
-                    (l'agenda), <strong>Où</strong> (la géolocalisation) et <strong>Quoi</strong> (la liste d'épreuves).
-                    <br><a href="https://www.youtube.com/watch?v=srzVTXZXKgY" class="button white">Démonstration</a>
-            </div>
-            <div class="hidden-xs hidden-sm col-md-5 text-right">
-                <div class="screen-box screen-slider">
-                    <div class="item">
-                        <img src="images/screen1.png" alt="">
-                    </div>
-                    <div class="item">
-                        <img src="images/screen2.png" alt="">
-                    </div>
-                    <div class="item">
-                        <img src="images/screen3.png" alt="">
-                    </div>
-                    <div class="item">
-                        <img src="images/screen4.png" alt="">
-                    </div>
-                    <div class="item">
-                        <img src="images/screen5.png" alt="">
-                    </div>
-                </div>
-            </div>
-        </div>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
     </div>
 </header>
-<!--Header-area/-->
 
-
-
-<!--Feature-area-->
-<!--Feature-area/-->
-
-
-<section class="gray-bg section-padding" id="service-page">
-    <div class="container">
-        <div class="row">
-            <div class="col-xs-12 col-sm-4">
-                <div class="box">
-                    <div class="box-icon">
-                        <img src="images/portfolio-icon-1.png" alt="">
-                    </div>
-                    <h4>Quand ?</h4>
-                    <p>Toutes les épreuves sont affichées dans un calendrier. Vous pouvez à tout moment ajouter
-                        l'événement à l'agenda mobile de votre choix via un simple clic sur la date.
-                        Un code couleur par fédération permet de distinguer les épreuves entre elles. </p>
-                </div>
-            </div>
-            <div class="col-xs-12 col-sm-4">
-                <div class="box">
-                    <div class="box-icon">
-                        <img src="images/portfolio-icon-5.png" alt="">
-                    </div>
-                    <h4>Quoi ?</h4>
-                    <p>L'affichage sous la forme de liste
-                        permet à l'utilisateur de rechercher une ou plusieurs épreuves via un mot-clé. La liste des
-                        épreuves
-                        est triable de manière chronologique (passées ou futures). Toute épreuve filtrée dans cet écran est synchronisée dans les autres vues. </p>
-                </div>
-            </div>
-            <div class="col-xs-12 col-sm-4">
-                <div class="box">
-                    <div class="box-icon">
-                        <img src="images/portfolio-icon-4.png" alt="">
-                    </div>
-                    <h4>Où ?</h4>
-                    <p>Toutes les épreuves sont géolocalisées, Dossardeur les affiche sur une carte. Il est ainsi facile
-                        d'identifier visuellement la répartition géographique de vos épreuves préférées.
-                        Un code couleur par fédération permet de les distinguer encore plus facilement</p>
-                </div>
-            </div>
-
-        </div>
+<!-- ============ HERO ============ -->
+<section class="hero">
+    <div class="hero-bg" aria-hidden="true">
+        <span class="glow glow-1"></span>
+        <span class="glow glow-2"></span>
+        <span class="grain"></span>
     </div>
-</section>
 
-
-<section class="angle-bg sky-bg section-padding" id="feature-page">
-    <div class="container">
-        <div class="row">
-            <div class="col-xs-12">
-                <div id="caption_slide" class="carousel slide caption-slider" data-ride="carousel">
-                    <div class="carousel-inner" role="listbox">
-                        <div class="item active row">
-                            <div class="v-center">
-                                <div class="col-xs-12 col-md-6">
-                                    <div class="caption-title" data-animation="animated fadeInUp">
-                                        <h2>La vue Calendrier</h2>
-                                    </div>
-                                    <div class="caption-desc" data-animation="animated fadeInUp">
-                                        <p>L'agenda répond à un besoin récurrent chez le sportif: Quand est-ce qu'une
-                                            épreuve est organisée et quelles sont les épreuves concurrentes se déroulant
-                                            à la même période ?</p>
-                                        <p>Vous souhaitez ajouter l'épreuve en question dans votre agenda, un simple
-                                            clic et hop Dossardeur vous propose de l'ajouter.</p>
-                                    </div>
-                                    <div class="caption-button" data-animation="animated fadeInUp">
-                                        <a href="https://www.youtube.com/watch?v=DbZrFCkBUdI&feature=youtu.be" class="button">Démonstration</a>
-                                    </div>
-                                </div>
-                                <div class="col-xs-6 col-md-3">
-                                    <div class="caption-photo one" data-animation="animated fadeInRight">
-                                        <img src="images/feature-calendar.png" alt="">
-                                    </div>
-                                </div>
-                                <div class="col-xs-6 col-md-3">
-                                    <div class="caption-photo two" data-animation="animated fadeInRight">
-                                        <img src="images/feature-calendar2.png" alt="">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="item row">
-                            <div class="v-center">
-                                <div class="col-xs-12 col-md-6">
-                                    <div class="caption-title" data-animation="animated fadeInUp">
-                                        <h2>La vue Liste</h2>
-                                    </div>
-                                    <div class="caption-desc" data-animation="animated fadeInUp">
-                                        <p>La vue liste permet d'un coup d'oeil de distinguer les épreuves par leurs
-                                            noms de façon chronologique en fonction du mode de tri sélectionné par
-                                            l'utilisateur (passées, futures, toutes).</p>
-                                        <p>Cette vue propose également le filtrage par mot-clé, vous pouvez rechercher
-                                            par exemple toutes les épreuves intitulées "granfondo" ou une seule épreuve.
-                                        <p> La liste résultante est synchronisée dans les 2 autres vues.</p></p>
-                                    </div>
-                                    <div class="caption-button" data-animation="animated fadeInUp">
-                                        <a href="https://www.youtube.com/watch?v=bS2bdx0YFXA" class="button">Démonstration</a>
-                                    </div>
-                                </div>
-                                <div class="col-xs-6 col-md-3">
-                                    <div class="caption-photo one" data-animation="animated fadeInRight">
-                                        <img src="images/feature-liste1.png" alt="">
-                                    </div>
-                                </div>
-                                <div class="col-xs-6 col-md-3">
-                                    <div class="caption-photo two" data-animation="animated fadeInRight">
-                                        <img src="images/feature-liste2.png" alt="">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="item row">
-                            <div class="v-center">
-                                <div class="col-xs-12 col-md-6">
-                                    <div class="caption-title" data-animation="animated fadeInUp">
-                                        <h2>La vue Géolocalisée</h2>
-                                    </div>
-                                    <div class="caption-desc" data-animation="animated fadeInUp">
-                                        <p>Non seulement les épreuves sont affichées sur une carte avec un code couleur
-                                            par fédération, mais vous pouvez aussi demander à votre mobile de vous
-                                            guider vers une épreuve en utilisant l'outil de navigation de votre choix
-                                            (Waze, Google Maps, Apple Plans...).</p>
-                                        <p>Dossardeur répertorie le lieu des départs ou le parking d'accueil de
-                                            l'épreuve, plus besoin de tourner en rond dans une commune en cherchant un
-                                            quelconque panneau indiquant l'épreuve ou la course.</p>
-                                    </div>
-                                    <div class="caption-button" data-animation="animated fadeInUp">
-                                        <a href="https://www.youtube.com/watch?v=IWcoO99oLIY" class="button">Démonstration</a>
-                                    </div>
-                                </div>
-                                <div class="col-xs-6 col-md-3">
-                                    <div class="caption-photo one" data-animation="animated fadeInRight">
-                                        <img src="images/screen2.png" alt="">
-                                    </div>
-                                </div>
-                                <div class="col-xs-6 col-md-3">
-                                    <div class="caption-photo two" data-animation="animated fadeInRight">
-                                        <img src="images/feature-map2.png" alt="">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="item row">
-                            <div class="v-center">
-                                <div class="col-xs-12 col-md-6">
-                                    <div class="caption-title" data-animation="animated fadeInUp">
-                                        <h2>Le détail des épreuves</h2>
-                                    </div>
-                                    <div class="caption-desc" data-animation="animated fadeInUp">
-                                        <p>Le détail d'une épreuve contient énormément d'informations. Que ce soit la localisation GPS du lieu de départ, les distances, les horaires, le profil, les coordonnées de l'organisateur,
-                                            tout y est décrit sous une même forme synthétique.</p> <p>Appeler l'organisateur ou lui envoyer un mail devient plus naturel à partir du mobile.</p>
-                                    </div>
-                                    <div class="caption-button" data-animation="animated fadeInUp">
-                                        <a href="https://www.youtube.com/watch?v=FlwjXTMLwho" class="button">Démonstration</a>
-                                    </div>
-                                </div>
-                                <div class="col-xs-6 col-md-3">
-                                    <div class="caption-photo one" data-animation="animated fadeInRight">
-                                        <img src="images/feature-detail1.png" alt="">
-                                    </div>
-                                </div>
-                                <div class="col-xs-6 col-md-3">
-                                    <div class="caption-photo two" data-animation="animated fadeInRight">
-                                        <img src="images/feature-detail2.png" alt="">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Indicators -->
-                    <ol class="carousel-indicators caption-indector">
-                        <li data-target="#caption_slide" data-slide-to="0" class="active">
-                            <strong>La vue Calendrier</strong>une vue chronologique.
-                        </li>
-                        <li data-target="#caption_slide" data-slide-to="1">
-                            <strong>La vue Liste</strong>trouver la bonne épreuve.
-                        </li>
-                        <li data-target="#caption_slide" data-slide-to="2">
-                            <strong>La vue Géolocalisée</strong>situer dans l'espace.
-                        </li>
-                        <li data-target="#caption_slide" data-slide-to="3">
-                            <strong>Fiche épreuve</strong>les informations importantes.
-                        </li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-
-<section class="gray-bg section-padding" style="padding: 50px" id="faq-page">
-    <div class="container">
-        <div class="row">
-            <div class="col-xs-12 col-sm-6 col-sm-offset-3 text-center">
-                <div class="page-title">
-                    <h2>Questions fréquentes</h2>
-                    <p>Vous trouverez ici les réponses aux questions que vous vous posez probablement sur Dossardeur</p>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-xs-12 col-sm-10 col-sm-offset-1 col-md-8 col-md-offset-2">
-                <div class="panel-group" id="accordion">
-                    <div class="panel">
-                        <h4 class="panel-title">
-                            <a data-toggle="collapse" data-parent="#accordion" href="#collapse1" aria-expanded="true">Qui
-                                est le sponsor de Dossardeur ?</a>
-                        </h4>
-                        <div id="collapse1" class="panel-collapse collapse in">
-                            <p>Dossardeur est un projet entièrement réalisé sur fond propre par la société
-                                <a href="https://dng-consulting.com/">DNG Consulting</a>. Son développeur, <a href="https://www.linkedin.com/in/samijaber/">Sami
-                                    Jaber</a>, gérant de la société, est également à l'origine du projet Open
-                                Dossard, la plateforme sur laquelle s'appuie Dossardeur.</p>
-                        </div>
-                    </div>
-                    <div class="panel">
-                        <h4 class="panel-title">
-                            <a data-toggle="collapse" data-parent="#accordion" href="#collapse2">Pourquoi cette
-                                application ?</a>
-                        </h4>
-                        <div id="collapse2" class="panel-collapse collapse">
-                            <p>De plus en plus de sportifs utilisent quotidiennement leur mobile, 85% de la population
-                                est équipée. Dans le même temps, ce sont toujours les mêmes problèmes qui se posent
-                                lorsqu'il
-                                s'agit de prendre connaissance du calendrier des épreuves sportives se déroulant dans
-                                son secteur géographique ou pour s'y rendre.
-                                Il existe de nombreux calendriers sous la forme de sites Web mais ceux-ci sont
-                                incomplets et bien souvent totalement inadaptés à un fonctionnement mobile. Il est
-                                systématiquement indispensable
-                                de se rendre sur le site Web de l'organisateur pour compléter les informations
-                                logistiques.
-                            <p>Avec Dossardeur plus besoin de faire des copier/coller d'adresses d'épreuves pour les
-                                insérer dans son GPS, plus besoin de stocker les coordonnées des organisateurs, plus
-                                besoin de chercher
-                                sur Google le profil de telle ou telle course. Dossardeur synthétise à un seul et même
-                                endroit (votre poche), sous une même présentation, la quantité importante de données
-                                liées aux épreuves sportives.</p></p>
-                        </div>
-                    </div>
-                    <div class="panel">
-                        <h4 class="panel-title">
-                            <a data-toggle="collapse" data-parent="#accordion" href="#collapse3">D'où vient la base de
-                                données des cyclosportives ?</a>
-                        </h4>
-                        <div id="collapse3" class="panel-collapse collapse">
-                            <p>Contrairement aux fédérations sportives (FSGT, FFC, UFOLEP, FFVELO) qui gèrent leur
-                                calendrier annuel de manière centralisée, il n'existe aucun moyen d'identifier celui des
-                                cyclosportives. Nous avons
-                                donc passés des heures, des semaines, à éplucher les sites Internet des organisations
-                                lorsqu'ils existaient. Nous avons aussi parcouru les règlements internes, recherché tous
-                                les liens nous permettant
-                                de trouver les informations (horaires, localisation, départs, inscription, coordonnées
-                                organisateur, ...). Lorsque l'information n'était pas disponible, un échange direct avec
-                                l'organisteur
-                                nous a permis de combler le manque d'information. Dossardeur recense plus de 130
-                                épreuves cyclosportives, c'est à ce jour le <b>calendrier le plus complet du marché</b>.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="panel">
-                        <h4 class="panel-title">
-                            <a data-toggle="collapse" data-parent="#accordion" href="#collapse4">Quelles sont les fédérations représentées ?</a>
-                        </h4>
-                        <div id="collapse4" class="panel-collapse collapse">
-                            <p>
-                            Dans la pratique, <strong>Toutes</strong>. Dossardeur propose déjà le calendrier FSGT de quelques
-                            départements du Sud-Ouest, de l'Alsace et de la Normandie. Ces comités utilisent Dossardeur depuis plusieurs années.
-                            Il arrive parfois que certains organisateurs d'épreuves FFC ou UFOLEP nous demandent de référencer leurs événements.
-                            Il faut savoir que Dossardeur est une app <b>totalement gratuite</b> pour les organisateurs
-                            d'épreuves et pour les fédérations. La seule contrepartie, minime, est d'accepter de partager ce calendrier avec d'autres fédérations.</p>
-                            <p>Aujourd'hui, seule l'UFOLEP a refusé de nous partager son calendrier pour éviter cette concurrence que, nous, nous jugeons saine.
-                                Malgré tout, nous restons convaincus que le bon sens l'emportera et que les licenciés feront entendre leur voix auprès de leurs
-                            représentants.
-                        </div>
-                    </div>
-                    <div class="panel">
-                        <h4 class="panel-title">
-                            <a data-toggle="collapse" data-parent="#accordion" href="#collapse5">Quel est le modèle
-                                économique de Dossardeur ?</a>
-                        </h4>
-                        <div id="collapse5" class="panel-collapse collapse">
-                            <p>
-                            <p>Dossardeur est un projet mené en fonds propres jusqu'à présent, cela signifie que nous ne
-                                sommes dépendants d'aucun investisseur ou mandataire financier. L'application est
-                                proposée en marque blanche aux fédérations qui souhaitent disposer de leur propre espace et gérer
-                                leur propre communication (identité visuelle, revenus issus de la publicité, etc..). Le
-                                code source de Dossardeur est par ailleurs assez générique pour pouvoir gérer d'autres
-                                sports (trail, course à pied, triathlon, etc ...) ou événements non sportifs
-                                (vide-grenier, rassemblements autour d'un thème commun,...).
-                            L'application Dossardeur actuellement proposée sur les stores restera <b>gratuite</b> pour encourager sa diffusion.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="section-padding gray-bg" id="download">
-    <div class="container">
-        <div class="row">
-            <div style="display: flex;flex-direction:row;align-content: center;align-items: center;justify-content: center">
-                Téléchargez Dossardeur
-            </div>
-        </div>
-        <div class="row">
-            <div style="display: flex;flex-direction:row;align-content: center;align-items: center;justify-content: center">
-                <a href='https://play.google.com/store/apps/details?id=com.dossardeur&hl=fr&utm_source=siteweb&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'>
-                    <img width="200px" height="80px" alt='Disponible sur Google Play' src='images/googleplay.png'/></a>
-                <a href="https://apps.apple.com/fr/app/dossardeur/id1496777795?mt=8">
-                    <img width="200px" height="80px" alt="Disponible sur App Store" src="images/appstore.png"/>
+    <div class="container hero-inner">
+        <div class="hero-copy reveal">
+            <a class="announce-banner" href="fireball.html">
+                <span class="ab-tag">📣 Annonce</span>
+                <span class="ab-text">Dossardeur version Fireball est enfin là</span>
+                <span class="ab-arrow" aria-hidden="true">→</span>
+            </a>
+            <span class="eyebrow">Nouvelle version · Nouveau look</span>
+            <h1>Dossardeur,<br>l'app du cycliste,<br><span class="accent-text">de A à Z.</span></h1>
+            <p class="hero-sub">
+                Un calendrier complet des courses et cyclosportives, désormais avec
+                <strong>inscription et paiement en ligne</strong>, <strong>classements</strong> et
+                <strong>résultats</strong>. Sur iOS et Android.
+            </p>
+            <div class="store-badges">
+                <a href="https://play.google.com/store/apps/details?id=com.dossardeur&hl=fr"
+                   aria-label="Disponible sur Google Play">
+                    <img src="images/googleplay.png" alt="Disponible sur Google Play">
+                </a>
+                <a href="https://apps.apple.com/fr/app/dossardeur/id1496777795?mt=8"
+                   aria-label="Télécharger dans l'App Store">
+                    <img src="images/appstore.png" alt="Télécharger dans l'App Store">
                 </a>
             </div>
         </div>
-    </div>
-</section>
 
-
-<footer class="footer-area relative sky-bg" id="contact-page">
-    <div class="absolute footer-bg"></div>
-    <div class="footer-top" style="margin-bottom: 50px">
-        <div class="container">
-            <div class="row">
-                <div class="col-xs-12 col-sm-6 col-sm-offset-3 text-center">
-                    <div class="page-title">
-                        <h2>Nous contacter</h2>
-                        <p>Vous avez une demande particulière ou simplement nous faire part de votre avis concernant
-                            Dossardeur, n'hésitez pas !</p>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div style="display: flex;flex-direction:column;align-content: center;align-items: center;justify-content: center;margin-left: 30px;margin-right: 30px">
-                    <div class="side-icon-box" style="padding-right: 20px">
-                        <div class="side-icon">
-                            <img src="images/mail-arrow.png" alt="">
-                        </div>
-                        <p><strong>E-mail </strong>
-                            <a href="mailto:info@dossardeur.com">info@dossardeur.com</a> <br/>
-                        <div>&nbsp;</div>
-                        </p>
-                    </div>
-                </div>
+        <div class="hero-visual reveal" data-delay="1">
+            <div class="phone-float">
+                <img src="images/v2-vues.png" alt="Les vues calendrier, liste et carte de Dossardeur">
             </div>
         </div>
     </div>
-    <div class="footer-middle">
-        <div class="container">
-            <div class="row">
-                <div class="col-xs-12 col-sm-6 pull-right">
-                    <ul class="social-menu text-right x-left">
-                        <li><a href="https://www.facebook.com/dossardeur"><i class="ti-facebook"></i></a></li>
-                        <li><a href="http://twitter.com/dossardeur"><i class="ti-twitter"></i></a></li>
-                        <li><a href="http://www.instagram.com/dossardeur"><i class="ti-instagram"></i></a></li>
-                        <li><a href="https://github.com/dngconsulting/OpenDossard"><i class="ti-github"></i></a></li>
-                    </ul>
+
+    <!-- vague vers le bandeau fédérations -->
+    <div class="wave wave-down" aria-hidden="true">
+        <svg viewBox="0 0 1440 90" preserveAspectRatio="none"><path d="M0,40 C360,90 1080,0 1440,50 L1440,90 L0,90 Z"></path></svg>
+    </div>
+</section>
+
+<!-- ============ BANDEAU FÉDÉRATIONS ============ -->
+<section class="fede-strip">
+    <div class="container">
+        <p class="fede-label">Dossardeur est compatible avec toutes les fédérations</p>
+        <div class="fede-logos">
+            <img src="images/fede-fsgt.svg" alt="FSGT">
+            <img src="images/fede-ffc.svg" alt="FFC">
+            <img src="images/fede-ufolep.svg" alt="UFOLEP">
+            <img src="images/fede-ffvelo.png" alt="FFVÉLO">
+            <img src="images/fede-fftri.png" alt="FFTRI">
+        </div>
+    </div>
+</section>
+
+<!-- ============ LES 3 VUES ============ -->
+<section class="section light" id="fonctionnalites">
+    <div class="container">
+        <div class="section-head reveal">
+            <span class="kicker">Trouver son épreuve</span>
+            <h2>Trois façons de voir le calendrier</h2>
+            <p>Quand, où, quoi : Dossardeur affiche toutes les épreuves sous l'angle qui vous arrange,
+                et synchronise vos filtres entre les vues.</p>
+        </div>
+
+        <div class="cards-3">
+            <article class="card reveal">
+                <div class="card-ic">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="3" y="4.5" width="18" height="17" rx="3"/>
+                        <path d="M8 2.5v4M16 2.5v4M3 9.5h18"/>
+                        <path d="M7.5 13.5h.01M12 13.5h.01M16.5 13.5h.01M7.5 17.5h.01M12 17.5h.01"/>
+                    </svg>
                 </div>
-                <div class="col-xs-12 col-sm-6">
-                    <p>Rejoignez-nous sur les réseaux sociaux, nous y publions régulièrement des informations sur les
-                        mises à jour et les nouvelles fonctionnalités de Dossardeur.</p>
+                <h3>Calendrier</h3>
+                <p>Toutes les épreuves dans un agenda, avec un code couleur par fédération.
+                    Un clic sur une date pour l'ajouter à votre agenda mobile.</p>
+            </article>
+            <article class="card reveal" data-delay="1">
+                <div class="card-ic">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M9 6.5h11M9 12h11M9 17.5h7"/>
+                        <circle cx="4.5" cy="6.5" r="1.4"/>
+                        <circle cx="4.5" cy="12" r="1.4"/>
+                        <circle cx="4.5" cy="17.5" r="1.4"/>
+                    </svg>
                 </div>
+                <h3>Liste</h3>
+                <p>Recherchez par mot-clé, triez les épreuves passées ou futures.
+                    Le filtre s'applique instantanément aux autres vues.</p>
+            </article>
+            <article class="card reveal" data-delay="2">
+                <div class="card-ic">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M9 4 3.5 6.2v13.3L9 17.3l6 2.2 5.5-2.2V4L15 6.2 9 4z"/>
+                        <path d="M9 4v13.3M15 6.2v13.3"/>
+                    </svg>
+                </div>
+                <h3>Carte</h3>
+                <p>Toutes les épreuves géolocalisées. Lancez la navigation
+                    (Waze, Google Maps, Plans) vers le départ en un clic.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<!-- ============ FICHE ÉPREUVE ============ -->
+<section class="section light feature-row">
+    <div class="container split">
+        <div class="split-media reveal">
+            <div class="phone-float small">
+                <img src="images/v2-detail.png" alt="La fiche détaillée d'une épreuve dans Dossardeur">
+            </div>
+        </div>
+        <div class="split-copy reveal" data-delay="1">
+            <span class="kicker">La fiche épreuve</span>
+            <h2>Tout sur l'épreuve, au même endroit</h2>
+            <p>Infos, horaires, circuits et distances, profil, tarifs et coordonnées de
+                l'organisateur : la fiche réunit l'essentiel sous une présentation unique.</p>
+            <ul class="ticks">
+                <li>Onglets Infos · Horaires · Circuits</li>
+                <li>Appel, e-mail ou site de l'organisateur en un geste</li>
+                <li>Accès direct aux résultats et aux photos</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- ============ CLASSEMENTS ============ -->
+<section class="section light feature-row alt">
+    <div class="container split reverse">
+        <div class="split-media reveal">
+            <div class="phone-float small">
+                <img src="images/v2-classements.png" alt="Les classements et résultats dans Dossardeur">
+            </div>
+        </div>
+        <div class="split-copy reveal" data-delay="1">
+            <span class="badge-new">Nouveau</span>
+            <span class="kicker">Classements &amp; résultats</span>
+            <h2>Suivez la course, suivez vos résultats</h2>
+            <p>Consultez le classement d'une épreuve par catégorie, club ou fédération,
+                et retrouvez vos propres résultats course après course.</p>
+            <ul class="ticks">
+                <li>Classements détaillés par épreuve</li>
+                <li>Filtres catégorie · club · fédération</li>
+                <li>Votre historique personnel de performances</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- ============ INSCRIPTION & PAIEMENT (sombre) ============ -->
+<section class="section dark" id="paiement">
+    <div class="wave wave-up" aria-hidden="true">
+        <svg viewBox="0 0 1440 90" preserveAspectRatio="none"><path d="M0,50 C360,0 1080,90 1440,40 L1440,0 L0,0 Z"></path></svg>
+    </div>
+    <div class="hero-bg" aria-hidden="true">
+        <span class="glow glow-3"></span>
+        <span class="grain"></span>
+    </div>
+
+    <div class="container split">
+        <div class="split-copy reveal">
+            <span class="badge-new">Nouveau</span>
+            <span class="kicker light-kicker">Inscription &amp; paiement</span>
+            <h2 class="on-dark">Inscrivez-vous et payez en ligne, en quelques secondes</h2>
+            <p class="on-dark-sub">Plus besoin de chèque ni de file d'attente. Réglez votre inscription
+                directement depuis l'app, en toute sécurité.</p>
+            <ul class="ticks on-dark-ticks">
+                <li>Paiement sécurisé via <strong>HelloAsso</strong></li>
+                <li>100 % reversé à l'association organisatrice</li>
+                <li>0 € de frais pour l'association ou le participant</li>
+                <li>Dossard confirmé après vérification de votre licence par l'organisateur</li>
+            </ul>
+            <div class="powered">
+                <span>Paiement assuré par</span>
+                <img src="images/helloasso-logo.png" alt="HelloAsso">
+            </div>
+        </div>
+        <div class="split-media reveal" data-delay="1">
+            <div class="phone-float small glow-shadow">
+                <img src="images/v2-paiement.png" alt="L'inscription et le paiement en ligne dans Dossardeur">
+            </div>
+        </div>
+    </div>
+
+    <div class="wave wave-down" aria-hidden="true">
+        <svg viewBox="0 0 1440 90" preserveAspectRatio="none"><path d="M0,40 C360,90 1080,0 1440,50 L1440,90 L0,90 Z"></path></svg>
+    </div>
+</section>
+
+<!-- ============ HELLOASSO — COMMENT ÇA MARCHE ============ -->
+<section class="section light helloasso">
+    <div class="container">
+        <div class="section-head reveal">
+            <span class="kicker ha-kicker">Le modèle HelloAsso</span>
+            <h2>HelloAsso, comment ça marche ?</h2>
+            <p>Un modèle solidaire et sans commission : à chaque inscription, une
+                <strong>contribution volontaire</strong> peut vous être proposée. Voici concrètement comment ça fonctionne.</p>
+        </div>
+
+        <div class="steps-3">
+            <article class="step reveal">
+                <span class="step-num">01</span>
+                <h3>Les cyclistes contribuent volontairement</h3>
+                <p>À chaque paiement, une contribution volontaire vous est proposée, sur le modèle
+                    du prix libre. Elle est <strong>totalement facultative</strong> et ajustable.</p>
+            </article>
+            <article class="step reveal" data-delay="1">
+                <span class="step-num">02</span>
+                <h3>Ces soutiens financent le service</h3>
+                <p>Ces contributions couvrent les coûts de HelloAsso, qui peut ainsi proposer
+                    ses outils de paiement aux associations <strong>sans frais</strong>.</p>
+            </article>
+            <article class="step reveal" data-delay="2">
+                <span class="step-num">03</span>
+                <h3>Les associations en profitent gratuitement</h3>
+                <p>Résultat : <strong>100 % de votre inscription</strong> revient à l'association
+                    organisatrice, et l'outil reste gratuit pour tout le monde.</p>
+            </article>
+        </div>
+
+        <div class="ha-foot reveal">
+            <img src="images/helloasso-logo.png" alt="HelloAsso">
+            <p>La contribution volontaire est destinée à HelloAsso, pas à Dossardeur ni à l'association :
+                vous restez libre de l'ajuster ou de la retirer au moment du paiement.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ============ COMPTE ============ -->
+<section class="section light feature-row">
+    <div class="container split">
+        <div class="split-media reveal">
+            <div class="phone-float small">
+                <img src="images/v2-compte.png" alt="L'espace personnel Mon Compte dans Dossardeur">
+            </div>
+        </div>
+        <div class="split-copy reveal" data-delay="1">
+            <span class="badge-new">Nouveau</span>
+            <span class="kicker">Votre compte</span>
+            <h2>Votre espace, à votre image</h2>
+            <p>Créez votre compte pour retrouver vos favoris, l'historique de vos paiements
+                et vos préférences, où que vous soyez.</p>
+            <ul class="ticks">
+                <li>Vos épreuves favorites en un coup d'œil</li>
+                <li>Historique de vos paiements en ligne</li>
+                <li>Notifications &amp; thème clair / sombre</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="section light faq" id="faq">
+    <div class="container narrow">
+        <div class="section-head reveal">
+            <span class="kicker">Questions fréquentes</span>
+            <h2>Tout ce qu'il faut savoir</h2>
+        </div>
+
+        <div class="faq-list reveal">
+            <details>
+                <summary>Comment m'inscrire à une course et la payer ?</summary>
+                <div class="faq-body">
+                    <p>Ouvrez la fiche de l'épreuve, choisissez votre tarif, puis laissez-vous guider :
+                        l'inscription et le paiement se font directement dans l'app, en quelques secondes.
+                        Vous recevez une confirmation, et votre dossard est validé après vérification de
+                        votre licence par l'organisateur.</p>
+                </div>
+            </details>
+            <details>
+                <summary>Le paiement en ligne est-il sécurisé ?</summary>
+                <div class="faq-body">
+                    <p>Oui. Les paiements sont traités par <strong>HelloAsso</strong>, plateforme de
+                        paiement dédiée aux associations. Dossardeur ne stocke jamais vos données bancaires,
+                        et 100 % du montant de l'inscription est reversé à l'association organisatrice.</p>
+                </div>
+            </details>
+            <details>
+                <summary>Dossardeur est-il gratuit ?</summary>
+                <div class="faq-body">
+                    <p>Oui, l'application est <strong>gratuite</strong> au téléchargement et à l'usage.
+                        Seules les inscriptions payantes aux épreuves (réglées en ligne) donnent lieu à
+                        un paiement, au bénéfice de l'organisateur.</p>
+                </div>
+            </details>
+            <details>
+                <summary>Quelles fédérations sont représentées ?</summary>
+                <div class="faq-body">
+                    <p>Dossardeur agrège les calendriers de plusieurs fédérations (FSGT, FFC, UFOLEP,
+                        FFVÉLO, FFTRI…) ainsi que les cyclosportives indépendantes, avec un code couleur
+                        par fédération. C'est l'un des calendriers cyclistes les plus complets du marché.</p>
+                </div>
+            </details>
+            <details>
+                <summary>Sur quels téléphones fonctionne l'app ?</summary>
+                <div class="faq-body">
+                    <p>Dossardeur est disponible gratuitement sur <strong>iOS</strong> (App Store) et
+                        <strong>Android</strong> (Google Play).</p>
+                </div>
+            </details>
+            <details>
+                <summary>Qui est derrière Dossardeur ?</summary>
+                <div class="faq-body">
+                    <p>Dossardeur est édité par la société <a href="https://dng-consulting.com/">DNG Consulting</a>,
+                        à l'initiative de son développeur <a href="https://www.linkedin.com/in/samijaber/">Sami Jaber</a>.
+                        L'app s'appuie sur <a href="https://github.com/dngconsulting/OpenDossard">OpenDossard</a>,
+                        la plateforme de gestion des épreuves cyclistes.</p>
+                </div>
+            </details>
+        </div>
+    </div>
+</section>
+
+<!-- ============ TÉLÉCHARGER (sombre) ============ -->
+<section class="section dark download" id="telecharger">
+    <div class="wave wave-up" aria-hidden="true">
+        <svg viewBox="0 0 1440 90" preserveAspectRatio="none"><path d="M0,50 C360,0 1080,90 1440,40 L1440,0 L0,0 Z"></path></svg>
+    </div>
+    <div class="hero-bg" aria-hidden="true">
+        <span class="glow glow-1"></span>
+        <span class="grain"></span>
+    </div>
+    <div class="container download-inner reveal">
+        <h2 class="on-dark">Prêt à prendre le départ ?</h2>
+        <p class="on-dark-sub">Téléchargez Dossardeur gratuitement et trouvez votre prochaine course.</p>
+        <div class="store-badges center">
+            <a href="https://play.google.com/store/apps/details?id=com.dossardeur&hl=fr"
+               aria-label="Disponible sur Google Play">
+                <img src="images/googleplay.png" alt="Disponible sur Google Play">
+            </a>
+            <a href="https://apps.apple.com/fr/app/dossardeur/id1496777795?mt=8"
+               aria-label="Télécharger dans l'App Store">
+                <img src="images/appstore.png" alt="Télécharger dans l'App Store">
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+    <div class="container footer-inner">
+        <div class="footer-brand">
+            <a class="brand" href="#top">
+                <img src="images/od-icon.png" alt="" class="brand-mark">
+                <span class="brand-name">Dossardeur</span>
+            </a>
+            <p>L'app du cycliste, de A à Z.</p>
+        </div>
+        <div class="footer-col">
+            <span class="footer-h">Contact</span>
+            <a href="mailto:info@dossardeur.com">info@dossardeur.com</a>
+            <a href="confidentialite/">Confidentialité</a>
+        </div>
+        <div class="footer-col">
+            <span class="footer-h">Suivez-nous</span>
+            <div class="socials">
+                <a href="https://www.facebook.com/dossardeur" aria-label="Facebook">Facebook</a>
+                <a href="http://twitter.com/dossardeur" aria-label="Twitter">Twitter / X</a>
+                <a href="http://www.instagram.com/dossardeur" aria-label="Instagram">Instagram</a>
+                <a href="https://github.com/dngconsulting/OpenDossard" aria-label="GitHub">GitHub</a>
             </div>
         </div>
     </div>
     <div class="footer-bottom">
         <div class="container">
-            <div class="row">
-                <div class="col-xs-12 text-center">
-                    <p>&copy; Copyright 2024 Tous droits réservés. </p>
-                    <p>Dossardeur - OpenDossard </p>
-                </div>
-            </div>
+            <p>© 2026 Dossardeur — DNG Consulting · Propulsé par OpenDossard</p>
         </div>
     </div>
 </footer>
 
+<script>
+    // Header scroll state
+    const header = document.querySelector('.site-header');
+    const onScroll = () => header.classList.toggle('scrolled', window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, {passive: true});
 
+    // Mobile menu
+    const toggle = document.getElementById('nav-toggle');
+    const links = document.getElementById('nav-links');
+    toggle.addEventListener('click', () => {
+        const open = links.classList.toggle('open');
+        toggle.classList.toggle('open', open);
+        toggle.setAttribute('aria-expanded', String(open));
+    });
+    links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+        links.classList.remove('open');
+        toggle.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+    }));
 
-
-<!--Vendor-JS-->
-<script src="js/vendor/jquery-1.12.4.min.js"></script>
-<script src="js/vendor/bootstrap.min.js"></script>
-<!--Plugin-JS-->
-<script src="js/owl.carousel.min.js"></script>
-<script src="js/contact-form.js"></script>
-<script src="js/jquery.parallax-1.1.3.js"></script>
-<script src="js/scrollUp.min.js"></script>
-<script src="js/magnific-popup.min.js"></script>
-<script src="js/wow.min.js"></script>
-<!--Main-active-JS-->
-<script src="js/main.js"></script>
+    // Reveal on scroll
+    const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                e.target.classList.add('in');
+                io.unobserve(e.target);
+            }
+        });
+    }, {threshold: 0.12, rootMargin: '0px 0px -40px 0px'});
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
 </body>
-
 </html>
