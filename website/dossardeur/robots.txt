@@ -1,5 +1,0 @@
-User-Agent: *
-Allow: /
-
-Sitemap: https://www.opendossard.com/dossardeur/sitemap.xml
-
