@@ -1,0 +1,23 @@
+# Conteneur "importer" : exécute le script d'import FFvelo (ts-node) de façon
+# EXTERNE à api-v2 (aucune modif de l'image/app api-v2). Exécution ponctuelle,
+# déclenchée par la crontab de l'hôte (hebdo) — pas un service qui tourne en continu.
+#
+# Build context = racine du repo (mêmes conventions que Dockerfile.api-v2).
+# On copie uniquement package.json + src + scripts + tsconfig : jamais
+# node_modules/dist locaux (build reproductible quel que soit l'état local).
+#
+# Lancement (via docker compose run, args passés au script) :
+#   docker compose run --rm importer --url <url> [--dry-run] [--replace]
+FROM node:22-alpine
+
+WORKDIR /app
+
+COPY services/api-v2/package*.json ./
+RUN npm ci
+
+COPY services/api-v2/tsconfig*.json ./
+COPY services/api-v2/src ./src
+COPY services/api-v2/scripts ./scripts
+
+# Le script lit ses arguments (--url, --dry-run, …) en CMD, appendés à l'ENTRYPOINT.
+ENTRYPOINT ["npx", "ts-node", "scripts/import-ffvelo.ts"]
