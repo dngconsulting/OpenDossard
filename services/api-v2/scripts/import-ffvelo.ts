@@ -45,6 +45,10 @@ import { PricingInfo, CompetitionInfo, LinkInfo } from '../src/common/types';
 
 const AUTHOR = 'import-ffvelo';
 
+/** Note d'attribution ajoutée systématiquement en fin de chaque `observations`. */
+const SOURCE_NOTE =
+  '<p>Note: ces informations sont extraites du site <a href="https://veloenfrance.fr">veloenfrance.fr</a></p>';
+
 /** Index des champs dans le tuple FFvelo (cf. en-têtes CSV). */
 const F = {
   date: 0,
@@ -326,7 +330,7 @@ function buildCompetition(
   const inscriptionHtml = buildInscriptionHtml(str(row[F.inscriptionWeb]));
   const gpxHtml = buildGpxHtml(str(row[F.fichiersGpx]));
   const observations =
-    [inscriptionHtml, type, description, difficultyNote, gpxHtml]
+    [inscriptionHtml, type, description, difficultyNote, gpxHtml, SOURCE_NOTE]
       .filter(x => x.length > 0)
       .join('\n\n') || null;
 
