@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { Any, Between, EntityManager, Repository } from 'typeorm';
+import { Any, Between, Not, EntityManager, Repository } from 'typeorm';
 import { CompetitionEntity, findCompetitionEntityByValue } from '../entity/competition.entity';
 import { CompetitionFilter, Departement } from '../dto/model.dto';
 import * as moment from 'moment';
 import { FindManyOptions } from 'typeorm/find-options/FindManyOptions';
-import { findFederationEntityByValue } from '../entity/federation.entity';
+import { FederationEntity, findFederationEntityByValue } from '../entity/federation.entity';
 
 @Injectable()
 export class CompetitionService {
@@ -34,9 +34,18 @@ export class CompetitionService {
     const competFilter = competitionFilter.competitionTypes
       ? { competitionType: Any(Array.from(competitionFilter.competitionTypes).map(findCompetitionEntityByValue)) }
       : null;
-    const fedeFilter = competitionFilter.fedes
-      ? { fede: Any(Array.from(competitionFilter.fedes).map(findFederationEntityByValue)) }
-      : null;
+    // L'app V1 (ancienne, sans pagination lazy) ne tient pas le volume des
+    // randos FFVELO → on EXCLUT toujours la fédé FFVELO de cette recherche,
+    // même si le front l'envoie dans les paramètres (le filtre FFVELO est ignoré).
+    let fedeFilter;
+    if (competitionFilter.fedes) {
+      const fedes = Array.from(competitionFilter.fedes)
+        .map(findFederationEntityByValue)
+        .filter((f) => f && f !== FederationEntity.FFVELO);
+      fedeFilter = { fede: Any(fedes) };
+    } else {
+      fedeFilter = { fede: Not(FederationEntity.FFVELO) };
+    }
     if (!startDate || !endDate) {
       if (
         competitionFilter.displayPast &&
