@@ -32,6 +32,7 @@ env:
   REGISTRY: ghcr.io
   API_IMAGE: ghcr.io/dngconsulting/opendossard_api-v2
   WEBAPP_IMAGE: ghcr.io/dngconsulting/opendossard_webapp-v2
+  IMPORTER_IMAGE: ghcr.io/dngconsulting/opendossard_importer
 
 jobs:
   # Optional: Create release if requested
@@ -128,6 +129,9 @@ jobs:
           - service: webapp-v2
             dockerfile: ./Dockerfile.webapp-v2
             image_env: WEBAPP_IMAGE
+          - service: importer
+            dockerfile: ./Dockerfile.importer
+            image_env: IMPORTER_IMAGE
 
     steps:
       - name: Checkout

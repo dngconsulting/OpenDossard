@@ -111,13 +111,10 @@ services:
   # dériver avec l'heure d'été) :
   #   CRON_TZ=Europe/Paris
   #   0 3 * * 4  cd /opt/opendossard && docker compose -f docker-compose.prod.yml \
-  #     --profile tools run --rm --build importer \
+  #     --profile tools run --rm importer \
   #     --url https://veloenfrance.fr/data-cache/agenda-randonnees/liste.json \
   #     >> /var/log/import-ffvelo.log 2>&1
   importer:
-    build:
-      context: .
-      dockerfile: Dockerfile.importer
     image: ghcr.io/dngconsulting/opendossard_importer:latest
     profiles:
       - tools
