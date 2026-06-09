@@ -164,8 +164,11 @@ jobs:
             # Restart uniquement api_webapp (ne touche pas v2)
             docker compose -f docker-compose.prod.yml up -d api_webapp
 
-            # Reload nginx avec la nouvelle config si elle a changé
-            docker compose -f docker-compose.prod.yml up -d --force-recreate website
+            # Reload nginx avec la nouvelle config si elle a changé.
+            # --no-deps : ne recrée QUE website, jamais ses dépendances
+            # (api-v2, webapp-v2…) — sinon api-v2 serait recréé sans ses
+            # secrets v2 (FIREBASE_SERVICE_ACCOUNT_JSON) et crash-looperait.
+            docker compose -f docker-compose.prod.yml up -d --force-recreate --no-deps website
 
             docker image prune --all --force &
 
