@@ -83,10 +83,16 @@ export class CompetitionService {
             }
           : null),
       },
+      // Tri ASC pour que la troncature `take` garde les épreuves les PLUS
+      // PROCHES (et non les plus lointaines) dans la fenêtre du filtre.
       order: {
-        eventDate: 'DESC',
+        eventDate: 'ASC',
       },
       relations: ['club'],
+      // Tronque le nombre de résultats : l'app V1 plante en chargeant trop
+      // d'éléments sur la carte. On limite côté requête plutôt que de lever
+      // une erreur (TooMuchResults mal gérée côté V1 → runtime error).
+      take: 1000,
     };
     return await this.repository.find(query);
   }

@@ -33,7 +33,7 @@ import { plainToClass } from 'class-transformer';
 import * as _ from 'lodash';
 import { CompetitionService } from '../services/competition.service';
 
-const MAX_COMPETITION_TO_DISPLAY = 700;
+const MAX_COMPETITION_TO_DISPLAY = 5000;
 /**
  * Competition Controller handles all competitions operation ('Epreuve' in french)
  * The Reorganization method is when races are reorganized by categories
