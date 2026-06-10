@@ -41,7 +41,16 @@ export class DeviceTokenNotifsService {
   }
 
   async findTokensByUser(userId: number): Promise<string[]> {
-    const rows = await this.repo.find({ where: { userId }, select: { token: true } });
+    return this.findTokensByUsers([userId]);
+  }
+
+  /** Tokens de tous les appareils d'un ensemble de users (fan-out push). */
+  async findTokensByUsers(userIds: number[]): Promise<string[]> {
+    if (userIds.length === 0) return [];
+    const rows = await this.repo.find({
+      where: { userId: In(userIds) },
+      select: { token: true },
+    });
     return rows.map(r => r.token);
   }
 
