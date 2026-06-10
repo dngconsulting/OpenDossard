@@ -1,4 +1,13 @@
-import { Body, Controller, HttpCode, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  ParseIntPipe,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -9,6 +18,7 @@ import { AuthenticatedUser } from '../auth/types/authenticated-user';
 import { Role } from '../common/enums';
 import { CompetitionPushService } from './competition-push.service';
 import { CompetitionPushResultDto } from './dto/competition-push-result.dto';
+import { CompetitionPushTargetsDto } from './dto/competition-push-targets.dto';
 import { SendCompetitionPushDto } from './dto/send-competition-push.dto';
 
 /**
@@ -26,6 +36,20 @@ import { SendCompetitionPushDto } from './dto/send-competition-push.dto';
 @Roles(Role.ADMIN, Role.ORGANISATEUR)
 export class CompetitionPushController {
   constructor(private readonly push: CompetitionPushService) {}
+
+  @Get(':competitionId/push/targets')
+  @ApiOperation({
+    summary: 'Nombre de users qui seraient notifiés (starreurs de l’épreuve)',
+  })
+  @ApiResponse({ status: 200, description: 'Cibles du push', type: CompetitionPushTargetsDto })
+  @ApiResponse({ status: 403, description: 'Épreuve hors du scope club de l’organisateur' })
+  @ApiResponse({ status: 404, description: 'Compétition introuvable' })
+  getPushTargets(
+    @Param('competitionId', ParseIntPipe) competitionId: number,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<CompetitionPushTargetsDto> {
+    return this.push.countStarrers(user, competitionId);
+  }
 
   @Post(':competitionId/push')
   @HttpCode(200)

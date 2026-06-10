@@ -123,4 +123,59 @@ describe('Competition push (e2e)', () => {
       .send({ message: 'x' })
       .expect(401);
   });
+
+  // ==================== GET /competitions/:id/push/targets ====================
+
+  describe('GET /competitions/:competitionId/push/targets', () => {
+    const getTargets = (competitionId: number, token: string) =>
+      request(getApp().getHttpServer())
+        .get(`/api/v2/competitions/${competitionId}/push/targets`)
+        .set('Authorization', `Bearer ${token}`);
+
+    it('should return the number of starrers for ADMIN', async () => {
+      const clubs = await getSeedHelper().seedClubs();
+      const [competition] = await getSeedHelper().seedCompetitions(clubs);
+      await star(competition.id, mobileToken).expect(204);
+      await star(competition.id, otherMobileToken).expect(204);
+
+      const res = await getTargets(competition.id, adminToken).expect(200);
+      expect(res.body).toEqual({ targetedUsers: 2 });
+    });
+
+    it('should return zero when nobody starred', async () => {
+      const clubs = await getSeedHelper().seedClubs();
+      const [competition] = await getSeedHelper().seedCompetitions(clubs);
+
+      const res = await getTargets(competition.id, adminToken).expect(200);
+      expect(res.body).toEqual({ targetedUsers: 0 });
+    });
+
+    it('should apply the same club scope as the push (403 for unlinked ORGANISATEUR)', async () => {
+      const clubs = await getSeedHelper().seedClubs();
+      const [competition] = await getSeedHelper().seedCompetitions(clubs);
+      await getSeedHelper().seedUserClubs([{ userId: 2, clubId: clubs[1].id }]);
+
+      await getTargets(competition.id, orgaToken).expect(403);
+    });
+
+    it('should allow a linked ORGANISATEUR', async () => {
+      const clubs = await getSeedHelper().seedClubs();
+      const [competition] = await getSeedHelper().seedCompetitions(clubs);
+      await getSeedHelper().seedUserClubs([{ userId: 2, clubId: clubs[0].id }]);
+
+      const res = await getTargets(competition.id, orgaToken).expect(200);
+      expect(res.body).toEqual({ targetedUsers: 0 });
+    });
+
+    it('should return 404 for an unknown competition', async () => {
+      await getTargets(999999, adminToken).expect(404);
+    });
+
+    it('should reject MOBILE role (403)', async () => {
+      const clubs = await getSeedHelper().seedClubs();
+      const [competition] = await getSeedHelper().seedCompetitions(clubs);
+
+      await getTargets(competition.id, mobileToken).expect(403);
+    });
+  });
 });

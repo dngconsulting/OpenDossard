@@ -339,7 +339,11 @@ export default function CompetitionDetailPage() {
               </RaceTabsList>
 
               <TabsContent value="general" className="mt-0">
-                <GeneralTab isCreating={isCreating} isDuplicating={isDuplicating} />
+                <GeneralTab
+                  isCreating={isCreating}
+                  isDuplicating={isDuplicating}
+                  competitionId={isCreating || isDuplicating ? undefined : competitionId}
+                />
               </TabsContent>
 
               <TabsContent value="horaires" className="mt-0">

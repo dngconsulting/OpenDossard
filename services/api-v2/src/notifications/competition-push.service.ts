@@ -6,6 +6,7 @@ import { AuthorizationService } from '../auth/authorization.service';
 import { AuthenticatedUser } from '../auth/types/authenticated-user';
 import { CompetitionEntity } from '../competitions/entities/competition.entity';
 import { CompetitionPushResultDto } from './dto/competition-push-result.dto';
+import { CompetitionPushTargetsDto } from './dto/competition-push-targets.dto';
 import { UserFavoriteEntity } from './entities/user-favorite.entity';
 import { NotificationService } from './notification.service';
 
@@ -33,6 +34,40 @@ export class CompetitionPushService {
   ) {}
 
   /**
+   * Résout l'épreuve (404 si inconnue) puis vérifie le droit de l'appelant
+   * dessus (403 hors scope club). Partagé par l'envoi et le comptage : les
+   * deux endpoints exposent exactement le même périmètre.
+   */
+  private async loadAuthorizedCompetition(
+    user: AuthenticatedUser,
+    competitionId: number,
+  ): Promise<Pick<CompetitionEntity, 'id' | 'clubId' | 'name'>> {
+    const competition = await this.competitions.findOne({
+      where: { id: competitionId },
+      select: { id: true, clubId: true, name: true },
+    });
+    if (!competition) {
+      throw new NotFoundException(`Compétition ${competitionId} introuvable`);
+    }
+    await this.authorization.assertCompetitionAccess(user, competition);
+    return competition;
+  }
+
+  /**
+   * Nombre de starreurs de l'épreuve, AVANT envoi — alimente la popup de
+   * confirmation (« Vous allez notifier X utilisateurs »). Même autorisation
+   * que l'envoi.
+   */
+  async countStarrers(
+    user: AuthenticatedUser,
+    competitionId: number,
+  ): Promise<CompetitionPushTargetsDto> {
+    await this.loadAuthorizedCompetition(user, competitionId);
+    const targetedUsers = await this.favorites.count({ where: { competitionId } });
+    return { targetedUsers };
+  }
+
+  /**
    * Envoie `message` à tous les starreurs de l'épreuve. Titre du push = nom
    * de l'épreuve (non saisi par l'organisateur) ; `data.competitionId` permet
    * le deeplink vers la fiche épreuve côté app.
@@ -42,14 +77,7 @@ export class CompetitionPushService {
     competitionId: number,
     message: string,
   ): Promise<CompetitionPushResultDto> {
-    const competition = await this.competitions.findOne({
-      where: { id: competitionId },
-      select: { id: true, clubId: true, name: true },
-    });
-    if (!competition) {
-      throw new NotFoundException(`Compétition ${competitionId} introuvable`);
-    }
-    await this.authorization.assertCompetitionAccess(user, competition);
+    const competition = await this.loadAuthorizedCompetition(user, competitionId);
 
     const rows = await this.favorites.find({
       where: { competitionId },

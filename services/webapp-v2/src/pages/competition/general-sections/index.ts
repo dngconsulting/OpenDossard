@@ -1,3 +1,4 @@
+export { CompetitionPushSection } from './CompetitionPushSection';
 export { ContactSection } from './ContactSection';
 export { CoreInfoSection } from './CoreInfoSection';
 export { HelloAssoOnlinePaymentSection } from './HelloAssoOnlinePaymentSection';

@@ -19,6 +19,8 @@ const buttonVariants = cva(
         success:
           'bg-emerald-700 text-white border border-emerald-800 hover:bg-emerald-800 dark:bg-transparent dark:border-input dark:text-foreground dark:hover:bg-slate-800',
         action: 'bg-sky-700 text-white hover:bg-sky-800 dark:bg-sky-800 dark:hover:bg-sky-900',
+        notify:
+          'bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold shadow-md shadow-orange-500/40 hover:from-amber-600 hover:to-orange-600 hover:shadow-lg',
         outline:
           'border bg-background shadow-xs hover:bg-slate-100 hover:text-foreground dark:bg-input/30 dark:border-input dark:hover:bg-slate-800',
         secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
