@@ -16,7 +16,8 @@ import { RegisterDeviceDto } from './dto/register-device.dto';
  *   DELETE /api-v2/devices/:token                          [JWT] → suppression (logout)
  *
  * L'identité du user vient TOUJOURS de `@CurrentUser('id')` (JWT validé),
- * jamais du body — un user n'enregistre un token que pour lui-même.
+ * jamais du body — un user n'enregistre ET ne supprime un token que pour
+ * lui-même (DELETE scopé au user courant, finding audit M6).
  */
 @ApiTags('devices')
 @ApiBearerAuth()
@@ -36,9 +37,12 @@ export class DeviceTokenNotifsController {
 
   @Delete(':token')
   @HttpCode(204)
-  @ApiOperation({ summary: 'Désenregistre un token FCM (logout)' })
-  @ApiResponse({ status: 204, description: 'Token supprimé (idempotent)' })
-  unregisterDevice(@Param('token') token: string): Promise<void> {
-    return this.devices.unregister(token);
+  @ApiOperation({ summary: 'Désenregistre un token FCM du user courant (logout)' })
+  @ApiResponse({ status: 204, description: 'Token supprimé (idempotent, scopé au user courant)' })
+  unregisterDevice(
+    @Param('token') token: string,
+    @CurrentUser('id') userId: number,
+  ): Promise<void> {
+    return this.devices.unregister(userId, token);
   }
 }

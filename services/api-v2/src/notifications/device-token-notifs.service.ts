@@ -31,8 +31,13 @@ export class DeviceTokenNotifsService {
     await this.repo.save(this.repo.create({ token, userId, platform }));
   }
 
-  async unregister(token: string): Promise<void> {
-    await this.repo.delete({ token });
+  /**
+   * Suppression scopée au user courant (finding audit M6) : supprimer le
+   * token d'un autre user est un no-op silencieux (idempotent, pas de fuite
+   * d'existence du token).
+   */
+  async unregister(userId: number, token: string): Promise<void> {
+    await this.repo.delete({ userId, token });
   }
 
   async findTokensByUser(userId: number): Promise<string[]> {
