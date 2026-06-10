@@ -31,3 +31,4 @@ k6perf/
 
 # mkcert local HTTPS certs (dev only)
 services/api-v2/certs/
+/.codegraph/.gitignore
