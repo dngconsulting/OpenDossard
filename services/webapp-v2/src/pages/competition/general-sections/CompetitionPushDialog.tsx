@@ -101,7 +101,7 @@ export function CompetitionPushDialog({
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Aperçu sur le téléphone
                 </p>
-                <div className="rounded-2xl border bg-zinc-50 dark:bg-zinc-800/80 shadow-sm p-3.5 flex gap-3">
+                <div className="rounded-2xl border bg-zinc-50 dark:bg-zinc-800/80 shadow-sm p-3.5 flex gap-3 overflow-hidden">
                   {/* Icône de l'app Dossardeur, telle qu'affichée dans une vraie notification */}
                   <img
                     src="/dossardeur-app-icon.png"
@@ -110,7 +110,11 @@ export function CompetitionPushDialog({
                   />
                   <div className="min-w-0 flex-1 space-y-0.5">
                     <div className="flex items-baseline justify-between gap-2">
-                      <p className="text-sm font-semibold truncate m-0">{competitionName}</p>
+                      {/* min-w-0 indispensable : truncate (nowrap) sans lui impose sa
+                          largeur min-content à toute la modale → débordement. */}
+                      <p className="text-sm font-semibold truncate m-0 min-w-0 flex-1">
+                        {competitionName}
+                      </p>
                       <span className="text-[11px] text-muted-foreground shrink-0">
                         maintenant
                       </span>
