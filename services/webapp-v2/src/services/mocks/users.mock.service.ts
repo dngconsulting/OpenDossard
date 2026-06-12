@@ -16,9 +16,16 @@ const delay = () => new Promise(resolve => setTimeout(resolve, 300));
 export const mockUsersService = {
   getAll: async (params: UserPaginationParams = {}): Promise<PaginatedResponse<UserType>> => {
     await delay();
-    const { offset = 0, limit = 20, search, orderBy = 'lastName', orderDirection = 'ASC' } = params;
+    const { offset = 0, limit = 20, search, source, orderBy = 'lastName', orderDirection = 'ASC' } = params;
 
     let filtered = [...usersData];
+
+    // Filtre par origine du compte (miroir du filtre backend sur firebase_uid)
+    if (source === 'dossardeur') {
+      filtered = filtered.filter(u => Boolean(u.firebaseUid));
+    } else if (source === 'opendossard') {
+      filtered = filtered.filter(u => !u.firebaseUid);
+    }
 
     // Apply search filter
     if (search) {
@@ -27,7 +34,8 @@ export const mockUsersService = {
         u =>
           (u.email?.toLowerCase().includes(searchLower) ?? false) ||
           u.firstName.toLowerCase().includes(searchLower) ||
-          u.lastName.toLowerCase().includes(searchLower)
+          u.lastName.toLowerCase().includes(searchLower) ||
+          (u.firebaseUid?.toLowerCase().includes(searchLower) ?? false)
       );
     }
 

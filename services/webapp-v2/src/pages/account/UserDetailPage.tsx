@@ -27,7 +27,7 @@ export default function UserDetailPage() {
   const breadcrumb = (
     <nav className="flex items-center gap-2 text-sm">
       <Link
-        to="/users"
+        to="/users?tab=opendossard"
         className="text-muted-foreground hover:text-white dark:hover:text-foreground transition-colors"
       >
         Utilisateurs
@@ -66,7 +66,7 @@ export default function UserDetailPage() {
       <UserForm
         user={user}
         isCreating={isCreating}
-        onSuccess={() => navigate('/users')}
+        onSuccess={() => navigate('/users?tab=opendossard')}
         formId="user-form"
         onPendingChange={setIsPending}
       />

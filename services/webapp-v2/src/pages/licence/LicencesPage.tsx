@@ -1,15 +1,13 @@
-import { FileSpreadsheet, FileText, Loader2, MoreHorizontal, Plus, Search, X, Upload } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { FileSpreadsheet, FileText, Loader2, MoreHorizontal, Plus, Upload } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { LicencesDataTable } from '@/components/data/LicencesTable.tsx';
-import { useExportLicencesCSV } from '@/hooks/useExportLicencesCSV';
-import { useExportLicencesPDF } from '@/hooks/useExportLicencesPDF';
-import { useDeleteLicence, useImportElicence, useLicences } from '@/hooks/useLicences';
-import { ImportResultDialog } from '@/components/licences/ImportResultDialog';
 import type { ImportResult } from '@/api/licences.api';
+import { LicencesDataTable } from '@/components/data/LicencesTable.tsx';
 import Layout from '@/components/layout/Layout.tsx';
+import { ImportResultDialog } from '@/components/licences/ImportResultDialog';
 import { Button } from '@/components/ui/button.tsx';
+import { DebouncedSearchInput } from '@/components/ui/debounced-search-input';
 import {
   Dialog,
   DialogContent,
@@ -25,7 +23,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Input } from '@/components/ui/input';
+import { useExportLicencesCSV } from '@/hooks/useExportLicencesCSV';
+import { useExportLicencesPDF } from '@/hooks/useExportLicencesPDF';
+import { useDeleteLicence, useImportElicence, useLicences } from '@/hooks/useLicences';
 import type { LicenceType } from '@/types/licences.ts';
 
 export default function LicencesPage() {
@@ -33,31 +33,12 @@ export default function LicencesPage() {
   const [deleteLicence, setDeleteLicence] = useState<LicenceType | undefined>(undefined);
   const { data, params, setSearch } = useLicences();
   const [searchInput, setSearchInput] = useState(params.search ?? '');
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   // Sync input si le param URL change (ex: navigation arrière)
   useEffect(() => {
     setSearchInput(params.search ?? '');
   }, [params.search]);
 
-  const handleSearchChange = useCallback(
-    (value: string) => {
-      setSearchInput(value);
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        if (value.length >= 2 || value.length === 0) {
-          setSearch(value);
-        }
-      }, 300);
-    },
-    [setSearch],
-  );
-
-  const clearSearch = useCallback(() => {
-    setSearchInput('');
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    setSearch('');
-  }, [setSearch]);
   const totalLicences = data?.meta?.total ?? 0;
   const { exportPDF, isExporting: isExportingPDF } = useExportLicencesPDF(params, totalLicences);
   const { exportCSV, isExporting: isExportingCSV } = useExportLicencesCSV(params, totalLicences);
@@ -68,7 +49,7 @@ export default function LicencesPage() {
 
   const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {return;}
     try {
       const result = await importMutation.mutateAsync(file);
       setImportResult(result);
@@ -96,7 +77,7 @@ export default function LicencesPage() {
             variant="destructive"
             disabled={deleteMutation.isPending}
             onClick={async () => {
-              if (!deleteLicence) return;
+              if (!deleteLicence) {return;}
               try {
                 await deleteMutation.mutateAsync(deleteLicence.id);
               } catch {
@@ -202,24 +183,13 @@ export default function LicencesPage() {
 
   return (
     <Layout title="Licences" toolbar={toolbar} toolbarLeft={toolbarLeft}>
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Rechercher nom, prénom ou n° licence..."
-          value={searchInput}
-          onChange={e => handleSearchChange(e.target.value)}
-          className="pl-9 pr-9"
-        />
-        {searchInput && (
-          <button
-            type="button"
-            onClick={clearSearch}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
-      </div>
+      <DebouncedSearchInput
+        value={searchInput}
+        onValueChange={setSearchInput}
+        onSearch={setSearch}
+        placeholder="Rechercher nom, prénom ou n° licence..."
+        minLength={2}
+      />
       <LicencesDataTable
         getEditHref={(row: LicenceType) => `/licence/${row.id}`}
         onDelete={(row: LicenceType) => setDeleteLicence(row)}

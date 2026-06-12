@@ -33,4 +33,24 @@ export const users: UserType[] = [
     phone: '06 23 27 88 93',
     roles: 'ORGANISATEUR',
   },
+  // Users mobile Firebase (onglet Dossardeur) : pas d'email persisté,
+  // identifiés par leur firebaseUid
+  {
+    id: 5,
+    email: null,
+    firstName: 'Léa',
+    lastName: 'Martin',
+    phone: '',
+    roles: 'MOBILE',
+    firebaseUid: 'mockFirebaseUidLeaMartin0001',
+  },
+  {
+    id: 6,
+    email: null,
+    firstName: 'Hugo',
+    lastName: 'Bernard',
+    phone: '',
+    roles: 'MOBILE',
+    firebaseUid: 'mockFirebaseUidHugoBernard02',
+  },
 ];

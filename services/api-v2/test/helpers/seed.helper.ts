@@ -51,6 +51,21 @@ export class SeedHelper {
     ]);
   }
 
+  /** Crée un user mobile Firebase (firebase_uid renseigné, sans email) et le retourne */
+  async seedFirebaseUser(uid = 'test-firebase-uid-001'): Promise<UserEntity> {
+    const userRepo = this.dataSource.getRepository(UserEntity);
+    return userRepo.save(
+      userRepo.create({
+        email: null,
+        password: TEST_PASSWORD_HASH,
+        firstName: 'Mobile',
+        lastName: 'Firebase',
+        roles: 'MOBILE',
+        firebaseUid: uid,
+      }),
+    );
+  }
+
   /** Crée 3 clubs de test et retourne les entités */
   async seedClubs(): Promise<ClubEntity[]> {
     const clubRepo = this.dataSource.getRepository(ClubEntity);

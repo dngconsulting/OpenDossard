@@ -13,7 +13,7 @@ import { UserClubService } from '../auth/user-club.service';
 import { ClubsService } from '../clubs/clubs.service';
 import { ClubEntity } from '../clubs/entities/club.entity';
 import { PaginatedResponseDto } from '../common/dto/pagination.dto';
-import { FilterUserDto } from './dto/filter-user.dto';
+import { FilterUserDto, UserSource } from './dto/filter-user.dto';
 import { UserEntity } from './entities/user.entity';
 
 export interface CreateUserDto {
@@ -48,22 +48,40 @@ export class UsersService {
       offset = 0,
       limit = 20,
       search,
+      source,
       orderBy = 'lastName',
       orderDirection = 'ASC',
     } = filterDto;
 
     const queryBuilder = this.userRepository.createQueryBuilder('user');
 
-    // Global search across email, firstName, lastName
+    // Filtre par origine du compte : firebase_uid discrimine les users
+    // mobile Firebase (Dossardeur) des users backoffice (Open Dossard)
+    if (source === UserSource.DOSSARDEUR) {
+      queryBuilder.andWhere('user.firebaseUid IS NOT NULL');
+    } else if (source === UserSource.OPENDOSSARD) {
+      queryBuilder.andWhere('user.firebaseUid IS NULL');
+    }
+
+    // Global search across email, firstName, lastName, firebaseUid (les users
+    // firebase n'ont pas d'email : leur identifiant visible est le firebase_uid)
     if (search) {
       queryBuilder.andWhere(
-        '(LOWER(user.email) LIKE LOWER(:search) OR LOWER(user.firstName) LIKE LOWER(:search) OR LOWER(user.lastName) LIKE LOWER(:search))',
+        '(LOWER(user.email) LIKE LOWER(:search) OR LOWER(user.firstName) LIKE LOWER(:search) OR LOWER(user.lastName) LIKE LOWER(:search) OR LOWER(user.firebaseUid) LIKE LOWER(:search))',
         { search: `%${search}%` },
       );
     }
 
     // Ordering
-    const validOrderFields = ['id', 'email', 'firstName', 'lastName', 'phone', 'roles'];
+    const validOrderFields = [
+      'id',
+      'email',
+      'firstName',
+      'lastName',
+      'phone',
+      'roles',
+      'firebaseUid',
+    ];
     const orderField = validOrderFields.includes(orderBy) ? orderBy : 'lastName';
     queryBuilder.orderBy(`user.${orderField}`, orderDirection);
 
@@ -147,7 +165,7 @@ export class UsersService {
     const saved = await this.userRepository.save(user);
     const fields = Object.keys(updateUserDto)
       .filter(k => k !== 'phone' && (updateUserDto as Record<string, unknown>)[k] !== undefined)
-      .map(k => `${k}: ${(updateUserDto as Record<string, unknown>)[k]}`)
+      .map(k => `${k}: ${String((updateUserDto as Record<string, unknown>)[k])}`)
       .join(' | ');
     this.logger.log(
       `Mise à jour de l'utilisateur #${id} par ${author ?? 'inconnu'} | ` +

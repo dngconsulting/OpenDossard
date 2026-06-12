@@ -1,82 +1,40 @@
-import { ArrowLeft, Plus, Search, X } from 'lucide-react';
-import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { showSuccessToast } from '@/utils/error-handler/error-handler';
+import { ArrowLeft, Monitor, Plus, Smartphone, type LucideIcon } from 'lucide-react';
+import { useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { UsersTable } from '@/components/data/UsersTable';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { useUsers, useUpdateUser, useDeleteUser } from '@/hooks/useUsers';
-import type { UserType } from '@/types/users';
+import { Card, CardContent } from '@/components/ui/card';
+import { RaceTabsList, RaceTabsTrigger } from '@/components/ui/race-tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import type { UserSource } from '@/types/users';
+
+import { UsersTabPanel } from './UsersTabPanel';
+
+const TABS: { value: UserSource; label: string; icon: LucideIcon }[] = [
+  { value: 'opendossard', label: 'Utilisateurs Open Dossard', icon: Monitor },
+  { value: 'dossardeur', label: 'Utilisateurs Dossardeur', icon: Smartphone },
+];
 
 export default function UsersPage() {
   const navigate = useNavigate();
-  const {
-    data,
-    isLoading,
-    params,
-    setSearch,
-    setSort,
-    goToPage,
-    setLimit,
-    currentPage,
-    totalPages,
-  } = useUsers();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const updateUserMutation = useUpdateUser();
-  const deleteUserMutation = useDeleteUser();
+  // Défaut = Open Dossard : c'est la population administrable (ajout/édition),
+  // et les anciens liens/bookmarks vers /users (avant les onglets) visaient
+  // cette liste-là
+  const activeTab: UserSource =
+    searchParams.get('tab') === 'dossardeur' ? 'dossardeur' : 'opendossard';
 
-  const [searchInput, setSearchInput] = useState(params.search || '');
-  const [userToDelete, setUserToDelete] = useState<UserType | null>(null);
-
-  const handleRolesChange = useCallback(
-    (userId: number, roles: string) => {
-      updateUserMutation.mutate({ id: userId, updates: { roles } });
+  // Changer d'onglet repart d'un état vierge (recherche, tri, pagination) :
+  // chaque onglet interroge une population différente, conserver l'offset ou
+  // le terme de recherche de l'autre onglet n'aurait pas de sens
+  const handleTabChange = useCallback(
+    (tab: string) => {
+      setSearchParams({ tab }, { replace: true });
     },
-    [updateUserMutation]
+    [setSearchParams]
   );
-
-  const getEditUserHref = useCallback(
-    (user: { id: number }) => `/user/${user.id}`,
-    [],
-  );
-
-  const handleDeleteUser = useCallback((user: UserType) => {
-    setUserToDelete(user);
-  }, []);
-
-  const confirmDelete = useCallback(async () => {
-    if (!userToDelete) return;
-    try {
-      await deleteUserMutation.mutateAsync(userToDelete.id);
-      showSuccessToast('Utilisateur supprimé avec succès');
-      setUserToDelete(null);
-    } catch {
-      // Error handled by global handler
-    }
-  }, [userToDelete, deleteUserMutation]);
-
-  const handleSearchChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      setSearchInput(value);
-      // Debounce is handled in the hook
-      setSearch(value);
-    },
-    [setSearch]
-  );
-
-  const users = data?.data || [];
-  const meta = data?.meta || { offset: 0, limit: 20, total: 0, hasMore: false };
 
   const toolbarLeft = (
     <Button variant="outline" onClick={() => navigate(-1)}>
@@ -84,75 +42,37 @@ export default function UsersPage() {
     </Button>
   );
 
-  const toolbar = (
-    <Button onClick={() => navigate('/user/new')}>
-      <Plus className="h-4 w-4 mr-2" />
-      Ajouter un utilisateur
-    </Button>
-  );
+  // L'ajout d'utilisateur n'existe que côté Open Dossard : les comptes
+  // Dossardeur sont créés par l'app mobile (Firebase Auth)
+  const toolbar =
+    activeTab === 'opendossard' ? (
+      <Button onClick={() => navigate('/user/new')}>
+        <Plus className="h-4 w-4 mr-2" />
+        Ajouter un utilisateur
+      </Button>
+    ) : undefined;
 
   return (
     <Layout title="Utilisateurs" toolbar={toolbar} toolbarLeft={toolbarLeft}>
-      <div className="flex gap-2 w-full justify-between items-center mb-4">
-        <div className="relative w-full max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher un utilisateur..."
-            value={searchInput}
-            onChange={handleSearchChange}
-            className="pl-9 pr-9"
-          />
-          {searchInput && (
-            <button
-              type="button"
-              onClick={() => { setSearchInput(''); setSearch(''); }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-      </div>
-      <UsersTable
-        users={users}
-        isLoading={isLoading}
-        pagination={{
-          meta,
-          currentPage,
-          totalPages,
-          goToPage,
-          setLimit,
-        }}
-        sorting={{
-          sortColumn: params.orderBy,
-          sortDirection: params.orderDirection,
-          onSortChange: setSort,
-        }}
-        onRolesChange={handleRolesChange}
-        getEditUserHref={getEditUserHref}
-        onDeleteUser={handleDeleteUser}
-      />
-
-      <Dialog open={!!userToDelete} onOpenChange={open => !open && setUserToDelete(null)}>
-        <DialogContent showCloseButton={false}>
-          <DialogHeader>
-            <DialogTitle>Supprimer l'utilisateur ?</DialogTitle>
-            <DialogDescription>
-              Êtes-vous sûr de vouloir supprimer l'utilisateur{' '}
-              <strong>{userToDelete?.firstName} {userToDelete?.lastName}</strong>{' '}
-              ({userToDelete?.email}) ? Cette action est irréversible.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setUserToDelete(null)}>
-              Annuler
-            </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
-              Supprimer
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full gap-0">
+        <RaceTabsList>
+          {TABS.map(tab => (
+            <RaceTabsTrigger key={tab.value} value={tab.value}>
+              <tab.icon className="h-6 w-6" strokeWidth={2.5} />
+              <span className="text-base font-bold">{tab.label}</span>
+            </RaceTabsTrigger>
+          ))}
+        </RaceTabsList>
+        {TABS.map(tab => (
+          <TabsContent key={tab.value} value={tab.value} className="mt-0">
+            <Card className="rounded-t-none border-t-0">
+              <CardContent className="pt-6">
+                <UsersTabPanel source={tab.value} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        ))}
+      </Tabs>
     </Layout>
   );
 }

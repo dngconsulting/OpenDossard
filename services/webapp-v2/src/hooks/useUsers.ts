@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import { usersApi, type SetUserClubsResponse } from '@/api/users.api';
 import useUserStore from '@/store/UserStore';
-import type { UserType, UserPaginationParams, CreateUserInput } from '@/types/users';
+import type { UserType, UserPaginationParams, UserSource, CreateUserInput } from '@/types/users';
 
 export const usersKeys = {
   all: ['users'] as const,
@@ -29,6 +29,9 @@ function parseUrlParams(searchParams: URLSearchParams): UserPaginationParams {
   };
 }
 
+/** Clés d'URL possédées par useUsers (cf. parseUrlParams/buildUrlParams) */
+const OWNED_URL_KEYS = ['offset', 'limit', 'search', 'orderBy', 'orderDirection'] as const;
+
 function buildUrlParams(params: UserPaginationParams): URLSearchParams {
   const searchParams = new URLSearchParams();
 
@@ -41,7 +44,7 @@ function buildUrlParams(params: UserPaginationParams): URLSearchParams {
   return searchParams;
 }
 
-export function useUsers() {
+export function useUsers(source?: UserSource) {
   const [searchParams, setSearchParams] = useSearchParams();
   const isAuthenticated = useUserStore(state => state.isAuthenticated);
 
@@ -50,18 +53,32 @@ export function useUsers() {
   const updateParams = useCallback(
     (newParams: Partial<UserPaginationParams>) => {
       const merged = { ...params, ...newParams };
-      setSearchParams(buildUrlParams(merged), { replace: true });
+      // Le hook ne réécrit que les clés qu'il possède : les params posés par
+      // la page (ex: `tab`) sont préservés tels quels
+      const urlParams = new URLSearchParams(searchParams);
+      OWNED_URL_KEYS.forEach(key => urlParams.delete(key));
+      buildUrlParams(merged).forEach((value, key) => urlParams.set(key, value));
+      setSearchParams(urlParams, { replace: true });
     },
-    [params, setSearchParams]
+    [params, searchParams, setSearchParams]
+  );
+
+  // `source` est fixé par l'onglet, pas par l'URL : il est injecté dans la
+  // requête (et la queryKey) sans transiter par les searchParams
+  const queryParams = useMemo(
+    () => (source ? { ...params, source } : params),
+    [params, source]
   );
 
   const query = useQuery({
-    queryKey: usersKeys.list(params),
-    queryFn: () => usersApi.getAll(params),
+    queryKey: usersKeys.list(queryParams),
+    queryFn: () => usersApi.getAll(queryParams),
     placeholderData: keepPreviousData,
     enabled: isAuthenticated,
-    staleTime: 0,
-    refetchOnMount: 'always',
+    // Les mutations invalident déjà ['users'] : un staleTime court suffit à
+    // garder la liste fraîche sans refetcher à chaque changement d'onglet
+    // (qui remonte le panneau et donc la query)
+    staleTime: 30_000,
   });
 
   const setLimit = useCallback(

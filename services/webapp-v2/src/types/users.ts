@@ -22,10 +22,18 @@ export type CreateUserInput = {
   password: string;
 };
 
+/**
+ * Origine du compte : 'dossardeur' = users mobile Firebase (firebaseUid
+ * renseigné), 'opendossard' = users backoffice. Miroir de l'enum backend
+ * `UserSource` (filter-user.dto.ts).
+ */
+export type UserSource = 'dossardeur' | 'opendossard';
+
 export type UserPaginationParams = {
   offset?: number;
   limit?: number;
   search?: string;
+  source?: UserSource;
   orderBy?: string;
   orderDirection?: 'ASC' | 'DESC';
 };

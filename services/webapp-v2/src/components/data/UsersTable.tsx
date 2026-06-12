@@ -1,72 +1,79 @@
-import type { ColumnDef } from '@tanstack/react-table';
 
 import { DataTable } from '@/components/ui/data-table';
 import { RolesMultiSelect } from '@/components/ui/roles-multi-select';
-import type { UserType, PaginationMeta } from '@/types/users';
+import type { UserType, UserSource, PaginationMeta } from '@/types/users';
+
+import type { ColumnDef } from '@tanstack/react-table';
 
 type ColumnsProps = {
+  variant: UserSource;
   onRolesChange?: (userId: number, roles: string) => void;
 };
 
-const createColumns = ({ onRolesChange }: ColumnsProps): ColumnDef<UserType>[] => [
-  {
-    accessorKey: 'email',
-    header: 'Email / Identifiant',
-    cell: ({ row }) => {
-      const user = row.original;
-      // Pour les users firebase, l'email n'est pas persisté côté backend.
-      // On affiche le firebase_uid (identifiant unique Firebase) à la place,
-      // en monospace pour signaler qu'il s'agit d'un identifiant technique.
-      if (user.firebaseUid) {
-        return (
-          <span
-            className="font-mono text-xs text-muted-foreground"
-            title="Identifiant Firebase Auth (utilisateur mobile)"
-          >
-            {user.firebaseUid}
-          </span>
-        );
-      }
-      return user.email ?? '—';
+// Colonnes par population. Onglet Dossardeur : l'email n'est pas persisté
+// côté backend (source de vérité = Firebase Auth), l'identifiant affiché —
+// et triable — est le firebase_uid ; pas de téléphone. Onglet Open Dossard :
+// identifié par l'email, colonnes téléphone et rôles éditables.
+const createColumns = ({ variant, onRolesChange }: ColumnsProps): ColumnDef<UserType>[] => {
+  const identifierColumn: ColumnDef<UserType> =
+    variant === 'dossardeur'
+      ? {
+          accessorKey: 'firebaseUid',
+          header: 'Identifiant',
+          cell: ({ row }) => (
+            <span
+              className="font-mono text-xs text-muted-foreground"
+              title="Identifiant Firebase Auth (utilisateur mobile)"
+            >
+              {row.original.firebaseUid}
+            </span>
+          ),
+        }
+      : {
+          accessorKey: 'email',
+          header: 'Email',
+          cell: ({ row }) => row.original.email ?? '—',
+        };
+
+  return [
+    identifierColumn,
+    {
+      accessorKey: 'firstName',
+      header: 'Prénom',
     },
-  },
-  {
-    accessorKey: 'firstName',
-    header: 'Prénom',
-  },
-  {
-    accessorKey: 'lastName',
-    header: 'Nom',
-  },
-  {
-    accessorKey: 'phone',
-    header: 'Téléphone',
-    size: 140,
-  },
-  {
-    accessorKey: 'roles',
-    header: 'Rôles',
-    size: 180,
-    cell: ({ row }) => {
-      const isReadOnly = Boolean(row.original.firebaseUid);
-      return (
+    {
+      accessorKey: 'lastName',
+      header: 'Nom',
+    },
+    ...(variant === 'dossardeur'
+      ? []
+      : [
+          {
+            accessorKey: 'phone',
+            header: 'Téléphone/Club',
+            size: 140,
+          } satisfies ColumnDef<UserType>,
+        ]),
+    {
+      accessorKey: 'roles',
+      header: 'Rôles',
+      size: 180,
+      cell: ({ row }) => (
         <RolesMultiSelect
           roles={row.original.roles}
-          onChange={
-            onRolesChange && !isReadOnly
-              ? roles => onRolesChange(row.original.id, roles)
-              : undefined
-          }
-          disabled={!onRolesChange || isReadOnly}
+          onChange={onRolesChange ? roles => onRolesChange(row.original.id, roles) : undefined}
+          disabled={!onRolesChange}
         />
-      );
+      ),
     },
-  },
-];
+  ];
+};
 
 type Props = {
   users: UserType[];
   isLoading: boolean;
+  /** Population affichée : pilote les colonnes, leurs libellés et le caractère readonly */
+  variant: UserSource;
   pagination: {
     meta: PaginationMeta;
     currentPage: number;
@@ -84,8 +91,11 @@ type Props = {
   onDeleteUser?: (user: UserType) => void;
 };
 
-export const UsersTable = ({ users, isLoading, pagination, sorting, onRolesChange, getEditUserHref, onDeleteUser }: Props) => {
-  const columns = createColumns({ onRolesChange });
+export const UsersTable = ({ users, isLoading, variant, pagination, sorting, onRolesChange, getEditUserHref, onDeleteUser }: Props) => {
+  // Users Dossardeur = read-only côté backoffice (Firebase Auth = source de
+  // vérité, leur édition/suppression doit passer par l'app mobile)
+  const isReadOnly = variant === 'dossardeur';
+  const columns = createColumns({ variant, onRolesChange: isReadOnly ? undefined : onRolesChange });
 
   return (
     <DataTable
@@ -93,11 +103,8 @@ export const UsersTable = ({ users, isLoading, pagination, sorting, onRolesChang
       data={users}
       isLoading={isLoading}
       showColumnFilters={false}
-      getEditRowHref={getEditUserHref}
-      onDeleteRow={onDeleteUser}
-      // Users firebase = read-only côté backoffice (Firebase Auth = source
-      // de vérité, leur édition/suppression doit passer par l'app mobile).
-      isRowReadOnly={user => Boolean(user.firebaseUid)}
+      getEditRowHref={isReadOnly ? undefined : getEditUserHref}
+      onDeleteRow={isReadOnly ? undefined : onDeleteUser}
       pagination={{
         enabled: true,
         meta: pagination.meta,

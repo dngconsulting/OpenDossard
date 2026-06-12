@@ -54,6 +54,73 @@ describe('Users (e2e)', () => {
       expect(body.data.some(u => u.email === 'admin@test.com')).toBe(true);
     });
 
+    it('should filter firebase users with source=dossardeur', async () => {
+      const firebaseUser = await getSeedHelper().seedFirebaseUser();
+
+      const res = await request(getApp().getHttpServer())
+        .get(API)
+        .query({ source: 'dossardeur' })
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+
+      const body = res.body as PaginatedResponse<UserEntity>;
+      expect(body.data.length).toBeGreaterThanOrEqual(1);
+      expect(body.data.every(u => Boolean(u.firebaseUid))).toBe(true);
+      expect(body.data.some(u => u.id === firebaseUser.id)).toBe(true);
+    });
+
+    it('should filter backoffice users with source=opendossard', async () => {
+      const firebaseUser = await getSeedHelper().seedFirebaseUser();
+
+      const res = await request(getApp().getHttpServer())
+        .get(API)
+        .query({ source: 'opendossard' })
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+
+      const body = res.body as PaginatedResponse<UserEntity>;
+      // Les 3 seed users sont des users backoffice
+      expect(body.data.length).toBeGreaterThanOrEqual(3);
+      expect(body.data.every(u => !u.firebaseUid)).toBe(true);
+      expect(body.data.some(u => u.id === firebaseUser.id)).toBe(false);
+    });
+
+    it('should match firebaseUid in search', async () => {
+      const firebaseUser = await getSeedHelper().seedFirebaseUser('searchable-uid-42');
+
+      const res = await request(getApp().getHttpServer())
+        .get(API)
+        .query({ search: 'searchable-uid' })
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+
+      const body = res.body as PaginatedResponse<UserEntity>;
+      expect(body.data.some(u => u.id === firebaseUser.id)).toBe(true);
+    });
+
+    it('should sort by firebaseUid', async () => {
+      await getSeedHelper().seedFirebaseUser('uid-bbb');
+      await getSeedHelper().seedFirebaseUser('uid-aaa');
+
+      const res = await request(getApp().getHttpServer())
+        .get(API)
+        .query({ source: 'dossardeur', orderBy: 'firebaseUid', orderDirection: 'ASC' })
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+
+      const body = res.body as PaginatedResponse<UserEntity>;
+      const uids = body.data.map(u => u.firebaseUid);
+      expect(uids).toEqual(['uid-aaa', 'uid-bbb']);
+    });
+
+    it('should reject an invalid source value', async () => {
+      await request(getApp().getHttpServer())
+        .get(API)
+        .query({ source: 'invalid' })
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(400);
+    });
+
     it('should reject ORGANISATEUR role', async () => {
       await request(getApp().getHttpServer())
         .get(API)

@@ -1,10 +1,11 @@
-import { FileSpreadsheet, FileText, Loader2, MoreHorizontal, Plus, Search, X } from 'lucide-react';
+import { FileSpreadsheet, FileText, Loader2, MoreHorizontal, Plus } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { ClubsTable } from '@/components/data/ClubsTable';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
+import { DebouncedSearchInput } from '@/components/ui/debounced-search-input';
 import {
   Dialog,
   DialogContent,
@@ -19,7 +20,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
 import { useClubsPaginated, useDeleteClub } from '@/hooks/useClubs';
 import { useExportClubsCSV } from '@/hooks/useExportClubsCSV';
 import { useExportClubsPDF } from '@/hooks/useExportClubsPDF';
@@ -73,15 +73,6 @@ export default function ClubsPage() {
       setClubToDelete(null);
     }
   }, [clubToDelete, deleteClubMutation]);
-
-  const handleSearchChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      setSearchInput(value);
-      setSearch(value);
-    },
-    [setSearch],
-  );
 
   const toolbarLeft = (
     <span className="text-sm text-muted-foreground">
@@ -145,27 +136,12 @@ export default function ClubsPage() {
   return (
     <Layout title="Clubs" toolbarLeft={toolbarLeft} toolbar={toolbar}>
       <div className="flex gap-2 w-full justify-between items-center mb-4">
-        <div className="relative w-full max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher un club..."
-            value={searchInput}
-            onChange={handleSearchChange}
-            className="pl-9 pr-9"
-          />
-          {searchInput && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearchInput('');
-                setSearch('');
-              }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
+        <DebouncedSearchInput
+          value={searchInput}
+          onValueChange={setSearchInput}
+          onSearch={setSearch}
+          placeholder="Rechercher un club..."
+        />
       </div>
       <ClubsTable
         clubs={clubs}
