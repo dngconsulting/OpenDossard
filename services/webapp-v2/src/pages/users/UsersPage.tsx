@@ -54,7 +54,9 @@ export default function UsersPage() {
 
   return (
     <Layout title="Utilisateurs" toolbar={toolbar} toolbarLeft={toolbarLeft}>
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full gap-0">
+      {/* Chaîne flex-1/min-h-0 jusqu'au DataTable (fillHeight) : le tableau
+          scrolle en interne et la pagination reste visible sans scroll de page */}
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full gap-0 flex-1 min-h-0">
         <RaceTabsList>
           {TABS.map(tab => (
             <RaceTabsTrigger key={tab.value} value={tab.value}>
@@ -64,9 +66,9 @@ export default function UsersPage() {
           ))}
         </RaceTabsList>
         {TABS.map(tab => (
-          <TabsContent key={tab.value} value={tab.value} className="mt-0">
-            <Card className="rounded-t-none border-t-0">
-              <CardContent className="pt-6">
+          <TabsContent key={tab.value} value={tab.value} className="mt-0 min-h-0 flex flex-col">
+            <Card className="rounded-t-none border-t-0 flex-1 min-h-0">
+              <CardContent className="pt-6 flex-1 min-h-0 flex flex-col">
                 <UsersTabPanel source={tab.value} />
               </CardContent>
             </Card>

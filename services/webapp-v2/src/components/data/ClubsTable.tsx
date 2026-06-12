@@ -69,6 +69,7 @@ export const ClubsTable = ({ clubs, isLoading, pagination, sorting, serverFilter
       columns={columns}
       data={clubs}
       isLoading={isLoading}
+      fillHeight
       serverFilters={serverFilters}
       onFilterChange={onFilterChange}
       multiSelectColumns={{

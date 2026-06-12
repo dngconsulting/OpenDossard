@@ -103,6 +103,7 @@ export const UsersTable = ({ users, isLoading, variant, pagination, sorting, onR
       data={users}
       isLoading={isLoading}
       showColumnFilters={false}
+      fillHeight
       getEditRowHref={isReadOnly ? undefined : getEditUserHref}
       onDeleteRow={isReadOnly ? undefined : onDeleteUser}
       pagination={{

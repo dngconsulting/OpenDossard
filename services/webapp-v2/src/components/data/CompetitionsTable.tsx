@@ -244,6 +244,7 @@ export const CompetitionsDataTable = ({ getEditHref, onDuplicate, onDelete, onEx
       getEditRowHref={getEditHref}
       onDeleteRow={onDelete}
       isLoading={isLoading}
+      fillHeight
       renderBeforeRow={renderBeforeRow}
       serverFilters={(params.filters as Record<string, string>) || {}}
       onFilterChange={(columnId, value) => setFilter(columnId as keyof CompetitionType, value)}

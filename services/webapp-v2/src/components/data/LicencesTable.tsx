@@ -217,6 +217,7 @@ export const LicencesDataTable = ({ getEditHref, onDelete }: LicenceTableProps) 
       getEditRowHref={getEditHref}
       onDeleteRow={onDelete}
       isLoading={isLoading}
+      fillHeight
       serverFilters={(params.filters as Record<string, string>) || {}}
       multiSelectColumns={{ dept: { options: DEPT_FILTER_OPTIONS } }}
       onFilterChange={(columnId, value) => setFilter(columnId as keyof LicenceType, value)}

@@ -140,9 +140,11 @@ const GENDER_OPTIONS = [
 
 type PaymentsTableProps = {
   scope: PaymentsScope;
+  /** Tableau pleine page : remplit la hauteur disponible (cf. DataTable.fillHeight) */
+  fillHeight?: boolean;
 };
 
-export function PaymentsTable({ scope }: PaymentsTableProps) {
+export function PaymentsTable({ scope, fillHeight = false }: PaymentsTableProps) {
   const {
     data,
     isLoading,
@@ -350,7 +352,11 @@ export function PaymentsTable({ scope }: PaymentsTableProps) {
     //    horizontale du conteneur overflow-auto)
     // Pas de padding inter-rows (densité préservée). Scope local — n'affecte
     // pas les autres tables qui consomment `DataTable`.
-    <div className="[&_tbody_tr:first-child_td]:pt-3 [&_tbody_tr:last-child_td]:pb-3">
+    <div
+      className={`[&_tbody_tr:first-child_td]:pt-3 [&_tbody_tr:last-child_td]:pb-3 ${
+        fillHeight ? 'flex-1 min-h-0 flex flex-col' : ''
+      }`}
+    >
       {scope.kind === 'competition' && data?.summary && (
         <PaymentsSummaryHeader summary={data.summary} />
       )}
@@ -358,6 +364,7 @@ export function PaymentsTable({ scope }: PaymentsTableProps) {
         columns={columns}
         data={data?.data || []}
         isLoading={isLoading}
+        fillHeight={fillHeight}
         serverFilters={(params.filters as Record<string, string>) || {}}
         multiSelectColumns={{
           gender: { options: GENDER_OPTIONS },

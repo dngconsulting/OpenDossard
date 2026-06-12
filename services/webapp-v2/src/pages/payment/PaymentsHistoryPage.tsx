@@ -29,7 +29,7 @@ export default function PaymentsHistoryPage() {
 
   return (
     <Layout title="Historique des paiements" toolbarLeft={toolbarLeft}>
-      <PaymentsTable scope={{ kind: 'all' }} />
+      <PaymentsTable scope={{ kind: 'all' }} fillHeight />
     </Layout>
   );
 }

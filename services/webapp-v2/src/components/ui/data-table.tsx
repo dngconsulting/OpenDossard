@@ -125,6 +125,17 @@ interface DataTableProps<TData, TValue> {
    * existantes.
    */
   rowClassName?: (row: TData) => string | undefined;
+  /**
+   * Remplit exactement la hauteur disponible (`flex-1`) au lieu du cap
+   * viewport par défaut `max-h-[calc(100vh-200px)]` — le tableau scrolle en
+   * interne et la pagination reste visible sans scroll de page, quel que
+   * soit ce qui est empilé au-dessus (onglets, recherche, toolbar…).
+   * Requiert que TOUS les ancêtres jusqu'au conteneur borné (zone de contenu
+   * du Layout) soient des colonnes flex avec `min-h-0`. À utiliser pour les
+   * tableaux pleine page ; laisser à false pour les tableaux posés au milieu
+   * d'une page qui scrolle (ex: palmarès).
+   */
+  fillHeight?: boolean;
 }
 
 interface SortableRowProps<TData> {
@@ -277,6 +288,7 @@ export function DataTable<TData, TValue>({
   multiSelectColumns,
   isRowReadOnly,
   rowClassName,
+  fillHeight = false,
 }: DataTableProps<TData, TValue>) {
   const isServerFiltering = !!onFilterChange;
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -667,8 +679,12 @@ export function DataTable<TData, TValue>({
   );
 
   return (
-    <div className="rounded-md border shadow-xs flex flex-col max-h-[calc(100vh-200px)]">
-      <div className="overflow-auto flex-1">
+    <div
+      className={`rounded-md border shadow-xs flex flex-col ${
+        fillHeight ? 'flex-1 min-h-40' : 'max-h-[calc(100vh-200px)]'
+      }`}
+    >
+      <div className="overflow-auto flex-1 min-h-0">
         {enableDragDrop ? (
           <DndContext
             sensors={sensors}
