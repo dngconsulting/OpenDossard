@@ -15,33 +15,51 @@ export class DeviceTokenNotifsService {
   ) {}
 
   /**
-   * Upsert par token : si le token existe déjà, on réaffecte `user_id`/`platform`
-   * (logout A → login B sur le même appareil) et on rafraîchit `updated_at`
-   * (via `save` → `@UpdateDateColumn`). Sinon insertion. L'unicité du token est
-   * garantie par la contrainte DB.
+   * Upsert d'un appareil, clé = l'identité STABLE `deviceId`. La ligne du
+   * device est mise à jour (token éventuellement tourné, user après
+   * logout/login → réaffectation au user courant).
    */
-  async register(userId: number, token: string, platform: DevicePlatform): Promise<void> {
-    const existing = await this.repo.findOne({ where: { token } });
-    if (existing) {
-      existing.userId = userId;
-      existing.platform = platform;
-      await this.repo.save(existing);
-      return;
+  async register(
+    userId: number,
+    token: string,
+    platform: DevicePlatform,
+    deviceId: string,
+  ): Promise<void> {
+    // 1) Ligne de CET appareil (par device_id) : on la met à jour si elle existe.
+    let row = await this.repo.findOne({ where: { deviceId } });
+    if (!row) {
+      // 2) Sinon, le token peut déjà exister sous un autre device_id (réinstall
+      //    iOS : le device_id MMKV est régénéré mais le token FCM survit via le
+      //    keychain Firebase). On réutilise cette ligne au lieu d'INSERT un
+      //    doublon qui violerait l'unicité du token.
+      row = await this.repo.findOne({ where: { token } });
     }
-    await this.repo.save(this.repo.create({ token, userId, platform }));
+    if (row) {
+      row.token = token;
+      row.userId = userId;
+      row.platform = platform;
+      row.deviceId = deviceId;
+      await this.repo.save(row);
+    } else {
+      await this.repo.save(this.repo.create({ token, userId, platform, deviceId }));
+    }
   }
 
   /**
-   * Suppression scopée au user courant (finding audit M6) : supprimer le
-   * token d'un autre user est un no-op silencieux (idempotent, pas de fuite
-   * d'existence du token).
+   * Désenregistrement par identité d'appareil (opt-out fiable), SCOPÉ au user
+   * courant (finding M6 préservé, comme `unregister()`). Indépendant du token
+   * FCM courant → robuste à la rotation de token (root cause du bug d'opt-out
+   * iOS où le delete par token ratait).
+   *
+   * Le changement de compte sur un même appareil (X opt-in puis Y prend le
+   * device) est géré en amont par la RÉAFFECTATION à l'enregistrement : quand
+   * Y (ré)enregistre par `device_id`, la ligne est réaffectée de X à Y (cf.
+   * `register`, même modèle de sécurité que l'historique logout A → login B).
+   *
+   * Idempotent.
    */
-  async unregister(userId: number, token: string): Promise<void> {
-    await this.repo.delete({ userId, token });
-  }
-
-  async findTokensByUser(userId: number): Promise<string[]> {
-    return this.findTokensByUsers([userId]);
+  async unregisterByDevice(userId: number, deviceId: string): Promise<void> {
+    await this.repo.delete({ userId, deviceId });
   }
 
   /** Tokens de tous les appareils d'un ensemble de users (fan-out push). */

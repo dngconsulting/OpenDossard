@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
 import { AuthorizationService } from '../auth/authorization.service';
 import { AuthenticatedUser } from '../auth/types/authenticated-user';
@@ -66,6 +66,18 @@ describe('CompetitionPushService.pushToStarrers', () => {
     competitions.findOne.mockResolvedValue(null);
 
     await expect(service.pushToStarrers(ADMIN, 999, 'msg')).rejects.toThrow(NotFoundException);
+    expect(notifications.sendToUsers).not.toHaveBeenCalled();
+  });
+
+  it('should NOT loop over tokens when the caller is not authorized on the competition (403)', async () => {
+    // SÉCURITÉ : un ORGANISATEUR non rattaché au club de l'épreuve (ou tout
+    // appelant hors scope) ne doit JAMAIS atteindre la boucle d'envoi.
+    const ORGA: AuthenticatedUser = { id: 9, email: 'orga@test.com', roles: ['ORGANISATEUR'] };
+    competitions.findOne.mockResolvedValue({ id: 42, clubId: 7, name: 'GP' });
+    favorites.find.mockResolvedValue([{ userId: 10 }, { userId: 11 }]);
+    authorization.assertCompetitionAccess.mockRejectedValue(new ForbiddenException());
+
+    await expect(service.pushToStarrers(ORGA, 42, 'msg')).rejects.toThrow(ForbiddenException);
     expect(notifications.sendToUsers).not.toHaveBeenCalled();
   });
 });

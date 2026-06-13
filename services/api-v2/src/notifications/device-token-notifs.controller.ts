@@ -10,14 +10,15 @@ import { DeviceTokenNotifsService } from './device-token-notifs.service';
 import { RegisterDeviceDto } from './dto/register-device.dto';
 
 /**
- * Enregistrement / désenregistrement des tokens FCM pour les push.
+ * Enregistrement / désenregistrement des appareils pour les push FCM.
  *
- *   POST   /api-v2/devices          { token, platform }   [JWT] → upsert pour le user courant
- *   DELETE /api-v2/devices/:token                          [JWT] → suppression (logout)
+ *   POST   /api-v2/devices                 { token, platform, deviceId }  [JWT] → upsert
+ *   DELETE /api-v2/devices/by-device/:deviceId                            [JWT] → opt-out / logout
  *
- * L'identité du user vient TOUJOURS de `@CurrentUser('id')` (JWT validé),
- * jamais du body — un user n'enregistre ET ne supprime un token que pour
- * lui-même (DELETE scopé au user courant, finding audit M6).
+ * Clé d'identité = `deviceId` (UUID d'installation stable), pas le token FCM
+ * qui peut tourner. L'identité du user vient TOUJOURS de `@CurrentUser('id')`
+ * (JWT validé), jamais du body — un user n'enregistre ET ne supprime un
+ * appareil que pour lui-même (scopé au user courant, finding audit M6).
  */
 @ApiTags('devices')
 @ApiBearerAuth()
@@ -32,17 +33,20 @@ export class DeviceTokenNotifsController {
   @ApiOperation({ summary: 'Enregistre (upsert) le token FCM de l’appareil courant' })
   @ApiResponse({ status: 204, description: 'Token enregistré' })
   registerDevice(@Body() dto: RegisterDeviceDto, @CurrentUser('id') userId: number): Promise<void> {
-    return this.devices.register(userId, dto.token, dto.platform);
+    return this.devices.register(userId, dto.token, dto.platform, dto.deviceId);
   }
 
-  @Delete(':token')
+  @Delete('by-device/:deviceId')
   @HttpCode(204)
-  @ApiOperation({ summary: 'Désenregistre un token FCM du user courant (logout)' })
-  @ApiResponse({ status: 204, description: 'Token supprimé (idempotent, scopé au user courant)' })
-  unregisterDevice(
-    @Param('token') token: string,
+  @ApiOperation({
+    summary: 'Désenregistre un appareil par son identité (opt-out fiable)',
+    description: 'Supprime la ligne du device pour le user courant. Indépendant du token FCM.',
+  })
+  @ApiResponse({ status: 204, description: 'Appareil désenregistré (idempotent, scopé au user)' })
+  unregisterByDevice(
+    @Param('deviceId') deviceId: string,
     @CurrentUser('id') userId: number,
   ): Promise<void> {
-    return this.devices.unregister(userId, token);
+    return this.devices.unregisterByDevice(userId, deviceId);
   }
 }

@@ -31,6 +31,17 @@ export class DeviceTokenNotifEntity {
   @Index({ unique: true })
   token: string;
 
+  /**
+   * Identité STABLE de l'appareil (UUID d'installation généré côté app,
+   * persisté localement) — indépendante du token FCM, qui lui peut tourner.
+   * Nullable : les lignes créées avant l'introduction du device_id n'en ont
+   * pas (legacy). Quand présent, c'est la clé d'upsert (1 ligne par appareil)
+   * et de désenregistrement, ce qui rend l'opt-out robuste à la rotation de
+   * token (cf. bug iOS : token en base périmé → delete par token ratait).
+   */
+  @Column({ name: 'device_id', type: 'varchar', length: 64, nullable: true })
+  deviceId?: string | null;
+
   @Column({ name: 'user_id', type: 'int' })
   @Index()
   userId: number;
