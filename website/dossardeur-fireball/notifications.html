@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+
+    <title>Les Notifications — Dossardeur</title>
+    <meta name="description"
+          content="Suivez vos épreuves cyclistes favorites et recevez les infos essentielles — sécurité, faits de course, classements et photos — même quand l'application est fermée.">
+    <meta name="keywords"
+          content="Dossardeur, notifications, épreuves favorites, sécurité course, faits de course, classements, cyclisme, FSGT">
+    <meta name="author" content="DNG Consulting">
+    <meta name="theme-color" content="#0f172a">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Les Notifications — Dossardeur">
+    <meta property="og:description"
+          content="Avant, pendant et après la course : recevez les infos qui comptent sur vos épreuves favorites, même app fermée.">
+    <meta property="og:image" content="https://www.opendossard.com/dossardeur-fireball/images/notif-step6-notification.png">
+    <meta property="og:url" content="https://www.opendossard.com/dossardeur-fireball/notifications.html">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <link rel="icon" type="image/png" href="images/od-icon.png">
+    <link rel="apple-touch-icon" href="images/od-icon.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Styles spécifiques à la page Notifications -->
+    <style>
+        /* Carte notification "live" dans le hero */
+        .notif-demo {
+            width: 100%; max-width: 380px;
+            background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .16);
+            border-radius: 18px; padding: 15px 16px; display: flex; gap: 13px;
+            box-shadow: 0 24px 50px -24px rgba(0, 0, 0, .6); backdrop-filter: blur(6px);
+            animation: notif-in .9s cubic-bezier(.16, .84, .34, 1) .2s both;
+        }
+        @keyframes notif-in { from { opacity: 0; transform: translateY(-16px) scale(.97); } to { opacity: 1; transform: none; } }
+        .notif-demo .nd-ic { flex: 0 0 auto; width: 46px; height: 46px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255, 255, 255, .14); }
+        .notif-demo .nd-ic img { width: 100%; height: 100%; object-fit: cover; }
+        .notif-demo .nd-body { flex: 1; min-width: 0; }
+        .notif-demo .nd-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 3px; }
+        .notif-demo .nd-title { font-family: var(--font-display); font-weight: 700; font-size: .92rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .notif-demo .nd-time { font-size: .78rem; color: rgba(255, 255, 255, .55); flex: 0 0 auto; }
+        .notif-demo .nd-msg { font-size: .9rem; color: rgba(255, 255, 255, .82); line-height: 1.45; }
+        .notif-caption { margin-top: 16px; font-size: .85rem; color: rgba(255, 255, 255, .7); text-align: center; }
+        .notif-caption strong { color: #fff; font-weight: 600; }
+
+        /* Accents d'icônes des cartes Avant / Pendant / Après */
+        .card-ic.ic-red { color: #dc4b46; background: linear-gradient(140deg, rgba(220, 75, 70, .14), rgba(68, 114, 196, .08)); border-color: rgba(220, 75, 70, .16); }
+        .card-ic.ic-green { color: var(--accent-light); background: linear-gradient(140deg, rgba(22, 154, 90, .16), rgba(68, 114, 196, .08)); border-color: rgba(22, 154, 90, .18); }
+
+        /* Numéro d'étape */
+        .step-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 38px; height: 38px; border-radius: 11px; margin-bottom: 16px;
+            font-family: var(--font-display); font-weight: 800; font-size: 1.05rem;
+            color: #fff; background: var(--primary); box-shadow: 0 8px 22px rgba(68, 114, 196, .35);
+        }
+        .section.dark .step-badge { background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .22); }
+
+        /* Captures d'écran : coins arrondis pour les vraies captures (sans cadre device) */
+        .phone-float.small.shot img { border-radius: 30px; box-shadow: var(--shadow-phone); }
+
+        /* Récap des 3 gestes (section finale sombre) */
+        .recap { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 760px; margin: 4px auto 0; }
+        .recap span { font-size: .85rem; font-weight: 600; color: #eaf1fb; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .16); padding: 9px 16px; border-radius: 999px; }
+        .recap span b { color: #9fc0f4; margin-right: 7px; }
+
+        /* Petit bandeau "merci" dans la section finale */
+        .closing-thanks {
+            display: inline-flex; align-items: center; gap: 10px; margin-bottom: 22px;
+            font-size: .92rem; color: rgba(255, 255, 255, .82);
+            background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .14);
+            padding: 9px 18px; border-radius: 999px;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="site-header" id="top">
+    <div class="container nav">
+        <a class="brand" href="index.html#top" aria-label="Dossardeur, accueil">
+            <img src="images/logo-dossardeur.svg" alt="" class="brand-logo">
+            <span class="brand-name">Dossardeur</span>
+        </a>
+
+        <nav class="nav-links" id="nav-links">
+            <a href="index.html#fonctionnalites">Fonctionnalités</a>
+            <a href="index.html#paiement">Inscription &amp; paiement</a>
+            <a href="index.html#faq">FAQ</a>
+            <a class="btn btn-primary btn-sm" href="index.html#telecharger">Télécharger</a>
+        </nav>
+
+        <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+    <div class="hero-bg" aria-hidden="true">
+        <span class="glow glow-1"></span>
+        <span class="glow glow-2"></span>
+        <span class="grain"></span>
+    </div>
+
+    <div class="container hero-inner">
+        <div class="hero-copy reveal">
+            <span class="eyebrow">Nouvelle fonctionnalité</span>
+            <h1>Les Notifications,<br><span class="accent-text">au fil de la course.</span></h1>
+            <p class="hero-sub">
+                Suivez vos épreuves favorites et recevez les infos qui comptent —
+                <strong>avant, pendant et après</strong> la course. Pour les coureurs comme pour leurs proches.
+            </p>
+        </div>
+
+        <div class="hero-visual reveal" data-delay="1">
+            <div>
+                <div class="notif-demo">
+                    <span class="nd-ic" aria-hidden="true"><img src="images/od-icon.png" alt=""></span>
+                    <div class="nd-body">
+                        <div class="nd-top">
+                            <span class="nd-title">💳 Grand Prix de Noueilles</span>
+                            <span class="nd-time">22:43</span>
+                        </div>
+                        <p class="nd-msg">En raison des fortes chaleurs, le nombre de tours de la course est réduit.</p>
+                    </div>
+                </div>
+                <p class="notif-caption">🔕 <strong>Notification reçue même quand Dossardeur est fermé</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- vague vers la section claire -->
+    <div class="wave wave-down" aria-hidden="true">
+        <svg viewBox="0 0 1440 90" preserveAspectRatio="none"><path d="M0,40 C360,90 1080,0 1440,50 L1440,90 L0,90 Z"></path></svg>
+    </div>
+</section>
+
+<!-- ============ POURQUOI ============ -->
+<section class="section light" style="padding-bottom:24px;">
+    <div class="container">
+        <div class="section-head reveal">
+            <span class="kicker">Pourquoi des notifications</span>
+            <h2>Informé à chaque instant de la course</h2>
+            <p>L'organisateur peut prévenir coureurs et suiveurs sur de multiples sujets,
+                à chaque étape de l'épreuve.</p>
+        </div>
+
+        <div class="cards-3">
+            <article class="card reveal">
+                <div class="card-ic ic-red">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 3 5 6v5c0 4.2 2.9 7.4 7 8.7 4.1-1.3 7-4.5 7-8.7V6l-7-3Z"/>
+                        <path d="M12 8.5v3.5"/><path d="M12 15.5h.01"/>
+                    </svg>
+                </div>
+                <h3>Sécurité <small>· avant la course</small></h3>
+                <p>Chaussée en mauvais état, gravillons, danger potentiel sur le parcours…
+                    Les coureurs partent prévenus.</p>
+            </article>
+            <article class="card reveal" data-delay="1">
+                <div class="card-ic">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="1.8"/>
+                        <path d="M8.8 8.8a4.5 4.5 0 0 0 0 6.4M15.2 8.8a4.5 4.5 0 0 1 0 6.4"/>
+                        <path d="M6.3 6.3a8 8 0 0 0 0 11.4M17.7 6.3a8 8 0 0 1 0 11.4"/>
+                    </svg>
+                </div>
+                <h3>Faits de course <small>· pendant</small></h3>
+                <p>Chute, neutralisation… Surtout pour rassurer les familles et amis
+                    qui suivent l'épreuve à distance.</p>
+            </article>
+            <article class="card reveal" data-delay="2">
+                <div class="card-ic ic-green">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/>
+                        <path d="M7 5.5H4.5V7a3 3 0 0 0 3 3M17 5.5h2.5V7a3 3 0 0 1-3 3"/>
+                        <path d="M12 14v3"/>
+                        <path d="M8.5 20h7l-.6-3H9.1l-.6 3Z"/>
+                    </svg>
+                </div>
+                <h3>Résultats <small>· après la course</small></h3>
+                <p>Classements en ligne et complets, photos publiées…
+                    Vous êtes notifié dès que tout est disponible.</p>
+            </article>
+        </div>
+
+        <div class="pull-quote reveal" style="margin-top:40px;">
+            🌡️ Exemple concret — la météo est incertaine avec une probable canicule.
+            L'organisateur peut vous tenir informé de l'évolution de la situation :
+            points d'eau prévus, réduction du nombre de tours, etc.
+        </div>
+    </div>
+</section>
+
+<!-- ============ COMMENT ÇA MARCHE — INTRO ============ -->
+<section class="section light" style="padding-top:16px;padding-bottom:20px;">
+    <div class="container">
+        <div class="section-head reveal">
+            <span class="kicker">Comment ça marche</span>
+            <h2>Activez vos notifications en 3 gestes</h2>
+            <p>Vous choisissez librement les épreuves dont vous souhaitez recevoir les informations.
+                Rien de plus simple.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ÉTAPE 1 -->
+<section class="section light feature-row" style="padding-top:30px;">
+    <div class="container split">
+        <div class="split-media reveal">
+            <div class="phone-float small shot">
+                <img src="images/notif-step1-activer.png" alt="Écran Mon Compte avec l'interrupteur Activer les notifications mis en évidence">
+            </div>
+        </div>
+        <div class="split-copy reveal" data-delay="1">
+            <span class="step-badge">1</span>
+            <h2>Activez l'option dans « Mon compte »</h2>
+            <p>Ouvrez le menu <strong>Mon Compte</strong> et basculez l'interrupteur
+                <strong>« Activer les notifications »</strong>.</p>
+            <ul class="ticks">
+                <li>Étape indispensable pour recevoir les notifications</li>
+                <li>Un seul réglage, valable pour toutes vos épreuves favorites</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- ÉTAPE 2 -->
+<section class="section light feature-row alt">
+    <div class="container split reverse">
+        <div class="split-media reveal">
+            <div class="phone-float small shot">
+                <img src="images/notif-step2-glisser.png" alt="Liste des épreuves : geste de glissement vers la gauche pour suivre une épreuve">
+            </div>
+        </div>
+        <div class="split-copy reveal" data-delay="1">
+            <span class="step-badge">2</span>
+            <h2>Ajoutez un favori d'un glissement</h2>
+            <p>Dans la <strong>liste des épreuves</strong>, faites glisser une épreuve vers la
+                <strong>gauche</strong> puis appuyez sur <strong>« Suivre »</strong>.</p>
+            <ul class="ticks">
+                <li>L'étoile passe au jaune : l'épreuve est suivie</li>
+                <li>Le geste le plus rapide depuis la liste</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- ÉTAPE 3 -->
+<section class="section light feature-row">
+    <div class="container split">
+        <div class="split-media reveal">
+            <div class="phone-float small shot">
+                <img src="images/notif-step3-etoile.png" alt="Fiche épreuve avec l'étoile de suivi en haut à droite mise en évidence">
+            </div>
+        </div>
+        <div class="split-copy reveal" data-delay="1">
+            <span class="step-badge">3</span>
+            <h2>… ou via l'étoile de la fiche épreuve</h2>
+            <p>Ouvrez la <strong>fiche d'une épreuve</strong> et appuyez sur l'<strong>étoile</strong>
+                en haut à droite.</p>
+            <ul class="ticks">
+                <li>L'étoile se remplit de jaune : vous suivez l'épreuve</li>
+                <li>Exactement le même effet que depuis la liste</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- ÉTAPE 4 -->
+<section class="section light feature-row alt">
+    <div class="container split reverse">
+        <div class="split-media reveal">
+            <div class="phone-float small shot">
+                <img src="images/notif-step4-compte.png" alt="Menu Mon Compte avec l'accès Mes épreuves favorites mis en évidence">
+            </div>
+        </div>
+        <div class="split-copy reveal" data-delay="1">
+            <span class="step-badge">4</span>
+            <h2>Gérez vos favoris à tout moment</h2>
+            <p>Depuis <strong>Mon Compte</strong>, le raccourci <strong>« Mes épreuves favorites »</strong>
+                vous permet de mettre à jour votre liste quand vous le souhaitez.</p>
+            <ul class="ticks">
+                <li>Ajoutez ou retirez des épreuves en toute liberté</li>
+                <li>Accessible à tout instant</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- ÉTAPE 5 -->
+<section class="section light feature-row">
+    <div class="container split">
+        <div class="split-media reveal">
+            <div class="phone-float small shot">
+                <img src="images/notif-step5-favoris.png" alt="Liste Mes épreuves favorites avec les épreuves suivies marquées d'une étoile jaune">
+            </div>
+        </div>
+        <div class="split-copy reveal" data-delay="1">
+            <span class="step-badge">5</span>
+            <h2>Retrouvez vos épreuves favorites</h2>
+            <p>Chaque épreuve sélectionnée s'ajoute automatiquement à votre liste
+                <strong>« Mes épreuves favorites »</strong>.</p>
+            <ul class="ticks">
+                <li>Toutes vos épreuves suivies d'un coup d'œil</li>
+                <li>La base des notifications que vous recevrez</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- ÉTAPE 6 — sombre -->
+<section class="section dark">
+    <div class="wave wave-up" aria-hidden="true">
+        <svg viewBox="0 0 1440 90" preserveAspectRatio="none"><path d="M0,50 C360,0 1080,90 1440,40 L1440,0 L0,0 Z"></path></svg>
+    </div>
+    <div class="hero-bg" aria-hidden="true">
+        <span class="glow glow-3"></span>
+        <span class="grain"></span>
+    </div>
+
+    <div class="container split">
+        <div class="split-copy reveal">
+            <span class="step-badge">6</span>
+            <span class="kicker light-kicker">Et c'est tout</span>
+            <h2 class="on-dark">Recevez les notifications, même app fermée</h2>
+            <p class="on-dark-sub">Dès que l'organisateur publie une information, vous la recevez
+                directement sur votre téléphone — même quand Dossardeur est éteint.</p>
+            <ul class="ticks on-dark-ticks">
+                <li>Notifications <strong>push</strong>, même application fermée</li>
+                <li>Plus aucune annonce importante manquée</li>
+                <li>Uniquement pour vos épreuves favorites</li>
+            </ul>
+        </div>
+        <div class="split-media reveal" data-delay="1">
+            <div class="phone-float small shot glow-shadow">
+                <img src="images/notif-step6-notification.png" alt="Notification reçue sur l'écran verrouillé alors que l'application est fermée">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ CLOSING (sombre) ============ -->
+<section class="section dark download">
+    <div class="hero-bg" aria-hidden="true">
+        <span class="glow glow-1"></span>
+        <span class="grain"></span>
+    </div>
+    <div class="container download-inner reveal">
+        <span class="closing-thanks">🙏 Merci pour votre confiance — l'épreuve de Caujac fut un succès pour les pré-inscriptions et paiements en ligne.</span>
+        <h2 class="on-dark">Et ce n'est que le début</h2>
+        <p class="on-dark-sub">Une fonctionnalité de plus pour rapprocher organisateurs, coureurs et suiveurs.</p>
+        <div class="recap">
+            <span><b>1</b> Activez les notifications</span>
+            <span><b>2</b> Glissez ou touchez l'étoile</span>
+            <span><b>3</b> Recevez les infos en direct</span>
+        </div>
+        <div class="store-badges center" style="margin-top:32px;">
+            <a href="https://play.google.com/store/apps/details?id=com.dossardeur&hl=fr"
+               aria-label="Disponible sur Google Play">
+                <img src="images/googleplay.png" alt="Disponible sur Google Play">
+            </a>
+            <a href="https://apps.apple.com/fr/app/dossardeur/id1496777795?mt=8"
+               aria-label="Télécharger dans l'App Store">
+                <img src="images/appstore.png" alt="Télécharger dans l'App Store">
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+    <div class="container footer-inner">
+        <div class="footer-brand">
+            <a class="brand" href="index.html#top">
+                <img src="images/od-icon.png" alt="" class="brand-mark">
+                <span class="brand-name">Dossardeur</span>
+            </a>
+            <p>L'app du cycliste, de A à Z.</p>
+        </div>
+        <div class="footer-col">
+            <span class="footer-h">Contact</span>
+            <a href="mailto:info@dossardeur.com">info@dossardeur.com</a>
+            <a href="confidentialite/">Confidentialité</a>
+        </div>
+        <div class="footer-col">
+            <span class="footer-h">Suivez-nous</span>
+            <div class="socials">
+                <a href="https://www.facebook.com/dossardeur" aria-label="Facebook">Facebook</a>
+                <a href="http://twitter.com/dossardeur" aria-label="Twitter">Twitter / X</a>
+                <a href="http://www.instagram.com/dossardeur" aria-label="Instagram">Instagram</a>
+                <a href="https://github.com/dngconsulting/OpenDossard" aria-label="GitHub">GitHub</a>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <div class="container">
+            <p>© 2026 Dossardeur — DNG Consulting · Propulsé par OpenDossard</p>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Header scroll state
+    const header = document.querySelector('.site-header');
+    const onScroll = () => header.classList.toggle('scrolled', window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, {passive: true});
+
+    // Mobile menu
+    const toggle = document.getElementById('nav-toggle');
+    const links = document.getElementById('nav-links');
+    toggle.addEventListener('click', () => {
+        const open = links.classList.toggle('open');
+        toggle.classList.toggle('open', open);
+        toggle.setAttribute('aria-expanded', String(open));
+    });
+    links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+        links.classList.remove('open');
+        toggle.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+    }));
+
+    // Reveal on scroll
+    const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                e.target.classList.add('in');
+                io.unobserve(e.target);
+            }
+        });
+    }, {threshold: 0.12, rootMargin: '0px 0px -40px 0px'});
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+
+</html>
