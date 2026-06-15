@@ -1,8 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 import { PaginationDto } from '../../common/dto';
-import { HelloAssoPaymentStatus } from '../entities/helloasso-payment.entity';
 
 /**
  * Query params pour `GET /helloasso/payments/admin/all` et
@@ -97,10 +96,12 @@ export class ListPaymentsAdminQueryDto extends PaginationDto {
   paymentId?: string;
 
   // --- Statut & tarif & montant ---
-  @ApiPropertyOptional({ enum: HelloAssoPaymentStatus })
+  @ApiPropertyOptional({
+    description: "Multi-valeurs séparées par virgule, ex: 'paid,pending'.",
+  })
   @IsOptional()
-  @IsEnum(HelloAssoPaymentStatus)
-  status?: HelloAssoPaymentStatus;
+  @IsString()
+  status?: string;
 
   @ApiPropertyOptional({ description: 'Libellé du tarif (snapshot).' })
   @IsOptional()

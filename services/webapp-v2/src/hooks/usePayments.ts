@@ -122,7 +122,7 @@ export function usePaymentsHasAny(scope: PaymentsScope | null) {
 }
 
 export function usePayments(scope: PaymentsScope) {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
   const isAuthenticated = useUserStore(s => s.isAuthenticated);
@@ -132,18 +132,27 @@ export function usePayments(scope: PaymentsScope) {
   const updateParams = useCallback(
     (newParams: Partial<PaymentPaginationParams>) => {
       const merged = { ...params, ...newParams };
-      // `useSearchParams.setSearchParams` strip le `location.hash` en
-      // interne (`navigate("?" + searchParams)`) — incompatible avec
-      // l'onglet HelloAsso qui s'identifie par `#payments` sur
-      // EngagementsPage. On utilise `navigate` directement pour préserver
-      // le hash.
-      const q = buildUrlParams(merged).toString();
-      navigate(
-        { search: q ? `?${q}` : '', hash: location.hash },
-        { replace: true },
-      );
+      const next = buildUrlParams(merged);
+      // Ce hook est partagé par deux écrans :
+      //  - « Historique des paiements » (`PaymentsHistoryPage`, scope `all`) :
+      //    page autonome, AUCUN hash → on utilise le pattern standard
+      //    `setSearchParams`, identique à `useLicences` (fiable, sans effet
+      //    de bord). C'est le cas par défaut.
+      //  - onglet HelloAsso d'`EngagementsPage` (scope `competition`) : la
+      //    course / l'onglet actif est porté par `#payments` / `#<raceCode>`.
+      //    Or `setSearchParams` strip le hash en interne. UNIQUEMENT dans ce
+      //    cas (hash présent) on passe par `navigate` pour le préserver.
+      if (location.hash) {
+        const q = next.toString();
+        navigate(
+          { search: q ? `?${q}` : '', hash: location.hash },
+          { replace: true },
+        );
+      } else {
+        setSearchParams(next, { replace: true });
+      }
     },
-    [params, navigate, location.hash],
+    [params, navigate, setSearchParams, location.hash],
   );
 
   const query = useQuery({

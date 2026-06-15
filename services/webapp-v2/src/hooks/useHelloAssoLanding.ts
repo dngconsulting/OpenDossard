@@ -40,7 +40,17 @@ export function useHelloAssoLanding(): void {
 
   useEffect(() => {
     const status = searchParams.get('status');
-    if (!status) {
+    // Ne réagir QU'aux atterrissages de callback HelloAsso, dont le `status`
+    // vaut exactement `success` ou `error` (le backend redirige vers
+    // `?status=success` / `?status=error&reason=...`).
+    //
+    // ⚠️ Garde volontairement strict : ce handler est GLOBAL et stripe les
+    // `HELLOASSO_QUERY_KEYS` (dont `status`). D'autres écrans utilisent `?status=`
+    // comme filtre de colonne — ex. la grille Paiements (`?status=paid`). Avec un
+    // simple `if (!status)`, ce handler hijackait leur param et le supprimait de
+    // l'URL (filtre réinitialisé, double requête non filtrée). On ne traite donc
+    // que les deux valeurs du protocole HelloAsso.
+    if (status !== 'success' && status !== 'error') {
       return;
     }
 

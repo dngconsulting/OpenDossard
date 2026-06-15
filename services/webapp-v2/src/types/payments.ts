@@ -113,7 +113,8 @@ export type PaymentFilters = {
   checkoutIntentId?: string;
   orderId?: string;
   paymentId?: string;
-  status?: PaymentStatus;
+  /** CSV de statuts (multi-select), ex: 'paid,pending'. */
+  status?: string;
   tarifId?: string;
   amount?: string;
 };

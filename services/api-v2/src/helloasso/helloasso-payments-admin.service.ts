@@ -11,6 +11,7 @@ import {
 } from './entities/helloasso-payment.entity';
 import {
   applyAmountFilter,
+  applyEnumIn,
   applyIlike,
   applyLicenceNameFilter,
   applyMultiValue,
@@ -229,9 +230,11 @@ export class HelloAssoPaymentsAdminService {
     applyIlike(qb, 'p.helloasso_checkout_intent_id', filters.checkoutIntentId);
     applyIlike(qb, 'p.helloasso_order_id', filters.orderId);
     applyIlike(qb, 'p.helloasso_payment_id', filters.paymentId);
-    if (filters.status !== undefined) {
-      qb.andWhere('p.status = :status', { status: filters.status });
-    }
+    // `status` est un multi-select côté UI. ATTENTION : `p.status` est une
+    // colonne ENUM Postgres → `ILIKE` y est invalide (≠ gender/dept qui sont
+    // du texte). On filtre donc en `IN (...)` EXACT (les littéraux texte sont
+    // coercés vers l'enum), pour 1 ou N statuts. CSV ex: 'paid,pending'.
+    applyEnumIn(qb, 'p.status', filters.status);
     applyIlike(qb, 'p.tarif_id', filters.tarifId);
     applyAmountFilter(qb, filters.amount);
 
@@ -320,7 +323,8 @@ export interface ListPaymentsAdminFilters {
   checkoutIntentId?: string;
   orderId?: string;
   paymentId?: string;
-  status?: HelloAssoPaymentStatus;
+  /** CSV de statuts (multi-select), ex: 'paid,pending'. */
+  status?: string;
   tarifId?: string;
   amount?: string;
 }

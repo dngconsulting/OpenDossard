@@ -222,14 +222,29 @@ describe('HelloAssoPaymentsAdminService', () => {
       expect(hit?.params).toEqual({ amountCents: 1250 });
     });
 
-    it('applies status filter with exact enum match', async () => {
+    // `p.status` est une colonne ENUM Postgres → on filtre TOUJOURS en IN (...)
+    // exact (jamais ILIKE, invalide sur un enum), pour 1 comme pour N valeurs.
+    it('applies exact IN filter on status for a single value (enum, no ILIKE)', async () => {
       const qb = makeQbMock();
       const service = makeService(qb);
       await service.list({ status: HelloAssoPaymentStatus.PAID });
 
-      const hit = qb.whereCalls.find(c => c.sql.includes('p.status'));
+      expect(qb.whereCalls.find(c => c.sql.includes('p.status ILIKE'))).toBeUndefined();
+      const hit = qb.whereCalls.find(c => c.sql.includes('p.status IN'));
       expect(hit).toBeDefined();
-      expect(hit?.params).toEqual({ status: HelloAssoPaymentStatus.PAID });
+      const param = Object.values(hit?.params ?? {})[0];
+      expect(param).toEqual(['paid']);
+    });
+
+    it('applies multi-value IN filter on status when comma-separated', async () => {
+      const qb = makeQbMock();
+      const service = makeService(qb);
+      await service.list({ status: 'paid,pending' });
+
+      const hit = qb.whereCalls.find(c => c.sql.includes('p.status IN'));
+      expect(hit).toBeDefined();
+      const param = Object.values(hit?.params ?? {})[0];
+      expect(param).toEqual(['paid', 'pending']);
     });
 
     it('does NOT add any filter clause when no filter is provided', async () => {

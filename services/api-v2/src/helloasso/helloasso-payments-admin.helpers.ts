@@ -109,6 +109,25 @@ export function applyMultiValue(qb: QB, column: string, value: string | undefine
   }
 }
 
+/**
+ * Filtre multi-valeurs EXACT pour une colonne ENUM Postgres (ex: `p.status`).
+ *
+ * Contrairement à `applyMultiValue`, on n'utilise JAMAIS `ILIKE` : l'opérateur
+ * `ILIKE` n'existe pas sur un type enum (erreur SQL → 500). On passe toujours
+ * par `IN (...)` — y compris pour une seule valeur — les littéraux texte étant
+ * coercés vers le type enum par Postgres. CSV ex: 'paid,pending'.
+ */
+export function applyEnumIn(qb: QB, column: string, value: string | undefined): void {
+  if (!value) return;
+  const values = value
+    .split(',')
+    .map(v => v.trim())
+    .filter(Boolean);
+  if (values.length === 0) return;
+  const param = `flt_enum_${Math.abs(hashString(column))}`;
+  qb.andWhere(`${column} IN (:...${param})`, { [param]: values });
+}
+
 export function applyLicenceNameFilter(qb: QB, value: string | undefined): void {
   if (!value) return;
   qb.andWhere('(l.name ILIKE :licenceName OR l.first_name ILIKE :licenceName)', {
