@@ -12,6 +12,7 @@ import * as compression from 'compression';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { AppModule } from './app.module';
+import { JsonLogger } from './common/logging';
 
 /**
  * Charge les certs HTTPS locaux (mkcert) pour le mode dev.
@@ -48,8 +49,15 @@ async function bootstrap() {
   // normalement en parallèle (les autres endpoints reçoivent toujours @Body() parsé).
   const app = await NestFactory.create(AppModule, {
     rawBody: true,
+    // Bufferise les logs du bootstrap jusqu'au branchement de JsonLogger
+    // ci-dessous, pour qu'ils soient eux aussi au bon format.
+    bufferLogs: true,
     ...(httpsOptions ? { httpsOptions } : {}),
   });
+
+  // Branche le logger applicatif unique : tous les `new Logger(ctx)` existants
+  // passent désormais par JsonLogger (JSON corrélé en prod, lisible en dev).
+  app.useLogger(app.get(JsonLogger));
 
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 

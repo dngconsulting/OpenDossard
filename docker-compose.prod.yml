@@ -58,11 +58,29 @@ services:
     restart: always
     expose:
       - "3001"
+    # Logs envoyés au journal systemd de l'hôte (au lieu d'un fichier JSON Docker)
+    # → lus par Netdata (Logs Explorer). Les lignes sont du JSON structuré
+    # (cf. JsonLogger) : filtrer par `CONTAINER_NAME=api-v2` / `SYSLOG_IDENTIFIER=api-v2`
+    # puis recherche plein-texte (ex: coller un requestId ramène toutes ses lignes).
+    #
+    # ── PRÉREQUIS HÔTE : journal systemd PERSISTANT (à faire avant le 1er deploy) ──
+    # Sans ça, les logs vont dans /run/log/journal (volatile, perdu au reboot) et
+    # Netdata ne voit rien dans /var/log/journal :
+    #     sudo mkdir -p /var/log/journal
+    #     sudo systemctl restart systemd-journald
+    #   (optionnel : Storage=persistent dans /etc/systemd/journald.conf)
+    #
+    # ── RÉTENTION / TAILLE ──
+    # Les options json-file `max-size`/`max-file` (ancien cap ~30 Mo par conteneur)
+    # ne s'appliquent PAS à journald et n'ont donc pas d'équivalent par conteneur ici.
+    # La taille est bornée GLOBALEMENT par journald (/etc/systemd/journald.conf) :
+    # défaut SystemMaxUse ≈ 10 % du FS de /var/log/journal (plafonné à 4 Go), purge
+    # auto des plus vieux segments. Pour maîtriser explicitement, fixer p.ex.
+    # SystemMaxUse=2G dans journald.conf (config hôte, partagée par tous les conteneurs).
     logging:
-      driver: json-file
+      driver: journald
       options:
-        max-size: "10m"
-        max-file: "3"
+        tag: api-v2
     environment:
       - POSTGRES_HOST=dossarddb
       - POSTGRES_PORT=5432
@@ -168,6 +186,10 @@ services:
       - /sys:/host/sys:ro
       - /etc/os-release:/host/etc/os-release:ro
       - /var/log:/host/var/log:ro
+      # Journal systemd de l'hôte aux chemins standards attendus par le plugin
+      # systemd-journal de Netdata (Logs Explorer). Persistant + volatile.
+      - /var/log/journal:/var/log/journal:ro
+      - /run/log/journal:/run/log/journal:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
   # ══════════════════════════════════════════════════════════

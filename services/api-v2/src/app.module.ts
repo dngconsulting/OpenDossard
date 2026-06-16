@@ -16,9 +16,13 @@ import { ReportsModule } from './reports/reports.module';
 import { DeepLinksModule } from './deep-links/deep-links.module';
 import { HelloAssoModule } from './helloasso/helloasso.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { LoggingModule } from './common/logging';
 
 @Module({
   imports: [
+    // Logging corrélé (requestId + logs JSON structurés)
+    LoggingModule,
+
     // Configuration
     ConfigModule.forRoot({
       isGlobal: true,
