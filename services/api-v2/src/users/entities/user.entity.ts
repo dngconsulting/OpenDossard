@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, Index } from 'typeorm';
+import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 
@@ -47,6 +47,12 @@ export class UserEntity {
   @ApiPropertyOptional()
   @Column({ type: 'varchar', name: 'sign_in_provider', length: 32, nullable: true })
   signInProvider?: string | null;
+
+  @ApiPropertyOptional()
+  creationTime?: string | null;
+
+  @ApiPropertyOptional()
+  lastSignInTime?: string | null;
 
   // Helper to get roles as array
   getRolesArray(): string[] {

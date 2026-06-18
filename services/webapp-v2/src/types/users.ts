@@ -11,6 +11,12 @@ export type UserType = {
    * Firebase Auth est la source de vérité pour ces users.
    */
   firebaseUid?: string | null;
+  /**
+   * Métadonnées Firebase Auth (users Dossardeur uniquement) — non persistées
+   * en base, enrichies à la volée par le backend. Chaînes de date UTC.
+   */
+  creationTime?: string | null;
+  lastSignInTime?: string | null;
 };
 
 export type CreateUserInput = {

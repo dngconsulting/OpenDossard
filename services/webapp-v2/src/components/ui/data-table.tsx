@@ -423,7 +423,10 @@ export function DataTable<TData, TValue>({
             {(getEditRowHref || onEditRow) && <TableHead style={{ width: 40 }} />}
             {headerGroup.headers.map(header => {
               const columnId = header.column.id;
-              const isSortable = sorting?.onSortChange && !header.isPlaceholder;
+              const isSortable =
+                sorting?.onSortChange &&
+                !header.isPlaceholder &&
+                header.column.columnDef.enableSorting !== false;
               const hasFixedSize = header.column.columnDef.size !== undefined;
               return (
                 <TableHead

@@ -1,10 +1,10 @@
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { usersApi, type SetUserClubsResponse } from '@/api/users.api';
+import { type SetUserClubsResponse, usersApi } from '@/api/users.api';
 import useUserStore from '@/store/UserStore';
-import type { UserType, UserPaginationParams, UserSource, CreateUserInput } from '@/types/users';
+import type { CreateUserInput, UserPaginationParams, UserSource, UserType } from '@/types/users';
 
 export const usersKeys = {
   all: ['users'] as const,
@@ -35,11 +35,21 @@ const OWNED_URL_KEYS = ['offset', 'limit', 'search', 'orderBy', 'orderDirection'
 function buildUrlParams(params: UserPaginationParams): URLSearchParams {
   const searchParams = new URLSearchParams();
 
-  if (params.offset && params.offset > 0) {searchParams.set('offset', String(params.offset));}
-  if (params.limit && params.limit !== 20) {searchParams.set('limit', String(params.limit));}
-  if (params.search) {searchParams.set('search', params.search);}
-  if (params.orderBy) {searchParams.set('orderBy', params.orderBy);}
-  if (params.orderDirection) {searchParams.set('orderDirection', params.orderDirection);}
+  if (params.offset && params.offset > 0) {
+    searchParams.set('offset', String(params.offset));
+  }
+  if (params.limit && params.limit !== 20) {
+    searchParams.set('limit', String(params.limit));
+  }
+  if (params.search) {
+    searchParams.set('search', params.search);
+  }
+  if (params.orderBy) {
+    searchParams.set('orderBy', params.orderBy);
+  }
+  if (params.orderDirection) {
+    searchParams.set('orderDirection', params.orderDirection);
+  }
 
   return searchParams;
 }
@@ -49,6 +59,12 @@ export function useUsers(source?: UserSource) {
   const isAuthenticated = useUserStore(state => state.isAuthenticated);
 
   const params = useMemo(() => parseUrlParams(searchParams), [searchParams]);
+  const effectiveParams = useMemo(() => {
+    if (params.orderBy || source !== 'dossardeur') {
+      return params;
+    }
+    return { ...params, orderBy: 'id', orderDirection: 'DESC' as const };
+  }, [params, source]);
 
   const updateParams = useCallback(
     (newParams: Partial<UserPaginationParams>) => {
@@ -60,14 +76,14 @@ export function useUsers(source?: UserSource) {
       buildUrlParams(merged).forEach((value, key) => urlParams.set(key, value));
       setSearchParams(urlParams, { replace: true });
     },
-    [params, searchParams, setSearchParams]
+    [params, searchParams, setSearchParams],
   );
 
   // `source` est fixé par l'onglet, pas par l'URL : il est injecté dans la
   // requête (et la queryKey) sans transiter par les searchParams
   const queryParams = useMemo(
-    () => (source ? { ...params, source } : params),
-    [params, source]
+    () => (source ? { ...effectiveParams, source } : effectiveParams),
+    [effectiveParams, source],
   );
 
   const query = useQuery({
@@ -85,14 +101,14 @@ export function useUsers(source?: UserSource) {
     (limit: number) => {
       updateParams({ offset: 0, limit });
     },
-    [updateParams]
+    [updateParams],
   );
 
   const setSearch = useCallback(
     (search: string) => {
       updateParams({ offset: 0, search: search || undefined });
     },
-    [updateParams]
+    [updateParams],
   );
 
   const goToPage = useCallback(
@@ -100,14 +116,14 @@ export function useUsers(source?: UserSource) {
       const limit = params.limit || 20;
       updateParams({ offset: page * limit });
     },
-    [params.limit, updateParams]
+    [params.limit, updateParams],
   );
 
   const setSort = useCallback(
     (column: string, direction: 'ASC' | 'DESC') => {
       updateParams({ orderBy: column, orderDirection: direction });
     },
-    [updateParams]
+    [updateParams],
   );
 
   const currentPage = Math.floor((params.offset || 0) / (params.limit || 20));
@@ -115,7 +131,9 @@ export function useUsers(source?: UserSource) {
 
   return {
     ...query,
-    params,
+    // `effectiveParams` (et non `params`) pour que l'en-tête de colonne reflète
+    // le tri par défaut id DESC de l'onglet Dossardeur
+    params: effectiveParams,
     setLimit,
     setSearch,
     setSort,

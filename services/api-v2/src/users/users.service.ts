@@ -1,18 +1,21 @@
 import {
+  ConflictException,
+  ForbiddenException,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
-  ConflictException,
-  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
+import type * as admin from 'firebase-admin';
 
 import { UserClubService } from '../auth/user-club.service';
 import { ClubsService } from '../clubs/clubs.service';
 import { ClubEntity } from '../clubs/entities/club.entity';
 import { PaginatedResponseDto } from '../common/dto/pagination.dto';
+import { FIREBASE_ADMIN } from '../firebase/firebase.module';
 import { FilterUserDto, UserSource } from './dto/filter-user.dto';
 import { UserEntity } from './entities/user.entity';
 
@@ -41,6 +44,7 @@ export class UsersService {
     private userRepository: Repository<UserEntity>,
     private readonly userClubService: UserClubService,
     private readonly clubsService: ClubsService,
+    @Inject(FIREBASE_ADMIN) private readonly firebaseApp: admin.app.App,
   ) {}
 
   async findAll(filterDto: FilterUserDto): Promise<PaginatedResponseDto<UserEntity>> {
@@ -64,12 +68,25 @@ export class UsersService {
     }
 
     // Global search across email, firstName, lastName, firebaseUid (les users
-    // firebase n'ont pas d'email : leur identifiant visible est le firebase_uid)
+    // firebase n'ont pas d'email : leur identifiant visible est le firebase_uid).
+    // Si le terme est un entier, on matche aussi l'id technique (match exact :
+    // taper « 42 » trouve l'utilisateur 42, pas 142/420).
     if (search) {
-      queryBuilder.andWhere(
-        '(LOWER(user.email) LIKE LOWER(:search) OR LOWER(user.firstName) LIKE LOWER(:search) OR LOWER(user.lastName) LIKE LOWER(:search) OR LOWER(user.firebaseUid) LIKE LOWER(:search))',
-        { search: `%${search}%` },
-      );
+      const conditions = [
+        'LOWER(user.email) LIKE LOWER(:search)',
+        'LOWER(user.firstName) LIKE LOWER(:search)',
+        'LOWER(user.lastName) LIKE LOWER(:search)',
+        'LOWER(user.firebaseUid) LIKE LOWER(:search)',
+      ];
+      const params: Record<string, unknown> = { search: `%${search}%` };
+
+      const trimmed = search.trim();
+      if (/^\d+$/.test(trimmed)) {
+        conditions.push('user.id = :idSearch');
+        params.idSearch = parseInt(trimmed, 10);
+      }
+
+      queryBuilder.andWhere(`(${conditions.join(' OR ')})`, params);
     }
 
     // Ordering
@@ -98,7 +115,56 @@ export class UsersService {
 
     const [data, total] = await queryBuilder.getManyAndCount();
 
+    // Pour les users Dossardeur (Firebase Auth), enrichir la page avec les
+    // métadonnées non persistées en base : date de création + dernier sign-in.
+    if (source === UserSource.DOSSARDEUR && data.length > 0) {
+      await this.enrichWithFirebaseMetadata(data);
+    }
+
     return new PaginatedResponseDto(data, total, offset, limit);
+  }
+
+  /**
+   * Enrichit les users Dossardeur avec leurs métadonnées Firebase Auth
+   * (date de création + dernier sign-in), non persistées en base. Lecture en
+   * batch via auth().getUsers() (max 100 uids par appel) pour éviter le N+1 :
+   * une page de 500 users = au plus 5 appels Firebase.
+   * Best-effort : un échec Firebase n'empêche pas le rendu de la liste (les
+   * colonnes dates restent simplement vides).
+   */
+  private async enrichWithFirebaseMetadata(users: UserEntity[]): Promise<void> {
+    const uids = users.map(u => u.firebaseUid).filter((uid): uid is string => !!uid);
+    if (uids.length === 0) return;
+
+    const metaByUid = new Map<string, { creationTime?: string; lastSignInTime?: string }>();
+    const BATCH = 100;
+    try {
+      for (let i = 0; i < uids.length; i += BATCH) {
+        const chunk = uids.slice(i, i + BATCH).map(uid => ({ uid }));
+        const result = await this.firebaseApp.auth().getUsers(chunk);
+        for (const record of result.users) {
+          metaByUid.set(record.uid, {
+            creationTime: record.metadata.creationTime,
+            lastSignInTime: record.metadata.lastSignInTime,
+          });
+        }
+      }
+    } catch (err) {
+      this.logger.warn(
+        `Enrichissement Firebase des users Dossardeur échoué : ` +
+          `${err instanceof Error ? err.message : String(err)}`,
+      );
+      return;
+    }
+
+    for (const user of users) {
+      if (!user.firebaseUid) continue;
+      const meta = metaByUid.get(user.firebaseUid);
+      if (meta) {
+        user.creationTime = meta.creationTime ?? null;
+        user.lastSignInTime = meta.lastSignInTime ?? null;
+      }
+    }
   }
 
   async findOne(id: number): Promise<UserEntity> {

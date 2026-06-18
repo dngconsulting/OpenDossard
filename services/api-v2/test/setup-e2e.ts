@@ -86,6 +86,10 @@ beforeAll(async () => {
             'firebase-admin not configured in shared e2e setup; override FIREBASE_ADMIN per-spec to test real flows',
           ),
         ),
+      // Enrichissement des métadonnées des users Dossardeur (UsersService.findAll).
+      // No-op dans le setup partagé : aucune métadonnée renvoyée, la liste reste
+      // exploitable (best-effort côté service). Override per-spec pour tester l'enrichissement réel.
+      getUsers: () => Promise.resolve({ users: [], notFound: [] }),
     }),
   };
   const moduleFixture: TestingModule = await Test.createTestingModule({

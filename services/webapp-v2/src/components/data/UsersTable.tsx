@@ -10,6 +10,16 @@ type ColumnsProps = {
   onRolesChange?: (userId: number, roles: string) => void;
 };
 
+// Format une date Firebase Auth (chaîne UTC) en date/heure locale FR.
+// Renvoie « — » si absente ou invalide (ex: enrichissement Firebase échoué).
+const formatFirebaseDate = (value?: string | null): string => {
+  if (!value) {return '—';}
+  const d = new Date(value);
+  return Number.isNaN(d.getTime())
+    ? '—'
+    : d.toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
+};
+
 // Colonnes par population. Onglet Dossardeur : l'email n'est pas persisté
 // côté backend (source de vérité = Firebase Auth), l'identifiant affiché —
 // et triable — est le firebase_uid ; pas de téléphone. Onglet Open Dossard :
@@ -35,7 +45,47 @@ const createColumns = ({ variant, onRolesChange }: ColumnsProps): ColumnDef<User
           cell: ({ row }) => row.original.email ?? '—',
         };
 
+  // ID technique de la table `user` — affiché en tête pour les deux populations
+  // (utile pour le support / corrélation côté backend). Triable (le backend
+  // accepte le tri par `id`).
+  const idColumn: ColumnDef<UserType> = {
+    accessorKey: 'id',
+    header: 'ID',
+    size: 70,
+    cell: ({ row }) => (
+      <span className="font-mono text-xs text-muted-foreground">{row.original.id}</span>
+    ),
+  };
+
+  // Dates Firebase Auth (Dossardeur) — non persistées en base, enrichies par
+  // le backend. Non triables côté serveur (champs hors DB).
+  const firebaseDateColumns: ColumnDef<UserType>[] = [
+    {
+      accessorKey: 'creationTime',
+      header: 'Créé le',
+      size: 150,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground">
+          {formatFirebaseDate(row.original.creationTime)}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'lastSignInTime',
+      header: 'Dernière connexion',
+      size: 160,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground">
+          {formatFirebaseDate(row.original.lastSignInTime)}
+        </span>
+      ),
+    },
+  ];
+
   return [
+    idColumn,
     identifierColumn,
     {
       accessorKey: 'firstName',
@@ -46,7 +96,7 @@ const createColumns = ({ variant, onRolesChange }: ColumnsProps): ColumnDef<User
       header: 'Nom',
     },
     ...(variant === 'dossardeur'
-      ? []
+      ? firebaseDateColumns
       : [
           {
             accessorKey: 'phone',
