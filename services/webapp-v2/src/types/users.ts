@@ -17,6 +17,13 @@ export type UserType = {
    */
   creationTime?: string | null;
   lastSignInTime?: string | null;
+  /**
+   * Dates persistées (users Open Dossard uniquement). `createdAt` est NULL pour
+   * les comptes créés avant la migration ; `lastLoginAt` se renseigne à la
+   * première connexion post-déploiement. Chaînes de date ISO.
+   */
+  createdAt?: string | null;
+  lastLoginAt?: string | null;
 };
 
 export type CreateUserInput = {

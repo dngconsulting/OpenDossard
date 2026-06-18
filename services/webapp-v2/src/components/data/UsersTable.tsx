@@ -10,9 +10,10 @@ type ColumnsProps = {
   onRolesChange?: (userId: number, roles: string) => void;
 };
 
-// Format une date Firebase Auth (chaîne UTC) en date/heure locale FR.
-// Renvoie « — » si absente ou invalide (ex: enrichissement Firebase échoué).
-const formatFirebaseDate = (value?: string | null): string => {
+// Format une date (chaîne UTC Firebase ou ISO DB) en date/heure locale FR.
+// Renvoie « — » si absente ou invalide (ex: enrichissement Firebase échoué,
+// ou colonne NULL pour un compte antérieur à la migration).
+const formatDateTime = (value?: string | null): string => {
   if (!value) {return '—';}
   const d = new Date(value);
   return Number.isNaN(d.getTime())
@@ -67,7 +68,7 @@ const createColumns = ({ variant, onRolesChange }: ColumnsProps): ColumnDef<User
       enableSorting: false,
       cell: ({ row }) => (
         <span className="text-xs text-muted-foreground">
-          {formatFirebaseDate(row.original.creationTime)}
+          {formatDateTime(row.original.creationTime)}
         </span>
       ),
     },
@@ -78,7 +79,33 @@ const createColumns = ({ variant, onRolesChange }: ColumnsProps): ColumnDef<User
       enableSorting: false,
       cell: ({ row }) => (
         <span className="text-xs text-muted-foreground">
-          {formatFirebaseDate(row.original.lastSignInTime)}
+          {formatDateTime(row.original.lastSignInTime)}
+        </span>
+      ),
+    },
+  ];
+
+  // Dates persistées (Open Dossard) — colonnes DB, donc triables côté serveur.
+  // `createdAt` NULL = compte antérieur à la migration ; `lastLoginAt` NULL =
+  // pas de connexion depuis le déploiement.
+  const openDossardDateColumns: ColumnDef<UserType>[] = [
+    {
+      accessorKey: 'createdAt',
+      header: 'Créé le',
+      size: 150,
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground">
+          {formatDateTime(row.original.createdAt)}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'lastLoginAt',
+      header: 'Dernière connexion',
+      size: 160,
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground">
+          {formatDateTime(row.original.lastLoginAt)}
         </span>
       ),
     },
@@ -95,8 +122,9 @@ const createColumns = ({ variant, onRolesChange }: ColumnsProps): ColumnDef<User
       accessorKey: 'lastName',
       header: 'Nom',
     },
+    ...(variant === 'dossardeur' ? firebaseDateColumns : openDossardDateColumns),
     ...(variant === 'dossardeur'
-      ? firebaseDateColumns
+      ? []
       : [
           {
             accessorKey: 'phone',

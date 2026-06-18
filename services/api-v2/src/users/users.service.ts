@@ -98,9 +98,20 @@ export class UsersService {
       'phone',
       'roles',
       'firebaseUid',
+      // Persistées pour les users Open Dossard (NULL pour Dossardeur).
+      'createdAt',
+      'lastLoginAt',
     ];
     const orderField = validOrderFields.includes(orderBy) ? orderBy : 'lastName';
-    queryBuilder.orderBy(`user.${orderField}`, orderDirection);
+    // Pour les colonnes date, garder les NULL (comptes pré-migration / jamais
+    // reconnectés) en bas quel que soit le sens : sinon un tri décroissant les
+    // ferait remonter en tête (Postgres = NULLS FIRST en DESC).
+    const isDateField = orderField === 'createdAt' || orderField === 'lastLoginAt';
+    queryBuilder.orderBy(
+      `user.${orderField}`,
+      orderDirection,
+      isDateField ? 'NULLS LAST' : undefined,
+    );
 
     // Secondary sort for consistency
     if (orderField !== 'lastName') {

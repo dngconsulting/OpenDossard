@@ -1,4 +1,4 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 
@@ -48,6 +48,22 @@ export class UserEntity {
   @Column({ type: 'varchar', name: 'sign_in_provider', length: 32, nullable: true })
   signInProvider?: string | null;
 
+  // Dates persistées, exploitées dans le backoffice pour les users Open Dossard.
+  // `created_at` est posé par @CreateDateColumn sur TOUT nouvel insert (y compris
+  // un signup Firebase via auth-firebase), donc non-NULL pour les comptes créés
+  // après cette migration ; NULL pour les comptes antérieurs. L'onglet Dossardeur
+  // n'affiche toutefois pas ces colonnes : il utilise les métadonnées Firebase
+  // transientes ci-dessous (creationTime/lastSignInTime).
+  @ApiPropertyOptional()
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp', nullable: true })
+  createdAt?: Date | null;
+
+  @ApiPropertyOptional()
+  @Column({ name: 'last_login_at', type: 'timestamp', nullable: true })
+  lastLoginAt?: Date | null;
+
+  // Métadonnées Firebase Auth (users Dossardeur) — NON persistées, enrichies à
+  // la volée par UsersService. Chaînes de date UTC.
   @ApiPropertyOptional()
   creationTime?: string | null;
 

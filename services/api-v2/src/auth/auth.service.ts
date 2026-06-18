@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,6 +9,8 @@ import { AuthResponseDto, TokensDto } from './dto';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
@@ -33,6 +35,20 @@ export class AuthService {
   }
 
   async login(user: UserEntity): Promise<AuthResponseDto> {
+    // Trace de la dernière connexion (users backoffice Open Dossard). Ce flow
+    // email/password ne concerne pas les users Firebase. `update` ciblé pour ne
+    // toucher que cette colonne (pas de re-save du hash ni des autres champs).
+    // Best-effort : un échec de cet UPDATE ne doit JAMAIS bloquer une auth
+    // valide — on log et on continue.
+    try {
+      await this.userRepository.update(user.id, { lastLoginAt: new Date() });
+    } catch (err) {
+      this.logger.warn(
+        `Mise à jour de last_login_at échouée pour le user #${user.id} : ` +
+          `${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+
     const tokens = await this.generateTokens(user);
 
     return {
@@ -84,7 +100,11 @@ export class AuthService {
     return this.toProfileResponse(user);
   }
 
-  async changePassword(userId: number, currentPassword: string, newPassword: string): Promise<void> {
+  async changePassword(
+    userId: number,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user || !user.password) {
