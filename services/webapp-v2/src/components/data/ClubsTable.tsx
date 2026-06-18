@@ -11,7 +11,6 @@ const columns: ColumnDef<ClubType>[] = [
     accessorKey: 'id',
     header: 'ID',
     size: 60,
-    enableSorting: false,
   },
   {
     accessorKey: 'fede',
