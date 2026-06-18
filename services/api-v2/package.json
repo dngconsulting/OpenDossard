@@ -109,5 +109,13 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "overrides": {
+    "undici": "7.24.0",
+    "multer": "2.2.0",
+    "fast-xml-builder": "1.1.7",
+    "path-to-regexp@8": "8.4.0",
+    "form-data@2": "2.5.6",
+    "minimatch@9": "9.0.7"
   }
 }
