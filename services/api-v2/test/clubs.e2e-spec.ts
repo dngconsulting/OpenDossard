@@ -2,8 +2,9 @@ import * as request from 'supertest';
 import { DataSource } from 'typeorm';
 
 import { getApp, getAuthHelper, getSeedHelper } from './setup-e2e';
-import { ClubEntity } from '../src/clubs/entities/club.entity';
 import { UserClubEntity } from '../src/auth/entities/user-club.entity';
+import { ClubEntity } from '../src/clubs/entities/club.entity';
+import { Federation } from '../src/common/enums';
 
 interface PaginatedResponse<T> {
   data: T[];
@@ -290,6 +291,80 @@ describe('Clubs (e2e)', () => {
       expect(body.raceCount).toBe(0);
       expect(body.licenceCount).toBe(0);
       expect(body.competitionCount).toBe(0);
+    });
+  });
+
+  describe('GET /clubs/legacy', () => {
+    // seedClubs() crée : 2 clubs FSGT (dept 31, 32) + 1 club FFC (dept 33).
+    it('returns all clubs when no filter', async () => {
+      await getSeedHelper().seedClubs();
+
+      const res = await request(getApp().getHttpServer())
+        .get(`${API}/legacy`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+
+      const body = res.body as ClubEntity[];
+      expect(body).toHaveLength(3);
+    });
+
+    it('filters by a single federation', async () => {
+      await getSeedHelper().seedClubs();
+
+      const res = await request(getApp().getHttpServer())
+        .get(`${API}/legacy`)
+        .query({ fede: 'FSGT' })
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+
+      const body = res.body as ClubEntity[];
+      expect(body).toHaveLength(2);
+      expect(body.every(c => c.fede === Federation.FSGT)).toBe(true);
+    });
+
+    it('filters by several federations (repeated fede param)', async () => {
+      await getSeedHelper().seedClubs();
+
+      const res = await request(getApp().getHttpServer())
+        .get(`${API}/legacy`)
+        .query({ fede: ['FSGT', 'FFC'] })
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+
+      const body = res.body as ClubEntity[];
+      expect(body).toHaveLength(3);
+      expect(body.map(c => c.fede).sort()).toEqual(['FFC', 'FSGT', 'FSGT']);
+    });
+
+    it('returns nothing for a federation without clubs', async () => {
+      await getSeedHelper().seedClubs();
+
+      const res = await request(getApp().getHttpServer())
+        .get(`${API}/legacy`)
+        .query({ fede: 'UFOLEP' })
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+
+      const body = res.body as ClubEntity[];
+      expect(body).toHaveLength(0);
+    });
+
+    it('combines federation and department filters', async () => {
+      await getSeedHelper().seedClubs();
+
+      const res = await request(getApp().getHttpServer())
+        .get(`${API}/legacy`)
+        .query({ fede: ['FSGT', 'FFC'], dept: '31' })
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+
+      const body = res.body as ClubEntity[];
+      expect(body).toHaveLength(1);
+      expect(body[0].dept).toBe('31');
+    });
+
+    it('rejects unauthenticated request', async () => {
+      await request(getApp().getHttpServer()).get(`${API}/legacy`).expect(401);
     });
   });
 });

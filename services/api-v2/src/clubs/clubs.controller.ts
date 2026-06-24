@@ -51,7 +51,14 @@ export class ClubsController {
     summary:
       'Get all clubs (legacy, no pagination), optionally filtered by federation and department(s)',
   })
-  @ApiQuery({ name: 'fede', required: false, enum: Federation })
+  @ApiQuery({
+    name: 'fede',
+    required: false,
+    enum: Federation,
+    isArray: true,
+    description:
+      'Filtre par fédération(s). Répétable : `?fede=FSGT&fede=UFOLEP`. NestJS accepte la même requête avec une valeur unique (`?fede=FSGT`).',
+  })
   @ApiQuery({
     name: 'dept',
     required: false,
@@ -61,7 +68,7 @@ export class ClubsController {
   })
   @ApiResponse({ status: 200, description: 'List of clubs' })
   async findAllLegacy(
-    @Query('fede') fede?: Federation,
+    @Query('fede') fede?: Federation | Federation[],
     @Query('dept') dept?: string | string[],
   ): Promise<ClubEntity[]> {
     return this.clubsService.findAll(fede, dept);

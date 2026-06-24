@@ -157,20 +157,21 @@ export function useClubsByFedeAndDept(fede: string, dept: string) {
 }
 
 /**
- * Recherche multi-département de clubs (endpoint legacy étendu).
- * `depts` est un array de codes département. `fede` reste single.
+ * Recherche multi-fédération + multi-département de clubs (endpoint legacy
+ * étendu). `fedes` et `depts` sont des arrays.
  *
  * Le hook est désactivé si aucun filtre n'est posé (pour éviter de charger
  * tous les clubs au montage). L'appelant peut filtrer par nom côté client
  * sur le résultat.
  */
-export function useClubsLegacySearch(params: { fede?: string; depts?: string[] }) {
-  const { fede, depts } = params;
-  const hasFilters = !!fede || (depts !== undefined && depts.length > 0);
+export function useClubsLegacySearch(params: { fedes?: string[]; depts?: string[] }) {
+  const { fedes, depts } = params;
+  const hasFilters =
+    (fedes !== undefined && fedes.length > 0) || (depts !== undefined && depts.length > 0);
 
   return useQuery({
-    queryKey: ['clubs', 'legacy', 'search', { fede: fede ?? null, depts: depts ?? [] }] as const,
-    queryFn: () => clubsApi.searchLegacy({ fede, depts }),
+    queryKey: ['clubs', 'legacy', 'search', { fedes: fedes ?? [], depts: depts ?? [] }] as const,
+    queryFn: () => clubsApi.searchLegacy({ fedes, depts }),
     enabled: hasFilters,
     placeholderData: keepPreviousData,
   });

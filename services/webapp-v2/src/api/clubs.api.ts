@@ -20,12 +20,14 @@ export const clubsApi = {
     apiClient<ClubType[]>(`/clubs/legacy?fede=${encodeURIComponent(fede)}&dept=${encodeURIComponent(dept)}`),
 
   /**
-   * Recherche legacy multi-département. Utilise le param `dept` répété
-   * (`?dept=31&dept=81`). `fede` reste single.
+   * Recherche legacy multi-fédération + multi-département. Utilise les params
+   * `fede` et `dept` répétés (`?fede=FSGT&fede=UFOLEP&dept=31&dept=81`).
    */
-  searchLegacy: (params: { fede?: string; depts?: string[] }): Promise<ClubType[]> => {
+  searchLegacy: (params: { fedes?: string[]; depts?: string[] }): Promise<ClubType[]> => {
     const sp = new URLSearchParams();
-    if (params.fede) {sp.set('fede', params.fede);}
+    if (params.fedes && params.fedes.length > 0) {
+      params.fedes.forEach(f => sp.append('fede', f));
+    }
     if (params.depts && params.depts.length > 0) {
       params.depts.forEach(d => sp.append('dept', d));
     }

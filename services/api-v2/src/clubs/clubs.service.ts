@@ -51,11 +51,14 @@ export class ClubsService {
     }
   }
 
-  async findAll(fede?: Federation, dept?: string | string[]): Promise<ClubEntity[]> {
+  async findAll(fede?: Federation | Federation[], dept?: string | string[]): Promise<ClubEntity[]> {
     const queryBuilder = this.clubRepository.createQueryBuilder('club');
 
-    if (fede) {
-      queryBuilder.andWhere('club.fede = :fede', { fede });
+    if (fede !== undefined) {
+      const fedes = (Array.isArray(fede) ? fede : [fede]).filter(f => f.length > 0);
+      if (fedes.length > 0) {
+        queryBuilder.andWhere('club.fede IN (:...fedes)', { fedes });
+      }
     }
     if (dept !== undefined) {
       const depts = (Array.isArray(dept) ? dept : [dept]).filter(d => d.length > 0);

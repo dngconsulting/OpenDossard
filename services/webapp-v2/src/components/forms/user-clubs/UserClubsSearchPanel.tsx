@@ -5,23 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-select';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useClubsLegacySearch } from '@/hooks/useClubs';
 import { groupClubsByDept } from '@/lib/group-clubs-by-dept';
 import { pluralize } from '@/lib/pluralize';
 import type { ClubType } from '@/types/clubs';
 import type { DepartmentType } from '@/types/departments';
 
-// Seules FSGT et UFOLEP ont aujourd'hui des clubs gérés via OpenDossard.
-// Si d'autres fédés sont introduites côté DB, ajouter ici.
-const FEDES = ['FSGT', 'UFOLEP'] as const;
-const FEDE_ALL_VALUE = '__all__';
+// Fédérations sélectionnables pour la recherche de clubs gérés.
+const FEDES = ['FSGT', 'UFOLEP', 'FFC', 'FFVELO', 'CYCLOS', 'FFTRI'] as const;
+const FEDE_OPTIONS: MultiSelectOption[] = FEDES.map(f => ({ value: f, label: f }));
 const RESULTS_LIMIT = 200;
 
 type UserClubsSearchPanelProps = {
@@ -51,14 +43,13 @@ export function UserClubsSearchPanel({
   onAdd,
 }: UserClubsSearchPanelProps) {
   const [searchName, setSearchName] = useState('');
-  const [fedeFilter, setFedeFilter] = useState<string>(FEDE_ALL_VALUE);
+  const [fedeCodes, setFedeCodes] = useState<string[]>([]);
   const [deptCodes, setDeptCodes] = useState<string[]>([]);
   const [selectedToAdd, setSelectedToAdd] = useState<Set<number>>(new Set());
 
-  const fedeForApi = fedeFilter === FEDE_ALL_VALUE ? undefined : fedeFilter;
-  const searchEnabled = !!fedeForApi || deptCodes.length > 0;
+  const searchEnabled = fedeCodes.length > 0 || deptCodes.length > 0;
 
-  const searchQuery = useClubsLegacySearch({ fede: fedeForApi, depts: deptCodes });
+  const searchQuery = useClubsLegacySearch({ fedes: fedeCodes, depts: deptCodes });
 
   const departmentOptions: MultiSelectOption[] = useMemo(
     () => departments.map(d => ({ value: d.code, label: `${d.name} (${d.code})` })),
@@ -125,19 +116,13 @@ export function UserClubsSearchPanel({
           onChange={e => setSearchName(e.target.value)}
           className="h-9 flex-1"
         />
-        <Select value={fedeFilter} onValueChange={setFedeFilter}>
-          <SelectTrigger className="h-9 w-full sm:w-40">
-            <SelectValue placeholder="Fédération" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={FEDE_ALL_VALUE}>Toutes fédés</SelectItem>
-            {FEDES.map(f => (
-              <SelectItem key={f} value={f}>
-                {f}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <MultiSelect
+          options={FEDE_OPTIONS}
+          selected={fedeCodes}
+          onChange={setFedeCodes}
+          placeholder="Toutes fédés"
+          className="w-full sm:w-44"
+        />
         <MultiSelect
           options={departmentOptions}
           selected={deptCodes}
