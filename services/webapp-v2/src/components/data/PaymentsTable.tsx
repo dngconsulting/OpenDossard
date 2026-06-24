@@ -1,6 +1,7 @@
 import { Loader2, RefreshCw } from 'lucide-react';
 
 import { PaymentsSummaryHeader } from '@/components/common/PaymentsSummaryHeader';
+import { PaymentsExportButtons } from '@/components/data/PaymentsExportButtons';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table.tsx';
@@ -360,6 +361,7 @@ export function PaymentsTable({ scope, fillHeight = false }: PaymentsTableProps)
       {scope.kind === 'competition' && data?.summary && (
         <PaymentsSummaryHeader summary={data.summary} />
       )}
+      <PaymentsExportButtons scope={scope} params={params} total={data?.meta?.total ?? 0} />
       <DataTable
         columns={columns}
         data={data?.data || []}
