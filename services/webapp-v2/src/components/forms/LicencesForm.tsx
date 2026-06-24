@@ -134,7 +134,8 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange, f
   // Conditional display flags (v1 rules)
   const hasFede = !!fede;
   const isNL = isNonLicencie(fede);
-  const showLicenceFields = hasFede && !isNL; // Licence number, Season
+  const showLicenceNumber = hasFede && !isNL; // Numéro de licence (pas de n° pour un NL)
+  const showSaison = hasFede; // Saison : visible aussi pour les NL (mais non obligatoire)
   const showCategorySection = hasFede; // Categories section
   const showDeptAndClub = hasFede; // Department (and Club if not NL)
 
@@ -252,7 +253,8 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange, f
       showErrorToast('Validation', "La catégorie d'âge est requise");
       return;
     }
-    if (!data.catev) {
+    // La catégorie de valeur n'a pas de sens pour un NL → non obligatoire.
+    if (!isNonLicencie(data.fede) && !data.catev) {
       showErrorToast('Validation', 'La catégorie de valeur est requise');
       return;
     }
@@ -352,23 +354,25 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange, f
                 options={FEDERATION_OPTIONS}
                 required
               />
-              {/* Numéro de licence et Saison - visible si fede && fede !== NL */}
-              {showLicenceFields && (
-                <>
-                  <StringField
-                    field="licenceNumber"
-                    form={licenceForm}
-                    label="Numéro de licence"
-                    required
-                  />
-                  <StringField
-                    field="saison"
-                    form={licenceForm}
-                    label="Saison"
-                    description={FIELD_HELPER_TEXTS.saison}
-                    required
-                  />
-                </>
+              {/* Numéro de licence - masqué pour un NL (pas de n° de licence) */}
+              {showLicenceNumber && (
+                <StringField
+                  field="licenceNumber"
+                  form={licenceForm}
+                  label="Numéro de licence"
+                  required
+                />
+              )}
+              {/* Saison - visible dès qu'une fédé est choisie, NL inclus.
+                  Obligatoire sauf pour les NL. */}
+              {showSaison && (
+                <StringField
+                  field="saison"
+                  form={licenceForm}
+                  label="Saison"
+                  description={FIELD_HELPER_TEXTS.saison}
+                  required={!isNL}
+                />
               )}
             </div>
           </CardContent>
@@ -450,7 +454,7 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange, f
                     field="catev"
                     label="Catégorie de valeur"
                     options={catevOptions}
-                    required
+                    required={!isNL}
                   />
                   <SelectField
                     form={licenceForm}
