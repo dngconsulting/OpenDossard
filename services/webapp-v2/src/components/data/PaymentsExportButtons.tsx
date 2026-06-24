@@ -14,10 +14,12 @@ import { showErrorToast, showInfoToast, showWarningToast } from '@/utils/error-h
 import { exportPaymentsCsv, exportPaymentsPdf } from '@/utils/payments-exports';
 
 /**
- * Borne du fetch d'export : on récupère la liste complète filtrée (pas
- * seulement la page affichée) en un seul appel. Au-delà, on prévient
- * l'utilisateur d'une troncature plutôt que de tronquer silencieusement.
+ * Le backend plafonne `limit` à 500 (PaginationDto `@Max(500)`, DTO partagé) :
+ * on récupère donc la liste complète filtrée en paginant par pages de 500,
+ * jusqu'à `EXPORT_MAX` (garde-fou). Au-delà, on prévient l'utilisateur d'une
+ * troncature plutôt que de tronquer silencieusement.
  */
+const PAGE_SIZE = 500;
 const EXPORT_MAX = 5000;
 
 type ExportFormat = 'pdf' | 'csv';
@@ -64,12 +66,22 @@ export function PaymentsExportButtons({ scope, params, total }: PaymentsExportBu
   const handleExport = async (format: ExportFormat) => {
     setLoadingFormat(format);
     try {
-      const response = await paymentsApi.list(scope, {
-        ...params,
-        offset: 0,
-        limit: EXPORT_MAX,
-      });
-      const rows = response.data;
+      // Pagination par pages de PAGE_SIZE (backend `limit` ≤ 500) jusqu'à
+      // tout récupérer ou atteindre le garde-fou EXPORT_MAX.
+      const rows: PaymentAdminRow[] = [];
+      let serverTotal = 0;
+      for (let offset = 0; offset < EXPORT_MAX; offset += PAGE_SIZE) {
+        const response = await paymentsApi.list(scope, {
+          ...params,
+          offset,
+          limit: PAGE_SIZE,
+        });
+        serverTotal = response.meta.total;
+        rows.push(...response.data);
+        if (response.data.length < PAGE_SIZE || rows.length >= serverTotal) {
+          break;
+        }
+      }
 
       if (rows.length === 0) {
         showInfoToast('Export', 'Aucun paiement à exporter.');
@@ -83,10 +95,10 @@ export function PaymentsExportButtons({ scope, params, total }: PaymentsExportBu
         exportPaymentsCsv(rows, { scope, filename });
       }
 
-      if (response.meta.total > rows.length) {
+      if (serverTotal > rows.length) {
         showWarningToast(
           'Export partiel',
-          `Seuls les ${rows.length} premiers paiements (sur ${response.meta.total}) ont été exportés. Affinez les filtres pour réduire la liste.`,
+          `Seuls les ${rows.length} premiers paiements (sur ${serverTotal}) ont été exportés. Affinez les filtres pour réduire la liste.`,
         );
       }
     } catch {
