@@ -144,6 +144,7 @@ export const FEDERATIONS: Record<FedeEnum, Federation> = {
     name: { label: 'FFC', value: FedeEnum.FFC },
     catev: [
       ...CATEV_BASE,
+      { label: 'Elite', value: 'ELITE', competitionTypes: ALL_COMPETITION_TYPES },
       { label: 'Open 1', value: 'OPEN1', competitionTypes: ALL_COMPETITION_TYPES },
       { label: 'Open 2', value: 'OPEN2', competitionTypes: ALL_COMPETITION_TYPES },
       { label: 'Open 3', value: 'OPEN3', competitionTypes: ALL_COMPETITION_TYPES },
@@ -187,7 +188,9 @@ export const FEDERATION_OPTIONS = Object.values(FedeEnum).map(fede => ({
  */
 export const getCatevOptions = (fede: string, competitionType: CompetitionType = 'ROUTE') => {
   const federation = FEDERATIONS[fede as FedeEnum];
-  if (!federation) return [];
+  if (!federation) {
+    return [];
+  }
 
   return federation.catev
     .filter(cat => cat.competitionTypes.includes(competitionType))
@@ -199,7 +202,9 @@ export const getCatevOptions = (fede: string, competitionType: CompetitionType =
  */
 export const getCatevCXOptions = (fede: string) => {
   const federation = FEDERATIONS[fede as FedeEnum];
-  if (!federation) return [];
+  if (!federation) {
+    return [];
+  }
 
   return federation.catev
     .filter(cat => cat.competitionTypes.includes('CX'))
@@ -211,7 +216,9 @@ export const getCatevCXOptions = (fede: string) => {
  */
 export const getCateaOptions = (fede: string, gender: string) => {
   const federation = FEDERATIONS[fede as FedeEnum];
-  if (!federation) return [];
+  if (!federation) {
+    return [];
+  }
 
   return federation.catea
     .filter(cat => cat.gender === gender)
@@ -221,17 +228,39 @@ export const getCateaOptions = (fede: string, gender: string) => {
 /**
  * Libellés dynamiques pour info1/info2 selon la fédération
  */
-export const getCompetitionInfoLabels = (fede: string): { info1Label: string; info1Placeholder: string; info2Label: string; info2Placeholder: string } => {
+export const getCompetitionInfoLabels = (
+  fede: string,
+): {
+  info1Label: string;
+  info1Placeholder: string;
+  info2Label: string;
+  info2Placeholder: string;
+} => {
   switch (fede) {
     case FedeEnum.FSGT:
     case FedeEnum.UFOLEP:
-      return { info1Label: 'Tours', info1Placeholder: 'ex: 10', info2Label: 'Distance', info2Placeholder: 'ex: 58kms' };
+      return {
+        info1Label: 'Tours',
+        info1Placeholder: 'ex: 10',
+        info2Label: 'Distance',
+        info2Placeholder: 'ex: 58kms',
+      };
     case FedeEnum.FFC:
     case FedeEnum.FFVELO:
     case FedeEnum.CYCLOS:
-      return { info1Label: 'Distance', info1Placeholder: 'ex: 150 Kms', info2Label: 'Dénivelé', info2Placeholder: 'ex: 1500m de D+' };
+      return {
+        info1Label: 'Distance',
+        info1Placeholder: 'ex: 150 Kms',
+        info2Label: 'Dénivelé',
+        info2Placeholder: 'ex: 1500m de D+',
+      };
     default:
-      return { info1Label: 'Info 1', info1Placeholder: '', info2Label: 'Info 2', info2Placeholder: '' };
+      return {
+        info1Label: 'Info 1',
+        info1Placeholder: '',
+        info2Label: 'Info 2',
+        info2Placeholder: '',
+      };
   }
 };
 
@@ -239,19 +268,19 @@ export const getCompetitionInfoLabels = (fede: string): { info1Label: string; in
  * Helper texts pour les champs du formulaire
  */
 export const FIELD_HELPER_TEXTS = {
-  name: "En majuscule, ne pas utiliser de caractères accentués. Pour les noms composés, mettre un tiret sans espace.",
+  name: 'En majuscule, ne pas utiliser de caractères accentués. Pour les noms composés, mettre un tiret sans espace.',
   firstName: {
-    FSGT: "Première lettre en majuscule, puis le reste en minuscule (Ex: Jean-Paul)",
-    default: "Tout en majuscule, ne pas utiliser les caractères accentués (Ex: JEAN-PAUL)",
+    FSGT: 'Première lettre en majuscule, puis le reste en minuscule (Ex: Jean-Paul)',
+    default: 'Tout en majuscule, ne pas utiliser les caractères accentués (Ex: JEAN-PAUL)',
   },
   club: {
-    UFOLEP: "En majuscule, ne pas utiliser de caractères accentués",
-    FFC: "En majuscule, ne pas utiliser de caractères accentués",
-    default: "Première lettre en majuscule, puis le reste en minuscule",
+    UFOLEP: 'En majuscule, ne pas utiliser de caractères accentués',
+    FFC: 'En majuscule, ne pas utiliser de caractères accentués',
+    default: 'Première lettre en majuscule, puis le reste en minuscule',
   },
   birthYear: `Année entre ${new Date().getFullYear() - 130} et ${new Date().getFullYear() - 4}`,
-  dept: "",
-  saison: "Année de la saison sportive (ex: 2025)",
+  dept: '',
+  saison: 'Année de la saison sportive (ex: 2025)',
   catea: "Sélectionnez d'abord un genre et une année de naissance",
 };
 
@@ -280,7 +309,9 @@ export const DEPT_FILTER_OPTIONS: { value: string; label: string }[] = [
 /**
  * Options multi-select pour le filtre par fédération
  */
-export const FEDE_FILTER_OPTIONS: { value: string; label: string }[] = Object.values(FedeEnum).map(f => ({
-  value: f,
-  label: f,
-}));
+export const FEDE_FILTER_OPTIONS: { value: string; label: string }[] = Object.values(FedeEnum).map(
+  f => ({
+    value: f,
+    label: f,
+  }),
+);
