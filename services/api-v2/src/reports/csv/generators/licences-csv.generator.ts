@@ -23,7 +23,6 @@ interface TransformedLicence {
   comment: string;
   lastChanged: string;
   time: string;
-  authorNomPrenom: string;
   authorLogin: string;
 }
 
@@ -37,21 +36,18 @@ function formatTime(date?: Date): string {
   return date.toLocaleTimeString('fr-FR');
 }
 
-function parseAuthor(author?: string): { login: string; nomPrenom: string } {
-  if (!author) return { login: '', nomPrenom: '' };
-  const parts = author.split('/');
-  if (parts.length >= 3) {
-    return {
-      login: parts[0],
-      nomPrenom: `${parts[1]} ${parts[2]}`,
-    };
-  }
-  return { login: author, nomPrenom: '' };
+/**
+ * Le champ `author` est en général un simple email. Pour les données héritées
+ * de l'API v1, il peut prendre la forme `email/prénom/nom[/ImportCSV]` ; dans
+ * tous les cas l'email — qui identifie l'auteur de façon univoque — est le
+ * premier segment. On n'expose plus que cet identifiant dans l'export.
+ */
+function extractAuthorLogin(author?: string): string {
+  if (!author) return '';
+  return author.split('/')[0];
 }
 
 function transformLicence(licence: LicenceEntity): TransformedLicence {
-  const { login, nomPrenom } = parseAuthor(licence.author);
-
   return {
     id: licence.id,
     licenceNumber: licence.licenceNumber || '',
@@ -69,8 +65,7 @@ function transformLicence(licence: LicenceEntity): TransformedLicence {
     comment: licence.comment || '',
     lastChanged: formatDate(licence.lastChanged),
     time: formatTime(licence.lastChanged),
-    authorNomPrenom: nomPrenom,
-    authorLogin: login,
+    authorLogin: extractAuthorLogin(licence.author),
   };
 }
 
@@ -91,8 +86,7 @@ const CSV_COLUMNS: CsvColumn[] = [
   { label: 'Com.', value: 'comment' },
   { label: 'Date MAJ', value: 'lastChanged' },
   { label: 'Heure MAJ', value: 'time' },
-  { label: 'Auteur', value: 'authorNomPrenom' },
-  { label: 'Login Auteur', value: 'authorLogin' },
+  { label: 'Auteur', value: 'authorLogin' },
 ];
 
 export function generateLicencesCSVBuffer(licences: LicenceEntity[]): Buffer {
@@ -105,8 +99,5 @@ export function generateLicencesCSVBuffer(licences: LicenceEntity[]): Buffer {
   const csv = [header, ...rows].join('\n');
 
   // BOM UTF-8 + CSV content
-  return Buffer.concat([
-    Buffer.from('\uFEFF', 'utf-8'),
-    Buffer.from(csv, 'utf-8'),
-  ]);
+  return Buffer.concat([Buffer.from('\uFEFF', 'utf-8'), Buffer.from(csv, 'utf-8')]);
 }
