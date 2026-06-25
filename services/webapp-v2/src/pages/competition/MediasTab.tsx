@@ -1,3 +1,17 @@
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { Edit2, ExternalLink, Plus, Save, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
@@ -16,6 +30,8 @@ import {
 } from '@/components/ui/table';
 import type { LinkItem } from '@/types/competitions';
 
+import { SortableTableRow } from './SortableTableRow';
+
 import type { FormValues } from './types';
 
 export function MediasTab() {
@@ -29,10 +45,27 @@ export function MediasTab() {
     append: appendPhotoUrl,
     remove: removePhotoUrl,
     update: updatePhotoUrl,
+    move: movePhotoUrl,
   } = useFieldArray({
     control: form.control,
     name: 'photoUrls',
   });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = photoUrlsFields.findIndex(f => f.id === active.id);
+      const newIndex = photoUrlsFields.findIndex(f => f.id === over.id);
+      movePhotoUrl(oldIndex, newIndex);
+    }
+  };
 
   const handleAddMedia = () => {
     if (!mediaForm.label || !mediaForm.link) {
@@ -106,57 +139,71 @@ export function MediasTab() {
         </div>
 
         {photoUrlsFields.length > 0 ? (
-          <div className="overflow-x-auto -mx-6 px-6">
-            <Table className="min-w-[500px]">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nom de l'album</TableHead>
-                  <TableHead>Lien</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {photoUrlsFields.map((field, index) => (
-                  <TableRow key={field.id}>
-                    <TableCell className="whitespace-nowrap">{(field as LinkItem).label}</TableCell>
-                    <TableCell>
-                      <a
-                        href={(field as LinkItem).link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline flex items-center gap-1 max-w-[200px] truncate"
-                      >
-                        {(field as LinkItem).link}
-                        <ExternalLink className="h-3 w-3 shrink-0" />
-                      </a>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEditMedia(index)}
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removePhotoUrl(index)}
-                          title="Supprimer"
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="overflow-x-auto -mx-6 px-6">
+              <Table className="min-w-[500px]">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[40px]" />
+                    <TableHead>Nom de l'album</TableHead>
+                    <TableHead>Lien</TableHead>
+                    <TableHead className="w-[100px]">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  <SortableContext
+                    items={photoUrlsFields.map(f => f.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {photoUrlsFields.map((field, index) => (
+                      <SortableTableRow key={field.id} id={field.id}>
+                        <TableCell className="whitespace-nowrap">
+                          {(field as LinkItem).label}
+                        </TableCell>
+                        <TableCell>
+                          <a
+                            href={(field as LinkItem).link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline flex items-center gap-1 max-w-[200px] truncate"
+                          >
+                            {(field as LinkItem).link}
+                            <ExternalLink className="h-3 w-3 shrink-0" />
+                          </a>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEditMedia(index)}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removePhotoUrl(index)}
+                              title="Supprimer"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </SortableTableRow>
+                    ))}
+                  </SortableContext>
+                </TableBody>
+              </Table>
+            </div>
+          </DndContext>
         ) : (
           <p className="text-muted-foreground text-center py-8">Aucun lien encore ajouté</p>
         )}
