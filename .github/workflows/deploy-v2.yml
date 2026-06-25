@@ -247,6 +247,8 @@ jobs:
             # AVANT le `up` sinon Docker crée un dossier à la place du bind-mount.
             echo "${{ secrets.CONSOLE_USER }}:$(openssl passwd -apr1 '${{ secrets.CONSOLE_PASSWORD }}')" > config/console.htpasswd
 
+            docker logout ghcr.io || true
+
             # Pull the new v2 images + netdata
             docker compose -f docker-compose.prod.yml pull api-v2 webapp-v2 netdata
 
