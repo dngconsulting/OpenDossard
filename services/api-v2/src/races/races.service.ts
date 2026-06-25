@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { RaceEntity } from './entities/race.entity';
 import { LicenceEntity } from '../licences/entities/licence.entity';
 import { CompetitionEntity } from '../competitions/entities/competition.entity';
@@ -248,6 +248,19 @@ export class RacesService {
    */
   async removeByCompetition(competitionId: number): Promise<void> {
     await this.raceRepository.delete({ competitionId });
+  }
+
+  /**
+   * Désengage en masse plusieurs coureurs. La suppression passe par un unique
+   * `DELETE ... WHERE id IN (...)` : opération atomique (tout ou rien), bornée
+   * à la compétition fournie par sécurité. Retourne le nombre de lignes supprimées.
+   */
+  async removeMany(ids: number[], competitionId: number): Promise<number> {
+    if (ids.length === 0) {
+      return 0;
+    }
+    const result = await this.raceRepository.delete({ id: In(ids), competitionId });
+    return result.affected ?? 0;
   }
 
   /**

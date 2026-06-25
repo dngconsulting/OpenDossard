@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   Post,
-  Put,
   Patch,
   Delete,
   Body,
@@ -27,7 +26,6 @@ import {
 } from '@nestjs/swagger';
 import { RacesService } from './races.service';
 import { PalmaresService } from './palmares.service';
-import { RankingService } from './ranking.service';
 import { ResultsCsvService } from './results-csv.service';
 import { RaceImportService } from './race-import.service';
 import { RaceEntity } from './entities/race.entity';
@@ -43,11 +41,7 @@ import {
   FilterRaceDto,
   RaceRowDto,
   PalmaresResponseDto,
-  UpdateRankingDto,
-  RemoveRankingDto,
-  UpdateChronoDto,
-  UpdateToursDto,
-  ReorderRankingItemDto,
+  BulkDeleteRacesDto,
   ImportEngagesResultDto,
 } from './dto';
 
@@ -59,7 +53,6 @@ export class RacesController {
   constructor(
     private readonly racesService: RacesService,
     private readonly palmaresService: PalmaresService,
-    private readonly rankingService: RankingService,
     private readonly resultsCsvService: ResultsCsvService,
     private readonly raceImportService: RaceImportService,
   ) {}
@@ -184,107 +177,7 @@ export class RacesController {
     return this.racesService.refreshEngagement(licenceId, competitionId, author);
   }
 
-  // ==================== RANKINGS ====================
-
-  @Put('ranking')
-  @Roles(Role.ADMIN, Role.ORGANISATEUR)
-  @ApiOperation({
-    summary: 'Update rider ranking (classify a rider)',
-    operationId: 'updateRanking',
-  })
-  @ApiBody({ type: UpdateRankingDto })
-  @ApiResponse({ status: 200, description: 'Ranking updated', type: RaceEntity })
-  async updateRanking(
-    @Body() dto: UpdateRankingDto,
-    @CurrentUser('email') author: string,
-  ): Promise<RaceEntity> {
-    return this.rankingService.updateRanking(dto, author);
-  }
-
-  @Put('ranking/remove')
-  @Roles(Role.ADMIN, Role.ORGANISATEUR)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Remove rider from ranking and reorder others',
-    operationId: 'removeRanking',
-  })
-  @ApiBody({ type: RemoveRankingDto })
-  @ApiResponse({ status: 200, description: 'Ranking removed' })
-  async removeRanking(
-    @Body() dto: RemoveRankingDto,
-    @CurrentUser('email') author: string,
-  ): Promise<{ success: boolean }> {
-    await this.rankingService.removeRanking(dto, author);
-    return { success: true };
-  }
-
-  @Put('ranking/reorder')
-  @Roles(Role.ADMIN, Role.ORGANISATEUR)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Reorder rankings manually',
-    operationId: 'reorderRanking',
-  })
-  @ApiBody({ type: [ReorderRankingItemDto] })
-  @ApiResponse({ status: 200, description: 'Rankings reordered' })
-  async reorderRankings(
-    @Body() items: ReorderRankingItemDto[],
-    @CurrentUser('email') author: string,
-  ): Promise<{ success: boolean }> {
-    await this.rankingService.reorderRankings(items, author);
-    return { success: true };
-  }
-
-  // ==================== CHALLENGE & CHRONO ====================
-
-  @Put(':id/challenge')
-  @Roles(Role.ADMIN, Role.ORGANISATEUR)
-  @ApiOperation({
-    summary: 'Toggle sprint challenge flag',
-    operationId: 'flagChallenge',
-  })
-  @ApiParam({ name: 'id', type: Number })
-  @ApiResponse({ status: 200, description: 'Challenge flag toggled' })
-  async toggleSprintChallenge(
-    @Param('id', ParseIntPipe) id: number,
-    @CurrentUser('email') author: string,
-  ): Promise<RaceEntity> {
-    return this.racesService.toggleSprintChallenge(id, author);
-  }
-
-  @Patch(':id/chrono')
-  @Roles(Role.ADMIN, Role.ORGANISATEUR)
-  @ApiOperation({
-    summary: 'Update rider chrono time',
-    operationId: 'updateChrono',
-  })
-  @ApiParam({ name: 'id', type: Number })
-  @ApiBody({ type: UpdateChronoDto })
-  @ApiResponse({ status: 200, description: 'Chrono updated' })
-  async updateChrono(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateChronoDto,
-    @CurrentUser('email') author: string,
-  ): Promise<RaceEntity> {
-    return this.racesService.updateChrono(id, dto.chrono, author);
-  }
-
-  @Patch(':id/tours')
-  @Roles(Role.ADMIN, Role.ORGANISATEUR)
-  @ApiOperation({
-    summary: 'Update rider lap count',
-    operationId: 'updateTours',
-  })
-  @ApiParam({ name: 'id', type: Number })
-  @ApiBody({ type: UpdateToursDto })
-  @ApiResponse({ status: 200, description: 'Tours updated' })
-  async updateTours(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateToursDto,
-    @CurrentUser('email') author: string,
-  ): Promise<RaceEntity> {
-    return this.racesService.updateTours(id, dto.tours ?? null, author);
-  }
+  // Classement, challenge, chrono, tours → voir RaceResultsController.
 
   // ==================== GENERIC UPDATE ====================
 
@@ -367,6 +260,20 @@ export class RacesController {
   }
 
   // ==================== DELETE ====================
+
+  @Post('bulk-delete')
+  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Disengage multiple riders atomically (single DELETE)',
+    operationId: 'deleteRacesBulk',
+  })
+  @ApiBody({ type: BulkDeleteRacesDto })
+  @ApiResponse({ status: 200, description: 'Riders disengaged' })
+  async removeMany(@Body() dto: BulkDeleteRacesDto): Promise<{ success: boolean; count: number }> {
+    const count = await this.racesService.removeMany(dto.ids, dto.competitionId);
+    return { success: true, count };
+  }
 
   @Delete(':id')
   @Roles(Role.ADMIN, Role.ORGANISATEUR)

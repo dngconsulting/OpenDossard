@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, Repository, In } from 'typeorm';
 import { RaceEntity } from './entities/race.entity';
 import { UpdateRankingDto, RemoveRankingDto, ReorderRankingItemDto } from './dto';
 
@@ -11,6 +11,8 @@ export class RankingService {
   constructor(
     @InjectRepository(RaceEntity)
     private readonly raceRepository: Repository<RaceEntity>,
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
   ) {}
 
   /**
@@ -98,14 +100,65 @@ export class RankingService {
   }
 
   /**
-   * Réordonne les classements pour une course donnée
+   * Déclasse en masse plusieurs coureurs d'une même course, de façon atomique :
+   * dans une transaction, on retire le classement/commentaire de chaque ligne
+   * puis on renumérote la course UNE seule fois pour combler tous les trous.
+   * Tout échoue ou tout réussit. Retourne le nombre de lignes déclassées.
+   */
+  async removeRankings(
+    ids: number[],
+    raceCode: string,
+    competitionId: number,
+    author?: string,
+  ): Promise<number> {
+    if (ids.length === 0) {
+      return 0;
+    }
+    const stampAuthor = author ? `${author}/Ranking` : undefined;
+
+    return this.dataSource.transaction(async manager => {
+      const repo = manager.getRepository(RaceEntity);
+      const races = await repo.find({ where: { id: In(ids), competitionId, raceCode } });
+
+      // Aucun id ne correspond à cette course → rien à faire (pas de renumérotation).
+      if (races.length === 0) {
+        return 0;
+      }
+
+      for (const race of races) {
+        // Retirer le classement ou le commentaire (même logique que l'unitaire)
+        if (race.comment) {
+          race.comment = null;
+        } else {
+          race.rankingScratch = null;
+        }
+        race.chrono = null;
+        race.sprintchallenge = false;
+        this.stampAudit(race, stampAuthor);
+      }
+      if (races.length > 0) {
+        await repo.save(races);
+      }
+
+      // Une seule renumérotation pour toute la course (sur le manager transactionnel)
+      await this.reorderRankingsForRace(competitionId, raceCode, stampAuthor, repo);
+
+      return races.length;
+    });
+  }
+
+  /**
+   * Réordonne les classements pour une course donnée. Accepte un `repo`
+   * optionnel (manager de transaction) pour s'inscrire dans une opération
+   * atomique ; par défaut le repository injecté (hors transaction).
    */
   async reorderRankingsForRace(
     competitionId: number,
     raceCode: string,
     stampAuthor?: string,
+    repo: Repository<RaceEntity> = this.raceRepository,
   ): Promise<void> {
-    const races = await this.raceRepository.find({
+    const races = await repo.find({
       where: { competitionId, raceCode },
       order: { rankingScratch: 'ASC' },
     });
@@ -124,7 +177,7 @@ export class RankingService {
     }
 
     if (toSave.length > 0) {
-      await this.raceRepository.save(toSave);
+      await repo.save(toSave);
     }
   }
 

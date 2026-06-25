@@ -256,6 +256,78 @@ describe('Races (e2e)', () => {
     });
   });
 
+  // ==================== PUT /races/ranking/remove-bulk ====================
+
+  describe('PUT /races/ranking/remove-bulk', () => {
+    it('déclasse plusieurs coureurs et renumérote, de façon atomique', async () => {
+      // 2e coureur dans la même course 1/2 (licences[1] y est encore libre)
+      const engageRes = await request(getApp().getHttpServer())
+        .post(API)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          competitionId: competitions[0].id,
+          licenceId: licences[1].id,
+          raceCode: '1/2',
+          riderNumber: 102,
+          catev: '2',
+        })
+        .expect(201);
+      const secondId = (engageRes.body as RaceEntity).id;
+
+      // Classer les deux (101 → 1, 102 → 2)
+      for (const [riderNumber, rank] of [
+        [101, 1],
+        [102, 2],
+      ] as const) {
+        await request(getApp().getHttpServer())
+          .put(`${API}/ranking`)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({
+            riderNumber,
+            raceCode: '1/2',
+            competitionId: competitions[0].id,
+            rankingScratch: rank,
+          })
+          .expect(200);
+      }
+
+      const res = await request(getApp().getHttpServer())
+        .put(`${API}/ranking/remove-bulk`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ ids: [races[0].id, secondId], raceCode: '1/2', competitionId: competitions[0].id })
+        .expect(200);
+
+      const body = res.body as { success: boolean; count: number };
+      expect(body.success).toBe(true);
+      expect(body.count).toBe(2);
+
+      // Les deux ne sont plus classés
+      for (const id of [races[0].id, secondId]) {
+        const r = await request(getApp().getHttpServer())
+          .get(`${API}/${id}`)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .expect(200);
+        expect((r.body as RaceEntity).rankingScratch).toBeNull();
+      }
+    });
+
+    it('rejette un body sans ids (400)', async () => {
+      await request(getApp().getHttpServer())
+        .put(`${API}/ranking/remove-bulk`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ ids: [], raceCode: '1/2', competitionId: competitions[0].id })
+        .expect(400);
+    });
+
+    it('rejette le rôle MOBILE', async () => {
+      await request(getApp().getHttpServer())
+        .put(`${API}/ranking/remove-bulk`)
+        .set('Authorization', `Bearer ${mobileToken}`)
+        .send({ ids: [races[0].id], raceCode: '1/2', competitionId: competitions[0].id })
+        .expect(403);
+    });
+  });
+
   // ==================== PATCH /races/:id/chrono ====================
 
   describe('PATCH /races/:id/chrono', () => {
@@ -324,6 +396,61 @@ describe('Races (e2e)', () => {
     });
   });
 
+  // ==================== POST /races/bulk-delete ====================
+
+  describe('POST /races/bulk-delete', () => {
+    it('désengage plusieurs coureurs atomiquement', async () => {
+      const res = await request(getApp().getHttpServer())
+        .post(`${API}/bulk-delete`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ ids: [races[0].id, races[1].id], competitionId: competitions[0].id })
+        .expect(200);
+
+      const body = res.body as { success: boolean; count: number };
+      expect(body.success).toBe(true);
+      expect(body.count).toBe(2);
+
+      for (const id of [races[0].id, races[1].id]) {
+        await request(getApp().getHttpServer())
+          .get(`${API}/${id}`)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .expect(404);
+      }
+    });
+
+    it('ne supprime rien en dehors de la compétition fournie', async () => {
+      // races[2] appartient à competitions[1] : le cibler avec competitions[0] ne doit rien faire
+      const res = await request(getApp().getHttpServer())
+        .post(`${API}/bulk-delete`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ ids: [races[2].id], competitionId: competitions[0].id })
+        .expect(200);
+
+      expect((res.body as { count: number }).count).toBe(0);
+
+      await request(getApp().getHttpServer())
+        .get(`${API}/${races[2].id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+    });
+
+    it('rejette un body sans ids (400)', async () => {
+      await request(getApp().getHttpServer())
+        .post(`${API}/bulk-delete`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ ids: [], competitionId: competitions[0].id })
+        .expect(400);
+    });
+
+    it('rejette le rôle MOBILE', async () => {
+      await request(getApp().getHttpServer())
+        .post(`${API}/bulk-delete`)
+        .set('Authorization', `Bearer ${mobileToken}`)
+        .send({ ids: [races[0].id], competitionId: competitions[0].id })
+        .expect(403);
+    });
+  });
+
   // ==================== GET /races/palmares/:licenceId ====================
 
   describe('GET /races/palmares/:licenceId', () => {
@@ -344,7 +471,7 @@ describe('Races (e2e)', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
-      const body = res.body as any;
+      const body = res.body;
       expect(body).toHaveProperty('licence');
       expect(body).toHaveProperty('stats');
       expect(body).toHaveProperty('results');
@@ -361,7 +488,7 @@ describe('Races (e2e)', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
-      const body = res.body as any;
+      const body = res.body;
       expect(body.results).toHaveLength(0);
 
       // Re-seed races for other tests
