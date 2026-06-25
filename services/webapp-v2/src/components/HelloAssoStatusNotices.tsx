@@ -1,4 +1,5 @@
 import { AlertCircle, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 import type { HelloAssoLinkStatusDto } from '@/api/helloasso.api';
 import { Button } from '@/components/ui/button';
@@ -27,11 +28,20 @@ const AMBER_BANNER =
 
 type HelloAssoStatusNoticesProps = {
   status: HelloAssoLinkStatusDto | undefined;
+  /**
+   * Club lié (organisateur). Si fourni, la mention « Renouvellement nécessaire
+   * avant le … » devient un lien vers la fiche de ce club (`/club/:id`).
+   */
+  clubId?: number;
   /** Classes appliquées au conteneur (ex: `mt-2`). */
   className?: string;
 };
 
-export function HelloAssoStatusNotices({ status, className }: HelloAssoStatusNoticesProps) {
+export function HelloAssoStatusNotices({
+  status,
+  clubId,
+  className,
+}: HelloAssoStatusNoticesProps) {
   if (!status?.linked) {
     return null;
   }
@@ -86,8 +96,20 @@ export function HelloAssoStatusNotices({ status, className }: HelloAssoStatusNot
             </>
           ) : (
             <div className="text-xs">
-              Connecté le <strong>{linkedAtDate}</strong>. Renouvellement nécessaire avant le{' '}
-              <strong>{refreshExpiresDate}</strong>.
+              Connecté le <strong>{linkedAtDate}</strong>.{' '}
+              {clubId != null ? (
+                <Link
+                  to={`/club/${clubId}`}
+                  className="underline underline-offset-2 hover:text-amber-950 dark:hover:text-amber-100"
+                >
+                  Renouvellement nécessaire avant le <strong>{refreshExpiresDate}</strong>
+                </Link>
+              ) : (
+                <>
+                  Renouvellement nécessaire avant le <strong>{refreshExpiresDate}</strong>
+                </>
+              )}
+              .
             </div>
           )}
         </div>

@@ -80,7 +80,7 @@ export function HelloAssoOnlinePaymentSection() {
 
           {/* Bandeaux d'état de la liaison HelloAsso (vérification compte +
               connecté/renouvellement), identiques à la fiche club. */}
-          <HelloAssoStatusNotices status={data} />
+          <HelloAssoStatusNotices status={data} clubId={watchedClubId ?? undefined} />
         </FormItem>
       )}
     />
