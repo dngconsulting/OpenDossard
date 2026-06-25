@@ -243,6 +243,10 @@ jobs:
             # Generate netdata auth file (persisted on disk, survives container restarts)
             echo "${{ secrets.NETDATA_USER }}:$(openssl passwd -apr1 '${{ secrets.NETDATA_PASSWORD }}')" > config/netdata.htpasswd
 
+            # Generate console auth file (même pattern que netdata) : doit exister
+            # AVANT le `up` sinon Docker crée un dossier à la place du bind-mount.
+            echo "${{ secrets.CONSOLE_USER }}:$(openssl passwd -apr1 '${{ secrets.CONSOLE_PASSWORD }}')" > config/console.htpasswd
+
             # Pull the new v2 images + netdata
             docker compose -f docker-compose.prod.yml pull api-v2 webapp-v2 netdata
 

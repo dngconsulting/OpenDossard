@@ -212,6 +212,7 @@ services:
       - ./config/nginx.conf:/etc/nginx/nginx.conf
       - ./config/ssl.conf:/etc/nginx/ssl.conf
       - ./config/netdata.htpasswd:/etc/nginx/netdata.htpasswd:ro
+      - ./config/console.htpasswd:/etc/nginx/console.htpasswd:ro
       - /etc/letsencrypt/live/opendossard.com/fullchain.pem:/etc/letsencrypt/opendossard/cert.pem
       - /etc/letsencrypt/live/opendossard.com/privkey.pem:/etc/letsencrypt/opendossard/key.pem
       - /etc/letsencrypt/live/opendossard.com/dhparam.pem:/etc/letsencrypt/opendossard/dhparam.pem

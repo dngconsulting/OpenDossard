@@ -22,6 +22,9 @@ config/local-ssl/
 config/netdata/
 config/netdata.htpasswd
 
+# Console auth (généré au déploiement depuis les secrets CONSOLE_USER/PASSWORD)
+config/console.htpasswd
+
 # Local docker-compose files (optional to commit)
 docker-compose.local-*.yml
 config/nginx.local-*.conf
