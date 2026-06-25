@@ -15,7 +15,7 @@ import {
 import { Search, X } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
-import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { SelectionHeaderCell } from '@/components/common/RowSelection';
 import { Input } from '@/components/ui/input';
 import {
   Table,
@@ -27,6 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import type { RowSelection } from '@/hooks/useRowSelection';
 import type { RaceRowType } from '@/types/races';
 import type { TransformedRow } from '@/utils/classements';
 
@@ -64,6 +65,7 @@ type ClassementsTableProps = {
   currentRaceCode: string;
   competitionId: number;
   avecChrono: boolean;
+  selection: RowSelection;
   isLoading?: boolean;
 };
 
@@ -72,6 +74,7 @@ export function ClassementsTable({
   currentRaceCode,
   competitionId,
   avecChrono,
+  selection,
   isLoading,
 }: ClassementsTableProps) {
   const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
@@ -84,15 +87,10 @@ export function ClassementsTable({
   const {
     rows,
     highlightedRowId,
-    removeTarget,
-    setRemoveTarget,
-    removeRanking,
     handleDossardSubmit,
     handleChronoSubmit,
     handleToursSubmit,
     handleToggleChallenge,
-    handleRequestRemoveRanking,
-    handleConfirmRemoveRanking,
     handleDragEnd,
   } = useClassementsHandlers(engagements, currentRaceCode, competitionId);
 
@@ -116,6 +114,12 @@ export function ClassementsTable({
   // IDs pour le drag & drop
   const sortableIds = useMemo(
     () => filteredRows.map((r) => r.id?.toString() ?? `empty-${r.position}`),
+    [filteredRows]
+  );
+
+  // Ids ciblés par « tout cocher » : lignes visibles portant un coureur.
+  const selectableIds = useMemo(
+    () => filteredRows.map((r) => r.id).filter((id): id is number => id != null),
     [filteredRows]
   );
 
@@ -143,7 +147,6 @@ export function ClassementsTable({
   }
 
   return (
-    <>
     <div className="rounded-md border flex flex-col max-h-[calc(100vh-280px)]">
       <div className="overflow-auto flex-1">
       <DndContext
@@ -157,6 +160,7 @@ export function ClassementsTable({
             <TableHeader className="sticky top-0 z-10 bg-muted">
               <TableRow>
                 <TableHead className="w-[40px] hidden sm:table-cell" />
+                <SelectionHeaderCell ids={selectableIds} selection={selection} />
                 <TableHead className="w-[80px] text-center">Clt</TableHead>
                 <TableHead className="w-[100px]">Dossard</TableHead>
                 {avecChrono && <TableHead className="w-[150px]">Chrono</TableHead>}
@@ -175,6 +179,7 @@ export function ClassementsTable({
             <TableFilter className="sticky top-8 z-10 bg-muted/50">
               <TableFilterRow>
                 <TableFilterCell className="hidden sm:table-cell" />
+                <TableFilterCell className="w-[44px]" />
                 <TableFilterCell />
                 {(['riderNumber'] as const).map(col => (
                   <FilterCell key={col} column={col} value={filters[col]} onChange={handleFilterChange} />
@@ -203,7 +208,7 @@ export function ClassementsTable({
                   onChronoSubmit={handleChronoSubmit}
                   onToursSubmit={handleToursSubmit}
                   onToggleChallenge={handleToggleChallenge}
-                  onRequestRemoveRanking={handleRequestRemoveRanking}
+                  selection={selection}
                   rowIndex={index}
                   totalRows={filteredRows.length}
                   inputRefs={inputRefs}
@@ -216,17 +221,5 @@ export function ClassementsTable({
       </DndContext>
       </div>
     </div>
-
-    <ConfirmDialog
-      open={!!removeTarget}
-      onOpenChange={open => !open && setRemoveTarget(null)}
-      title="Déclasser le coureur"
-      description={`Voulez-vous vraiment déclasser ${removeTarget?.name} (dossard ${removeTarget?.riderNumber}) ?`}
-      confirmLabel="Supprimer"
-      onConfirm={handleConfirmRemoveRanking}
-      isLoading={removeRanking.isPending}
-      variant="destructive"
-    />
-    </>
   );
 }

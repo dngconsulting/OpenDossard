@@ -1,10 +1,9 @@
-import { AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, ExternalLink, Search, Trash2, X } from 'lucide-react';
+import { AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, ExternalLink, Search, X } from 'lucide-react';
 import { useMemo, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 
+import { SelectionCell, SelectionHeaderCell } from '@/components/common/RowSelection';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Input } from '@/components/ui/input';
 import {
   Table,
@@ -17,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useDeleteRace } from '@/hooks/useRaces';
+import type { RowSelection } from '@/hooks/useRowSelection';
 import { cn } from '@/lib/utils';
 import type { RaceRowType } from '@/types/races';
 
@@ -28,6 +27,7 @@ type EngagementsTableProps = {
   engagements: RaceRowType[];
   currentRaceCode: string;
   competitionId: number;
+  selection: RowSelection;
   isLoading?: boolean;
 };
 
@@ -79,13 +79,12 @@ export function EngagementsTable({
   engagements,
   currentRaceCode,
   competitionId,
+  selection,
   isLoading = false,
 }: EngagementsTableProps) {
-  const [deleteTarget, setDeleteTarget] = useState<RaceRowType | null>(null);
   const [sortColumn, setSortColumn] = useState<SortColumn>('riderNumber');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [filters, setFilters] = useState<Record<string, string>>({});
-  const deleteMutation = useDeleteRace();
 
   const handleFilterChange = useCallback((column: string, value: string) => {
     setFilters(prev => ({ ...prev, [column]: value }));
@@ -143,32 +142,22 @@ export function EngagementsTable({
     });
   }, [engagementsForRace, sortColumn, sortDirection, filters]);
 
-  // Vérifier si on peut supprimer (pas classé et pas de commentaire type ABD/DNF)
+  // Un coureur n'est désengageable que s'il n'est pas classé et sans commentaire
+  // (type ABD/DNF) — mêmes règles qu'avant pour la suppression.
   const canDelete = useCallback((engagement: RaceRowType) => {
     return !engagement.rankingScratch && !engagement.comment;
   }, []);
 
-  // Vérifier si au moins un engagement peut être supprimé
-  // (basé sur les engagements de la course, pas le filtre user, pour stabiliser
-  // l'affichage de la colonne Actions quand l'utilisateur tape dans un filtre).
-  const hasAnyDeletable = useMemo(() => {
+  // Présence de la colonne de sélection : basée sur les engagés de la course
+  // (pas le filtre user) pour stabiliser l'affichage quand on tape dans un filtre.
+  const hasSelectable = useMemo(() => {
     return engagementsForRace.some(e => canDelete(e));
   }, [engagementsForRace, canDelete]);
 
-  const handleDelete = async () => {
-    if (!deleteTarget) {
-      return;
-    }
-    try {
-      await deleteMutation.mutateAsync({
-        id: deleteTarget.id,
-        competitionId,
-      });
-      setDeleteTarget(null);
-    } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
-    }
-  };
+  // Ids ciblés par « tout cocher » : lignes désengageables actuellement visibles.
+  const selectableIds = useMemo(() => {
+    return filteredEngagements.filter(canDelete).map(e => e.id);
+  }, [filteredEngagements, canDelete]);
 
   if (isLoading) {
     return (
@@ -188,13 +177,12 @@ export function EngagementsTable({
   }
 
   return (
-    <>
-      <div className="border rounded-lg flex flex-col max-h-[calc(100vh-280px)]">
-        <div className="overflow-auto flex-1">
+    <div className="border rounded-lg flex flex-col max-h-[calc(100vh-280px)]">
+      <div className="overflow-auto flex-1">
         <Table className="min-w-[900px]">
           <TableHeader className="bg-muted/50 sticky top-0 z-10">
             <TableRow>
-              {hasAnyDeletable && <TableHead className="w-[60px]">Actions</TableHead>}
+              {hasSelectable && <SelectionHeaderCell ids={selectableIds} selection={selection} />}
               <SortableHeader column="riderNumber" currentColumn={sortColumn} direction={sortDirection} onSort={handleSort} className="w-[70px]">
                 Dossard
               </SortableHeader>
@@ -226,7 +214,7 @@ export function EngagementsTable({
           </TableHeader>
           <TableFilter className="sticky top-8 z-10 bg-muted/50">
             <TableFilterRow>
-              {hasAnyDeletable && <TableFilterCell className="w-[60px]" />}
+              {hasSelectable && <TableFilterCell className="w-[44px]" />}
               {(['riderNumber', 'name', 'club'] as const).map(col => (
                 <TableFilterCell key={col}>
                   <div className="relative">
@@ -261,28 +249,22 @@ export function EngagementsTable({
           <TableBody>
             {filteredEngagements.map(engagement => {
               const surclassed = isSurclassed(engagement.catev, currentRaceCode);
+              const selected = selection.isSelected(engagement.id);
               return (
                 <TableRow
                   key={engagement.id}
-                  className={cn(surclassed && 'bg-amber-50 dark:bg-amber-950/30')}
+                  className={cn(
+                    surclassed && 'bg-amber-50 dark:bg-amber-950/30',
+                    // `!` pour battre la zébrure nth-child du TableBody (plus spécifique)
+                    selected && '!bg-primary/10 hover:!bg-primary/15',
+                  )}
                 >
-                  {/* Actions */}
-                  {hasAnyDeletable && (
-                    <TableCell>
-                      <div className="flex gap-1">
-                        {canDelete(engagement) && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-destructive hover:text-destructive"
-                            onClick={() => setDeleteTarget(engagement)}
-                            title="Désengager"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
+                  {/* Sélection (case seulement si désengageable) */}
+                  {hasSelectable && (
+                    <SelectionCell
+                      id={canDelete(engagement) ? engagement.id : null}
+                      selection={selection}
+                    />
                   )}
 
                   {/* Dossard - lien vers palmarès */}
@@ -347,19 +329,6 @@ export function EngagementsTable({
           </TableBody>
         </Table>
         </div>
-      </div>
-
-      {/* Dialog de confirmation de suppression */}
-      <ConfirmDialog
-        open={!!deleteTarget}
-        onOpenChange={open => !open && setDeleteTarget(null)}
-        title="Désengager le coureur"
-        description={`Êtes-vous sûr de vouloir désengager ${deleteTarget?.name} (dossard ${deleteTarget?.riderNumber}) ?`}
-        confirmLabel="Désengager"
-        onConfirm={handleDelete}
-        isLoading={deleteMutation.isPending}
-        variant="destructive"
-      />
-    </>
+    </div>
   );
 }

@@ -1,8 +1,9 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Medal, Trash2 } from 'lucide-react';
+import { GripVertical, Medal } from 'lucide-react';
 import { useCallback } from 'react';
 
+import { SelectionCell } from '@/components/common/RowSelection';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import {
@@ -10,6 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import type { RowSelection } from '@/hooks/useRowSelection';
 import { cn } from '@/lib/utils';
 import type { TransformedRow } from '@/utils/classements';
 import { formatRanking } from '@/utils/classements';
@@ -24,7 +26,7 @@ export type SortableRowProps = {
   onChronoSubmit: (id: number, chrono: string) => void;
   onToursSubmit: (id: number, tours: number | null) => void;
   onToggleChallenge: (id: number) => void;
-  onRequestRemoveRanking: (id: number) => void;
+  selection: RowSelection;
   rowIndex: number;
   totalRows: number;
   inputRefs: React.MutableRefObject<Map<string, HTMLInputElement>>;
@@ -38,7 +40,7 @@ export function SortableRow({
   onChronoSubmit,
   onToursSubmit,
   onToggleChallenge,
-  onRequestRemoveRanking,
+  selection,
   rowIndex,
   totalRows,
   inputRefs,
@@ -62,6 +64,8 @@ export function SortableRow({
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+
+  const isSelected = row.id != null && selection.isSelected(row.id);
 
   const navigateDown = useCallback(() => {
     if (rowIndex < totalRows - 1) {
@@ -98,6 +102,8 @@ export function SortableRow({
       className={cn(
         'transition-colors duration-700',
         isDragging && 'bg-muted',
+        // `!` pour battre la zébrure nth-child du TableBody (plus spécifique)
+        isSelected && '!bg-primary/10 hover:!bg-primary/15',
         isHighlighted && '!bg-orange-200 dark:!bg-orange-800/50',
         !row.riderNumber && 'text-muted-foreground'
       )}
@@ -116,6 +122,9 @@ export function SortableRow({
           </button>
         )}
       </TableCell>
+
+      {/* Sélection (case seulement si la ligne porte un coureur) */}
+      <SelectionCell id={row.id ?? null} selection={selection} />
 
       {/* Classement */}
       <TableCell className="w-[80px] text-center font-mono">
@@ -226,7 +235,7 @@ export function SortableRow({
       {/* Fédé */}
       <TableCell className="w-[70px] text-center">{row.fede}</TableCell>
 
-      {/* Actions (toggle challenge + supprimer) */}
+      {/* Actions (toggle challenge) */}
       <TableCell className="w-[80px] p-1">
         {row.id && (
           <div className="flex items-center gap-2">
@@ -250,21 +259,6 @@ export function SortableRow({
                     ? 'Retirer du challenge sprint'
                     : 'Marquer vainqueur challenge sprint'}
                 </p>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  tabIndex={-1}
-                  className="p-1.5 rounded-md hover:bg-destructive/10 text-destructive hover:text-destructive transition-colors"
-                  onClick={() => onRequestRemoveRanking(row.id!)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Retirer du classement</p>
               </TooltipContent>
             </Tooltip>
           </div>

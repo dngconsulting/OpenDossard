@@ -52,6 +52,42 @@ export function useDeleteRace() {
 }
 
 /**
+ * Désengage en masse plusieurs coureurs en UN SEUL appel atomique côté serveur
+ * (`DELETE ... IN (...)`). Tout réussit ou tout échoue (le hook rejette alors).
+ */
+export function useBulkDeleteRaces() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (variables: { ids: number[]; competitionId: number }) =>
+      racesApi.bulkDelete(variables),
+    onSuccess: (_result, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: racesKeys.competition(variables.competitionId),
+      });
+    },
+  });
+}
+
+/**
+ * Déclasse en masse plusieurs coureurs en UN SEUL appel atomique côté serveur
+ * (transaction : retrait + renumérotation). Tout réussit ou tout échoue.
+ */
+export function useBulkRemoveRankings() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (variables: { ids: number[]; raceCode: string; competitionId: number }) =>
+      racesApi.bulkRemoveRanking(variables),
+    onSuccess: (_result, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: racesKeys.competition(variables.competitionId),
+      });
+    },
+  });
+}
+
+/**
  * Hook pour mettre à jour le classement
  */
 export function useUpdateRanking() {

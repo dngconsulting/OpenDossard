@@ -22,7 +22,6 @@ export function useClassementsHandlers(
   competitionId: number,
 ) {
   const [highlightedRowId, setHighlightedRowId] = useState<number | null>(null);
-  const [removeTarget, setRemoveTarget] = useState<{ id: number; name?: string | null; riderNumber?: number | null } | null>(null);
 
   const showToast = useCallback((type: 'success' | 'error' | 'info', message: string) => {
     const id = toast.custom((toastId) => <AppToast id={toastId} type={type} message={message} />);
@@ -155,28 +154,6 @@ export function useClassementsHandlers(
     [toggleChallenge, competitionId, showToast]
   );
 
-  const handleRequestRemoveRanking = useCallback(
-    (id: number) => {
-      const row = rows.find((r) => r.id === id);
-      setRemoveTarget({ id, name: row?.name, riderNumber: row?.riderNumber });
-    },
-    [rows]
-  );
-
-  const handleConfirmRemoveRanking = useCallback(
-    async () => {
-      if (!removeTarget) {return;}
-      try {
-        await removeRanking.mutateAsync({ id: removeTarget.id, raceCode: currentRaceCode, competitionId });
-        showToast('success', `Dossard ${removeTarget.riderNumber} - ${removeTarget.name} retiré du classement`);
-        setRemoveTarget(null);
-      } catch {
-        showToast('error', 'Impossible de retirer le coureur du classement');
-      }
-    },
-    [removeTarget, removeRanking, currentRaceCode, competitionId, showToast]
-  );
-
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
       const { active, over } = event;
@@ -217,15 +194,10 @@ export function useClassementsHandlers(
   return {
     rows,
     highlightedRowId,
-    removeTarget,
-    setRemoveTarget,
-    removeRanking,
     handleDossardSubmit,
     handleChronoSubmit,
     handleToursSubmit,
     handleToggleChallenge,
-    handleRequestRemoveRanking,
-    handleConfirmRemoveRanking,
     handleDragEnd,
   };
 }

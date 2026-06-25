@@ -3,6 +3,7 @@ import { ArrowLeft, ChevronRight, Pencil, RefreshCw, Shuffle, Trophy } from 'luc
 import { useCallback, useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 
+import { BulkDeleteToolbarButton } from '@/components/common/BulkDeleteToolbarButton';
 import { HelloAssoTabIcon } from '@/components/common/HelloAssoTabIcon';
 import { PaymentsTable } from '@/components/data/PaymentsTable';
 import { EngagementForm, EngagementsTable, ExportMenu, ImportMenu, ReorganizeRacesDialog } from '@/components/engagements';
@@ -13,9 +14,10 @@ import { RaceTabsList, RaceTabsTrigger } from '@/components/ui/race-tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs } from '@/components/ui/tabs';
 import { type CompetitionType as CompetitionTypeEnum } from '@/config/federations';
+import { useBulkRowAction } from '@/hooks/useBulkRowAction';
 import { useCompetition } from '@/hooks/useCompetitions';
 import { usePaymentsHasAny } from '@/hooks/usePayments';
-import { useCompetitionRaces } from '@/hooks/useRaces';
+import { useCompetitionRaces, useBulkDeleteRaces } from '@/hooks/useRaces';
 
 /**
  * Sentinel pour l'onglet "Paiements HelloAsso" — préfixe `__` évite toute
@@ -35,6 +37,22 @@ export default function EngagementsPage() {
   const [currentRaceCode, setCurrentRaceCode] = useState<string>('');
   const [isReorganizeOpen, setIsReorganizeOpen] = useState(false);
   const [needsTabReset, setNeedsTabReset] = useState(false);
+
+  // Sélection de lignes + désengagement groupé (logique mutualisée)
+  const bulkDelete = useBulkDeleteRaces();
+  const {
+    selection,
+    count: selectionCount,
+    isPending: isBulkDeleting,
+    handleConfirm: handleBulkDelete,
+  } = useBulkRowAction({
+    resetKey: currentRaceCode,
+    buildVars: ids => (competitionId === undefined ? null : { ids, competitionId }),
+    mutateAsync: bulkDelete.mutateAsync,
+    isPending: bulkDelete.isPending,
+    successMessage: n => `${n} coureur(s) désengagé(s)`,
+    errorMessage: 'Échec du désengagement groupé : aucune ligne supprimée',
+  });
 
   const tabsRef = useRef<HTMLDivElement>(null);
 
@@ -174,7 +192,17 @@ export default function EngagementsPage() {
     </div>
   );
 
-  const toolbar = (
+  // Dès qu'au moins une ligne est cochée, on masque toute la barre de droite
+  // (refresh, édition, réorganiser, export, import, classements) pour éviter
+  // les conflits d'action : seule la poubelle groupée reste accessible.
+  const toolbar = selectionCount > 0 ? (
+    <BulkDeleteToolbarButton
+      count={selectionCount}
+      actionLabel="Désengager"
+      onConfirm={handleBulkDelete}
+      isPending={isBulkDeleting}
+    />
+  ) : (
     <div className="flex flex-col sm:flex-row gap-2">
       <Button
         variant="outline"
@@ -299,6 +327,7 @@ export default function EngagementsPage() {
             engagements={engagements}
             currentRaceCode={currentRaceCode}
             competitionId={competition.id}
+            selection={selection}
             isLoading={isLoadingEngagements}
           />
         )}

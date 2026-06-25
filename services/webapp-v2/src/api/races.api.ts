@@ -80,6 +80,15 @@ export const racesApi = {
     }),
 
   /**
+   * Désengage en masse (suppression atomique côté serveur)
+   */
+  bulkDelete: (data: { ids: number[]; competitionId: number }): Promise<{ success: boolean; count: number }> =>
+    apiClient<{ success: boolean; count: number }>('/races/bulk-delete', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /**
    * Met à jour le classement d'un coureur
    */
   updateRanking: (data: UpdateRankingDto): Promise<RaceRowType> =>
@@ -93,6 +102,19 @@ export const racesApi = {
    */
   removeRanking: (data: RemoveRankingDto): Promise<{ success: boolean }> =>
     apiClient<{ success: boolean }>('/races/ranking/remove', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  /**
+   * Déclasse en masse (retrait + renumérotation atomiques côté serveur)
+   */
+  bulkRemoveRanking: (data: {
+    ids: number[];
+    raceCode: string;
+    competitionId: number;
+  }): Promise<{ success: boolean; count: number }> =>
+    apiClient<{ success: boolean; count: number }>('/races/ranking/remove-bulk', {
       method: 'PUT',
       body: JSON.stringify(data),
     }),

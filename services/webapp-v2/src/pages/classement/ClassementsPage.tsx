@@ -3,14 +3,16 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 
 import { ClassementsTable, ExportMenu, ImportClassementButton } from '@/components/classements';
+import { BulkDeleteToolbarButton } from '@/components/common/BulkDeleteToolbarButton';
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { RaceTabsList, RaceTabsTrigger } from '@/components/ui/race-tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs } from '@/components/ui/tabs';
+import { useBulkRowAction } from '@/hooks/useBulkRowAction';
 import { useCompetition } from '@/hooks/useCompetitions';
-import { useCompetitionRaces } from '@/hooks/useRaces';
+import { useCompetitionRaces, useBulkRemoveRankings } from '@/hooks/useRaces';
 import { countRanked } from '@/utils/classements';
 
 export default function ClassementsPage() {
@@ -24,6 +26,25 @@ export default function ClassementsPage() {
 
   // Ref pour les onglets (scroll horizontal)
   const tabsRef = useRef<HTMLDivElement>(null);
+
+  // Sélection de lignes + déclassement groupé (logique mutualisée)
+  const bulkRemove = useBulkRemoveRankings();
+  const {
+    selection,
+    count: selectionCount,
+    isPending: isBulkRemoving,
+    handleConfirm: handleBulkRemove,
+  } = useBulkRowAction({
+    resetKey: currentRaceCode,
+    buildVars: ids =>
+      competitionId === undefined || !currentRaceCode
+        ? null
+        : { ids, raceCode: currentRaceCode, competitionId },
+    mutateAsync: bulkRemove.mutateAsync,
+    isPending: bulkRemove.isPending,
+    successMessage: n => `${n} coureur(s) déclassé(s)`,
+    errorMessage: 'Échec du déclassement groupé : aucune ligne modifiée',
+  });
 
   // Charger les données
   const { data: competition, isLoading: isLoadingCompetition } = useCompetition(competitionId);
@@ -107,7 +128,16 @@ export default function ClassementsPage() {
     </div>
   );
 
-  const toolbar = (
+  // Dès qu'au moins une ligne est cochée, on masque toute la barre de droite
+  // (refresh, édition, import, export, engagés) : seule la poubelle groupée reste.
+  const toolbar = selectionCount > 0 ? (
+    <BulkDeleteToolbarButton
+      count={selectionCount}
+      actionLabel="Déclasser"
+      onConfirm={handleBulkRemove}
+      isPending={isBulkRemoving}
+    />
+  ) : (
     <div className="flex flex-col sm:flex-row gap-2">
       <Button
         variant="outline"
@@ -195,6 +225,7 @@ export default function ClassementsPage() {
             currentRaceCode={currentRaceCode}
             competitionId={competition.id}
             avecChrono={competition.avecChrono ?? false}
+            selection={selection}
             isLoading={isLoadingEngagements}
           />
         )}
