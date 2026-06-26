@@ -52,21 +52,29 @@ export function RowSelectCheckbox({ id, selection }: { id: number; selection: Ro
   );
 }
 
-/** Cellule d'en-tête (`<TableHead>`) contenant la case « tout cocher ». */
+/**
+ * Cellule d'en-tête (`<TableHead>`) contenant la case « tout cocher ».
+ * `hidden` masque la case (cellule conservée pour l'alignement des colonnes)
+ * — utilisé quand une autre action exclusive est en cours (ex. mode DNF armé).
+ */
 export function SelectionHeaderCell({
   ids,
   selection,
   className,
+  hidden = false,
 }: {
   ids: number[];
   selection: RowSelection;
   className?: string;
+  hidden?: boolean;
 }) {
   return (
     <TableHead className={cn(COLUMN_WIDTH, 'text-center', className)}>
-      <div className="flex items-center justify-center">
-        <SelectAllCheckbox ids={ids} selection={selection} />
-      </div>
+      {!hidden && (
+        <div className="flex items-center justify-center">
+          <SelectAllCheckbox ids={ids} selection={selection} />
+        </div>
+      )}
     </TableHead>
   );
 }
@@ -80,14 +88,16 @@ export function SelectionCell({
   id,
   selection,
   className,
+  hidden = false,
 }: {
   id: number | null | undefined;
   selection: RowSelection;
   className?: string;
+  hidden?: boolean;
 }) {
   return (
     <TableCell className={cn(COLUMN_WIDTH, 'text-center', className)}>
-      {id != null && (
+      {id != null && !hidden && (
         <div className="flex items-center justify-center">
           <RowSelectCheckbox id={id} selection={selection} />
         </div>

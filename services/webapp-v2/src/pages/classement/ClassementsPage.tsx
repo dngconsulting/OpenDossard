@@ -2,7 +2,7 @@ import { ArrowLeft, ChevronRight, ClipboardList, Pencil, RefreshCw } from 'lucid
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 
-import { ClassementsTable, ExportMenu, ImportClassementButton } from '@/components/classements';
+import { ClassementsTable, ExportMenu, ImportClassementButton, StatusEntryButton } from '@/components/classements';
 import { BulkDeleteToolbarButton } from '@/components/common/BulkDeleteToolbarButton';
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,7 @@ import { Tabs } from '@/components/ui/tabs';
 import { useBulkRowAction } from '@/hooks/useBulkRowAction';
 import { useCompetition } from '@/hooks/useCompetitions';
 import { useCompetitionRaces, useBulkRemoveRankings } from '@/hooks/useRaces';
+import type { DNFCode } from '@/types/races';
 import { countRanked } from '@/utils/classements';
 
 export default function ClassementsPage() {
@@ -23,6 +24,10 @@ export default function ClassementsPage() {
 
   // Récupérer la course depuis le hash de l'URL
   const [currentRaceCode, setCurrentRaceCode] = useState<string>('');
+
+  // Mode de saisie DNF/ABD « armé » via le bouton de la toolbar (null = inactif).
+  // Pour l'instant purement visuel — la saisie n'est pas encore branchée.
+  const [dnfMode, setDnfMode] = useState<DNFCode | null>(null);
 
   // Ref pour les onglets (scroll horizontal)
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -139,35 +144,44 @@ export default function ClassementsPage() {
     />
   ) : (
     <div className="flex flex-col sm:flex-row gap-2">
-      <Button
-        variant="outline"
-        onClick={() => refetchEngagements()}
-        disabled={isFetchingEngagements}
-        title="Rafraîchir les données"
-      >
-        <RefreshCw className={`h-4 w-4 ${isFetchingEngagements ? 'animate-spin' : ''}`} />
-      </Button>
-      {competition && (
-        <Button
-          variant="outline"
-          onClick={() => navigate(`/competition/${competition.id}`)}
-          title="Modifier l'épreuve"
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
+      {/* Mode DNF armé : on masque toute la barre sauf « Saisir … » (même
+          logique de focus d'action que la sélection par cases à cocher). */}
+      {dnfMode === null && (
+        <>
+          <Button
+            variant="outline"
+            onClick={() => refetchEngagements()}
+            disabled={isFetchingEngagements}
+            title="Rafraîchir les données"
+          >
+            <RefreshCw className={`h-4 w-4 ${isFetchingEngagements ? 'animate-spin' : ''}`} />
+          </Button>
+          {competition && (
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/competition/${competition.id}`)}
+              title="Modifier l'épreuve"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          )}
+          {competition && (
+            <ImportClassementButton competitionId={competition.id} />
+          )}
+          {competition && currentRaceCode && (
+            <ExportMenu
+              engagements={engagements}
+              currentRaceCode={currentRaceCode}
+              races={races}
+              competition={competition}
+            />
+          )}
+        </>
       )}
       {competition && (
-        <ImportClassementButton competitionId={competition.id} />
+        <StatusEntryButton value={dnfMode} onChange={setDnfMode} />
       )}
-      {competition && currentRaceCode && (
-        <ExportMenu
-          engagements={engagements}
-          currentRaceCode={currentRaceCode}
-          races={races}
-          competition={competition}
-        />
-      )}
-      {competition && (
+      {dnfMode === null && competition && (
         <Button
           className="bg-emerald-600 hover:bg-emerald-700 text-white"
           onClick={() => navigate(`/competition/${competition.id}/engagements#${currentRaceCode}`)}
@@ -226,6 +240,7 @@ export default function ClassementsPage() {
             competitionId={competition.id}
             avecChrono={competition.avecChrono ?? false}
             selection={selection}
+            dnfMode={dnfMode}
             isLoading={isLoadingEngagements}
           />
         )}

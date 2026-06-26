@@ -28,7 +28,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import type { RowSelection } from '@/hooks/useRowSelection';
-import type { RaceRowType } from '@/types/races';
+import type { RaceRowType, DNFCode } from '@/types/races';
 import type { TransformedRow } from '@/utils/classements';
 
 import { SortableRow } from './SortableRow';
@@ -66,6 +66,8 @@ type ClassementsTableProps = {
   competitionId: number;
   avecChrono: boolean;
   selection: RowSelection;
+  /** Statut DNF armé via la toolbar (null = classement normal). */
+  dnfMode: DNFCode | null;
   isLoading?: boolean;
 };
 
@@ -75,6 +77,7 @@ export function ClassementsTable({
   competitionId,
   avecChrono,
   selection,
+  dnfMode,
   isLoading,
 }: ClassementsTableProps) {
   const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
@@ -92,7 +95,7 @@ export function ClassementsTable({
     handleToursSubmit,
     handleToggleChallenge,
     handleDragEnd,
-  } = useClassementsHandlers(engagements, currentRaceCode, competitionId);
+  } = useClassementsHandlers(engagements, currentRaceCode, competitionId, dnfMode);
 
   // Filtrer les lignes
   const filteredRows = useMemo(() => {
@@ -160,7 +163,7 @@ export function ClassementsTable({
             <TableHeader className="sticky top-0 z-10 bg-muted">
               <TableRow>
                 <TableHead className="w-[40px] hidden sm:table-cell" />
-                <SelectionHeaderCell ids={selectableIds} selection={selection} />
+                <SelectionHeaderCell ids={selectableIds} selection={selection} hidden={dnfMode !== null} />
                 <TableHead className="w-[80px] text-center">Clt</TableHead>
                 <TableHead className="w-[100px]">Dossard</TableHead>
                 {avecChrono && <TableHead className="w-[150px]">Chrono</TableHead>}
@@ -208,6 +211,7 @@ export function ClassementsTable({
                   onChronoSubmit={handleChronoSubmit}
                   onToursSubmit={handleToursSubmit}
                   onToggleChallenge={handleToggleChallenge}
+                  dnfArmed={dnfMode !== null}
                   selection={selection}
                   rowIndex={index}
                   totalRows={filteredRows.length}

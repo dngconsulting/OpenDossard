@@ -84,6 +84,16 @@ export type ReorderRankingItemDto = {
 };
 
 /**
+ * Résultat d'une saisie de dossard, pour piloter le comportement du champ.
+ * En mode DNF armé, le coureur marqué part dans la section DNF (tout en bas) :
+ * le champ courant doit alors être vidé (une seule fois, après le retour de la
+ * mutation) et le focus conservé sur place — pas de passage au champ suivant.
+ */
+export type DossardSubmitOutcome = {
+  markedDnf: boolean;
+};
+
+/**
  * Codes DNF (Did Not Finish) pour les coureurs non classés
  */
 export const DNF_CODES = ['ABD', 'CHT', 'NC', 'NP', 'DSQ', 'HD', 'DNV'] as const;

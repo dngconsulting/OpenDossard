@@ -13,6 +13,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { RowSelection } from '@/hooks/useRowSelection';
 import { cn } from '@/lib/utils';
+import type { DossardSubmitOutcome } from '@/types/races';
 import type { TransformedRow } from '@/utils/classements';
 import { formatRanking } from '@/utils/classements';
 
@@ -22,10 +23,11 @@ import { RankingInput } from './RankingInput';
 export type SortableRowProps = {
   row: TransformedRow;
   avecChrono: boolean;
-  onDossardSubmit: (position: number, value: string) => void;
+  onDossardSubmit: (position: number, value: string) => Promise<DossardSubmitOutcome>;
   onChronoSubmit: (id: number, chrono: string) => void;
   onToursSubmit: (id: number, tours: number | null) => void;
   onToggleChallenge: (id: number) => void;
+  dnfArmed: boolean;
   selection: RowSelection;
   rowIndex: number;
   totalRows: number;
@@ -40,6 +42,7 @@ export function SortableRow({
   onChronoSubmit,
   onToursSubmit,
   onToggleChallenge,
+  dnfArmed,
   selection,
   rowIndex,
   totalRows,
@@ -123,8 +126,9 @@ export function SortableRow({
         )}
       </TableCell>
 
-      {/* Sélection (case seulement si la ligne porte un coureur) */}
-      <SelectionCell id={row.id ?? null} selection={selection} />
+      {/* Sélection (case seulement si la ligne porte un coureur ; masquée en
+          mode DNF armé pour éviter un conflit d'actions multiples) */}
+      <SelectionCell id={row.id ?? null} selection={selection} hidden={dnfArmed} />
 
       {/* Classement */}
       <TableCell className="w-[80px] text-center font-mono">
@@ -142,6 +146,7 @@ export function SortableRow({
         <RankingInput
           value={row.riderNumber?.toString().padStart(3, '0') ?? ''}
           onSubmit={(value) => onDossardSubmit(row.position, value)}
+          dnfArmed={dnfArmed}
           onNavigateDown={navigateDown}
           onNavigateNext={navigateNext}
           placeholder="---"
