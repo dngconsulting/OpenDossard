@@ -85,6 +85,7 @@ export class HelloAssoWebhookService {
     let parsed: WebhookPayload;
     try {
       parsed = JSON.parse((rawBody as Buffer).toString('utf8')) as WebhookPayload;
+      this.logger.log(`handleWebhook: received message from HA ${JSON.stringify(parsed)}`);
     } catch (e: unknown) {
       this.logger.warn(
         `handleWebhook: invalid JSON: ${e instanceof Error ? e.message : String(e)}`,
@@ -120,7 +121,7 @@ export class HelloAssoWebhookService {
     if (typeof openDossardPaymentId !== 'number') {
       // Webhook pour un payment non originé par OpenDossard (autre intégration partenaire) — ignorer
       this.logger.log(
-        `handleWebhook: no openDossardPaymentId in metadata, ignoring helloAssoPaymentId=${helloAssoPaymentId}`,
+        `handleWebhook: no openDossardPaymentId in metadata, ignoring helloAssoPaymentId=${helloAssoPaymentId} state=${state}`,
       );
       return { signatureValid: true, outcome: 'foreign_payment' };
     }
@@ -243,6 +244,7 @@ export class HelloAssoWebhookService {
 
     const prerequisites = prerequisitesForStatus(newStatus);
     if (prerequisites.length === 0) {
+      this.logger.warn(`applyStatusTransition: ignore ${newStatus}, not found in existing states`);
       return false;
     }
 
