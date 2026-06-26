@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 .vite/
+
+# Projet géré par pnpm — pas de lockfile npm
+package-lock.json
