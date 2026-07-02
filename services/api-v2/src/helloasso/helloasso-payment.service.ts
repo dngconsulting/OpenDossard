@@ -438,9 +438,10 @@ export class HelloAssoPaymentService {
     }
 
     // Cas C : HA state diffère du local — tente la transition.
-    // `applyStatusTransition` n'autorise que pending→paid/refused et paid→refunded.
-    // Une transition invalide (ex: refused → paid d'après HA, scénario suspect)
-    // sera no-op DB et tombera en `confirmed` avec le statut local inchangé.
+    // `applyStatusTransition` autorise pending→paid/refused, refused→paid
+    // (2e tentative réussie) et paid→refunding/refunded. Une transition non
+    // listée (cf. `prerequisitesForStatus`) sera no-op DB et tombera en
+    // `confirmed` avec le statut local inchangé.
     const updated = await this.applyStatusTransition({
       payment,
       newStatus: mappedStatus,

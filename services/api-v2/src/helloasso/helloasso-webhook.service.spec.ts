@@ -201,7 +201,32 @@ describe('HelloAssoWebhookService', () => {
       );
       expect(qb.where).toHaveBeenCalledWith('id = :id AND status IN (:...prerequisites)', {
         id: 42,
-        prerequisites: [HelloAssoPaymentStatus.PENDING],
+        prerequisites: [HelloAssoPaymentStatus.PENDING, HelloAssoPaymentStatus.REFUSED],
+      });
+    });
+
+    it('transitions refused → paid on Authorized (2e tentative réussie)', async () => {
+      const m = makeService();
+      const refused: HelloAssoPaymentEntity = {
+        ...localPayment,
+        status: HelloAssoPaymentStatus.REFUSED,
+      } as HelloAssoPaymentEntity;
+      m.paymentRepo.findOne.mockResolvedValue(refused);
+      const body = buildBody({ data: { state: 'Authorized' } });
+
+      const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
+
+      expect(result.outcome).toBe('transitioned:refused→paid');
+      const qb = m.paymentRepo.createQueryBuilder.mock.results[0].value;
+      expect(qb.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: HelloAssoPaymentStatus.PAID,
+          paidAt: expect.any(Date),
+        }),
+      );
+      expect(qb.where).toHaveBeenCalledWith('id = :id AND status IN (:...prerequisites)', {
+        id: 42,
+        prerequisites: [HelloAssoPaymentStatus.PENDING, HelloAssoPaymentStatus.REFUSED],
       });
     });
 
