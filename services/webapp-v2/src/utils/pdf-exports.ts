@@ -5,7 +5,7 @@ import type { ChallengeRider, ChallengeType, GenderType } from '@/types/challeng
 import type { CompetitionDetailType, FederationType } from '@/types/competitions';
 import type { RaceRowType } from '@/types/races';
 
-import { type TransformedRow, transformRows } from './classements';
+import { computePodiums, type TransformedRow, transformRows } from './classements';
 
 /**
  * Mapping des fédérations vers les fichiers de logos
@@ -489,54 +489,26 @@ export async function exportPodiumsPDF(
   const scale = availableWidth / totalBase;
   const columnWidths = baseWidths.map(w => w * scale);
 
-  // Récupérer toutes les catégories individuelles
-  const allCategories = competition.races
+  // Départs (raceCode) — même dérivation que la page classements.
+  // Un « départ » peut être une catégorie exotique (ex: « Cadets ») dont les
+  // coureurs ont des catev officiels différents (« C », « 3 »).
+  const races = competition.races
     .split(',')
-    .flatMap(r => r.split('/'))
-    .map(c => c.trim())
-    .filter(Boolean);
+    .map(r => r.trim())
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b, 'fr', { numeric: true }));
+
+  // Podiums = un classement par catégorie réelle au sein de chaque départ
+  const podiumGroups = computePodiums(engagements, races);
 
   let isFirstTable = true;
 
-  allCategories.forEach(category => {
-    // Filtrer les engagés de cette catégorie
-    const categoryEngagements = engagements.filter(e => e.catev === category);
-    if (categoryEngagements.length === 0) {
-      return;
-    }
-
-    // Séparer hommes et femmes classés
-    const ranked = categoryEngagements
-      .filter(e => e.rankingScratch != null && e.comment == null)
-      .sort((a, b) => (a.rankingScratch ?? 0) - (b.rankingScratch ?? 0));
-
-    const rankedMen = ranked.filter(e => e.gender !== 'F');
-    const rankedWomen = ranked.filter(e => e.gender === 'F');
-
-    // Podiums hommes (top 3) + podiums femmes (top 3)
-    const podiumsMen = rankedMen.slice(0, 3).map((r, index) => ({
-      ...r,
-      rankInCate: index + 1,
-    }));
-    const podiumsWomen = rankedWomen.slice(0, 3).map((r, index) => ({
-      ...r,
-      rankInCate: index + 1,
-    }));
-
-    const allPodiums = [...podiumsMen, ...podiumsWomen];
-
-    if (allPodiums.length === 0) {
-      return;
-    }
-
-    // Trouver le vainqueur du challenge
-    const challengeWinner = categoryEngagements.find(e => e.sprintchallenge);
-
-    const rowsToDisplay: (string | number)[][] = allPodiums.map(r => [
+  podiumGroups.forEach(group => {
+    const rowsToDisplay: (string | number)[][] = group.entries.map(r => [
       r.rankInCate,
       r.rankingScratch ?? '',
-      displayDossard(r.riderNumber),
-      r.name ?? r.riderName ?? '',
+      displayDossard(r.riderNumber ?? 0),
+      r.name ?? '',
       r.club ?? '',
       r.gender ?? '',
       r.catev ?? '',
@@ -548,14 +520,26 @@ export async function exportPodiumsPDF(
       ? undefined
       : (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable?.finalY;
 
-    // Titre de la catégorie
+    // Titre du groupe. Cas courant (départ == catégorie) : « Catégorie X ».
+    // Départ avec caté personnalisée : « Départ Cadets — Catégorie C » / « Départ Cadets — Dames ».
     doc.setTextColor(40);
     doc.setFontSize(11);
     const titleY = previousFinalY === undefined ? 35 : previousFinalY + 8;
 
-    let titleText = `Catégorie ${category}`;
+    let titleText: string;
+    if (group.isWomen) {
+      titleText =
+        group.categoryLabel === group.raceCode
+          ? `Catégorie ${group.raceCode}`
+          : `Départ ${group.raceCode} — Dames`;
+    } else if (group.categoryLabel === group.raceCode) {
+      titleText = `Catégorie ${group.raceCode}`;
+    } else {
+      titleText = `Départ ${group.raceCode} — Catégorie ${group.categoryLabel}`;
+    }
+    const challengeWinner = group.challengeWinner;
     if (challengeWinner) {
-      titleText += `  - Challenge : ${challengeWinner.name ?? challengeWinner.riderName} - scratch: ${challengeWinner.rankingScratch} (${challengeWinner.club})`;
+      titleText += `  - Challenge : ${challengeWinner.name} - scratch: ${challengeWinner.rankingScratch} (${challengeWinner.club})`;
     }
     doc.text(titleText, pageMargin, titleY);
 
@@ -592,21 +576,17 @@ export async function exportPodiumsPDF(
       didDrawPage: data => {
         if (isFirstTable) {
           // Logo fédération
-          addLogoToPdf(doc, logoDataUrl, data.settings.margin.left, 2, 12);
+          const logoHeight = 12;
+          addLogoToPdf(doc, logoDataUrl, data.settings.margin.left, 2, logoHeight);
+          // Décaler le titre après la largeur réelle du logo (dépend du ratio) + un gap
+          const logoWidth = logoDataUrl ? logoHeight * logoDataUrl.ratio : logoHeight;
+          const textX = data.settings.margin.left + logoWidth + 4;
           doc.setFontSize(14);
           doc.setTextColor(40);
-          doc.text(`Podiums : ${competition.name}`, data.settings.margin.left + 15, 7);
+          doc.text(`Podiums : ${competition.name}`, textX, 7);
           doc.setFontSize(10);
-          doc.text(
-            `Date : ${capitalize(formatDateFr(competition.eventDate))}`,
-            data.settings.margin.left + 15,
-            12,
-          );
-          doc.text(
-            `Organisateur : ${competition.club?.longName ?? 'NC'}`,
-            data.settings.margin.left + 15,
-            17,
-          );
+          doc.text(`Date : ${capitalize(formatDateFr(competition.eventDate))}`, textX, 12);
+          doc.text(`Organisateur : ${competition.club?.longName ?? 'NC'}`, textX, 17);
         }
       },
       margin: { top: isFirstTable ? 22 : 10, left: pageMargin, right: pageMargin },
@@ -981,8 +961,9 @@ export async function exportChallengePDF(
   const availableWidth = pageWidth - 2 * pageMargin;
 
   // Extraire les catégories uniques depuis les riders
-  const categories = [...new Set(allRiders.map(r => r.currentLicenceCatev).filter(Boolean))]
-    .sort((a, b) => a!.localeCompare(b!, undefined, { numeric: true })) as string[];
+  const categories = [...new Set(allRiders.map(r => r.currentLicenceCatev).filter(Boolean))].sort(
+    (a, b) => a!.localeCompare(b!, undefined, { numeric: true }),
+  ) as string[];
 
   // Définir les genres à parcourir
   const genders: (GenderType | undefined)[] = ['H', 'F'];

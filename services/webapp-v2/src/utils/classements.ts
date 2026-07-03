@@ -168,6 +168,117 @@ export function transformRows(
 }
 
 /**
+ * Une entrée de podium : une ligne classée avec son rang dans sa catégorie
+ */
+export type PodiumEntry = TransformedRow & { rankInCate: number };
+
+/**
+ * Un groupe de podium = un classement par catégorie au sein d'un départ.
+ * - `raceCode` : le départ (peut être une catégorie « exotique » ex: « Cadets »)
+ * - `categoryLabel` : la catégorie réelle des coureurs (`catev`) ou « Dames »
+ * - `entries` : les 3 premiers de ce groupe, triés par rang
+ */
+export type PodiumGroup = {
+  raceCode: string;
+  categoryLabel: string;
+  isWomen: boolean;
+  entries: PodiumEntry[];
+  challengeWinner: TransformedRow | null;
+};
+
+/**
+ * Calcule les podiums de TOUS les départs.
+ *
+ * Contrairement à un filtrage par `catev`, on itère sur les DÉPARTS (`raceCode`)
+ * puis on regroupe par catégorie réelle des coureurs. Cela permet aux podiums
+ * de sortir même pour des départs dont le nom n'est pas une catégorie officielle
+ * (« exotiques », ex: « Cadets » avec des coureurs en catev « C » et « 3 »).
+ *
+ * On réutilise `transformRows`/`rankOfCate` : mêmes rangs que le classement affiché
+ * (hommes classés au sein de leur `catev`, femmes classées entre toutes les femmes du départ).
+ */
+export function computePodiums(
+  engagements: RaceRowType[],
+  races: string[]
+): PodiumGroup[] {
+  const groups: PodiumGroup[] = [];
+
+  for (const raceCode of races) {
+    const ranked = transformRows(engagements, raceCode).filter(
+      (r) => r.rankingScratch != null && r.comment == null && r.rankOfCate != null
+    );
+
+    if (ranked.length === 0) {
+      continue;
+    }
+
+    // Le vainqueur du challenge est unique par départ
+    const challengeWinner = ranked.find((r) => r.sprintchallenge) ?? null;
+
+    // Hommes regroupés par catégorie réelle (catev), femmes dans un groupe « Dames »
+    const menByCate = new Map<string, TransformedRow[]>();
+    const women: TransformedRow[] = [];
+    for (const r of ranked) {
+      if (r.gender === 'F') {
+        women.push(r);
+      } else {
+        const key = r.catev ?? '';
+        const bucket = menByCate.get(key);
+        if (bucket) {
+          bucket.push(r);
+        } else {
+          menByCate.set(key, [r]);
+        }
+      }
+    }
+
+    const toPodium = (rows: TransformedRow[]): PodiumEntry[] =>
+      rows
+        .filter((r) => (r.rankOfCate ?? 99) <= 3)
+        .sort((a, b) => (a.rankOfCate ?? 0) - (b.rankOfCate ?? 0))
+        .map((r) => ({ ...r, rankInCate: r.rankOfCate ?? 0 }));
+
+    const raceGroups: PodiumGroup[] = [];
+
+    const cateKeys = [...menByCate.keys()].sort((a, b) =>
+      a.localeCompare(b, 'fr', { numeric: true })
+    );
+    for (const cate of cateKeys) {
+      const entries = toPodium(menByCate.get(cate) ?? []);
+      if (entries.length > 0) {
+        raceGroups.push({
+          raceCode,
+          categoryLabel: cate,
+          isWomen: false,
+          entries,
+          challengeWinner: null,
+        });
+      }
+    }
+
+    const womenEntries = toPodium(women);
+    if (womenEntries.length > 0) {
+      raceGroups.push({
+        raceCode,
+        categoryLabel: 'Dames',
+        isWomen: true,
+        entries: womenEntries,
+        challengeWinner: null,
+      });
+    }
+
+    // Le challenge n'est affiché qu'une fois par départ (sur le premier groupe)
+    if (raceGroups.length > 0) {
+      raceGroups[0].challengeWinner = challengeWinner;
+    }
+
+    groups.push(...raceGroups);
+  }
+
+  return groups;
+}
+
+/**
  * Compte le nombre de coureurs classés dans une course
  */
 export function countRanked(engagements: RaceRowType[], raceCode: string): number {
