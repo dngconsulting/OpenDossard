@@ -537,14 +537,30 @@ export async function exportPodiumsPDF(
     } else {
       titleText = `Départ ${group.raceCode} — Catégorie ${group.categoryLabel}`;
     }
-    const challengeWinner = group.challengeWinner;
-    if (challengeWinner) {
-      titleText += `  - Challenge : ${challengeWinner.name} - scratch: ${challengeWinner.rankingScratch} (${challengeWinner.club})`;
-    }
     doc.text(titleText, pageMargin, titleY);
 
+    // Vainqueurs du challenge du départ : une ligne par vainqueur (il peut y en
+    // avoir plusieurs, même catégorie ou catégories différentes). Rendus sous le
+    // titre pour éviter qu'une ligne unique trop longue ne déborde de la page.
+    const challengeWinners = group.challengeWinners;
+    if (challengeWinners.length > 0) {
+      doc.setFontSize(9);
+      doc.setTextColor(120);
+      challengeWinners.forEach((winner, i) => {
+        doc.text(
+          `Challenge : ${winner.name} - scratch: ${winner.rankingScratch} (${winner.club})`,
+          pageMargin,
+          titleY + 4 + i * 4,
+        );
+      });
+      doc.setFontSize(11);
+      doc.setTextColor(40);
+    }
+    const challengeBlockHeight =
+      challengeWinners.length > 0 ? challengeWinners.length * 4 + 2 : 0;
+
     autoTable(doc, {
-      startY: titleY + 2,
+      startY: titleY + 2 + challengeBlockHeight,
       head: [['Cat.', 'Scrat.', 'Doss', 'Coureur', 'Club', 'H/F', 'Caté.V', 'Caté.A', 'Fédé']],
       headStyles: {
         fontSize: 9,

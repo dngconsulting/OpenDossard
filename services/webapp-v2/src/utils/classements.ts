@@ -183,7 +183,7 @@ export type PodiumGroup = {
   categoryLabel: string;
   isWomen: boolean;
   entries: PodiumEntry[];
-  challengeWinner: TransformedRow | null;
+  challengeWinners: TransformedRow[];
 };
 
 /**
@@ -212,8 +212,9 @@ export function computePodiums(
       continue;
     }
 
-    // Le vainqueur du challenge est unique par départ
-    const challengeWinner = ranked.find((r) => r.sprintchallenge) ?? null;
+    // Les vainqueurs du challenge d'un départ : il peut y en avoir plusieurs
+    // (même catégorie ou catégories différentes) — tous doivent apparaître.
+    const challengeWinners = ranked.filter((r) => r.sprintchallenge);
 
     // Hommes regroupés par catégorie réelle (catev), femmes dans un groupe « Dames »
     const menByCate = new Map<string, TransformedRow[]>();
@@ -251,7 +252,7 @@ export function computePodiums(
           categoryLabel: cate,
           isWomen: false,
           entries,
-          challengeWinner: null,
+          challengeWinners: [],
         });
       }
     }
@@ -263,13 +264,13 @@ export function computePodiums(
         categoryLabel: 'Dames',
         isWomen: true,
         entries: womenEntries,
-        challengeWinner: null,
+        challengeWinners: [],
       });
     }
 
     // Le challenge n'est affiché qu'une fois par départ (sur le premier groupe)
     if (raceGroups.length > 0) {
-      raceGroups[0].challengeWinner = challengeWinner;
+      raceGroups[0].challengeWinners = challengeWinners;
     }
 
     groups.push(...raceGroups);
