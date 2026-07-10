@@ -1,10 +1,4 @@
-import {
-  ArrowLeft,
-  Calendar,
-  ChevronRight,
-  Download,
-  ExternalLink,
-} from 'lucide-react';
+import { ArrowLeft, Calendar, ChevronRight, Download, ExternalLink } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
@@ -20,8 +14,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Skeleton } from '@/components/ui/skeleton';
 import { RaceTabsList, RaceTabsTrigger } from '@/components/ui/race-tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs } from '@/components/ui/tabs';
 import { COMPETITION_TYPE_ICONS } from '@/config/competition-type.config';
 import { filterRiders, useChallenge, useChallengeRanking } from '@/hooks/useChallenges';
@@ -29,7 +23,6 @@ import { useCompetitionsByIds } from '@/hooks/useCompetitions';
 import { COMPETITION_TYPE_LABELS } from '@/types/api';
 import type { GenderType } from '@/types/challenges';
 import { exportChallengePDF } from '@/utils/pdf-exports';
-
 
 export default function ChallengePage() {
   const { id } = useParams<{ id: string }>();
@@ -84,7 +77,7 @@ export default function ChallengePage() {
   // vérité), pas sur les résultats — une course sans résultats saisis doit
   // quand même apparaître.
   const { competitions, isLoading: isLoadingCompetitions } = useCompetitionsByIds(
-    challenge?.competitionIds
+    challenge?.competitionIds,
   );
 
   const handleExportPDF = async () => {
@@ -95,7 +88,7 @@ export default function ChallengePage() {
   };
 
   const Icon = challenge?.competitionType
-    ? COMPETITION_TYPE_ICONS[challenge.competitionType] ?? null
+    ? (COMPETITION_TYPE_ICONS[challenge.competitionType] ?? null)
     : null;
   const typeLabel = challenge?.competitionType
     ? COMPETITION_TYPE_LABELS[challenge.competitionType] || challenge.competitionType
@@ -148,7 +141,7 @@ export default function ChallengePage() {
                     {competitions.map(comp => (
                       <li key={comp.id}>
                         <Link
-                          to={`/competition/${comp.id}`}
+                          to={`/competition/${comp.id}/engagements`}
                           className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors group"
                         >
                           <Calendar className="size-4 text-muted-foreground shrink-0" />
