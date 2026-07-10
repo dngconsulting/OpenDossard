@@ -51,7 +51,7 @@ describe('Competitions (e2e)', () => {
     });
 
     it('should include engagementsCount and classementsCount', async () => {
-      const { competitions, licences } = await getSeedHelper().seedFullDataset();
+      const { competitions } = await getSeedHelper().seedFullDataset();
 
       const res = await request(getApp().getHttpServer())
         .get(API)
@@ -197,6 +197,62 @@ describe('Competitions (e2e)', () => {
         .get(`${API}/99999`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(404);
+    });
+  });
+
+  // ==================== POST /competitions/by-ids ====================
+
+  describe('POST /competitions/by-ids', () => {
+    it('should return the competitions matching the given IDs, ordered by date', async () => {
+      const [toulouse, auch, gravel] = await getSeedHelper().seedCompetitions();
+
+      const res = await request(getApp().getHttpServer())
+        .post(`${API}/by-ids`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ ids: [auch.id, toulouse.id, gravel.id] })
+        .expect(200);
+
+      const body = res.body as CompetitionEntity[];
+      // Triées par eventDate ASC : Toulouse (06-15), Gravel (09-01), Auch (11-20)
+      expect(body.map(c => c.name)).toEqual([
+        'Grand Prix de Toulouse',
+        'Gravel des Pyrénées',
+        'Cyclo-cross de Auch',
+      ]);
+    });
+
+    it('should ignore non-existent IDs', async () => {
+      const [toulouse] = await getSeedHelper().seedCompetitions();
+
+      const res = await request(getApp().getHttpServer())
+        .post(`${API}/by-ids`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ ids: [toulouse.id, 99999] })
+        .expect(200);
+
+      const body = res.body as CompetitionEntity[];
+      expect(body).toHaveLength(1);
+      expect(body[0].name).toBe('Grand Prix de Toulouse');
+    });
+
+    it('should be accessible to the MOBILE role', async () => {
+      const [toulouse] = await getSeedHelper().seedCompetitions();
+
+      const res = await request(getApp().getHttpServer())
+        .post(`${API}/by-ids`)
+        .set('Authorization', `Bearer ${mobileToken}`)
+        .send({ ids: [toulouse.id] })
+        .expect(200);
+
+      expect(res.body as CompetitionEntity[]).toHaveLength(1);
+    });
+
+    it('should reject an empty ids array', async () => {
+      await request(getApp().getHttpServer())
+        .post(`${API}/by-ids`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ ids: [] })
+        .expect(400);
     });
   });
 

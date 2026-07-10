@@ -64,6 +64,13 @@ export const competitionsApi = {
   getById: (id: number): Promise<CompetitionDetailType> =>
     apiClient<CompetitionDetailType>(`/competitions/${id}`),
 
+  // Récupère plusieurs compétitions par leurs IDs en une seule requête
+  getByIds: (ids: number[]): Promise<CompetitionType[]> =>
+    apiClient<CompetitionType[]>('/competitions/by-ids', {
+      method: 'POST',
+      body: JSON.stringify({ ids }),
+    }),
+
   create: (data: CompetitionFormData): Promise<CompetitionDetailType> =>
     apiClient<CompetitionDetailType>('/competitions', {
       method: 'POST',
@@ -79,11 +86,6 @@ export const competitionsApi = {
   delete: (id: number): Promise<{ success: boolean }> =>
     apiClient<{ success: boolean }>(`/competitions/${id}`, {
       method: 'DELETE',
-    }),
-
-  duplicate: (id: number): Promise<CompetitionType> =>
-    apiClient<CompetitionType>(`/competitions/${id}/duplicate`, {
-      method: 'POST',
     }),
 
   reorganize: (competitionId: number, races: string[]): Promise<void> =>

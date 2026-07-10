@@ -198,15 +198,32 @@ export function useCompetition(id: number | undefined) {
   });
 }
 
-export function useDuplicateCompetition() {
-  const queryClient = useQueryClient();
+/**
+ * Récupère plusieurs compétitions à partir de leurs IDs en une seule requête
+ * (endpoint batch POST /competitions/by-ids). Utilisé pour lister les courses
+ * d'un challenge à partir de ses competitionIds (et non à partir des résultats).
+ */
+export function useCompetitionsByIds(ids: number[] | undefined) {
+  const isAuthenticated = useUserStore(state => state.isAuthenticated);
+  const idList = ids ?? [];
+  // Clé de cache stable, indépendante de l'ordre des IDs.
+  const sortedIds = [...idList].sort((a, b) => a - b);
 
-  return useMutation({
-    mutationFn: (id: number) => competitionsApi.duplicate(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['competitions'] });
-    },
+  const query = useQuery({
+    queryKey: [...competitionsKeys.all, 'by-ids', sortedIds] as const,
+    queryFn: () => competitionsApi.getByIds(idList),
+    enabled: idList.length > 0 && isAuthenticated,
   });
+
+  const competitions = (query.data ?? [])
+    .map(competition => ({
+      id: competition.id,
+      name: competition.name,
+      date: competition.eventDate,
+    }))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  return { competitions, isLoading: query.isLoading };
 }
 
 export function useDeleteCompetition() {

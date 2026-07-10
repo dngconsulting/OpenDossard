@@ -25,6 +25,7 @@ import { RaceTabsList, RaceTabsTrigger } from '@/components/ui/race-tabs';
 import { Tabs } from '@/components/ui/tabs';
 import { COMPETITION_TYPE_ICONS } from '@/config/competition-type.config';
 import { filterRiders, useChallenge, useChallengeRanking } from '@/hooks/useChallenges';
+import { useCompetitionsByIds } from '@/hooks/useCompetitions';
 import { COMPETITION_TYPE_LABELS } from '@/types/api';
 import type { GenderType } from '@/types/challenges';
 import { exportChallengePDF } from '@/utils/pdf-exports';
@@ -79,25 +80,12 @@ export default function ChallengePage() {
     return counts;
   }, [ranking, categories, selectedGender]);
 
-  // Extract unique competitions from ranking data
-  const competitions = useMemo(() => {
-    if (!ranking) return [];
-    const competitionsMap = new Map<number, { id: number; name: string; date: string }>();
-    for (const rider of ranking) {
-      for (const race of rider.challengeRaceRows || []) {
-        if (race.competitionId && race.competitionName && !competitionsMap.has(race.competitionId)) {
-          competitionsMap.set(race.competitionId, {
-            id: race.competitionId,
-            name: race.competitionName,
-            date: race.eventDate || '',
-          });
-        }
-      }
-    }
-    return Array.from(competitionsMap.values()).sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
-  }, [ranking]);
+  // Liste des courses du challenge : basée sur les competitionIds (source de
+  // vérité), pas sur les résultats — une course sans résultats saisis doit
+  // quand même apparaître.
+  const { competitions, isLoading: isLoadingCompetitions } = useCompetitionsByIds(
+    challenge?.competitionIds
+  );
 
   const handleExportPDF = async () => {
     if (!challenge || !ranking || ranking.length === 0) {
@@ -147,7 +135,11 @@ export default function ChallengePage() {
                 <DialogTitle>Courses du challenge</DialogTitle>
               </DialogHeader>
               <div className="max-h-80 overflow-y-auto">
-                {competitions.length === 0 ? (
+                {isLoadingCompetitions ? (
+                  <p className="text-muted-foreground text-sm py-4 text-center">
+                    Chargement des courses…
+                  </p>
+                ) : competitions.length === 0 ? (
                   <p className="text-muted-foreground text-sm py-4 text-center">
                     Aucune course trouvée
                   </p>

@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { CompetitionsService } from './competitions.service';
-import { FilterCompetitionDto, ReorganizeCompetitionDto } from './dto';
+import { CompetitionIdsDto, FilterCompetitionDto, ReorganizeCompetitionDto } from './dto';
 import { CompetitionEntity } from './entities/competition.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -50,6 +50,15 @@ export class CompetitionsController {
   @ApiResponse({ status: 404, description: 'Competition not found' })
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<CompetitionEntity> {
     return this.competitionsService.findOne(id);
+  }
+
+  @Post('by-ids')
+  @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get competitions by a list of IDs (batch, ordered by date)' })
+  @ApiResponse({ status: 200, description: 'Competitions matching the given IDs' })
+  async findByIds(@Body() dto: CompetitionIdsDto): Promise<CompetitionEntity[]> {
+    return this.competitionsService.findByIds(dto.ids);
   }
 
   @Post()

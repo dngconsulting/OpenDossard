@@ -178,6 +178,22 @@ export class CompetitionsService {
     return competition;
   }
 
+  /**
+   * Récupère en une seule requête les compétitions correspondant à la liste
+   * d'IDs fournie (ex. les competitionIds d'un challenge), triées par date.
+   * Les IDs inexistants sont simplement ignorés.
+   */
+  async findByIds(ids: number[]): Promise<CompetitionEntity[]> {
+    if (!ids || ids.length === 0) {
+      return [];
+    }
+    return this.competitionRepository.find({
+      where: { id: In(ids) },
+      relations: ['club'],
+      order: { eventDate: 'ASC' },
+    });
+  }
+
   async create(
     competitionData: Partial<CompetitionEntity>,
     user: AuthenticatedUser,
