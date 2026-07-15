@@ -29,10 +29,4 @@ export const baremeByCateFSGT31 = [
     ptsBareme: (ranking: number): number =>
       ranking <= 10 ? [40, 35, 30, 25, 20, 18, 16, 14, 12, 10][ranking - 1] : 0,
   },
-  {
-    catev: '6',
-    ptsParticipation: 5,
-    ptsBareme: (ranking: number): number =>
-      ranking <= 10 ? [20, 15, 12, 10, 8, 6, 4, 3, 2, 1][ranking - 1] : 0,
-  },
 ];
