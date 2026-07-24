@@ -22,7 +22,7 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   @Get()
-  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
   @ApiOperation({ summary: 'Get dashboard summary' })
   @ApiResponse({ status: 200, description: 'Dashboard summary with stats' })
   async getSummary(): Promise<DashboardSummary> {
@@ -52,7 +52,7 @@ export class DashboardController {
   }
 
   @Get('charts/riders-per-competition')
-  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
   @ApiOperation({ summary: 'Get riders count per competition' })
   @ApiResponse({ status: 200, description: 'Riders per competition chart data' })
   async getRidersPerCompetition(
@@ -62,7 +62,7 @@ export class DashboardController {
   }
 
   @Get('charts/club-participation')
-  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
   @ApiOperation({ summary: 'Get club participation stats' })
   @ApiResponse({ status: 200, description: 'Club participation chart data' })
   async getClubParticipation(
@@ -72,7 +72,7 @@ export class DashboardController {
   }
 
   @Get('charts/catea-distribution')
-  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
   @ApiOperation({ summary: 'Get age category distribution' })
   @ApiResponse({ status: 200, description: 'Age category distribution chart data' })
   async getCateaDistribution(
@@ -82,7 +82,7 @@ export class DashboardController {
   }
 
   @Get('charts/catev-distribution')
-  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
   @ApiOperation({ summary: 'Get value category distribution' })
   @ApiResponse({ status: 200, description: 'Value category distribution chart data' })
   async getCatevDistribution(
@@ -92,7 +92,7 @@ export class DashboardController {
   }
 
   @Get('charts/top-riders')
-  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
   @ApiOperation({ summary: 'Get top 50 most active riders' })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiResponse({ status: 200, description: 'Top riders chart data' })
@@ -100,6 +100,9 @@ export class DashboardController {
     @Query() filters: DashboardChartFiltersDto,
     @Query('limit') limit?: number,
   ): Promise<{ name: string; firstName: string; club: string; count: number }[]> {
-    return this.dashboardService.getTopRiders(filters, limit || 50);
+    // Borne le limit côté contrôleur : la route est ouverte au rôle MOBILE,
+    // un token mobile ne doit pas pouvoir aspirer tout l'effectif licencié.
+    // Number(limit) || 50 couvre aussi ?limit=abc (NaN après transformation) → 50.
+    return this.dashboardService.getTopRiders(filters, Math.min(Number(limit) || 50, 200));
   }
 }

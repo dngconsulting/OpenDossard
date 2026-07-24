@@ -50,11 +50,11 @@ describe('Dashboard (e2e)', () => {
         .expect(200);
     });
 
-    it('should reject MOBILE role', async () => {
+    it('should allow MOBILE role', async () => {
       await request(getApp().getHttpServer())
         .get(API)
         .set('Authorization', `Bearer ${mobileToken}`)
-        .expect(403);
+        .expect(200);
     });
 
     it('should reject unauthenticated request', async () => {
@@ -85,6 +85,13 @@ describe('Dashboard (e2e)', () => {
         .get(`${API}/stats`)
         .set('Authorization', `Bearer ${orgaToken}`)
         .expect(200);
+    });
+
+    it('should reject MOBILE role', async () => {
+      await request(getApp().getHttpServer())
+        .get(`${API}/stats`)
+        .set('Authorization', `Bearer ${mobileToken}`)
+        .expect(403);
     });
   });
 
@@ -118,11 +125,41 @@ describe('Dashboard (e2e)', () => {
       expect(body.recentCompetitions.length).toBeLessThanOrEqual(1);
       expect(body.recentRaces.length).toBeLessThanOrEqual(1);
     });
+
+    it('should reject MOBILE role', async () => {
+      await request(getApp().getHttpServer())
+        .get(`${API}/recent`)
+        .set('Authorization', `Bearer ${mobileToken}`)
+        .expect(403);
+    });
   });
 
   // ==================== GET /dashboard/charts/* ====================
 
   describe('GET /dashboard/charts', () => {
+    it.each([
+      'riders-per-competition',
+      'club-participation',
+      'catea-distribution',
+      'catev-distribution',
+      'top-riders',
+    ])('should allow MOBILE role on charts/%s', async chart => {
+      await request(getApp().getHttpServer())
+        .get(`${API}/charts/${chart}`)
+        .set('Authorization', `Bearer ${mobileToken}`)
+        .expect(200);
+    });
+
+    it.each([
+      'riders-per-competition',
+      'club-participation',
+      'catea-distribution',
+      'catev-distribution',
+      'top-riders',
+    ])('should reject unauthenticated request on charts/%s', async chart => {
+      await request(getApp().getHttpServer()).get(`${API}/charts/${chart}`).expect(401);
+    });
+
     it('should return riders-per-competition chart data', async () => {
       const res = await request(getApp().getHttpServer())
         .get(`${API}/charts/riders-per-competition`)
