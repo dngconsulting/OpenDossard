@@ -227,4 +227,129 @@ describe('Dashboard (e2e)', () => {
       await getSeedHelper().cleanClubs();
     });
   });
+
+  // ============ GET /dashboard/charts/club-performances ============
+
+  describe('GET /dashboard/charts/club-performances', () => {
+    type Performance = {
+      licenceId: number;
+      name: string;
+      firstName: string;
+      catev: string | null;
+      wins: number;
+      seconds: number;
+      thirds: number;
+      sprintChallenges: number;
+    };
+
+    const CLUB = 'Vélo Club Toulousain';
+
+    const get = (query: string, token = adminToken) =>
+      request(getApp().getHttpServer())
+        .get(`${API}/charts/club-performances${query}`)
+        .set('Authorization', `Bearer ${token}`);
+
+    const find = (body: Performance[], name: string, catev: string) =>
+      body.find(p => p.name === name && p.catev === catev);
+
+    describe('garde-fou du club', () => {
+      it('should reject a request without any club', async () => {
+        await get('').expect(400);
+      });
+
+      it('should reject a request with several clubs', async () => {
+        await get(`?clubs=${encodeURIComponent(CLUB)}&clubs=AS%20Muret`).expect(400);
+      });
+
+      it('should allow MOBILE role with a single club', async () => {
+        await get(`?clubs=${encodeURIComponent(CLUB)}`, mobileToken).expect(200);
+      });
+
+      it('should reject unauthenticated request', async () => {
+        await request(getApp().getHttpServer())
+          .get(`${API}/charts/club-performances?clubs=${encodeURIComponent(CLUB)}`)
+          .expect(401);
+      });
+    });
+
+    describe('calcul des rangs', () => {
+      beforeAll(async () => {
+        await getSeedHelper().seedClubPerformancesDataset();
+      });
+
+      afterAll(async () => {
+        await getSeedHelper().cleanRaces();
+        await getSeedHelper().cleanCompetitions();
+        await getSeedHelper().cleanLicences();
+      });
+
+      it('should count a win for a rider who is 5th scratch but 1st in category', async () => {
+        const res = await get(`?clubs=${encodeURIComponent(CLUB)}`).expect(200);
+        const body = res.body as Performance[];
+
+        // GASSMANN est 5e au scratch du départ mixte (ranking_scratch = 2179,
+        // magnitude corrompue) mais 1er des catégorie 2 : c'est une victoire.
+        expect(find(body, 'GASSMANN', '2')).toMatchObject({ wins: 1, seconds: 0, thirds: 0 });
+      });
+
+      it('should count a second place in category', async () => {
+        const res = await get(`?clubs=${encodeURIComponent(CLUB)}`).expect(200);
+        const body = res.body as Performance[];
+
+        expect(find(body, 'JABER', '2')).toMatchObject({ wins: 0, seconds: 1, thirds: 0 });
+      });
+
+      it('should split a rider across the categories they raced in', async () => {
+        const res = await get(`?clubs=${encodeURIComponent(CLUB)}`).expect(200);
+        const body = res.body as Performance[];
+
+        // Même licence, deux catégories, deux entrées d'une victoire chacune.
+        expect(find(body, 'GASSMANN', '1')).toMatchObject({ wins: 1 });
+        expect(body.filter(p => p.name === 'GASSMANN')).toHaveLength(2);
+      });
+
+      it('should exclude riders without any podium or sprint challenge', async () => {
+        const res = await get(`?clubs=${encodeURIComponent(CLUB)}`).expect(200);
+        const body = res.body as Performance[];
+
+        // MARTY est 4e de sa catégorie : aucun compteur, donc absent.
+        expect(body.some(p => p.name === 'MARTY')).toBe(false);
+      });
+
+      it('should ignore a sprint challenge won by an unranked rider', async () => {
+        const res = await get(`?clubs=${encodeURIComponent(CLUB)}`).expect(200);
+        const body = res.body as Performance[];
+
+        // ROUX a abandonné : son challenge sprint ne doit pas être comptabilisé,
+        // et il ne doit donc pas apparaître du tout.
+        expect(body.some(p => p.name === 'ROUX')).toBe(false);
+        expect(find(body, 'GASSMANN', '2')?.sprintChallenges).toBe(1);
+      });
+
+      it('should only return riders of the requested club', async () => {
+        const res = await get(`?clubs=${encodeURIComponent(CLUB)}`).expect(200);
+        const body = res.body as Performance[];
+
+        expect(body).toHaveLength(3);
+        expect(body.every(p => ['GASSMANN', 'JABER'].includes(p.name))).toBe(true);
+      });
+
+      it('should restrict results to the requested date range', async () => {
+        const res = await get(
+          `?clubs=${encodeURIComponent(CLUB)}&startDate=2025-07-01&endDate=2025-12-31`,
+        ).expect(200);
+        const body = res.body as Performance[];
+
+        // Seul le départ homogène du 20 juillet entre dans la fenêtre.
+        expect(body).toHaveLength(1);
+        expect(body[0]).toMatchObject({ name: 'GASSMANN', catev: '1', wins: 1 });
+      });
+
+      it('should restrict results to the requested competition type', async () => {
+        const res = await get(`?clubs=${encodeURIComponent(CLUB)}&competitionTypes=CX`).expect(200);
+
+        expect(res.body).toEqual([]);
+      });
+    });
+  });
 });

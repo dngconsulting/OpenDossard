@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
+import { DataSource, Repository, SelectQueryBuilder } from 'typeorm';
 import { CompetitionEntity } from '../competitions/entities/competition.entity';
 import { LicenceEntity } from '../licences/entities/licence.entity';
 import { RaceEntity } from '../races/entities/race.entity';
 import { ClubEntity } from '../clubs/entities/club.entity';
 import { DashboardChartFiltersDto } from './dto/dashboard-chart-filters.dto';
+import { ClubPerformanceDto } from './dto/club-performance.dto';
 
 export interface DashboardStats {
   totalCompetitions: number;
@@ -44,6 +45,8 @@ export class DashboardService {
     private raceRepository: Repository<RaceEntity>,
     @InjectRepository(ClubEntity)
     private clubRepository: Repository<ClubEntity>,
+    @InjectDataSource()
+    private dataSource: DataSource,
   ) {}
 
   private applyChartFilters(
@@ -175,6 +178,156 @@ export class DashboardService {
       firstName: r.firstName,
       club: r.club,
       count: parseInt(r.count, 10),
+    }));
+  }
+
+  /**
+   * Bilan « Performances du club » : victoires, deuxièmes et troisièmes places
+   * et challenges sprint des coureurs d'un club, ventilés par catégorie.
+   *
+   * Le rang exploité est le rang **dans la catégorie**, pas `ranking_scratch`.
+   * Deux raisons :
+   *  1. Sémantique — plusieurs catégories partagent souvent un même départ. Un
+   *     coureur 5e scratch peut être 1er de sa catégorie, et c'est bien ce que
+   *     la fiche palmarès du coureur affiche déjà (cf. PalmaresService).
+   *  2. Fiabilité — `ranking_scratch` est corrompu en magnitude sur une partie
+   *     du parc (valeurs de l'ordre de 211 / 2193 / 4268, héritées d'un
+   *     ROW_NUMBER() global sans PARTITION BY). L'ordre relatif, lui, est resté
+   *     juste : un ROW_NUMBER() repartitionné redonne le bon rang là où un
+   *     `ranking_scratch = 1` en dur ne compterait rien sur ces compétitions.
+   *
+   * Structure de la requête, calquée sur PalmaresService.getPalmares :
+   *  1. `club_starts` : les départs (compétition, code course, catégorie) où le
+   *     club a au moins un classé, restreints par les filtres du dashboard.
+   *  2. `peers` : *toutes* les lignes de ces départs. Indispensable — un rang se
+   *     calcule contre l'ensemble des partants, pas contre les seuls équipiers.
+   *  3. `ranked` : ROW_NUMBER() partitionné par départ, NULL sur les lignes
+   *     commentées (ABD, NC, DSQ…) qui ne prennent pas de rang.
+   *  4. Agrégation des seules lignes du club, groupées par (licence, catégorie).
+   *
+   * Le comptage des challenges sprint exige un rang non nul, reprenant le
+   * garde-fou de l'affichage mobile (l'éclair n'y est montré que sur un coureur
+   * effectivement classé).
+   *
+   * @param club    libellé exact de `race.club` — le club porté le jour de la
+   *                course, cohérent avec le filtre des autres graphes de l'écran
+   * @param filters filtres du dashboard ; `clubs` est ignoré au profit de `club`
+   */
+  async getClubPerformances(
+    club: string,
+    filters: DashboardChartFiltersDto,
+  ): Promise<ClubPerformanceDto[]> {
+    // Les placeholders sont numérotés à la volée via `params.length` : chaque
+    // fragment porte son propre index, quel que soit son emplacement dans le SQL.
+    const params: unknown[] = [club];
+    const competitionConditions: string[] = [];
+    const riderConditions: string[] = [];
+
+    if (filters.startDate) {
+      params.push(filters.startDate);
+      competitionConditions.push(`AND DATE(c.event_date) >= $${params.length}`);
+    }
+    if (filters.endDate) {
+      params.push(filters.endDate);
+      competitionConditions.push(`AND DATE(c.event_date) <= $${params.length}`);
+    }
+    // fede et competition_type sont des enums PostgreSQL : le cast ::text est
+    // requis pour les comparer au tableau de chaînes envoyé par le client.
+    if (filters.fedes?.length) {
+      params.push(filters.fedes);
+      competitionConditions.push(`AND c.fede::text = ANY($${params.length})`);
+    }
+    if (filters.competitionTypes?.length) {
+      params.push(filters.competitionTypes);
+      competitionConditions.push(`AND c.competition_type::text = ANY($${params.length})`);
+    }
+    if (filters.competitionDepts?.length) {
+      params.push(filters.competitionDepts);
+      competitionConditions.push(`AND c.dept = ANY($${params.length})`);
+    }
+    // riderDepts porte sur le coureur, pas sur l'épreuve : il restreint les
+    // lignes retenues en fin de requête, sans réduire les départs analysés.
+    if (filters.riderDepts?.length) {
+      params.push(filters.riderDepts);
+      riderConditions.push(`AND l.dept = ANY($${params.length})`);
+    }
+
+    const query = `
+      WITH club_starts AS (
+        SELECT DISTINCT r.competition_id, r.race_code, r.catev
+        FROM race r
+        JOIN competition c ON c.id = r.competition_id
+        WHERE r.club = $1
+          AND (r.ranking_scratch IS NOT NULL OR r.comment IS NOT NULL)
+          ${competitionConditions.join('\n          ')}
+      ),
+      peers AS (
+        SELECT r.competition_id, r.race_code, r.catev, r.licence_id, r.club,
+               r.ranking_scratch, r.comment, r.sprintchallenge
+        FROM race r
+        JOIN club_starts cs
+          ON r.competition_id = cs.competition_id
+         AND r.race_code IS NOT DISTINCT FROM cs.race_code
+         AND r.catev     IS NOT DISTINCT FROM cs.catev
+        WHERE r.ranking_scratch IS NOT NULL OR r.comment IS NOT NULL
+      ),
+      ranked AS (
+        SELECT
+          p.*,
+          CASE
+            WHEN p.comment IS NULL AND p.ranking_scratch IS NOT NULL THEN
+              ROW_NUMBER() OVER (
+                PARTITION BY p.competition_id, p.race_code, p.catev
+                ORDER BY p.ranking_scratch
+              )
+            ELSE NULL
+          END AS rank_in_cat
+        FROM peers p
+      )
+      SELECT
+        l.id         AS "licenceId",
+        l.name       AS "name",
+        l.first_name AS "firstName",
+        ranked.catev AS "catev",
+        COUNT(*) FILTER (WHERE ranked.rank_in_cat = 1) AS "wins",
+        COUNT(*) FILTER (WHERE ranked.rank_in_cat = 2) AS "seconds",
+        COUNT(*) FILTER (WHERE ranked.rank_in_cat = 3) AS "thirds",
+        COUNT(*) FILTER (
+          WHERE ranked.sprintchallenge AND ranked.rank_in_cat IS NOT NULL
+        ) AS "sprintChallenges"
+      FROM ranked
+      JOIN licence l ON l.id = ranked.licence_id
+      WHERE ranked.club = $1
+        ${riderConditions.join('\n        ')}
+      GROUP BY l.id, l.name, l.first_name, ranked.catev
+      HAVING COUNT(*) FILTER (WHERE ranked.rank_in_cat <= 3) > 0
+          OR COUNT(*) FILTER (
+               WHERE ranked.sprintchallenge AND ranked.rank_in_cat IS NOT NULL
+             ) > 0
+      ORDER BY "wins" DESC, "seconds" DESC, "thirds" DESC, l.name ASC
+    `;
+
+    const rows: Array<{
+      licenceId: number;
+      name: string;
+      firstName: string;
+      catev: string | null;
+      wins: string;
+      seconds: string;
+      thirds: string;
+      sprintChallenges: string;
+    }> = await this.dataSource.query(query, params);
+
+    // COUNT() renvoie un bigint, que le driver pg sérialise en chaîne.
+    return rows.map(r => ({
+      licenceId: r.licenceId,
+      name: r.name,
+      firstName: r.firstName,
+      catev: r.catev,
+      wins: Number(r.wins),
+      seconds: Number(r.seconds),
+      thirds: Number(r.thirds),
+      sprintChallenges: Number(r.sprintChallenges),
     }));
   }
 

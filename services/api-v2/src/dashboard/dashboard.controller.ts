@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import {
   DashboardService,
@@ -7,6 +7,7 @@ import {
   DashboardSummary,
 } from './dashboard.service';
 import { DashboardChartFiltersDto } from './dto/dashboard-chart-filters.dto';
+import { ClubPerformanceDto } from './dto/club-performance.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -104,5 +105,31 @@ export class DashboardController {
     // un token mobile ne doit pas pouvoir aspirer tout l'effectif licencié.
     // Number(limit) || 50 couvre aussi ?limit=abc (NaN après transformation) → 50.
     return this.dashboardService.getTopRiders(filters, Math.min(Number(limit) || 50, 200));
+  }
+
+  @Get('charts/club-performances')
+  @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
+  @ApiOperation({
+    summary: 'Get podium and sprint challenge counts for a single club',
+    operationId: 'getClubPerformances',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Per-rider, per-category podium counts for the requested club',
+    type: [ClubPerformanceDto],
+  })
+  @ApiResponse({ status: 400, description: 'Exactly one club must be requested' })
+  async getClubPerformances(
+    @Query() filters: DashboardChartFiltersDto,
+  ): Promise<ClubPerformanceDto[]> {
+    // Un seul club exigé, et pas seulement pour la lisibilité de l'encart : la
+    // route est ouverte au rôle MOBILE et la requête recalcule les rangs de tous
+    // les partants des départs retenus. Sans club, elle balaierait toute la
+    // table `race` — même réflexe que le clamp de `limit` sur top-riders.
+    const clubs = filters.clubs ?? [];
+    if (clubs.length !== 1) {
+      throw new BadRequestException('Le filtre « clubs » doit contenir exactement un club.');
+    }
+    return this.dashboardService.getClubPerformances(clubs[0], filters);
   }
 }

@@ -273,6 +273,131 @@ export class SeedHelper {
     ]);
   }
 
+  /**
+   * Jeu de données de l'encart « Performances du club ».
+   *
+   * Deux compétitions, construites pour exercer les pièges du calcul de rang :
+   *
+   * 1. « Départ mixte » (code course 1/2, catégories 1 et 2 confondues), avec
+   *    des `ranking_scratch` aux magnitudes volontairement corrompues (211,
+   *    261 … 2217) mais dans le bon ordre — le profil exact de la corruption
+   *    constatée en base. Les 4 premiers au scratch sont des catégorie 1 d'un
+   *    club tiers : GASSMANN n'est donc que 5e au scratch, mais 1er de sa
+   *    catégorie. Un comptage sur `ranking_scratch = 1` ne verrait rien ici.
+   * 2. « Départ homogène » un mois plus tard, où GASSMANN gagne en catégorie 1
+   *    après montée — il doit produire une seconde entrée, la clé d'agrégation
+   *    étant (licence, catégorie).
+   *
+   * Le club porte aussi deux cas négatifs : MARTY, 4e de catégorie (aucun
+   * compteur, donc écarté par le HAVING), et ROUX, abandon crédité d'un
+   * challenge sprint (ne doit pas compter, faute de rang).
+   */
+  async seedClubPerformancesDataset(): Promise<{
+    club: string;
+    otherClub: string;
+    competitions: CompetitionEntity[];
+  }> {
+    const CLUB = 'Vélo Club Toulousain';
+    const OTHER_CLUB = 'AS Muret';
+
+    const licenceRepo = this.dataSource.getRepository(LicenceEntity);
+    const makeLicence = (name: string, firstName: string, club: string, catev: string) =>
+      licenceRepo.create({
+        name,
+        firstName,
+        licenceNumber: `PERF-${name}`,
+        gender: 'H',
+        club,
+        dept: '31',
+        birthYear: '1985',
+        catea: 'S',
+        catev,
+        fede: Federation.FSGT,
+        saison: '2025',
+      });
+
+    const [gassmann, jaber, marty, roux, alpha, beta, gamma, delta, epsilon] =
+      await licenceRepo.save([
+        makeLicence('GASSMANN', 'Pierre', CLUB, '2'),
+        makeLicence('JABER', 'Sami', CLUB, '2'),
+        makeLicence('MARTY', 'Luc', CLUB, '2'),
+        makeLicence('ROUX', 'Alex', CLUB, '2'),
+        makeLicence('ALPHA', 'Adrien', OTHER_CLUB, '1'),
+        makeLicence('BETA', 'Bruno', OTHER_CLUB, '1'),
+        makeLicence('GAMMA', 'Cyril', OTHER_CLUB, '1'),
+        makeLicence('DELTA', 'David', OTHER_CLUB, '1'),
+        makeLicence('EPSILON', 'Eric', OTHER_CLUB, '2'),
+      ]);
+
+    const competitionRepo = this.dataSource.getRepository(CompetitionEntity);
+    const competitions = await competitionRepo.save([
+      competitionRepo.create({
+        name: 'Départ mixte de Toulouse',
+        eventDate: new Date('2025-06-15T09:00:00Z'),
+        zipCode: '31000',
+        categories: '1,2',
+        races: '1/2',
+        fede: Federation.FSGT,
+        competitionType: CompetitionType.ROUTE,
+        dept: '31',
+      }),
+      competitionRepo.create({
+        name: 'Départ homogène de Muret',
+        eventDate: new Date('2025-07-20T09:00:00Z'),
+        zipCode: '31600',
+        categories: '1',
+        races: '1',
+        fede: Federation.FSGT,
+        competitionType: CompetitionType.ROUTE,
+        dept: '31',
+      }),
+    ]);
+
+    const raceRepo = this.dataSource.getRepository(RaceEntity);
+    const entry = (
+      competition: CompetitionEntity,
+      licence: LicenceEntity,
+      raceCode: string,
+      catev: string,
+      rankingScratch: number | null,
+      extra: Partial<RaceEntity> = {},
+    ) =>
+      raceRepo.create({
+        competitionId: competition.id,
+        licenceId: licence.id,
+        raceCode,
+        catev,
+        catea: 'S',
+        club: licence.club,
+        rankingScratch,
+        ...extra,
+      });
+
+    await raceRepo.save([
+      // Départ mixte : les 4 premiers au scratch courent en catégorie 1.
+      entry(competitions[0], alpha, '1/2', '1', 211),
+      entry(competitions[0], beta, '1/2', '1', 261),
+      entry(competitions[0], gamma, '1/2', '1', 297),
+      entry(competitions[0], delta, '1/2', '1', 304),
+      // 5e au scratch, 1er de catégorie 2, et vainqueur du challenge sprint.
+      entry(competitions[0], gassmann, '1/2', '2', 2179, { sprintchallenge: true }),
+      entry(competitions[0], jaber, '1/2', '2', 2193),
+      entry(competitions[0], epsilon, '1/2', '2', 2213),
+      entry(competitions[0], marty, '1/2', '2', 2217),
+      // Abandon : aucun rang, donc aucun challenge sprint comptabilisé.
+      entry(competitions[0], roux, '1/2', '2', null, {
+        comment: 'ABD',
+        sprintchallenge: true,
+      }),
+      // Départ homogène : GASSMANN gagne, cette fois en catégorie 1.
+      entry(competitions[1], gassmann, '1', '1', 1),
+      entry(competitions[1], alpha, '1', '1', 2),
+      entry(competitions[1], beta, '1', '1', 3),
+    ]);
+
+    return { club: CLUB, otherClub: OTHER_CLUB, competitions };
+  }
+
   /** Seed complet : clubs → licences → compétitions → races */
   async seedFullDataset(): Promise<{
     clubs: ClubEntity[];
