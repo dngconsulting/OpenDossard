@@ -130,6 +130,15 @@ export class DashboardController {
     if (clubs.length !== 1) {
       throw new BadRequestException('Le filtre « clubs » doit contenir exactement un club.');
     }
-    return this.dashboardService.getClubPerformances(clubs[0], filters);
+    // `clubFede` est exigé, pas optionnel : sans elle un libellé homonyme
+    // (« CAHORS CYCLISME » existe en UFOLEP, FFC et FFVELO) agrégerait les
+    // résultats de plusieurs clubs distincts. Mieux vaut refuser la requête que
+    // répondre des chiffres qui mélangent trois clubs.
+    if (!filters.clubFede) {
+      throw new BadRequestException(
+        'Le filtre « clubFede » est requis : un nom de club ne suffit pas à le désigner.',
+      );
+    }
+    return this.dashboardService.getClubPerformances(clubs[0], filters.clubFede, filters);
   }
 }

@@ -329,6 +329,38 @@ export class SeedHelper {
         makeLicence('EPSILON', 'Eric', OTHER_CLUB, '2'),
       ]);
 
+    // Deux licenciés UFOLEP portant le MÊME libellé de club que l'équipe FSGT :
+    // le cas « CAHORS CYCLISME », homonyme entre fédérations. Sans la fédé, le
+    // seul nom de club les mélangerait avec les précédents.
+    const [ufoOpen, ufoHome] = await licenceRepo.save([
+      licenceRepo.create({
+        name: 'OPENRIDER',
+        firstName: 'Olivier',
+        licenceNumber: 'PERF-OPENRIDER',
+        gender: 'H',
+        club: CLUB,
+        dept: '31',
+        birthYear: '1985',
+        catea: 'S',
+        catev: '2',
+        fede: Federation.UFOLEP,
+        saison: '2025',
+      }),
+      licenceRepo.create({
+        name: 'HOMONYME',
+        firstName: 'Hugo',
+        licenceNumber: 'PERF-HOMONYME',
+        gender: 'H',
+        club: CLUB,
+        dept: '31',
+        birthYear: '1985',
+        catea: 'S',
+        catev: '2',
+        fede: Federation.UFOLEP,
+        saison: '2025',
+      }),
+    ]);
+
     const competitionRepo = this.dataSource.getRepository(CompetitionEntity);
     const competitions = await competitionRepo.save([
       competitionRepo.create({
@@ -348,6 +380,31 @@ export class SeedHelper {
         categories: '1',
         races: '1',
         fede: Federation.FSGT,
+        competitionType: CompetitionType.ROUTE,
+        dept: '31',
+      }),
+      // Épreuve FSGT gagnée par un licencié UFOLEP : un licencié peut courir
+      // hors de sa fédération, mais ce résultat appartient au club FSGT, pas au
+      // club UFOLEP homonyme. Sert à vérifier le volet « identité ».
+      competitionRepo.create({
+        name: 'Open FSGT de Blagnac',
+        eventDate: new Date('2025-08-10T09:00:00Z'),
+        zipCode: '31700',
+        categories: '2',
+        races: '2',
+        fede: Federation.FSGT,
+        competitionType: CompetitionType.ROUTE,
+        dept: '31',
+      }),
+      // Épreuve UFOLEP : seule à devoir alimenter les stats du club UFOLEP
+      // homonyme. Sert à vérifier le volet « périmètre ».
+      competitionRepo.create({
+        name: 'Prix UFOLEP de Colomiers',
+        eventDate: new Date('2025-09-15T09:00:00Z'),
+        zipCode: '31770',
+        categories: '2',
+        races: '2',
+        fede: Federation.UFOLEP,
         competitionType: CompetitionType.ROUTE,
         dept: '31',
       }),
@@ -393,6 +450,13 @@ export class SeedHelper {
       entry(competitions[1], gassmann, '1', '1', 1),
       entry(competitions[1], alpha, '1', '1', 2),
       entry(competitions[1], beta, '1', '1', 3),
+      // Open FSGT gagné par un licencié UFOLEP sous le libellé du club :
+      // l'épreuve est FSGT mais la licence ne l'est pas, donc hors des deux clubs.
+      entry(competitions[2], ufoOpen, '2', '2', 1),
+      entry(competitions[2], epsilon, '2', '2', 2),
+      // Épreuve UFOLEP gagnée par le licencié UFOLEP du club homonyme.
+      entry(competitions[3], ufoHome, '2', '2', 1),
+      entry(competitions[3], ufoOpen, '2', '2', 2),
     ]);
 
     return { club: CLUB, otherClub: OTHER_CLUB, competitions };

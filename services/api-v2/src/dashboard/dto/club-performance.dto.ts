@@ -14,11 +14,11 @@ export class ClubPerformanceDto {
   @ApiProperty({ description: 'Identifiant de la licence du coureur' })
   licenceId: number;
 
-  @ApiProperty({ description: 'Nom du coureur' })
-  name: string;
+  @ApiPropertyOptional({ description: 'Nom du coureur', nullable: true })
+  name: string | null;
 
-  @ApiProperty({ description: 'Prénom du coureur' })
-  firstName: string;
+  @ApiPropertyOptional({ description: 'Prénom du coureur', nullable: true })
+  firstName: string | null;
 
   @ApiPropertyOptional({
     description: 'Catégorie de valeur courue, telle que figée sur la ligne de résultat',

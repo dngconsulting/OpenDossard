@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository, SelectQueryBuilder } from 'typeorm';
 import { CompetitionEntity } from '../competitions/entities/competition.entity';
 import { LicenceEntity } from '../licences/entities/licence.entity';
@@ -77,6 +77,11 @@ export class DashboardService {
     }
     if (filters.clubs?.length) {
       qb.andWhere('race.club IN (:...clubs)', { clubs: filters.clubs });
+    }
+
+    if (filters.clubFede) {
+      qb.andWhere('licence.fede::text = :clubFede', { clubFede: filters.clubFede });
+      qb.andWhere('competition.fede::text = :clubFede', { clubFede: filters.clubFede });
     }
     return qb;
   }
@@ -215,6 +220,7 @@ export class DashboardService {
    */
   async getClubPerformances(
     club: string,
+    clubFede: string,
     filters: DashboardChartFiltersDto,
   ): Promise<ClubPerformanceDto[]> {
     // Les placeholders sont numérotés à la volée via `params.length` : chaque
@@ -222,6 +228,18 @@ export class DashboardService {
     const params: unknown[] = [club];
     const competitionConditions: string[] = [];
     const riderConditions: string[] = [];
+
+    // Lève l'ambiguïté des libellés de club homonymes entre fédérations. Le
+    // périmètre passe par l'organisateur de l'épreuve, l'identité par la licence
+    // du coureur — un licencié UFOLEP peut courir une épreuve FSGT, mais ce
+    // résultat appartient alors au club FSGT, pas au club UFOLEP homonyme.
+    //
+    // Les casts ::text sont obligatoires : `licence.fede` et `competition.fede`
+    // sont deux enums PostgreSQL distincts.
+    params.push(clubFede);
+    const fedeParam = `$${params.length}`;
+    competitionConditions.push(`AND c.fede::text = ${fedeParam}`);
+    riderConditions.push(`AND l.fede::text = ${fedeParam}`);
 
     if (filters.startDate) {
       params.push(filters.startDate);

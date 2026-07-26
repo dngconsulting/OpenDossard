@@ -3,6 +3,7 @@ import { BadRequestException } from '@nestjs/common';
 import { DashboardController } from './dashboard.controller';
 import { DashboardService } from './dashboard.service';
 import { DashboardChartFiltersDto } from './dto/dashboard-chart-filters.dto';
+import { Federation } from '../common/enums';
 
 /**
  * Tests unitaires du clamp de `limit` sur GET /dashboard/charts/top-riders.
@@ -84,14 +85,30 @@ describe('DashboardController.getClubPerformances — garde-fou du club', () => 
     expect(dashboardService.getClubPerformances).not.toHaveBeenCalled();
   });
 
-  it('should forward the single club and the filters to the service', async () => {
+  it('should reject when the club federation is missing', async () => {
+    // Un nom de club ne désigne pas un club : « CAHORS CYCLISME » existe en
+    // UFOLEP, FFC et FFVELO. Sans fédé, la réponse mélangerait les trois.
+    const filters = { clubs: ['VC Toulouse'] } as DashboardChartFiltersDto;
+
+    await expect(controller.getClubPerformances(filters)).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
+    expect(dashboardService.getClubPerformances).not.toHaveBeenCalled();
+  });
+
+  it('should forward the club, its federation and the filters to the service', async () => {
     const filters = {
       clubs: ['VC Toulouse'],
+      clubFede: Federation.FSGT,
       startDate: '2026-03-01',
     } as DashboardChartFiltersDto;
 
     await controller.getClubPerformances(filters);
 
-    expect(dashboardService.getClubPerformances).toHaveBeenCalledWith('VC Toulouse', filters);
+    expect(dashboardService.getClubPerformances).toHaveBeenCalledWith(
+      'VC Toulouse',
+      Federation.FSGT,
+      filters,
+    );
   });
 });
