@@ -1,6 +1,8 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsDateString, IsArray, IsString } from 'class-validator';
+import { IsArray, IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
+
+import { Federation } from '../../common/enums';
 
 export class DashboardChartFiltersDto {
   @ApiPropertyOptional({ description: 'Start date filter' })
@@ -47,4 +49,12 @@ export class DashboardChartFiltersDto {
   @IsString({ each: true })
   @Transform(({ value }) => (typeof value === 'string' ? [value] : value))
   clubs?: string[];
+
+  @ApiPropertyOptional({
+    description: "Fédération du club sélectionné (lève l'ambiguïté entre clubs homonymes)",
+    enum: Federation,
+  })
+  @IsOptional()
+  @IsEnum(Federation)
+  clubFede?: Federation;
 }
