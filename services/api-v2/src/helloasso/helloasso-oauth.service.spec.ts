@@ -267,6 +267,87 @@ describe('HelloAssoOAuthService', () => {
       expect(fetchSpy).toHaveBeenCalledTimes(2);
     });
   });
+
+  describe('refreshAccessToken', () => {
+    it('poste grant_type=refresh_token avec les credentials partenaire', async () => {
+      const { service } = makeService();
+      const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue(
+        jsonResponse(200, {
+          access_token: 'AT2',
+          refresh_token: 'RT2',
+          token_type: 'bearer',
+          expires_in: 1800,
+        }),
+      );
+
+      const tokens = await service.refreshAccessToken('RT1');
+
+      expect(tokens).toEqual({
+        accessToken: 'AT2',
+        refreshToken: 'RT2',
+        tokenType: 'bearer',
+        expiresIn: 1800,
+        // le grant refresh ne renvoie pas organization_slug (vérifié sandbox 2026-08-22)
+        organizationSlug: undefined,
+      });
+
+      const [calledUrl, calledInit] = fetchSpy.mock.calls[0];
+      expect(calledUrl).toBe('https://api.helloasso-sandbox.com/oauth2/token');
+      const body = new URLSearchParams((calledInit as RequestInit).body as string);
+      expect(body.get('grant_type')).toBe('refresh_token');
+      expect(body.get('refresh_token')).toBe('RT1');
+      // vérifié en sandbox 2026-08-22 : HelloAsso accepte ces deux params sur ce grant
+      expect(body.get('client_id')).toBe('cid');
+      expect(body.get('client_secret')).toBe('csecret');
+      // pas de résidu du flux authorization_code
+      expect(body.get('code')).toBeNull();
+      expect(body.get('code_verifier')).toBeNull();
+      expect(body.get('redirect_uri')).toBeNull();
+    });
+
+    it('mappe un 400 HelloAsso en UnauthorizedException (token révoqué/consommé)', async () => {
+      const { service } = makeService();
+      jest.spyOn(global, 'fetch').mockResolvedValue(jsonResponse(400, { error: 'invalid_grant' }));
+
+      await expect(service.refreshAccessToken('RT_MORT')).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+    });
+
+    it('mappe un 503 HelloAsso en BadGatewayException', async () => {
+      const { service } = makeService();
+      jest.spyOn(global, 'fetch').mockResolvedValue(jsonResponse(503, {}));
+
+      await expect(service.refreshAccessToken('RT')).rejects.toBeInstanceOf(BadGatewayException);
+    });
+  });
+
+  describe('postToken — robustesse réseau', () => {
+    it('passe un AbortSignal à fetch pour borner la requête', async () => {
+      const { service } = makeService();
+      const fetchSpy = jest
+        .spyOn(global, 'fetch')
+        .mockResolvedValue(
+          jsonResponse(200, { access_token: 'AT', token_type: 'bearer', expires_in: 1800 }),
+        );
+
+      await service.getPartnerAccessToken();
+
+      const [, init] = fetchSpy.mock.calls[0];
+      expect((init as RequestInit).signal).toBeInstanceOf(AbortSignal);
+    });
+
+    it('mappe un timeout réseau en BadGatewayException', async () => {
+      const { service } = makeService();
+      jest
+        .spyOn(global, 'fetch')
+        .mockRejectedValue(
+          new DOMException('The operation was aborted due to timeout', 'TimeoutError'),
+        );
+
+      await expect(service.getPartnerAccessToken()).rejects.toBeInstanceOf(BadGatewayException);
+    });
+  });
 });
 
 function jsonResponse(status: number, body: unknown): Response {

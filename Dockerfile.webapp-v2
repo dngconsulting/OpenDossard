@@ -8,7 +8,11 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Install pnpm
-RUN npm install -g pnpm
+# Version ÉPINGLÉE : le lockfile est en lockfileVersion 9.0 et pnpm >= 10 ne lit
+# plus le bloc `pnpm.overrides` de package.json, ce qui fait échouer
+# `--frozen-lockfile` sur ERR_PNPM_LOCKFILE_CONFIG_MISMATCH. Doit rester aligné
+# avec la version de pnpm/action-setup dans .github/workflows/deploy-v2.yml.
+RUN npm install -g pnpm@9
 
 # Copy package files
 COPY services/webapp-v2/package.json ./

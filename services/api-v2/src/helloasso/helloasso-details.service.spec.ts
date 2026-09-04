@@ -1,15 +1,16 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, FindOperator, Repository } from 'typeorm';
 
 import { HelloAssoDetailsEntity } from './entities/helloasso-details.entity';
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoDetailsService } from './helloasso-details.service';
-import { encryptToken } from './util/token-crypto.util';
+import { decryptToken, encryptToken } from './util/token-crypto.util';
 
 interface Mocks {
   service: HelloAssoDetailsService;
   repo: {
+    find: jest.Mock;
     findOne: jest.Mock;
     update: jest.Mock;
     save: jest.Mock;
@@ -64,6 +65,7 @@ function makeMockManager(): MockManager {
 
 function makeService(): Mocks {
   const repo = {
+    find: jest.fn(),
     findOne: jest.fn(),
     update: jest.fn(),
     save: jest.fn().mockImplementation((e: HelloAssoDetailsEntity) => Promise.resolve(e)),
@@ -245,5 +247,113 @@ describe('HelloAssoDetailsService — deleteByClubId (cascade onlineRegistration
     expect(m.capturedManager.lastManager!.qb.where).toHaveBeenCalledWith('club_id = :clubId', {
       clubId: 42,
     });
+  });
+});
+
+/** Forme de l'argument passé à `repo.find` par `findExpiringLinks`. */
+interface FindArg {
+  where: { refreshTokenExpiresAt: FindOperator<Date> };
+  order: { refreshTokenExpiresAt: 'ASC' | 'DESC' };
+}
+
+/** Forme du patch passé à `repo.update` par `applyRefreshedTokens`. */
+interface TokenPatch {
+  accessTokenEncrypted: string;
+  refreshTokenEncrypted: string;
+  accessTokenExpiresAt: Date;
+  refreshTokenExpiresAt: Date;
+  lastRefreshedAt: Date;
+}
+
+describe('HelloAssoDetailsService — findExpiringLinks', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('sélectionne la fenêtre ]now, now+N jours[ et trie par expiration croissante', async () => {
+    const m = makeService();
+    m.repo.find.mockResolvedValueOnce([]);
+    jest.useFakeTimers().setSystemTime(new Date('2026-08-22T03:00:00Z'));
+
+    await m.service.findExpiringLinks(10);
+
+    const [arg] = m.repo.find.mock.calls[0] as [FindArg];
+    expect(arg.order).toEqual({ refreshTokenExpiresAt: 'ASC' });
+
+    const criteria = arg.where.refreshTokenExpiresAt;
+    expect(criteria.type).toBe('and');
+    // And(a, b) porte les deux opérandes dans `value`
+    const [lower, upper] = criteria.value as unknown as FindOperator<Date>[];
+    // borne basse = now → exclut les liaisons DÉJÀ expirées (HelloAsso les rejetterait)
+    expect(lower.type).toBe('moreThan');
+    expect(lower.value).toEqual(new Date('2026-08-22T03:00:00Z'));
+    // borne haute = now + 10j
+    expect(upper.type).toBe('lessThan');
+    expect(upper.value).toEqual(new Date('2026-09-01T03:00:00Z'));
+  });
+
+  it('remonte les liaisons telles que renvoyées par le repo', async () => {
+    const m = makeService();
+    const rows = [makeDetails(m.key, 'a', 'b')];
+    m.repo.find.mockResolvedValueOnce(rows);
+
+    await expect(m.service.findExpiringLinks(10)).resolves.toBe(rows);
+  });
+});
+
+describe('HelloAssoDetailsService — applyRefreshedTokens', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  const tokens = { accessToken: 'AT2', refreshToken: 'RT2', expiresInSeconds: 1800 };
+
+  it('chiffre les nouveaux tokens et positionne lastRefreshedAt', async () => {
+    const m = makeService();
+    m.repo.update.mockResolvedValueOnce({ affected: 1 });
+    jest.useFakeTimers().setSystemTime(new Date('2026-08-22T03:00:00Z'));
+
+    await m.service.applyRefreshedTokens(782, tokens);
+
+    const [criteria, patch] = m.repo.update.mock.calls[0] as [{ clubId: number }, TokenPatch];
+    expect(criteria).toEqual({ clubId: 782 });
+    expect(decryptToken(patch.accessTokenEncrypted, m.key)).toBe('AT2');
+    expect(decryptToken(patch.refreshTokenEncrypted, m.key)).toBe('RT2');
+    expect(patch.accessTokenExpiresAt).toEqual(new Date('2026-08-22T03:30:00Z'));
+    expect(patch.refreshTokenExpiresAt).toEqual(new Date('2026-09-21T03:00:00Z'));
+    expect(patch.lastRefreshedAt).toEqual(new Date('2026-08-22T03:00:00Z'));
+  });
+
+  it("n'écrit QUE les 5 colonnes de tokens — jamais le slug ni l'audit de liaison", async () => {
+    const m = makeService();
+    m.repo.update.mockResolvedValueOnce({ affected: 1 });
+
+    await m.service.applyRefreshedTokens(782, tokens);
+
+    const [, patch] = m.repo.update.mock.calls[0] as [unknown, TokenPatch];
+    expect(Object.keys(patch).sort()).toEqual([
+      'accessTokenEncrypted',
+      'accessTokenExpiresAt',
+      'lastRefreshedAt',
+      'refreshTokenEncrypted',
+      'refreshTokenExpiresAt',
+    ]);
+    // garde D1 (slug), audit de liaison, drapeau piloté par webhook : intouchés
+    expect(patch).not.toHaveProperty('organizationSlug');
+    expect(patch).not.toHaveProperty('linkedAt');
+    expect(patch).not.toHaveProperty('linkedByUserId');
+    expect(patch).not.toHaveProperty('isCashInCompliant');
+  });
+
+  it("n'utilise pas save() — un UPDATE ciblé, pour ne pas écraser isCashInCompliant", async () => {
+    const m = makeService();
+    m.repo.update.mockResolvedValueOnce({ affected: 1 });
+
+    await m.service.applyRefreshedTokens(782, tokens);
+
+    // le webhook Organization.IsCashinCompliant peut écrire la même ligne
+    // pendant le run ; un load→mutate→save réécrirait sa valeur périmée
+    expect(m.repo.save).not.toHaveBeenCalled();
+    expect(m.repo.findOne).not.toHaveBeenCalled();
   });
 });

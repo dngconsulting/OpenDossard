@@ -1,6 +1,6 @@
 import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { And, DataSource, LessThan, MoreThan, Repository } from 'typeorm';
 import { CompetitionEntity } from '../competitions/entities/competition.entity';
 import { HelloAssoDetailsEntity } from './entities/helloasso-details.entity';
 import { HelloAssoConfig } from './helloasso.config';
@@ -47,16 +47,19 @@ export type HelloAssoLinkStatus =
  * Persistance des liaisons HelloAsso ↔ Club. Les tokens sont chiffrés au
  * repos (AES-256-GCM) via `util/token-crypto.util` + `HelloAssoConfig.tokenEncryptionKey`.
  *
- * Deux opérations d'écriture distinctes :
+ * Trois opérations d'écriture distinctes :
  *  - `upsertLink` : re-passage explicite par la mire OAuth (initial OU re-liaison
  *    par l'admin). Reset `linked_at`, `linked_by_user_id`, `last_refreshed_at = null`.
+ *  - `applyRefreshedTokens` : renouvellement technique par le job planifié.
+ *    N'écrit QUE les colonnes de tokens — ni slug, ni audit de liaison.
  *  - `deleteByClubId` : déliaison par l'admin (bouton "Délier" côté UI).
  *
- * Note : les tokens club sont stockés au repos (preuve du lien) mais ne sont
- * plus rafraîchis ni utilisés au runtime — les appels HelloAsso (checkout,
- * lecture d'intent) passent désormais par le token PARTENAIRE
+ * Note : les tokens club ne sont pas utilisés au runtime — les appels HelloAsso
+ * (checkout, lecture d'intent) passent par le token PARTENAIRE
  * (`HelloAssoOAuthService.getPartnerAccessToken`), résilient à l'expiration du
- * lien OAuth de l'asso.
+ * lien OAuth de l'asso. Ils restent la **preuve du lien**, et sont renouvelés
+ * par `HelloAssoTokenRefreshService` pour que la liaison ne meure pas
+ * d'expiration (fenêtre refresh de 30 jours).
  */
 @Injectable()
 export class HelloAssoDetailsService {
@@ -72,6 +75,26 @@ export class HelloAssoDetailsService {
 
   async findByClubId(clubId: number): Promise<HelloAssoDetailsEntity | null> {
     return this.repo.findOne({ where: { clubId } });
+  }
+
+  /**
+   * Liaisons dont le refresh token arrive à expiration dans moins de
+   * `withinDays` jours — candidates au renouvellement par le job planifié.
+   *
+   * Les liaisons **déjà expirées sont exclues** (borne basse `> now`) :
+   * HelloAsso rejetterait leur refresh token, et le lien est de toute façon
+   * perdu — l'admin doit repasser par la mire.
+   *
+   * Tri par expiration croissante : si un run est interrompu, les liens les
+   * plus urgents ont déjà été traités.
+   */
+  async findExpiringLinks(withinDays: number): Promise<HelloAssoDetailsEntity[]> {
+    const now = new Date();
+    const limit = new Date(now.getTime() + withinDays * 24 * 60 * 60 * 1000);
+    return this.repo.find({
+      where: { refreshTokenExpiresAt: And(MoreThan(now), LessThan(limit)) },
+      order: { refreshTokenExpiresAt: 'ASC' },
+    });
   }
 
   /**
@@ -156,6 +179,41 @@ export class HelloAssoDetailsService {
       `upsertLink: created link id=${saved.id} clubId=${input.clubId} slug=${input.organizationSlug} by user=${input.linkedByUserId}`,
     );
     return saved;
+  }
+
+  /**
+   * Applique un renouvellement de tokens sur une liaison existante.
+   *
+   * **Volontairement distincte de `upsertLink`.** Cette dernière porte la
+   * sémantique « passage par la mire » : elle remet `linked_at`, réécrit
+   * `linked_by_user_id`, remet `last_refreshed_at` à null et compare le slug
+   * (garde D1). Un refresh technique ne doit rien faire de tout cela —
+   * `linked_at` conserve ainsi son sens de date de liaison, lisible dans l'UI.
+   *
+   * Le slug n'est jamais écrit ici : le grant `refresh_token` ne renvoie pas
+   * `organization_slug` (vérifié en sandbox 2026-08-22).
+   *
+   * `update()` ciblé plutôt que `load → mutate → save` : le webhook
+   * `Organization.IsCashinCompliant` peut modifier la même ligne pendant que le
+   * job tient l'entité en mémoire, et un `save(entity)` réécrirait sa valeur
+   * périmée.
+   */
+  async applyRefreshedTokens(
+    clubId: number,
+    tokens: { accessToken: string; refreshToken: string; expiresInSeconds: number },
+  ): Promise<void> {
+    const now = new Date();
+    const key = this.config.tokenEncryptionKey;
+    await this.repo.update(
+      { clubId },
+      {
+        accessTokenEncrypted: encryptToken(tokens.accessToken, key),
+        refreshTokenEncrypted: encryptToken(tokens.refreshToken, key),
+        accessTokenExpiresAt: new Date(now.getTime() + tokens.expiresInSeconds * 1000),
+        refreshTokenExpiresAt: new Date(now.getTime() + REFRESH_TOKEN_TTL_SECONDS * 1000),
+        lastRefreshedAt: now,
+      },
+    );
   }
 
   /**
