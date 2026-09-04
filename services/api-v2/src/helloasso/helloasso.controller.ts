@@ -31,6 +31,7 @@ import { HelloAssoApiClient } from './helloasso-api.client';
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoDetailsService, HelloAssoLinkStatus } from './helloasso-details.service';
 import { HelloAssoOAuthService, PreparedAuthorization } from './helloasso-oauth.service';
+import { HelloAssoTokenRefreshService, RefreshRunSummary } from './helloasso-token-refresh.service';
 
 /**
  * Controller HelloAsso — orchestration de la mire d'autorisation.
@@ -39,6 +40,7 @@ import { HelloAssoOAuthService, PreparedAuthorization } from './helloasso-oauth.
  *   GET    /api-v2/helloasso/oauth/callback     [PUBLIC]                   → 302 vers la SPA
  *   GET    /api-v2/helloasso/clubs/:id/status   [JWT, ADMIN|ORGANISATEUR] → { linked, ... }
  *   DELETE /api-v2/helloasso/clubs/:id          [JWT, ADMIN|ORGANISATEUR] → 204
+ *   POST   /api-v2/helloasso/admin/token-refresh/run  [JWT, ADMIN]         → RefreshRunSummary
  *
  * **Pourquoi le callback est PUBLIC** : HelloAsso redirige le navigateur du user
  * vers cet endpoint avec `?code=...&state=...`. Aucun moyen pour HelloAsso de
@@ -60,6 +62,7 @@ export class HelloAssoController {
     private readonly config: HelloAssoConfig,
     private readonly authorizationService: AuthorizationService,
     private readonly api: HelloAssoApiClient,
+    private readonly tokenRefresh: HelloAssoTokenRefreshService,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
   ) {}
@@ -127,6 +130,32 @@ leur expiration normale (pas de révocation explicite).`,
   ): Promise<void> {
     await this.authorizationService.assertClubAccess(user, clubId);
     await this.details.deleteByClubId(clubId);
+  }
+
+  @Post('admin/token-refresh/run')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Déclencher immédiatement le renouvellement des tokens HelloAsso',
+    description: `Exécute le run que le cron lance à 03:00, sans attendre l'heure.
+Réservé aux ADMIN — contrairement aux autres routes de ce controller, un
+ORGANISATEUR n'y a pas accès : le run porte sur **toutes** les liaisons, pas sur
+son club, et il contourne le garde-fou décrit ci-dessous.
+
+**S'exécute même si \`HELLOASSO_TOKEN_REFRESH_ENABLED\` est à false** — c'est sa
+raison d'être : pouvoir tester ou rattraper un run sur un environnement où le cron
+est désarmé. Corollaire : ne JAMAIS l'appeler sur PREPROD, qui partage les clés
+HelloAsso de la PROD et consommerait donc les refresh tokens de production.
+
+Retourne le résumé du run, ce qui évite d'aller lire les logs du conteneur. Un
+appel pendant qu'un run est déjà en cours retourne un résumé à zéro sans rien
+exécuter (garde anti-concurrence du service).`,
+  })
+  async runTokenRefresh(): Promise<RefreshRunSummary> {
+    this.logger.warn('runTokenRefresh: déclenchement MANUEL du renouvellement des tokens');
+    return this.tokenRefresh.refreshExpiringLinks();
   }
 
   @Get('oauth/callback')

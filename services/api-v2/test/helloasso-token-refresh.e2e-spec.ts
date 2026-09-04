@@ -1,11 +1,20 @@
+import * as request from 'supertest';
 import { DataSource, In } from 'typeorm';
 
 import { Federation } from '../src/common/enums';
 import { ClubEntity } from '../src/clubs/entities/club.entity';
 import { HelloAssoDetailsEntity } from '../src/helloasso/entities/helloasso-details.entity';
+import { HelloAssoConfig } from '../src/helloasso/helloasso.config';
 import { HelloAssoDetailsService } from '../src/helloasso/helloasso-details.service';
-import { HelloAssoTokenRefreshService } from '../src/helloasso/helloasso-token-refresh.service';
-import { getApp } from './setup-e2e';
+import { HelloAssoOAuthService } from '../src/helloasso/helloasso-oauth.service';
+import {
+  HelloAssoTokenRefreshService,
+  RefreshRunSummary,
+} from '../src/helloasso/helloasso-token-refresh.service';
+import { encryptToken } from '../src/helloasso/util/token-crypto.util';
+import { getApp, getAuthHelper } from './setup-e2e';
+
+const RUN_URL = '/api/v2/helloasso/admin/token-refresh/run';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -48,7 +57,7 @@ describe('HelloAsso — renouvellement des tokens (e2e)', () => {
   }
 
   /** Crée un club + sa liaison HelloAsso expirant dans `expiresInDays` jours. */
-  async function seedLink(expiresInDays: number): Promise<number> {
+  async function seedLink(expiresInDays: number, refreshToken?: string): Promise<number> {
     clubIdSeq += 1;
     const suffix = `${Date.now()}-${clubIdSeq}`;
     const club = await dataSource.getRepository(ClubEntity).save({
@@ -61,7 +70,11 @@ describe('HelloAsso — renouvellement des tokens (e2e)', () => {
       clubId: club.id,
       organizationSlug: `orga-${suffix}`,
       accessTokenEncrypted: 'iv.tag.ct',
-      refreshTokenEncrypted: 'iv.tag.ct',
+      // Chiffré pour de vrai quand le test doit traverser `decryptToken` (run
+      // complet via l'endpoint) ; sinon valeur factice, jamais déchiffrée.
+      refreshTokenEncrypted: refreshToken
+        ? encryptToken(refreshToken, getApp().get(HelloAssoConfig).tokenEncryptionKey)
+        : 'iv.tag.ct',
       accessTokenExpiresAt: new Date(Date.now() + 30 * 60 * 1000),
       refreshTokenExpiresAt: new Date(Date.now() + expiresInDays * DAY_MS),
       linkedByUserId: null,
@@ -120,5 +133,60 @@ describe('HelloAsso — renouvellement des tokens (e2e)', () => {
     // et la liaison n'est plus candidate
     const found = await detailsService.findExpiringLinks(10);
     expect(found.map(l => l.clubId)).not.toContain(clubId);
+  });
+
+  describe(`POST ${RUN_URL} — déclenchement manuel`, () => {
+    it('refuse un appel anonyme', async () => {
+      await request(getApp().getHttpServer()).post(RUN_URL).expect(401);
+    });
+
+    it('refuse un ORGANISATEUR — le déclenchement manuel est réservé aux ADMIN', async () => {
+      await request(getApp().getHttpServer())
+        .post(RUN_URL)
+        .set('Authorization', `Bearer ${getAuthHelper().getOrgaToken()}`)
+        .expect(403);
+    });
+
+    it('ADMIN : exécute réellement le run et retourne le résumé', async () => {
+      const clubId = await seedLink(5, 'RT_OLD');
+      const spy = jest
+        .spyOn(getApp().get(HelloAssoOAuthService), 'refreshAccessToken')
+        .mockResolvedValue({
+          accessToken: 'AT_NEW',
+          refreshToken: 'RT_NEW',
+          expiresIn: 1800,
+          tokenType: 'bearer',
+        });
+
+      try {
+        const res = await request(getApp().getHttpServer())
+          .post(RUN_URL)
+          .set('Authorization', `Bearer ${getAuthHelper().getAdminToken()}`)
+          .expect(200);
+
+        expect(spy).toHaveBeenCalledWith('RT_OLD');
+        const summary = res.body as RefreshRunSummary;
+        expect(summary).toMatchObject({ refreshed: 1, rejected: 0, failed: 0 });
+        expect(summary.candidates).toBeGreaterThanOrEqual(1);
+
+        const after = await dataSource
+          .getRepository(HelloAssoDetailsEntity)
+          .findOneOrFail({ where: { clubId } });
+        expect(after.lastRefreshedAt).not.toBeNull();
+      } finally {
+        spy.mockRestore();
+      }
+    });
+
+    it("s'exécute même quand le job planifié est désarmé — c'est tout son intérêt", async () => {
+      expect(getApp().get(HelloAssoConfig).tokenRefreshEnabled).toBe(false);
+
+      const res = await request(getApp().getHttpServer())
+        .post(RUN_URL)
+        .set('Authorization', `Bearer ${getAuthHelper().getAdminToken()}`)
+        .expect(200);
+
+      expect(res.body).toHaveProperty('durationMs');
+    });
   });
 });
