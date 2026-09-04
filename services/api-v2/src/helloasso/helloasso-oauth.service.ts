@@ -8,6 +8,16 @@ import { generatePkcePair, generateState } from './util/pkce.util';
 const PARTNER_TOKEN_EXPIRY_MARGIN_SECONDS = 60;
 
 /**
+ * Borne haute d'un appel au token endpoint HelloAsso.
+ *
+ * Sans elle, `fetch` n'expire jamais : une connexion suspendue bloque
+ * l'appelant indéfiniment. Critique pour le job de refresh, qui boucle sur N
+ * clubs — un seul appel suspendu figerait tout le run. Au pire, un run de N
+ * clubs dure N x 10 s et se termine.
+ */
+const TOKEN_REQUEST_TIMEOUT_MS = 10_000;
+
+/**
  * Service OAuth2 + PKCE pour la mire d'autorisation HelloAsso.
  *
  * Modèle de liaison : **HelloAsso est la source de vérité** pour savoir de
@@ -174,6 +184,31 @@ export class HelloAssoOAuthService {
     return tokens.accessToken;
   }
 
+  /**
+   * Renouvelle le couple de tokens d'un club via `grant_type=refresh_token`.
+   *
+   * Utilisé par le job planifié `HelloAssoTokenRefreshService` pour empêcher
+   * les liaisons de mourir d'expiration (fenêtre refresh de 30 j). Aucun usage
+   * au runtime paiement, qui passe par le token PARTENAIRE.
+   *
+   * Deux différences avec le grant `authorization_code`, vérifiées en sandbox
+   * le 2026-08-22 :
+   *  - la réponse ne contient **pas** `organization_slug` — l'appelant ne doit
+   *    donc jamais réécrire cette colonne à partir d'un refresh (ce qui
+   *    converge avec la garde D1 de `upsertLink`) ;
+   *  - `client_id`/`client_secret` ne sont pas listés comme requis par la spec
+   *    HelloAsso pour ce grant, mais sont acceptés (HTTP 200). On les envoie
+   *    pour rester homogène avec les autres grants.
+   */
+  async refreshAccessToken(refreshToken: string): Promise<HelloAssoTokens> {
+    return this.postToken({
+      grant_type: 'refresh_token',
+      client_id: this.config.clientId,
+      client_secret: this.config.clientSecret,
+      refresh_token: refreshToken,
+    });
+  }
+
   private async exchangeAuthorizationCode(
     code: string,
     codeVerifier: string,
@@ -197,6 +232,7 @@ export class HelloAssoOAuthService {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: params.toString(),
+        signal: AbortSignal.timeout(TOKEN_REQUEST_TIMEOUT_MS),
       });
     } catch (e) {
       this.logger.error(

@@ -47,6 +47,18 @@ export class HelloAssoConfig {
    */
   readonly tokenEncryptionKey: Buffer;
   /**
+   * Arme le job planifié de renouvellement des tokens club
+   * (`HelloAssoTokenRefreshService`). **Désarmé par défaut.**
+   *
+   * À n'activer que sur l'environnement détenant les liaisons faisant autorité.
+   * PREPROD partage les clés HelloAsso de la PROD : deux jobs armés
+   * travailleraient sur les mêmes refresh tokens, et la règle de rotation
+   * HelloAsso (« utiliser A révoque B ») ferait mourir les liaisons de
+   * production. Seule la chaîne exacte `'true'` arme le job — absente, vide ou
+   * inattendue, il reste désarmé : l'échec est du côté sûr.
+   */
+  readonly tokenRefreshEnabled: boolean;
+  /**
    * URLs (typiquement des deep links Dossardeur `dossardeur://payment/*`) vers
    * lesquelles HelloAsso redirige le navigateur après paiement. Passées telles
    * quelles dans `backUrl`/`errorUrl`/`returnUrl` du checkout-intent.
@@ -72,6 +84,8 @@ export class HelloAssoConfig {
     this.tokenEncryptionKey = decodeEncryptionKey(
       requireNonEmpty(configService, 'HELLOASSO_TOKEN_ENCRYPTION_KEY'),
     );
+    this.tokenRefreshEnabled =
+      configService.get<string>('HELLOASSO_TOKEN_REFRESH_ENABLED', 'false') === 'true';
     this.paymentReturnUrlSuccess = requireNonEmpty(
       configService,
       'HELLOASSO_PAYMENT_RETURN_URL_SUCCESS',

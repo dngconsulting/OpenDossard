@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { FirebaseModule } from './firebase/firebase.module';
 import { AuthModule } from './auth/auth.module';
@@ -66,6 +67,10 @@ import { LoggingModule } from './common/logging';
         maxQueryExecutionTime: 10000,
       }),
     }),
+
+    // Ordonnanceur des tâches planifiées (@Cron). Aujourd'hui : renouvellement
+    // des tokens HelloAsso des clubs, armé par HELLOASSO_TOKEN_REFRESH_ENABLED.
+    ScheduleModule.forRoot(),
 
     // Firebase Admin (global, injectable everywhere via FIREBASE_ADMIN token)
     FirebaseModule,
