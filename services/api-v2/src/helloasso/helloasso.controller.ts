@@ -1,5 +1,6 @@
 import {
   Body,
+  ConflictException,
   Controller,
   Delete,
   Get,
@@ -144,16 +145,29 @@ Réservé aux ADMIN — contrairement aux autres routes de ce controller, un
 ORGANISATEUR n'y a pas accès : le run porte sur **toutes** les liaisons, pas sur
 son club, et il contourne le garde-fou décrit ci-dessous.
 
-**S'exécute même si \`HELLOASSO_TOKEN_REFRESH_ENABLED\` est à false** — c'est sa
-raison d'être : pouvoir tester ou rattraper un run sur un environnement où le cron
-est désarmé. Corollaire : ne JAMAIS l'appeler sur PREPROD, qui partage les clés
-HelloAsso de la PROD et consommerait donc les refresh tokens de production.
+**Répond 409 si \`HELLOASSO_TOKEN_REFRESH_ENABLED\` n'est pas à \`true\`.** Le flag
+est un contrôle appliqué par le code, pas une consigne : il protège les liaisons
+de PRODUCTION. PREPROD partage les clés HelloAsso de la PROD — un run déclenché
+là-bas consommerait les refresh tokens de production et tuerait les liaisons de
+tous les clubs, qui devraient repasser par la mire OAuth. Le refus intervient
+AVANT toute lecture de liaison : aucun token n'est touché.
 
 Retourne le résumé du run, ce qui évite d'aller lire les logs du conteneur. Un
 appel pendant qu'un run est déjà en cours retourne un résumé à zéro sans rien
 exécuter (garde anti-concurrence du service).`,
   })
   async runTokenRefresh(): Promise<RefreshRunSummary> {
+    // Même garde que le cron, appliquée AVANT tout accès aux liaisons : un
+    // environnement désarmé ne doit consommer aucun refresh token, fût-ce à la
+    // demande d'un ADMIN. Sans cela, l'endpoint rouvrirait sur PREPROD la voie
+    // que le flag existe précisément pour fermer.
+    if (!this.config.tokenRefreshEnabled) {
+      throw new ConflictException(
+        'Renouvellement des tokens HelloAsso désarmé sur cet environnement ' +
+          '(HELLOASSO_TOKEN_REFRESH_ENABLED != "true").',
+      );
+    }
+
     this.logger.warn('runTokenRefresh: déclenchement MANUEL du renouvellement des tokens');
     return this.tokenRefresh.refreshExpiringLinks();
   }

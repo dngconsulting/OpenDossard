@@ -136,6 +136,20 @@ describe('HelloAsso — renouvellement des tokens (e2e)', () => {
   });
 
   describe(`POST ${RUN_URL} — déclenchement manuel`, () => {
+    /**
+     * `tokenRefreshEnabled` est calculé une fois au boot depuis l'env. Le
+     * surcharger sur le singleton est le seul moyen de couvrir les deux états
+     * (armé / désarmé) dans une même suite, sans redémarrer l'application.
+     */
+    function setRefreshEnabled(value: boolean): void {
+      Object.defineProperty(getApp().get(HelloAssoConfig), 'tokenRefreshEnabled', {
+        value,
+        configurable: true,
+      });
+    }
+
+    afterEach(() => setRefreshEnabled(false));
+
     it('refuse un appel anonyme', async () => {
       await request(getApp().getHttpServer()).post(RUN_URL).expect(401);
     });
@@ -148,6 +162,7 @@ describe('HelloAsso — renouvellement des tokens (e2e)', () => {
     });
 
     it('ADMIN : exécute réellement le run et retourne le résumé', async () => {
+      setRefreshEnabled(true);
       const clubId = await seedLink(5, 'RT_OLD');
       const spy = jest
         .spyOn(getApp().get(HelloAssoOAuthService), 'refreshAccessToken')
@@ -178,15 +193,30 @@ describe('HelloAsso — renouvellement des tokens (e2e)', () => {
       }
     });
 
-    it("s'exécute même quand le job planifié est désarmé — c'est tout son intérêt", async () => {
-      expect(getApp().get(HelloAssoConfig).tokenRefreshEnabled).toBe(false);
+    it('refuse de tourner quand le job est désarmé — le flag est un contrôle, pas une consigne', async () => {
+      setRefreshEnabled(false);
 
-      const res = await request(getApp().getHttpServer())
+      await request(getApp().getHttpServer())
         .post(RUN_URL)
         .set('Authorization', `Bearer ${getAuthHelper().getAdminToken()}`)
-        .expect(200);
+        .expect(409);
+    });
 
-      expect(res.body).toHaveProperty('durationMs');
+    it('un run désarmé ne consomme aucun refresh token', async () => {
+      setRefreshEnabled(false);
+      await seedLink(5, 'RT_OLD');
+      const spy = jest.spyOn(getApp().get(HelloAssoOAuthService), 'refreshAccessToken');
+
+      try {
+        await request(getApp().getHttpServer())
+          .post(RUN_URL)
+          .set('Authorization', `Bearer ${getAuthHelper().getAdminToken()}`)
+          .expect(409);
+
+        expect(spy).not.toHaveBeenCalled();
+      } finally {
+        spy.mockRestore();
+      }
     });
   });
 });
