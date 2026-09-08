@@ -483,6 +483,41 @@ describe('HelloAssoPaymentService', () => {
         }),
       );
     });
+
+    /**
+     * Le DTO est construit par spread sur l'entité lue AVANT l'UPDATE : sans
+     * report explicite de la source, il porte encore `checkout_created` et le
+     * libellé retombe sur « Cause inconnue ». L'appelant s'entend donc dire que
+     * son annulation volontaire est un échec inexpliqué — exactement la
+     * confusion que cette feature supprime.
+     */
+    it('le DTO retourné porte la cause, pas le libellé legacy', async () => {
+      const m = makeService();
+      m.paymentRepo.findOne.mockResolvedValue({
+        id: 42,
+        status: HelloAssoPaymentStatus.PENDING,
+        statusSource: PaymentStatusSource.CHECKOUT_CREATED,
+        helloAssoLastState: null,
+        payerUserId: 55,
+        competitionId: 32,
+        licenceId: 1234,
+        amountCents: 1000,
+        tarifId: 'Adulte',
+        createdAt: new Date(),
+      } as HelloAssoPaymentEntity);
+      const qb = {
+        update: jest.fn().mockReturnThis(),
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        execute: jest.fn().mockResolvedValue({ affected: 1 }),
+      };
+      m.paymentRepo.createQueryBuilder.mockReturnValue(qb);
+
+      const dto = await m.service.cancelByOwner(42, 55);
+
+      expect(dto.statusDetail).toBe('Annulé par le coureur');
+      expect(dto.statusSeverity).toBe('neutral');
+    });
   });
 
   describe('findByIdForOwner', () => {

@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 
+import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoPaymentService } from './helloasso-payment.service';
 
 /**
@@ -51,17 +52,49 @@ export interface ExpirationRunSummary {
  * créneau est libéré et le coureur peut se réinscrire immédiatement.
  */
 @Injectable()
-export class HelloAssoPaymentExpirationService {
+export class HelloAssoPaymentExpirationService implements OnModuleInit {
   private readonly logger = new Logger(HelloAssoPaymentExpirationService.name);
 
   /** Empêche deux runs de traiter les mêmes paiements et de doubler les appels HelloAsso. */
   private running = false;
 
-  constructor(private readonly payments: HelloAssoPaymentService) {}
+  constructor(
+    private readonly payments: HelloAssoPaymentService,
+    private readonly config: HelloAssoConfig,
+  ) {}
+
+  /**
+   * Annonce l'état du job au démarrage. Sans ce log, savoir s'il est armé sur un
+   * environnement donné imposerait d'attendre le prochain quart d'heure.
+   */
+  onModuleInit(): void {
+    this.logger.log(
+      this.config.paymentExpirationEnabled
+        ? `Expiration des paiements ARMÉE (toutes les 5 min, seuil ${EXPIRATION_THRESHOLD_MINUTES} min)`
+        : 'Expiration des paiements DÉSARMÉE (HELLOASSO_PAYMENT_EXPIRATION_ENABLED != "true")',
+    );
+  }
 
   @Cron('*/5 * * * *', { name: 'helloasso-payment-expiration' })
   async handleCron(): Promise<void> {
-    await this.expireStalePendings();
+    // `findStalePendingIds` est HORS du try/catch par itération : une erreur de
+    // requête — typiquement la migration pas encore appliquée juste après un
+    // déploiement — s'échapperait dans l'ordonnanceur en rejet non géré, donc
+    // fatale au process sous le défaut de Node. Toutes les 5 minutes.
+    // Interrupteur : ce job mute des paiements en `refused` toutes les 5 min.
+    // S'il se comporte mal, il doit pouvoir être arrêté sans redéploiement.
+    // L'appel manuel, lui, reste ouvert — c'est ce qui permet de le tester sur
+    // un environnement désarmé.
+    if (!this.config.paymentExpirationEnabled) return;
+
+    try {
+      await this.expireStalePendings();
+    } catch (e: unknown) {
+      this.logger.error(
+        `handleCron: run avorté — ${e instanceof Error ? e.message : String(e)}`,
+        e instanceof Error ? e.stack : undefined,
+      );
+    }
   }
 
   /**
@@ -82,11 +115,37 @@ export class HelloAssoPaymentExpirationService {
     let candidates = 0;
 
     try {
+      // Passe 1 — les paiements qui n'ont JAMAIS atteint HelloAsso (pas de
+      // checkout intent : l'appel a échoué à la création). Aucun argent ne peut
+      // être engagé, donc aucune raison d'interroger HelloAsso.
+      //
+      // Traités à part parce qu'ils feraient échouer `refreshStatusFromHelloAsso`
+      // à chaque run (`UnprocessableEntityException`) tout en occupant à vie le
+      // budget trié par ancienneté : cinquante d'entre eux suffisent à ce que le
+      // job ne nettoie plus jamais rien, tout en loggant de l'activité.
+      const unreachable = await this.payments.findUnreachablePendingIds(
+        EXPIRATION_THRESHOLD_MINUTES,
+        MAX_PER_RUN,
+      );
+      for (const id of unreachable) {
+        try {
+          if (await this.payments.expirePending(id)) expired += 1;
+        } catch (e: unknown) {
+          failed += 1;
+          this.logger.warn(
+            `expireStalePendings: paymentId=${id} (sans intent) échec — ${
+              e instanceof Error ? e.message : String(e)
+            }`,
+          );
+        }
+      }
+
+      // Passe 2 — ceux qui ont bien un intent : on demande à HelloAsso.
       const ids = await this.payments.findStalePendingIds(
         EXPIRATION_THRESHOLD_MINUTES,
         MAX_PER_RUN,
       );
-      candidates = ids.length;
+      candidates = unreachable.length + ids.length;
 
       // Séquentiel et jamais `Promise.all` : reste sous le rate limit HelloAsso
       // et limite à un paiement le rayon d'explosion d'une erreur.
@@ -102,6 +161,22 @@ export class HelloAssoPaymentExpirationService {
             recovered += 1;
             this.logger.log(
               `expireStalePendings: paymentId=${id} rattrapé via HelloAsso → ${refreshed.status}`,
+            );
+            continue;
+          }
+
+          // Garde-fou distinct, et le plus important : HelloAsso ne renvoie une
+          // COMMANDE que si le paiement est autorisé. Son `state` peut pourtant
+          // être hors mapping (`Registered`, `WaitingBankValidation`…), auquel
+          // cas le refresh conclut `still_pending`. Expirer ici prendrait
+          // l'argent sans inscrire le coureur — précisément ce que l'appel
+          // pré-expiration doit empêcher.
+          if (refreshed.hasHelloAssoOrder) {
+            failed += 1;
+            this.logger.error(
+              `expireStalePendings: paymentId=${id} NON EXPIRÉ — HelloAsso a une commande ` +
+                `(state=${refreshed.helloAssoState ?? '<none>'}) mais aucun état terminal mappé. ` +
+                `Argent probablement engagé : à examiner manuellement.`,
             );
             continue;
           }

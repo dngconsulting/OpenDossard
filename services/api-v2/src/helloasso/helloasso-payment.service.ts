@@ -328,7 +328,15 @@ export class HelloAssoPaymentService {
 
     if ((result.affected ?? 0) > 0) {
       this.logger.log(`cancelByOwner: paymentId=${paymentId} pending→refused`);
-      return toPaymentDto({ ...payment, status: HelloAssoPaymentStatus.REFUSED });
+      // `payment` a été lu AVANT l'UPDATE : sans report explicite de la source,
+      // le DTO porte encore `checkout_created` et `describePaymentStatus`
+      // retombe sur « Cause inconnue ». Le coureur s'entendrait dire que son
+      // annulation volontaire est un échec inexpliqué.
+      return toPaymentDto({
+        ...payment,
+        status: HelloAssoPaymentStatus.REFUSED,
+        statusSource: PaymentStatusSource.USER_CANCEL,
+      });
     }
     // Race avec un webhook qui a transitioné entre le findOne et l'UPDATE :
     // refetch pour un DTO refletant le vrai état final.
@@ -407,6 +415,12 @@ export class HelloAssoPaymentService {
     // Dernier payment côté HelloAsso qui mappe vers un statut terminal.
     // HelloAsso peut empiler plusieurs entries en cas de retry (cf. doc
     // PaymentState) ; on prend le plus récent avec un état exploitable.
+    // La spec HelloAsso est explicite : `GET /checkout-intents/{id}` ne renvoie
+    // une commande QUE si le paiement est autorisé. Sa seule présence interdit
+    // donc l'expiration, même quand son `state` est hors mapping
+    // (`Registered`, `WaitingBankValidation`…) et que le refresh conclut
+    // `still_pending`.
+    const hasHelloAssoOrder = Boolean(data.order);
     const haPayments = data.order?.payments ?? [];
     const terminalPayment = [...haPayments]
       .reverse()
@@ -436,6 +450,7 @@ export class HelloAssoPaymentService {
         status: payment.status,
         paidAt: payment.paidAt,
         helloAssoState,
+        hasHelloAssoOrder,
         outcome,
       };
     }
@@ -451,6 +466,7 @@ export class HelloAssoPaymentService {
         status: payment.status,
         paidAt: payment.paidAt,
         helloAssoState,
+        hasHelloAssoOrder,
         outcome: 'confirmed',
       };
     }
@@ -479,6 +495,7 @@ export class HelloAssoPaymentService {
         status: fresh?.status ?? payment.status,
         paidAt: fresh?.paidAt ?? payment.paidAt,
         helloAssoState,
+        hasHelloAssoOrder,
         outcome: 'confirmed',
       };
     }
@@ -491,6 +508,7 @@ export class HelloAssoPaymentService {
       status: fresh?.status ?? mappedStatus,
       paidAt: fresh?.paidAt ?? null,
       helloAssoState,
+      hasHelloAssoOrder,
       outcome: 'transitioned',
     };
   }
@@ -518,6 +536,33 @@ export class HelloAssoPaymentService {
       .select('p.id', 'id')
       .where('p.status = :status', { status: HelloAssoPaymentStatus.PENDING })
       .andWhere('p.created_at < :before', { before })
+      // Les lignes sans intent sont traitées par `findUnreachablePendingIds` :
+      // les inclure ici les ferait échouer à chaque run et bloquerait le budget.
+      .andWhere('p.helloasso_checkout_intent_id IS NOT NULL')
+      .orderBy('p.created_at', 'ASC')
+      .limit(limit)
+      .getRawMany<{ id: number }>();
+    return rows.map(r => r.id);
+  }
+
+  /**
+   * `pending` obsolètes qui n'ont JAMAIS atteint HelloAsso — aucun
+   * `helloasso_checkout_intent_id`, l'appel ayant échoué à la création.
+   *
+   * Séparés des autres parce qu'aucun argent ne peut être engagé sur eux : ils
+   * sont expirables sans interroger HelloAsso. Les laisser dans le lot commun
+   * ferait échouer `refreshStatusFromHelloAsso` à chaque run tout en occupant le
+   * budget trié par ancienneté — le job cesserait alors de nettoyer quoi que ce
+   * soit sans que rien ne le signale.
+   */
+  async findUnreachablePendingIds(thresholdMinutes: number, limit: number): Promise<number[]> {
+    const before = new Date(Date.now() - thresholdMinutes * 60 * 1000);
+    const rows = await this.paymentRepo
+      .createQueryBuilder('p')
+      .select('p.id', 'id')
+      .where('p.status = :status', { status: HelloAssoPaymentStatus.PENDING })
+      .andWhere('p.created_at < :before', { before })
+      .andWhere('p.helloasso_checkout_intent_id IS NULL')
       .orderBy('p.created_at', 'ASC')
       .limit(limit)
       .getRawMany<{ id: number }>();

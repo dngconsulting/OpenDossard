@@ -34,4 +34,14 @@ la mire mais n'a rien finalisé).`,
 
   @ApiProperty({ enum: ['transitioned', 'confirmed', 'still_pending'] })
   outcome: RefreshPaymentStatusOutcome;
+
+  /**
+   * `true` si HelloAsso connaît une COMMANDE pour cet intent.
+   *
+   * Signal fort : la spec précise que la commande n'est renvoyée que si le
+   * paiement est autorisé. Un `outcome: 'still_pending'` accompagné de
+   * `hasHelloAssoOrder: true` signifie donc que l'argent est engagé, même si
+   * l'état du paiement est hors mapping — le job d'expiration doit s'abstenir.
+   */
+  hasHelloAssoOrder?: boolean;
 }

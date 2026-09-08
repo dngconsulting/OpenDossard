@@ -319,12 +319,37 @@ describe('HelloAssoWebhookService', () => {
 
       await m.service.handleWebhook(Buffer.from(body), headers(body));
 
-      const setArgs = (m.updateQbSet.mock.calls as Array<[Record<string, unknown>]>).map(
-        c => c[0],
-      );
+      const setArgs = (m.updateQbSet.mock.calls as Array<[Record<string, unknown>]>).map(c => c[0]);
       const traceOnly = setArgs.find(a => 'helloAssoLastState' in a && !('status' in a));
       expect(traceOnly).toBeDefined();
       expect(traceOnly!.helloAssoLastState).toBe('Authorized');
+    });
+
+    /**
+     * Scénario ouvert par l'expiration : la ligne expirée a libéré le créneau,
+     * le coureur s'est réinscrit, puis l'`Authorized` tardif arrive sur
+     * l'ancienne ligne. La transition `refused → paid` est autorisée et viole
+     * l'index unique partiel. Sans rattrapage, le webhook rend 500 et HelloAsso
+     * le rejoue indéfiniment.
+     */
+    it("une violation d'unicité ne fait pas boucler HelloAsso", async () => {
+      const m = makeService();
+      m.paymentRepo.findOne.mockResolvedValue({
+        id: 42,
+        status: HelloAssoPaymentStatus.REFUSED,
+      } as HelloAssoPaymentEntity);
+      m.updateQbExecute.mockRejectedValue(
+        Object.assign(new Error('duplicate key value violates unique constraint'), {
+          code: '23505',
+        }),
+      );
+      const body = buildBody({ data: { state: 'Authorized' } });
+
+      const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
+
+      // 200 côté HTTP : rejouer ne réparerait rien, seul un humain le peut.
+      expect(result.signatureValid).toBe(true);
+      expect(result.outcome).toContain('conflict');
     });
 
     it('idempotent: replay (UPDATE affected=0) reports noop_no_transition', async () => {

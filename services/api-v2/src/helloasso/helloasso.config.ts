@@ -59,6 +59,17 @@ export class HelloAssoConfig {
    */
   readonly tokenRefreshEnabled: boolean;
   /**
+   * Arme le job d'expiration des paiements `pending` abandonnés
+   * (`HelloAssoPaymentExpirationService`). **Désarmé par défaut.**
+   *
+   * Contrairement au refresh des tokens, ce job n'écrit qu'en base locale et ne
+   * consomme aucun refresh token : PREPROD ne peut pas abîmer la PROD par ce
+   * chemin. L'interrupteur existe pour une autre raison — c'est le seul moyen
+   * d'arrêter un job qui mute des paiements en `refused` toutes les 5 minutes,
+   * sans passer par un redéploiement. Seule la chaîne exacte `'true'` l'arme.
+   */
+  readonly paymentExpirationEnabled: boolean;
+  /**
    * URLs (typiquement des deep links Dossardeur `dossardeur://payment/*`) vers
    * lesquelles HelloAsso redirige le navigateur après paiement. Passées telles
    * quelles dans `backUrl`/`errorUrl`/`returnUrl` du checkout-intent.
@@ -84,6 +95,8 @@ export class HelloAssoConfig {
     this.tokenEncryptionKey = decodeEncryptionKey(
       requireNonEmpty(configService, 'HELLOASSO_TOKEN_ENCRYPTION_KEY'),
     );
+    this.paymentExpirationEnabled =
+      configService.get<string>('HELLOASSO_PAYMENT_EXPIRATION_ENABLED', 'false') === 'true';
     this.tokenRefreshEnabled =
       configService.get<string>('HELLOASSO_TOKEN_REFRESH_ENABLED', 'false') === 'true';
     this.paymentReturnUrlSuccess = requireNonEmpty(

@@ -151,13 +151,14 @@ export class HelloAssoWebhookService {
       return { signatureValid: true, outcome: 'orphan_no_local_payment' };
     }
 
-    const updated = await this.applyStatusTransition({
+    const transition = await this.applyStatusTransition({
       payment,
       newStatus: mappedStatus,
       helloAssoPaymentId,
       helloAssoOrderId: typeof orderId === 'number' ? orderId : undefined,
       helloAssoState: state,
     });
+    const updated = transition === 'updated';
 
     // Transition refusée (rejeu, ou transition non autorisée depuis l'état
     // courant) : aucun UPDATE n'a eu lieu, or HelloAsso vient bel et bien de
@@ -181,7 +182,9 @@ export class HelloAssoWebhookService {
       signatureValid: true,
       outcome: updated
         ? `transitioned:${payment.status}→${mappedStatus}`
-        : `noop_no_transition_from:${payment.status}`,
+        : transition === 'conflict'
+          ? `conflict_active_payment_exists:${payment.status}`
+          : `noop_no_transition_from:${payment.status}`,
     };
   }
 
@@ -286,13 +289,13 @@ export class HelloAssoWebhookService {
     helloAssoPaymentId: number;
     helloAssoOrderId: number | undefined;
     helloAssoState: string;
-  }): Promise<boolean> {
+  }): Promise<'updated' | 'noop' | 'conflict'> {
     const { payment, newStatus, helloAssoPaymentId, helloAssoOrderId, helloAssoState } = args;
 
     const prerequisites = prerequisitesForStatus(newStatus);
     if (prerequisites.length === 0) {
       this.logger.warn(`applyStatusTransition: ignore ${newStatus}, not found in existing states`);
-      return false;
+      return 'noop';
     }
 
     const update: Partial<HelloAssoPaymentEntity> = {
@@ -312,17 +315,38 @@ export class HelloAssoWebhookService {
       update.paidAt = new Date();
     }
 
-    const result = await this.paymentRepo
-      .createQueryBuilder()
-      .update(HelloAssoPaymentEntity)
-      .set(update)
-      .where('id = :id AND status IN (:...prerequisites)', {
-        id: payment.id,
-        prerequisites,
-      })
-      .execute();
+    let result: { affected?: number | null };
+    try {
+      result = await this.paymentRepo
+        .createQueryBuilder()
+        .update(HelloAssoPaymentEntity)
+        .set(update)
+        .where('id = :id AND status IN (:...prerequisites)', {
+          id: payment.id,
+          prerequisites,
+        })
+        .execute();
+    } catch (e: unknown) {
+      // Chemin ouvert par l'expiration : la ligne expirée a libéré le créneau de
+      // `UQ_helloasso_payment_active`, le coureur s'est réinscrit, puis
+      // l'`Authorized` tardif arrive sur l'ancienne ligne. `refused → paid` est
+      // autorisé et viole l'index unique.
+      //
+      // On répond 200 : rejouer le webhook ne réparerait rien et HelloAsso le
+      // rejouerait indéfiniment. Mais l'argent est engagé sur un paiement qui ne
+      // peut pas être marqué payé — seul un humain peut trancher, d'où le ERROR.
+      if (isUniqueViolation(e)) {
+        this.logger.error(
+          `applyStatusTransition: paymentId=${payment.id} ${payment.status}→${newStatus} REFUSÉ — ` +
+            `un autre paiement actif occupe déjà (competition, licence). Argent probablement ` +
+            `encaissé sans engagement : arbitrage manuel requis.`,
+        );
+        return 'conflict';
+      }
+      throw e;
+    }
 
-    return (result.affected ?? 0) > 0;
+    return (result.affected ?? 0) > 0 ? 'updated' : 'noop';
   }
 }
 
@@ -359,4 +383,12 @@ function buildPaymentPushContent(
     default:
       return null;
   }
+}
+
+/**
+ * Violation de contrainte d'unicité PostgreSQL (SQLSTATE 23505). TypeORM
+ * enveloppe l'erreur du driver mais conserve le `code` du pilote `pg`.
+ */
+function isUniqueViolation(e: unknown): boolean {
+  return typeof e === 'object' && e !== null && (e as { code?: unknown }).code === '23505';
 }
