@@ -15,6 +15,7 @@ import { HelloAssoPaymentEntity } from './entities/helloasso-payment.entity';
 import { HelloAssoDetailsService } from './helloasso-details.service';
 import { HelloAssoOAuthService } from './helloasso-oauth.service';
 import { HelloAssoPaymentController } from './helloasso-payment.controller';
+import { HelloAssoPaymentExpirationService } from './helloasso-payment-expiration.service';
 import { HelloAssoPaymentService } from './helloasso-payment.service';
 import { HelloAssoPaymentsAdminService } from './helloasso-payments-admin.service';
 import { HelloAssoStateStore } from './helloasso-state.store';
@@ -55,6 +56,7 @@ import { HelloAssoWebhookService } from './helloasso-webhook.service';
     HelloAssoWebhookKeysService,
     HelloAssoWebhookService,
     HelloAssoTokenRefreshService,
+    HelloAssoPaymentExpirationService,
   ],
   exports: [HelloAssoOAuthService, HelloAssoDetailsService, HelloAssoPaymentService],
 })

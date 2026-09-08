@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import {
   HelloAssoPaymentEntity,
   HelloAssoPaymentStatus,
+  PaymentStatusSource,
 } from './entities/helloasso-payment.entity';
 import { HelloAssoDetailsService } from './helloasso-details.service';
 import { HelloAssoWebhookKeysService } from './helloasso-webhook-keys.service';
@@ -132,6 +133,12 @@ export class HelloAssoWebhookService {
 
     const mappedStatus = mapHelloAssoState(state);
     if (!mappedStatus) {
+      // État ignoré par le mapping (`Pending`, `WaitingAuthentication`,
+      // `Registered`…) : aucune transition, mais c'est précisément ce que le
+      // support cherche devant un paiement figé. On ne trace QUE sur ce chemin —
+      // les états mappés voient leur trace écrite par `applyStatusTransition`,
+      // dans le même UPDATE que le statut.
+      await this.recordHelloAssoState(openDossardPaymentId, state);
       this.logger.log(`handleWebhook: state=${state} maps to no-op`);
       return { signatureValid: true, outcome: `noop_state:${state}` };
     }
@@ -149,7 +156,15 @@ export class HelloAssoWebhookService {
       newStatus: mappedStatus,
       helloAssoPaymentId,
       helloAssoOrderId: typeof orderId === 'number' ? orderId : undefined,
+      helloAssoState: state,
     });
+
+    // Transition refusée (rejeu, ou transition non autorisée depuis l'état
+    // courant) : aucun UPDATE n'a eu lieu, or HelloAsso vient bel et bien de
+    // parler. On retombe sur la trace seule pour ne pas perdre l'information.
+    if (!updated) {
+      await this.recordHelloAssoState(payment.id, state);
+    }
 
     this.logger.log(
       `handleWebhook: paymentId=${payment.id} ${payment.status}→${mappedStatus} updated=${updated}`,
@@ -234,13 +249,45 @@ export class HelloAssoWebhookService {
    * des pré-requis autorisés pour `newStatus` (cf. `prerequisitesForStatus`).
    * Replay ou transition invalide = no-op silencieux (0 row affected).
    */
+  /**
+   * Écrit le dernier état HelloAsso vu, sans toucher au statut.
+   *
+   * Best-effort et isolé : une erreur ici ne doit jamais faire échouer le
+   * webhook, sous peine de le faire rejouer par HelloAsso pour une simple ligne
+   * d'observabilité.
+   */
+  private async recordHelloAssoState(paymentId: number, state: string): Promise<void> {
+    try {
+      await this.paymentRepo
+        .createQueryBuilder()
+        .update(HelloAssoPaymentEntity)
+        .set({ helloAssoLastState: state, helloAssoLastStateAt: new Date() })
+        .where('id = :id', { id: paymentId })
+        .execute();
+    } catch (e: unknown) {
+      // Avalé volontairement : faire échouer le webhook le ferait rejouer par
+      // HelloAsso pour une simple ligne d'observabilité. Mais loggé en ERROR et
+      // non en WARN — la cause la plus probable est une migration non appliquée,
+      // et ce scénario rendrait TOUT le suivi détaillé muet sans rien casser
+      // d'autre. C'est exactement le genre de panne qui passe inaperçue.
+      this.logger.error(
+        `recordHelloAssoState: paymentId=${paymentId} state=${state} — écriture impossible, ` +
+          `suivi détaillé HORS SERVICE (migration AddPaymentStatusDetail appliquée ?) : ${
+            e instanceof Error ? e.message : String(e)
+          }`,
+        e instanceof Error ? e.stack : undefined,
+      );
+    }
+  }
+
   private async applyStatusTransition(args: {
     payment: HelloAssoPaymentEntity;
     newStatus: HelloAssoPaymentStatus;
     helloAssoPaymentId: number;
     helloAssoOrderId: number | undefined;
+    helloAssoState: string;
   }): Promise<boolean> {
-    const { payment, newStatus, helloAssoPaymentId, helloAssoOrderId } = args;
+    const { payment, newStatus, helloAssoPaymentId, helloAssoOrderId, helloAssoState } = args;
 
     const prerequisites = prerequisitesForStatus(newStatus);
     if (prerequisites.length === 0) {
@@ -251,6 +298,12 @@ export class HelloAssoWebhookService {
     const update: Partial<HelloAssoPaymentEntity> = {
       status: newStatus,
       helloAssoPaymentId: String(helloAssoPaymentId),
+      // Tracées dans le MÊME UPDATE que le statut : une transition et sa cause
+      // ne doivent jamais pouvoir diverger, y compris si le process meurt entre
+      // deux écritures.
+      statusSource: PaymentStatusSource.HELLOASSO_WEBHOOK,
+      helloAssoLastState: helloAssoState,
+      helloAssoLastStateAt: new Date(),
     };
     if (typeof helloAssoOrderId === 'number') {
       update.helloAssoOrderId = String(helloAssoOrderId);

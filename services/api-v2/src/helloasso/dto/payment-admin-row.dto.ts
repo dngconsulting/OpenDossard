@@ -1,3 +1,4 @@
+import type { PaymentStatusSeverity } from '../helloasso-status-detail.util';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 import { HelloAssoPaymentStatus } from '../entities/helloasso-payment.entity';
@@ -21,6 +22,18 @@ export class PaymentAdminRowDto {
 
   @ApiProperty({ enum: HelloAssoPaymentStatus })
   status: HelloAssoPaymentStatus;
+
+  /** Cause détaillée — `refused` seul agrège six causes distinctes. */
+  statusDetail?: string | null;
+
+  /** Gravité sémantique (pas une couleur) : le client fait sa correspondance. */
+  statusSeverity?: PaymentStatusSeverity;
+
+  /** Dernier `PaymentState` HelloAsso brut, états non mappés compris. */
+  helloAssoLastState?: string | null;
+
+  /** ISO 8601 — dernier signe de vie HelloAsso sur ce paiement. */
+  helloAssoLastStateAt?: string | null;
 
   // --- Compétition (JOIN competition) ---
   @ApiProperty()

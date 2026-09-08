@@ -2,6 +2,7 @@ import { CompetitionEntity } from '../competitions/entities/competition.entity';
 import { LicenceEntity } from '../licences/entities/licence.entity';
 import { HelloAssoPaymentDto } from './dto/helloasso-payment.dto';
 import { HelloAssoPaymentEntity } from './entities/helloasso-payment.entity';
+import { describePaymentStatus } from './helloasso-status-detail.util';
 
 export function toPaymentDto(payment: HelloAssoPaymentEntity): HelloAssoPaymentDto {
   return {
@@ -13,6 +14,9 @@ export function toPaymentDto(payment: HelloAssoPaymentEntity): HelloAssoPaymentD
     montant: payment.amountCents / 100,
     paidAt: payment.paidAt?.toISOString() ?? null,
     createdAt: payment.createdAt.toISOString(),
+    ...describePaymentStatus(payment),
+    helloAssoLastState: payment.helloAssoLastState ?? null,
+    helloAssoLastStateAt: payment.helloAssoLastStateAt?.toISOString() ?? null,
   };
 }
 

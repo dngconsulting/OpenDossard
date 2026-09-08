@@ -3,6 +3,27 @@ import type { PaginatedResponse } from './pagination';
 export type PaymentStatus = 'pending' | 'paid' | 'refused' | 'refunding' | 'refunded';
 
 /**
+ * Gravité SÉMANTIQUE calculée par l'API — pas une couleur. Le statut `refused`
+ * agrège six causes très différentes (refus bancaire, erreur technique, abandon,
+ * annulation HelloAsso, annulation par le coureur, remplacement) : les afficher
+ * toutes en rouge donnerait une impression d'échecs de paiement massifs qui
+ * n'existent pas.
+ */
+export type PaymentStatusSeverity = 'success' | 'info' | 'error' | 'neutral' | 'muted';
+
+/**
+ * Habillage par gravité. Ne couvre QUE les cas où la gravité doit primer sur le
+ * statut : un `refused` neutre ou atténué. Les autres retombent sur
+ * `PAYMENT_STATUS_META`, qui reste la référence par statut.
+ */
+export const PAYMENT_SEVERITY_OVERRIDE: Partial<Record<PaymentStatusSeverity, string>> = {
+  // Acte volontaire du coureur : ni succès ni échec.
+  neutral: 'bg-slate-100 text-slate-900 hover:bg-slate-100 border-slate-200',
+  // Non-événement : remplacé, expiré, jamais finalisé.
+  muted: 'bg-zinc-100 text-zinc-600 hover:bg-zinc-100 border-zinc-200',
+};
+
+/**
  * Résumé d'un paiement HelloAsso pour affichage compact (badge dans listes,
  * card licence, etc.). Sous-ensemble des champs utiles à l'identification du
  * statut et du montant, sans les identifiants HelloAsso ni infos payeur.
@@ -61,6 +82,14 @@ export const PAYMENT_STATUS_META: Record<
  * (vue restreinte sans `payerUserId`, `checkoutIntentId`, etc.).
  */
 export type PaymentAdminRow = {
+  /** Cause détaillée du statut, calculée par l'API. `null` si sans objet. */
+  statusDetail?: string | null;
+  /** Gravité sémantique, cf. `PAYMENT_SEVERITY_OVERRIDE`. */
+  statusSeverity?: PaymentStatusSeverity;
+  /** Dernier état HelloAsso brut — utile au support sur un paiement figé. */
+  helloAssoLastState?: string | null;
+  /** ISO 8601 — dernier signe de vie HelloAsso. */
+  helloAssoLastStateAt?: string | null;
   id: number;
   status: PaymentStatus;
   // Compétition (JOIN)

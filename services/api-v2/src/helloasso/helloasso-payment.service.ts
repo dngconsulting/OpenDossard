@@ -32,6 +32,7 @@ import {
 import {
   HelloAssoPaymentEntity,
   HelloAssoPaymentStatus,
+  PaymentStatusSource,
 } from './entities/helloasso-payment.entity';
 
 export interface CreatePaymentInput {
@@ -169,7 +170,13 @@ export class HelloAssoPaymentService {
       await this.paymentRepo
         .createQueryBuilder()
         .update(HelloAssoPaymentEntity)
-        .set({ status: HelloAssoPaymentStatus.REFUSED })
+        // `superseded` et non `user_cancel` : le coureur n'a rien annulé, il a
+        // relancé un paiement. Confondre les deux ferait apparaître un échec
+        // là où il n'y en a pas.
+        .set({
+          status: HelloAssoPaymentStatus.REFUSED,
+          statusSource: PaymentStatusSource.SUPERSEDED,
+        })
         .where('id = :id AND status = :prerequisite', {
           id: existing.id,
           prerequisite: HelloAssoPaymentStatus.PENDING,
@@ -211,6 +218,7 @@ export class HelloAssoPaymentService {
         payerLastName: dto.payerProfile.lastName,
         helloAssoCheckoutIntentId: null,
         status: HelloAssoPaymentStatus.PENDING,
+        statusSource: PaymentStatusSource.CHECKOUT_CREATED,
         tarifId: tarif.name,
         amountCents,
       }),
@@ -308,7 +316,10 @@ export class HelloAssoPaymentService {
     const result = await this.paymentRepo
       .createQueryBuilder()
       .update(HelloAssoPaymentEntity)
-      .set({ status: HelloAssoPaymentStatus.REFUSED })
+      .set({
+        status: HelloAssoPaymentStatus.REFUSED,
+        statusSource: PaymentStatusSource.USER_CANCEL,
+      })
       .where('id = :id AND status = :prerequisite', {
         id: payment.id,
         prerequisite: HelloAssoPaymentStatus.PENDING,
@@ -404,6 +415,13 @@ export class HelloAssoPaymentService {
       terminalPayment?.state ?? haPayments[haPayments.length - 1]?.state ?? null;
     const mappedStatus = mapHelloAssoState(helloAssoState ?? undefined);
 
+    // Même sans transition, ce que HelloAsso vient de répondre est LA donnée que
+    // cherche le support devant un paiement figé. Best-effort : une erreur ici
+    // ne doit pas faire échouer la consultation.
+    if (helloAssoState) {
+      await this.recordHelloAssoState(paymentId, helloAssoState);
+    }
+
     // Cas A : HelloAsso n'a aucun état terminal.
     //   - local pending  → toujours en attente côté HA (user n'a pas finalisé)
     //   - local terminal → confirmé (HA n'a rien de nouveau à dire)
@@ -447,6 +465,8 @@ export class HelloAssoPaymentService {
       newStatus: mappedStatus,
       helloAssoPaymentId: typeof terminalPayment.id === 'number' ? terminalPayment.id : undefined,
       helloAssoOrderId: typeof data.order?.id === 'number' ? data.order.id : undefined,
+      statusSource: PaymentStatusSource.ADMIN_REFRESH,
+      helloAssoState,
     });
 
     const fresh = await this.paymentRepo.findOne({ where: { id: paymentId } });
@@ -483,20 +503,99 @@ export class HelloAssoPaymentService {
    *
    * Transitions autorisées : cf. `prerequisitesForStatus` dans le util.
    */
+  /**
+   * Identifiants des paiements restés `pending` au-delà du seuil — candidats à
+   * l'expiration. Tri par ancienneté : si un run est plafonné, les plus vieux
+   * partent d'abord.
+   *
+   * Ne renvoie QUE des identifiants : le job appelle ensuite HelloAsso paiement
+   * par paiement, inutile de charger les entités complètes.
+   */
+  async findStalePendingIds(thresholdMinutes: number, limit: number): Promise<number[]> {
+    const before = new Date(Date.now() - thresholdMinutes * 60 * 1000);
+    const rows = await this.paymentRepo
+      .createQueryBuilder('p')
+      .select('p.id', 'id')
+      .where('p.status = :status', { status: HelloAssoPaymentStatus.PENDING })
+      .andWhere('p.created_at < :before', { before })
+      .orderBy('p.created_at', 'ASC')
+      .limit(limit)
+      .getRawMany<{ id: number }>();
+    return rows.map(r => r.id);
+  }
+
+  /**
+   * Expire un `pending` : `refused` + `status_source = 'expired'`.
+   *
+   * UPDATE gardé par `status = 'pending'` — un webhook concurrent qui vient de
+   * faire passer le paiement à `paid` rend l'opération no-op plutôt que de
+   * l'écraser. Retourne `false` dans ce cas.
+   *
+   * Réversible par construction : `prerequisitesForStatus(PAID)` contient
+   * `REFUSED`, donc un `Authorized` tardif rattrapera cette ligne.
+   */
+  async expirePending(paymentId: number): Promise<boolean> {
+    const result = await this.paymentRepo
+      .createQueryBuilder()
+      .update(HelloAssoPaymentEntity)
+      .set({
+        status: HelloAssoPaymentStatus.REFUSED,
+        statusSource: PaymentStatusSource.EXPIRED,
+      })
+      .where('id = :id AND status = :prerequisite', {
+        id: paymentId,
+        prerequisite: HelloAssoPaymentStatus.PENDING,
+      })
+      .execute();
+    return (result.affected ?? 0) > 0;
+  }
+
+  /** Trace le dernier état HelloAsso vu, sans toucher au statut. Best-effort. */
+  private async recordHelloAssoState(paymentId: number, state: string): Promise<void> {
+    try {
+      await this.paymentRepo
+        .createQueryBuilder()
+        .update(HelloAssoPaymentEntity)
+        .set({ helloAssoLastState: state, helloAssoLastStateAt: new Date() })
+        .where('id = :id', { id: paymentId })
+        .execute();
+    } catch (e: unknown) {
+      // Avalé volontairement : faire échouer le webhook le ferait rejouer par
+      // HelloAsso pour une simple ligne d'observabilité. Mais loggé en ERROR et
+      // non en WARN — la cause la plus probable est une migration non appliquée,
+      // et ce scénario rendrait TOUT le suivi détaillé muet sans rien casser
+      // d'autre. C'est exactement le genre de panne qui passe inaperçue.
+      this.logger.error(
+        `recordHelloAssoState: paymentId=${paymentId} state=${state} — écriture impossible, ` +
+          `suivi détaillé HORS SERVICE (migration AddPaymentStatusDetail appliquée ?) : ${
+            e instanceof Error ? e.message : String(e)
+          }`,
+        e instanceof Error ? e.stack : undefined,
+      );
+    }
+  }
+
   private async applyStatusTransition(args: {
     payment: HelloAssoPaymentEntity;
     newStatus: HelloAssoPaymentStatus;
     helloAssoPaymentId: number | undefined;
+    statusSource: PaymentStatusSource;
+    helloAssoState?: string | null;
     helloAssoOrderId: number | undefined;
   }): Promise<boolean> {
-    const { payment, newStatus, helloAssoPaymentId, helloAssoOrderId } = args;
+    const { payment, newStatus, helloAssoPaymentId, helloAssoOrderId, statusSource } = args;
 
     const prerequisites = prerequisitesForStatus(newStatus);
     if (prerequisites.length === 0) {
       return false;
     }
 
-    const update: Partial<HelloAssoPaymentEntity> = { status: newStatus };
+    // Statut et cause dans le MÊME UPDATE : ils ne doivent jamais diverger.
+    const update: Partial<HelloAssoPaymentEntity> = { status: newStatus, statusSource };
+    if (args.helloAssoState) {
+      update.helloAssoLastState = args.helloAssoState;
+      update.helloAssoLastStateAt = new Date();
+    }
     if (typeof helloAssoPaymentId === 'number') {
       update.helloAssoPaymentId = String(helloAssoPaymentId);
     }

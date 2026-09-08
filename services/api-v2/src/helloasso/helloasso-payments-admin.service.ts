@@ -147,6 +147,9 @@ export class HelloAssoPaymentsAdminService {
     const qb = this.baseQueryWithFilters(filters).select([
       'p.id              AS p_id',
       'p.status          AS p_status',
+      'p.helloasso_last_state    AS p_helloasso_last_state',
+      'p.helloasso_last_state_at AS p_helloasso_last_state_at',
+      'p.status_source           AS p_status_source',
       'p.competition_id  AS p_competition_id',
       'p.licence_id      AS p_licence_id',
       'p.payer_user_id   AS p_payer_user_id',

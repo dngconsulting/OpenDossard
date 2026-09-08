@@ -19,6 +19,7 @@ import { HelloAssoOAuthService } from './helloasso-oauth.service';
 import {
   HelloAssoPaymentEntity,
   HelloAssoPaymentStatus,
+  PaymentStatusSource,
 } from './entities/helloasso-payment.entity';
 import { HelloAssoPaymentService } from './helloasso-payment.service';
 
@@ -294,6 +295,13 @@ describe('HelloAssoPaymentService', () => {
 
       const result = await m.service.createCheckoutIntent({ dto: makeDto(), payerUserId: 55 });
 
+      // Le pending remplacé doit être marqué comme tel : sans cette source, le
+      // support le lirait comme un échec de paiement alors que le coureur a
+      // simplement recommencé.
+      expect(qb.set).toHaveBeenCalledWith(
+        expect.objectContaining({ statusSource: PaymentStatusSource.SUPERSEDED }),
+      );
+
       // a annulé le pending obsolète via UPDATE guarded `status = 'pending'`
       expect(qb.update).toHaveBeenCalled();
       expect(qb.where).toHaveBeenCalledWith(
@@ -345,6 +353,9 @@ describe('HelloAssoPaymentService', () => {
       expect(result).toEqual({ paymentId: 42, redirectUrl: 'https://helloasso-sandbox.com/pay/X' });
 
       // Vérifie l'INSERT pending
+      expect(m.paymentRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ statusSource: PaymentStatusSource.CHECKOUT_CREATED }),
+      );
       expect(m.paymentRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({
           competitionId: 32,
@@ -441,6 +452,39 @@ describe('HelloAssoPaymentService', () => {
     });
   });
 
+  describe('cancelByOwner', () => {
+    it("trace l'annulation comme un acte du coureur, pas comme un échec", async () => {
+      const m = makeService();
+      m.paymentRepo.findOne.mockResolvedValue({
+        id: 42,
+        status: HelloAssoPaymentStatus.PENDING,
+        payerUserId: 55,
+        competitionId: 32,
+        licenceId: 1234,
+        amountCents: 1000,
+        tarifId: 'Adulte',
+        createdAt: new Date(),
+      } as HelloAssoPaymentEntity);
+      const execute = jest.fn().mockResolvedValue({ affected: 1 });
+      const qb = {
+        update: jest.fn().mockReturnThis(),
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        execute,
+      };
+      m.paymentRepo.createQueryBuilder.mockReturnValue(qb);
+
+      await m.service.cancelByOwner(42, 55);
+
+      expect(qb.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: HelloAssoPaymentStatus.REFUSED,
+          statusSource: PaymentStatusSource.USER_CANCEL,
+        }),
+      );
+    });
+  });
+
   describe('findByIdForOwner', () => {
     it('throws NotFoundException if payment does not exist', async () => {
       const m = makeService();
@@ -478,6 +522,11 @@ describe('HelloAssoPaymentService', () => {
       expect(result).toEqual({
         id: 42,
         status: HelloAssoPaymentStatus.PAID,
+        // `paid` se suffit à lui-même : aucune cause à préciser.
+        statusDetail: null,
+        statusSeverity: 'success',
+        helloAssoLastState: null,
+        helloAssoLastStateAt: null,
         competitionId: 32,
         licenceId: 1234,
         tarifName: 'Adulte',
@@ -538,6 +587,10 @@ describe('HelloAssoPaymentService', () => {
         {
           id: 42,
           status: HelloAssoPaymentStatus.PAID,
+          statusDetail: null,
+          statusSeverity: 'success',
+          helloAssoLastState: null,
+          helloAssoLastStateAt: null,
           competitionId: 32,
           competitionName: 'Grand Prix Castanet',
           competitionDate: '2026-06-15T00:00:00.000Z',

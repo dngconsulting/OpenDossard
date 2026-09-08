@@ -20,6 +20,32 @@ export enum HelloAssoPaymentStatus {
 }
 
 /**
+ * QUI a écrit le `status` courant. Indispensable parce que `refused` agrège six
+ * causes réellement différentes, dont deux — annulation par le coureur et
+ * remplacement — ne produisent AUCUN événement HelloAsso et seraient donc
+ * indiscernables sans ce marqueur.
+ *
+ * Volontairement stocké en `varchar` et non en enum PostgreSQL : ajouter une
+ * valeur ne doit pas imposer une migration de type, et une valeur inconnue doit
+ * retomber proprement sur le libellé « cause inconnue » plutôt que faire échouer
+ * une lecture.
+ */
+export enum PaymentStatusSource {
+  /** INSERT initial du checkout. */
+  CHECKOUT_CREATED = 'checkout_created',
+  /** Transition provoquée par un webhook HelloAsso. */
+  HELLOASSO_WEBHOOK = 'helloasso_webhook',
+  /** Le coureur a annulé lui-même depuis l'UI. */
+  USER_CANCEL = 'user_cancel',
+  /** Le même payeur a relancé un checkout : l'ancien pending libère le créneau. */
+  SUPERSEDED = 'superseded',
+  /** Re-synchronisation déclenchée par un ADMIN / ORGANISATEUR. */
+  ADMIN_REFRESH = 'admin_refresh',
+  /** Job d'expiration : pending jamais finalisé, HelloAsso ne connaît aucune commande. */
+  EXPIRED = 'expired',
+}
+
+/**
  * Paiement HelloAsso d'une inscription. 1 ligne = 1 paiement = 1 licence engagée
  * sur une compétition. Pas de FK vers `race` : le lien implicite est
  * `(competition_id, licence_id)`. Quand la `race` est créée/importée plus tard
@@ -103,6 +129,25 @@ export class HelloAssoPaymentEntity {
     default: HelloAssoPaymentStatus.PENDING,
   })
   status: HelloAssoPaymentStatus;
+
+  /**
+   * Dernier `PaymentState` BRUT vu chez HelloAsso, y compris les états que le
+   * mapping ignore (`Pending`, `WaitingAuthentication`, `Registered`…).
+   *
+   * C'est précisément l'écriture sur les états non mappés qui rend le support
+   * possible : sans elle, un paiement figé en `pending` n'offre aucune trace de
+   * ce que HelloAsso a répondu en dernier.
+   */
+  @Column({ name: 'helloasso_last_state', type: 'varchar', length: 32, nullable: true })
+  helloAssoLastState: string | null;
+
+  /** Quand HelloAsso a parlé pour la dernière fois — « figé depuis combien de temps ? ». */
+  @Column({ name: 'helloasso_last_state_at', type: 'timestamp', nullable: true })
+  helloAssoLastStateAt: Date | null;
+
+  /** Voir `PaymentStatusSource`. `null` = ligne antérieure au suivi détaillé. */
+  @Column({ name: 'status_source', type: 'varchar', length: 24, nullable: true })
+  statusSource: PaymentStatusSource | null;
 
   /**
    * Snapshot du `PricingInfo.name` (= label affiché) au moment du paiement.

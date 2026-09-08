@@ -17,6 +17,8 @@ import { usePayments } from '@/hooks/usePayments';
 import { useRefreshPaymentStatus } from '@/hooks/useRefreshPaymentStatus';
 import {
   PAYMENT_STATUS_META,
+  PAYMENT_SEVERITY_OVERRIDE,
+  type PaymentStatusSeverity,
   type PaymentAdminRow,
   type PaymentFilters,
   type PaymentsScope,
@@ -67,9 +69,41 @@ function TableSkeleton({ columnCount }: { columnCount: number }) {
   );
 }
 
-function StatusBadge({ status }: { status: PaymentStatus }) {
+/**
+ * Le badge porte le statut, l'infobulle porte la CAUSE. Six causes se cachent
+ * derrière `refused` : sans ce détail, le support ne peut pas dire à un coureur
+ * si sa banque a refusé, s'il a annulé lui-même, ou s'il a simplement relancé
+ * son paiement.
+ *
+ * La gravité prime sur le statut pour les cas neutres et atténués, afin qu'un
+ * paiement « Remplacé » ne s'affiche pas comme un échec.
+ */
+function StatusBadge({
+  status,
+  statusDetail,
+  statusSeverity,
+}: {
+  status: PaymentStatus;
+  statusDetail?: string | null;
+  statusSeverity?: PaymentStatusSeverity;
+}) {
   const meta = PAYMENT_STATUS_META[status];
-  return <Badge className={meta.fillClassName}>{meta.label}</Badge>;
+  const className =
+    (statusSeverity && PAYMENT_SEVERITY_OVERRIDE[statusSeverity]) ?? meta.fillClassName;
+  const badge = <Badge className={className}>{meta.label}</Badge>;
+
+  if (!statusDetail) {return badge;}
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="cursor-help">{badge}</span>
+        </TooltipTrigger>
+        <TooltipContent>{statusDetail}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
 }
 
 /**
@@ -190,7 +224,13 @@ export function PaymentsTable({ scope, fillHeight = false }: PaymentsTableProps)
       accessorKey: 'status',
       header: 'Statut',
       size: 100,
-      cell: ({ row }) => <StatusBadge status={row.original.status} />,
+      cell: ({ row }) => (
+        <StatusBadge
+          status={row.original.status}
+          statusDetail={row.original.statusDetail}
+          statusSeverity={row.original.statusSeverity}
+        />
+      ),
     },
     {
       id: 'actions',
