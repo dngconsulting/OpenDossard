@@ -1,4 +1,10 @@
-import { HelloAssoPaymentStatus } from './entities/helloasso-payment.entity';
+import { Logger } from '@nestjs/common';
+import { Repository } from 'typeorm';
+
+import {
+  HelloAssoPaymentEntity,
+  HelloAssoPaymentStatus,
+} from './entities/helloasso-payment.entity';
 
 /**
  * Mapping `PaymentState` HelloAsso → statuts internes OpenDossard.
@@ -66,5 +72,42 @@ export function prerequisitesForStatus(
       return [HelloAssoPaymentStatus.PAID, HelloAssoPaymentStatus.REFUNDING];
     default:
       return [];
+  }
+}
+
+/**
+ * Écrit le dernier état HelloAsso vu sur un paiement, sans toucher au statut.
+ *
+ * Partagé par le receiver webhook et le refresh admin : dupliquer cette écriture
+ * garantissait qu'elles divergent au premier ajustement, exactement ce que ce
+ * module évite déjà pour `mapHelloAssoState`.
+ *
+ * Best-effort et volontairement silencieux vis-à-vis de l'appelant : faire
+ * échouer un webhook pour une ligne d'observabilité le ferait rejouer par
+ * HelloAsso. Mais loggé en ERROR — la cause la plus probable est une migration
+ * non appliquée, et ce scénario rendrait TOUT le suivi détaillé muet sans rien
+ * casser d'autre.
+ */
+export async function recordHelloAssoState(
+  repo: Repository<HelloAssoPaymentEntity>,
+  logger: Logger,
+  paymentId: number,
+  state: string,
+): Promise<void> {
+  try {
+    await repo
+      .createQueryBuilder()
+      .update(HelloAssoPaymentEntity)
+      .set({ helloAssoLastState: state, helloAssoLastStateAt: new Date() })
+      .where('id = :id', { id: paymentId })
+      .execute();
+  } catch (e: unknown) {
+    logger.error(
+      `recordHelloAssoState: paymentId=${paymentId} state=${state} — écriture impossible, ` +
+        `suivi détaillé HORS SERVICE (migration AddPaymentStatusDetail appliquée ?) : ${
+          e instanceof Error ? e.message : String(e)
+        }`,
+      e instanceof Error ? e.stack : undefined,
+    );
   }
 }

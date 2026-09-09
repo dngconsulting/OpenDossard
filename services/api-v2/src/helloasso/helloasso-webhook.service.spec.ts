@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import {
   HelloAssoPaymentEntity,
   HelloAssoPaymentStatus,
+  PaymentStatusSource,
 } from './entities/helloasso-payment.entity';
 import { HelloAssoDetailsService } from './helloasso-details.service';
 import { HelloAssoWebhookKeysService } from './helloasso-webhook-keys.service';
@@ -23,6 +24,7 @@ interface Mocks {
     createQueryBuilder: jest.Mock;
   };
   updateQbExecute: jest.Mock;
+  updateQbSet: jest.Mock;
   detailsService: {
     setIsCashInCompliantBySlug: jest.Mock;
   };
@@ -37,9 +39,10 @@ interface Mocks {
 
 function makeService(signatureKeys: string[] = [SIGNATURE_KEY]): Mocks {
   const updateQbExecute = jest.fn().mockResolvedValue({ affected: 1 });
+  const updateQbSet = jest.fn().mockReturnThis();
   const updateQb = {
     update: jest.fn().mockReturnThis(),
-    set: jest.fn().mockReturnThis(),
+    set: updateQbSet,
     where: jest.fn().mockReturnThis(),
     execute: updateQbExecute,
   };
@@ -65,7 +68,15 @@ function makeService(signatureKeys: string[] = [SIGNATURE_KEY]): Mocks {
     notifications as unknown as import('../notifications/notification.service').NotificationService,
   );
 
-  return { service, paymentRepo, updateQbExecute, detailsService, keysProvider, notifications };
+  return {
+    service,
+    paymentRepo,
+    updateQbExecute,
+    updateQbSet,
+    detailsService,
+    keysProvider,
+    notifications,
+  };
 }
 
 function buildBody(
@@ -168,10 +179,44 @@ describe('HelloAssoWebhookService', () => {
 
     it('returns noop_state for transient states (e.g. Pending)', async () => {
       const m = makeService();
+      m.paymentRepo.findOne.mockResolvedValue({
+        id: 42,
+        status: HelloAssoPaymentStatus.PENDING,
+      } as HelloAssoPaymentEntity);
       const body = buildBody({ data: { state: 'Pending' } });
       const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
       expect(result.outcome).toBe('noop_state:Pending');
-      expect(m.paymentRepo.findOne).not.toHaveBeenCalled();
+      // L'existence du paiement est désormais vérifiée AVANT toute écriture :
+      // la souscription HelloAsso est partenaire-wide, et un
+      // `openDossardPaymentId` étranger écraserait sinon l'observabilité d'un
+      // paiement sans rapport. Un SELECT de plus contre ce risque.
+      expect(m.paymentRepo.findOne).toHaveBeenCalledWith({ where: { id: 42 } });
+    });
+
+    /**
+     * Le coeur du suivi détaillé : un état que le mapping ignore doit tout de
+     * même laisser une trace. Sans cette écriture, un paiement figé en `pending`
+     * n'offre au support aucune indication de ce que HelloAsso a répondu en
+     * dernier — c'est exactement la cécité que cette feature corrige.
+     */
+    it('un état NON MAPPÉ écrit quand même helloasso_last_state, sans toucher au statut', async () => {
+      const m = makeService();
+      m.paymentRepo.findOne.mockResolvedValue({
+        id: 42,
+        status: HelloAssoPaymentStatus.PENDING,
+      } as HelloAssoPaymentEntity);
+      const body = buildBody({ data: { state: 'WaitingAuthentication' } });
+
+      const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
+
+      expect(result.outcome).toBe('noop_state:WaitingAuthentication');
+      const setArgs = (m.updateQbSet.mock.calls as Array<[Record<string, unknown>]>).map(c => c[0]);
+      const stateWrite = setArgs.find(a => 'helloAssoLastState' in a);
+      expect(stateWrite).toBeDefined();
+      expect(stateWrite!.helloAssoLastState).toBe('WaitingAuthentication');
+      expect(stateWrite!.helloAssoLastStateAt).toBeInstanceOf(Date);
+      // aucune écriture de statut : ce n'est pas une transition
+      expect(stateWrite!.status).toBeUndefined();
     });
   });
 
@@ -256,6 +301,67 @@ describe('HelloAssoWebhookService', () => {
         id: 42,
         prerequisites: [HelloAssoPaymentStatus.PAID, HelloAssoPaymentStatus.REFUNDING],
       });
+    });
+
+    it("une transition trace sa source et l'état brut qui l'a provoquée", async () => {
+      const m = makeService();
+      m.paymentRepo.findOne.mockResolvedValue(localPayment);
+      const body = buildBody({ data: { state: 'Refused' } });
+
+      await m.service.handleWebhook(Buffer.from(body), headers(body));
+
+      const setArgs = (m.updateQbSet.mock.calls as Array<[Record<string, unknown>]>).map(c => c[0]);
+      const transition = setArgs.find(a => 'status' in a);
+      expect(transition).toBeDefined();
+      expect(transition!.statusSource).toBe(PaymentStatusSource.HELLOASSO_WEBHOOK);
+      expect(transition!.helloAssoLastState).toBe('Refused');
+    });
+
+    /**
+     * Chemin de repli : la transition est refusée (rejeu, ou transition non
+     * autorisée depuis l'état courant) donc aucun UPDATE de statut n'a lieu.
+     * HelloAsso a pourtant parlé — sans ce repli, l'information serait perdue
+     * exactement dans les cas que le support cherche à comprendre.
+     */
+    it("une transition refusée trace quand même l'état HelloAsso", async () => {
+      const m = makeService();
+      m.paymentRepo.findOne.mockResolvedValue(localPayment);
+      m.updateQbExecute.mockResolvedValue({ affected: 0 });
+      const body = buildBody({ data: { state: 'Authorized' } });
+
+      await m.service.handleWebhook(Buffer.from(body), headers(body));
+
+      const setArgs = (m.updateQbSet.mock.calls as Array<[Record<string, unknown>]>).map(c => c[0]);
+      const traceOnly = setArgs.find(a => 'helloAssoLastState' in a && !('status' in a));
+      expect(traceOnly).toBeDefined();
+      expect(traceOnly!.helloAssoLastState).toBe('Authorized');
+    });
+
+    /**
+     * Le coureur annule (ou son paiement est remplacé), ce qui libère le créneau
+     * de `UQ_helloasso_payment_active` ; il se réinscrit ; puis l'`Authorized`
+     * tardif arrive sur l'ANCIENNE ligne. La transition `refused → paid` est
+     * autorisée et viole l'index unique. Sans rattrapage, le webhook rend 500 et
+     * HelloAsso le rejoue indéfiniment.
+     */
+    it("une violation d'unicité ne fait pas boucler HelloAsso", async () => {
+      const m = makeService();
+      m.paymentRepo.findOne.mockResolvedValue({
+        id: 42,
+        status: HelloAssoPaymentStatus.REFUSED,
+      } as HelloAssoPaymentEntity);
+      m.updateQbExecute.mockRejectedValue(
+        Object.assign(new Error('duplicate key value violates unique constraint'), {
+          code: '23505',
+        }),
+      );
+      const body = buildBody({ data: { state: 'Authorized' } });
+
+      const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
+
+      // 200 côté HTTP : rejouer ne réparerait rien, seul un humain le peut.
+      expect(result.signatureValid).toBe(true);
+      expect(result.outcome).toContain('conflict');
     });
 
     it('idempotent: replay (UPDATE affected=0) reports noop_no_transition', async () => {

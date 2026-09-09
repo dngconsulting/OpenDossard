@@ -5,6 +5,7 @@ import { PaymentsExportButtons } from '@/components/data/PaymentsExportButtons';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table.tsx';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Tooltip,
@@ -17,6 +18,8 @@ import { usePayments } from '@/hooks/usePayments';
 import { useRefreshPaymentStatus } from '@/hooks/useRefreshPaymentStatus';
 import {
   PAYMENT_STATUS_META,
+  PAYMENT_SOURCE_LABEL,
+  PAYMENT_SEVERITY_OVERRIDE,
   type PaymentAdminRow,
   type PaymentFilters,
   type PaymentsScope,
@@ -67,9 +70,80 @@ function TableSkeleton({ columnCount }: { columnCount: number }) {
   );
 }
 
-function StatusBadge({ status }: { status: PaymentStatus }) {
-  const meta = PAYMENT_STATUS_META[status];
-  return <Badge className={meta.fillClassName}>{meta.label}</Badge>;
+/**
+ * Le badge porte le statut, le popover porte tout le reste.
+ *
+ * Six causes se cachent derrière `refused` — refus bancaire, erreur technique,
+ * abandon, annulation HelloAsso, annulation par le coureur, remplacement — et
+ * deux d'entre elles ne produisent AUCUN événement HelloAsso. Sans ce détail, le
+ * support ne peut pas répondre à « pourquoi mon paiement a échoué ? ».
+ *
+ * Ouverture au clic et non au survol : l'information est trop dense pour une
+ * infobulle, et un survol accidentel en parcourant un tableau de 60 lignes est
+ * plus gênant qu'utile.
+ *
+ * La gravité prime sur le statut pour les cas neutres et atténués, afin qu'un
+ * paiement « Remplacé » ne s'affiche pas comme un échec.
+ */
+function StatusBadge({ payment }: { payment: PaymentAdminRow }) {
+  const meta = PAYMENT_STATUS_META[payment.status];
+  const className =
+    (payment.statusSeverity && PAYMENT_SEVERITY_OVERRIDE[payment.statusSeverity]) ??
+    meta.fillClassName;
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="cursor-pointer rounded-full focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none"
+          aria-label={`Détail du statut : ${meta.label}`}
+        >
+          <Badge className={className}>{meta.label}</Badge>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-96">
+        <div className="space-y-3 text-sm">
+          <div>
+            <Badge className={className}>{meta.label}</Badge>
+            {payment.statusDetail && (
+              <p className="text-muted-foreground mt-2">{payment.statusDetail}</p>
+            )}
+          </div>
+          <dl className="grid grid-cols-[10rem_1fr] gap-x-3 gap-y-1.5">
+            <StatusFact label="Origine du statut">
+              {payment.statusSource
+                ? (PAYMENT_SOURCE_LABEL[payment.statusSource] ?? payment.statusSource)
+                : null}
+            </StatusFact>
+            <StatusFact label="Dernier état HelloAsso">{payment.helloAssoLastState}</StatusFact>
+            <StatusFact label="Vu chez HelloAsso le">
+              {payment.helloAssoLastStateAt ? formatDate(payment.helloAssoLastStateAt, true) : null}
+            </StatusFact>
+            <StatusFact label="Créé le">{formatDate(payment.createdAt, true)}</StatusFact>
+            <StatusFact label="Payé le">
+              {payment.paidAt ? formatDate(payment.paidAt, true) : null}
+            </StatusFact>
+          </dl>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/**
+ * Une ligne du popover. Affiche « — » plutôt que de masquer la ligne : sur un
+ * écran de support, savoir qu'une information est ABSENTE vaut autant que la
+ * connaître — un paiement figé sans aucun état HelloAsso raconte déjà quelque
+ * chose.
+ */
+function StatusFact({ label, children }: { label: string; children?: React.ReactNode }) {
+  return (
+    <>
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="font-medium">{children ?? '—'}</dd>
+    </>
+  );
 }
 
 /**
@@ -190,7 +264,7 @@ export function PaymentsTable({ scope, fillHeight = false }: PaymentsTableProps)
       accessorKey: 'status',
       header: 'Statut',
       size: 100,
-      cell: ({ row }) => <StatusBadge status={row.original.status} />,
+      cell: ({ row }) => <StatusBadge payment={row.original} />,
     },
     {
       id: 'actions',
