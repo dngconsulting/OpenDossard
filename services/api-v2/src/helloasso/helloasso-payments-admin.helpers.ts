@@ -5,7 +5,9 @@ import { PaymentAdminRowDto } from './dto/payment-admin-row.dto';
 import {
   HelloAssoPaymentEntity,
   HelloAssoPaymentStatus,
+  PaymentStatusSource,
 } from './entities/helloasso-payment.entity';
+import { describePaymentStatus } from './helloasso-status-detail.util';
 
 type QB = SelectQueryBuilder<HelloAssoPaymentEntity>;
 
@@ -174,6 +176,9 @@ function hashString(s: string): number {
 export interface RawRow {
   p_id: number;
   p_status: HelloAssoPaymentStatus;
+  p_helloasso_last_state: string | null;
+  p_helloasso_last_state_at: Date | null;
+  p_status_source: PaymentStatusSource | null;
   p_competition_id: number;
   p_licence_id: number;
   p_payer_user_id: number | null;
@@ -207,6 +212,15 @@ export function mapRowToDto(row: RawRow): PaymentAdminRowDto {
   return {
     id: row.p_id,
     status: row.p_status,
+    // La raison d'être de l'écran support : `refused` seul agrège six causes.
+    ...describePaymentStatus({
+      status: row.p_status,
+      helloAssoLastState: row.p_helloasso_last_state,
+      statusSource: row.p_status_source,
+    }),
+    statusSource: row.p_status_source,
+    helloAssoLastState: row.p_helloasso_last_state,
+    helloAssoLastStateAt: row.p_helloasso_last_state_at?.toISOString() ?? null,
     competitionId: row.p_competition_id,
     competitionName: row.c_name,
     competitionDate: row.c_event_date?.toISOString() ?? null,

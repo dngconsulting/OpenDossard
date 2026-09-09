@@ -1,3 +1,4 @@
+import type { PaymentStatusSeverity } from '../helloasso-status-detail.util';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 import { HelloAssoPaymentStatus } from '../entities/helloasso-payment.entity';
@@ -52,4 +53,45 @@ export class HelloAssoPaymentDto {
 
   @ApiProperty({ description: 'ISO 8601 — date de création de la demande de paiement.' })
   createdAt: string;
+
+  /**
+   * Phrase discriminante à afficher sous le statut. `null` quand le statut se
+   * suffit à lui-même (`paid`).
+   *
+   * Existe parce que `refused` agrège six causes très différentes — refus
+   * bancaire, erreur technique, abandon, annulation HelloAsso, annulation par le
+   * coureur, remplacement par une nouvelle tentative — que rien ne distinguait
+   * jusqu'ici à l'écran.
+   */
+  @ApiPropertyOptional({
+    description: 'Cause détaillée du statut, prête à afficher. `null` si sans objet.',
+    example: 'Refusé par la banque',
+  })
+  statusDetail?: string | null;
+
+  /**
+   * Gravité SÉMANTIQUE, pas une couleur : chaque client fait sa correspondance
+   * vers sa palette. Centralisée ici pour que back-office et mobile ne divergent
+   * pas au premier ajout de cause.
+   */
+  @ApiPropertyOptional({
+    description: 'Gravité sémantique du statut.',
+    enum: ['success', 'info', 'error', 'neutral', 'muted'],
+  })
+  statusSeverity?: PaymentStatusSeverity;
+
+  /**
+   * QUI a écrit le statut courant (`user_cancel`, `superseded`, `helloasso_webhook`…).
+   * C'est le discriminant des causes qu'aucun événement HelloAsso n'accompagne.
+   */
+  @ApiPropertyOptional({ description: 'Origine du statut courant.', example: 'user_cancel' })
+  statusSource?: string | null;
+
+  /** Dernier `PaymentState` BRUT vu chez HelloAsso, états non mappés compris. */
+  @ApiPropertyOptional({ description: 'Dernier état HelloAsso brut.', example: 'Refused' })
+  helloAssoLastState?: string | null;
+
+  /** ISO 8601 — quand HelloAsso a parlé pour la dernière fois. */
+  @ApiPropertyOptional({ description: 'ISO 8601 — dernier signe de vie HelloAsso.' })
+  helloAssoLastStateAt?: string | null;
 }

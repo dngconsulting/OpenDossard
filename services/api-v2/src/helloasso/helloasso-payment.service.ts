@@ -21,7 +21,11 @@ import { HelloAssoApiClient, CheckoutIntentRequestBody } from './helloasso-api.c
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoDetailsService } from './helloasso-details.service';
 import { HelloAssoOAuthService } from './helloasso-oauth.service';
-import { mapHelloAssoState, prerequisitesForStatus } from './helloasso-state.util';
+import {
+  mapHelloAssoState,
+  prerequisitesForStatus,
+  recordHelloAssoState as recordState,
+} from './helloasso-state.util';
 import { truncate } from '../common/utils/string.util';
 import {
   appendPaymentId,
@@ -32,6 +36,7 @@ import {
 import {
   HelloAssoPaymentEntity,
   HelloAssoPaymentStatus,
+  PaymentStatusSource,
 } from './entities/helloasso-payment.entity';
 
 export interface CreatePaymentInput {
@@ -169,7 +174,13 @@ export class HelloAssoPaymentService {
       await this.paymentRepo
         .createQueryBuilder()
         .update(HelloAssoPaymentEntity)
-        .set({ status: HelloAssoPaymentStatus.REFUSED })
+        // `superseded` et non `user_cancel` : le coureur n'a rien annulé, il a
+        // relancé un paiement. Confondre les deux ferait apparaître un échec
+        // là où il n'y en a pas.
+        .set({
+          status: HelloAssoPaymentStatus.REFUSED,
+          statusSource: PaymentStatusSource.SUPERSEDED,
+        })
         .where('id = :id AND status = :prerequisite', {
           id: existing.id,
           prerequisite: HelloAssoPaymentStatus.PENDING,
@@ -211,6 +222,7 @@ export class HelloAssoPaymentService {
         payerLastName: dto.payerProfile.lastName,
         helloAssoCheckoutIntentId: null,
         status: HelloAssoPaymentStatus.PENDING,
+        statusSource: PaymentStatusSource.CHECKOUT_CREATED,
         tarifId: tarif.name,
         amountCents,
       }),
@@ -308,7 +320,10 @@ export class HelloAssoPaymentService {
     const result = await this.paymentRepo
       .createQueryBuilder()
       .update(HelloAssoPaymentEntity)
-      .set({ status: HelloAssoPaymentStatus.REFUSED })
+      .set({
+        status: HelloAssoPaymentStatus.REFUSED,
+        statusSource: PaymentStatusSource.USER_CANCEL,
+      })
       .where('id = :id AND status = :prerequisite', {
         id: payment.id,
         prerequisite: HelloAssoPaymentStatus.PENDING,
@@ -317,7 +332,15 @@ export class HelloAssoPaymentService {
 
     if ((result.affected ?? 0) > 0) {
       this.logger.log(`cancelByOwner: paymentId=${paymentId} pending→refused`);
-      return toPaymentDto({ ...payment, status: HelloAssoPaymentStatus.REFUSED });
+      // `payment` a été lu AVANT l'UPDATE : sans report explicite de la source,
+      // le DTO porte encore `checkout_created` et `describePaymentStatus`
+      // retombe sur « Cause inconnue ». Le coureur s'entendrait dire que son
+      // annulation volontaire est un échec inexpliqué.
+      return toPaymentDto({
+        ...payment,
+        status: HelloAssoPaymentStatus.REFUSED,
+        statusSource: PaymentStatusSource.USER_CANCEL,
+      });
     }
     // Race avec un webhook qui a transitioné entre le findOne et l'UPDATE :
     // refetch pour un DTO refletant le vrai état final.
@@ -410,6 +433,14 @@ export class HelloAssoPaymentService {
     if (!mappedStatus || !terminalPayment) {
       const outcome =
         payment.status === HelloAssoPaymentStatus.PENDING ? 'still_pending' : 'confirmed';
+      // Aucune transition ne suivra : c'est ici, et seulement ici, qu'il faut
+      // tracer ce que HelloAsso vient de répondre. Sur le chemin de transition
+      // (cas C), `applyStatusTransition` l'écrit dans le même UPDATE que le
+      // statut — le faire deux fois coûterait un aller-retour et ferait porter à
+      // `helloAssoLastStateAt` l'heure de la seconde écriture, pas de la lecture.
+      if (helloAssoState) {
+        await recordState(this.paymentRepo, this.logger, paymentId, helloAssoState);
+      }
       this.logger.log(
         `refreshStatusFromHelloAsso: paymentId=${paymentId} local=${payment.status} HA state=${helloAssoState ?? '<none>'} → ${outcome}`,
       );
@@ -425,6 +456,9 @@ export class HelloAssoPaymentService {
     // Cas B : HA state mappe vers le statut local courant — pas de transition
     // nécessaire, mais on a vérifié la cohérence.
     if (mappedStatus === payment.status) {
+      if (helloAssoState) {
+        await recordState(this.paymentRepo, this.logger, paymentId, helloAssoState);
+      }
       this.logger.log(
         `refreshStatusFromHelloAsso: paymentId=${paymentId} HA state=${helloAssoState} matches local ${payment.status} (confirmed)`,
       );
@@ -447,6 +481,8 @@ export class HelloAssoPaymentService {
       newStatus: mappedStatus,
       helloAssoPaymentId: typeof terminalPayment.id === 'number' ? terminalPayment.id : undefined,
       helloAssoOrderId: typeof data.order?.id === 'number' ? data.order.id : undefined,
+      statusSource: PaymentStatusSource.ADMIN_REFRESH,
+      helloAssoState,
     });
 
     const fresh = await this.paymentRepo.findOne({ where: { id: paymentId } });
@@ -483,20 +519,28 @@ export class HelloAssoPaymentService {
    *
    * Transitions autorisées : cf. `prerequisitesForStatus` dans le util.
    */
+
   private async applyStatusTransition(args: {
     payment: HelloAssoPaymentEntity;
     newStatus: HelloAssoPaymentStatus;
     helloAssoPaymentId: number | undefined;
+    statusSource: PaymentStatusSource;
+    helloAssoState?: string | null;
     helloAssoOrderId: number | undefined;
   }): Promise<boolean> {
-    const { payment, newStatus, helloAssoPaymentId, helloAssoOrderId } = args;
+    const { payment, newStatus, helloAssoPaymentId, helloAssoOrderId, statusSource } = args;
 
     const prerequisites = prerequisitesForStatus(newStatus);
     if (prerequisites.length === 0) {
       return false;
     }
 
-    const update: Partial<HelloAssoPaymentEntity> = { status: newStatus };
+    // Statut et cause dans le MÊME UPDATE : ils ne doivent jamais diverger.
+    const update: Partial<HelloAssoPaymentEntity> = { status: newStatus, statusSource };
+    if (args.helloAssoState) {
+      update.helloAssoLastState = args.helloAssoState;
+      update.helloAssoLastStateAt = new Date();
+    }
     if (typeof helloAssoPaymentId === 'number') {
       update.helloAssoPaymentId = String(helloAssoPaymentId);
     }

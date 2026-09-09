@@ -1,14 +1,19 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 import {
   HelloAssoPaymentEntity,
   HelloAssoPaymentStatus,
+  PaymentStatusSource,
 } from './entities/helloasso-payment.entity';
 import { HelloAssoDetailsService } from './helloasso-details.service';
 import { HelloAssoWebhookKeysService } from './helloasso-webhook-keys.service';
-import { mapHelloAssoState, prerequisitesForStatus } from './helloasso-state.util';
+import {
+  mapHelloAssoState,
+  prerequisitesForStatus,
+  recordHelloAssoState as recordState,
+} from './helloasso-state.util';
 import { verifyHelloAssoSignature } from './util/webhook-signature.util';
 import { NotificationService, type PushContent } from '../notifications/notification.service';
 
@@ -130,12 +135,12 @@ export class HelloAssoWebhookService {
       `handleWebhook: paymentId=${openDossardPaymentId} helloAssoPaymentId=${helloAssoPaymentId} state=${state}`,
     );
 
-    const mappedStatus = mapHelloAssoState(state);
-    if (!mappedStatus) {
-      this.logger.log(`handleWebhook: state=${state} maps to no-op`);
-      return { signatureValid: true, outcome: `noop_state:${state}` };
-    }
-
+    // La souscription HelloAsso est partenaire-wide : on reçoit des événements
+    // d'organisations liées à d'autres partenaires (cf. handleCashinComplianceEvent).
+    // On vérifie donc l'existence du paiement AVANT toute écriture — un
+    // `openDossardPaymentId` étranger écraserait sinon l'observabilité d'un
+    // paiement sans rapport, c'est-à-dire précisément le champ que le support
+    // doit pouvoir croire.
     const payment = await this.paymentRepo.findOne({ where: { id: openDossardPaymentId } });
     if (!payment) {
       this.logger.warn(
@@ -144,12 +149,33 @@ export class HelloAssoWebhookService {
       return { signatureValid: true, outcome: 'orphan_no_local_payment' };
     }
 
-    const updated = await this.applyStatusTransition({
+    const mappedStatus = mapHelloAssoState(state);
+    if (!mappedStatus) {
+      // État ignoré par le mapping (`Pending`, `WaitingAuthentication`,
+      // `Registered`…) : aucune transition, mais c'est précisément ce que le
+      // support cherche devant un paiement figé. On ne trace QUE sur ce chemin —
+      // les états mappés voient leur trace écrite par `applyStatusTransition`,
+      // dans le même UPDATE que le statut.
+      await recordState(this.paymentRepo, this.logger, payment.id, state);
+      this.logger.log(`handleWebhook: state=${state} maps to no-op`);
+      return { signatureValid: true, outcome: `noop_state:${state}` };
+    }
+
+    const transition = await this.applyStatusTransition({
       payment,
       newStatus: mappedStatus,
       helloAssoPaymentId,
       helloAssoOrderId: typeof orderId === 'number' ? orderId : undefined,
+      helloAssoState: state,
     });
+    const updated = transition === 'updated';
+
+    // Transition refusée (rejeu, ou transition non autorisée depuis l'état
+    // courant) : aucun UPDATE n'a eu lieu, or HelloAsso vient bel et bien de
+    // parler. On retombe sur la trace seule pour ne pas perdre l'information.
+    if (!updated) {
+      await recordState(this.paymentRepo, this.logger, payment.id, state);
+    }
 
     this.logger.log(
       `handleWebhook: paymentId=${payment.id} ${payment.status}→${mappedStatus} updated=${updated}`,
@@ -166,7 +192,9 @@ export class HelloAssoWebhookService {
       signatureValid: true,
       outcome: updated
         ? `transitioned:${payment.status}→${mappedStatus}`
-        : `noop_no_transition_from:${payment.status}`,
+        : transition === 'conflict'
+          ? `conflict_active_payment_exists:${payment.status}`
+          : `noop_no_transition_from:${payment.status}`,
     };
   }
 
@@ -239,18 +267,25 @@ export class HelloAssoWebhookService {
     newStatus: HelloAssoPaymentStatus;
     helloAssoPaymentId: number;
     helloAssoOrderId: number | undefined;
-  }): Promise<boolean> {
-    const { payment, newStatus, helloAssoPaymentId, helloAssoOrderId } = args;
+    helloAssoState: string;
+  }): Promise<'updated' | 'noop' | 'conflict'> {
+    const { payment, newStatus, helloAssoPaymentId, helloAssoOrderId, helloAssoState } = args;
 
     const prerequisites = prerequisitesForStatus(newStatus);
     if (prerequisites.length === 0) {
       this.logger.warn(`applyStatusTransition: ignore ${newStatus}, not found in existing states`);
-      return false;
+      return 'noop';
     }
 
     const update: Partial<HelloAssoPaymentEntity> = {
       status: newStatus,
       helloAssoPaymentId: String(helloAssoPaymentId),
+      // Tracées dans le MÊME UPDATE que le statut : une transition et sa cause
+      // ne doivent jamais pouvoir diverger, y compris si le process meurt entre
+      // deux écritures.
+      statusSource: PaymentStatusSource.HELLOASSO_WEBHOOK,
+      helloAssoLastState: helloAssoState,
+      helloAssoLastStateAt: new Date(),
     };
     if (typeof helloAssoOrderId === 'number') {
       update.helloAssoOrderId = String(helloAssoOrderId);
@@ -259,17 +294,55 @@ export class HelloAssoWebhookService {
       update.paidAt = new Date();
     }
 
-    const result = await this.paymentRepo
-      .createQueryBuilder()
-      .update(HelloAssoPaymentEntity)
-      .set(update)
-      .where('id = :id AND status IN (:...prerequisites)', {
-        id: payment.id,
-        prerequisites,
-      })
-      .execute();
+    let result: { affected?: number | null };
+    try {
+      result = await this.paymentRepo
+        .createQueryBuilder()
+        .update(HelloAssoPaymentEntity)
+        .set(update)
+        .where('id = :id AND status IN (:...prerequisites)', {
+          id: payment.id,
+          prerequisites,
+        })
+        .execute();
+    } catch (e: unknown) {
+      // Chemin ouvert par l'expiration : la ligne expirée a libéré le créneau de
+      // `UQ_helloasso_payment_active`, le coureur s'est réinscrit, puis
+      // l'`Authorized` tardif arrive sur l'ancienne ligne. `refused → paid` est
+      // autorisé et viole l'index unique.
+      //
+      // On répond 200 : rejouer le webhook ne réparerait rien et HelloAsso le
+      // rejouerait indéfiniment. Mais l'argent est engagé sur un paiement qui ne
+      // peut pas être marqué payé — seul un humain peut trancher, d'où le ERROR.
+      if (isUniqueViolation(e)) {
+        // Identifier la ligne qui bloque : sans elle, l'exploitant doit fouiller
+        // la base pour savoir QUOI arbitrer. C'est la seule information qui
+        // transforme cette alerte en action.
+        const blocking = await this.paymentRepo.findOne({
+          where: {
+            competitionId: payment.competitionId,
+            licenceId: payment.licenceId,
+            status: In([
+              HelloAssoPaymentStatus.PENDING,
+              HelloAssoPaymentStatus.PAID,
+              HelloAssoPaymentStatus.REFUNDING,
+            ]),
+          },
+        });
+        this.logger.error(
+          `ARBITRAGE REQUIS — paiement #${payment.id} autorisé chez HelloAsso ` +
+            `(state=${helloAssoState}, helloAssoPaymentId=${helloAssoPaymentId}) mais NON ` +
+            `enregistré : le créneau (competition=${payment.competitionId}, ` +
+            `licence=${payment.licenceId}) est occupé par le paiement #${blocking?.id ?? '?'} ` +
+            `(statut ${blocking?.status ?? 'inconnu'}). Argent encaissé sans engagement : ` +
+            `rembourser l'un des deux ou rapprocher les lignes.`,
+        );
+        return 'conflict';
+      }
+      throw e;
+    }
 
-    return (result.affected ?? 0) > 0;
+    return (result.affected ?? 0) > 0 ? 'updated' : 'noop';
   }
 }
 
@@ -306,4 +379,12 @@ function buildPaymentPushContent(
     default:
       return null;
   }
+}
+
+/**
+ * Violation de contrainte d'unicité PostgreSQL (SQLSTATE 23505). TypeORM
+ * enveloppe l'erreur du driver mais conserve le `code` du pilote `pg`.
+ */
+function isUniqueViolation(e: unknown): boolean {
+  return typeof e === 'object' && e !== null && (e as { code?: unknown }).code === '23505';
 }
