@@ -121,12 +121,58 @@ type ExportOptions = {
 };
 
 /**
+ * Ordre des exports : **catégorie de valeur, puis heure de paiement**.
+ *
+ * L'export ne réutilise pas les lignes triées à l'écran — il re-interroge le
+ * serveur par pages de 500 — donc l'ordre doit être imposé ici, sinon il dépend
+ * du tri par défaut du backend.
+ *
+ * `catev` (1, 2, 3…) et non `catea` : c'est la catégorie de valeur qui structure
+ * les courses et les onglets de l'écran. La catégorie d'âge est ignorée.
+ *
+ * Comparaison via `localeCompare` en mode `numeric` : elle range correctement
+ * « 2 » avant « 10 », là où une comparaison de chaînes ferait l'inverse, et
+ * accepte les valeurs non numériques (« C », « M ») sans exploser.
+ *
+ * Les lignes sans catégorie, comme celles sans date de paiement, vont **à la
+ * fin** de leur groupe : la liste se lit alors comme un ordre d'inscription
+ * effectif, et les cas à traiter se regroupent en bas.
+ */
+export function sortPaymentsForExport(rows: PaymentAdminRow[]): PaymentAdminRow[] {
+  // Copie : les lignes appelées ici sont susceptibles d'être réutilisées par
+  // l'appelant, `sort` mute en place.
+  return [...rows].sort((a, b) => compareCatev(a.catev, b.catev) || comparePaidAt(a.paidAt, b.paidAt));
+}
+
+/** Catégories absentes en dernier, sinon ordre naturel (2 avant 10). */
+function compareCatev(a: string | null, b: string | null): number {
+  if (!a && !b) {return 0;}
+  if (!a) {return 1;}
+  if (!b) {return -1;}
+  return a.localeCompare(b, 'fr', { numeric: true, sensitivity: 'base' });
+}
+
+/**
+ * Chronologique. Les non-payés (`pending`, `refused`) n'ont pas de date et
+ * ferment la marche de leur catégorie.
+ *
+ * Comparaison directe des chaînes ISO 8601 : leur ordre lexicographique EST
+ * l'ordre chronologique, inutile de construire des `Date`.
+ */
+function comparePaidAt(a: string | null, b: string | null): number {
+  if (!a && !b) {return 0;}
+  if (!a) {return 1;}
+  if (!b) {return -1;}
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
+/**
  * Export CSV (séparateur `;`, BOM UTF-8 pour Excel FR) de la liste des paiements.
  */
 export function exportPaymentsCsv(rows: PaymentAdminRow[], options: Omit<ExportOptions, 'title'>): void {
   const columns = columnsForScope(options.scope);
   const headerLine = columns.map(c => csvEscape(c.header)).join(';');
-  const dataLines = rows.map(row =>
+  const dataLines = sortPaymentsForExport(rows).map(row =>
     columns.map(c => csvEscape(c.accessor(row, 'csv'))).join(';'),
   );
   const csvContent = [headerLine, ...dataLines].join('\n');
@@ -155,7 +201,7 @@ export async function exportPaymentsPdf(rows: PaymentAdminRow[], options: Export
   const pageWidth = doc.internal.pageSize.getWidth();
   const generatedAt = new Date().toLocaleString('fr-FR');
 
-  const body = rows.map(row => columns.map(c => c.accessor(row, 'pdf')));
+  const body = sortPaymentsForExport(rows).map(row => columns.map(c => c.accessor(row, 'pdf')));
 
   autoTable(doc, {
     head: [columns.map(c => c.header)],
