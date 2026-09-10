@@ -22,7 +22,7 @@ interface QbMock {
   // captures pour assertions
   whereCalls: Array<{ sql: string; params?: Record<string, unknown> }>;
   orderByCalls: Array<{ sql: string; dir: string; nulls?: string }>;
-  addOrderByCalls: Array<{ sql: string; dir: string }>;
+  addOrderByCalls: Array<{ sql: string; dir: string; nulls?: string }>;
   paginationCalls: { offset?: number; limit?: number };
 }
 
@@ -46,8 +46,8 @@ function makeQbMock(rawRows: unknown[] = [], count = 0): QbMock {
     qb.orderByCalls.push({ sql, dir, nulls });
     return qb;
   });
-  qb.addOrderBy = jest.fn().mockImplementation((sql: string, dir: string) => {
-    qb.addOrderByCalls.push({ sql, dir });
+  qb.addOrderBy = jest.fn().mockImplementation((sql: string, dir: string, nulls?: string) => {
+    qb.addOrderByCalls.push({ sql, dir, nulls });
     return qb;
   });
   qb.offset = jest.fn().mockImplementation((n: number) => {
@@ -393,14 +393,39 @@ describe('HelloAssoPaymentsAdminService', () => {
       expect(qb.whereCalls.some(w => /p\.competition_id = :competitionId/.test(w.sql))).toBe(true);
     });
 
-    it('trie par catégorie de licence (l.catev) puis tie-breaker p.id, borné à 5000', async () => {
+    it('trie par catégorie, puis paid_at DESC (pending en fin), puis created_at DESC, borné à 5000', async () => {
       const qb = makeQbMock([]);
       const service = makeService(qb);
       await service.listCompetitionPayments(32);
 
       expect(qb.orderByCalls[0]).toEqual({ sql: 'l.catev', dir: 'ASC', nulls: 'NULLS LAST' });
-      expect(qb.addOrderByCalls[0]).toEqual({ sql: 'p.id', dir: 'ASC' });
+      expect(qb.addOrderByCalls[0]).toEqual({ sql: 'p.paid_at', dir: 'DESC', nulls: 'NULLS LAST' });
+      expect(qb.addOrderByCalls[1]).toEqual({ sql: 'p.created_at', dir: 'DESC' });
+      expect(qb.addOrderByCalls[2]).toEqual({ sql: 'p.id', dir: 'DESC' });
       expect(qb.paginationCalls.limit).toBe(5000);
+    });
+
+    it('expose created_at et paid_at dans le SELECT slim (filtre 15 min + tri mobile)', async () => {
+      const qb = makeQbMock([]);
+      const service = makeService(qb);
+      await service.listCompetitionPayments(32);
+
+      const selectCall = qb.select.mock.calls[0] as unknown[];
+      const cols = selectCall[0] as string[];
+      expect(cols.some(c => /p\.created_at\s+AS p_created_at/.test(c))).toBe(true);
+      expect(cols.some(c => /p\.paid_at\s+AS p_paid_at/.test(c))).toBe(true);
+    });
+
+    it('mappe paidAt à null pour un pending (paid_at NULL)', async () => {
+      const qb = makeQbMock([
+        makeRawRow({ p_status: HelloAssoPaymentStatus.PENDING, p_paid_at: null }),
+      ]);
+      const service = makeService(qb);
+      const res = await service.listCompetitionPayments(32);
+
+      expect(res[0].status).toBe('pending');
+      expect(res[0].paidAt).toBeNull();
+      expect(res[0].createdAt).toBe('2026-05-17T10:00:00.000Z');
     });
 
     it('mappe la ligne SLIM (montant en euros, colonnes licence)', async () => {
@@ -422,6 +447,8 @@ describe('HelloAssoPaymentsAdminService', () => {
           fede: 'FSGT',
           tarifId: 'Adulte',
           amount: 12.5,
+          createdAt: '2026-05-17T10:00:00.000Z',
+          paidAt: '2026-05-17T10:00:00.000Z',
         },
       ]);
     });

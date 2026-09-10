@@ -102,7 +102,10 @@ export class HelloAssoPaymentsAdminService {
    *  - pas de pagination (one-shot, borné par `COMPETITION_PAYMENTS_MAX`) ni de
    *    filtres serveur — le filtrage se fait côté client (comme la grille
    *    classement) ;
-   *  - tri par catégorie de valeur de la licence (`l.catev`), tie-breaker `p.id`.
+   *  - tri par catégorie de valeur de la licence (`l.catev`), puis au sein de
+   *    chaque catégorie les paiements aboutis du plus récent au plus ancien
+   *    (`p.paid_at DESC`), les `pending` (paid_at NULL) en fin de catégorie
+   *    triés par `p.created_at DESC` ; tie-breaker `p.id DESC`.
    */
   async listCompetitionPayments(competitionId: number): Promise<CompetitionPaymentDto[]> {
     const rows = await this.paymentRepo
@@ -114,6 +117,8 @@ export class HelloAssoPaymentsAdminService {
         'p.licence_id   AS p_licence_id',
         'p.tarif_id     AS p_tarif_id',
         'p.amount_cents AS p_amount_cents',
+        'p.created_at   AS p_created_at',
+        'p.paid_at      AS p_paid_at',
         'l.name         AS l_name',
         'l.first_name   AS l_first_name',
         'l.club         AS l_club',
@@ -127,7 +132,9 @@ export class HelloAssoPaymentsAdminService {
         statuses: [HelloAssoPaymentStatus.PAID, HelloAssoPaymentStatus.PENDING],
       })
       .orderBy('l.catev', 'ASC', 'NULLS LAST')
-      .addOrderBy('p.id', 'ASC')
+      .addOrderBy('p.paid_at', 'DESC', 'NULLS LAST')
+      .addOrderBy('p.created_at', 'DESC')
+      .addOrderBy('p.id', 'DESC')
       .limit(COMPETITION_PAYMENTS_MAX)
       .getRawMany<CompetitionPaymentRawRow>();
 
@@ -254,6 +261,8 @@ interface CompetitionPaymentRawRow {
   p_licence_id: number;
   p_tarif_id: string;
   p_amount_cents: number;
+  p_created_at: Date;
+  p_paid_at: Date | null;
   l_name: string | null;
   l_first_name: string | null;
   l_club: string | null;
@@ -277,6 +286,8 @@ function mapCompetitionPaymentRow(row: CompetitionPaymentRawRow): CompetitionPay
     fede: row.l_fede,
     tarifId: row.p_tarif_id,
     amount: row.p_amount_cents / 100,
+    createdAt: row.p_created_at.toISOString(),
+    paidAt: row.p_paid_at?.toISOString() ?? null,
   };
 }
 
