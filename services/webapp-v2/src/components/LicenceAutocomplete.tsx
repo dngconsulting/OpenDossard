@@ -5,6 +5,7 @@ import { PaymentSummaryBadge } from '@/components/common/PaymentSummaryBadge';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useSearchLicences } from '@/hooks/useSearchLicences';
 import { cn } from '@/lib/utils';
 import type { LicenceType } from '@/types/licences';
@@ -126,9 +127,16 @@ function LicenceItem({
               <CreditCard className="h-3 w-3" />
               {licence.licenceNumber || 'N/A'}
               {licence.comment && (
-                <span title={licence.comment}>
-                  <MessageCircle className="h-3 w-3 text-amber-500 fill-amber-500" />
-                </span>
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger asChild>
+                    <span className="cursor-help">
+                      <MessageCircle className="h-3 w-3 text-amber-500 fill-amber-500" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-md text-2xl leading-tight">{licence.comment}</p>
+                  </TooltipContent>
+                </Tooltip>
               )}
             </span>
           </div>

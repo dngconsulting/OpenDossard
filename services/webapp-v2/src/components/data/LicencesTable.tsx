@@ -189,13 +189,15 @@ export const LicencesDataTable = ({ getEditHref, onDelete }: LicenceTableProps) 
         const comment = row.original.comment;
         if (!comment) {return <span className="block text-center text-muted-foreground">-</span>;}
         return (
-          <Tooltip>
+          <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
-              <span className="block text-center cursor-pointer">
+              <span className="block text-center cursor-help">
                 <MessageCircle className="inline h-4 w-4 text-primary" />
               </span>
             </TooltipTrigger>
-            <TooltipContent className="max-w-xs">{comment}</TooltipContent>
+            <TooltipContent>
+              <p className="max-w-md text-2xl leading-tight">{comment}</p>
+            </TooltipContent>
           </Tooltip>
         );
       },

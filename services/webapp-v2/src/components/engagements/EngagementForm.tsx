@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { getCatevOptions, type CompetitionType } from '@/config/federations';
 import { useEngage } from '@/hooks/useRaces';
 import { cn } from '@/lib/utils';
@@ -323,18 +323,16 @@ export function EngagementForm({
               </Badge>
             </span>
             {selectedLicence.comment && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="flex items-center gap-1.5 cursor-help">
-                      <MessageCircle className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-xs">{selectedLicence.comment}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip delayDuration={0}>
+                <TooltipTrigger asChild>
+                  <span className="flex items-center gap-1.5 cursor-help">
+                    <MessageCircle className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-md text-2xl leading-tight">{selectedLicence.comment}</p>
+                </TooltipContent>
+              </Tooltip>
             )}
             {selectedLicence.helloAssoPayment && (
               <PaymentSummaryBadge payment={selectedLicence.helloAssoPayment} />
