@@ -1,4 +1,13 @@
-import { Controller, Get, Header, Param, ParseIntPipe, Query, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Header,
+  Param,
+  ParseIntPipe,
+  Query,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 
@@ -36,6 +45,25 @@ export class PdfReportsController {
     res.end(pdfBuffer);
   }
 
+  @Get('classements/:id')
+  @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
+  @Header('Content-Type', 'application/pdf')
+  @ApiOperation({ summary: 'Generate classements PDF (all races) for a competition' })
+  @ApiResponse({ status: 200, description: 'PDF file' })
+  @ApiResponse({ status: 404, description: 'Competition not found' })
+  async exportClassements(
+    @Param('id', ParseIntPipe) id: number,
+    @Res() res: Response,
+  ): Promise<void> {
+    const pdfBuffer = await this.pdfReportsService.generateClassementsPDF(id);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="classements_${id}.pdf"`,
+      'Content-Length': pdfBuffer.length,
+    });
+    res.end(pdfBuffer);
+  }
+
   @Get('licences')
   @Roles(Role.ADMIN, Role.ORGANISATEUR)
   @Header('Content-Type', 'application/pdf')
@@ -59,10 +87,7 @@ export class PdfReportsController {
   @Header('Content-Type', 'application/pdf')
   @ApiOperation({ summary: 'Export filtered clubs as PDF' })
   @ApiResponse({ status: 200, description: 'PDF file' })
-  async exportClubsPDF(
-    @Query() filterDto: FilterClubDto,
-    @Res() res: Response,
-  ): Promise<void> {
+  async exportClubsPDF(@Query() filterDto: FilterClubDto, @Res() res: Response): Promise<void> {
     const pdfBuffer = await this.pdfReportsService.generateClubsPDF(filterDto);
     res.set({
       'Content-Type': 'application/pdf',
