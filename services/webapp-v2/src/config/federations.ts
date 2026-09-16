@@ -233,16 +233,28 @@ export const getCateaOptions = (fede: string, gender: string) => {
 };
 
 /**
- * Libellés dynamiques pour info1/info2 selon la fédération
+ * Libellés dynamiques pour info1/info2 selon la fédération (et le type
+ * d'épreuve : en cyclo-cross, la 2e info est une distance ou une durée).
  */
 export const getCompetitionInfoLabels = (
   fede: string,
+  competitionType?: string,
 ): {
   info1Label: string;
   info1Placeholder: string;
   info2Label: string;
   info2Placeholder: string;
 } => {
+  // Un cyclo-cross se court en tours, sur une distance ou une durée, quelle
+  // que soit la fédération.
+  if (competitionType === 'CX') {
+    return {
+      info1Label: 'Tours',
+      info1Placeholder: 'ex: 6',
+      info2Label: 'Distance/Temps',
+      info2Placeholder: 'ex: 40 min',
+    };
+  }
   switch (fede) {
     case FedeEnum.FSGT:
     case FedeEnum.UFOLEP:
