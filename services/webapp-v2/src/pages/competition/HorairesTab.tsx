@@ -37,7 +37,11 @@ import type { FormValues } from './types';
 export function HorairesTab() {
   const form = useFormContext<FormValues>();
   const fede = form.watch('fede');
-  const { info1Label, info1Placeholder, info2Label, info2Placeholder } = getCompetitionInfoLabels(fede);
+  const competitionType = form.watch('competitionType');
+  const { info1Label, info1Placeholder, info2Label, info2Placeholder } = getCompetitionInfoLabels(
+    fede,
+    competitionType,
+  );
 
   const [horaireForm, setHoraireForm] = useState<CompetitionInfoItem>({
     course: '',

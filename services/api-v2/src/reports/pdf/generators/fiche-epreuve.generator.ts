@@ -2,6 +2,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { JSDOM } from 'jsdom';
 
+import { CompetitionType } from '../../../common/enums';
 import { CompetitionEntity } from '../../../competitions/entities/competition.entity';
 import { capitalize, formatDateFr } from './pdf-format.utils';
 import { addLogoToPdf, loadLogoAsDataUrl, loadOpenDossardLogo } from './pdf-logo.utils';
@@ -436,9 +437,25 @@ export function generateFicheEpreuvePDF(competition: CompetitionEntity): Buffer 
   let catTableY = fedeLineY + 6;
 
   if (competition.competitionInfo && competition.competitionInfo.length > 0) {
+    // En cyclo-cross, la 2e info est une distance ou une durée saisie librement :
+    // on l'affiche telle quelle, sans la reformater en km.
+    const isCX = competition.competitionType === CompetitionType.CX;
+    const formatInfo2 = (info2: string | undefined): string => {
+      if (!info2) return '';
+      if (isCX) return info2;
+      return isNaN(parseFloat(info2)) ? '' : `${Math.round(parseFloat(info2))} km`;
+    };
     autoTable(doc, {
       startY: catTableY,
-      head: [['Catégorie', 'Heure dossards', 'Heure départ', 'Nombre de tours', 'Total kms']],
+      head: [
+        [
+          'Catégorie',
+          'Heure dossards',
+          'Heure départ',
+          'Nombre de tours',
+          isCX ? 'Dist./Temps' : 'Total kms',
+        ],
+      ],
       headStyles: {
         fontSize: 10,
         fontStyle: 'bold',
@@ -468,7 +485,7 @@ export function generateFicheEpreuvePDF(competition: CompetitionEntity): Buffer 
         ci.horaireEngagement || '',
         ci.horaireDepart || '',
         ci.info1 || '',
-        ci.info2 && !isNaN(parseFloat(ci.info2)) ? `${Math.round(parseFloat(ci.info2))} km` : '',
+        formatInfo2(ci.info2),
       ]),
       margin: { left: margin, right: margin },
       styles: { valign: 'middle', fillColor: [255, 255, 255], textColor: [0, 0, 0] },
