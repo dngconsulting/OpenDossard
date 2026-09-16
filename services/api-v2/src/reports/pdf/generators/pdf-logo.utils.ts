@@ -37,7 +37,9 @@ function readPngDimensions(buffer: Buffer): { width: number; height: number } {
   };
 }
 
-function loadPngAsDataUrl(filePath: string): { dataUrl: string; width: number; height: number } | null {
+function loadPngAsDataUrl(
+  filePath: string,
+): { dataUrl: string; width: number; height: number } | null {
   if (!fs.existsSync(filePath)) {
     logger.warn(`Image not found: ${filePath}`);
     return null;
@@ -68,7 +70,12 @@ export function loadOpenDossardLogo(): OpenDossardLogoResult {
   const result = loadPngAsDataUrl(path.join(getAssetsDir(), 'od-blue.png'));
   if (!result) return null;
 
-  return { dataUrl: result.dataUrl, width: result.width, height: result.height, ratio: result.width / result.height };
+  return {
+    dataUrl: result.dataUrl,
+    width: result.width,
+    height: result.height,
+    ratio: result.width / result.height,
+  };
 }
 
 export function addLogoToPdf(
@@ -86,4 +93,21 @@ export function addLogoToPdf(
       logger.error('Failed to add logo to PDF', error);
     }
   }
+}
+
+export type TrophyIcons = {
+  gold: string | null;
+  silver: string | null;
+  bronze: string | null;
+};
+
+/** Data URLs PNG des trophées or/argent/bronze (null si l'asset manque). */
+export function loadTrophyIcons(): TrophyIcons {
+  const load = (name: string): string | null =>
+    loadPngAsDataUrl(path.join(getAssetsDir(), name))?.dataUrl ?? null;
+  return {
+    gold: load('trophy-gold.png'),
+    silver: load('trophy-silver.png'),
+    bronze: load('trophy-bronze.png'),
+  };
 }

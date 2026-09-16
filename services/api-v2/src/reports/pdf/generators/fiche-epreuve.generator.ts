@@ -3,6 +3,7 @@ import autoTable from 'jspdf-autotable';
 import { JSDOM } from 'jsdom';
 
 import { CompetitionEntity } from '../../../competitions/entities/competition.entity';
+import { capitalize, formatDateFr } from './pdf-format.utils';
 import { addLogoToPdf, loadLogoAsDataUrl, loadOpenDossardLogo } from './pdf-logo.utils';
 
 const COMPETITION_TYPE_LABELS: Record<string, string> = {
@@ -12,31 +13,6 @@ const COMPETITION_TYPE_LABELS: Record<string, string> = {
   GRAVEL: 'Gravel',
   RANDO: 'Randonnée',
 };
-
-function formatDateFr(dateStr: string | Date): string {
-  const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
-  const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
-  const months = [
-    'janvier',
-    'février',
-    'mars',
-    'avril',
-    'mai',
-    'juin',
-    'juillet',
-    'août',
-    'septembre',
-    'octobre',
-    'novembre',
-    'décembre',
-  ];
-
-  return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
-}
-
-function capitalize(str: string): string {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
 
 function drawField(
   doc: jsPDF,
