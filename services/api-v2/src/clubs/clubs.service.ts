@@ -14,6 +14,17 @@ import { PaginatedResponseDto } from '../common/dto/pagination.dto';
 import { FilterClubDto } from './dto/filter-club.dto';
 import { UpdateClubDto } from './dto/update-club.dto';
 
+/** Colonnes brutes de la liste paginée (`club_id` = alias TypeORM de `club.id`). */
+interface ClubListRawRow {
+  club_id: number;
+  ha_linked_at: Date | null;
+  ha_expires_at: Date | null;
+  organizer: boolean;
+}
+
+const toIso = (value: Date | null | undefined): string | null =>
+  value ? value.toISOString() : null;
+
 @Injectable()
 export class ClubsService {
   private readonly logger = new Logger(ClubsService.name);
@@ -86,9 +97,36 @@ export class ClubsService {
   async findAllPaginated(filterDto: FilterClubDto): Promise<PaginatedResponseDto<ClubEntity>> {
     const { offset = 0, limit = 20 } = filterDto;
     const qb = this.buildFilteredQuery(filterDto);
-    qb.skip(offset).take(limit);
-    const [data, total] = await qb.getManyAndCount();
-    return new PaginatedResponseDto(data, total, offset, limit);
+    // La count query réécrit de toute façon le SELECT ; l'ordre ne compte que
+    // pour la lisibilité.
+    const total = await qb.getCount();
+
+    // Champs calculés exposés par la liste paginée, en sous-requêtes scalaires :
+    // pas de join (voir buildFilteredQuery), une ligne raw par entité corrélée
+    // par l'id. Les deux sous-requêtes sur helloasso_details ne renvoient au
+    // plus qu'une ligne grâce à l'index unique sur club_id.
+    qb.addSelect(
+      '(SELECT d.linked_at FROM helloasso_details d WHERE d.club_id = club.id)',
+      'ha_linked_at',
+    )
+      .addSelect(
+        '(SELECT d.refresh_token_expires_at FROM helloasso_details d WHERE d.club_id = club.id)',
+        'ha_expires_at',
+      )
+      .addSelect('EXISTS (SELECT 1 FROM competition c WHERE c.club_id = club.id)', 'organizer')
+      .skip(offset)
+      .take(limit);
+
+    const { entities, raw } = await qb.getRawAndEntities<ClubListRawRow>();
+    const rawById = new Map(raw.map(r => [r.club_id, r]));
+    for (const club of entities) {
+      const r = rawById.get(club.id);
+      club.helloAssoLinkedAt = toIso(r?.ha_linked_at);
+      club.helloAssoRefreshTokenExpiresAt = toIso(r?.ha_expires_at);
+      club.organizer = r?.organizer === true;
+    }
+
+    return new PaginatedResponseDto(entities, total, offset, limit);
   }
 
   async findForExport(filterDto: FilterClubDto): Promise<ClubEntity[]> {
@@ -124,6 +162,8 @@ export class ClubsService {
       fede,
       longName,
       elicenceName,
+      helloAsso,
+      organizer,
     } = filterDto;
 
     const qb = this.clubRepository.createQueryBuilder('club');
@@ -141,6 +181,21 @@ export class ClubsService {
     if (fede) this.applyFilter(qb, 'fede', fede, { multiValue: true, cast: 'text' });
     if (longName) this.applyFilter(qb, 'longName', longName);
     if (elicenceName) this.applyFilter(qb, 'elicenceName', elicenceName);
+
+    // Liaison HelloAsso : la ligne `helloasso_details` fait foi (expirée ou
+    // non), pas le slug de la fiche club. Postgres réécrit ces EXISTS en
+    // semi/anti-join hashés (un seul scan par table). Aucun join → la
+    // pagination skip/take reste un LIMIT/OFFSET plat (TypeORM passerait sinon
+    // en requête DISTINCT en deux temps).
+    if (helloAsso === 'linked') {
+      qb.andWhere('EXISTS (SELECT 1 FROM helloasso_details d WHERE d.club_id = club.id)');
+    } else if (helloAsso === 'unlinked') {
+      qb.andWhere('NOT EXISTS (SELECT 1 FROM helloasso_details d WHERE d.club_id = club.id)');
+    }
+    // Organisateur = au moins une épreuve rattachée, passée ou à venir.
+    if (organizer) {
+      qb.andWhere('EXISTS (SELECT 1 FROM competition c WHERE c.club_id = club.id)');
+    }
 
     const validOrderFields = ['id', 'shortName', 'longName', 'dept', 'fede', 'elicenceName'];
     const orderField = validOrderFields.includes(orderBy) ? orderBy : 'shortName';

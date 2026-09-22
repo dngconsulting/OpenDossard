@@ -49,4 +49,25 @@ export class ClubEntity {
   @ApiPropertyOptional()
   @Column({ name: 'last_changed', type: 'timestamp', nullable: true })
   lastChanged: Date;
+
+  // Champs calculés par ClubsService.findAllPaginated (liste du backoffice),
+  // NON persistés : sous-requêtes sur helloasso_details et competition.
+  // Absents des autres lectures (findOne, legacy…).
+  @ApiPropertyOptional({
+    description:
+      'Date de liaison HelloAsso (ISO). null = club non lié. Calculé, liste paginée uniquement.',
+  })
+  helloAssoLinkedAt?: string | null;
+
+  @ApiPropertyOptional({
+    description:
+      "Expiration du refresh token HelloAsso (ISO). Passée = liaison expirée, l'admin doit repasser par la mire. Calculé, liste paginée uniquement.",
+  })
+  helloAssoRefreshTokenExpiresAt?: string | null;
+
+  @ApiPropertyOptional({
+    description:
+      'true si le club a au moins une épreuve (passée ou à venir). Calculé, liste paginée uniquement.',
+  })
+  organizer?: boolean;
 }
