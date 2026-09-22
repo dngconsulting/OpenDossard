@@ -49,11 +49,13 @@ export class UserEntity {
   signInProvider?: string | null;
 
   // Dates persistées, exploitées dans le backoffice pour les users Open Dossard.
-  // `created_at` est posé par @CreateDateColumn sur TOUT nouvel insert (y compris
-  // un signup Firebase via auth-firebase), donc non-NULL pour les comptes créés
-  // après cette migration ; NULL pour les comptes antérieurs. L'onglet Dossardeur
-  // n'affiche toutefois pas ces colonnes : il utilise les métadonnées Firebase
-  // transientes ci-dessous (creationTime/lastSignInTime).
+  // `created_at` est rempli par le `DEFAULT now()` de la colonne en base
+  // (migration 1785), PAS par TypeORM : `@CreateDateColumn` envoie le mot-clé
+  // `DEFAULT` à l'INSERT et s'en remet au schéma. Non-NULL pour tout compte créé
+  // après cette migration (y compris un signup Firebase via auth-firebase) ;
+  // NULL pour les comptes antérieurs. L'onglet Dossardeur n'affiche toutefois
+  // pas ces colonnes : il utilise les métadonnées Firebase transientes
+  // ci-dessous (creationTime/lastSignInTime).
   @ApiPropertyOptional()
   @CreateDateColumn({ name: 'created_at', type: 'timestamp', nullable: true })
   createdAt?: Date | null;
