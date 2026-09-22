@@ -71,9 +71,10 @@ const formSchema = z.object({
       val => {
         const year = parseInt(val, 10);
         const age = currentYear - year;
-        return age >= 4 && age <= 130;
+        // 3 ans = plus jeune catégorie (Puceron).
+        return age >= 3 && age <= 130;
       },
-      { message: `L'année doit être entre ${currentYear - 130} et ${currentYear - 4}` }
+      { message: `L'année doit être entre ${currentYear - 130} et ${currentYear - 3}` }
     ),
   catea: z.string().optional(),
   catev: z.string().optional(),

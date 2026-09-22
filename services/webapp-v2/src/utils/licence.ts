@@ -1,6 +1,7 @@
 import { getCateaOptions } from '@/config/federations';
 
 const AGE_CATEGORIES = [
+  { min: 3, max: 4, code: 'PUC' },
   { min: 5, max: 6, code: 'MO' },
   { min: 7, max: 8, code: 'PO' },
   { min: 9, max: 10, code: 'PU' },

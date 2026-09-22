@@ -87,6 +87,7 @@ const CATEA_FSGT: CategoryAge[] = [
   { label: 'Pupille', value: 'PU', gender: 'H' },
   { label: 'Poussin', value: 'PO', gender: 'H' },
   { label: 'Moustic', value: 'MO', gender: 'H' },
+  { label: 'Puceron', value: 'PUC', gender: 'H' },
   { label: 'NC', value: 'NC', gender: 'H' },
   // Femmes
   { label: 'Féminine super ancien', value: 'FSA', gender: 'F' },
@@ -102,6 +103,7 @@ const CATEA_FSGT: CategoryAge[] = [
   { label: 'Féminine pupille', value: 'FPU', gender: 'F' },
   { label: 'Féminine poussin', value: 'FPO', gender: 'F' },
   { label: 'Féminine moustic', value: 'FMO', gender: 'F' },
+  { label: 'Féminine puceron', value: 'FPUC', gender: 'F' },
   { label: 'NC', value: 'NC', gender: 'F' },
 ];
 
@@ -132,7 +134,12 @@ const CATEA_UFOLEP: CategoryAge[] = [
 export const FEDERATIONS: Record<FedeEnum, Federation> = {
   [FedeEnum.FSGT]: {
     name: { label: 'FSGT', value: FedeEnum.FSGT },
-    catev: [...CATEV_BASE],
+    // Puceron (3-4 ans) : catégorie FSGT uniquement, d'où l'ajout ici et non
+    // dans CATEV_BASE (partagé avec FFTRI et FFVELO).
+    catev: [
+      ...CATEV_BASE,
+      { label: 'Puceron', value: 'PUC', competitionTypes: ALL_COMPETITION_TYPES },
+    ],
     catea: CATEA_FSGT,
   },
   [FedeEnum.UFOLEP]: {
@@ -297,7 +304,7 @@ export const FIELD_HELPER_TEXTS = {
     FFC: 'En majuscule, ne pas utiliser de caractères accentués',
     default: 'Première lettre en majuscule, puis le reste en minuscule',
   },
-  birthYear: `Année entre ${new Date().getFullYear() - 130} et ${new Date().getFullYear() - 4}`,
+  birthYear: `Année entre ${new Date().getFullYear() - 130} et ${new Date().getFullYear() - 3}`,
   dept: '',
   saison: 'Année de la saison sportive (ex: 2025)',
   catea: "Sélectionnez d'abord un genre et une année de naissance",

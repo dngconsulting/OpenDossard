@@ -39,7 +39,9 @@ export function computeCateaFromBirthYear(birthYear: string, gender: string): st
   const age = new Date().getFullYear() - parseInt(birthYear, 10);
   let catea = gender === 'F' ? 'F' : '';
 
-  if (age >= 5 && age <= 6) catea += 'MO';
+  // Pucerons : enfants de 3 et 4 ans (catégorie FSGT ajoutée en 2026).
+  if (age >= 3 && age <= 4) catea += 'PUC';
+  else if (age >= 5 && age <= 6) catea += 'MO';
   else if (age >= 7 && age <= 8) catea += 'PO';
   else if (age >= 9 && age <= 10) catea += 'PU';
   else if (age >= 11 && age <= 12) catea += 'B';
