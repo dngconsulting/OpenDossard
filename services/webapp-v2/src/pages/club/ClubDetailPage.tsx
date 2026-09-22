@@ -1,6 +1,7 @@
 import {
   AlertCircle,
   ArrowLeft,
+  CalendarDays,
   ChevronRight,
   ExternalLink,
   Heart,
@@ -18,7 +19,7 @@ import { HelloAssoUnlinkButton } from '@/components/HelloAssoUnlinkButton';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAccessibleClubs, useClub } from '@/hooks/useClubs';
+import { useAccessibleClubs, useClub, useClubReferences } from '@/hooks/useClubs';
 import { useHelloAssoStatus } from '@/hooks/useHelloAssoAuth';
 import type { ClubType } from '@/types/clubs';
 
@@ -29,6 +30,7 @@ export default function ClubDetailPage() {
   const clubId = id ? parseInt(id, 10) : undefined;
 
   const { data: club, isLoading } = useClub(clubId);
+  const { data: references } = useClubReferences(clubId);
   const { data: helloAssoStatus } = useHelloAssoStatus(clubId);
   const { canEditClub, isLoading: isLoadingScope } = useAccessibleClubs();
   // Hors scope = on connaît le scope ET il ne contient pas ce club. Pendant
@@ -50,6 +52,13 @@ export default function ClubDetailPage() {
   const isHelloAssoCashInBlocked =
     helloAssoStatus?.linked === true && helloAssoStatus.isCashInCompliant === false;
   const [isPending, setIsPending] = useState(false);
+  // Lien vers les épreuves du club, uniquement s'il en organise : la page
+  // compétitions filtre par nom de club (`club=` = ILIKE sur longName) et le
+  // paramètre force le mode « Toutes » (voir CompetitionsPage).
+  const competitionCount = references?.competitionCount ?? 0;
+  const competitionsHref = club
+    ? `/competitions?${new URLSearchParams({ club: club.longName }).toString()}`
+    : undefined;
 
   const handleSuccess = (created?: ClubType) => {
     if (isCreating && created) {
@@ -225,6 +234,16 @@ export default function ClubDetailPage() {
         onPendingChange={setIsPending}
         readOnly={isLinkedToHelloAsso || isOutOfScope}
       />
+      {competitionsHref && competitionCount > 0 && (
+        <div className="mt-6">
+          <Button asChild variant="link" className="px-0">
+            <Link to={competitionsHref}>
+              <CalendarDays className="h-4 w-4" />
+              Liste des compétitions organisées par ce club ({competitionCount})
+            </Link>
+          </Button>
+        </div>
+      )}
       <LastModificationInfo author={club?.author} lastChanged={club?.lastChanged} className="mt-6" />
     </Layout>
   );

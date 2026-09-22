@@ -36,6 +36,9 @@ export default function CompetitionsPage() {
     if (initialized.current) {return;}
     initialized.current = true;
     if (searchParams.has('startDate') || searchParams.has('endDate') || searchParams.has('fedes')) {return;}
+    // Lien profond depuis la fiche club (`?club=…`) : on veut TOUTES les
+    // épreuves du club, pas le preset sauvegardé ni « Futures » par défaut.
+    if (searchParams.has('club')) {return;}
 
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {

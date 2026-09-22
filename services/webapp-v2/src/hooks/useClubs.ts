@@ -207,11 +207,12 @@ export function useClub(id: number | undefined) {
   });
 }
 
+/** Compteurs d'usage d'un club (épreuves, licences, engagements). */
 export function useClubReferences(id: number | undefined) {
   return useQuery({
-    queryKey: clubsKeys.references(id!),
-    queryFn: () => clubsApi.getReferences(id!),
-    enabled: false,
+    queryKey: clubsKeys.references(id ?? 0),
+    queryFn: () => clubsApi.getReferences(id ?? 0),
+    enabled: id !== undefined,
   });
 }
 
