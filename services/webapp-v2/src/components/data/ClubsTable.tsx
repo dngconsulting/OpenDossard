@@ -1,3 +1,4 @@
+import { HelloAssoLinkCell } from '@/components/clubs/HelloAssoLinkCell';
 import { DataTable } from '@/components/ui/data-table';
 import { DEPT_FILTER_OPTIONS, FEDE_FILTER_OPTIONS } from '@/config/federations';
 import { useAccessibleClubs } from '@/hooks/useClubs';
@@ -21,6 +22,16 @@ const columns: ColumnDef<ClubType>[] = [
     accessorKey: 'dept',
     header: 'Dépt.',
     size: 80,
+  },
+  {
+    id: 'ha',
+    header: 'HA',
+    size: 60,
+    // Pas de tri ni de filtre colonne : les filtres HA sont dans la barre
+    // dédiée (ClubsHelloAssoFilters), le tri n'a pas de sens sur un logo.
+    enableSorting: false,
+    enableColumnFilter: false,
+    cell: ({ row }) => <HelloAssoLinkCell club={row.original} />,
   },
   {
     accessorKey: 'shortName',

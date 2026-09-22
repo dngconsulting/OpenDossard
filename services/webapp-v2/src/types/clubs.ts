@@ -8,7 +8,16 @@ export type ClubType = {
   helloAssoSlug: string | null;
   author?: string | null;
   lastChanged?: string | null;
+  // Champs calculés par GET /clubs (liste paginée uniquement).
+  /** Date de liaison HelloAsso (ISO). null/absent = club non lié. */
+  helloAssoLinkedAt?: string | null;
+  /** Expiration du refresh token HelloAsso (ISO). Passée = liaison expirée. */
+  helloAssoRefreshTokenExpiresAt?: string | null;
+  /** true si le club a au moins une épreuve, passée ou à venir. */
+  organizer?: boolean;
 };
+
+export type HelloAssoLinkFilter = 'linked' | 'unlinked';
 
 export type UpdateClubInput = {
   shortName?: string | null;
@@ -25,7 +34,13 @@ export type ClubReferences = {
   competitionCount: number;
 };
 
-export type ClubFilters = Partial<Record<keyof ClubType, string>>;
+/**
+ * Clés de filtre serveur de la page clubs : les colonnes filtrables + 2 filtres
+ * hors colonne. Valeurs toujours en chaîne (URL) : `organizer` vaut `'true'`
+ * ou est absent, `helloAsso` vaut `'linked'` | `'unlinked'` ou est absent.
+ */
+export type ClubFilterKey = keyof ClubType | 'helloAsso' | 'organizer';
+export type ClubFilters = Partial<Record<ClubFilterKey, string>>;
 
 export type ClubPaginationParams = {
   offset?: number;

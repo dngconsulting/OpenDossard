@@ -2,6 +2,7 @@ import { FileSpreadsheet, FileText, Loader2, MoreHorizontal, Plus } from 'lucide
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { ClubsHelloAssoFilters } from '@/components/clubs/ClubsHelloAssoFilters';
 import { ClubsTable } from '@/components/data/ClubsTable';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,7 @@ import {
 import { useClubsPaginated, useDeleteClub } from '@/hooks/useClubs';
 import { useExportClubsCSV } from '@/hooks/useExportClubsCSV';
 import { useExportClubsPDF } from '@/hooks/useExportClubsPDF';
-import type { ClubType } from '@/types/clubs';
+import type { ClubFilterKey, ClubType } from '@/types/clubs';
 import { showSuccessToast } from '@/utils/error-handler/error-handler';
 
 export default function ClubsPage() {
@@ -135,13 +136,14 @@ export default function ClubsPage() {
 
   return (
     <Layout title="Clubs" toolbarLeft={toolbarLeft} toolbar={toolbar}>
-      <div className="flex gap-2 w-full justify-between items-center mb-4">
+      <div className="flex flex-wrap gap-2 w-full justify-between items-center mb-4">
         <DebouncedSearchInput
           value={searchInput}
           onValueChange={setSearchInput}
           onSearch={setSearch}
           placeholder="Rechercher un club..."
         />
+        <ClubsHelloAssoFilters filters={params.filters ?? {}} onFilterChange={setFilter} />
       </div>
       <ClubsTable
         clubs={clubs}
@@ -159,7 +161,7 @@ export default function ClubsPage() {
           onSortChange: setSort,
         }}
         serverFilters={(params.filters as Record<string, string>) || {}}
-        onFilterChange={(columnId, value) => setFilter(columnId as keyof ClubType, value)}
+        onFilterChange={(columnId, value) => setFilter(columnId as ClubFilterKey, value)}
         getEditClubHref={getEditClubHref}
         onDeleteClub={handleDeleteClub}
       />

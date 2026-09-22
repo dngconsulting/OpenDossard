@@ -6,13 +6,22 @@ import { clubsApi } from '@/api/clubs.api';
 import useUserStore from '@/store/UserStore';
 import type {
   ClubType,
+  ClubFilterKey,
   ClubPaginationParams,
   ClubFilters,
   UpdateClubInput,
   AccessibleClubsScope,
 } from '@/types/clubs';
 
-const FILTER_KEYS: (keyof ClubType)[] = ['shortName', 'dept', 'fede', 'longName', 'elicenceName'];
+const FILTER_KEYS: ClubFilterKey[] = [
+  'shortName',
+  'dept',
+  'fede',
+  'longName',
+  'elicenceName',
+  'helloAsso',
+  'organizer',
+];
 
 export const clubsKeys = {
   all: ['clubs'] as const,
@@ -22,6 +31,17 @@ export const clubsKeys = {
   references: (id: number) => ['clubs', id, 'references'] as const,
   accessibleScope: ['clubs', 'me', 'accessible'] as const,
 };
+
+/**
+ * Les deux filtres hors colonne ont un domaine fermé côté API (400 sinon) :
+ * une URL éditée à la main ne doit pas produire une liste vide avec une barre
+ * de filtres qui affiche « Tous ». Les filtres colonne restent libres.
+ */
+function isValidFilterValue(key: ClubFilterKey, value: string): boolean {
+  if (key === 'helloAsso') {return value === 'linked' || value === 'unlinked';}
+  if (key === 'organizer') {return value === 'true';}
+  return true;
+}
 
 function parseUrlParams(searchParams: URLSearchParams): ClubPaginationParams {
   const offset = searchParams.get('offset');
@@ -33,7 +53,7 @@ function parseUrlParams(searchParams: URLSearchParams): ClubPaginationParams {
   const filters: ClubFilters = {};
   FILTER_KEYS.forEach(key => {
     const value = searchParams.get(key);
-    if (value) {filters[key] = value;}
+    if (value && isValidFilterValue(key, value)) {filters[key] = value;}
   });
 
   return {
@@ -111,7 +131,7 @@ export function useClubsPaginated() {
   );
 
   const setFilter = useCallback(
-    (key: keyof ClubType, value: string) => {
+    (key: ClubFilterKey, value: string) => {
       const newFilters = { ...params.filters, [key]: value || undefined };
       const cleanFilters = Object.fromEntries(
         Object.entries(newFilters).filter(([, v]) => v),
