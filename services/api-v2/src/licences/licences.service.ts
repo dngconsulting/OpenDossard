@@ -10,6 +10,7 @@ import {
   UpdateLicenceDto,
 } from './dto';
 import { PaginatedResponseDto } from '../common/dto';
+import { Federation } from '../common/enums';
 
 @Injectable()
 export class LicencesService {
@@ -338,6 +339,7 @@ export class LicencesService {
       author,
       lastChanged: new Date(),
     });
+    this.applyNonLicencieRule(licence);
     const saved = await this.licenceRepository.save(licence);
     this.logger.log(
       `Création de la licence #${saved.id} par ${author ?? 'inconnu'} | ` +
@@ -362,17 +364,34 @@ export class LicencesService {
       author,
       lastChanged: new Date(),
     });
+    this.applyNonLicencieRule(licence);
 
     const saved = await this.licenceRepository.save(licence);
     const fields = Object.keys(updateLicenceDto)
       .filter(k => (updateLicenceDto as Record<string, unknown>)[k] !== undefined)
-      .map(k => `${k}: ${(updateLicenceDto as Record<string, unknown>)[k]}`)
+      .map(k => `${k}: ${String((updateLicenceDto as Record<string, unknown>)[k])}`)
       .join(' | ');
     this.logger.log(
       `Mise à jour de la licence #${id} par ${author ?? 'inconnu'} | ` +
         `${saved.name} ${saved.firstName} | ${fields}`,
     );
     return saved;
+  }
+
+  /**
+   * Un non-licencié (NL) ne porte ni numéro de licence ni club — le département,
+   * lui, reste obligatoire. Appliqué à l'entité après fusion des données
+   * entrantes, donc sur la fédé EFFECTIVE : couvre la bascule FSGT → NL (qui
+   * laissait sinon le numéro et le club de la fédé précédente en base, le
+   * formulaire ne renvoyant pas de club et le PATCH le laissant intact), une
+   * licence déjà NL qu'un PATCH tenterait de re-cluber, et la création directe.
+   */
+  private applyNonLicencieRule(licence: LicenceEntity): void {
+    if (licence.fede !== Federation.NL) return;
+    // Colonnes nullable en base mais typées `string` sur l'entité (comme leurs
+    // consommateurs dans les imports) : on écrit NULL explicitement via
+    // Object.assign plutôt que d'élargir le type de l'entité dans ce fix.
+    Object.assign(licence, { licenceNumber: null, club: null });
   }
 
   async remove(id: number): Promise<void> {

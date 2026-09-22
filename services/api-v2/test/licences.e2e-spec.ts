@@ -1,5 +1,7 @@
 import * as request from 'supertest';
 
+import { DataSource } from 'typeorm';
+
 import { getApp, getAuthHelper, getSeedHelper } from './setup-e2e';
 import { LicenceEntity } from '../src/licences/entities/licence.entity';
 
@@ -386,6 +388,114 @@ describe('Licences (e2e)', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ catev: '1' })
         .expect(404);
+    });
+  });
+
+  // Un non-licencié (NL) ne porte ni numéro de licence ni club. Avant cette
+  // règle, basculer une licence FSGT → NL conservait en base le numéro et le
+  // club de la fédé précédente (le formulaire masque ces champs mais renvoie
+  // l'ancien numéro, et n'envoie rien pour le club, que le PATCH laissait donc
+  // intact). Le département, lui, reste obligatoire pour un NL.
+  describe('règle NL : ni numéro de licence ni club', () => {
+    async function readFromDb(
+      id: number,
+    ): Promise<Pick<LicenceEntity, 'licenceNumber' | 'club' | 'dept'>> {
+      return getApp()
+        .get(DataSource)
+        .getRepository(LicenceEntity)
+        .findOneOrFail({ where: { id }, select: ['licenceNumber', 'club', 'dept'] });
+    }
+
+    it('PATCH FSGT → NL remet licenceNumber et club à NULL, conserve dept', async () => {
+      const [licence] = await getSeedHelper().seedLicences();
+      expect(licence.licenceNumber).toBe('12345678');
+      expect(licence.club).toBe('Vélo Club Toulousain');
+
+      const res = await request(getApp().getHttpServer())
+        .patch(`${API}/${licence.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ fede: 'NL' })
+        .expect(200);
+
+      const body = res.body as LicenceEntity;
+      expect(body.fede).toBe('NL');
+      expect(body.licenceNumber).toBeNull();
+      expect(body.club).toBeNull();
+      expect(body.dept).toBe('31');
+      expect(await readFromDb(licence.id)).toEqual({ licenceNumber: null, club: null, dept: '31' });
+    });
+
+    it('PATCH vers NL ignore un numéro et un club envoyés dans le payload', async () => {
+      const [licence] = await getSeedHelper().seedLicences();
+
+      const res = await request(getApp().getHttpServer())
+        .patch(`${API}/${licence.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ fede: 'NL', licenceNumber: '12345678', club: 'Vélo Club Toulousain' })
+        .expect(200);
+
+      const body = res.body as LicenceEntity;
+      expect(body.licenceNumber).toBeNull();
+      expect(body.club).toBeNull();
+    });
+
+    it('PATCH d’une licence déjà NL ne réintroduit ni numéro ni club', async () => {
+      const [licence] = await getSeedHelper().seedLicences();
+      await request(getApp().getHttpServer())
+        .patch(`${API}/${licence.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ fede: 'NL' })
+        .expect(200);
+
+      const res = await request(getApp().getHttpServer())
+        .patch(`${API}/${licence.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ licenceNumber: '99999999', club: 'Club fantôme' })
+        .expect(200);
+
+      const body = res.body as LicenceEntity;
+      expect(body.licenceNumber).toBeNull();
+      expect(body.club).toBeNull();
+    });
+
+    it('PATCH vers une autre fédé (FSGT → UFOLEP) conserve numéro et club', async () => {
+      const [licence] = await getSeedHelper().seedLicences();
+
+      const res = await request(getApp().getHttpServer())
+        .patch(`${API}/${licence.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ fede: 'UFOLEP' })
+        .expect(200);
+
+      const body = res.body as LicenceEntity;
+      expect(body.licenceNumber).toBe('12345678');
+      expect(body.club).toBe('Vélo Club Toulousain');
+    });
+
+    it('POST d’une licence NL avec numéro et club les persiste à NULL', async () => {
+      const res = await request(getApp().getHttpServer())
+        .post(API)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          name: 'SANSCLUB',
+          firstName: 'Nina',
+          gender: 'F',
+          birthYear: '1995',
+          dept: '81',
+          fede: 'NL',
+          club: 'Club hérité',
+          licenceNumber: '55555555',
+          catea: 'S',
+          saison: '2025',
+        })
+        .expect(201);
+
+      const body = res.body as LicenceEntity;
+      expect(body.fede).toBe('NL');
+      expect(body.licenceNumber).toBeNull();
+      expect(body.club).toBeNull();
+      expect(body.dept).toBe('81');
+      expect(await readFromDb(body.id)).toEqual({ licenceNumber: null, club: null, dept: '81' });
     });
   });
 
