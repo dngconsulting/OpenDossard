@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
  *    bloqué (`isCashInCompliant === false`, compte non vérifié). `null` =
  *    inconnu → rien (différent de `false`).
  *  - Liaison : rouge si expirée (refresh token > 30j), sinon ambre avec
- *    « Connecté le X. Renouvellement nécessaire avant le Y. ».
+ *    « Connecté le X. Renouvellement automatique avant le Y. » (job de refresh des tokens).
  *
  * Ne rend rien si le club n'est pas lié.
  */
@@ -29,7 +29,7 @@ const AMBER_BANNER =
 type HelloAssoStatusNoticesProps = {
   status: HelloAssoLinkStatusDto | undefined;
   /**
-   * Club lié (organisateur). Si fourni, la mention « Renouvellement nécessaire
+   * Club lié (organisateur). Si fourni, la mention « Renouvellement automatique
    * avant le … » devient un lien vers la fiche de ce club (`/club/:id`).
    */
   clubId?: number;
@@ -102,11 +102,11 @@ export function HelloAssoStatusNotices({
                   to={`/club/${clubId}`}
                   className="underline underline-offset-2 hover:text-amber-950 dark:hover:text-amber-100"
                 >
-                  Renouvellement nécessaire avant le <strong>{refreshExpiresDate}</strong>
+                  Renouvellement automatique avant le <strong>{refreshExpiresDate}</strong>
                 </Link>
               ) : (
                 <>
-                  Renouvellement nécessaire avant le <strong>{refreshExpiresDate}</strong>
+                  Renouvellement automatique avant le <strong>{refreshExpiresDate}</strong>
                 </>
               )}
               .

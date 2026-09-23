@@ -206,7 +206,7 @@ export default function ClubDetailPage() {
                   réversible via la mire.
                 </div>
                 <div className="text-xs">
-                  Connecté le <strong>{linkedAtDate}</strong>. Renouvellement nécessaire avant le{' '}
+                  Connecté le <strong>{linkedAtDate}</strong>. Renouvellement automatique avant le{' '}
                   <strong>{refreshExpiresDate}</strong>.
                 </div>
               </>

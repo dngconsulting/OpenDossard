@@ -160,7 +160,7 @@ function titleFor(variant: Variant, data: ReturnType<typeof useHelloAssoStatus>[
     return `Liaison ${data.slug} expirée (depuis le ${linkedAt}). Cliquer pour re-lier.`;
   }
   const expiresAt = new Date(data.refreshTokenExpiresAt).toLocaleDateString('fr-FR');
-  return `Connecté à ${data.slug} depuis le ${linkedAt}. Renouvellement nécessaire avant le ${expiresAt}. Cliquer pour re-lier.`;
+  return `Connecté à ${data.slug} depuis le ${linkedAt}. Renouvellement automatique avant le ${expiresAt}. Cliquer pour re-lier.`;
 }
 
 const styles = {
