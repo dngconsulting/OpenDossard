@@ -13,8 +13,9 @@ const formatDate = (date: Date) => date.toLocaleDateString('fr-FR');
 
 /**
  * Colonne « HA » de la liste des clubs : rond HelloAsso si le club a une
- * liaison, atténué si le refresh token est expiré (l'admin du club doit
- * repasser par la mire). Rien si pas de liaison.
+ * liaison. Atténué si la liaison ne permet pas d'encaisser : refresh token
+ * expiré (l'admin doit repasser par la mire) ou justificatifs non fournis à
+ * HelloAsso (`isCashInCompliant === false`). Rien si pas de liaison.
  */
 export function HelloAssoLinkCell({ club }: { club: ClubType }) {
   const linkedAt = parseDate(club.helloAssoLinkedAt);
@@ -23,9 +24,13 @@ export function HelloAssoLinkCell({ club }: { club: ClubType }) {
   }
   const expiresAt = parseDate(club.helloAssoRefreshTokenExpiresAt);
   const expired = expiresAt !== null && expiresAt.getTime() < Date.now();
-  const label = expired
-    ? `Liaison expirée le ${formatDate(expiresAt)}, à refaire via la mire`
-    : `Liée le ${formatDate(linkedAt)}`;
+  const notCompliant = club.helloAssoIsCashInCompliant === false;
+  const problems = [
+    ...(notCompliant ? ["Le club n'a pas fourni les justificatifs nécessaires"] : []),
+    ...(expired ? [`Liaison expirée le ${formatDate(expiresAt)}, à refaire via la mire`] : []),
+  ];
+  const disabled = problems.length > 0;
+  const label = disabled ? problems.join(' · ') : `Liée le ${formatDate(linkedAt)}`;
 
   // `Tooltip` embarque déjà son TooltipProvider. Le déclencheur est focalisable
   // pour que l'infobulle soit atteignable au clavier ; `role="img"` rend le
@@ -37,7 +42,7 @@ export function HelloAssoLinkCell({ club }: { club: ClubType }) {
           tabIndex={0}
           role="img"
           aria-label={label}
-          className={expired ? 'inline-flex opacity-40 grayscale' : 'inline-flex'}
+          className={disabled ? 'inline-flex opacity-40 grayscale' : 'inline-flex'}
         >
           <HelloAssoRoundLogo size="1.1rem" />
         </span>

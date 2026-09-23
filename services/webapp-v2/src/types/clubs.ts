@@ -13,6 +13,8 @@ export type ClubType = {
   helloAssoLinkedAt?: string | null;
   /** Expiration du refresh token HelloAsso (ISO). Passée = liaison expirée. */
   helloAssoRefreshTokenExpiresAt?: string | null;
+  /** Drapeau HelloAsso : false = justificatifs non fournis, aucun encaissement possible. null = inconnu. */
+  helloAssoIsCashInCompliant?: boolean | null;
   /** true si le club a au moins une épreuve, passée ou à venir. */
   organizer?: boolean;
 };

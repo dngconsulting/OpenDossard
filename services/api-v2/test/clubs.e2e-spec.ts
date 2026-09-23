@@ -105,7 +105,11 @@ describe('Clubs (e2e)', () => {
     let ccg: ClubEntity;
     let rcb: ClubEntity;
 
-    async function seedLink(clubId: number, expiresInDays: number): Promise<void> {
+    async function seedLink(
+      clubId: number,
+      expiresInDays: number,
+      isCashInCompliant: boolean | null = true,
+    ): Promise<void> {
       // Tokens factices jamais déchiffrés : la liste ne lit que les dates.
       await getApp()
         .get(DataSource)
@@ -120,7 +124,7 @@ describe('Clubs (e2e)', () => {
           linkedByUserId: null,
           linkedAt: new Date('2026-09-01T10:00:00Z'),
           lastRefreshedAt: null,
-          isCashInCompliant: true,
+          isCashInCompliant,
         });
     }
 
@@ -248,6 +252,27 @@ describe('Clubs (e2e)', () => {
 
       expect(byName.SR.helloAssoLinkedAt).toBeNull();
       expect(byName.SR.organizer).toBe(false);
+    });
+
+    it('expose helloAssoIsCashInCompliant : drapeau HelloAsso, null si non lié', async () => {
+      // SR : lié mais justificatifs non fournis côté HelloAsso.
+      const sr = await getApp()
+        .get(DataSource)
+        .getRepository(ClubEntity)
+        .findOneOrFail({ where: { shortName: 'SR' } });
+      await seedLink(sr.id, 20, false);
+
+      const res = await request(getApp().getHttpServer())
+        .get(API)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+      const byName = Object.fromEntries(
+        (res.body as PaginatedResponse<ClubEntity>).data.map(c => [c.shortName, c]),
+      );
+
+      expect(byName.VCT.helloAssoIsCashInCompliant).toBe(true);
+      expect(byName.SR.helloAssoIsCashInCompliant).toBe(false);
+      expect(byName.RCB.helloAssoIsCashInCompliant).toBeNull();
     });
 
     it('se combine avec les filtres colonne existants (helloAsso=linked + dept=31)', async () => {

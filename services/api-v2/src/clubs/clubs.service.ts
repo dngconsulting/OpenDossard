@@ -19,6 +19,7 @@ interface ClubListRawRow {
   club_id: number;
   ha_linked_at: Date | null;
   ha_expires_at: Date | null;
+  ha_cash_in_compliant: boolean | null;
   organizer: boolean;
 }
 
@@ -113,6 +114,10 @@ export class ClubsService {
         '(SELECT d.refresh_token_expires_at FROM helloasso_details d WHERE d.club_id = club.id)',
         'ha_expires_at',
       )
+      .addSelect(
+        '(SELECT d.is_cash_in_compliant FROM helloasso_details d WHERE d.club_id = club.id)',
+        'ha_cash_in_compliant',
+      )
       .addSelect('EXISTS (SELECT 1 FROM competition c WHERE c.club_id = club.id)', 'organizer')
       .skip(offset)
       .take(limit);
@@ -123,6 +128,7 @@ export class ClubsService {
       const r = rawById.get(club.id);
       club.helloAssoLinkedAt = toIso(r?.ha_linked_at);
       club.helloAssoRefreshTokenExpiresAt = toIso(r?.ha_expires_at);
+      club.helloAssoIsCashInCompliant = r?.ha_cash_in_compliant ?? null;
       club.organizer = r?.organizer === true;
     }
 

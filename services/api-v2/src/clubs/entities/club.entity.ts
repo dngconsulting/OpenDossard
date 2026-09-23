@@ -67,6 +67,12 @@ export class ClubEntity {
 
   @ApiPropertyOptional({
     description:
+      "Drapeau HelloAsso isCashInCompliant : false = le club n'a pas fourni ses justificatifs, aucun encaissement possible. null = non lié ou valeur inconnue. Calculé, liste paginée uniquement.",
+  })
+  helloAssoIsCashInCompliant?: boolean | null;
+
+  @ApiPropertyOptional({
+    description:
       'true si le club a au moins une épreuve (passée ou à venir). Calculé, liste paginée uniquement.',
   })
   organizer?: boolean;
