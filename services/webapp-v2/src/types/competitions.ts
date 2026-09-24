@@ -45,6 +45,7 @@ export type CompetitionDetailType = {
     id: number;
     longName: string;
     shortName: string;
+    dept?: string;
   };
   clubId?: number;
   races: string;

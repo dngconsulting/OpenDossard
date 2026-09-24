@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, ChevronRight, ClipboardList, Clock, Euro, Image, Info, Loader2, MapPin } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
@@ -19,6 +19,7 @@ import {
   useCreateCompetition,
   useUpdateCompetition,
 } from '@/hooks/useCompetitions';
+import { deptFromZipCode } from '@/lib/dept-from-zip-code';
 import { collectFormErrorMessages } from '@/lib/form-errors';
 import { COMPETITION_TYPE_LABELS } from '@/types/api';
 import { downloadFromApi } from '@/utils/download';
@@ -72,6 +73,7 @@ export default function CompetitionDetailPage() {
       fede: '',
       zipCode: '',
       dept: '',
+      clubDept: '',
       clubId: null,
       longueurCircuit: '',
       info: '',
@@ -114,13 +116,6 @@ export default function CompetitionDetailPage() {
       watchedClubId,
   );
 
-  const deptFromZip = useMemo(() => {
-    if (watchedZipCode && watchedZipCode.length >= 2) {
-      return watchedZipCode.substring(0, 2);
-    }
-    return '';
-  }, [watchedZipCode]);
-
   useEffect(() => {
     const source = isDuplicating ? sourceCompetition : competition;
     if (!source) {return;}
@@ -143,6 +138,7 @@ export default function CompetitionDetailPage() {
       fede: source.fede || '',
       zipCode: source.zipCode || '',
       dept: source.dept || '',
+      clubDept: source.club?.dept || '',
       clubId: source.club?.id ?? null,
       longueurCircuit: source.longueurCircuit || '',
       info: source.info || '',
@@ -181,10 +177,12 @@ export default function CompetitionDetailPage() {
       const defaultRaces = isCreating ? getDefaultRaces(data.fede) : '';
       const formData = {
         ...data,
+        // clubDept ne sert qu'à filtrer les clubs : non persisté (undefined → absent du JSON)
+        clubDept: undefined,
         eventDate: new Date(data.eventDate).toISOString(),
         races: isCreating ? defaultRaces : competition?.races || '',
         categories: '["Toutes"]',
-        dept: deptFromZip,
+        dept: deptFromZipCode(data.zipCode),
       };
 
       if (isCreating) {

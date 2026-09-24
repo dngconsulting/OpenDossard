@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { ClubAutocomplete } from '@/components/ClubAutocomplete';
+import { DepartmentCombobox } from '@/components/DepartmentCombobox';
 import {
   FormControl,
   FormField,
@@ -18,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { deptFromZipCode } from '@/lib/dept-from-zip-code';
 
 import {
   COMPETITION_TYPE_OPTIONS,
@@ -36,21 +38,19 @@ const HIGHLIGHT_CLASS = 'bg-amber-100 dark:bg-amber-900/30 border-amber-400';
 
 /**
  * Grille principale des champs identitaires d'une épreuve (nom, date, type,
- * profil, fédération, code postal, longueur circuit, club organisateur).
+ * profil, fédération, code postal du lieu, longueur circuit, département du club,
+ * club organisateur).
+ *
+ * Le département du club (`clubDept`) ne sert qu'à filtrer les clubs : il est
+ * indépendant du code postal (un club peut organiser hors de son département)
+ * et n'est pas persisté.
  */
 export function CoreInfoSection({ isCreating, isDuplicating }: CoreInfoSectionProps) {
   const form = useFormContext<FormValues>();
 
   const watchedFede = form.watch('fede');
-  const watchedZipCode = form.watch('zipCode');
+  const watchedClubDept = form.watch('clubDept');
   const watchedCompetitionType = form.watch('competitionType');
-
-  const deptFromZip = useMemo(() => {
-    if (watchedZipCode && watchedZipCode.length >= 2) {
-      return watchedZipCode.substring(0, 2);
-    }
-    return '';
-  }, [watchedZipCode]);
 
   const profileOptions = useMemo(
     () => getProfileOptions(watchedCompetitionType),
@@ -194,7 +194,7 @@ export function CoreInfoSection({ isCreating, isDuplicating }: CoreInfoSectionPr
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Code postal <span className="text-destructive">*</span>
+              Code postal du lieu de l'épreuve <span className="text-destructive">*</span>
             </FormLabel>
             <FormControl>
               <div className="relative">
@@ -207,6 +207,11 @@ export function CoreInfoSection({ isCreating, isDuplicating }: CoreInfoSectionPr
                   onChange={e => {
                     const value = e.target.value.replace(/\D/g, '');
                     field.onChange(value);
+                    // En création, préremplit le département du club (modifiable)
+                    const dept = deptFromZipCode(value);
+                    if (isCreating && dept && !form.getValues('clubDept')) {
+                      form.setValue('clubDept', dept);
+                    }
                   }}
                 />
               </div>
@@ -230,29 +235,55 @@ export function CoreInfoSection({ isCreating, isDuplicating }: CoreInfoSectionPr
         )}
       />
 
-      {watchedFede && deptFromZip && (
-        <FormField
-          control={form.control}
-          name="clubId"
-          render={({ field, fieldState }) => (
-            <FormItem>
-              <FormLabel>
-                Club organisateur <span className="text-destructive">*</span>
-              </FormLabel>
-              <FormControl>
-                <ClubAutocomplete
-                  value={field.value ?? null}
-                  onChange={clubId => field.onChange(clubId)}
-                  fede={watchedFede}
-                  department={deptFromZip}
-                  error={fieldState.error?.message}
-                  label=""
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      {watchedFede && (
+        <>
+          <FormField
+            control={form.control}
+            name="clubDept"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Dépt. club organisateur <span className="text-destructive">*</span>
+                </FormLabel>
+                <FormControl>
+                  <DepartmentCombobox
+                    value={field.value}
+                    onChange={code => {
+                      if (code !== field.value) {
+                        form.setValue('clubId', null);
+                      }
+                      field.onChange(code);
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="clubId"
+            render={({ field, fieldState }) => (
+              <FormItem>
+                <FormLabel>
+                  Club organisateur <span className="text-destructive">*</span>
+                </FormLabel>
+                <FormControl>
+                  <ClubAutocomplete
+                    value={field.value ?? null}
+                    onChange={clubId => field.onChange(clubId)}
+                    fede={watchedFede}
+                    department={watchedClubDept}
+                    error={fieldState.error?.message}
+                    label=""
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </>
       )}
     </div>
   );
