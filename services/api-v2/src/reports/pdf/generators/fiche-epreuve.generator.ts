@@ -4,7 +4,7 @@ import { JSDOM } from 'jsdom';
 
 import { CompetitionType } from '../../../common/enums';
 import { CompetitionEntity } from '../../../competitions/entities/competition.entity';
-import { capitalize, formatDateFr } from './pdf-format.utils';
+import { capitalize, formatCircuitLength, formatDateFr } from './pdf-format.utils';
 import { addLogoToPdf, loadLogoAsDataUrl, loadOpenDossardLogo } from './pdf-logo.utils';
 
 const COMPETITION_TYPE_LABELS: Record<string, string> = {
@@ -399,7 +399,7 @@ export function generateFicheEpreuvePDF(competition: CompetitionEntity): Buffer 
   drawField(
     doc,
     'Longueur',
-    competition.longueurCircuit ? `${competition.longueurCircuit} km` : '',
+    formatCircuitLength(competition.longueurCircuit),
     col1X,
     row2Y,
     labelW,

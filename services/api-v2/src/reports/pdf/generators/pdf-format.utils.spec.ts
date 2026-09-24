@@ -1,4 +1,4 @@
-import { capitalize, formatDateFr } from './pdf-format.utils';
+import { capitalize, formatCircuitLength, formatDateFr } from './pdf-format.utils';
 
 describe('pdf-format.utils', () => {
   it('formatDateFr rend « jour d mois aaaa » en français', () => {
@@ -10,5 +10,14 @@ describe('pdf-format.utils', () => {
 
   it('capitalize met la 1re lettre en majuscule', () => {
     expect(capitalize('dimanche')).toBe('Dimanche');
+  });
+
+  it("formatCircuitLength n'ajoute « km » qu'à un nombre seul", () => {
+    expect(formatCircuitLength('5')).toBe('5 km');
+    expect(formatCircuitLength(' 5,2 ')).toBe('5,2 km');
+    expect(formatCircuitLength('5km')).toBe('5km');
+    expect(formatCircuitLength('45/80 km')).toBe('45/80 km');
+    expect(formatCircuitLength('')).toBe('');
+    expect(formatCircuitLength(null)).toBe('');
   });
 });
