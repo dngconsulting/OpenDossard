@@ -380,7 +380,8 @@ export class LicencesService {
 
   /**
    * Un non-licencié (NL) ne porte ni numéro de licence ni club — le département,
-   * lui, reste obligatoire. Appliqué à l'entité après fusion des données
+   * lui, reste obligatoire. Ni catégorie de valeur (route / CX) : elles sont
+   * réglementées par une fédé ; la catégorie d'âge, elle, est conservée. Appliqué à l'entité après fusion des données
    * entrantes, donc sur la fédé EFFECTIVE : couvre la bascule FSGT → NL (qui
    * laissait sinon le numéro et le club de la fédé précédente en base, le
    * formulaire ne renvoyant pas de club et le PATCH le laissant intact), une
@@ -391,7 +392,7 @@ export class LicencesService {
     // Colonnes nullable en base mais typées `string` sur l'entité (comme leurs
     // consommateurs dans les imports) : on écrit NULL explicitement via
     // Object.assign plutôt que d'élargir le type de l'entité dans ce fix.
-    Object.assign(licence, { licenceNumber: null, club: null });
+    Object.assign(licence, { licenceNumber: null, club: null, catev: null, catevCX: null });
   }
 
   async remove(id: number): Promise<void> {

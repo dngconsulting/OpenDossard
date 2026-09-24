@@ -5,7 +5,7 @@ import { RaceEntity } from './entities/race.entity';
 import { LicenceEntity } from '../licences/entities/licence.entity';
 import { CompetitionEntity } from '../competitions/entities/competition.entity';
 import { PaginatedResponseDto } from '../common/dto';
-import { CompetitionType } from '../common/enums';
+import { CompetitionType, Federation } from '../common/enums';
 import { CreateEngagementDto, FilterRaceDto, RaceRowDto } from './dto';
 
 @Injectable()
@@ -193,13 +193,16 @@ export class RacesService {
       throw new NotFoundException('Engagement non trouvé');
     }
 
-    // Mise à jour depuis la licence
+    // Mise à jour depuis la licence. Un NL n'a pas de catégorie de valeur :
+    // l'engagement garde celle choisie à l'inscription.
     race.club = licence.club;
     race.catea = licence.catea;
-    race.catev =
-      race.competition?.competitionType === CompetitionType.CX
-        ? licence.catevCX || licence.catev
-        : licence.catev;
+    if (licence.fede !== Federation.NL) {
+      race.catev =
+        race.competition?.competitionType === CompetitionType.CX
+          ? licence.catevCX || licence.catev
+          : licence.catev;
+    }
     this.stampAudit(race, author);
 
     return this.raceRepository.save(race);

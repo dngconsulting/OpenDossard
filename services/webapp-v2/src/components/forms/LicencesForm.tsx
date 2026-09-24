@@ -280,8 +280,8 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange, f
       fede: data.fede,
       club: data.club || undefined,
       catea: data.catea,
-      catev: data.catev || undefined,
-      catevCX: data.catevCX || undefined,
+      catev: isNonLicencie(data.fede) ? undefined : data.catev || undefined,
+      catevCX: isNonLicencie(data.fede) ? undefined : data.catevCX || undefined,
       saison: data.saison || undefined,
       comment: data.comment ?? undefined,
     };
@@ -450,18 +450,21 @@ export const LicencesForm = ({ updatingLicence, onSuccess, onFormValuesChange, f
                     options={cateaOptions}
                     required
                   />
+                  {/* Catégories réglementées par une fédé : sans objet pour un NL */}
                   <SelectField
                     form={licenceForm}
                     field="catev"
                     label="Catégorie de valeur"
                     options={catevOptions}
                     required={!isNL}
+                    disabled={isNL}
                   />
                   <SelectField
                     form={licenceForm}
                     field="catevCX"
                     label="Catégorie CX"
                     options={catevCXOptions}
+                    disabled={isNL}
                   />
                 </div>
               )}

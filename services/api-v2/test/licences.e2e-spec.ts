@@ -499,6 +499,105 @@ describe('Licences (e2e)', () => {
     });
   });
 
+  // Les catégories de valeur (route et CX) sont réglementées par une fédé :
+  // elles n'ont pas de sens pour un NL. La catégorie d'âge, elle, est conservée.
+  describe('règle NL : ni catégorie de valeur ni catégorie CX', () => {
+    async function readCategoriesFromDb(
+      id: number,
+    ): Promise<Pick<LicenceEntity, 'catea' | 'catev' | 'catevCX'>> {
+      return getApp()
+        .get(DataSource)
+        .getRepository(LicenceEntity)
+        .findOneOrFail({ where: { id }, select: ['catea', 'catev', 'catevCX'] });
+    }
+
+    it('PATCH FSGT → NL remet catev et catevCX à NULL, conserve catea', async () => {
+      const [licence] = await getSeedHelper().seedLicences();
+      await request(getApp().getHttpServer())
+        .patch(`${API}/${licence.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ catevCX: '2' })
+        .expect(200);
+
+      const res = await request(getApp().getHttpServer())
+        .patch(`${API}/${licence.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ fede: 'NL' })
+        .expect(200);
+
+      const body = res.body as LicenceEntity;
+      expect(body.catev).toBeNull();
+      expect(body.catevCX).toBeNull();
+      expect(await readCategoriesFromDb(licence.id)).toEqual({
+        catea: 'S',
+        catev: null,
+        catevCX: null,
+      });
+    });
+
+    it('PATCH d’une licence déjà NL ne réintroduit pas de catégorie', async () => {
+      const [licence] = await getSeedHelper().seedLicences();
+      await request(getApp().getHttpServer())
+        .patch(`${API}/${licence.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ fede: 'NL' })
+        .expect(200);
+
+      await request(getApp().getHttpServer())
+        .patch(`${API}/${licence.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ catev: '1', catevCX: '1' })
+        .expect(200);
+
+      expect(await readCategoriesFromDb(licence.id)).toEqual({
+        catea: 'S',
+        catev: null,
+        catevCX: null,
+      });
+    });
+
+    it('POST d’une licence NL avec catégories les persiste à NULL, conserve catea', async () => {
+      const res = await request(getApp().getHttpServer())
+        .post(API)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          name: 'SANSCATE',
+          firstName: 'Noé',
+          gender: 'H',
+          birthYear: '1990',
+          dept: '31',
+          fede: 'NL',
+          catea: 'S',
+          catev: '3',
+          catevCX: '2',
+          saison: '2025',
+        })
+        .expect(201);
+
+      expect(await readCategoriesFromDb((res.body as LicenceEntity).id)).toEqual({
+        catea: 'S',
+        catev: null,
+        catevCX: null,
+      });
+    });
+
+    it('PATCH d’une licence FSGT conserve ses catégories', async () => {
+      const [licence] = await getSeedHelper().seedLicences();
+
+      await request(getApp().getHttpServer())
+        .patch(`${API}/${licence.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ catevCX: '2' })
+        .expect(200);
+
+      expect(await readCategoriesFromDb(licence.id)).toEqual({
+        catea: 'S',
+        catev: '2',
+        catevCX: '2',
+      });
+    });
+  });
+
   describe('DELETE /licences/:id', () => {
     it('should delete a licence', async () => {
       const [licence] = await getSeedHelper().seedLicences();

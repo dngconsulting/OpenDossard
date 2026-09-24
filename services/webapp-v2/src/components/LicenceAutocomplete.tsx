@@ -113,7 +113,7 @@ function LicenceItem({
                 isSameFede && 'bg-primary/10 text-primary border-primary/20'
               )}
             >
-              {licence.catev} · {licence.catea} · {licence.fede}
+              {[licence.catev, licence.catea, licence.fede].filter(Boolean).join(' · ')}
             </Badge>
             <span className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />

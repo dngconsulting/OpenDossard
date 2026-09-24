@@ -1,4 +1,5 @@
 import * as request from 'supertest';
+import { DataSource } from 'typeorm';
 
 import { getApp, getAuthHelper, getSeedHelper } from './setup-e2e';
 import { RaceEntity } from '../src/races/entities/race.entity';
@@ -393,6 +394,45 @@ describe('Races (e2e)', () => {
         .delete(`${API}/${races[0].id}`)
         .set('Authorization', `Bearer ${mobileToken}`)
         .expect(403);
+    });
+  });
+
+  // ==================== POST /races/refresh/:licenceId/:competitionId ====================
+
+  describe('POST /races/refresh/:licenceId/:competitionId', () => {
+    async function setRaceCatev(raceId: number, catev: string): Promise<void> {
+      await getApp().get(DataSource).getRepository(RaceEntity).update(raceId, { catev });
+    }
+
+    async function refresh(licenceId: number, competitionId: number): Promise<RaceEntity> {
+      const res = await request(getApp().getHttpServer())
+        .post(`${API}/refresh/${licenceId}/${competitionId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(201);
+      return res.body as RaceEntity;
+    }
+
+    it('recopie la catégorie de valeur de la licence (FSGT)', async () => {
+      await setRaceCatev(races[0].id, '1');
+
+      const body = await refresh(licences[0].id, competitions[0].id);
+
+      expect(body.catev).toBe('2');
+    });
+
+    // Un NL n'a pas de catégorie de valeur : l'engagement garde celle choisie
+    // à l'inscription, sinon le rafraîchissement le sortirait de sa catégorie.
+    it('conserve la catégorie de l’engagement pour une licence NL', async () => {
+      await setRaceCatev(races[0].id, '1');
+      await getApp()
+        .get(DataSource)
+        .query(`UPDATE licence SET fede = 'NL', catev = NULL, catev_cx = NULL WHERE id = $1`, [
+          licences[0].id,
+        ]);
+
+      const body = await refresh(licences[0].id, competitions[0].id);
+
+      expect(body.catev).toBe('1');
     });
   });
 

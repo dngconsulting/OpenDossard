@@ -347,6 +347,7 @@ const ControlledSelectField = ({
   options,
   description,
   required,
+  disabled,
 }: {
   field: ControllerRenderProps<any>;
   fieldState: ControllerFieldState;
@@ -354,8 +355,9 @@ const ControlledSelectField = ({
   options: { value: string | number; label?: string }[];
   description?: string;
   required?: boolean;
+  disabled?: boolean;
 }) => (
-  <Field data-invalid={fieldState.invalid}>
+  <Field data-invalid={fieldState.invalid} data-disabled={disabled}>
     <FieldContent>
       <FieldLabel htmlFor={`${field.name}-select`}>
         {label}
@@ -364,7 +366,7 @@ const ControlledSelectField = ({
       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
       {description && !fieldState.invalid && <FieldDescription>{description}</FieldDescription>}
     </FieldContent>
-    <Select value={field.value} onValueChange={field.onChange}>
+    <Select value={field.value} onValueChange={field.onChange} disabled={disabled}>
       <SelectTrigger aria-invalid={fieldState.invalid}>
         <SelectValue />
       </SelectTrigger>
@@ -386,6 +388,7 @@ type SelectFieldProps<T extends FieldValues> = {
   options: { value: string | number; label?: string }[];
   description?: string;
   required?: boolean;
+  disabled?: boolean;
 };
 
 export function SelectField<T extends FieldValues>({
@@ -395,6 +398,7 @@ export function SelectField<T extends FieldValues>({
   options,
   description,
   required,
+  disabled,
 }: SelectFieldProps<T>) {
   return (
     <Controller
@@ -408,6 +412,7 @@ export function SelectField<T extends FieldValues>({
           options={options}
           description={description}
           required={required}
+          disabled={disabled}
         />
       )}
     />

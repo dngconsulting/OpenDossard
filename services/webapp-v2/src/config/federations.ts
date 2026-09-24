@@ -184,9 +184,11 @@ export const FEDERATIONS: Record<FedeEnum, Federation> = {
     catev: [...CATEV_BASE],
     catea: CATEA_FSGT,
   },
+  // Pas de catégorie de valeur pour un non licencié (réglementée par une fédé) ;
+  // la catégorie d'âge reste calculée sur le barème FSGT.
   [FedeEnum.NL]: {
     name: { label: 'Non Licencié', value: FedeEnum.NL },
-    catev: [...CATEV_BASE],
+    catev: [],
     catea: CATEA_FSGT,
   },
 };
