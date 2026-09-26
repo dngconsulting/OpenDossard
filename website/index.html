@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Open Dossard — Plateforme open source de gestion d'épreuves cyclistes : engagements, résultats, classements et statistiques.">
+  <meta name="description" content="Open Dossard — Plateforme de gestion d'épreuves cyclistes : engagements, résultats, classements et statistiques.">
   <title>Open Dossard — Gestion d'épreuves cyclistes</title>
   <link rel="canonical" href="https://www.opendossard.com/">
   <link rel="icon" href="./assets/favicon.ico">
@@ -44,10 +44,6 @@
         <a href="licences.html" class="text-white/90 hover:text-white text-sm font-medium transition">Licences</a>
         <a href="engagements-classements.html" class="text-white/90 hover:text-white text-sm font-medium transition">Engagements & Classements</a>
         <a href="challenges-palmares.html" class="text-white/90 hover:text-white text-sm font-medium transition">Challenges & Palmarès</a>
-        <a href="https://github.com/dngconsulting/OpenDossard" target="_blank" rel="noopener"
-           class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white text-sm font-medium hover:bg-white/20 transition">
-          <i data-lucide="github" class="w-4 h-4"></i> GitHub
-        </a>
       </div>
       <button id="nav-burger" class="md:hidden text-white" aria-label="Menu">
         <i data-lucide="menu" class="w-6 h-6"></i>
@@ -66,7 +62,6 @@
     <a href="licences.html">Licences</a>
     <a href="engagements-classements.html">Engagements & Classements</a>
     <a href="challenges-palmares.html">Challenges & Palmarès</a>
-    <a href="https://github.com/dngconsulting/OpenDossard" target="_blank" rel="noopener">GitHub</a>
   </div>
 
   <!-- Hero -->
@@ -76,16 +71,16 @@
       <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent rounded-full blur-3xl"></div>
     </div>
     <div class="relative z-10 text-center px-6 max-w-4xl mx-auto">
-      <div class="badge-v2 bg-accent/20 text-accent-light border border-accent/30 mx-auto mb-8">
-        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Version 2.0
-      </div>
+      <a href="#preinscription" class="badge-v2 bg-accent/20 text-accent-light border border-accent/30 mx-auto mb-8 hover:bg-accent/30 transition">
+        <i data-lucide="credit-card" class="w-3.5 h-3.5"></i> Paiement en ligne avec HelloAsso
+      </a>
       <img src="assets/images/logoblanc.svg" alt="Open Dossard" class="h-20 md:h-28 mx-auto mb-8">
       <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight mb-6">
         Le dossard digital<br>
         <span class="bg-gradient-to-r from-accent-light to-accent-teal bg-clip-text text-transparent">pour vos épreuves sportives</span>
       </h1>
       <p class="text-lg md:text-xl text-white/70 max-w-2xl mx-auto mb-10">
-        Plateforme open source de gestion d'épreuves cyclistes : engagements, résultats, classements et statistiques multi-fédérations.
+        Plateforme de gestion d'épreuves cyclistes : engagements, résultats, classements et statistiques multi-fédérations.
       </p>
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
         <a href="product.html" class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-accent text-white font-semibold text-base hover:bg-accent-light transition shadow-lg shadow-accent/25">
@@ -189,6 +184,146 @@
     </div>
   </section>
 
+  <!-- Dossardeur -->
+  <section class="py-24 px-6 section-alt" id="dossardeur">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div class="fade-in-up">
+        <span class="badge-v2 bg-primary/10 text-primary mb-4">
+          <i data-lucide="smartphone" class="w-3.5 h-3.5"></i> Application mobile
+        </span>
+        <h2 class="text-3xl md:text-4xl font-bold text-navy-dark mt-4">Dossardeur, l'app des coureurs</h2>
+        <p class="text-gray-500 mt-4 max-w-xl">
+          Tout ce que vous saisissez dans Open Dossard apparaît aussitôt sur le téléphone des coureurs.
+          Dossardeur est l'application gratuite, sur iOS et Android, qui leur donne accès au calendrier, aux inscriptions et aux résultats.
+        </p>
+        <ul class="mt-8 space-y-5">
+          <li class="flex gap-4">
+            <div class="w-10 h-10 flex-shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
+              <i data-lucide="map-pin" class="w-5 h-5 text-primary"></i>
+            </div>
+            <div>
+              <h3 class="font-semibold text-navy-dark">Trouver sa course</h3>
+              <p class="text-sm text-gray-500">Toutes les épreuves en calendrier, en liste ou sur une carte, avec un filtre par fédération et un guidage GPS jusqu'au départ.</p>
+            </div>
+          </li>
+          <li class="flex gap-4">
+            <div class="w-10 h-10 flex-shrink-0 rounded-lg bg-accent/10 flex items-center justify-center">
+              <i data-lucide="file-text" class="w-5 h-5 text-accent"></i>
+            </div>
+            <div>
+              <h3 class="font-semibold text-navy-dark">La fiche épreuve</h3>
+              <p class="text-sm text-gray-500">Horaires, circuits, distances, tarifs et contact de l'organisateur, au même endroit.</p>
+            </div>
+          </li>
+          <li class="flex gap-4">
+            <div class="w-10 h-10 flex-shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
+              <i data-lucide="credit-card" class="w-5 h-5 text-primary"></i>
+            </div>
+            <div>
+              <h3 class="font-semibold text-navy-dark">S'inscrire et payer</h3>
+              <p class="text-sm text-gray-500">Le coureur s'inscrit et paie en ligne en quelques secondes, via HelloAsso.</p>
+            </div>
+          </li>
+          <li class="flex gap-4">
+            <div class="w-10 h-10 flex-shrink-0 rounded-lg bg-accent/10 flex items-center justify-center">
+              <i data-lucide="trophy" class="w-5 h-5 text-accent"></i>
+            </div>
+            <div>
+              <h3 class="font-semibold text-navy-dark">Suivre la course</h3>
+              <p class="text-sm text-gray-500">Classements, résultats, palmarès et notifications sur ses épreuves favorites, même quand l'app est fermée.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="mt-10 flex flex-wrap items-center gap-4">
+          <a href="https://apps.apple.com/fr/app/dossardeur/id1496777795?mt=8" target="_blank" rel="noopener" aria-label="Télécharger dans l'App Store">
+            <img src="dossardeur-fireball/images/appstore.png" alt="Télécharger dans l'App Store" class="h-11 w-auto">
+          </a>
+          <a href="https://play.google.com/store/apps/details?id=com.dossardeur&hl=fr" target="_blank" rel="noopener" aria-label="Disponible sur Google Play">
+            <img src="dossardeur-fireball/images/googleplay.png" alt="Disponible sur Google Play" class="h-11 w-auto">
+          </a>
+          <a href="dossardeur-fireball/" class="inline-flex items-center gap-2 text-primary font-semibold hover:text-primary-dark transition">
+            Découvrir Dossardeur <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </a>
+        </div>
+      </div>
+      <div class="fade-in-up">
+        <img src="dossardeur-fireball/images/v2-vues.png" alt="Les vues calendrier, liste et carte de Dossardeur" loading="lazy" class="w-full max-w-lg mx-auto drop-shadow-2xl">
+      </div>
+    </div>
+  </section>
+
+  <!-- Pré-inscription HelloAsso -->
+  <section class="py-24 px-6 bg-white" id="preinscription">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-16 fade-in-up">
+        <img src="dossardeur-fireball/images/helloasso-logo.png" alt="HelloAsso" class="h-10 w-auto mx-auto mb-4">
+        <h2 class="text-3xl md:text-4xl font-bold text-navy-dark mt-4">Pré-inscription en ligne et notifications</h2>
+        <p class="text-gray-500 mt-4 max-w-2xl mx-auto">
+          Vos coureurs s'inscrivent et paient avant le jour J depuis Dossardeur. Vous gérez moins d'espèces,
+          la file au retrait des dossards est plus courte et vous connaissez le nombre de partants à l'avance.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center mb-20">
+        <ol class="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6 stagger">
+          <li class="fade-in-up bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+            <div class="w-9 h-9 rounded-full bg-primary text-white font-bold flex items-center justify-center mb-4">1</div>
+            <h3 class="font-semibold text-navy-dark mb-2">Le coureur paie</h3>
+            <p class="text-sm text-gray-500">Il s'inscrit à l'épreuve dans Dossardeur et règle en ligne sur la page de paiement sécurisée HelloAsso.</p>
+          </li>
+          <li class="fade-in-up bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+            <div class="w-9 h-9 rounded-full bg-primary text-white font-bold flex items-center justify-center mb-4">2</div>
+            <h3 class="font-semibold text-navy-dark mb-2">Le club encaisse</h3>
+            <p class="text-sm text-gray-500">Le paiement arrive directement sur le compte HelloAsso du club.</p>
+          </li>
+          <li class="fade-in-up bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+            <div class="w-9 h-9 rounded-full bg-accent text-white font-bold flex items-center justify-center mb-4">3</div>
+            <h3 class="font-semibold text-navy-dark mb-2">L'inscrit apparaît</h3>
+            <p class="text-sm text-gray-500">La confirmation remonte dans Open Dossard, et le coureur la reçoit aussi par notification.</p>
+          </li>
+        </ol>
+        <div class="lg:col-span-2 fade-in-up">
+          <img src="dossardeur-fireball/images/v2-paiement.png" alt="L'inscription et le paiement en ligne dans Dossardeur" loading="lazy" class="w-full max-w-sm mx-auto drop-shadow-2xl">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 stagger">
+        <div class="fade-in-up hover-lift bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+          <div class="accent-bar w-12 mb-4"></div>
+          <div class="w-11 h-11 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
+            <i data-lucide="landmark" class="w-5 h-5 text-accent"></i>
+          </div>
+          <h3 class="font-semibold text-navy-dark mb-2">L'argent va au club</h3>
+          <p class="text-sm text-gray-500">Open Dossard ne touche jamais les fonds : chaque paiement est versé sur le compte HelloAsso de votre association, sans intermédiaire. HelloAsso est gratuit pour les associations, financé par les contributions volontaires des payeurs.</p>
+        </div>
+        <div class="fade-in-up hover-lift bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+          <div class="accent-bar w-12 mb-4"></div>
+          <div class="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+            <i data-lucide="link" class="w-5 h-5 text-primary"></i>
+          </div>
+          <h3 class="font-semibold text-navy-dark mb-2">Activation en 2 étapes</h3>
+          <p class="text-sm text-gray-500">Vous reliez une seule fois le compte HelloAsso du club depuis sa fiche, puis vous activez la pré-inscription épreuve par épreuve. La liaison se renouvelle ensuite automatiquement.</p>
+        </div>
+        <div class="fade-in-up hover-lift bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+          <div class="accent-bar w-12 mb-4"></div>
+          <div class="w-11 h-11 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
+            <i data-lucide="list-checks" class="w-5 h-5 text-accent"></i>
+          </div>
+          <h3 class="font-semibold text-navy-dark mb-2">Suivi des paiements</h3>
+          <p class="text-sm text-gray-500">La liste des pré-inscrits avec le statut de chaque paiement (payé, en attente, échoué, annulé), exportable en PDF ou CSV et triée par catégorie pour le retrait des dossards.</p>
+        </div>
+        <div class="fade-in-up hover-lift bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+          <div class="accent-bar w-12 mb-4"></div>
+          <div class="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+            <i data-lucide="bell-ring" class="w-5 h-5 text-primary"></i>
+          </div>
+          <h3 class="font-semibold text-navy-dark mb-2">Prévenez vos coureurs</h3>
+          <p class="text-sm text-gray-500">Depuis la fiche épreuve, vous envoyez une notification à tous ceux qui la suivent dans Dossardeur : changement d'horaire, consigne de sécurité, résultats en ligne.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Screenshots -->
   <section class="py-24 px-6 section-alt">
     <div class="max-w-7xl mx-auto">
@@ -216,7 +351,7 @@
       <div class="text-center mb-16 fade-in-up">
         <h2 class="text-3xl md:text-4xl font-bold text-white">Chiffres clés</h2>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 stagger">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 stagger">
         <div class="fade-in-up glass rounded-2xl p-8 text-center hover-lift">
           <div class="text-4xl font-extrabold text-white mb-2">Massif</div>
           <div class="text-white/60 text-sm font-medium">Volume de licenciés supporté</div>
@@ -230,12 +365,6 @@
             <i data-lucide="smartphone" class="w-8 h-8"></i> PWA
           </div>
           <div class="text-white/60 text-sm font-medium">Progressive Web App</div>
-        </div>
-        <div class="fade-in-up glass rounded-2xl p-8 text-center hover-lift">
-          <div class="flex items-center justify-center gap-2 text-4xl font-extrabold text-white mb-2">
-            <i data-lucide="code-2" class="w-8 h-8"></i>
-          </div>
-          <div class="text-white/60 text-sm font-medium">100% Open Source</div>
         </div>
       </div>
     </div>
@@ -284,10 +413,6 @@
                class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-primary hover:text-white transition">
               <i data-lucide="linkedin" class="w-4 h-4"></i>
             </a>
-            <a href="https://github.com/dngconsulting/OpenDossard" target="_blank" rel="noopener"
-               class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-primary hover:text-white transition">
-              <i data-lucide="github" class="w-4 h-4"></i>
-            </a>
           </div>
         </div>
       </div>
@@ -304,7 +429,7 @@
             <span class="text-white font-bold text-lg">Open Dossard</span>
           </div>
           <p class="text-white/50 text-sm max-w-sm">
-            Plateforme open source de gestion d'épreuves cyclistes multi-fédérations.
+            Plateforme de gestion d'épreuves cyclistes multi-fédérations.
           </p>
         </div>
         <div class="flex flex-col sm:flex-row gap-8 text-sm">
@@ -317,19 +442,19 @@
               <a href="licences.html" class="text-white/50 hover:text-white transition">Licences</a>
               <a href="engagements-classements.html" class="text-white/50 hover:text-white transition">Engagements & Classements</a>
               <a href="challenges-palmares.html" class="text-white/50 hover:text-white transition">Challenges & Palmarès</a>
+              <a href="dossardeur-fireball/" class="text-white/50 hover:text-white transition">Dossardeur</a>
             </div>
           </div>
           <div>
             <h4 class="text-white font-semibold mb-3">Contact</h4>
             <div class="flex flex-col gap-2">
               <a href="mailto:contact@opendossard.com" class="text-white/50 hover:text-white transition">contact@opendossard.com</a>
-              <a href="https://github.com/dngconsulting/OpenDossard" target="_blank" rel="noopener" class="text-white/50 hover:text-white transition">GitHub</a>
             </div>
           </div>
         </div>
       </div>
       <div class="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <p class="text-white/30 text-xs">&copy; 2024 Open Dossard. Projet open source.</p>
+        <p class="text-white/30 text-xs">&copy; 2026 Open Dossard.</p>
         <p class="text-white/30 text-xs">Sponsor : <a href="http://www.dng-consulting.com" class="hover:text-white/60 transition">DNG Consulting</a></p>
       </div>
     </div>
