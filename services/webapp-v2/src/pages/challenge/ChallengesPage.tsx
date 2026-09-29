@@ -1,10 +1,12 @@
 import { Trophy } from 'lucide-react';
+import { useMemo } from 'react';
 
 import { ChallengeCard } from '@/components/challenges/ChallengeCard';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useChallenges } from '@/hooks/useChallenges';
+import type { ChallengeType } from '@/types/challenges';
 
 function ChallengeCardSkeleton() {
   return (
@@ -27,8 +29,36 @@ function ChallengeCardSkeleton() {
   );
 }
 
+type ChallengeSectionProps = { title: string; challenges: ChallengeType[]; emptyLabel?: string };
+
+function ChallengeSection({ title, challenges, emptyLabel }: ChallengeSectionProps) {
+  return (
+    <section className="space-y-3">
+      <h3 className="text-base font-semibold">{title}</h3>
+      {challenges.length === 0 && emptyLabel && (
+        <p className="text-sm text-muted-foreground">{emptyLabel}</p>
+      )}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {challenges.map(challenge => (
+          <ChallengeCard key={challenge.id} challenge={challenge} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function ChallengesPage() {
-  const { data: challenges, isLoading, error } = useChallenges(true); // Only active challenges
+  const { data: challenges, isLoading, error } = useChallenges(true); // Seulement les challenges visibles
+
+  const ongoing = useMemo(() => (challenges ?? []).filter(c => !c.closedAt), [challenges]);
+  const closed = useMemo(
+    () =>
+      (challenges ?? [])
+        .filter(c => c.closedAt)
+        .sort((a, b) => (b.closedAt ?? '').localeCompare(a.closedAt ?? '')),
+    [challenges],
+  );
+  const isEmpty = ongoing.length === 0 && closed.length === 0;
 
   return (
     <Layout title="Challenges">
@@ -39,7 +69,7 @@ export default function ChallengesPage() {
               <Trophy className="size-5 text-primary" />
             </div>
             <div>
-              <CardTitle>Challenges actifs</CardTitle>
+              <CardTitle>Challenges</CardTitle>
               <CardDescription>
                 Sélectionnez un challenge pour consulter les classements
               </CardDescription>
@@ -61,18 +91,23 @@ export default function ChallengesPage() {
             </div>
           )}
 
-          {!isLoading && !error && challenges && challenges.length === 0 && (
+          {!isLoading && !error && isEmpty && (
             <div className="text-center py-12 text-muted-foreground">
               <Trophy className="size-12 mx-auto mb-4 opacity-20" />
-              <p>Aucun challenge actif pour le moment.</p>
+              <p>Aucun challenge pour le moment.</p>
             </div>
           )}
 
-          {!isLoading && !error && challenges && challenges.length > 0 && (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {challenges.map(challenge => (
-                <ChallengeCard key={challenge.id} challenge={challenge} />
-              ))}
+          {!isLoading && !error && !isEmpty && (
+            <div className="space-y-8">
+              <ChallengeSection
+                title="Challenges en cours"
+                challenges={ongoing}
+                emptyLabel="Aucun challenge en cours."
+              />
+              {closed.length > 0 && (
+                <ChallengeSection title="Challenges terminés" challenges={closed} />
+              )}
             </div>
           )}
         </CardContent>

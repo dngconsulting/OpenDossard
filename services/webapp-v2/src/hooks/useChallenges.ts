@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { challengesApi } from '@/api/challenges.api';
 import type { ChallengeRider } from '@/types/challenges';
@@ -34,6 +34,24 @@ export function useChallengeRanking(id: number | undefined) {
     queryFn: () => challengesApi.getRanking(id!),
     enabled: id !== undefined,
   });
+}
+
+// Terminer ou rouvrir : invalide listes, détail et classement (tous préfixés par 'challenges').
+// onSettled et pas onSuccess : après un 409 (déjà terminé ailleurs), la page doit aussi se resynchroniser.
+function useChallengeLifecycleMutation(mutationFn: (id: number) => Promise<unknown>) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSettled: () => queryClient.invalidateQueries({ queryKey: challengesKeys.all }),
+  });
+}
+
+export function useCloseChallenge() {
+  return useChallengeLifecycleMutation(challengesApi.close);
+}
+
+export function useReopenChallenge() {
+  return useChallengeLifecycleMutation(challengesApi.reopen);
 }
 
 // Helper to filter riders by category and gender

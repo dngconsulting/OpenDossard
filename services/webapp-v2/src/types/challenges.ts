@@ -9,6 +9,8 @@ export type ChallengeType = {
   active: boolean;
   reglement?: string;
   competitionType: CompetitionTypeEnum;
+  /** Date de clôture (ISO). Null = en cours, classement live. */
+  closedAt?: string | null;
 };
 
 // Individual race result for a rider in a challenge

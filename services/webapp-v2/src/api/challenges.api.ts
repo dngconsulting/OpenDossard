@@ -30,6 +30,14 @@ export const challengesApi = {
       body: JSON.stringify(data),
     }),
 
+  // Terminer un challenge (admin) : fige et archive le classement
+  close: (id: number): Promise<ChallengeType> =>
+    apiClient<ChallengeType>(`/challenges/${id}/close`, { method: 'POST' }),
+
+  // Rouvrir un challenge terminé (admin) : supprime l'archive
+  reopen: (id: number): Promise<ChallengeType> =>
+    apiClient<ChallengeType>(`/challenges/${id}/reopen`, { method: 'POST' }),
+
   // Delete a challenge
   delete: (id: number): Promise<{ success: boolean }> =>
     apiClient<{ success: boolean }>(`/challenges/${id}`, {

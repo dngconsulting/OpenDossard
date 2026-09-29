@@ -42,8 +42,8 @@ export function ChallengeCard({ challenge }: Props) {
             {Icon && <Icon className="size-5" />}
             <span className="text-sm font-medium">{typeLabel}</span>
           </div>
-          <Badge variant={challenge.active ? 'default' : 'secondary'}>
-            {challenge.active ? 'Actif' : 'Terminé'}
+          <Badge variant={challenge.closedAt ? 'secondary' : 'default'}>
+            {challenge.closedAt ? 'Terminé' : 'En cours'}
           </Badge>
         </div>
         <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors">

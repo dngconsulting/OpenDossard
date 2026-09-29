@@ -2,7 +2,9 @@ import { ArrowLeft, Calendar, ChevronRight, Download, ExternalLink } from 'lucid
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
+import { ChallengeLifecycleButton } from '@/components/challenges/ChallengeLifecycleButton';
 import { ChallengeRankingTable } from '@/components/challenges/ChallengeRankingTable';
+import { ChallengeStatusBadges } from '@/components/challenges/ChallengeStatusBadges';
 import { GenderToggle } from '@/components/challenges/GenderToggle';
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
@@ -105,15 +107,7 @@ export default function ChallengePage() {
             {Icon && <Icon className="size-5" />}
             {typeLabel}
           </Badge>
-          <Badge
-            className={
-              challenge.active
-                ? 'bg-emerald-600 text-white hover:bg-emerald-600'
-                : 'bg-gray-500 text-white hover:bg-gray-500'
-            }
-          >
-            {challenge.active ? 'Actif' : 'Terminé'}
-          </Badge>
+          <ChallengeStatusBadges challenge={challenge} />
           <Dialog>
             <DialogTrigger asChild>
               <button
@@ -186,6 +180,7 @@ export default function ChallengePage() {
           Règlement
         </Button>
       )}
+      {challenge && <ChallengeLifecycleButton challenge={challenge} />}
       <Button
         variant="outline"
         onClick={handleExportPDF}
@@ -231,6 +226,12 @@ export default function ChallengePage() {
               ))}
             </RaceTabsList>
           </Tabs>
+        )}
+
+        {challenge?.closedAt && (
+          <p className="text-sm text-muted-foreground mb-2">
+            Classement archivé : 20 premiers par catégorie.
+          </p>
         )}
 
         {/* Ranking Table */}
