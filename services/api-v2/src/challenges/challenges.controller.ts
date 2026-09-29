@@ -19,6 +19,8 @@ import { ChallengeRiderDto } from './dto/challenge-ranking.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { AuthenticatedUser } from '../auth/types/authenticated-user';
 import { Role } from '../common/enums';
 
 @ApiTags('Challenges')
@@ -55,7 +57,7 @@ export class ChallengesController {
   }
 
   @Post()
-  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Create a new challenge' })
   @ApiResponse({ status: 201, description: 'Challenge created' })
   async create(@Body() challengeData: CreateChallengeDto): Promise<ChallengeEntity> {
@@ -63,7 +65,7 @@ export class ChallengesController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Update a challenge' })
   @ApiResponse({ status: 200, description: 'Challenge updated' })
   async update(
@@ -74,7 +76,7 @@ export class ChallengesController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @Roles(Role.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a challenge' })
   @ApiResponse({ status: 200, description: 'Challenge deleted' })
@@ -84,7 +86,7 @@ export class ChallengesController {
   }
 
   @Post(':id/competitions/:competitionId')
-  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Add a competition to a challenge' })
   @ApiResponse({ status: 200, description: 'Competition added to challenge' })
   async addCompetition(
@@ -95,7 +97,7 @@ export class ChallengesController {
   }
 
   @Delete(':id/competitions/:competitionId')
-  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @Roles(Role.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Remove a competition from a challenge' })
   @ApiResponse({ status: 200, description: 'Competition removed from challenge' })
@@ -104,5 +106,26 @@ export class ChallengesController {
     @Param('competitionId', ParseIntPipe) competitionId: number,
   ): Promise<ChallengeEntity> {
     return this.challengesService.removeCompetition(id, competitionId);
+  }
+
+  @Post(':id/close')
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Terminer un challenge (fige et archive le classement)' })
+  @ApiResponse({ status: 201, description: 'Challenge terminé' })
+  @ApiResponse({ status: 409, description: 'Challenge déjà terminé' })
+  async close(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<ChallengeEntity> {
+    return this.challengesService.close(id, user.id);
+  }
+
+  @Post(':id/reopen')
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Rouvrir un challenge terminé (supprime son archive)' })
+  @ApiResponse({ status: 201, description: 'Challenge rouvert' })
+  @ApiResponse({ status: 409, description: 'Challenge non terminé' })
+  async reopen(@Param('id', ParseIntPipe) id: number): Promise<ChallengeEntity> {
+    return this.challengesService.reopen(id);
   }
 }

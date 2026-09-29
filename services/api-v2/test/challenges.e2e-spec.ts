@@ -123,7 +123,7 @@ describe('Challenges (e2e)', () => {
       expect(body.active).toBe(true);
     });
 
-    it('should create a challenge as ORGANISATEUR', async () => {
+    it('should reject ORGANISATEUR (mutations réservées aux admins)', async () => {
       await request(getApp().getHttpServer())
         .post(API)
         .set('Authorization', `Bearer ${orgaToken}`)
@@ -132,7 +132,7 @@ describe('Challenges (e2e)', () => {
           bareme: 'BAREME_ASSIDUITE',
           competitionType: 'CX',
         })
-        .expect(201);
+        .expect(403);
     });
 
     it('should reject MOBILE role', async () => {
