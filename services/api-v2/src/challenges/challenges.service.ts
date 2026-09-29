@@ -79,7 +79,16 @@ export class ChallengesService {
       queryBuilder.where('challenge.active = :active', { active });
     }
 
-    queryBuilder.orderBy('challenge.name', 'ASC');
+    // En cours d'abord, puis terminés ; dans chaque groupe, du plus récent au plus
+    // ancien selon la dernière épreuve du challenge (sans épreuve : en fin de groupe).
+    queryBuilder
+      .addSelect(
+        '(SELECT MAX(competition.event_date) FROM competition WHERE competition.id = ANY(challenge.competition_ids))',
+        'last_event_date',
+      )
+      .orderBy('challenge.closed_at IS NOT NULL', 'ASC')
+      .addOrderBy('last_event_date', 'DESC', 'NULLS LAST')
+      .addOrderBy('challenge.name', 'ASC');
 
     return queryBuilder.getMany();
   }

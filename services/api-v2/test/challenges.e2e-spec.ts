@@ -1,4 +1,5 @@
 import * as request from 'supertest';
+import { DataSource } from 'typeorm';
 
 import { getApp, getAuthHelper, getSeedHelper } from './setup-e2e';
 import { ChallengeEntity } from '../src/challenges/entities/challenge.entity';
@@ -35,6 +36,41 @@ describe('Challenges (e2e)', () => {
 
       const body = res.body as ChallengeEntity[];
       expect(body).toHaveLength(2);
+    });
+
+    it('ordonne : en cours puis terminés, chacun par dernière épreuve décroissante', async () => {
+      // Épreuves seedées : [0] 15/06/2025, [1] 20/11/2025, [2] 01/09/2025
+      const comps = await getSeedHelper().seedCompetitions();
+      const repo = getApp().get(DataSource).getRepository(ChallengeEntity);
+      const make = (name: string, competitionIds: number[], closedAt: Date | null = null) =>
+        repo.create({
+          name,
+          active: true,
+          competitionIds,
+          bareme: 'BAREME_ASSIDUITE',
+          competitionType: 'ROUTE',
+          closedAt,
+        });
+      await repo.save([
+        make('A juin', [comps[0].id]),
+        make('B novembre', [comps[0].id, comps[1].id]),
+        make('C sans épreuve', []),
+        make('D terminé septembre', [comps[2].id], new Date('2025-10-01T00:00:00Z')),
+        make('E terminé novembre', [comps[1].id], new Date('2025-12-01T00:00:00Z')),
+      ]);
+
+      const res = await request(getApp().getHttpServer())
+        .get(API)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+
+      expect((res.body as ChallengeEntity[]).map(c => c.name)).toEqual([
+        'B novembre',
+        'A juin',
+        'C sans épreuve',
+        'E terminé novembre',
+        'D terminé septembre',
+      ]);
     });
 
     it('should filter by active=true', async () => {

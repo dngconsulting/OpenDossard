@@ -50,14 +50,10 @@ function ChallengeSection({ title, challenges, emptyLabel }: ChallengeSectionPro
 export default function ChallengesPage() {
   const { data: challenges, isLoading, error } = useChallenges(true); // Seulement les challenges visibles
 
+  // L'ordre vient de l'API (dernière épreuve décroissante) : pas de re-tri ici,
+  // pour afficher le même ordre que DossardeurV2.
   const ongoing = useMemo(() => (challenges ?? []).filter(c => !c.closedAt), [challenges]);
-  const closed = useMemo(
-    () =>
-      (challenges ?? [])
-        .filter(c => c.closedAt)
-        .sort((a, b) => (b.closedAt ?? '').localeCompare(a.closedAt ?? '')),
-    [challenges],
-  );
+  const closed = useMemo(() => (challenges ?? []).filter(c => c.closedAt), [challenges]);
   const isEmpty = ongoing.length === 0 && closed.length === 0;
 
   return (
