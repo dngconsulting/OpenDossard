@@ -134,6 +134,15 @@ describe('rankRiders', () => {
     ]);
   });
 
+  it('place les coureurs sans catégorie en dernier', () => {
+    const out = rankRiders([
+      rider('SANS', 99, [row(D2, 1)], { currentLicenceCatev: null as unknown as string }),
+      rider('DAMES', 10, [row(D2, 1)], { currentLicenceCatev: 'DAMES' }),
+      rider('UN', 5, [row(D2, 1)], { currentLicenceCatev: '1' }),
+    ]);
+    expect(out.map(r => r.name)).toEqual(['UN', 'DAMES', 'SANS']);
+  });
+
   it('keepTop garde les rangs ≤ n par groupe, ex æquo inclus', () => {
     const ranked = rankRiders([
       rider('A', 30, [row(D2, 1)]),

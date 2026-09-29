@@ -44,7 +44,9 @@ function compareLastRace(a: number | null, b: number | null): number {
   return 0;
 }
 
-function compareAsc(a: string, b: string): number {
+/** Ordre croissant des catégories, catégorie absente (null) en dernier comme `_.orderBy`. */
+function compareAsc(a: string | null | undefined, b: string | null | undefined): number {
+  if (a == null || b == null) return a == null ? (b == null ? 0 : 1) : -1;
   if (a < b) return -1;
   if (a > b) return 1;
   return 0;
