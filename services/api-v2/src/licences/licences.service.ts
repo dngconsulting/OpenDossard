@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository, SelectQueryBuilder } from 'typeorm';
 import { LicenceEntity } from './entities/licence.entity';
 import { RaceEntity } from '../races/entities/race.entity';
+import { ChallengeArchiveRiderEntity } from '../challenges/entities/challenge-archive-rider.entity';
 import {
   CreateLicenceDto,
   FilterLicenceDto,
@@ -21,6 +22,8 @@ export class LicencesService {
     private licenceRepository: Repository<LicenceEntity>,
     @InjectRepository(RaceEntity)
     private raceRepository: Repository<RaceEntity>,
+    @InjectRepository(ChallengeArchiveRiderEntity)
+    private challengeArchiveRepository: Repository<ChallengeArchiveRiderEntity>,
   ) {}
 
   private applyFilter(
@@ -401,6 +404,14 @@ export class LicencesService {
     if (raceCount > 0) {
       throw new ConflictException(
         'Ce licencié a déjà participé à une épreuve, il ne peut être supprimé',
+      );
+    }
+    // Les résultats peuvent être supprimés après la clôture d'un challenge :
+    // l'archive, elle, reste (FK RESTRICT) et doit aussi bloquer la suppression.
+    const archivedCount = await this.challengeArchiveRepository.count({ where: { licenceId: id } });
+    if (archivedCount > 0) {
+      throw new ConflictException(
+        'Ce licencié figure dans le classement archivé d’un challenge, il ne peut être supprimé',
       );
     }
     await this.licenceRepository.remove(licence);

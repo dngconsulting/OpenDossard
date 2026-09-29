@@ -7,10 +7,11 @@ import { LicencesController } from './licences.controller';
 import { LicenceEntity } from './entities/licence.entity';
 import { ClubEntity } from '../clubs/entities/club.entity';
 import { RaceEntity } from '../races/entities/race.entity';
+import { ChallengeArchiveRiderEntity } from '../challenges/entities/challenge-archive-rider.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([LicenceEntity, ClubEntity, RaceEntity]),
+    TypeOrmModule.forFeature([LicenceEntity, ClubEntity, RaceEntity, ChallengeArchiveRiderEntity]),
     MulterModule.register({
       limits: {
         fileSize: 10 * 1024 * 1024, // 10MB

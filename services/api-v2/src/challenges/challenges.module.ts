@@ -4,9 +4,10 @@ import { ChallengesService } from './challenges.service';
 import { ChallengeLiveRankingService } from './challenge-live-ranking.service';
 import { ChallengesController } from './challenges.controller';
 import { ChallengeEntity } from './entities/challenge.entity';
+import { ChallengeArchiveRiderEntity } from './entities/challenge-archive-rider.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ChallengeEntity])],
+  imports: [TypeOrmModule.forFeature([ChallengeEntity, ChallengeArchiveRiderEntity])],
   controllers: [ChallengesController],
   providers: [ChallengesService, ChallengeLiveRankingService],
   exports: [ChallengesService],

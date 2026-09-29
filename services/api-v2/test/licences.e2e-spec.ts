@@ -3,6 +3,7 @@ import * as request from 'supertest';
 import { DataSource } from 'typeorm';
 
 import { getApp, getAuthHelper, getSeedHelper } from './setup-e2e';
+import { ChallengeArchiveRiderEntity } from '../src/challenges/entities/challenge-archive-rider.entity';
 import { LicenceEntity } from '../src/licences/entities/licence.entity';
 
 interface PaginatedResponse<T> {
@@ -613,6 +614,25 @@ describe('Licences (e2e)', () => {
         .get(`${API}/${licence.id}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(404);
+    });
+
+    it('refuse (409) la suppression d’une licence présente dans une archive de challenge', async () => {
+      const [licence] = await getSeedHelper().seedLicences();
+      const [challenge] = await getSeedHelper().seedChallenges();
+      const ds = getApp().get(DataSource);
+      await ds.getRepository(ChallengeArchiveRiderEntity).save({
+        challengeId: challenge.id,
+        licenceId: licence.id,
+        ptsAllRaces: 10,
+        rank: 1,
+      });
+
+      await request(getApp().getHttpServer())
+        .delete(`${API}/${licence.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(409);
+
+      await getSeedHelper().cleanChallenges();
     });
 
     it('should return 404 for non-existent licence', async () => {
