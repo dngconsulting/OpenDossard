@@ -29,6 +29,15 @@ export const RACE_CODE_SUBQUERY =
   'AND race.licence_id = p.licence_id ORDER BY race.race_code LIMIT 1)';
 
 /**
+ * Catégorie de valeur affichée pour un pré-inscrit : sur une épreuve CX, la
+ * catégorie cyclo-cross de la licence (`catev_cx`, vide si non renseignée — pas
+ * de repli sur la catégorie route) ; sinon la catégorie route (`catev`).
+ * Requiert les alias `c` (competition) et `l` (licence) dans la requête.
+ */
+export const LICENCE_CATEV_SQL =
+  "CASE WHEN c.competition_type = 'CX' THEN l.catev_cx ELSE l.catev END";
+
+/**
  * Whitelist orderBy → expression SQL. Sécurité critique : tout `orderBy` hors
  * de cette map est ignoré (fallback default). Empêche SQL injection sur le
  * `orderBy` query param.
@@ -42,7 +51,7 @@ export const ORDER_BY_MAP: Record<string, string> = {
   dept: 'l.dept',
   birthYear: 'l.birth_year',
   catea: 'l.catea',
-  catev: 'l.catev',
+  catev: LICENCE_CATEV_SQL,
   fede: 'l.fede',
   payerName: 'u.last_name',
   status: 'p.status',

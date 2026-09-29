@@ -5,6 +5,7 @@ import {
   HelloAssoPaymentEntity,
   HelloAssoPaymentStatus,
 } from './entities/helloasso-payment.entity';
+import { LICENCE_CATEV_SQL } from './helloasso-payments-admin.helpers';
 import { HelloAssoPaymentsAdminService } from './helloasso-payments-admin.service';
 
 interface QbMock {
@@ -175,6 +176,17 @@ describe('HelloAssoPaymentsAdminService', () => {
       expect(hit).toBeDefined();
       const paramValue = Object.values(hit?.params ?? {})[0];
       expect(paramValue).toBe('%Castanet%');
+    });
+
+    it('catégorie selon le type d’épreuve (CX → catev_cx) dans le SELECT, le filtre et le tri', async () => {
+      const qb = makeQbMock([]);
+      const service = makeService(qb);
+      await service.list({ catev: '3', orderBy: 'catev', orderDirection: OrderDirection.ASC });
+
+      const cols = (qb.select.mock.calls[0] as unknown[])[0] as string[];
+      expect(cols).toContain(`${LICENCE_CATEV_SQL} AS l_catev`);
+      expect(qb.whereCalls.some(w => w.sql.startsWith(`${LICENCE_CATEV_SQL} ILIKE`))).toBe(true);
+      expect(qb.orderByCalls[0]?.sql).toBe(LICENCE_CATEV_SQL);
     });
 
     it('applies multi-value IN filter on dept when comma-separated', async () => {
@@ -398,11 +410,26 @@ describe('HelloAssoPaymentsAdminService', () => {
       const service = makeService(qb);
       await service.listCompetitionPayments(32);
 
-      expect(qb.orderByCalls[0]).toEqual({ sql: 'l.catev', dir: 'ASC', nulls: 'NULLS LAST' });
+      expect(qb.orderByCalls[0]).toEqual({
+        sql: LICENCE_CATEV_SQL,
+        dir: 'ASC',
+        nulls: 'NULLS LAST',
+      });
       expect(qb.addOrderByCalls[0]).toEqual({ sql: 'p.paid_at', dir: 'DESC', nulls: 'NULLS LAST' });
       expect(qb.addOrderByCalls[1]).toEqual({ sql: 'p.created_at', dir: 'DESC' });
       expect(qb.addOrderByCalls[2]).toEqual({ sql: 'p.id', dir: 'DESC' });
       expect(qb.paginationCalls.limit).toBe(5000);
+    });
+
+    it('catégorie CX pour une épreuve CX : joint la compétition et sélectionne la catégorie selon le type', async () => {
+      const qb = makeQbMock([]);
+      const service = makeService(qb);
+      await service.listCompetitionPayments(32);
+
+      expect(qb.leftJoin).toHaveBeenCalledWith('competition', 'c', 'c.id = p.competition_id');
+      const cols = (qb.select.mock.calls[0] as unknown[])[0] as string[];
+      expect(cols).toContain(`${LICENCE_CATEV_SQL} AS l_catev`);
+      expect(cols.some(c => /^l\.catev\s/.test(c))).toBe(false);
     });
 
     it('expose created_at et paid_at dans le SELECT slim (filtre 15 min + tri mobile)', async () => {

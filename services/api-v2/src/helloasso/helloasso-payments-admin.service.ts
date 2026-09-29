@@ -17,6 +17,7 @@ import {
   applyMultiValue,
   applyOrderBy,
   applyPayerNameFilter,
+  LICENCE_CATEV_SQL,
   mapRowToDto,
   RACE_CODE_SUBQUERY,
   RACE_RIDER_SUBQUERY,
@@ -102,7 +103,7 @@ export class HelloAssoPaymentsAdminService {
    *  - pas de pagination (one-shot, borné par `COMPETITION_PAYMENTS_MAX`) ni de
    *    filtres serveur — le filtrage se fait côté client (comme la grille
    *    classement) ;
-   *  - tri par catégorie de valeur de la licence (`l.catev`), puis au sein de
+   *  - tri par catégorie de valeur (`LICENCE_CATEV_SQL` : CX → `catev_cx`), puis au sein de
    *    chaque catégorie les paiements aboutis du plus récent au plus ancien
    *    (`p.paid_at DESC`), les `pending` (paid_at NULL) en fin de catégorie
    *    triés par `p.created_at DESC` ; tie-breaker `p.id DESC`.
@@ -110,6 +111,7 @@ export class HelloAssoPaymentsAdminService {
   async listCompetitionPayments(competitionId: number): Promise<CompetitionPaymentDto[]> {
     const rows = await this.paymentRepo
       .createQueryBuilder('p')
+      .leftJoin('competition', 'c', 'c.id = p.competition_id')
       .leftJoin('licence', 'l', 'l.id = p.licence_id')
       .select([
         'p.id           AS p_id',
@@ -124,14 +126,14 @@ export class HelloAssoPaymentsAdminService {
         'l.club         AS l_club',
         'l.gender       AS l_gender',
         'l.catea        AS l_catea',
-        'l.catev        AS l_catev',
+        `${LICENCE_CATEV_SQL} AS l_catev`,
         'l.fede         AS l_fede',
       ])
       .andWhere('p.competition_id = :competitionId', { competitionId })
       .andWhere('p.status IN (:...statuses)', {
         statuses: [HelloAssoPaymentStatus.PAID, HelloAssoPaymentStatus.PENDING],
       })
-      .orderBy('l.catev', 'ASC', 'NULLS LAST')
+      .orderBy(LICENCE_CATEV_SQL, 'ASC', 'NULLS LAST')
       .addOrderBy('p.paid_at', 'DESC', 'NULLS LAST')
       .addOrderBy('p.created_at', 'DESC')
       .addOrderBy('p.id', 'DESC')
@@ -178,7 +180,7 @@ export class HelloAssoPaymentsAdminService {
       'l.dept            AS l_dept',
       'l.birth_year      AS l_birth_year',
       'l.catea           AS l_catea',
-      'l.catev           AS l_catev',
+      `${LICENCE_CATEV_SQL} AS l_catev`,
       'l.fede            AS l_fede',
       `${RACE_RIDER_SUBQUERY} AS r_rider_number`,
       `${RACE_CODE_SUBQUERY}  AS r_race_code`,
@@ -234,7 +236,7 @@ export class HelloAssoPaymentsAdminService {
     applyMultiValue(qb, 'l.dept', filters.dept);
     applyIlike(qb, 'l.birth_year', filters.birthYear);
     applyIlike(qb, 'l.catea', filters.catea);
-    applyIlike(qb, 'l.catev', filters.catev);
+    applyIlike(qb, LICENCE_CATEV_SQL, filters.catev);
     applyIlike(qb, 'CAST(l.fede AS TEXT)', filters.fede);
     applyPayerNameFilter(qb, filters.payerName);
     applyIlike(qb, 'p.helloasso_checkout_intent_id', filters.checkoutIntentId);
