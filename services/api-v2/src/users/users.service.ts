@@ -25,6 +25,7 @@ export interface CreateUserDto {
   firstName?: string;
   lastName?: string;
   phone?: string;
+  organisation?: string | null;
   roles?: string[];
 }
 
@@ -32,6 +33,7 @@ export interface UpdateUserDto {
   firstName?: string;
   lastName?: string;
   phone?: string;
+  organisation?: string | null;
   roles?: string[];
 }
 
@@ -67,8 +69,9 @@ export class UsersService {
       queryBuilder.andWhere('user.firebaseUid IS NULL');
     }
 
-    // Global search across email, firstName, lastName, firebaseUid (les users
-    // firebase n'ont pas d'email : leur identifiant visible est le firebase_uid).
+    // Global search across email, firstName, lastName, organisation, firebaseUid
+    // (les users firebase n'ont pas d'email : leur identifiant visible est le
+    // firebase_uid).
     // Si le terme est un entier, on matche aussi l'id technique (match exact :
     // taper « 42 » trouve l'utilisateur 42, pas 142/420).
     if (search) {
@@ -76,6 +79,7 @@ export class UsersService {
         'LOWER(user.email) LIKE LOWER(:search)',
         'LOWER(user.firstName) LIKE LOWER(:search)',
         'LOWER(user.lastName) LIKE LOWER(:search)',
+        'LOWER(user.organisation) LIKE LOWER(:search)',
         'LOWER(user.firebaseUid) LIKE LOWER(:search)',
       ];
       const params: Record<string, unknown> = { search: `%${search}%` };
@@ -96,6 +100,7 @@ export class UsersService {
       'firstName',
       'lastName',
       'phone',
+      'organisation',
       'roles',
       'firebaseUid',
       // Persistées pour les users Open Dossard (NULL pour Dossardeur).
@@ -103,14 +108,13 @@ export class UsersService {
       'lastLoginAt',
     ];
     const orderField = validOrderFields.includes(orderBy) ? orderBy : 'lastName';
-    // Pour les colonnes date, garder les NULL (comptes pré-migration / jamais
-    // reconnectés) en bas quel que soit le sens : sinon un tri décroissant les
-    // ferait remonter en tête (Postgres = NULLS FIRST en DESC).
-    const isDateField = orderField === 'createdAt' || orderField === 'lastLoginAt';
+    // Colonnes nullables : NULL en bas quel que soit le sens (Postgres = NULLS
+    // FIRST en DESC). Dates NULL = comptes pré-migration / jamais reconnectés.
+    const NULLS_LAST_FIELDS = ['createdAt', 'lastLoginAt', 'organisation'];
     queryBuilder.orderBy(
       `user.${orderField}`,
       orderDirection,
-      isDateField ? 'NULLS LAST' : undefined,
+      NULLS_LAST_FIELDS.includes(orderField) ? 'NULLS LAST' : undefined,
     );
 
     // Secondary sort for consistency
@@ -209,6 +213,7 @@ export class UsersService {
       firstName: createUserDto.firstName,
       lastName: createUserDto.lastName,
       phone: createUserDto.phone,
+      organisation: createUserDto.organisation,
       roles,
     });
 
@@ -216,7 +221,7 @@ export class UsersService {
     this.logger.log(
       `Création de l'utilisateur #${saved.id} par ${author ?? 'inconnu'} | ` +
         `${saved.email} | Prénom: ${saved.firstName ?? '-'} | Nom: ${saved.lastName ?? '-'} | ` +
-        `Rôles: ${saved.roles ?? '-'}`,
+        `Organisation: ${saved.organisation ?? '-'} | Rôles: ${saved.roles ?? '-'}`,
     );
     return saved;
   }
@@ -237,6 +242,7 @@ export class UsersService {
     if (updateUserDto.firstName !== undefined) user.firstName = updateUserDto.firstName;
     if (updateUserDto.lastName !== undefined) user.lastName = updateUserDto.lastName;
     if (updateUserDto.phone !== undefined) user.phone = updateUserDto.phone;
+    if (updateUserDto.organisation !== undefined) user.organisation = updateUserDto.organisation;
     if (updateUserDto.roles !== undefined) user.roles = updateUserDto.roles.join(',');
 
     const saved = await this.userRepository.save(user);

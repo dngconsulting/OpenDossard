@@ -138,6 +138,32 @@ describe('Users (e2e)', () => {
     it('should reject unauthenticated request', async () => {
       await request(getApp().getHttpServer()).get(API).expect(401);
     });
+
+    it('should match organisation in search and sort by it, NULL last', async () => {
+      for (const body of [
+        { email: 'orga-b@test.com', organisation: 'Zeta Vélo-Club' },
+        { email: 'orga-a@test.com', organisation: 'Alpha Vélo-Club' },
+        { email: 'orga-none@test.com', lastName: 'Vélo-Club Sans Orga' },
+      ]) {
+        await request(getApp().getHttpServer())
+          .post(API)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ ...body, password: 'password123' })
+          .expect(201);
+      }
+
+      const sorted = async (orderDirection: 'ASC' | 'DESC') => {
+        const res = await request(getApp().getHttpServer())
+          .get(API)
+          .query({ search: 'vélo-club', orderBy: 'organisation', orderDirection })
+          .set('Authorization', `Bearer ${adminToken}`)
+          .expect(200);
+        return (res.body as PaginatedResponse<UserEntity>).data.map(u => u.organisation);
+      };
+
+      expect(await sorted('ASC')).toEqual(['Alpha Vélo-Club', 'Zeta Vélo-Club', null]);
+      expect(await sorted('DESC')).toEqual(['Zeta Vélo-Club', 'Alpha Vélo-Club', null]);
+    });
   });
 
   // ==================== GET /users/:id ====================
@@ -165,6 +191,23 @@ describe('Users (e2e)', () => {
   // ==================== POST /users ====================
 
   describe('POST /users', () => {
+    it('should persist organisation', async () => {
+      const res = await request(getApp().getHttpServer())
+        .post(API)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          email: 'orga-create@test.com',
+          password: 'password123',
+          phone: '0612345678',
+          organisation: 'TOAC Cyclisme',
+        })
+        .expect(201);
+
+      const body = res.body as UserEntity;
+      expect(body.phone).toBe('0612345678');
+      expect(body.organisation).toBe('TOAC Cyclisme');
+    });
+
     it('should create a user as ADMIN', async () => {
       const res = await request(getApp().getHttpServer())
         .post(API)
@@ -233,6 +276,45 @@ describe('Users (e2e)', () => {
       const body = res.body as UserEntity;
       expect(body.firstName).toBe('After');
       expect(body.roles).toBe('ADMIN,ORGANISATEUR');
+    });
+
+    it('should update and clear organisation', async () => {
+      const createRes = await request(getApp().getHttpServer())
+        .post(API)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ email: 'orga-update@test.com', password: 'password123', organisation: 'Avant' })
+        .expect(201);
+      const userId = (createRes.body as UserEntity).id;
+
+      const updated = await request(getApp().getHttpServer())
+        .patch(`${API}/${userId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ organisation: 'Balma Olympique Cyclisme' })
+        .expect(200);
+      expect((updated.body as UserEntity).organisation).toBe('Balma Olympique Cyclisme');
+
+      const nulled = await request(getApp().getHttpServer())
+        .patch(`${API}/${userId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ organisation: null })
+        .expect(200);
+      expect((nulled.body as UserEntity).organisation).toBeNull();
+    });
+
+    it('should clear phone when null is sent', async () => {
+      const createRes = await request(getApp().getHttpServer())
+        .post(API)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ email: 'phone-clear@test.com', password: 'password123', phone: '0612345678' })
+        .expect(201);
+      const userId = (createRes.body as UserEntity).id;
+
+      const cleared = await request(getApp().getHttpServer())
+        .patch(`${API}/${userId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ phone: null })
+        .expect(200);
+      expect((cleared.body as UserEntity).phone).toBeNull();
     });
   });
 
