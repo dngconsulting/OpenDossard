@@ -9,4 +9,5 @@ export {
   PalmaresResultDto,
   PalmaresStatsDto,
   PalmaresCategoryChangeDto,
+  PalmaresChallengeDto,
 } from './palmares-response.dto';

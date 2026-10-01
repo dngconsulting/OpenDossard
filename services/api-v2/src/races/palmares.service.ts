@@ -7,7 +7,26 @@ import {
   PalmaresResultDto,
   PalmaresStatsDto,
   PalmaresCategoryChangeDto,
+  PalmaresChallengeDto,
 } from './dto';
+
+/** Ligne brute de la requête des résultats de courses. */
+type PalmaresRow = {
+  id: number;
+  competitionId: number;
+  date: string;
+  competitionName: string;
+  competitionType: string;
+  raceCode: string;
+  rankingScratch: number | null;
+  comment: string | null;
+  catev: string;
+  catea: string | null;
+  club: string | null;
+  sprintchallenge: boolean | null;
+  rankingInCategory: number | null;
+  totalInCategory: number;
+};
 
 @Injectable()
 export class PalmaresService {
@@ -100,22 +119,11 @@ export class PalmaresService {
       ORDER BY c.event_date DESC, ranked.id DESC
     `;
 
-    const rows: Array<{
-      id: number;
-      competitionId: number;
-      date: string;
-      competitionName: string;
-      competitionType: string;
-      raceCode: string;
-      rankingScratch: number | null;
-      comment: string | null;
-      catev: string;
-      catea: string | null;
-      club: string | null;
-      sprintchallenge: boolean | null;
-      rankingInCategory: number | null;
-      totalInCategory: number;
-    }> = await this.dataSource.query(query, [licenceId]);
+    // Les challenges sont lus en parallèle des résultats : un seul aller-retour pour le client.
+    const [rows, challenges] = await Promise.all([
+      this.dataSource.query<PalmaresRow[]>(query, [licenceId]),
+      this.getChallenges(licenceId),
+    ]);
 
     // c) Compute stats — COUNT(*) returns bigint which pg driver serializes as string
     const ranked = rows
@@ -193,7 +201,39 @@ export class PalmaresService {
     }));
 
     // f) Return full response
-    return { licence, stats, categoryHistory, results };
+    return { licence, stats, categoryHistory, results, challenges };
+  }
+
+  /**
+   * Challenges multi-courses TERMINÉS où figure le coureur, lus dans l'archive figée à la
+   * clôture (index sur licence_id). Les challenges en cours sont exclus : le classement live
+   * n'a pas de rang, et le calculer pour chaque palmarès serait trop coûteux. Le flag `active`
+   * (visibilité dans l'app) est ignoré : un résultat archivé reste acquis.
+   * Tri : première épreuve la plus récente d'abord, comme les résultats de courses.
+   */
+  private getChallenges(licenceId: number): Promise<PalmaresChallengeDto[]> {
+    return this.dataSource.query<PalmaresChallengeDto[]>(
+      `
+      SELECT
+        c.id                       AS "challengeId",
+        c.name                     AS "challengeName",
+        c.competition_type         AS "competitionType",
+        c.closed_at                AS "closedAt",
+        MIN(rr.event_date)         AS "firstEventDate",
+        a.gender,
+        a.catev,
+        a.rank,
+        a.pts_all_races            AS "ptsAllRaces",
+        COUNT(rr.id)::int          AS "nbRaces"
+      FROM challenge_archive_rider a
+      JOIN challenge c ON c.id = a.challenge_id AND c.closed_at IS NOT NULL
+      LEFT JOIN challenge_archive_race_row rr ON rr.archive_rider_id = a.id
+      WHERE a.licence_id = $1
+      GROUP BY a.id, c.id
+      ORDER BY COALESCE(MIN(rr.event_date), c.closed_at) DESC, c.id DESC
+      `,
+      [licenceId],
+    );
   }
 
   /**
