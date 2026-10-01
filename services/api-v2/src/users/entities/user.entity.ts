@@ -39,6 +39,13 @@ export class UserEntity {
   @Column({ nullable: true })
   phone: string;
 
+  // Club ou comité d'appartenance, en texte libre (pas de FK vers `club` :
+  // les comités et cas particuliers n'y figurent pas). Distinct de `user_club`,
+  // qui porte le scope d'autorisation. Séparé de `phone` par la migration 1788.
+  @ApiPropertyOptional()
+  @Column({ type: 'varchar', nullable: true })
+  organisation: string | null;
+
   @ApiPropertyOptional()
   @Column({ type: 'varchar', name: 'firebase_uid', length: 128, nullable: true, unique: true })
   @Index()
