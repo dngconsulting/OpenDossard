@@ -94,6 +94,7 @@ export class AuthFirebaseService {
       email: null,
       firstName: dto.firstName.trim(),
       lastName: dto.lastName.trim(),
+      organisation: null,
       password: null as unknown as string, // Firebase = source de vérité
       roles: 'MOBILE',
     });
@@ -250,6 +251,7 @@ export class AuthFirebaseService {
       lastName: user.lastName,
       roles: user.getRolesArray(),
       phone: user.phone,
+      organisation: user.organisation,
     };
   }
 

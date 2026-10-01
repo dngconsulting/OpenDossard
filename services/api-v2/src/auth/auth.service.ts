@@ -85,16 +85,25 @@ export class AuthService {
     return this.toProfileResponse(user);
   }
 
-  async updateProfile(userId: number, firstName: string, lastName: string, phone?: string) {
+  async updateProfile(
+    userId: number,
+    profile: {
+      firstName: string;
+      lastName: string;
+      phone?: string;
+      organisation?: string | null;
+    },
+  ) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
 
-    user.firstName = firstName;
-    user.lastName = lastName;
-    if (phone !== undefined) user.phone = phone;
+    user.firstName = profile.firstName;
+    user.lastName = profile.lastName;
+    if (profile.phone !== undefined) user.phone = profile.phone;
+    if (profile.organisation !== undefined) user.organisation = profile.organisation;
     await this.userRepository.save(user);
 
     return this.toProfileResponse(user);
@@ -130,6 +139,7 @@ export class AuthService {
       lastName: user.lastName,
       roles: user.getRolesArray(),
       phone: user.phone,
+      organisation: user.organisation,
     };
   }
 

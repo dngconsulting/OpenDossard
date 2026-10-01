@@ -16,4 +16,9 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsString()
   phone?: string;
+
+  @ApiPropertyOptional({ example: 'TOAC Cyclisme', nullable: true })
+  @IsOptional()
+  @IsString()
+  organisation?: string | null;
 }

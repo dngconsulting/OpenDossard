@@ -26,6 +26,7 @@ const buildUser = (overrides: Partial<UserEntity> = {}): UserEntity => {
     lastName: 'Y',
     roles: 'MOBILE',
     phone: null,
+    organisation: null,
     firebaseUid: null,
     signInProvider: null,
     password: null,
@@ -95,6 +96,15 @@ describe('AuthFirebaseService', () => {
   });
 
   describe('exchange()', () => {
+    it('exposes organisation in the profile payload', async () => {
+      verifyIdToken.mockResolvedValueOnce({ uid: VALID_UID, email: VALID_EMAIL });
+      userRepo.findOne.mockResolvedValueOnce(buildUser({ organisation: 'TOAC Cyclisme' }));
+
+      const result = await service.exchange('valid-token');
+
+      expect(result.user).toMatchObject({ organisation: 'TOAC Cyclisme' });
+    });
+
     it('returns tokens when token valid and firebase_uid mapped', async () => {
       verifyIdToken.mockResolvedValueOnce({
         uid: VALID_UID,
@@ -206,6 +216,22 @@ describe('AuthFirebaseService', () => {
         }),
       );
       expect(userRepo.save).toHaveBeenCalled();
+    });
+
+    it('exposes organisation as null on a freshly registered user', async () => {
+      verifyIdToken.mockResolvedValueOnce({ uid: VALID_UID, email: VALID_EMAIL });
+      userRepo.findOne.mockResolvedValueOnce(null);
+      // Entité construite uniquement à partir du littéral passé à create(),
+      // sans les valeurs par défaut de buildUser, pour que l'assertion porte
+      // réellement sur ce qu'écrit register().
+      userRepo.create.mockImplementation(
+        data => ({ ...data, id: 99, getRolesArray: () => ['MOBILE'] }) as UserEntity,
+      );
+      userRepo.save.mockImplementation(u => Promise.resolve(u as UserEntity));
+
+      const result = await service.register(validDto);
+
+      expect(result.user).toMatchObject({ organisation: null });
     });
 
     it('does not persist email on the created firebase user', async () => {

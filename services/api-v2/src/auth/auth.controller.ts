@@ -93,7 +93,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Profile updated' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async updateProfile(@CurrentUser('id') userId: number, @Body() dto: UpdateProfileDto) {
-    return this.authService.updateProfile(userId, dto.firstName, dto.lastName, dto.phone);
+    return this.authService.updateProfile(userId, dto);
   }
 
   @Post('change-password')
