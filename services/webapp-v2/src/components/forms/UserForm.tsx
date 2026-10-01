@@ -7,6 +7,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FieldGroup, FieldSet, StringField, Field, FieldLabel, FieldError } from '@/components/ui/field';
 import { Form } from '@/components/ui/form';
+import { PhoneField } from '@/components/ui/phone-field';
+import { phoneSchema, toPhoneDigits } from '@/components/ui/phone-schema';
 import { RolesMultiSelect } from '@/components/ui/roles-multi-select';
 import { useCreateUser, useUpdateUser } from '@/hooks/useUsers';
 import type { UserType } from '@/types/users';
@@ -20,7 +22,8 @@ const createFormSchema = (isCreating: boolean) =>
       email: z.string().email('Email invalide'),
       firstName: z.string().optional(),
       lastName: z.string().optional(),
-      phone: z.string().optional(),
+      phone: phoneSchema,
+      organisation: z.string().optional(),
       roles: z.string().min(1, 'Au moins un rôle est requis'),
       password: isCreating
         ? z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères')
@@ -67,7 +70,8 @@ export const UserForm = ({ user, isCreating, onSuccess, formId, onPendingChange 
       email: user?.email ?? '',
       firstName: user?.firstName ?? '',
       lastName: user?.lastName ?? '',
-      phone: user?.phone ?? '',
+      phone: toPhoneDigits(user?.phone),
+      organisation: user?.organisation ?? '',
       roles: user?.roles ?? 'ORGANISATEUR',
       password: '',
       confirmPassword: '',
@@ -88,6 +92,7 @@ export const UserForm = ({ user, isCreating, onSuccess, formId, onPendingChange 
           firstName: data.firstName || null,
           lastName: data.lastName || null,
           phone: data.phone || null,
+          organisation: data.organisation?.trim() || null,
           roles: data.roles,
           password: data.password!,
         });
@@ -99,7 +104,8 @@ export const UserForm = ({ user, isCreating, onSuccess, formId, onPendingChange 
             email: data.email,
             firstName: data.firstName,
             lastName: data.lastName,
-            phone: data.phone,
+            phone: data.phone || null,
+            organisation: data.organisation?.trim() || null,
             roles: data.roles,
           },
         });
@@ -157,7 +163,16 @@ export const UserForm = ({ user, isCreating, onSuccess, formId, onPendingChange 
                       <StringField field="lastName" form={form} label="Nom" autoComplete="family-name" />
                       <StringField field="firstName" form={form} label="Prénom" autoComplete="given-name" />
                     </div>
-                    <StringField field="phone" form={form} label="Téléphone" type="tel" autoComplete="tel" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <PhoneField field="phone" form={form} autoComplete="off" />
+                      <StringField
+                        field="organisation"
+                        form={form}
+                        label="Organisation"
+                        description="Club ou comité d'appartenance"
+                        autoComplete="off"
+                      />
+                    </div>
 
                     <Field data-invalid={!!form.formState.errors.roles}>
                       <FieldLabel>

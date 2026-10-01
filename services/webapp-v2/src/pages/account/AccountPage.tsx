@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Building2, Key, KeyRound, Loader2, Mail, Phone, Save, Shield, User } from 'lucide-react';
 import { useMemo } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { authApi } from '@/api/auth.api';
@@ -11,9 +11,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar.tsx'
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.tsx';
-import { Field, FieldGroup, FieldLabel, FieldSet, StringField } from '@/components/ui/field';
+import { FieldGroup, FieldSet, StringField } from '@/components/ui/field';
 import { Form } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { PhoneField } from '@/components/ui/phone-field';
+import { phoneSchema, toPhoneDigits } from '@/components/ui/phone-schema';
 import { Separator } from '@/components/ui/separator.tsx';
 import { useDepartments } from '@/hooks/useDepartments';
 import { useUserClubs } from '@/hooks/useUsers';
@@ -24,7 +25,8 @@ const accountSchema = z
   .object({
     firstName: z.string().min(1, 'Le prénom est requis'),
     lastName: z.string().min(1, 'Le nom est requis'),
-    phone: z.string().optional(),
+    phone: phoneSchema,
+    organisation: z.string().optional(),
     currentPassword: z.string().optional(),
     newPassword: z.string().optional(),
     confirmPassword: z.string().optional(),
@@ -67,7 +69,8 @@ export default function AccountPage() {
     defaultValues: {
       firstName: user!.firstName ?? '',
       lastName: user!.lastName ?? '',
-      phone: user!.phone?.replace(/\s/g, '') || '',
+      phone: toPhoneDigits(user!.phone),
+      organisation: user!.organisation ?? '',
       currentPassword: '',
       newPassword: '',
       confirmPassword: '',
@@ -92,15 +95,23 @@ export default function AccountPage() {
       const hasProfileChanges =
         data.firstName !== user!.firstName ||
         data.lastName !== user!.lastName ||
-        (data.phone || '') !== (user!.phone?.replace(/\s/g, '') || '');
+        (data.phone ?? '') !== toPhoneDigits(user!.phone) ||
+        (data.organisation?.trim() ?? '') !== (user!.organisation ?? '');
 
       if (hasProfileChanges) {
         const updated = await authApi.updateProfile(accessToken!, {
           firstName: data.firstName.trim(),
           lastName: data.lastName.trim(),
-          phone: data.phone || undefined,
+          phone: data.phone || null,
+          organisation: data.organisation?.trim() || null,
         });
-        setUser({ ...user!, firstName: updated.firstName, lastName: updated.lastName, phone: updated.phone });
+        setUser({
+          ...user!,
+          firstName: updated.firstName,
+          lastName: updated.lastName,
+          phone: updated.phone,
+          organisation: updated.organisation,
+        });
       }
 
       if (data.newPassword && data.newPassword.length > 0) {
@@ -180,21 +191,20 @@ export default function AccountPage() {
                         <Phone className="h-5 w-5 text-primary" />
                       </div>
                       <div className="flex-1">
-                        <Controller
-                          control={form.control}
-                          name="phone"
-                          render={({ field }) => (
-                            <Field>
-                              <FieldLabel>Téléphone</FieldLabel>
-                              <Input
-                                value={field.value?.replace(/(\d{2})(?=\d)/g, '$1 ') ?? ''}
-                                onChange={e => field.onChange(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                                placeholder="06 12 34 56 78"
-                                maxLength={14}
-                                autoComplete="tel"
-                              />
-                            </Field>
-                          )}
+                        <PhoneField field="phone" form={form} />
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-4">
+                      <div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary/10 mt-6 shrink-0">
+                        <Building2 className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <StringField
+                          field="organisation"
+                          form={form}
+                          label="Organisation"
+                          description="Club ou comité d'appartenance"
+                          autoComplete="organization"
                         />
                       </div>
                     </div>

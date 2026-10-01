@@ -79,6 +79,7 @@ export const mockUsersService = {
       firstName: userWithoutPassword.firstName ?? '',
       lastName: userWithoutPassword.lastName ?? '',
       phone: userWithoutPassword.phone ?? '',
+      organisation: userWithoutPassword.organisation ?? null,
     };
     usersData.push(newUser);
     return newUser;

@@ -24,7 +24,7 @@ const formatDateTime = (value?: string | null): string => {
 // Colonnes par population. Onglet Dossardeur : l'email n'est pas persisté
 // côté backend (source de vérité = Firebase Auth), l'identifiant affiché —
 // et triable — est le firebase_uid ; pas de téléphone. Onglet Open Dossard :
-// identifié par l'email, colonnes téléphone et rôles éditables.
+// identifié par l'email, colonnes téléphone, organisation et rôles éditables.
 const createColumns = ({ variant, onRolesChange }: ColumnsProps): ColumnDef<UserType>[] => {
   const identifierColumn: ColumnDef<UserType> =
     variant === 'dossardeur'
@@ -128,8 +128,19 @@ const createColumns = ({ variant, onRolesChange }: ColumnsProps): ColumnDef<User
       : [
           {
             accessorKey: 'phone',
-            header: 'Téléphone/Club',
-            size: 140,
+            header: 'Téléphone',
+            size: 120,
+            cell: ({ row }) => row.original.phone?.replace(/(\d{2})(?=\d)/g, '$1 ') ?? '',
+          } satisfies ColumnDef<UserType>,
+          {
+            accessorKey: 'organisation',
+            header: 'Organisation',
+            size: 200,
+            cell: ({ row }) => (
+              <span className="block truncate" title={row.original.organisation ?? undefined}>
+                {row.original.organisation}
+              </span>
+            ),
           } satisfies ColumnDef<UserType>,
         ]),
     {

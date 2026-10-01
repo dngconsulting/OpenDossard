@@ -15,14 +15,16 @@ export interface UserProfile {
   email: string;
   firstName: string;
   lastName: string;
-  phone?: string;
+  phone?: string | null;
+  organisation?: string | null;
   roles: string[];
 }
 
 export interface UpdateProfileRequest {
   firstName: string;
   lastName: string;
-  phone?: string;
+  phone?: string | null;
+  organisation?: string | null;
 }
 
 export const authApi = {

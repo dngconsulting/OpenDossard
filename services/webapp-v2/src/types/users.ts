@@ -3,7 +3,8 @@ export type UserType = {
   email: string | null;
   firstName: string;
   lastName: string;
-  phone: string;
+  phone: string | null;
+  organisation: string | null;
   roles: string;
   /**
    * UID Firebase Auth — set uniquement pour les users mobile firebase.
@@ -31,6 +32,7 @@ export type CreateUserInput = {
   firstName: string | null;
   lastName: string | null;
   phone: string | null;
+  organisation: string | null;
   roles: string;
   password: string;
 };
