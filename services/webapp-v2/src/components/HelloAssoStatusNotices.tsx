@@ -15,10 +15,7 @@ import { HelloAssoCashInStatus } from '@/components/HelloAssoCashInStatus';
  *    bouton « Rafraîchir le statut » (`HelloAssoCashInStatus`).
  *  - Liaison : rouge si expirée (refresh token > 30j), sinon vert (simple notice) avec
  *    « Connecté le X. Renouvellement automatique avant le Y. » (job de refresh des tokens).
- *
- * Le bandeau rouge « Afin de pouvoir collecter… » n'est plus affiché ici : il
- * ne s'affiche que sur une épreuve à ON dont le club n'est pas conforme
- * (`HelloAssoCashInBlockedNotice`).
+
  *
  * Ne rend rien si le club n'est pas lié.
  */

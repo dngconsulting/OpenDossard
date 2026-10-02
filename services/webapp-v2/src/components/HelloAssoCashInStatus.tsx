@@ -5,8 +5,8 @@ import { useRefreshCashInCompliance } from '@/hooks/useHelloAssoAuth';
 
 const GREEN_BANNER =
   'flex items-start gap-3 rounded-md border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200';
-const NEUTRAL_BANNER =
-  'flex items-start gap-3 rounded-md border border-slate-300 bg-slate-50 p-3 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-200';
+const RED_BANNER =
+  'flex items-start gap-3 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/30 dark:text-red-200';
 
 type HelloAssoCashInStatusProps = {
   /** Club lié. Sans lui, le bandeau s'affiche sans bouton de rafraîchissement. */
@@ -22,14 +22,19 @@ type HelloAssoCashInStatusProps = {
  * liaison, l'admin ou l'organisateur le relance après ses démarches.
  *
  *  - vérifié (`true`) → vert, le paiement en ligne peut être activé ;
- *  - non vérifié (`false`) → neutre, avec le lien vers la vérification HelloAsso ;
- *  - inconnu (`null`) → neutre.
+ *  - non vérifié (`false`) → rouge, aucun paiement ne peut être encaissé ; lien
+ *    vers la vérification HelloAsso ;
+ *  - inconnu (`null`) → rouge aussi : le paiement en ligne ne peut pas être
+ *    activé tant que le statut n'a pas été rafraîchi.
+ *
+ * Seul encart sur la conformité : il remplace l'ancien bandeau rouge « Afin de
+ * pouvoir collecter… », qui faisait doublon.
  */
 export function HelloAssoCashInStatus({ clubId, slug, isCashInCompliant }: HelloAssoCashInStatusProps) {
   const isVerified = isCashInCompliant === true;
 
   return (
-    <div className={isVerified ? GREEN_BANNER : NEUTRAL_BANNER}>
+    <div className={isVerified ? GREEN_BANNER : RED_BANNER}>
       {isVerified ? (
         <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
       ) : (
@@ -40,7 +45,7 @@ export function HelloAssoCashInStatus({ clubId, slug, isCashInCompliant }: Hello
           {isVerified
             ? 'Compte HelloAsso vérifié : le club peut encaisser des paiements en ligne.'
             : isCashInCompliant === false
-              ? 'Compte HelloAsso non vérifié : le paiement en ligne ne peut pas être activé tant que HelloAsso n’a pas validé le dossier de l’association.'
+              ? 'Compte HelloAsso non vérifié : aucun paiement en ligne ne peut être encaissé ni activé tant que HelloAsso n’a pas validé le dossier de vérification de l’association.'
               : 'Statut de vérification du compte HelloAsso inconnu : rafraîchissez-le avant d’activer le paiement en ligne.'}
         </p>
         <div className="flex flex-wrap gap-2">
