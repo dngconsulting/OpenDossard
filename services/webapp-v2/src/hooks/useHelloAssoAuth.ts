@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { helloAssoApi, type HelloAssoLinkStatusDto } from '@/api/helloasso.api';
 import { ApiError } from '@/utils/error-handler';
+import { showSuccessToast, showWarningToast } from '@/utils/error-handler/error-handler';
 
 export function useHelloAssoAuth() {
   return useMutation({
@@ -44,6 +45,30 @@ export function useHelloAssoUnlink(clubId: number) {
     mutationFn: () => helloAssoApi.unlink(clubId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['helloasso', 'status', clubId] });
+    },
+  });
+}
+
+/**
+ * Relit chez HelloAsso la conformité encaissement du club (bouton « Rafraîchir
+ * le statut »). Le statut renvoyé remplace directement le cache de
+ * `useHelloAssoStatus` : fiche club et fiche épreuve se mettent à jour sans
+ * nouvel appel. Erreurs (409 liaison à refaire, 502 HelloAsso injoignable)
+ * affichées par le `MutationCache.onError` global (cf. `App.tsx`).
+ */
+export function useRefreshCashInCompliance(clubId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => helloAssoApi.refreshCashInCompliance(clubId),
+    onSuccess: status => {
+      queryClient.setQueryData(['helloasso', 'status', clubId], status);
+      if (status.linked && status.isCashInCompliant === true) {
+        showSuccessToast('Compte HelloAsso vérifié : le paiement en ligne peut être activé.');
+      } else {
+        showWarningToast(
+          'Compte HelloAsso toujours non vérifié : finalisez les démarches auprès de HelloAsso.',
+        );
+      }
     },
   });
 }

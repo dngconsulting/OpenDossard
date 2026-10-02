@@ -44,6 +44,15 @@ export const helloAssoApi = {
     apiClient<HelloAssoLinkStatusDto>(`/helloasso/clubs/${clubId}/status`),
 
   /**
+   * Relit chez HelloAsso le drapeau de conformité encaissement du club, le
+   * met à jour en base et renvoie le statut de liaison à jour.
+   */
+  refreshCashInCompliance: (clubId: number): Promise<HelloAssoLinkStatusDto> =>
+    apiClient<HelloAssoLinkStatusDto>(`/helloasso/clubs/${clubId}/cash-in-compliance/refresh`, {
+      method: 'POST',
+    }),
+
+  /**
    * Délie un club de HelloAsso (supprime la ligne `helloasso_details`).
    * Action réversible via la mire (re-link).
    */

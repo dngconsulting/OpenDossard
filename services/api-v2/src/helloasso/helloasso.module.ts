@@ -18,6 +18,8 @@ import { HelloAssoPaymentController } from './helloasso-payment.controller';
 import { HelloAssoPaymentService } from './helloasso-payment.service';
 import { HelloAssoPaymentsAdminService } from './helloasso-payments-admin.service';
 import { HelloAssoStateStore } from './helloasso-state.store';
+import { HelloAssoCashInComplianceController } from './helloasso-cash-in-compliance.controller';
+import { HelloAssoCashInComplianceService } from './helloasso-cash-in-compliance.service';
 import { HelloAssoTokenRefreshService } from './helloasso-token-refresh.service';
 import { HelloAssoWebhookController } from './helloasso-webhook.controller';
 import { HelloAssoWebhookKeysService } from './helloasso-webhook-keys.service';
@@ -43,7 +45,12 @@ import { HelloAssoWebhookService } from './helloasso-webhook.service';
     ClubsModule,
     NotificationsModule,
   ],
-  controllers: [HelloAssoController, HelloAssoPaymentController, HelloAssoWebhookController],
+  controllers: [
+    HelloAssoController,
+    HelloAssoCashInComplianceController,
+    HelloAssoPaymentController,
+    HelloAssoWebhookController,
+  ],
   providers: [
     HelloAssoConfig,
     HelloAssoStateStore,
@@ -55,6 +62,7 @@ import { HelloAssoWebhookService } from './helloasso-webhook.service';
     HelloAssoWebhookKeysService,
     HelloAssoWebhookService,
     HelloAssoTokenRefreshService,
+    HelloAssoCashInComplianceService,
   ],
   exports: [HelloAssoOAuthService, HelloAssoDetailsService, HelloAssoPaymentService],
 })

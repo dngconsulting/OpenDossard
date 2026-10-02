@@ -18,6 +18,7 @@ import { RaceEntity } from '../races/entities/race.entity';
 import { FilterCompetitionDto } from './dto/filter-competition.dto';
 import { ReorganizeCompetitionDto } from './dto/reorganize-competition.dto';
 import { CompetitionEntity } from './entities/competition.entity';
+import { OnlinePaymentActivationPolicy } from './online-payment-activation.policy';
 
 const ACTIVE_PAYMENT_STATUSES: HelloAssoPaymentStatus[] = [
   HelloAssoPaymentStatus.PENDING,
@@ -37,6 +38,7 @@ export class CompetitionsService {
     @InjectRepository(HelloAssoPaymentEntity)
     private helloAssoPaymentRepository: Repository<HelloAssoPaymentEntity>,
     private readonly authorizationService: AuthorizationService,
+    private readonly onlinePaymentPolicy: OnlinePaymentActivationPolicy,
   ) {}
 
   async findAll(
@@ -208,6 +210,8 @@ export class CompetitionsService {
       clubId: data.clubId ?? null,
     });
 
+    await this.onlinePaymentPolicy.assertActivable(null, data);
+
     if (Array.isArray(data.photoUrls) && data.photoUrls.length === 0) {
       data.photoUrls = null;
     }
@@ -256,6 +260,14 @@ export class CompetitionsService {
       }
     }
 
+    await this.onlinePaymentPolicy.assertActivable(competition, {
+      onlineRegistrationEnabled:
+        'onlineRegistrationEnabled' in competitionData
+          ? competitionData.onlineRegistrationEnabled
+          : competition.onlineRegistrationEnabled,
+      clubId: 'clubId' in competitionData ? competitionData.clubId : competition.clubId,
+    });
+
     // Fix: Sync the club relation with clubId so TypeORM generates the correct FK value.
     // TypeORM prioritizes the relation object over the column, so we must align both.
     if ('clubId' in competitionData) {
@@ -302,6 +314,9 @@ export class CompetitionsService {
       ...competitionData,
       name: `${original.name} (copie)`,
       resultsValidated: false,
+      // Une copie n'hérite jamais du paiement en ligne : sa réactivation passe
+      // par le verrou de conformité HelloAsso (`OnlinePaymentActivationPolicy`).
+      onlineRegistrationEnabled: false,
     });
     this.stampAudit(duplicate, user.email);
     return this.competitionRepository.save(duplicate);

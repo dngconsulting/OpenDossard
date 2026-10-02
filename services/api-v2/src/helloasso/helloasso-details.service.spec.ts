@@ -211,6 +211,36 @@ describe('HelloAssoDetailsService — setIsCashInCompliantBySlug', () => {
   });
 });
 
+describe('HelloAssoDetailsService — setIsCashInCompliantByClubId', () => {
+  it('UPDATE par clubId et renvoie le nombre de lignes affectées', async () => {
+    const m = makeService();
+    m.repo.update.mockResolvedValue({ affected: 1, raw: [], generatedMaps: [] });
+
+    const affected = await m.service.setIsCashInCompliantByClubId(1239, true);
+
+    expect(m.repo.update).toHaveBeenCalledWith({ clubId: 1239 }, { isCashInCompliant: true });
+    expect(affected).toBe(1);
+  });
+
+  it('enregistre aussi false (retour à non conforme)', async () => {
+    const m = makeService();
+    m.repo.update.mockResolvedValue({ affected: 1, raw: [], generatedMaps: [] });
+
+    await m.service.setIsCashInCompliantByClubId(1239, false);
+
+    expect(m.repo.update).toHaveBeenCalledWith({ clubId: 1239 }, { isCashInCompliant: false });
+  });
+
+  it('renvoie 0 quand le club n’a pas de liaison', async () => {
+    const m = makeService();
+    m.repo.update.mockResolvedValue({ affected: 0, raw: [], generatedMaps: [] });
+
+    const affected = await m.service.setIsCashInCompliantByClubId(999, true);
+
+    expect(affected).toBe(0);
+  });
+});
+
 describe('HelloAssoDetailsService — deleteByClubId (cascade onlineRegistrationEnabled)', () => {
   it('throw NotFoundException si pas de lien HA pour ce clubId', async () => {
     const m = makeService();

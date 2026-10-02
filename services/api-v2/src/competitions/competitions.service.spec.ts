@@ -11,15 +11,18 @@ import { Repository } from 'typeorm';
 import { AuthorizationService } from '../auth/authorization.service';
 import { AuthenticatedUser } from '../auth/types/authenticated-user';
 import { Role } from '../common/enums';
+import { HelloAssoDetailsEntity } from '../helloasso/entities/helloasso-details.entity';
 import { HelloAssoPaymentEntity } from '../helloasso/entities/helloasso-payment.entity';
 import { RaceEntity } from '../races/entities/race.entity';
 import { CompetitionsService } from './competitions.service';
 import { CompetitionEntity } from './entities/competition.entity';
+import { OnlinePaymentActivationPolicy } from './online-payment-activation.policy';
 
 describe('CompetitionsService — scope enforcement (lot 2)', () => {
   let service: CompetitionsService;
   let competitionRepo: jest.Mocked<Repository<CompetitionEntity>>;
   let paymentRepo: jest.Mocked<Repository<HelloAssoPaymentEntity>>;
+  let detailsRepo: jest.Mocked<Repository<HelloAssoDetailsEntity>>;
   let authz: jest.Mocked<AuthorizationService>;
 
   // Note : on n'utilise pas l'ADMIN ici car la branche ADMIN-bypass est testée
@@ -37,6 +40,11 @@ describe('CompetitionsService — scope enforcement (lot 2)', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CompetitionsService,
+        OnlinePaymentActivationPolicy,
+        {
+          provide: getRepositoryToken(HelloAssoDetailsEntity),
+          useValue: { findOne: jest.fn().mockResolvedValue(null) },
+        },
         {
           provide: getRepositoryToken(CompetitionEntity),
           useValue: {
@@ -73,6 +81,7 @@ describe('CompetitionsService — scope enforcement (lot 2)', () => {
     service = module.get(CompetitionsService);
     competitionRepo = module.get(getRepositoryToken(CompetitionEntity));
     paymentRepo = module.get(getRepositoryToken(HelloAssoPaymentEntity));
+    detailsRepo = module.get(getRepositoryToken(HelloAssoDetailsEntity));
     authz = module.get(AuthorizationService);
   });
 
@@ -149,6 +158,17 @@ describe('CompetitionsService — scope enforcement (lot 2)', () => {
       expect(authz.assertCompetitionAccess).toHaveBeenCalledWith(ORGA, baseCompetition);
     });
 
+    it('duplicate : la copie a toujours le paiement en ligne désactivé', async () => {
+      competitionRepo.findOne.mockResolvedValue({
+        ...baseCompetition,
+        onlineRegistrationEnabled: true,
+      } as CompetitionEntity);
+
+      const copy = await service.duplicate(100, ORGA);
+
+      expect(copy.onlineRegistrationEnabled).toBe(false);
+    });
+
     it('validate : délègue assertCompetitionAccess avec la compet fetchée', async () => {
       competitionRepo.findOne.mockResolvedValue(baseCompetition);
       await expect(service.validate(100, ORGA)).resolves.toBeDefined();
@@ -158,6 +178,104 @@ describe('CompetitionsService — scope enforcement (lot 2)', () => {
     it("compet introuvable : NotFound (avant tout check d'autorisation)", async () => {
       competitionRepo.findOne.mockResolvedValue(null);
       await expect(service.remove(999, ORGA)).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  describe('verrou d’activation du paiement en ligne (conformité HelloAsso)', () => {
+    /** Liaison HelloAsso du club 42, avec le drapeau voulu (`null` = inconnu). */
+    function linkClub(isCashInCompliant: boolean | null): void {
+      detailsRepo.findOne.mockResolvedValue({
+        clubId: 42,
+        isCashInCompliant,
+      } as HelloAssoDetailsEntity);
+    }
+
+    function existing(onlineRegistrationEnabled: boolean): void {
+      competitionRepo.findOne.mockResolvedValue({
+        ...baseCompetition,
+        onlineRegistrationEnabled,
+      } as CompetitionEntity);
+    }
+
+    it('création à ON pour un club non conforme → 422, rien n’est enregistré', async () => {
+      linkClub(false);
+      await expect(
+        service.create({ clubId: 42, onlineRegistrationEnabled: true }, ORGA),
+      ).rejects.toBeInstanceOf(UnprocessableEntityException);
+      expect(competitionRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('création à ON pour un club conforme → acceptée', async () => {
+      linkClub(true);
+      await expect(
+        service.create({ clubId: 42, onlineRegistrationEnabled: true }, ORGA),
+      ).resolves.toBeDefined();
+    });
+
+    it('création à OFF → aucun contrôle', async () => {
+      await expect(
+        service.create({ clubId: 42, onlineRegistrationEnabled: false }, ORGA),
+      ).resolves.toBeDefined();
+      expect(detailsRepo.findOne).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['non conforme', false],
+      ['statut inconnu (null)', null],
+    ])('passage OFF → ON pour un club %s → 422', async (_label, flag) => {
+      existing(false);
+      linkClub(flag);
+      await expect(
+        service.update(100, { onlineRegistrationEnabled: true }, ORGA),
+      ).rejects.toBeInstanceOf(UnprocessableEntityException);
+      expect(competitionRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('passage OFF → ON pour un club non lié à HelloAsso → 422', async () => {
+      existing(false);
+      detailsRepo.findOne.mockResolvedValue(null);
+      await expect(
+        service.update(100, { onlineRegistrationEnabled: true }, ORGA),
+      ).rejects.toBeInstanceOf(UnprocessableEntityException);
+    });
+
+    it('passage OFF → ON pour un club conforme → accepté', async () => {
+      existing(false);
+      linkClub(true);
+      await expect(
+        service.update(100, { onlineRegistrationEnabled: true }, ORGA),
+      ).resolves.toMatchObject({ onlineRegistrationEnabled: true });
+    });
+
+    it('passage ON → OFF → toujours accepté, sans contrôle', async () => {
+      existing(true);
+      await expect(
+        service.update(100, { onlineRegistrationEnabled: false }, ORGA),
+      ).resolves.toMatchObject({ onlineRegistrationEnabled: false });
+      expect(detailsRepo.findOne).not.toHaveBeenCalled();
+    });
+
+    it('épreuve déjà à ON, club non conforme : éditer un autre champ reste possible', async () => {
+      existing(true);
+      linkClub(false);
+      await expect(
+        service.update(100, { name: 'GP renommé', onlineRegistrationEnabled: true }, ORGA),
+      ).resolves.toMatchObject({ name: 'GP renommé' });
+      expect(detailsRepo.findOne).not.toHaveBeenCalled();
+    });
+
+    it('changement de club avec le switch à ON vers un club non conforme → 422', async () => {
+      existing(true);
+      detailsRepo.findOne.mockResolvedValue({
+        clubId: 43,
+        isCashInCompliant: false,
+      } as HelloAssoDetailsEntity);
+      await expect(service.update(100, { clubId: 43 }, ORGA)).rejects.toBeInstanceOf(
+        UnprocessableEntityException,
+      );
+      expect(detailsRepo.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { clubId: 43 } }),
+      );
     });
   });
 });

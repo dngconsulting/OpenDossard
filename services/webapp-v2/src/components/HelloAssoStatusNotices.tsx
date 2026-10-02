@@ -1,36 +1,39 @@
-import { AlertCircle, ExternalLink } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import type { HelloAssoLinkStatusDto } from '@/api/helloasso.api';
-import { Button } from '@/components/ui/button';
+import { HelloAssoCashInStatus } from '@/components/HelloAssoCashInStatus';
 
 /**
- * Bandeaux d'état de la liaison HelloAsso d'un club, réutilisables là où l'on
- * veut rappeler l'état de la liaison sans les actions propres à la fiche club
- * (Délier / Lier). Utilisé dans l'encart « Paiement en ligne » de la fiche
- * épreuve (`HelloAssoOnlinePaymentSection`) ; reproduit fidèlement les encarts
- * de la fiche club (`ClubDetailPage`) pour un visuel/libellé identique.
+ * Bandeaux d'état de la liaison HelloAsso d'un club, affichés dans l'encart
+ * « Paiement en ligne » de la fiche épreuve (`HelloAssoOnlinePaymentSection`).
+ * La fiche club (`ClubDetailPage`) a son propre bandeau de liaison (édition
+ * désactivée, Délier) mais partage le bandeau de statut `HelloAssoCashInStatus`.
  *
  * Rendu (si le club est lié) :
- *  - Rouge « Afin de pouvoir collecter… » quand l'encaissement HelloAsso est
- *    bloqué (`isCashInCompliant === false`, compte non vérifié). `null` =
- *    inconnu → rien (différent de `false`).
- *  - Liaison : rouge si expirée (refresh token > 30j), sinon ambre avec
+ *  - Statut de vérification du compte HelloAsso (`isCashInCompliant`) avec le
+ *    bouton « Rafraîchir le statut » (`HelloAssoCashInStatus`).
+ *  - Liaison : rouge si expirée (refresh token > 30j), sinon vert (simple notice) avec
  *    « Connecté le X. Renouvellement automatique avant le Y. » (job de refresh des tokens).
+ *
+ * Le bandeau rouge « Afin de pouvoir collecter… » n'est plus affiché ici : il
+ * ne s'affiche que sur une épreuve à ON dont le club n'est pas conforme
+ * (`HelloAssoCashInBlockedNotice`).
  *
  * Ne rend rien si le club n'est pas lié.
  */
 
 const RED_BANNER =
   'flex items-start gap-3 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/30 dark:text-red-200';
-const AMBER_BANNER =
-  'flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200';
+const GREEN_BANNER =
+  'flex items-start gap-3 rounded-md border border-green-300 bg-green-50 p-3 text-sm text-green-900 dark:border-green-800 dark:bg-green-950/30 dark:text-green-200';
 
 type HelloAssoStatusNoticesProps = {
   status: HelloAssoLinkStatusDto | undefined;
   /**
-   * Club lié (organisateur). Si fourni, la mention « Renouvellement automatique
-   * avant le … » devient un lien vers la fiche de ce club (`/club/:id`).
+   * Club lié (organisateur). Requis pour le bouton « Rafraîchir le statut » ;
+   * la mention « Renouvellement automatique avant le … » devient alors un lien
+   * vers la fiche de ce club (`/club/:id`).
    */
   clubId?: number;
   /** Classes appliquées au conteneur (ex: `mt-2`). */
@@ -50,37 +53,16 @@ export function HelloAssoStatusNotices({
   const linkedAtDate = new Date(status.linkedAt).toLocaleDateString('fr-FR');
   const refreshExpiresDate = new Date(status.refreshTokenExpiresAt).toLocaleDateString('fr-FR');
   const isExpired = status.expired === true;
-  const isCashInBlocked = status.isCashInCompliant === false;
 
   return (
     <div className={`space-y-3 ${className ?? ''}`}>
-      {isCashInBlocked && (
-        <div className={RED_BANNER}>
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          <div className="space-y-3">
-            <p>
-              Afin de pouvoir collecter des paiements en ligne, vous devez vérifier le compte
-              HelloAsso de votre association en envoyant le dossier de vérification sur la
-              plateforme. Tant que cette étape n&apos;est pas validée, vous ne pourrez encaisser
-              aucun paiement en ligne.
-            </p>
-            {slug && (
-              <Button asChild variant="outline" size="sm">
-                <a
-                  href={`https://admin.helloasso.com/${slug}/verification`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  Vérifier mon compte HelloAsso
-                </a>
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
+      <HelloAssoCashInStatus
+        clubId={clubId}
+        slug={slug}
+        isCashInCompliant={status.isCashInCompliant}
+      />
 
-      <div className={isExpired ? RED_BANNER : AMBER_BANNER}>
+      <div className={isExpired ? RED_BANNER : GREEN_BANNER}>
         <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
         <div className="space-y-1">
           {isExpired ? (
@@ -100,7 +82,7 @@ export function HelloAssoStatusNotices({
               {clubId != null ? (
                 <Link
                   to={`/club/${clubId}`}
-                  className="underline underline-offset-2 hover:text-amber-950 dark:hover:text-amber-100"
+                  className="underline underline-offset-2 hover:text-green-950 dark:hover:text-green-100"
                 >
                   Renouvellement automatique avant le <strong>{refreshExpiresDate}</strong>
                 </Link>

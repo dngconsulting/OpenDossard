@@ -1,5 +1,6 @@
 import { useFormContext } from 'react-hook-form';
 
+import { HelloAssoCashInBlockedNotice } from '@/components/HelloAssoCashInBlockedNotice';
 import { HelloAssoStatusNotices } from '@/components/HelloAssoStatusNotices';
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
@@ -16,6 +17,12 @@ import type { FormValues } from '../types';
  * Si la liaison est expirée (refresh_token > 30j), affiche un warning incitant
  * l'admin à re-passer par la mire avant que des coureurs essaient de payer.
  *
+ * Verrou de conformité : le switch ne peut passer à ON que si le compte
+ * HelloAsso du club est vérifié (`isCashInCompliant === true`, `null` compris
+ * comme non vérifié) — l'API applique le même verrou. Une épreuve déjà à ON
+ * reste désactivable ; si son club n'est pas vérifié, le bandeau rouge
+ * « Afin de pouvoir collecter… » le signale.
+ *
  * Transition OFF→ON : nettoie chaque `pricing.tarif` — si parsable en number
  * positif, on coerce en number ; sinon on vide (la string libre ne peut plus
  * servir de montant payable). L'admin doit re-saisir les valeurs vidées.
@@ -29,6 +36,7 @@ export function HelloAssoOnlinePaymentSection() {
   if (!data || !data.linked) {
     return null;
   }
+  const isCashInCompliant = data.isCashInCompliant === true;
 
   return (
     <FormField
@@ -59,6 +67,7 @@ export function HelloAssoOnlinePaymentSection() {
             <FormControl>
               <Switch
                 checked={field.value ?? false}
+                disabled={!field.value && !isCashInCompliant}
                 onCheckedChange={(checked) => {
                   if (checked && !field.value) {
                     // OFF → ON : nettoie les tarifs non-numériques
@@ -77,6 +86,8 @@ export function HelloAssoOnlinePaymentSection() {
               />
             </FormControl>
           </div>
+
+          {field.value && !isCashInCompliant && <HelloAssoCashInBlockedNotice slug={data.slug} />}
 
           {/* Bandeaux d'état de la liaison HelloAsso (vérification compte +
               connecté/renouvellement), identiques à la fiche club. */}

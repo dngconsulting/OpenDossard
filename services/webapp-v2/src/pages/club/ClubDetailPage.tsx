@@ -3,7 +3,6 @@ import {
   ArrowLeft,
   CalendarDays,
   ChevronRight,
-  ExternalLink,
   Heart,
   Loader2,
   Lock,
@@ -14,6 +13,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { LastModificationInfo } from '@/components/common/LastModificationInfo';
 import { ClubForm } from '@/components/forms/ClubForm';
+import { HelloAssoCashInStatus } from '@/components/HelloAssoCashInStatus';
 import { HelloAssoConnectButton } from '@/components/HelloAssoConnectButton';
 import { HelloAssoUnlinkButton } from '@/components/HelloAssoUnlinkButton';
 import Layout from '@/components/layout/Layout';
@@ -46,11 +46,6 @@ export default function ClubDetailPage() {
     ? new Date(helloAssoStatus.refreshTokenExpiresAt).toLocaleDateString('fr-FR')
     : undefined;
   const isHelloAssoExpired = helloAssoStatus?.linked === true && helloAssoStatus.expired === true;
-  // Encaissement bloqué côté HelloAsso : l'asso n'a pas finalisé ses exigences
-  // admin (KYC, IBAN, statuts…). `null` = valeur inconnue → on n'affiche RIEN
-  // (pas la même chose que "false"). Seul `false` strict déclenche le warning.
-  const isHelloAssoCashInBlocked =
-    helloAssoStatus?.linked === true && helloAssoStatus.isCashInCompliant === false;
   const [isPending, setIsPending] = useState(false);
   // Lien vers les épreuves du club, uniquement s'il en organise : la page
   // compétitions filtre par nom de club (`club=` = ILIKE sur longName) et le
@@ -145,29 +140,13 @@ export default function ClubDetailPage() {
           </div>
         </div>
       )}
-      {isHelloAssoCashInBlocked && (
-        <div className="mb-4 flex items-start gap-3 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/30 dark:text-red-200">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          <div className="space-y-3">
-            <p>
-              Afin de pouvoir collecter des paiements en ligne, vous devez vérifier le compte
-              HelloAsso de votre association en envoyant le dossier de vérification sur la
-              plateforme. Tant que cette étape n&apos;est pas validée, vous ne pourrez encaisser
-              aucun paiement en ligne.
-            </p>
-            {linkedSlug && (
-              <Button asChild variant="outline" size="sm">
-                <a
-                  href={`https://admin.helloasso.com/${linkedSlug}/verification`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  Vérifier mon compte HelloAsso
-                </a>
-              </Button>
-            )}
-          </div>
+      {helloAssoStatus?.linked && (
+        <div className="mb-4">
+          <HelloAssoCashInStatus
+            clubId={clubId}
+            slug={helloAssoStatus.slug}
+            isCashInCompliant={helloAssoStatus.isCashInCompliant}
+          />
         </div>
       )}
       {isLinkedToHelloAsso && (
@@ -175,7 +154,7 @@ export default function ClubDetailPage() {
           className={
             isHelloAssoExpired
               ? 'mb-4 flex items-start gap-3 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/30 dark:text-red-200'
-              : 'mb-4 flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200'
+              : 'mb-4 flex items-start gap-3 rounded-md border border-green-300 bg-green-50 p-3 text-sm text-green-900 dark:border-green-800 dark:bg-green-950/30 dark:text-green-200'
           }
         >
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />

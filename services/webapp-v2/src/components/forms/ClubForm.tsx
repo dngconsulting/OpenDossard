@@ -162,7 +162,7 @@ export const ClubForm = ({ club, isCreating, onSuccess, formId, onPendingChange,
                   <StringField
                     field="helloAssoSlug"
                     form={form}
-                    label="HelloAsso slug"
+                    label="Identifiant HelloAsso (slug)"
                     description="Slug exact de l'association côté HelloAsso (ex. cyclo-club-castaneam). Visible dans l'URL de la page HelloAsso du club. Doit être renseigné avant la liaison OAuth HelloAsso."
                   />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

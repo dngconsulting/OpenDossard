@@ -191,7 +191,7 @@ export class HelloAssoDetailsService {
    * `linked_at` conserve ainsi son sens de date de liaison, lisible dans l'UI.
    *
    * Le slug n'est jamais écrit ici : le grant `refresh_token` ne renvoie pas
-   * `organization_slug` (vérifié en sandbox 2026-08-22).
+   * `organization_slug`
    *
    * `update()` ciblé plutôt que `load → mutate → save` : le webhook
    * `Organization.IsCashinCompliant` peut modifier la même ligne pendant que le
@@ -274,6 +274,19 @@ export class HelloAssoDetailsService {
     isCashInCompliant: boolean,
   ): Promise<number> {
     const result = await this.repo.update({ organizationSlug }, { isCashInCompliant });
+    return result.affected ?? 0;
+  }
+
+  /**
+   * Met à jour le drapeau `isCashInCompliant` de la liaison d'un club. Renvoie
+   * le nombre de lignes affectées (0 si le club n'a pas de liaison).
+   *
+   * Appelé par le rafraîchissement manuel du statut de conformité. `update()`
+   * ciblé sur la seule colonne : ne touche jamais aux tokens qu'un refresh
+   * concurrent pourrait être en train d'écrire.
+   */
+  async setIsCashInCompliantByClubId(clubId: number, isCashInCompliant: boolean): Promise<number> {
+    const result = await this.repo.update({ clubId }, { isCashInCompliant });
     return result.affected ?? 0;
   }
 }
