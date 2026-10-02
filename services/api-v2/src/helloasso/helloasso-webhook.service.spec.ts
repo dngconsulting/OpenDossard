@@ -1,4 +1,4 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { Logger, UnauthorizedException } from '@nestjs/common';
 import { createHmac } from 'node:crypto';
 import { Repository } from 'typeorm';
 
@@ -383,6 +383,147 @@ describe('HelloAssoWebhookService', () => {
       const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
 
       expect(result.outcome).toBe('orphan_no_local_payment');
+    });
+  });
+
+  describe('paiements sans metadata OpenDossard', () => {
+    // HelloAsso pousse TOUS les paiements des organisations liées à OD (boutique,
+    // adhésions, campagnes…), et ses webhooks de remboursement ne portent pas
+    // notre metadata. Payeur fictif : on vérifie qu'il ne fuit jamais en log.
+    const payer = { email: 'payeur@example.org', firstName: 'Jean', lastName: 'Payeur' };
+
+    function foreignBody(data: Record<string, unknown>): string {
+      return JSON.stringify({
+        eventType: 'Payment',
+        data: {
+          id: 96657566,
+          state: 'Authorized',
+          order: { id: 194132194, organizationSlug: 'club-tiers' },
+          payer,
+          refundOperations: [],
+          ...data,
+        },
+      });
+    }
+
+    let logSpies: jest.SpyInstance[];
+
+    beforeEach(() => {
+      logSpies = (['log', 'warn', 'error', 'debug', 'verbose'] as const).map(level =>
+        jest.spyOn(Logger.prototype, level).mockImplementation(() => undefined),
+      );
+    });
+
+    afterEach(() => {
+      logSpies.forEach(spy => spy.mockRestore());
+    });
+
+    function loggedText(): string {
+      return logSpies.flatMap(spy => (spy.mock.calls as unknown[][]).flat()).join(' ');
+    }
+
+    it('un paiement étranger ordinaire est ignoré sans log ni accès base', async () => {
+      const m = makeService();
+      const body = foreignBody({});
+      const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
+      expect(result.outcome).toBe('foreign_payment');
+      expect(m.paymentRepo.findOne).not.toHaveBeenCalled();
+      logSpies.forEach(spy => expect(spy).not.toHaveBeenCalled());
+    });
+
+    it('un paiement étranger incomplet est ignoré sans log ni accès base', async () => {
+      const m = makeService();
+      const body = JSON.stringify({ eventType: 'Payment', data: { state: 'Authorized' } });
+      const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
+      expect(result.outcome).toBe('foreign_payment');
+      expect(m.paymentRepo.findOne).not.toHaveBeenCalled();
+      logSpies.forEach(spy => expect(spy).not.toHaveBeenCalled());
+    });
+
+    it('un remboursement est rattaché au paiement OD par data.id et le passe en refunded', async () => {
+      const m = makeService();
+      m.paymentRepo.findOne.mockResolvedValue({
+        id: 42,
+        status: HelloAssoPaymentStatus.PAID,
+        payerUserId: null,
+      } as HelloAssoPaymentEntity);
+      const body = foreignBody({
+        state: 'Refunded',
+        refundOperations: [{ id: 419, amount: 2000, status: 'PROCESSED' }],
+      });
+
+      const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
+
+      expect(m.paymentRepo.findOne).toHaveBeenCalledWith({
+        where: { helloAssoPaymentId: '96657566' },
+      });
+      expect(result.outcome).toBe('transitioned:paid→refunded');
+      expect(m.updateQbSet).toHaveBeenCalledWith(
+        expect.objectContaining({ status: HelloAssoPaymentStatus.REFUNDED }),
+      );
+    });
+
+    it('un remboursement échoué (Authorized + refundOperations) ne change pas le statut', async () => {
+      const m = makeService();
+      m.paymentRepo.findOne.mockResolvedValue({
+        id: 42,
+        status: HelloAssoPaymentStatus.PAID,
+        payerUserId: null,
+      } as HelloAssoPaymentEntity);
+      m.updateQbExecute.mockResolvedValue({ affected: 0 });
+      const body = foreignBody({
+        state: 'Authorized',
+        refundOperations: [{ id: 420, amount: 2000, status: 'FAILED' }],
+      });
+
+      const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
+
+      expect(m.paymentRepo.findOne).toHaveBeenCalledWith({
+        where: { helloAssoPaymentId: '96657566' },
+      });
+      // `Authorized` exige un statut local pending/refused : la ligne `paid` n'est
+      // pas touchée par l'UPDATE gardé.
+      const qb = m.paymentRepo.createQueryBuilder.mock.results[0].value as { where: jest.Mock };
+      expect(qb.where).toHaveBeenCalledWith('id = :id AND status IN (:...prerequisites)', {
+        id: 42,
+        prerequisites: [HelloAssoPaymentStatus.PENDING, HelloAssoPaymentStatus.REFUSED],
+      });
+      expect(result.outcome).toBe('noop_no_transition_from:paid');
+    });
+
+    it('un remboursement inconnu en base est ignoré avec une ligne technique sans données payeur', async () => {
+      const m = makeService();
+      m.paymentRepo.findOne.mockResolvedValue(null);
+      const body = foreignBody({
+        state: 'Refunded',
+        refundOperations: [{ id: 419, amount: 2000, status: 'PROCESSED' }],
+      });
+
+      const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
+
+      expect(result.outcome).toBe('foreign_payment');
+      expect(m.updateQbExecute).not.toHaveBeenCalled();
+      const logged = loggedText();
+      expect(logged).toContain('96657566');
+      expect(logged).toContain('194132194');
+      expect(logged).not.toContain(payer.email);
+      expect(logged).not.toContain(payer.lastName);
+    });
+
+    it('un paiement OD ne journalise jamais les données du payeur', async () => {
+      const m = makeService();
+      m.paymentRepo.findOne.mockResolvedValue({
+        id: 42,
+        status: HelloAssoPaymentStatus.PENDING,
+        payerUserId: null,
+      } as HelloAssoPaymentEntity);
+      const body = buildBody({ data: { payer } });
+
+      await m.service.handleWebhook(Buffer.from(body), headers(body));
+
+      const logged = loggedText();
+      expect(logged).not.toContain(payer.email);
+      expect(logged).not.toContain(payer.lastName);
     });
   });
 

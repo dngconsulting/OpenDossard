@@ -35,6 +35,8 @@ interface WebhookPayload {
     id?: unknown;
     state?: unknown;
     order?: { id?: unknown };
+    /** Opérations de remboursement du paiement (vide hors remboursement). */
+    refundOperations?: unknown;
     /** Présent sur l'event `Organization.IsCashinCompliant` (snake_case côté HA). */
     organization_slug?: unknown;
     /** Présent sur l'event `Organization.IsCashinCompliant` (snake_case côté HA). */
@@ -90,7 +92,6 @@ export class HelloAssoWebhookService {
     let parsed: WebhookPayload;
     try {
       parsed = JSON.parse((rawBody as Buffer).toString('utf8')) as WebhookPayload;
-      this.logger.log(`handleWebhook: received message from HA ${JSON.stringify(parsed)}`);
     } catch (e: unknown) {
       this.logger.warn(
         `handleWebhook: invalid JSON: ${e instanceof Error ? e.message : String(e)}`,
@@ -114,26 +115,27 @@ export class HelloAssoWebhookService {
       return { signatureValid: true, outcome: `ignored_event_type:${eventType ?? '<missing>'}` };
     }
 
+    // HelloAsso pousse TOUS les paiements des organisations liées à OD (boutique,
+    // adhésions, campagnes…) : seuls nos checkout-intents portent
+    // `metadata.openDossardPaymentId`. Exception : le webhook de remboursement
+    // d'un paiement OD arrive SANS cette metadata — il est rattaché plus bas via
+    // `data.id`. Tout autre paiement sans metadata sort ici, sans log ni accès
+    // base : une campagne de club peut en envoyer des centaines d'un coup, et
+    // leurs payloads portent les données personnelles de payeurs étrangers à OD.
+    const openDossardPaymentId = parsed.metadata?.openDossardPaymentId;
+    const hasOpenDossardMetadata = typeof openDossardPaymentId === 'number';
+    if (!hasOpenDossardMetadata && !isRefundNotification(parsed.data)) {
+      return { signatureValid: true, outcome: 'foreign_payment' };
+    }
+
     const helloAssoPaymentId = parsed.data?.id;
     const state = parsed.data?.state;
     const orderId = parsed.data?.order?.id;
-    const openDossardPaymentId = parsed.metadata?.openDossardPaymentId;
 
     if (typeof helloAssoPaymentId !== 'number' || typeof state !== 'string') {
       this.logger.warn('handleWebhook: malformed payload (missing data.id or data.state)');
       return { signatureValid: true, outcome: 'malformed_payload' };
     }
-    if (typeof openDossardPaymentId !== 'number') {
-      // Webhook pour un payment non originé par OpenDossard (autre intégration partenaire) — ignorer
-      this.logger.log(
-        `handleWebhook: no openDossardPaymentId in metadata, ignoring helloAssoPaymentId=${helloAssoPaymentId} state=${state}`,
-      );
-      return { signatureValid: true, outcome: 'foreign_payment' };
-    }
-
-    this.logger.log(
-      `handleWebhook: paymentId=${openDossardPaymentId} helloAssoPaymentId=${helloAssoPaymentId} state=${state}`,
-    );
 
     // La souscription HelloAsso est partenaire-wide : on reçoit des événements
     // d'organisations liées à d'autres partenaires (cf. handleCashinComplianceEvent).
@@ -141,13 +143,30 @@ export class HelloAssoWebhookService {
     // `openDossardPaymentId` étranger écraserait sinon l'observabilité d'un
     // paiement sans rapport, c'est-à-dire précisément le champ que le support
     // doit pouvoir croire.
-    const payment = await this.paymentRepo.findOne({ where: { id: openDossardPaymentId } });
+    const payment = hasOpenDossardMetadata
+      ? await this.paymentRepo.findOne({ where: { id: openDossardPaymentId } })
+      : await this.paymentRepo.findOne({
+          where: { helloAssoPaymentId: String(helloAssoPaymentId) },
+        });
     if (!payment) {
+      if (!hasOpenDossardMetadata) {
+        // Remboursement d'un paiement étranger à OD… ou d'un paiement OD qu'on
+        // n'a pas su rattacher : seule trace permettant de détecter ce raté.
+        // Identifiants techniques uniquement, jamais le payeur.
+        this.logger.log(
+          `handleWebhook: remboursement sans paiement OD correspondant, ignoré helloAssoPaymentId=${helloAssoPaymentId} orderId=${String(orderId)} state=${state}`,
+        );
+        return { signatureValid: true, outcome: 'foreign_payment' };
+      }
       this.logger.warn(
         `handleWebhook: paymentId=${openDossardPaymentId} introuvable (orphan), returning 200`,
       );
       return { signatureValid: true, outcome: 'orphan_no_local_payment' };
     }
+
+    this.logger.log(
+      `handleWebhook: paymentId=${payment.id} helloAssoPaymentId=${helloAssoPaymentId} state=${state}`,
+    );
 
     const mappedStatus = mapHelloAssoState(state);
     if (!mappedStatus) {
@@ -379,6 +398,16 @@ function buildPaymentPushContent(
     default:
       return null;
   }
+}
+
+/**
+ * Webhook de remboursement HelloAsso : `state=Refunded` (remboursement
+ * effectué), ou opérations de remboursement présentes sur un paiement resté
+ * `Authorized` (remboursement échoué).
+ */
+function isRefundNotification(data: WebhookPayload['data']): boolean {
+  if (data?.state === 'Refunded') return true;
+  return Array.isArray(data?.refundOperations) && data.refundOperations.length > 0;
 }
 
 /**
