@@ -1,4 +1,4 @@
-import { computeCateaFromBirthYear } from './elicence-csv.utils';
+import { computeCateaFromBirthYear, normalizeSaison, parseElicenceCsv } from './elicence-csv.utils';
 
 /** Année de naissance donnant `age` ans sur la saison courante (même base que la fonction). */
 const birthYearForAge = (age: number): string => String(new Date().getFullYear() - age);
@@ -34,5 +34,27 @@ describe('computeCateaFromBirthYear', () => {
     [70, 'SA'],
   ])('%i ans (H) → %s (non-régression)', (age, expected) => {
     expect(computeCateaFromBirthYear(birthYearForAge(age), 'H')).toBe(expected);
+  });
+});
+
+describe('normalizeSaison', () => {
+  it.each([
+    ['2026', '2026'],
+    ['2025-2026', '2026'],
+    ['2025 - 2026', '2026'],
+    [' 2025-2026 ', '2026'],
+  ])('%p → %p', (input, expected) => {
+    expect(normalizeSaison(input)).toBe(expected);
+  });
+
+  it('laisse undefined tel quel', () => {
+    expect(normalizeSaison(undefined)).toBeUndefined();
+  });
+});
+
+describe('parseElicenceCsv — saison', () => {
+  it('gère dans un même fichier l’année simple et l’année double', () => {
+    const csv = ['Nom;Prénom;Saison', 'DUPONT;Jean;2026', 'MARTIN;Paul;2025-2026'].join('\n');
+    expect(parseElicenceCsv(csv).map(r => r.saison)).toEqual(['2026', '2026']);
   });
 });

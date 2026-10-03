@@ -31,6 +31,17 @@ export function formatDepartement(dept: string): string {
   return String(Number(dept)).padStart(2, '0');
 }
 
+/**
+ * Ramène la saison e-licence à une année simple : le fichier fournit soit
+ * l'année seule (« 2026 »), soit l'année double (« 2025-2026 ») dont on garde
+ * l'année de droite.
+ */
+export function normalizeSaison(saison: string | undefined): string | undefined {
+  if (!saison) return saison;
+  const match = saison.match(/^\s*\d{4}\s*-\s*(\d{4})\s*$/);
+  return match ? match[1] : saison.trim();
+}
+
 export function extractBirthYear(birthDay: string): string {
   return birthDay.slice(-4);
 }
@@ -102,7 +113,7 @@ export function parseElicenceCsv(content: string): ElicenceCsvRow[] {
     return {
       name: col(data, 'Nom'),
       firstName: col(data, 'Prénom'),
-      saison: col(data, 'Saison'),
+      saison: normalizeSaison(col(data, 'Saison')),
       elicenceClubName: col(data, 'Nom Club', 'Nom club'),
       catea: col(data, "Catégorie d'âge vélo", 'Catégorie âge sportif'),
       active: col(data, 'État'),
