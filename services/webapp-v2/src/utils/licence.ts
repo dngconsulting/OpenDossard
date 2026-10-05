@@ -55,3 +55,12 @@ export const computeAgeCategory = (gender: string, birthYear: number, season: st
 
   return computed;
 };
+
+/**
+ * Une licence est à jour si sa saison est l'année en cours ou une année future
+ * (licence déjà renouvelée pour la saison suivante).
+ */
+export const isSaisonUpToDate = (saison: string | undefined | null): boolean => {
+  const saisonYear = parseInt(saison ?? '', 10);
+  return !isNaN(saisonYear) && saisonYear >= new Date().getFullYear();
+};

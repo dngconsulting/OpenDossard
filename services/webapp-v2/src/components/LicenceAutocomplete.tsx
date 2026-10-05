@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useSearchLicences } from '@/hooks/useSearchLicences';
 import { cn } from '@/lib/utils';
 import type { LicenceType } from '@/types/licences';
+import { isSaisonUpToDate } from '@/utils/licence';
 
 type LicenceAutocompleteProps = {
   value: LicenceType | null;
@@ -28,14 +29,10 @@ type LicenceAutocompleteProps = {
 };
 
 /**
- * Calcule si la saison du licencié est valide pour l'année en cours
+ * Calcule si la saison du licencié est valide (année en cours ou future)
  */
 function getSaisonStatus(saison: string | undefined): 'valid' | 'expired' {
-  if (!saison) {return 'expired';}
-  const currentYear = new Date().getFullYear();
-  const saisonYear = parseInt(saison, 10);
-  if (isNaN(saisonYear)) {return 'expired';}
-  return saisonYear === currentYear ? 'valid' : 'expired';
+  return isSaisonUpToDate(saison) ? 'valid' : 'expired';
 }
 
 /**

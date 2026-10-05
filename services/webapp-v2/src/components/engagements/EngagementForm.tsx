@@ -24,6 +24,7 @@ import { useEngage } from '@/hooks/useRaces';
 import { cn } from '@/lib/utils';
 import type { LicenceType } from '@/types/licences';
 import type { RaceRowType } from '@/types/races';
+import { isSaisonUpToDate } from '@/utils/licence';
 
 type EngagementFormProps = {
   competitionId: number;
@@ -105,8 +106,7 @@ export function EngagementForm({
         competitionType === 'CX' ? selectedLicence.catevCX || selectedLicence.catev : selectedLicence.catev;
       setCatev(licenceCatev || '');
       setShowFedeWarning(selectedLicence.fede !== competitionFede);
-      const currentYear = new Date().getFullYear().toString();
-      setShowSaisonWarning(selectedLicence.saison !== currentYear);
+      setShowSaisonWarning(!isSaisonUpToDate(selectedLicence.saison));
     } else {
       setCatev('');
       setShowFedeWarning(false);
@@ -314,7 +314,7 @@ export function EngagementForm({
                 variant="outline"
                 className={cn(
                   'text-xs font-medium',
-                  selectedLicence.saison === new Date().getFullYear().toString()
+                  isSaisonUpToDate(selectedLicence.saison)
                     ? 'border-green-500 text-green-700 dark:text-green-400'
                     : 'border-red-500 text-red-700 dark:text-red-400',
                 )}
