@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, ExternalLink, Search, X } from 'lucide-react';
+import { AlertCircle, ArrowDown, ArrowUp, ArrowUpDown, ExternalLink, Search, X } from 'lucide-react';
 import { useMemo, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -254,7 +254,7 @@ export function EngagementsTable({
                 <TableRow
                   key={engagement.id}
                   className={cn(
-                    surclassed && 'bg-amber-50 dark:bg-amber-950/30',
+                    surclassed && 'bg-red-50 dark:bg-red-950/30',
                     // `!` pour battre la zébrure nth-child du TableBody (plus spécifique)
                     selected && '!bg-primary/10 hover:!bg-primary/15',
                   )}
@@ -307,13 +307,13 @@ export function EngagementsTable({
                   {/* Catégorie âge */}
                   <TableCell>{engagement.catea || '-'}</TableCell>
 
-                  {/* Catégorie valeur + indicateur surclassement */}
+                  {/* Catégorie valeur + erreur si absente du départ */}
                   <TableCell>
                     <div className="flex items-center gap-1">
                       {engagement.catev || '-'}
                       {surclassed && (
-                        <span title="Coureur surclassé">
-                          <AlertTriangle className="h-4 w-4 text-amber-500" />
+                        <span title="Attention, cette catégorie n'existe pas dans cette course">
+                          <AlertCircle className="h-4 w-4 text-red-500" />
                         </span>
                       )}
                     </div>
