@@ -1,4 +1,4 @@
-import { getCateaOptions } from '@/config/federations';
+import { FedeEnum, getCateaOptions } from '@/config/federations';
 
 const AGE_CATEGORIES = [
   { min: 3, max: 4, code: 'PUC' },
@@ -17,9 +17,27 @@ const AGE_CATEGORIES = [
   { min: 70, max: Infinity, code: 'SA' },
 ] as const;
 
+// Barème FFC : codes neutres, sans préfixe de genre. En dessous de 5 ans → NC.
+const AGE_CATEGORIES_FFC = [
+  { min: 5, max: 6, code: 'U7' },
+  { min: 7, max: 8, code: 'U9' },
+  { min: 9, max: 10, code: 'U11' },
+  { min: 11, max: 12, code: 'U13' },
+  { min: 13, max: 14, code: 'U15' },
+  { min: 15, max: 16, code: 'U17' },
+  { min: 17, max: 18, code: 'U19' },
+  { min: 19, max: 22, code: 'U23' },
+  { min: 23, max: 34, code: 'Senior' },
+  { min: 35, max: Infinity, code: 'Master' },
+] as const;
+
 export const computeAgeCategory = (gender: string, birthYear: number, season: string, fede?: string): string => {
   const seasonYear = season ? parseInt(season) : new Date().getFullYear();
   const age = seasonYear - birthYear;
+
+  if (fede === FedeEnum.FFC) {
+    return AGE_CATEGORIES_FFC.find(({ min, max }) => age >= min && age <= max)?.code ?? 'NC';
+  }
 
   const prefix = gender === 'F' ? 'F' : '';
   const ageCategory = AGE_CATEGORIES.find(({ min, max }) => age >= min && age <= max);

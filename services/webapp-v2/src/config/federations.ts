@@ -131,6 +131,27 @@ const CATEA_UFOLEP: CategoryAge[] = [
   { label: 'NC', value: 'NC', gender: 'H' },
 ];
 
+// Catégories d'âge FFC : nomenclature U7…U23 / Senior / Master. Codes neutres
+// (sans préfixe F) : le genre est porté par la licence, d'où les mêmes valeurs
+// déclarées pour H et F.
+const CATEA_FFC_VALUES: Omit<CategoryAge, 'gender'>[] = [
+  { label: 'Master', value: 'Master' },
+  { label: 'Senior', value: 'Senior' },
+  { label: 'Espoir', value: 'U23' },
+  { label: 'Junior', value: 'U19' },
+  { label: 'Cadet', value: 'U17' },
+  { label: 'Minime', value: 'U15' },
+  { label: 'Benjamin', value: 'U13' },
+  { label: 'Pupille', value: 'U11' },
+  { label: 'Poussin', value: 'U9' },
+  { label: 'Pré-licencié', value: 'U7' },
+  { label: 'NC', value: 'NC' },
+];
+
+const CATEA_FFC: CategoryAge[] = (['H', 'F'] as const).flatMap(gender =>
+  CATEA_FFC_VALUES.map(cat => ({ ...cat, gender })),
+);
+
 export const FEDERATIONS: Record<FedeEnum, Federation> = {
   [FedeEnum.FSGT]: {
     name: { label: 'FSGT', value: FedeEnum.FSGT },
@@ -161,13 +182,14 @@ export const FEDERATIONS: Record<FedeEnum, Federation> = {
       { label: 'Benjamin (U13)', value: 'U13', competitionTypes: ALL_COMPETITION_TYPES },
       { label: 'Pupille (U11)', value: 'U11', competitionTypes: ALL_COMPETITION_TYPES },
       { label: 'Poussin (U9)', value: 'U9', competitionTypes: ALL_COMPETITION_TYPES },
+      { label: 'Pré-licencié (U7)', value: 'U7', competitionTypes: ALL_COMPETITION_TYPES },
       { label: 'Access 1', value: 'ACCESS1', competitionTypes: ALL_COMPETITION_TYPES },
       { label: 'Access 2', value: 'ACCESS2', competitionTypes: ALL_COMPETITION_TYPES },
       { label: 'Access 3', value: 'ACCESS3', competitionTypes: ALL_COMPETITION_TYPES },
       { label: 'Access 4', value: 'ACCESS4', competitionTypes: ALL_COMPETITION_TYPES },
       { label: 'Epreuve de masse', value: 'MASSE', competitionTypes: ALL_COMPETITION_TYPES },
     ],
-    catea: CATEA_FSGT,
+    catea: CATEA_FFC,
   },
   [FedeEnum.FFTRI]: {
     name: { label: 'Fédération Triathlon', value: FedeEnum.FFTRI },
@@ -238,7 +260,10 @@ export const getCateaOptions = (fede: string, gender: string) => {
 
   return federation.catea
     .filter(cat => cat.gender === gender)
-    .map(cat => ({ value: cat.value, label: `${cat.label} (${cat.value})` }));
+    .map(cat => ({
+      value: cat.value,
+      label: cat.label === cat.value ? cat.label : `${cat.label} (${cat.value})`,
+    }));
 };
 
 /**
