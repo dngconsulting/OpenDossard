@@ -4,10 +4,18 @@ import { Request, Response } from 'express';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { join } from 'path';
+import { CompetitionInfo } from '../common/types';
 
 const APP_STORE_URL = 'https://apps.apple.com/app/dossardeur/id1496777795';
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.dossardeur';
 const APP_SCHEME = 'dossardeur://';
+
+type ParcoursRow = {
+  name: string;
+  event_date: Date;
+  fede: string;
+  competition_info: CompetitionInfo[] | null;
+};
 
 /**
  * Controller hors du prefix /api — sert les pages de fallback deep link
@@ -94,12 +102,71 @@ export class DeepLinksController {
       // fallback silencieux
     }
 
-    res.type('html').send(buildFallbackPage({
-      title,
-      description,
-      deepLink: `${APP_SCHEME}epreuve/${id}`,
-      path: `/app/epreuve/${id}`,
-    }));
+    res.type('html').send(
+      buildFallbackPage({
+        title,
+        description,
+        deepLink: `${APP_SCHEME}epreuve/${id}`,
+        path: `/app/epreuve/${id}`,
+      }),
+    );
+  }
+
+  /**
+   * Parcours d'une épreuve (`competition_info[index]`), partagé depuis le
+   * visualiseur de tracé de l'app. L'index est la position du circuit dans
+   * `competition_info` : le lien reste valide si l'organisateur change son
+   * URL de tracé. Sans l'app, la page propose aussi le tracé sur le web.
+   */
+  @Get('app/epreuve/:id/parcours/:index')
+  async parcoursDeepLink(
+    @Param('id') id: string,
+    @Param('index') index: string,
+    @Res() res: Response,
+  ) {
+    let title = 'Parcours';
+    let description = 'Voir le parcours et son profil sur Dossardeur';
+    let traceUrl: string | undefined;
+
+    const circuitIndex = Number(index);
+    try {
+      const [competition] = await this.dataSource.query<ParcoursRow[]>(
+        'SELECT name, event_date, fede, competition_info FROM competition WHERE id = $1',
+        [id],
+      );
+      if (competition) {
+        const circuit = Number.isInteger(circuitIndex)
+          ? competition.competition_info?.[circuitIndex]
+          : undefined;
+        title = circuit?.course
+          ? `Parcours : ${circuit.course} — ${competition.name}`
+          : `Parcours — ${competition.name}`;
+        const date = new Date(competition.event_date).toLocaleDateString('fr-FR', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        });
+        description = [competition.fede, date, circuit?.info1, circuit?.info2]
+          .filter(Boolean)
+          .join(' — ');
+        // Saisie libre de l'organisateur : seul un lien http(s) est proposé.
+        const link = circuit?.info3?.trim();
+        if (link && /^https?:\/\//i.test(link)) traceUrl = link;
+      }
+    } catch {
+      // fallback silencieux : page générique
+    }
+
+    res.type('html').send(
+      buildFallbackPage({
+        title,
+        description,
+        deepLink: `${APP_SCHEME}epreuve/${id}/parcours/${index}`,
+        path: `/app/epreuve/${id}/parcours/${index}`,
+        secondaryLink: traceUrl ? { label: 'Voir le tracé sur le web', href: traceUrl } : undefined,
+      }),
+    );
   }
 
   @Get('app/classement/:id')
@@ -108,21 +175,20 @@ export class DeepLinksController {
     let description = 'Voir le classement sur Dossardeur';
 
     try {
-      const row = await this.dataSource.query(
-        'SELECT name FROM competition WHERE id = $1',
-        [id],
-      );
+      const row = await this.dataSource.query('SELECT name FROM competition WHERE id = $1', [id]);
       if (row.length > 0) {
         title = `Classement — ${row[0].name}`;
       }
     } catch {}
 
-    res.type('html').send(buildFallbackPage({
-      title,
-      description,
-      deepLink: `${APP_SCHEME}classement/${id}`,
-      path: `/app/classement/${id}`,
-    }));
+    res.type('html').send(
+      buildFallbackPage({
+        title,
+        description,
+        deepLink: `${APP_SCHEME}classement/${id}`,
+        path: `/app/classement/${id}`,
+      }),
+    );
   }
 
   /**
@@ -181,12 +247,14 @@ export class DeepLinksController {
       }
     } catch {}
 
-    res.type('html').send(buildFallbackPage({
-      title,
-      description,
-      deepLink: `${APP_SCHEME}palmares-detail/${id}`,
-      path: `/app/palmares/${id}`,
-    }));
+    res.type('html').send(
+      buildFallbackPage({
+        title,
+        description,
+        deepLink: `${APP_SCHEME}palmares-detail/${id}`,
+        path: `/app/palmares/${id}`,
+      }),
+    );
   }
 }
 
@@ -204,10 +272,15 @@ function buildFallbackPage(opts: {
   description: string;
   deepLink: string;
   path: string;
+  /** Lien web complémentaire (ex. tracé OpenRunner), sous le bouton principal. */
+  secondaryLink?: { label: string; href: string };
 }) {
   const t = escapeHtml(opts.title);
   const d = escapeHtml(opts.description);
   const dl = escapeHtml(opts.deepLink);
+  const secondary = opts.secondaryLink
+    ? `<a class="link-secondary" href="${escapeHtml(opts.secondaryLink.href)}">${escapeHtml(opts.secondaryLink.label)}</a>`
+    : '';
 
   return `<!DOCTYPE html>
 <html lang="fr">
@@ -236,6 +309,7 @@ function buildFallbackPage(opts: {
     .btn-store { background: rgba(255,255,255,0.2); color: white; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; }
     .btn-store svg { width: 18px; height: 18px; fill: white; }
     .store-badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .link-secondary { display: block; margin: 4px 0 18px; color: white; font-size: 14px; opacity: 0.85; }
   </style>
 </head>
 <body>
@@ -244,6 +318,7 @@ function buildFallbackPage(opts: {
     <h1>${t}</h1>
     <p>${d}</p>
     <a class="btn btn-primary" href="${dl}">Ouvrir dans l'app</a>
+    ${secondary}
     <div class="store-badges">
       <a class="btn btn-store" href="${APP_STORE_URL}">
         <svg viewBox="0 0 384 512"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
@@ -262,4 +337,3 @@ function buildFallbackPage(opts: {
 </body>
 </html>`;
 }
-
