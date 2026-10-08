@@ -46,14 +46,20 @@ function attribute(tag: string, name: string): number {
   return match ? Number(match[1]) : NaN;
 }
 
-/** Texte de la première balise `<name>` de `xml[from, to)`, entités décodées. */
+/**
+ * Texte de la première balise `<tag>` de `xml[from, to)`. La recherche reste
+ * bornée à cet intervalle : un `indexOf` sur tout le reste du document, répété
+ * pour chaque point sans `<ele>`, rendrait la lecture quadratique (déni de
+ * service avec un fichier de quelques Mo).
+ */
 function textOf(xml: string, tag: string, from: number, to: number): string | null {
-  const open = xml.indexOf(`<${tag}>`, from);
-  if (open < 0 || open >= to) return null;
+  const range = xml.slice(from, to);
+  const open = range.indexOf(`<${tag}>`);
+  if (open < 0) return null;
   const start = open + tag.length + 2;
-  const close = xml.indexOf(`</${tag}>`, start);
-  if (close < 0 || close > to) return null;
-  let text = xml.slice(start, close).trim();
+  const close = range.indexOf(`</${tag}>`, start);
+  if (close < 0) return null;
+  let text = range.slice(start, close).trim();
   if (text.startsWith('<![CDATA[') && text.endsWith(']]>')) text = text.slice(9, -3).trim();
   return text;
 }

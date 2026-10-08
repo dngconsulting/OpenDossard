@@ -48,6 +48,13 @@ const SMOOTHING_WINDOW = 100;
  */
 const ELEVATION_THRESHOLD = 1;
 export const MAX_POINTS = 200_000;
+/**
+ * Distance maximale (m) : le profil est échantillonné tous les `PROFILE_STEP`
+ * mètres, la limite de points ne suffit donc pas (quelques points aux
+ * antipodes donneraient des millions d'échantillons et d'appels IGN). Large
+ * au-dessus des plus longues épreuves (Paris-Brest-Paris : 1 200 km).
+ */
+export const MAX_DISTANCE = 2_000_000;
 
 function haversine(a: LonLat, b: LonLat): number {
   const dLat = (b[1] - a[1]) * DEG_TO_RAD;
@@ -73,6 +80,11 @@ export function gpxTraceGeometry(points: GpxPoint[]): GpxTraceGeometry {
   const totalDistance = distances[distances.length - 1];
   if (!(totalDistance >= 1)) {
     throw new GpxParseError('Le tracé est vide : tous ses points sont au même endroit.');
+  }
+  if (totalDistance > MAX_DISTANCE) {
+    throw new GpxParseError(
+      `Parcours trop long (${Math.round(totalDistance / 1000)} km, maximum ${MAX_DISTANCE / 1000} km).`,
+    );
   }
   return { coordinates, distances, totalDistance };
 }

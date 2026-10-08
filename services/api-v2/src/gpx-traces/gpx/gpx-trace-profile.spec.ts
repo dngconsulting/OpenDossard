@@ -6,6 +6,7 @@ import {
   smoothProfile,
   gpxTraceGeometry,
   gpxTraceStats,
+  MAX_DISTANCE,
 } from './gpx-trace-profile';
 
 /** Points alignés vers le nord, espacés de `spacingM` mètres. */
@@ -36,6 +37,17 @@ describe('gpxTraceGeometry', () => {
         { lat: 43, lon: 1, ele: 1 },
       ]),
     ).toThrow(GpxParseError);
+  });
+
+  it('rejects a track longer than the maximum distance, whatever its point count', () => {
+    // Deux points aux antipodes : sans limite, des millions d'échantillons de profil.
+    expect(() =>
+      gpxTraceGeometry([
+        { lat: -60, lon: -10, ele: 1 },
+        { lat: 60, lon: 170, ele: 1 },
+      ]),
+    ).toThrow(`maximum ${MAX_DISTANCE / 1000} km`);
+    expect(() => gpxTraceGeometry(line(2, MAX_DISTANCE - 1000))).not.toThrow();
   });
 });
 

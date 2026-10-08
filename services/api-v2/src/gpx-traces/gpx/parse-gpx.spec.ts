@@ -72,6 +72,19 @@ describe('parseGpx', () => {
     expect(points).toHaveLength(count);
     expect(performance.now() - start).toBeLessThan(1000);
   });
+
+  it('stays linear when points have no <ele> (search bounded to each point)', () => {
+    const count = 100_000;
+    const body = Array.from(
+      { length: count },
+      (_, i) => `<trkpt lat="${43 + i * 1e-5}" lon="1"><time>2026-01-01T00:00:00Z</time></trkpt>`,
+    ).join('\n');
+    const start = performance.now();
+    const { points } = parseGpx(gpx(`<trk><trkseg>${body}</trkseg></trk>`));
+    expect(points).toHaveLength(count);
+    expect(points.every(p => p.ele === null)).toBe(true);
+    expect(performance.now() - start).toBeLessThan(1000);
+  });
 });
 
 describe('decodeXmlEntities', () => {
