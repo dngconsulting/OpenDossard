@@ -15,6 +15,8 @@ export type CompetitionInfoItem = {
   info1: string;
   info2: string;
   info3?: string;
+  /** Tracé GPX déposé pour ce circuit (`POST /competitions/:id/gpx-traces`). */
+  gpxTraceId?: string;
 };
 
 export type PricingItem = {

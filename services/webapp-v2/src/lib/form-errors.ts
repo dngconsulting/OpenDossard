@@ -1,4 +1,4 @@
-import type { FieldError, FieldErrors } from 'react-hook-form';
+import type { FieldError, FieldErrors, FieldValues } from 'react-hook-form';
 
 /**
  * Aplatit récursivement les `FieldErrors` de react-hook-form en une liste de
@@ -11,7 +11,7 @@ import type { FieldError, FieldErrors } from 'react-hook-form';
  * `MutationCache.onError` global (cf. `App.tsx`) — ne JAMAIS toaster
  * manuellement à ce niveau, sinon doublon.
  */
-export function collectFormErrorMessages(errors: FieldErrors): string[] {
+export function collectFormErrorMessages<T extends FieldValues>(errors: FieldErrors<T>): string[] {
   const out: string[] = [];
   const walk = (node: unknown): void => {
     if (!node || typeof node !== 'object') {return;}

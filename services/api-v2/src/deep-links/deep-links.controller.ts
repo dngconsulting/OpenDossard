@@ -126,7 +126,7 @@ export class DeepLinksController {
   ) {
     let title = 'Parcours';
     let description = 'Voir le parcours et son profil sur Dossardeur';
-    let traceUrl: string | undefined;
+    let gpxTraceUrl: string | undefined;
 
     const circuitIndex = Number(index);
     try {
@@ -152,7 +152,7 @@ export class DeepLinksController {
           .join(' — ');
         // Saisie libre de l'organisateur : seul un lien http(s) est proposé.
         const link = circuit?.info3?.trim();
-        if (link && /^https?:\/\//i.test(link)) traceUrl = link;
+        if (link && /^https?:\/\//i.test(link)) gpxTraceUrl = link;
       }
     } catch {
       // fallback silencieux : page générique
@@ -164,7 +164,9 @@ export class DeepLinksController {
         description,
         deepLink: `${APP_SCHEME}epreuve/${id}/parcours/${index}`,
         path: `/app/epreuve/${id}/parcours/${index}`,
-        secondaryLink: traceUrl ? { label: 'Voir le tracé sur le web', href: traceUrl } : undefined,
+        secondaryLink: gpxTraceUrl
+          ? { label: 'Voir le tracé sur le web', href: gpxTraceUrl }
+          : undefined,
       }),
     );
   }

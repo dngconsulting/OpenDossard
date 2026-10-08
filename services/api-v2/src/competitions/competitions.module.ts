@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
+import { GpxTracesModule } from '../gpx-traces/gpx-traces.module';
 import { HelloAssoDetailsEntity } from '../helloasso/entities/helloasso-details.entity';
 import { HelloAssoPaymentEntity } from '../helloasso/entities/helloasso-payment.entity';
 import { RaceEntity } from '../races/entities/race.entity';
@@ -18,6 +19,7 @@ import { OnlinePaymentActivationPolicy } from './online-payment-activation.polic
       HelloAssoDetailsEntity,
     ]),
     AuthModule,
+    GpxTracesModule,
   ],
   controllers: [CompetitionsController],
   providers: [CompetitionsService, OnlinePaymentActivationPolicy],
