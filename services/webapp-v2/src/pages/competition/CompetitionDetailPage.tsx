@@ -20,11 +20,11 @@ import {
   useUpdateCompetition,
 } from '@/hooks/useCompetitions';
 import { deptFromZipCode } from '@/lib/dept-from-zip-code';
-import { collectFormErrorMessages } from '@/lib/form-errors';
 import { COMPETITION_TYPE_LABELS } from '@/types/api';
 import { downloadFromApi } from '@/utils/download';
 import { showErrorToast, showSuccessToast } from '@/utils/error-handler/error-handler';
 
+import { competitionFormErrorMessages } from './form-error-messages';
 import { GeneralTab } from './GeneralTab';
 import { HorairesTab } from './HorairesTab';
 import { LocalisationTab } from './LocalisationTab';
@@ -251,11 +251,11 @@ export default function CompetitionDetailPage() {
       <Button
         onClick={() => {
           form.handleSubmit(onSubmit, errors => {
-            const messages = collectFormErrorMessages(errors);
+            const messages = competitionFormErrorMessages(errors, form.getValues());
             showErrorToast(
               'Le formulaire contient des erreurs',
               messages.length > 0
-                ? messages.join(' • ')
+                ? messages.join('\n')
                 : 'Vérifie les champs surlignés en rouge.',
             );
             // Conservé pour le debug en dev : la structure complète est plus
@@ -320,7 +320,7 @@ export default function CompetitionDetailPage() {
                 </RaceTabsTrigger>
                 <RaceTabsTrigger value="horaires">
                   <Clock className="h-6 w-6" strokeWidth={2.5} />
-                  <span className="text-base font-bold">Horaires</span>
+                  <span className="text-base font-bold">Horaires &amp; Circuits</span>
                 </RaceTabsTrigger>
                 <RaceTabsTrigger value="tarifs">
                   <Euro className="h-6 w-6" strokeWidth={2.5} />
@@ -345,7 +345,9 @@ export default function CompetitionDetailPage() {
               </TabsContent>
 
               <TabsContent value="horaires" className="mt-0">
-                <HorairesTab />
+                <HorairesTab
+                  competitionId={isCreating || isDuplicating ? undefined : competitionId}
+                />
               </TabsContent>
 
               <TabsContent value="tarifs" className="mt-0">

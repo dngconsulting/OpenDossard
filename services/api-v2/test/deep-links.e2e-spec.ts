@@ -34,7 +34,7 @@ describe('Deep links (e2e)', () => {
   }
 
   describe('GET /app/epreuve/:id/parcours/:index', () => {
-    it('should render the circuit title, details and the web trace link', async () => {
+    it('should render the circuit title, details and the web GPX trace link', async () => {
       const competition = await seedCompetitionWithCircuits();
 
       const res = await request(getApp().getHttpServer())
@@ -48,7 +48,7 @@ describe('Deep links (e2e)', () => {
       expect(res.text).toContain('href="https://www.openrunner.com/r/8308363"');
     });
 
-    it('should not expose a non-http trace link', async () => {
+    it('should not expose a non-http GPX trace link', async () => {
       const competition = await seedCompetitionWithCircuits();
 
       const res = await request(getApp().getHttpServer())

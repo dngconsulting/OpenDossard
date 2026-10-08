@@ -4,6 +4,7 @@ import { JSDOM } from 'jsdom';
 
 import { CompetitionType } from '../../../common/enums';
 import { CompetitionEntity } from '../../../competitions/entities/competition.entity';
+import { gpxTraceShareUrl } from '../../../deep-links/public-links';
 import { capitalize, formatCircuitLength, formatDateFr } from './pdf-format.utils';
 import { addLogoToPdf, loadLogoAsDataUrl, loadOpenDossardLogo } from './pdf-logo.utils';
 
@@ -406,8 +407,11 @@ export function generateFicheEpreuvePDF(competition: CompetitionEntity): Buffer 
   );
   drawField(doc, 'Type (profil)', competition.info || '', col2X, row2Y, labelW);
 
-  const openRunner = competition.competitionInfo?.[0]?.info3 || '';
-  drawField(doc, 'OpenRunner', openRunner, col1X, row2Y + lineHeight, labelW);
+  // Parcours du premier circuit : son lien, ou la page publique de son GPX déposé.
+  const firstCircuit = competition.competitionInfo?.[0];
+  const parcours =
+    firstCircuit?.info3 || (firstCircuit?.gpxTraceId ? gpxTraceShareUrl(competition.id, 0) : '');
+  drawField(doc, 'Parcours', parcours, col1X, row2Y + lineHeight, labelW);
 
   drawField(
     doc,

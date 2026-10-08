@@ -95,7 +95,11 @@ export const competitionSchema = z.object({
         info1: z.any().pipe(z.coerce.string()),
         info2: z.any().pipe(z.coerce.string()),
         info3: z.any().pipe(z.coerce.string()).optional(),
-      }),
+        // Déclaré pour ne pas être retiré par zod à l'enregistrement.
+        gpxTraceId: z.string().optional(),
+      })
+      // Un circuit a soit un lien, soit un GPX (refusé par l'API sinon) : le GPX l'emporte.
+      .transform(circuit => (circuit.gpxTraceId ? { ...circuit, info3: '' } : circuit)),
     )
     .optional(),
   pricing: z

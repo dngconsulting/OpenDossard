@@ -151,7 +151,7 @@ export function AppToast({ id, type, message, details }: AppToastProps) {
         {isExpanded && details && (
           <div className="mt-3 space-y-2">
             <div className="bg-black/20 rounded-md p-3 max-h-48 overflow-auto">
-              <pre className="text-xs font-mono text-white/90 whitespace-pre-wrap break-all">
+              <pre className="text-xs font-mono text-white/90 whitespace-pre-wrap break-words">
                 {details}
               </pre>
             </div>

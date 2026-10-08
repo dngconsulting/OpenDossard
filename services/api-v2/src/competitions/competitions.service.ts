@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import {
   Injectable,
   Logger,
@@ -10,6 +12,7 @@ import { In, Repository } from 'typeorm';
 import { AuthorizationService } from '../auth/authorization.service';
 import { AuthenticatedUser } from '../auth/types/authenticated-user';
 import { PaginatedResponseDto } from '../common/dto';
+import { GpxTracesService } from '../gpx-traces/gpx-traces.service';
 import {
   HelloAssoPaymentEntity,
   HelloAssoPaymentStatus,
@@ -39,6 +42,7 @@ export class CompetitionsService {
     private helloAssoPaymentRepository: Repository<HelloAssoPaymentEntity>,
     private readonly authorizationService: AuthorizationService,
     private readonly onlinePaymentPolicy: OnlinePaymentActivationPolicy,
+    private readonly gpxTracesService: GpxTracesService,
   ) {}
 
   async findAll(
@@ -215,6 +219,12 @@ export class CompetitionsService {
     if (Array.isArray(data.photoUrls) && data.photoUrls.length === 0) {
       data.photoUrls = null;
     }
+    if (Array.isArray(data.competitionInfo)) {
+      data.competitionInfo = await this.gpxTracesService.validateCircuits(
+        undefined,
+        data.competitionInfo,
+      );
+    }
     const competition = this.competitionRepository.create(data);
     this.stampAudit(competition, user.email);
     const saved = await this.competitionRepository.save(competition);
@@ -281,6 +291,12 @@ export class CompetitionsService {
     if (Array.isArray(competitionData.photoUrls) && competitionData.photoUrls.length === 0) {
       competitionData.photoUrls = null;
     }
+    if (Array.isArray(competitionData.competitionInfo)) {
+      competitionData.competitionInfo = await this.gpxTracesService.validateCircuits(
+        id,
+        competitionData.competitionInfo,
+      );
+    }
     Object.assign(competition, competitionData);
     this.stampAudit(competition, user.email);
     const saved = await this.competitionRepository.save(competition);
@@ -310,8 +326,19 @@ export class CompetitionsService {
     await this.authorizationService.assertCompetitionAccess(user, original);
     const { id: _, ...competitionData } = original;
     void _;
+    // Chaque tracé de circuit est copié sous un nouvel id : la copie ne doit pas
+    // pointer vers les tracés de l'original (servis par épreuve, d'où une 404).
+    const gpxTraceCopies = new Map<string, string>();
+    const competitionInfo = original.competitionInfo?.map(circuit => {
+      if (!circuit.gpxTraceId) return circuit;
+      // Deux circuits sur le même GPX partagent aussi la copie.
+      const copyId = gpxTraceCopies.get(circuit.gpxTraceId) ?? randomUUID();
+      gpxTraceCopies.set(circuit.gpxTraceId, copyId);
+      return { ...circuit, gpxTraceId: copyId };
+    });
     const duplicate = this.competitionRepository.create({
       ...competitionData,
+      competitionInfo,
       name: `${original.name} (copie)`,
       resultsValidated: false,
       // Une copie n'hérite jamais du paiement en ligne : sa réactivation passe
@@ -319,7 +346,13 @@ export class CompetitionsService {
       onlineRegistrationEnabled: false,
     });
     this.stampAudit(duplicate, user.email);
-    return this.competitionRepository.save(duplicate);
+    if (gpxTraceCopies.size === 0) return this.competitionRepository.save(duplicate);
+    // Copie et tracés ensemble : jamais de circuit pointant vers un tracé absent.
+    return this.competitionRepository.manager.transaction(async manager => {
+      const saved = await manager.save(duplicate);
+      await this.gpxTracesService.copyToCompetition(manager, original.id, saved.id, gpxTraceCopies);
+      return saved;
+    });
   }
 
   async validate(id: number, user: AuthenticatedUser): Promise<CompetitionEntity> {

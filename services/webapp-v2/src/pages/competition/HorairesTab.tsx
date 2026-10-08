@@ -13,7 +13,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { Copy, Edit2, ExternalLink, Plus, Save, Trash2 } from 'lucide-react';
+import { Copy, Edit2, ExternalLink, Plus, Route, Save, Trash2 } from 'lucide-react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
@@ -31,10 +31,17 @@ import {
 import { getCompetitionInfoLabels } from '@/config/federations';
 import type { CompetitionInfoItem } from '@/types/competitions';
 
+import { CircuitGpxField } from './CircuitGpxField';
+import { FieldHelp } from './FieldHelp';
 import { SortableTableRow } from './SortableTableRow';
 import type { FormValues } from './types';
 
-export function HorairesTab() {
+type HorairesTabProps = {
+  /** `undefined` tant que l'épreuve n'est pas enregistrée : pas encore de dépôt de GPX possible. */
+  competitionId?: number;
+};
+
+export function HorairesTab({ competitionId }: HorairesTabProps) {
   const form = useFormContext<FormValues>();
   const fede = form.watch('fede');
   const competitionType = form.watch('competitionType');
@@ -102,7 +109,9 @@ export function HorairesTab() {
   };
 
   const handleEditHoraire = (index: number) => {
-    setHoraireForm(competitionInfoFields[index] as CompetitionInfoItem);
+    const circuit = competitionInfoFields[index] as CompetitionInfoItem;
+    // Un circuit a soit un lien, soit un GPX : le GPX l'emporte.
+    setHoraireForm(circuit.gpxTraceId ? { ...circuit, info3: '' } : circuit);
     setEditingHoraireIndex(index);
   };
 
@@ -131,8 +140,9 @@ export function HorairesTab() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 bg-muted/50 rounded-lg">
-          <div className="space-y-1.5">
+        {/* 1re ligne : les 5 champs courts ; 2e ligne : lien externe OU fichier GPX, côte à côte. */}
+        <div className="grid grid-cols-1 md:grid-cols-10 gap-4 p-4 bg-muted/50 rounded-lg">
+          <div className="space-y-1.5 md:col-span-2">
             <Label>Catégorie/Départ</Label>
             <Input
               value={horaireForm.course}
@@ -140,7 +150,7 @@ export function HorairesTab() {
               placeholder="ex: Cat 4"
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 md:col-span-2">
             <Label>Heure dossard</Label>
             <Input
               value={horaireForm.horaireEngagement}
@@ -150,7 +160,7 @@ export function HorairesTab() {
               placeholder="ex: 14h"
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 md:col-span-2">
             <Label>Heure départ</Label>
             <Input
               value={horaireForm.horaireDepart}
@@ -160,7 +170,7 @@ export function HorairesTab() {
               placeholder="ex: 15h"
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 md:col-span-2">
             <Label>{info1Label}</Label>
             <Input
               value={horaireForm.info1}
@@ -168,7 +178,7 @@ export function HorairesTab() {
               placeholder={info1Placeholder}
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 md:col-span-2">
             <Label>{info2Label}</Label>
             <Input
               value={horaireForm.info2}
@@ -176,14 +186,57 @@ export function HorairesTab() {
               placeholder={info2Placeholder}
             />
           </div>
-          <div className="space-y-1.5">
-            <Label>Lien OpenRunner</Label>
-            <Input
-              value={horaireForm.info3 || ''}
-              onChange={e => setHoraireForm({ ...horaireForm, info3: e.target.value })}
-              placeholder="https://..."
-            />
-          </div>
+          {/* Parcours : lien externe OU fichier GPX, jamais les deux (refusé par l'API). */}
+          <fieldset className="md:col-span-10 grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-start gap-4 rounded-md border p-3">
+            <legend className="px-1 text-xs font-medium text-muted-foreground">
+              Parcours du circuit
+            </legend>
+            <div className="space-y-1.5">
+              <Label>
+                Lien externe du parcours
+                <FieldHelp>
+                  Lien externe ouvert avec une application tierce (OpenRunner, VisuGPX, gpx-studio…)
+                </FieldHelp>
+              </Label>
+              <Input
+                value={horaireForm.info3 || ''}
+                onChange={e => setHoraireForm({ ...horaireForm, info3: e.target.value })}
+                placeholder="ex: https://www.openrunner.com/route-details/12345678"
+                disabled={!!horaireForm.gpxTraceId}
+              />
+              {horaireForm.gpxTraceId && (
+                <p className="text-xs text-muted-foreground">Retirez le GPX pour saisir un lien.</p>
+              )}
+            </div>
+            {/* Même structure que les champs (libellé invisible + hauteur d'un champ) :
+                le « OU » reste aligné sur les champs, quelle que soit la hauteur du contenu. */}
+            <div className="space-y-1.5">
+              <Label aria-hidden className="hidden md:flex md:invisible">
+                OU
+              </Label>
+              <div className="flex h-9 items-center justify-center">
+                <span className="rounded-full border bg-background px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+                  OU
+                </span>
+              </div>
+            </div>
+            <div>
+              <CircuitGpxField
+                competitionId={competitionId}
+                gpxTraceId={horaireForm.gpxTraceId}
+                hasLink={!!horaireForm.info3?.trim()}
+                // Dépôt asynchrone (calcul ~15 s) : mise à jour fonctionnelle pour
+                // ne pas écraser ce qui a été saisi entre-temps. Un GPX remplace le lien.
+                onChange={gpxTraceId =>
+                  setHoraireForm(previous => ({
+                    ...previous,
+                    gpxTraceId,
+                    ...(gpxTraceId ? { info3: '' } : {}),
+                  }))
+                }
+              />
+            </div>
+          </fieldset>
         </div>
         <div className="flex gap-2">
           <Button
@@ -225,7 +278,7 @@ export function HorairesTab() {
                     <TableHead className="w-[80px]">Départ</TableHead>
                     <TableHead className="w-[60px]">{info1Label}</TableHead>
                     <TableHead className="w-[80px]">{info2Label}</TableHead>
-                    <TableHead className="w-[50px]">Lien</TableHead>
+                    <TableHead className="w-[50px]">Parcours</TableHead>
                     <TableHead className="w-[90px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -244,15 +297,21 @@ export function HorairesTab() {
                         <TableCell>{(field as CompetitionInfoItem).info1}</TableCell>
                         <TableCell>{(field as CompetitionInfoItem).info2}</TableCell>
                         <TableCell>
-                          {(field as CompetitionInfoItem).info3 && (
-                            <a
-                              href={(field as CompetitionInfoItem).info3}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary hover:underline"
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                            </a>
+                          {(field as CompetitionInfoItem).gpxTraceId ? (
+                            <span title="GPX déposé">
+                              <Route className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
+                            </span>
+                          ) : (
+                            (field as CompetitionInfoItem).info3 && (
+                              <a
+                                href={(field as CompetitionInfoItem).info3}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary hover:underline"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </a>
+                            )
                           )}
                         </TableCell>
                         <TableCell>

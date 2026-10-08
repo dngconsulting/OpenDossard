@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import { AuthorizationService } from '../auth/authorization.service';
 import { AuthenticatedUser } from '../auth/types/authenticated-user';
 import { Role } from '../common/enums';
+import { GpxTracesService } from '../gpx-traces/gpx-traces.service';
 import { HelloAssoDetailsEntity } from '../helloasso/entities/helloasso-details.entity';
 import { HelloAssoPaymentEntity } from '../helloasso/entities/helloasso-payment.entity';
 import { RaceEntity } from '../races/entities/race.entity';
@@ -65,6 +66,13 @@ describe('CompetitionsService — scope enforcement (lot 2)', () => {
           provide: getRepositoryToken(HelloAssoPaymentEntity),
           useValue: {
             count: jest.fn().mockResolvedValue(0),
+          },
+        },
+        {
+          provide: GpxTracesService,
+          useValue: {
+            validateCircuits: jest.fn((_id: number | undefined, circuits: unknown) => circuits),
+            copyToCompetition: jest.fn(),
           },
         },
         {
