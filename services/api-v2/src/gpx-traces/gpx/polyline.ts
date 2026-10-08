@@ -49,15 +49,18 @@ export function encodeSeries(values: number[], factor: number): string {
   return out;
 }
 
-export function decodeSeries(encoded: string, factor: number): number[] {
+/** Valeurs d'une série, une à une : aucun tableau intermédiaire (export en flux). */
+export function* iterateSeries(encoded: string, factor: number): Generator<number, void> {
   const reader = signedReader(encoded);
-  const values: number[] = [];
   let current = 0;
   while (!reader.done()) {
     current += reader.next();
-    values.push(current / factor);
+    yield current / factor;
   }
-  return values;
+}
+
+export function decodeSeries(encoded: string, factor: number): number[] {
+  return [...iterateSeries(encoded, factor)];
 }
 
 /** Coordonnées `[lon, lat]` au format polyline Google (paires lat, lon), précision `factor`. */
@@ -75,15 +78,21 @@ export function encodePolyline(coordinates: [number, number][], factor = POLYLIN
   return out;
 }
 
-export function decodePolyline(encoded: string, factor = POLYLINE_FACTOR): [number, number][] {
+/** Coordonnées `[lon, lat]` une à une : aucun tableau intermédiaire (export en flux). */
+export function* iteratePolyline(
+  encoded: string,
+  factor = POLYLINE_FACTOR,
+): Generator<[number, number], void> {
   const reader = signedReader(encoded);
-  const coordinates: [number, number][] = [];
   let lat = 0;
   let lon = 0;
   while (!reader.done()) {
     lat += reader.next();
     lon += reader.next();
-    coordinates.push([lon / factor, lat / factor]);
+    yield [lon / factor, lat / factor];
   }
-  return coordinates;
+}
+
+export function decodePolyline(encoded: string, factor = POLYLINE_FACTOR): [number, number][] {
+  return [...iteratePolyline(encoded, factor)];
 }

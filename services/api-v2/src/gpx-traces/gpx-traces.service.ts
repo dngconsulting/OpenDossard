@@ -11,7 +11,7 @@ import { AuthenticatedUser } from '../auth/types/authenticated-user';
 import type { CompetitionInfo } from '../common/types';
 import { CompetitionEntity } from '../competitions/entities/competition.entity';
 import { CompetitionGpxTraceEntity } from './entities/competition-gpx-trace.entity';
-import { decodeGpxPoints, encodeGpxPoints, toGpxXml } from './gpx/gpx-points';
+import { encodeGpxPoints } from './gpx/gpx-points';
 import { GpxParseError, parseGpx, type ParsedGpx } from './gpx/parse-gpx';
 import { IgnElevationService } from './ign-elevation.service';
 import { finalizeGpxTrace, prepareGpxTrace, type PreparedGpxTrace } from './gpx-trace-payload';
@@ -19,6 +19,8 @@ import { finalizeGpxTrace, prepareGpxTrace, type PreparedGpxTrace } from './gpx-
 /** Taille maximale d'un GPX déposé (un 600 km très détaillé fait ~3 Mo). */
 export const MAX_GPX_BYTES = 10 * 1024 * 1024;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** Message affiché tel quel par la webapp et l'app : jamais d'identifiant interne. */
+const GPX_TRACE_NOT_FOUND = "Le fichier GPX de ce circuit n'existe plus, déposez-le à nouveau.";
 /** Un tracé déposé mais jamais rattaché à un circuit est supprimé après ce délai. */
 const ORPHAN_GRACE_HOURS = 24;
 
@@ -107,10 +109,7 @@ export class GpxTracesService {
       where: { id: gpxTraceId, competitionId },
       select: { id: true, trackGz: true, updatedAt: true },
     });
-    if (!gpxTrace)
-      throw new NotFoundException(
-        `Tracé ${gpxTraceId} introuvable pour l'épreuve ${competitionId}`,
-      );
+    if (!gpxTrace) throw new NotFoundException(GPX_TRACE_NOT_FOUND);
     return {
       gzip: gpxTrace.trackGz,
       etag: `"${gpxTrace.id}-${gpxTrace.updatedAt.getTime()}"`,
@@ -118,22 +117,17 @@ export class GpxTracesService {
     };
   }
 
-  /** GPX reconstruit à partir des points stockés, pour le téléchargement depuis la webapp. */
-  async gpxFile(
-    competitionId: number,
-    gpxTraceId: string,
-    user: AuthenticatedUser,
-  ): Promise<string> {
-    await this.assertCompetitionAccess(competitionId, user);
+  /**
+   * Points stockés du tracé (forme compacte gzip, quelques Ko à quelques
+   * centaines de Ko), d'où l'export reconstruit le GPX en flux (`gpxXmlChunks`).
+   */
+  async gpxPoints(competitionId: number, gpxTraceId: string): Promise<Buffer> {
     const gpxTrace = await this.gpxTraceRepository.findOne({
       where: { id: gpxTraceId, competitionId },
       select: { id: true, gpxPointsGz: true },
     });
-    if (!gpxTrace)
-      throw new NotFoundException(
-        `Tracé ${gpxTraceId} introuvable pour l'épreuve ${competitionId}`,
-      );
-    return toGpxXml(decodeGpxPoints(gpxTrace.gpxPointsGz));
+    if (!gpxTrace) throw new NotFoundException(GPX_TRACE_NOT_FOUND);
+    return gpxTrace.gpxPointsGz;
   }
 
   /**

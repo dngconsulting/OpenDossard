@@ -12,3 +12,11 @@ export type GpxTraceSummary = {
   /** `ign` : altitudes RGE ALTI ; `gpx` : celles du fichier ; `none` : aucune. */
   elevationSource: 'ign' | 'gpx' | 'none';
 };
+
+/** Tracé prêt à afficher (`GET /competitions/:id/gpx-traces/:gpxTraceId`), champs utilisés. */
+export type GpxTracePayload = {
+  name: string | null;
+  /** Sommets du tracé, polyline Google précision 5. */
+  polyline: string;
+  stats: { distance: number; ascent: number };
+};

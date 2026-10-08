@@ -1,4 +1,4 @@
-import type { GpxTraceSummary } from '@/types/gpx-traces';
+import type { GpxTracePayload, GpxTraceSummary } from '@/types/gpx-traces';
 
 import { apiClient, apiFetchBlob } from './client';
 
@@ -12,6 +12,10 @@ export const gpxTracesApi = {
       body: formData,
     });
   },
+
+  /** Tracé calculé (servi compressé, décompressé par le navigateur). */
+  getTrack: (competitionId: number, gpxTraceId: string): Promise<GpxTracePayload> =>
+    apiClient<GpxTracePayload>(`/competitions/${competitionId}/gpx-traces/${gpxTraceId}`),
 
   downloadGpx: (competitionId: number, gpxTraceId: string): Promise<Blob> =>
     apiFetchBlob(`/competitions/${competitionId}/gpx-traces/${gpxTraceId}/gpx`),

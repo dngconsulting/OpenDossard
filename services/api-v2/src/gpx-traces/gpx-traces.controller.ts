@@ -1,3 +1,5 @@
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { gunzipSync } from 'node:zlib';
 
 import {
@@ -5,6 +7,7 @@ import {
   Get,
   Headers,
   HttpStatus,
+  Logger,
   Param,
   ParseIntPipe,
   ParseUUIDPipe,
@@ -33,6 +36,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { AuthenticatedUser } from '../auth/types/authenticated-user';
 import { Role } from '../common/enums';
 import { GpxFileTooLargeFilter } from './gpx-file-too-large.filter';
+import { gpxContentDisposition, gpxXmlChunks, readGpxPoints } from './gpx/gpx-points';
 import { MAX_GPX_BYTES, GpxTracesService, type GpxTraceSummary } from './gpx-traces.service';
 
 /** Un tracé ne change qu'à un nouveau dépôt (nouvel id) : cache long côté app. */
@@ -43,6 +47,8 @@ const CONTENT_CACHE_CONTROL = 'private, max-age=86400';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('competitions/:competitionId/gpx-traces')
 export class GpxTracesController {
+  private readonly logger = new Logger(GpxTracesController.name);
+
   constructor(private readonly gpxTracesService: GpxTracesService) {}
 
   @Post()
@@ -113,20 +119,30 @@ export class GpxTracesController {
   }
 
   @Get(':gpxTraceId/gpx')
-  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
   @ApiOperation({
-    summary: 'Télécharger le GPX du circuit (reconstruit à partir des points stockés)',
+    summary: 'Télécharger le GPX du circuit',
+    description:
+      'GPX 1.1 reconstruit à partir des points stockés et envoyé en flux (compressé à la ' +
+      'volée si le client accepte gzip) : jamais de document complet en mémoire.',
   })
   @ApiResponse({ status: 200, description: 'Fichier GPX' })
+  @ApiResponse({ status: 404, description: 'Tracé inconnu pour cette épreuve' })
   async gpxFile(
     @Param('competitionId', ParseIntPipe) competitionId: number,
     @Param('gpxTraceId', ParseUUIDPipe) gpxTraceId: string,
-    @CurrentUser() user: AuthenticatedUser,
     @Res() res: Response,
   ): Promise<void> {
-    const gpx = await this.gpxTracesService.gpxFile(competitionId, gpxTraceId, user);
+    // Décodé avant le premier octet envoyé : une erreur ici reste une réponse 500 normale.
+    const stored = readGpxPoints(await this.gpxTracesService.gpxPoints(competitionId, gpxTraceId));
     res.type('application/gpx+xml');
-    res.setHeader('Content-Disposition', `attachment; filename="parcours-${competitionId}.gpx"`);
-    res.send(gpx);
+    res.setHeader('Content-Disposition', gpxContentDisposition(stored.name, competitionId));
+    res.setHeader('Cache-Control', CONTENT_CACHE_CONTROL);
+    try {
+      await pipeline(Readable.from(gpxXmlChunks(stored)), res);
+    } catch (error) {
+      // En-têtes déjà envoyés : rien à répondre, le flux est coupé (client parti le plus souvent).
+      this.logger.warn(`Export GPX ${gpxTraceId} interrompu : ${String(error)}`);
+    }
   }
 }

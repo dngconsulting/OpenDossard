@@ -1,14 +1,15 @@
-import { Download, Loader2, Route, Upload } from 'lucide-react';
+import { Download, Loader2, Map as MapIcon, Route, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
 
 import { gpxTracesApi } from '@/api/gpx-traces.api';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import type { GpxTraceSummary } from '@/types/gpx-traces';
+import { useGpxTrack } from '@/hooks/useGpxTraces';
 import { showErrorToast } from '@/utils/error-handler/error-handler';
 import { ApiError } from '@/utils/error-handler/error-types';
 
 import { FieldHelp } from './FieldHelp';
+import { GpxTracePreviewDialog } from './GpxTracePreviewDialog';
 
 type CircuitGpxFieldProps = {
   /** `undefined` tant que l'épreuve n'est pas enregistrée (création, duplication). */
@@ -38,8 +39,9 @@ export function CircuitGpxField({
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   // Résumé du dernier dépôt, affiché tant que le circuit porte ce tracé.
-  const [lastUpload, setLastUpload] = useState<GpxTraceSummary | null>(null);
-  const summary = lastUpload?.id === gpxTraceId ? lastUpload : null;
+  // Statistiques lues sur le tracé servi (aussi pour un circuit déjà enregistré).
+  const { data: track } = useGpxTrack(competitionId, gpxTraceId);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const handleFile = async (file: File | undefined) => {
     if (!file || competitionId == null) {
@@ -48,7 +50,6 @@ export function CircuitGpxField({
     setUploading(true);
     try {
       const uploaded = await gpxTracesApi.upload(competitionId, file);
-      setLastUpload(uploaded);
       onChange(uploaded.id);
     } catch (error) {
       showErrorToast(
@@ -72,7 +73,7 @@ export function CircuitGpxField({
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${summary?.name ?? 'parcours'}.gpx`;
+      link.download = `${track?.name ?? 'parcours'}.gpx`;
       link.click();
       URL.revokeObjectURL(url);
     } catch (error) {
@@ -99,8 +100,8 @@ export function CircuitGpxField({
             <>
               <span className="inline-flex items-center gap-1.5 text-sm">
                 <Route className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
-                {summary
-                  ? `${kmFormat.format(summary.distance / 1000)} km · D+ ${metersFormat.format(summary.ascent)} m`
+                {track
+                  ? `${kmFormat.format(track.stats.distance / 1000)} km · D+ ${metersFormat.format(track.stats.ascent)} m`
                   : 'GPX déposé'}
               </span>
               <Button
@@ -111,6 +112,16 @@ export function CircuitGpxField({
                 title="Télécharger le GPX"
               >
                 <Download className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={uploading}
+                onClick={() => setPreviewOpen(true)}
+              >
+                <MapIcon className="h-4 w-4" />
+                Aperçu
               </Button>
               <Button
                 type="button"
@@ -156,6 +167,12 @@ export function CircuitGpxField({
             accept=".gpx,application/gpx+xml"
             className="hidden"
             onChange={event => handleFile(event.target.files?.[0])}
+          />
+          <GpxTracePreviewDialog
+            competitionId={competitionId}
+            open={previewOpen && !!gpxTraceId}
+            gpxTraceId={gpxTraceId ?? null}
+            onClose={() => setPreviewOpen(false)}
           />
         </div>
       )}

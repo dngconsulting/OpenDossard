@@ -33,6 +33,7 @@ import type { CompetitionInfoItem } from '@/types/competitions';
 
 import { CircuitGpxField } from './CircuitGpxField';
 import { FieldHelp } from './FieldHelp';
+import { GpxTracePreviewDialog } from './GpxTracePreviewDialog';
 import { SortableTableRow } from './SortableTableRow';
 import type { FormValues } from './types';
 
@@ -59,6 +60,9 @@ export function HorairesTab({ competitionId }: HorairesTabProps) {
     info3: '',
   });
   const [editingHoraireIndex, setEditingHoraireIndex] = useState<number | null>(null);
+  // Dernier tracé ouvert, gardé à la fermeture (cf. GpxTracePreviewDialog).
+  const [previewGpxTraceId, setPreviewGpxTraceId] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const {
     fields: competitionInfoFields,
@@ -298,9 +302,18 @@ export function HorairesTab({ competitionId }: HorairesTabProps) {
                         <TableCell>{(field as CompetitionInfoItem).info2}</TableCell>
                         <TableCell>
                           {(field as CompetitionInfoItem).gpxTraceId ? (
-                            <span title="GPX déposé">
-                              <Route className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
-                            </span>
+                            <button
+                              type="button"
+                              title="Aperçu du GPX déposé"
+                              aria-label="Aperçu du GPX déposé"
+                              onClick={() => {
+                                setPreviewGpxTraceId((field as CompetitionInfoItem).gpxTraceId!);
+                                setPreviewOpen(true);
+                              }}
+                              className="inline-flex text-emerald-700 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-300"
+                            >
+                              <Route className="h-4 w-4" />
+                            </button>
                           ) : (
                             (field as CompetitionInfoItem).info3 && (
                               <a
@@ -366,6 +379,14 @@ export function HorairesTab({ competitionId }: HorairesTabProps) {
           <p className="text-sm text-muted-foreground text-center">
             <strong>N'oubliez pas de sauvegarder l'épreuve !</strong>
           </p>
+        )}
+        {competitionId != null && (
+          <GpxTracePreviewDialog
+            competitionId={competitionId}
+            open={previewOpen}
+            gpxTraceId={previewGpxTraceId}
+            onClose={() => setPreviewOpen(false)}
+          />
         )}
       </CardContent>
     </Card>

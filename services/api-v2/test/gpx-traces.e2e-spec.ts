@@ -181,14 +181,18 @@ describe('Traces (e2e)', () => {
         .expect(404);
     });
 
-    it('returns the GPX rebuilt from the stored points to the organiser', async () => {
-      const gpx = lineGpx(1, 'Original');
+    it('streams the GPX rebuilt from the stored points to the app (MOBILE)', async () => {
+      // 120 km à 1 point / 100 m : 1 201 points, soit 2 morceaux du flux (1 000 par morceau).
+      const gpx = lineGpx(120, 'Original');
       const gpxTrace = (await upload(competitions[0].id, gpx).expect(201)).body as UploadedGpxTrace;
       const res = await request(server())
         .get(`${base(competitions[0].id)}/${gpxTrace.id}/gpx`)
-        .set('Authorization', `Bearer ${orga()}`)
+        .set('Authorization', `Bearer ${mobile()}`)
         .expect('Content-Type', /gpx/)
-        .expect('Content-Disposition', /parcours-\d+\.gpx/)
+        .expect(
+          'Content-Disposition',
+          'attachment; filename="original.gpx"; filename*=UTF-8\'\'Original.gpx',
+        )
         .expect(200);
 
       const original = parseGpx(gpx.toString('utf-8'));
@@ -200,6 +204,36 @@ describe('Traces (e2e)', () => {
         expect(point.lon).toBeCloseTo(original.points[i].lon, 6);
         expect(point.ele).toBe(original.points[i].ele);
       });
+    });
+
+    it('lets the organiser download it too, and 404 with a readable message otherwise', async () => {
+      const gpxTrace = (await upload(competitions[0].id, lineGpx(1)).expect(201))
+        .body as UploadedGpxTrace;
+      await request(server())
+        .get(`${base(competitions[0].id)}/${gpxTrace.id}/gpx`)
+        .set('Authorization', `Bearer ${orga()}`)
+        .expect(200);
+      const notFound = await request(server())
+        .get(`${base(competitions[2].id)}/${gpxTrace.id}/gpx`)
+        .set('Authorization', `Bearer ${mobile()}`)
+        .expect(404);
+      expect((notFound.body as { message: string }).message).toBe(
+        "Le fichier GPX de ce circuit n'existe plus, déposez-le à nouveau.",
+      );
+    });
+
+    it('answers 500, not a cut connection, when the stored points are unreadable', async () => {
+      const gpxTrace = (await upload(competitions[0].id, lineGpx(1)).expect(201))
+        .body as UploadedGpxTrace;
+      await getApp()
+        .get(DataSource)
+        .query(`UPDATE competition_gpx_trace SET gpx_points_gz = '\\x00'::bytea WHERE id = $1`, [
+          gpxTrace.id,
+        ]);
+      await request(server())
+        .get(`${base(competitions[0].id)}/${gpxTrace.id}/gpx`)
+        .set('Authorization', `Bearer ${mobile()}`)
+        .expect(500);
     });
   });
 

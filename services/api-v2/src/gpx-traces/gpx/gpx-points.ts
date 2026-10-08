@@ -1,7 +1,7 @@
 import { gunzipSync, gzipSync } from 'node:zlib';
 
-import type { GpxPoint, ParsedGpx } from './parse-gpx';
-import { decodePolyline, decodeSeries, encodePolyline, encodeSeries } from './polyline';
+import type { ParsedGpx } from './parse-gpx';
+import { encodePolyline, encodeSeries, iteratePolyline, iterateSeries } from './polyline';
 
 /**
  * Stockage compact des points d'un GPX déposé, à la place du fichier
@@ -17,7 +17,7 @@ const COORDINATE_FACTOR = 1e6;
 /** Altitudes au décimètre. */
 const ELEVATION_FACTOR = 10;
 
-type StoredGpxPoints = {
+export type StoredGpxPoints = {
   v: 1;
   name: string | null;
   polyline: string;
@@ -48,38 +48,76 @@ export function encodeGpxPoints({ name, points }: ParsedGpx): Buffer {
   return gzipSync(JSON.stringify(stored));
 }
 
-export function decodeGpxPoints(gzip: Buffer): ParsedGpx {
-  const stored = JSON.parse(gunzipSync(gzip).toString('utf-8')) as StoredGpxPoints;
-  const coordinates = decodePolyline(stored.polyline, COORDINATE_FACTOR);
-  const elevations = stored.ele ? decodeSeries(stored.ele, ELEVATION_FACTOR) : null;
-  const missing = new Set(stored.missingEle ?? []);
-  const points: GpxPoint[] = coordinates.map(([lon, lat], i) => ({
-    lat,
-    lon,
-    ele: elevations && !missing.has(i) ? elevations[i] : null,
-  }));
-  return { name: stored.name, points };
-}
-
 const escapeXml = (text: string) =>
   text.replace(
     /[<>&'"]/g,
     c => `&${{ '<': 'lt', '>': 'gt', '&': 'amp', "'": 'apos', '"': 'quot' }[c]};`,
   );
 
-/** GPX 1.1 reconstruit à partir des points stockés (téléchargement depuis la webapp). */
-export function toGpxXml({ name, points }: ParsedGpx): string {
-  const trkpts = points
-    .map(
-      p =>
-        `<trkpt lat="${p.lat.toFixed(6)}" lon="${p.lon.toFixed(6)}">` +
-        (p.ele != null ? `<ele>${p.ele.toFixed(1)}</ele>` : '') +
-        '</trkpt>',
-    )
-    .join('\n');
-  return (
-    '<?xml version="1.0" encoding="UTF-8"?>\n' +
+/** Points écrits par morceau de l'export : quelques dizaines de Ko par écriture. */
+const POINTS_PER_CHUNK = 1000;
+
+/**
+ * Forme compacte stockée (~5 octets par point), décodée AVANT l'export : une
+ * donnée illisible lève ici une erreur ordinaire (500), pas au milieu du flux.
+ */
+export function readGpxPoints(gzip: Buffer): StoredGpxPoints {
+  return JSON.parse(gunzipSync(gzip).toString('utf-8')) as StoredGpxPoints;
+}
+
+/**
+ * GPX 1.1 reconstruit à partir des points stockés, morceau par morceau : chaque
+ * point est décodé puis écrit aussitôt, sans tableau de points ni document
+ * complet en mémoire (un GPX de 200 000 points fait ~14 Mo).
+ */
+export function* gpxXmlChunks(stored: StoredGpxPoints): Generator<string> {
+  yield '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<gpx version="1.1" creator="OpenDossard" xmlns="http://www.topografix.com/GPX/1/1">\n' +
-    `<trk>${name ? `<name>${escapeXml(name)}</name>` : ''}<trkseg>\n${trkpts}\n</trkseg></trk>\n</gpx>\n`
-  );
+    `<trk>${stored.name ? `<name>${escapeXml(stored.name)}</name>` : ''}<trkseg>\n`;
+
+  const elevations = stored.ele ? iterateSeries(stored.ele, ELEVATION_FACTOR) : null;
+  const missing = new Set(stored.missingEle ?? []);
+  let chunk = '';
+  let index = 0;
+  for (const [lon, lat] of iteratePolyline(stored.polyline, COORDINATE_FACTOR)) {
+    // La série d'altitudes a une valeur par point, même absente (0) : avancée à chaque point.
+    const step = elevations?.next();
+    const ele = step && !step.done ? step.value : null;
+    chunk +=
+      `<trkpt lat="${lat.toFixed(6)}" lon="${lon.toFixed(6)}">` +
+      (ele != null && !missing.has(index) ? `<ele>${ele.toFixed(1)}</ele>` : '') +
+      '</trkpt>\n';
+    index++;
+    if (index % POINTS_PER_CHUNK === 0) {
+      yield chunk;
+      chunk = '';
+    }
+  }
+  yield `${chunk}</trkseg></trk>\n</gpx>\n`;
+}
+
+/**
+ * `Content-Disposition` du GPX téléchargé, nommé d'après le parcours : nom
+ * ASCII de repli (`filename`) et nom exact encodé (`filename*`, RFC 6266) pour
+ * les accents. Sans nom de parcours : `parcours-<id de l'épreuve>.gpx`.
+ */
+export function gpxContentDisposition(name: string | null, competitionId: number): string {
+  const fallback = `parcours-${competitionId}`;
+  const ascii =
+    (name ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 80)
+      .replace(/-+$/, '') || fallback;
+  const exact = name?.trim()
+    ? // `encodeURIComponent` laisse passer ' ( ) * !, interdits dans `filename*` (RFC 5987).
+      `; filename*=UTF-8''${encodeURIComponent(`${name.trim()}.gpx`).replace(
+        /['()*!]/g,
+        c => `%${c.charCodeAt(0).toString(16).toUpperCase()}`,
+      )}`
+    : '';
+  return `attachment; filename="${ascii}.gpx"${exact}`;
 }
