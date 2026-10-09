@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, ChevronRight, ClipboardList, Clock, Euro, Image, Info, Loader2, MapPin } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
@@ -63,6 +63,9 @@ export default function CompetitionDetailPage() {
   const updateCompetition = useUpdateCompetition();
 
   const isSaving = createCompetition.isPending || updateCompetition.isPending;
+  // Dépôt d'un GPX en cours (calcul du profil ~15 s) : l'id du tracé n'est pas
+  // encore sur le circuit, enregistrer maintenant le perdrait.
+  const [gpxUploading, setGpxUploading] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(competitionSchema),
@@ -263,9 +266,10 @@ export default function CompetitionDetailPage() {
             console.error('Validation errors:', errors);
           })();
         }}
-        disabled={isSaving || !canSave}
+        disabled={isSaving || !canSave || gpxUploading}
+        title={gpxUploading ? 'Calcul du profil du GPX en cours…' : undefined}
       >
-        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {(isSaving || gpxUploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Enregistrer
       </Button>
     </div>
@@ -347,6 +351,8 @@ export default function CompetitionDetailPage() {
               <TabsContent value="horaires" className="mt-0">
                 <HorairesTab
                   competitionId={isCreating || isDuplicating ? undefined : competitionId}
+                  gpxUploading={gpxUploading}
+                  onGpxUploadingChange={setGpxUploading}
                 />
               </TabsContent>
 

@@ -4,12 +4,13 @@ import { apiClient, apiFetchBlob } from './client';
 
 export const gpxTracesApi = {
   /** Calcul du profil côté serveur (altimétrie IGN) : compter jusqu'à ~15 s pour 200 km. */
-  upload: (competitionId: number, file: File): Promise<GpxTraceSummary> => {
+  upload: (competitionId: number, file: File, signal?: AbortSignal): Promise<GpxTraceSummary> => {
     const formData = new FormData();
     formData.append('file', file);
     return apiClient<GpxTraceSummary>(`/competitions/${competitionId}/gpx-traces`, {
       method: 'POST',
       body: formData,
+      signal,
     });
   },
 

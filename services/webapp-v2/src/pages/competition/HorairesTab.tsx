@@ -40,9 +40,16 @@ import type { FormValues } from './types';
 type HorairesTabProps = {
   /** `undefined` tant que l'épreuve n'est pas enregistrée : pas encore de dépôt de GPX possible. */
   competitionId?: number;
+  /** Dépôt d'un GPX en cours : ajouter ou enregistrer le circuit perdrait son tracé. */
+  gpxUploading: boolean;
+  onGpxUploadingChange: (uploading: boolean) => void;
 };
 
-export function HorairesTab({ competitionId }: HorairesTabProps) {
+export function HorairesTab({
+  competitionId,
+  gpxUploading,
+  onGpxUploadingChange,
+}: HorairesTabProps) {
   const form = useFormContext<FormValues>();
   const fede = form.watch('fede');
   const competitionType = form.watch('competitionType');
@@ -228,6 +235,8 @@ export function HorairesTab({ competitionId }: HorairesTabProps) {
               <CircuitGpxField
                 competitionId={competitionId}
                 gpxTraceId={horaireForm.gpxTraceId}
+                uploading={gpxUploading}
+                onUploadingChange={onGpxUploadingChange}
                 hasLink={!!horaireForm.info3?.trim()}
                 // Dépôt asynchrone (calcul ~15 s) : mise à jour fonctionnelle pour
                 // ne pas écraser ce qui a été saisi entre-temps. Un GPX remplace le lien.
@@ -247,6 +256,8 @@ export function HorairesTab({ competitionId }: HorairesTabProps) {
             type="button"
             variant="default"
             onClick={handleAddHoraire}
+            disabled={gpxUploading}
+            title={gpxUploading ? 'Calcul du profil du GPX en cours…' : undefined}
           >
             {editingHoraireIndex !== null ? (
               <Save className="h-4 w-4" />

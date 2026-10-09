@@ -17,8 +17,17 @@ type CircuitGpxFieldProps = {
   gpxTraceId?: string;
   /** Le circuit a un lien : le dépôt d'un GPX le remplacera (jamais les deux). */
   hasLink: boolean;
+  /** Dépôt en cours, détenu par la page : il bloque aussi l'ajout du circuit et l'enregistrement. */
+  uploading: boolean;
+  onUploadingChange: (uploading: boolean) => void;
   onChange: (gpxTraceId: string | undefined) => void;
 };
+
+/**
+ * Attente maximale d'un dépôt (~15 s pour 200 km en temps normal). Au-delà,
+ * on rend la main : le formulaire n'est jamais bloqué indéfiniment.
+ */
+const UPLOAD_TIMEOUT_MS = 20_000;
 
 const kmFormat = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 });
 const metersFormat = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
@@ -34,10 +43,11 @@ export function CircuitGpxField({
   competitionId,
   gpxTraceId,
   hasLink,
+  uploading,
+  onUploadingChange,
   onChange,
 }: CircuitGpxFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
   // Résumé du dernier dépôt, affiché tant que le circuit porte ce tracé.
   // Statistiques lues sur le tracé servi (aussi pour un circuit déjà enregistré).
   const { data: track } = useGpxTrack(competitionId, gpxTraceId);
@@ -47,17 +57,22 @@ export function CircuitGpxField({
     if (!file || competitionId == null) {
       return;
     }
-    setUploading(true);
+    onUploadingChange(true);
+    const signal = AbortSignal.timeout(UPLOAD_TIMEOUT_MS);
     try {
-      const uploaded = await gpxTracesApi.upload(competitionId, file);
+      const uploaded = await gpxTracesApi.upload(competitionId, file, signal);
       onChange(uploaded.id);
     } catch (error) {
       showErrorToast(
         'Le GPX n’a pas pu être déposé',
-        error instanceof ApiError ? error.userMessage : undefined,
+        signal.aborted
+          ? 'Le calcul du profil prend trop de temps. Réessayez dans quelques minutes.'
+          : error instanceof ApiError
+            ? error.userMessage
+            : undefined,
       );
     } finally {
-      setUploading(false);
+      onUploadingChange(false);
       if (inputRef.current) {
         inputRef.current.value = '';
       }
@@ -137,7 +152,13 @@ export function CircuitGpxField({
                 )}
                 {uploading ? 'Calcul du profil…' : 'Remplacer'}
               </Button>
-              <Button type="button" variant="ghost" size="sm" onClick={() => onChange(undefined)}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={uploading}
+                onClick={() => onChange(undefined)}
+              >
                 Retirer
               </Button>
             </>
