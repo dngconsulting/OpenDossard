@@ -413,10 +413,17 @@ export function generateFicheEpreuvePDF(competition: CompetitionEntity): Buffer 
     firstCircuit?.info3 || (firstCircuit?.gpxTraceId ? gpxTraceShareUrl(competition.id, 0) : '');
   drawField(doc, 'Parcours', parcours, col1X, row2Y + lineHeight, labelW);
 
+  // Une seule ligne réservée : des commissaires saisis sur plusieurs lignes
+  // chevaucheraient la mention d'ouverture aux fédérations.
+  const commissaires = (competition.commissaires || '')
+    .split(/\r?\n/)
+    .map(name => name.trim())
+    .filter(Boolean)
+    .join(', ');
   drawField(
     doc,
     'Commissaires',
-    competition.commissaires || '',
+    commissaires,
     col1X,
     row2Y + lineHeight * 2,
     labelW,

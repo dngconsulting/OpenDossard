@@ -1,12 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, ChevronRight, Pencil, RefreshCw, Shuffle, Trophy } from 'lucide-react';
+import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { useCallback, useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 
 import { BulkDeleteToolbarButton } from '@/components/common/BulkDeleteToolbarButton';
 import { HelloAssoTabIcon } from '@/components/common/HelloAssoTabIcon';
 import { PaymentsTable } from '@/components/data/PaymentsTable';
-import { EngagementForm, EngagementsTable, ExportMenu, ImportMenu, ReorganizeRacesDialog } from '@/components/engagements';
+import { EngagementForm, EngagementsTable, ReorganizeRacesDialog } from '@/components/engagements';
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,8 @@ import { useBulkRowAction } from '@/hooks/useBulkRowAction';
 import { useCompetition } from '@/hooks/useCompetitions';
 import { usePaymentsHasAny } from '@/hooks/usePayments';
 import { useCompetitionRaces, useBulkDeleteRaces } from '@/hooks/useRaces';
+
+import { EngagementsToolbar } from './EngagementsToolbar';
 
 /**
  * Sentinel pour l'onglet "Paiements HelloAsso" — préfixe `__` évite toute
@@ -84,26 +86,6 @@ export default function EngagementsPage() {
   const races = useMemo(() => {
     return [...racesOriginalOrder].sort((a, b) => a.localeCompare(b, 'fr', { numeric: true }));
   }, [racesOriginalOrder]);
-
-  // Vérifier si on peut réorganiser (aucun classement existant)
-  const hasAnyRanking = useMemo(() => {
-    return engagements.some(e => e.rankingScratch != null);
-  }, [engagements]);
-
-  // Vérifier si des dossards sont dupliqués entre courses différentes
-  const hasDuplicateRiderNumbers = useMemo(() => {
-    const riderNumberToRaces = new Map<number, Set<string>>();
-    for (const e of engagements) {
-      if (e.riderNumber) {
-        if (!riderNumberToRaces.has(e.riderNumber)) {
-          riderNumberToRaces.set(e.riderNumber, new Set());
-        }
-        riderNumberToRaces.get(e.riderNumber)!.add(e.raceCode);
-      }
-    }
-    // Si un dossard apparaît dans plusieurs courses, il y a duplication
-    return Array.from(riderNumberToRaces.values()).some(racesSet => racesSet.size > 1);
-  }, [engagements]);
 
   // Synchroniser le hash avec la course courante. Gère 4 cas :
   //  - hash = raceCode connu → activer cette course
@@ -203,62 +185,17 @@ export default function EngagementsPage() {
       isPending={isBulkDeleting}
     />
   ) : (
-    <div className="flex flex-col sm:flex-row gap-2">
-      <Button
-        variant="outline"
-        onClick={handleRefresh}
-        disabled={isFetchingEngagements}
-        title="Rafraîchir les données (engagements + paiements HelloAsso)"
-      >
-        <RefreshCw className={`h-4 w-4 ${isFetchingEngagements ? 'animate-spin' : ''}`} />
-      </Button>
-      {competition && (
-        <Button
-          variant="outline"
-          onClick={() => navigate(`/competition/${id}`)}
-          title="Modifier l'épreuve"
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
-      )}
-      {!isPaymentsTab && (
-        <>
-          <Button
-            variant="outline"
-            disabled={hasAnyRanking || hasDuplicateRiderNumbers}
-            onClick={() => setIsReorganizeOpen(true)}
-            title={
-              hasAnyRanking
-                ? 'Impossible de réorganiser : des classements existent'
-                : hasDuplicateRiderNumbers
-                  ? 'Impossible de réorganiser : des dossards sont attribués sur plusieurs courses'
-                  : 'Réorganiser les départs'
-            }
-          >
-            <Shuffle className="h-4 w-4 mr-2" />
-            Réorganiser les départs
-          </Button>
-          {competition && currentRaceCode && (
-            <ExportMenu
-              engagements={engagements}
-              currentRaceCode={currentRaceCode}
-              races={races}
-              competition={competition}
-            />
-          )}
-          {competition && <ImportMenu competitionId={competition.id} />}
-          <Button
-            className="bg-emerald-600 hover:bg-emerald-700 text-white disabled:bg-emerald-600/50"
-            disabled={totalEngagements === 0}
-            onClick={() => navigate(`/competition/${id}/classements#${currentRaceCode}`)}
-            title={totalEngagements === 0 ? 'Aucun engagé' : 'Accéder aux classements'}
-          >
-            <Trophy className="h-4 w-4" />
-            Classements
-          </Button>
-        </>
-      )}
-    </div>
+    <EngagementsToolbar
+      competitionId={competitionId}
+      competition={competition}
+      engagements={engagements}
+      races={races}
+      currentRaceCode={currentRaceCode}
+      isPaymentsTab={isPaymentsTab}
+      isRefreshing={isFetchingEngagements}
+      onRefresh={handleRefresh}
+      onReorganize={() => setIsReorganizeOpen(true)}
+    />
   );
 
   const isLoading = isLoadingCompetition || isLoadingEngagements;

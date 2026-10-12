@@ -2,6 +2,7 @@ import type {
   CompetitionType,
   CompetitionDetailType,
   CompetitionFormData,
+  CompetitionOfficials,
   CompetitionPaginationParams,
   PaginatedCompetitionResponse,
 } from '@/types/competitions';
@@ -79,6 +80,12 @@ export const competitionsApi = {
 
   update: (id: number, data: Partial<CompetitionFormData>): Promise<CompetitionDetailType> =>
     apiClient<CompetitionDetailType>(`/competitions/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  updateOfficials: (id: number, data: CompetitionOfficials): Promise<CompetitionDetailType> =>
+    apiClient<CompetitionDetailType>(`/competitions/${id}/officials`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),

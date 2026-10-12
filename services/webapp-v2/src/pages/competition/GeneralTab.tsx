@@ -12,7 +12,6 @@ import {
   HelloAssoOnlinePaymentSection,
   ObservationsSection,
   OptionsSection,
-  OrganisationSection,
 } from './general-sections';
 
 import type { FormValues } from './types';
@@ -31,7 +30,6 @@ interface GeneralTabProps {
  */
 export function GeneralTab({ isCreating, isDuplicating, competitionId }: GeneralTabProps) {
   const form = useFormContext<FormValues>();
-  const watchedCompetitionType = form.watch('competitionType');
   const watchedClubId = form.watch('clubId');
   // TanStack Query dedupe la requête identique faite dans HelloAssoOnlinePaymentSection,
   // donc pas de double appel HTTP — on partage juste le résultat.
@@ -67,13 +65,6 @@ export function GeneralTab({ isCreating, isDuplicating, competitionId }: General
         <Separator />
 
         <ContactSection isDuplicating={isDuplicating} />
-
-        {!isCreating && (
-          <>
-            <Separator />
-            <OrganisationSection competitionType={watchedCompetitionType} />
-          </>
-        )}
 
         <Separator />
 

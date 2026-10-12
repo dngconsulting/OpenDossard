@@ -355,6 +355,123 @@ describe('Competitions (e2e)', () => {
     });
   });
 
+  // ==================== PATCH /competitions/:id/officials ====================
+
+  describe('PATCH /competitions/:id/officials', () => {
+    const officials = {
+      commissaires: 'M. Dupont, Mme Martin',
+      speaker: 'Jean Micro',
+      aboyeur: 'Paul Voix',
+      feedback: 'RAS',
+    };
+
+    it('should let an ORGANISATEUR not linked to the club update officials', async () => {
+      const clubs = await getSeedHelper().seedClubs();
+      const [comp] = await getSeedHelper().seedCompetitions(clubs);
+
+      const res = await request(getApp().getHttpServer())
+        .patch(`${API}/${comp.id}/officials`)
+        .set('Authorization', `Bearer ${orgaToken}`)
+        .send(officials)
+        .expect(200);
+
+      const body = res.body as CompetitionEntity;
+      expect(body).toMatchObject(officials);
+      expect(body.author).toBe('orga@test.com');
+    });
+
+    it('should still reject the generic PATCH for that ORGANISATEUR (403)', async () => {
+      const clubs = await getSeedHelper().seedClubs();
+      const [comp] = await getSeedHelper().seedCompetitions(clubs);
+
+      await request(getApp().getHttpServer())
+        .patch(`${API}/${comp.id}`)
+        .set('Authorization', `Bearer ${orgaToken}`)
+        .send({ commissaires: 'X' })
+        .expect(403);
+    });
+
+    it('should ignore fields outside the officials whitelist', async () => {
+      const clubs = await getSeedHelper().seedClubs();
+      const [comp] = await getSeedHelper().seedCompetitions(clubs);
+
+      const res = await request(getApp().getHttpServer())
+        .patch(`${API}/${comp.id}/officials`)
+        .set('Authorization', `Bearer ${orgaToken}`)
+        .send({
+          speaker: 'Jean Micro',
+          name: 'Détournée',
+          clubId: clubs[1].id,
+          onlineRegistrationEnabled: true,
+        })
+        .expect(200);
+
+      const body = res.body as CompetitionEntity;
+      expect(body.speaker).toBe('Jean Micro');
+      expect(body.name).toBe(comp.name);
+      expect(body.clubId).toBe(clubs[0].id);
+      expect(body.onlineRegistrationEnabled).toBeFalsy();
+    });
+
+    it('should leave omitted officials untouched', async () => {
+      const [comp] = await getSeedHelper().seedCompetitions();
+      const server = getApp().getHttpServer();
+
+      await request(server)
+        .patch(`${API}/${comp.id}/officials`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(officials)
+        .expect(200);
+
+      const res = await request(server)
+        .patch(`${API}/${comp.id}/officials`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ speaker: '' })
+        .expect(200);
+
+      const body = res.body as CompetitionEntity;
+      expect(body.speaker).toBe('');
+      expect(body.commissaires).toBe(officials.commissaires);
+    });
+
+    it('should clear an official sent as null', async () => {
+      const [comp] = await getSeedHelper().seedCompetitions();
+      const server = getApp().getHttpServer();
+
+      await request(server)
+        .patch(`${API}/${comp.id}/officials`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(officials)
+        .expect(200);
+
+      const res = await request(server)
+        .patch(`${API}/${comp.id}/officials`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ ...officials, commissaires: null })
+        .expect(200);
+
+      expect((res.body as CompetitionEntity).commissaires).toBeNull();
+    });
+
+    it('should return 404 for non-existent competition', async () => {
+      await request(getApp().getHttpServer())
+        .patch(`${API}/99999/officials`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(officials)
+        .expect(404);
+    });
+
+    it('should reject MOBILE role', async () => {
+      const [comp] = await getSeedHelper().seedCompetitions();
+
+      await request(getApp().getHttpServer())
+        .patch(`${API}/${comp.id}/officials`)
+        .set('Authorization', `Bearer ${mobileToken}`)
+        .send(officials)
+        .expect(403);
+    });
+  });
+
   // ==================== DELETE /competitions/:id ====================
 
   describe('DELETE /competitions/:id', () => {

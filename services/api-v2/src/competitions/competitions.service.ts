@@ -20,6 +20,7 @@ import {
 import { RaceEntity } from '../races/entities/race.entity';
 import { FilterCompetitionDto } from './dto/filter-competition.dto';
 import { ReorganizeCompetitionDto } from './dto/reorganize-competition.dto';
+import { UpdateCompetitionOfficialsDto } from './dto/update-competition-officials.dto';
 import { CompetitionEntity } from './entities/competition.entity';
 import { OnlinePaymentActivationPolicy } from './online-payment-activation.policy';
 
@@ -353,6 +354,33 @@ export class CompetitionsService {
       await this.gpxTracesService.copyToCompetition(manager, original.id, saved.id, gpxTraceCopies);
       return saved;
     });
+  }
+
+  /**
+   * Arbitres/commissaires de l'épreuve, saisis depuis l'écran des engagements.
+   * Volontairement SANS scope club : ceux qui engagent les coureurs ne sont pas
+   * toujours rattachés au club organisateur. Le DTO borne l'écriture à ces
+   * champs ; seuls les champs présents dans le body sont modifiés.
+   */
+  async updateOfficials(
+    id: number,
+    dto: UpdateCompetitionOfficialsDto,
+    user: AuthenticatedUser,
+  ): Promise<CompetitionEntity> {
+    const competition = await this.findOne(id);
+    const changes = Object.fromEntries(
+      Object.entries(dto).filter(([, value]) => value !== undefined),
+    ) as UpdateCompetitionOfficialsDto;
+    Object.assign(competition, changes);
+    this.stampAudit(competition, user.email);
+    const saved = await this.competitionRepository.save(competition);
+    this.logger.log(
+      `Mise à jour des arbitres/commissaires de la compétition #${id} par ${user.email} | ` +
+        Object.entries(changes)
+          .map(([k, v]) => `${k}: ${JSON.stringify(v)}`)
+          .join(' | '),
+    );
+    return saved;
   }
 
   async validate(id: number, user: AuthenticatedUser): Promise<CompetitionEntity> {

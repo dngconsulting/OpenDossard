@@ -9,6 +9,7 @@ import type {
   CompetitionFilters,
   CompetitionPaginationParams,
   CompetitionFormData,
+  CompetitionOfficials,
 } from '@/types/competitions';
 
 export const competitionsKeys = {
@@ -258,6 +259,18 @@ export function useUpdateCompetition() {
       // Invalidates all queries starting with ['competitions'], including list and detail
       queryClient.invalidateQueries({ queryKey: ['competitions'] });
     },
+  });
+}
+
+export function useUpdateCompetitionOfficials() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: CompetitionOfficials }) =>
+      competitionsApi.updateOfficials(id, data),
+    // Promesse retournée : la modale ne se ferme qu'une fois l'épreuve rechargée,
+    // sinon une réouverture immédiate repartirait des anciennes valeurs.
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['competitions'] }),
   });
 }
 

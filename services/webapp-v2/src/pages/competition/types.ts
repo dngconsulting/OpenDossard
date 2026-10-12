@@ -80,10 +80,6 @@ export const competitionSchema = z.object({
   avecChrono: z.boolean().optional(),
   onlineRegistrationEnabled: z.boolean().optional(),
   observations: z.string().optional(),
-  commissaires: z.string().optional(),
-  speaker: z.string().optional(),
-  aboyeur: z.string().optional(),
-  feedback: z.string().optional(),
   lieuDossard: z.string().optional(),
   lieuDossardGPS: z.string().optional(),
   competitionInfo: z

@@ -82,6 +82,12 @@ export type CompetitionDetailType = {
   lastChanged?: string | null;
 };
 
+// Arbitres/commissaires, modifiables depuis l'écran des engagements par tout organisateur
+export type CompetitionOfficials = Record<
+  'commissaires' | 'speaker' | 'aboyeur' | 'feedback',
+  string | null
+>;
+
 // Type for creating/updating a competition
 export type CompetitionFormData = Omit<
   CompetitionDetailType,

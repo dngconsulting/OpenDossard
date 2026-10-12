@@ -14,7 +14,12 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { CompetitionsService } from './competitions.service';
-import { CompetitionIdsDto, FilterCompetitionDto, ReorganizeCompetitionDto } from './dto';
+import {
+  CompetitionIdsDto,
+  FilterCompetitionDto,
+  ReorganizeCompetitionDto,
+  UpdateCompetitionOfficialsDto,
+} from './dto';
 import { CompetitionEntity } from './entities/competition.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -82,6 +87,21 @@ export class CompetitionsController {
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<CompetitionEntity> {
     return this.competitionsService.update(id, competitionData, user);
+  }
+
+  @Patch(':id/officials')
+  @Roles(Role.ADMIN, Role.ORGANISATEUR)
+  @ApiOperation({
+    summary: 'Update competition officials (commissaires, speaker, aboyeur, note)',
+    description: 'Ouvert à tout ORGANISATEUR, même non rattaché au club organisateur.',
+  })
+  @ApiResponse({ status: 200, description: 'Officials updated' })
+  async updateOfficials(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateCompetitionOfficialsDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<CompetitionEntity> {
+    return this.competitionsService.updateOfficials(id, dto, user);
   }
 
   @Delete(':id')
