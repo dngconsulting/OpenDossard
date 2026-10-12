@@ -104,7 +104,7 @@ function OfficialsForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-4">
           <FormField
             control={form.control}
             name="commissaires"
@@ -150,7 +150,7 @@ function OfficialsForm({
             control={form.control}
             name="feedback"
             render={({ field }) => (
-              <FormItem className="md:col-span-3">
+              <FormItem>
                 <FormLabel>Note commissaire(s)</FormLabel>
                 <FormControl>
                   <Textarea {...field} />
