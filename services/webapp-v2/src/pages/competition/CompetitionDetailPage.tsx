@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
+import { DisabledReasonTooltip } from '@/components/common/DisabledReasonTooltip';
 import { LastModificationInfo } from '@/components/common/LastModificationInfo';
 import Layout from '@/components/layout/Layout';
 import { Badge } from '@/components/ui/badge';
@@ -231,6 +232,27 @@ export default function CompetitionDetailPage() {
     }
   };
 
+  const saveDisabledReason = gpxUploading
+    ? 'Calcul du profil du GPX en cours…'
+    : !canSave
+      ? "Renseignez les champs obligatoires (*) de l'onglet Infos"
+      : null;
+
+  const handleSave = () => {
+    form.handleSubmit(onSubmit, errors => {
+      const messages = competitionFormErrorMessages(errors, form.getValues());
+      showErrorToast(
+        'Le formulaire contient des erreurs',
+        messages.length > 0
+          ? messages.join('\n')
+          : 'Vérifie les champs surlignés en rouge.',
+      );
+      // Conservé pour le debug en dev : la structure complète est plus
+      // riche que le toast (ref, type, path).
+      console.error('Validation errors:', errors);
+    })();
+  };
+
   const toolbar = (
     <div className="flex items-center gap-2">
       {!isCreating && competition && (
@@ -243,27 +265,12 @@ export default function CompetitionDetailPage() {
           <img src="/logo/pdf-download.svg" alt="PDF" className="h-5 w-5" /> Fiche épreuve
         </Button>
       )}
-      <Button
-        onClick={() => {
-          form.handleSubmit(onSubmit, errors => {
-            const messages = competitionFormErrorMessages(errors, form.getValues());
-            showErrorToast(
-              'Le formulaire contient des erreurs',
-              messages.length > 0
-                ? messages.join('\n')
-                : 'Vérifie les champs surlignés en rouge.',
-            );
-            // Conservé pour le debug en dev : la structure complète est plus
-            // riche que le toast (ref, type, path).
-            console.error('Validation errors:', errors);
-          })();
-        }}
-        disabled={isSaving || !canSave || gpxUploading}
-        title={gpxUploading ? 'Calcul du profil du GPX en cours…' : undefined}
-      >
-        {(isSaving || gpxUploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Enregistrer
-      </Button>
+      <DisabledReasonTooltip reason={saveDisabledReason}>
+        <Button onClick={handleSave} disabled={isSaving || !!saveDisabledReason}>
+          {(isSaving || gpxUploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Enregistrer
+        </Button>
+      </DisabledReasonTooltip>
     </div>
   );
 
@@ -345,6 +352,13 @@ export default function CompetitionDetailPage() {
                   competitionId={isCreating || isDuplicating ? undefined : competitionId}
                   gpxUploading={gpxUploading}
                   onGpxUploadingChange={setGpxUploading}
+                  isSaving={isSaving}
+                  // Épreuve existante uniquement (en création, enregistrer créerait
+                  // l'épreuve et rechargerait la page au milieu de la saisie), et
+                  // seulement quand le bouton de la toolbar le permettrait.
+                  onSaveCompetition={
+                    isCreating || isDuplicating || saveDisabledReason ? undefined : handleSave
+                  }
                 />
               </TabsContent>
 

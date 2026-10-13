@@ -6,10 +6,11 @@ import { TableCell, TableRow } from '@/components/ui/table';
 
 interface SortableTableRowProps {
   id: string;
+  disabled?: boolean;
   children: React.ReactNode;
 }
 
-export function SortableTableRow({ id, children }: SortableTableRowProps) {
+export function SortableTableRow({ id, disabled = false, children }: SortableTableRowProps) {
   const {
     attributes,
     listeners,
@@ -17,7 +18,7 @@ export function SortableTableRow({ id, children }: SortableTableRowProps) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id });
+  } = useSortable({ id, disabled });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -27,7 +28,11 @@ export function SortableTableRow({ id, children }: SortableTableRowProps) {
 
   return (
     <TableRow ref={setNodeRef} style={style}>
-      <TableCell className="w-[40px] cursor-grab" {...attributes} {...listeners}>
+      <TableCell
+        className={disabled ? 'w-[40px] cursor-not-allowed' : 'w-[40px] cursor-grab'}
+        {...attributes}
+        {...listeners}
+      >
         <GripVertical className="h-4 w-4 text-muted-foreground" />
       </TableCell>
       {children}

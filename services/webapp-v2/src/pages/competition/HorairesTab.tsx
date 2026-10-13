@@ -13,13 +13,12 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { Copy, Edit2, ExternalLink, Plus, Route, Save, Trash2 } from 'lucide-react';
+import { AlertTriangle, Copy, Edit2, ExternalLink, Route, Trash2 } from 'lucide-react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
+import { DisabledReasonTooltip } from '@/components/common/DisabledReasonTooltip';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Table,
   TableBody,
@@ -31,9 +30,8 @@ import {
 import { getCompetitionInfoLabels } from '@/config/federations';
 import type { CompetitionInfoItem } from '@/types/competitions';
 
-import { CircuitGpxField } from './CircuitGpxField';
-import { FieldHelp } from './FieldHelp';
 import { GpxTracePreviewDialog } from './GpxTracePreviewDialog';
+import { HoraireEntryForm } from './HoraireEntryForm';
 import { SortableTableRow } from './SortableTableRow';
 import type { FormValues } from './types';
 
@@ -43,20 +41,29 @@ type HorairesTabProps = {
   /** Dépôt d'un GPX en cours : ajouter ou enregistrer le circuit perdrait son tracé. */
   gpxUploading: boolean;
   onGpxUploadingChange: (uploading: boolean) => void;
+  /** Enregistrement de l'épreuve en cours : les actions sur les circuits attendent. */
+  isSaving: boolean;
+  /**
+   * Enregistre l'épreuve après l'ajout, la modification, la duplication, la
+   * suppression ou le déplacement d'un circuit : le bouton « Enregistrer » de la toolbar est
+   * souvent oublié. Absent en création ou quand l'épreuve ne peut pas être
+   * enregistrée (champs obligatoires, GPX en cours de calcul).
+   */
+  onSaveCompetition?: () => void;
 };
 
 export function HorairesTab({
   competitionId,
   gpxUploading,
   onGpxUploadingChange,
+  isSaving,
+  onSaveCompetition,
 }: HorairesTabProps) {
   const form = useFormContext<FormValues>();
   const fede = form.watch('fede');
   const competitionType = form.watch('competitionType');
-  const { info1Label, info1Placeholder, info2Label, info2Placeholder } = getCompetitionInfoLabels(
-    fede,
-    competitionType,
-  );
+  const infoLabels = getCompetitionInfoLabels(fede, competitionType);
+  const { info1Label, info2Label } = infoLabels;
 
   const [horaireForm, setHoraireForm] = useState<CompetitionInfoItem>({
     course: '',
@@ -89,26 +96,32 @@ export function HorairesTab({
     })
   );
 
+  // Pendant une modification, la ligne éditée est repérée par sa position :
+  // supprimer, dupliquer ou déplacer une ligne la décalerait.
+  const rowActionsLockedReason = isSaving
+    ? "Enregistrement de l'épreuve en cours…"
+    : editingHoraireIndex !== null
+      ? 'Terminez ou annulez la modification en cours'
+      : null;
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
       const oldIndex = competitionInfoFields.findIndex(f => f.id === active.id);
       const newIndex = competitionInfoFields.findIndex(f => f.id === over.id);
       moveCompetitionInfo(oldIndex, newIndex);
+      onSaveCompetition?.();
     }
   };
 
   const handleAddHoraire = () => {
-    if (!horaireForm.course || !horaireForm.horaireDepart) {
-      return;
-    }
-
     if (editingHoraireIndex !== null) {
       updateCompetitionInfo(editingHoraireIndex, horaireForm);
       setEditingHoraireIndex(null);
     } else {
       appendCompetitionInfo(horaireForm);
     }
+    onSaveCompetition?.();
     setHoraireForm({
       course: '',
       horaireEngagement: '',
@@ -151,131 +164,18 @@ export function HorairesTab({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* 1re ligne : les 5 champs courts ; 2e ligne : lien externe OU fichier GPX, côte à côte. */}
-        <div className="grid grid-cols-1 md:grid-cols-10 gap-4 p-4 bg-muted/50 rounded-lg">
-          <div className="space-y-1.5 md:col-span-2">
-            <Label>Catégorie/Départ</Label>
-            <Input
-              value={horaireForm.course}
-              onChange={e => setHoraireForm({ ...horaireForm, course: e.target.value })}
-              placeholder="ex: Cat 4"
-            />
-          </div>
-          <div className="space-y-1.5 md:col-span-2">
-            <Label>Heure dossard</Label>
-            <Input
-              value={horaireForm.horaireEngagement}
-              onChange={e =>
-                setHoraireForm({ ...horaireForm, horaireEngagement: e.target.value })
-              }
-              placeholder="ex: 14h"
-            />
-          </div>
-          <div className="space-y-1.5 md:col-span-2">
-            <Label>Heure départ</Label>
-            <Input
-              value={horaireForm.horaireDepart}
-              onChange={e =>
-                setHoraireForm({ ...horaireForm, horaireDepart: e.target.value })
-              }
-              placeholder="ex: 15h"
-            />
-          </div>
-          <div className="space-y-1.5 md:col-span-2">
-            <Label>{info1Label}</Label>
-            <Input
-              value={horaireForm.info1}
-              onChange={e => setHoraireForm({ ...horaireForm, info1: e.target.value })}
-              placeholder={info1Placeholder}
-            />
-          </div>
-          <div className="space-y-1.5 md:col-span-2">
-            <Label>{info2Label}</Label>
-            <Input
-              value={horaireForm.info2}
-              onChange={e => setHoraireForm({ ...horaireForm, info2: e.target.value })}
-              placeholder={info2Placeholder}
-            />
-          </div>
-          {/* Parcours : lien externe OU fichier GPX, jamais les deux (refusé par l'API). */}
-          <fieldset className="md:col-span-10 grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-start gap-4 rounded-md border p-3">
-            <legend className="px-1 text-xs font-medium text-muted-foreground">
-              Parcours du circuit
-            </legend>
-            <div className="space-y-1.5">
-              <Label>
-                Lien externe du parcours
-                <FieldHelp>
-                  Lien externe ouvert avec une application tierce (OpenRunner, VisuGPX, gpx-studio…)
-                </FieldHelp>
-              </Label>
-              <Input
-                value={horaireForm.info3 || ''}
-                onChange={e => setHoraireForm({ ...horaireForm, info3: e.target.value })}
-                placeholder="ex: https://www.openrunner.com/route-details/12345678"
-                disabled={!!horaireForm.gpxTraceId}
-              />
-              {horaireForm.gpxTraceId && (
-                <p className="text-xs text-muted-foreground">Retirez le GPX pour saisir un lien.</p>
-              )}
-            </div>
-            {/* Même structure que les champs (libellé invisible + hauteur d'un champ) :
-                le « OU » reste aligné sur les champs, quelle que soit la hauteur du contenu. */}
-            <div className="space-y-1.5">
-              <Label aria-hidden className="hidden md:flex md:invisible">
-                OU
-              </Label>
-              <div className="flex h-9 items-center justify-center">
-                <span className="rounded-full border bg-background px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
-                  OU
-                </span>
-              </div>
-            </div>
-            <div>
-              <CircuitGpxField
-                competitionId={competitionId}
-                gpxTraceId={horaireForm.gpxTraceId}
-                uploading={gpxUploading}
-                onUploadingChange={onGpxUploadingChange}
-                hasLink={!!horaireForm.info3?.trim()}
-                // Dépôt asynchrone (calcul ~15 s) : mise à jour fonctionnelle pour
-                // ne pas écraser ce qui a été saisi entre-temps. Un GPX remplace le lien.
-                onChange={gpxTraceId =>
-                  setHoraireForm(previous => ({
-                    ...previous,
-                    gpxTraceId,
-                    ...(gpxTraceId ? { info3: '' } : {}),
-                  }))
-                }
-              />
-            </div>
-          </fieldset>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="default"
-            onClick={handleAddHoraire}
-            disabled={gpxUploading}
-            title={gpxUploading ? 'Calcul du profil du GPX en cours…' : undefined}
-          >
-            {editingHoraireIndex !== null ? (
-              <Save className="h-4 w-4" />
-            ) : (
-              <Plus className="h-4 w-4" />
-            )}
-            {editingHoraireIndex !== null ? 'Enregistrer' : 'Ajouter'}
-          </Button>
-          {editingHoraireIndex !== null && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCancelEdit}
-            >
-              Annuler
-            </Button>
-          )}
-        </div>
+        <HoraireEntryForm
+          value={horaireForm}
+          onChange={setHoraireForm}
+          isEditing={editingHoraireIndex !== null}
+          onSubmit={handleAddHoraire}
+          onCancel={handleCancelEdit}
+          infoLabels={infoLabels}
+          competitionId={competitionId}
+          gpxUploading={gpxUploading}
+          isSaving={isSaving}
+          onGpxUploadingChange={onGpxUploadingChange}
+        />
 
         {competitionInfoFields.length > 0 ? (
           <DndContext
@@ -303,7 +203,11 @@ export function HorairesTab({
                     strategy={verticalListSortingStrategy}
                   >
                     {competitionInfoFields.map((field, index) => (
-                      <SortableTableRow key={field.id} id={field.id}>
+                      <SortableTableRow
+                        key={field.id}
+                        id={field.id}
+                        disabled={!!rowActionsLockedReason}
+                      >
                         <TableCell>{(field as CompetitionInfoItem).course}</TableCell>
                         <TableCell>
                           {(field as CompetitionInfoItem).horaireEngagement}
@@ -345,32 +249,43 @@ export function HorairesTab({
                               variant="ghost"
                               size="icon"
                               onClick={() => handleEditHoraire(index)}
+                              disabled={isSaving}
                               title="Modifier"
                             >
                               <Edit2 className="h-4 w-4" />
                             </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => {
-                                const item = competitionInfoFields[index] as CompetitionInfoItem;
-                                appendCompetitionInfo({ ...item });
-                              }}
-                              title="Dupliquer"
-                            >
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => removeCompetitionInfo(index)}
-                              title="Supprimer"
-                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <DisabledReasonTooltip reason={rowActionsLockedReason}>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  const item = competitionInfoFields[index] as CompetitionInfoItem;
+                                  appendCompetitionInfo({ ...item });
+                                  onSaveCompetition?.();
+                                }}
+                                disabled={!!rowActionsLockedReason}
+                                title="Dupliquer"
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                            </DisabledReasonTooltip>
+                            <DisabledReasonTooltip reason={rowActionsLockedReason}>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  removeCompetitionInfo(index);
+                                  onSaveCompetition?.();
+                                }}
+                                disabled={!!rowActionsLockedReason}
+                                title="Supprimer"
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </DisabledReasonTooltip>
                           </div>
                         </TableCell>
                       </SortableTableRow>
@@ -386,10 +301,13 @@ export function HorairesTab({
           </p>
         )}
 
-        {competitionInfoFields.length > 0 && (
-          <p className="text-sm text-muted-foreground text-center">
-            <strong>N'oubliez pas de sauvegarder l'épreuve !</strong>
-          </p>
+        {/* Pas d'enregistrement automatique (épreuve pas encore créée, champs
+            obligatoires manquants, GPX en cours de calcul) : on le rappelle. */}
+        {!onSaveCompetition && competitionInfoFields.length > 0 && (
+          <div className="flex items-center justify-center gap-2 p-2 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded text-sm text-amber-800 dark:text-amber-200">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            <strong>N'oubliez pas d'enregistrer l'épreuve !</strong>
+          </div>
         )}
         {competitionId != null && (
           <GpxTracePreviewDialog
