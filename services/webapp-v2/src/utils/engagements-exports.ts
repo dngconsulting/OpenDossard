@@ -2,53 +2,14 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 import type { RaceRowType } from '@/types/races';
-import type { CompetitionDetailType, FederationType } from '@/types/competitions';
+import type { CompetitionDetailType } from '@/types/competitions';
 
-/**
- * Mapping des fédérations vers les fichiers de logos
- */
-const FEDE_LOGOS: Partial<Record<FederationType, string>> = {
-  FSGT: '/logo/fsgt.svg',
-  UFOLEP: '/logo/ufolep.svg',
-  FFC: '/logo/ffc.svg',
-  FFVELO: '/logo/ffvelo.svg',
-  FFTRI: '/logo/fftri.svg',
-};
+import { type FedeLogoResult, loadLogoAsDataUrl } from './pdf-exports';
 
 /**
  * Logo Open Dossard
  */
 const OPEN_DOSSARD_LOGO = '/logo/opendossard.png';
-
-/**
- * Charge un logo SVG et le convertit en data URL pour jsPDF
- */
-async function loadLogoAsDataUrl(fede: FederationType): Promise<string | null> {
-  const logoPath = FEDE_LOGOS[fede];
-  if (!logoPath) return null;
-
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const size = 400;
-      canvas.width = size;
-      canvas.height = size;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(img, 0, 0, size, size);
-        resolve(canvas.toDataURL('image/png', 1.0));
-      } else {
-        resolve(null);
-      }
-    };
-    img.onerror = () => resolve(null);
-    img.src = logoPath;
-  });
-}
 
 /**
  * Type pour le logo Open Dossard avec son ratio
@@ -100,6 +61,21 @@ function addLogoToPdf(doc: jsPDF, logoDataUrl: string | null, x: number, y: numb
       // Ignorer les erreurs
     }
   }
+}
+
+/**
+ * Dessine le logo fédé en respectant ses proportions, dans 12 mm de haut et
+ * 30 mm de large au plus (le logo UFOLEP est très allongé). Renvoie l'abscisse
+ * où commencer le texte d'en-tête.
+ */
+function drawFedeLogo(doc: jsPDF, logo: FedeLogoResult, x: number, y: number): number {
+  if (!logo) {
+    return x + 15;
+  }
+  const height = Math.min(12, 30 / logo.ratio);
+  const width = height * logo.ratio;
+  addLogoToPdf(doc, logo.dataUrl, x, y, width, height);
+  return x + width + 3;
 }
 
 /**
@@ -220,7 +196,7 @@ export async function exportEngagesPDF(
     },
     didDrawPage: () => {
       // Logo fédération à gauche
-      addLogoToPdf(doc, fedeLogo, pageMargin, 2, 12);
+      const textX = drawFedeLogo(doc, fedeLogo, pageMargin, 2);
       // Logo Open Dossard à droite
       // Open Dossard logo avec ratio original
       if (odLogo) {
@@ -231,9 +207,9 @@ export async function exportEngagesPDF(
 
       doc.setFontSize(10);
       doc.setTextColor(40);
-      doc.text(`Listing Engagés : ${competition.name}`, pageMargin + 15, 4);
-      doc.text(`Date : ${capitalize(formatDateFr(competition.eventDate))}`, pageMargin + 15, 8);
-      doc.text(`Catégorie(s) : ${raceCode}`, pageMargin + 15, 12);
+      doc.text(`Listing Engagés : ${competition.name}`, textX, 4);
+      doc.text(`Date : ${capitalize(formatDateFr(competition.eventDate))}`, textX, 8);
+      doc.text(`Catégorie(s) : ${raceCode}`, textX, 12);
 
       const pageHeight = doc.internal.pageSize.getHeight();
       doc.setFontSize(8);
@@ -348,7 +324,7 @@ export async function exportAllEngagesPDF(
       },
       didDrawPage: () => {
         // Logo fédération à gauche
-        addLogoToPdf(doc, fedeLogo, pageMargin, 2, 12);
+        const textX = drawFedeLogo(doc, fedeLogo, pageMargin, 2);
         // Logo Open Dossard à droite
         // Open Dossard logo avec ratio original
       if (odLogo) {
@@ -359,9 +335,9 @@ export async function exportAllEngagesPDF(
 
         doc.setFontSize(10);
         doc.setTextColor(40);
-        doc.text(`Listing Engagés : ${competition.name}`, pageMargin + 15, 4);
-        doc.text(`Date : ${capitalize(formatDateFr(competition.eventDate))}`, pageMargin + 15, 8);
-        doc.text(`Catégorie(s) : ${currentRaceCode}`, pageMargin + 15, 12);
+        doc.text(`Listing Engagés : ${competition.name}`, textX, 4);
+        doc.text(`Date : ${capitalize(formatDateFr(competition.eventDate))}`, textX, 8);
+        doc.text(`Catégorie(s) : ${currentRaceCode}`, textX, 12);
 
         const pageHeight = doc.internal.pageSize.getHeight();
         doc.setFontSize(8);
@@ -452,7 +428,7 @@ export async function exportEmargementPDF(
     body: rowsToDisplay,
     didDrawPage: () => {
       // Logo fédération à gauche
-      addLogoToPdf(doc, fedeLogo, pageMargin, 2, 12);
+      const textX = drawFedeLogo(doc, fedeLogo, pageMargin, 2);
       // Logo Open Dossard à droite
       // Open Dossard logo avec ratio original
       if (odLogo) {
@@ -463,9 +439,9 @@ export async function exportEmargementPDF(
 
       doc.setFontSize(10);
       doc.setTextColor(40);
-      doc.text(`Feuille d'émargement : ${competition.name}`, pageMargin + 15, 4);
-      doc.text(`Date : ${capitalize(formatDateFr(competition.eventDate))}`, pageMargin + 15, 8);
-      doc.text(`Catégorie(s) : ${raceCode}`, pageMargin + 15, 12);
+      doc.text(`Feuille d'émargement : ${competition.name}`, textX, 4);
+      doc.text(`Date : ${capitalize(formatDateFr(competition.eventDate))}`, textX, 8);
+      doc.text(`Catégorie(s) : ${raceCode}`, textX, 12);
 
       const pageHeight = doc.internal.pageSize.getHeight();
       doc.setFontSize(8);
@@ -565,7 +541,7 @@ export async function exportAllEmargementPDF(
       body: rowsToDisplay,
       didDrawPage: () => {
         // Logo fédération à gauche
-        addLogoToPdf(doc, fedeLogo, pageMargin, 2, 12);
+        const textX = drawFedeLogo(doc, fedeLogo, pageMargin, 2);
         // Logo Open Dossard à droite
         // Open Dossard logo avec ratio original
       if (odLogo) {
@@ -576,9 +552,9 @@ export async function exportAllEmargementPDF(
 
         doc.setFontSize(10);
         doc.setTextColor(40);
-        doc.text(`Feuille d'émargement : ${competition.name}`, pageMargin + 15, 4);
-        doc.text(`Date : ${capitalize(formatDateFr(competition.eventDate))}`, pageMargin + 15, 8);
-        doc.text(`Catégorie(s) : ${currentRaceCode}`, pageMargin + 15, 12);
+        doc.text(`Feuille d'émargement : ${competition.name}`, textX, 4);
+        doc.text(`Date : ${capitalize(formatDateFr(competition.eventDate))}`, textX, 8);
+        doc.text(`Catégorie(s) : ${currentRaceCode}`, textX, 12);
 
         const pageHeight = doc.internal.pageSize.getHeight();
         doc.setFontSize(8);

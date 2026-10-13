@@ -238,7 +238,7 @@ export default function CompetitionDetailPage() {
           <ClipboardList className="h-4 w-4" /> Engagements
         </Button>
       )}
-      {!isCreating && competition?.fede === 'FSGT' && (
+      {!isCreating && competition && (
         <Button variant="outline" onClick={handleExportFiche}>
           <img src="/logo/pdf-download.svg" alt="PDF" className="h-5 w-5" /> Fiche épreuve
         </Button>

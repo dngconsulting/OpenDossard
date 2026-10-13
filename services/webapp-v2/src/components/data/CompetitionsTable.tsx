@@ -192,17 +192,16 @@ export const CompetitionsDataTable = ({ getEditHref, onDuplicate, onDelete, onEx
             header: '',
             size: 40,
             enableColumnFilter: false,
-            cell: ({ row }: { row: { original: CompetitionType } }) =>
-              row.original.fede === 'FSGT' ? (
-                <Button
-                  variant="outline"
-                  size="icon-sm"
-                  onClick={() => onExportFiche(row.original)}
-                  title="Fiche épreuve PDF"
-                >
-                  <img src="/logo/pdf-download.svg" alt="PDF" className="h-5 w-5" />
-                </Button>
-              ) : null,
+            cell: ({ row }: { row: { original: CompetitionType } }) => (
+              <Button
+                variant="outline"
+                size="icon-sm"
+                onClick={() => onExportFiche(row.original)}
+                title="Fiche épreuve PDF"
+              >
+                <img src="/logo/pdf-download.svg" alt="PDF" className="h-5 w-5" />
+              </Button>
+            ),
           } satisfies ColumnDef<CompetitionType>,
         ]
       : []),

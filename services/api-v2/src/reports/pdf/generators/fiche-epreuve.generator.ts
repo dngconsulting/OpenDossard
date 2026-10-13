@@ -2,7 +2,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { JSDOM } from 'jsdom';
 
-import { CompetitionType } from '../../../common/enums';
+import { CompetitionType, FEDERATION_FULL_NAMES } from '../../../common/enums';
 import { CompetitionEntity } from '../../../competitions/entities/competition.entity';
 import { gpxTraceShareUrl } from '../../../deep-links/public-links';
 import { capitalize, formatCircuitLength, formatDateFr } from './pdf-format.utils';
@@ -293,21 +293,34 @@ export function generateFicheEpreuvePDF(competition: CompetitionEntity): Buffer 
   const saison = new Date(competition.eventDate).getFullYear();
 
   // --- En-tête : logo fédération à gauche, titre centré, logo OpenDossard à droite ---
-  addLogoToPdf(doc, logoDataUrl, margin, 8, 18);
+  // Largeur du logo fédé bornée : un logo très allongé (UFOLEP) mangerait le titre.
+  const fedeLogoHeight = logoDataUrl ? Math.min(18, 40 / logoDataUrl.ratio) : 18;
+  const fedeLogoWidth = logoDataUrl ? fedeLogoHeight * logoDataUrl.ratio : 0;
+  addLogoToPdf(doc, logoDataUrl, margin, 8, fedeLogoHeight);
 
+  const odLogoHeight = 14;
+  const odLogoWidth = openDossardLogo ? odLogoHeight * openDossardLogo.ratio : 0;
+
+  // Titre centré dans l'espace libre entre les deux logos, replié si trop long.
+  const titleLeft = margin + fedeLogoWidth + 3;
+  const titleRight = pageWidth - margin - odLogoWidth - 3;
+  const titleX = (titleLeft + titleRight) / 2;
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(0);
-  doc.text('Fédération Sportive et Gymnique du Travail', pageWidth / 2, 14, { align: 'center' });
+  const titleLines = doc.splitTextToSize(
+    FEDERATION_FULL_NAMES[competition.fede] ?? competition.fede,
+    titleRight - titleLeft,
+  ) as string[];
+  const titleY = titleLines.length > 1 ? 11 : 14;
+  doc.text(titleLines, titleX, titleY, { align: 'center' });
   doc.setFontSize(12);
-  doc.text('Fiche épreuve', pageWidth / 2, 21, { align: 'center' });
+  doc.text('Fiche épreuve', titleX, titleY + titleLines.length * 6.5 + 0.5, { align: 'center' });
 
   if (openDossardLogo) {
-    const logoHeight = 14;
-    const logoWidth = logoHeight * openDossardLogo.ratio;
-    const logoX = pageWidth - margin - logoWidth;
+    const logoX = pageWidth - margin - odLogoWidth;
     try {
-      doc.addImage(openDossardLogo.dataUrl, 'PNG', logoX, 8, logoWidth, logoHeight);
+      doc.addImage(openDossardLogo.dataUrl, 'PNG', logoX, 8, odLogoWidth, odLogoHeight);
     } catch {
       // Ignorer les erreurs de chargement
     }
