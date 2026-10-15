@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
 
+import { Federation } from '../common/enums';
 import { CompetitionEntity } from '../competitions/entities/competition.entity';
 import { LicenceEntity } from '../licences/entities/licence.entity';
 import { UserEntity } from '../users/entities/user.entity';
@@ -244,6 +245,49 @@ describe('HelloAssoPaymentService', () => {
       await expect(
         m.service.createCheckoutIntent({ dto: makeDto(), payerUserId: 55 }),
       ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    describe('éligibilité de la licence selon la fédé', () => {
+      it.each([
+        [Federation.UFOLEP, 'LICENCE_FEDE_NOT_ALLOWED'],
+        [Federation.NL, 'LICENCE_NL_NOT_ALLOWED'],
+      ])('refuse (422) une licence %s sur une épreuve FSGT fermée', async (fede, code) => {
+        const m = makeService();
+        m.userRepo.findOne.mockResolvedValue(userFixture());
+        m.competitionRepo.findOne.mockResolvedValue(
+          competitionFixture({ fede: Federation.FSGT, openedToOtherFede: false, openedNL: false }),
+        );
+        m.details.findByClubId.mockResolvedValue(detailsFixture());
+        m.licenceRepo.findOne.mockResolvedValue(licenceFixture({ fede }));
+
+        const error = await m.service
+          .createCheckoutIntent({ dto: makeDto(), payerUserId: 55 })
+          .catch((e: unknown) => e);
+
+        expect(error).toBeInstanceOf(UnprocessableEntityException);
+        expect((error as UnprocessableEntityException).getResponse()).toEqual(
+          expect.objectContaining({ code }),
+        );
+        expect(m.paymentRepo.save).not.toHaveBeenCalled();
+        expect(m.api.createCheckoutIntent).not.toHaveBeenCalled();
+      });
+
+      it('accepte une autre fédé sur une épreuve ouverte', async () => {
+        const m = makeService();
+        m.userRepo.findOne.mockResolvedValue(userFixture());
+        m.competitionRepo.findOne.mockResolvedValue(
+          competitionFixture({ fede: Federation.FSGT, openedToOtherFede: true }),
+        );
+        m.details.findByClubId.mockResolvedValue(detailsFixture());
+        m.licenceRepo.findOne.mockResolvedValue(licenceFixture({ fede: Federation.UFOLEP }));
+        m.paymentRepo.findOne.mockResolvedValue(null);
+        m.paymentRepo.save.mockResolvedValue({ id: 42 } as HelloAssoPaymentEntity);
+        m.api.createCheckoutIntent.mockResolvedValue({ id: 1, redirectUrl: 'https://x' });
+
+        await expect(
+          m.service.createCheckoutIntent({ dto: makeDto(), payerUserId: 55 }),
+        ).resolves.toEqual({ paymentId: 42, redirectUrl: 'https://x' });
+      });
     });
 
     it('throws ConflictException if an active payment already exists (pending or paid)', async () => {
@@ -624,7 +668,7 @@ describe('HelloAssoPaymentService', () => {
           id: 42,
           status: HelloAssoPaymentStatus.PAID,
           statusSource: null,
-        statusDetail: null,
+          statusDetail: null,
           statusSeverity: 'success',
           helloAssoLastState: null,
           helloAssoLastStateAt: null,

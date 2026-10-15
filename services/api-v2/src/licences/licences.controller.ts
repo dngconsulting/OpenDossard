@@ -28,6 +28,7 @@ import {
 } from '@nestjs/swagger';
 import { LicencesService } from './licences.service';
 import { LicenceImportService } from './licence-import.service';
+import { LicenceEligibilityService } from './licence-eligibility.service';
 import { LicenceEntity } from './entities/licence.entity';
 import {
   CreateLicenceDto,
@@ -35,6 +36,7 @@ import {
   FilterLicenceDto,
   ImportResultDto,
   LicenceLookupResponseDto,
+  LicenceSearchResultDto,
 } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -51,6 +53,7 @@ export class LicencesController {
   constructor(
     private readonly licencesService: LicencesService,
     private readonly licenceImportService: LicenceImportService,
+    private readonly licenceEligibilityService: LicenceEligibilityService,
   ) {}
 
   @Get()
@@ -68,12 +71,24 @@ export class LicencesController {
   @ApiOperation({ summary: 'Search licences by name or number (autocomplete)' })
   @ApiQuery({ name: 'q', description: 'Search query' })
   @ApiQuery({ name: 'type', required: false, description: 'Competition type (CX, ROUTE)' })
-  @ApiResponse({ status: 200, description: 'List of matching licences' })
+  @ApiQuery({
+    name: 'competitionId',
+    required: false,
+    type: Number,
+    description: 'Épreuve visée : ajoute à chaque licence son éligibilité selon la fédération',
+  })
+  @ApiResponse({ status: 200, type: [LicenceSearchResultDto] })
+  @ApiResponse({ status: 404, description: 'Compétition introuvable' })
   async search(
     @Query('q') query: string,
     @Query('type') competitionType?: string,
-  ): Promise<LicenceEntity[]> {
-    return this.licencesService.search(query, competitionType);
+    @Query('competitionId', new ParseIntPipe({ optional: true })) competitionId?: number,
+  ): Promise<LicenceSearchResultDto[]> {
+    const licences = await this.licencesService.search(query, competitionType);
+    if (competitionId === undefined) {
+      return licences;
+    }
+    return this.licenceEligibilityService.annotate(licences, competitionId);
   }
 
   @Get('by-number/:licenceNumber')

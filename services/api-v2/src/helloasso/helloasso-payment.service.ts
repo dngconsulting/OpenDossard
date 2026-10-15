@@ -11,6 +11,7 @@ import { In, Repository } from 'typeorm';
 
 import { CompetitionEntity } from '../competitions/entities/competition.entity';
 import { LicenceEntity } from '../licences/entities/licence.entity';
+import { assertLicenceAllowed } from '../licences/licence-eligibility';
 import { UserEntity } from '../users/entities/user.entity';
 import { PricingInfo } from '../common/types';
 import { CheckoutIntentCreatedDto } from './dto/checkout-intent-created.dto';
@@ -130,6 +131,7 @@ export class HelloAssoPaymentService {
     if (!licence) {
       throw new NotFoundException(`Licence #${dto.licenceId} introuvable`);
     }
+    assertLicenceAllowed(licence, competition);
 
     const existing = await this.paymentRepo.findOne({
       where: {

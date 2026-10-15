@@ -168,7 +168,9 @@ le \`paymentId\` OpenDossard + l'\`redirectUrl\` HelloAsso à ouvrir côté app.
   @ApiResponse({ status: 409, description: 'Licence déjà engagée sur cette épreuve' })
   @ApiResponse({
     status: 422,
-    description: 'Paiement en ligne désactivé / club non lié / tarif mal configuré',
+    description:
+      'Paiement en ligne désactivé / club non lié / tarif mal configuré / licence refusée ' +
+      'par l’épreuve (`code` : LICENCE_FEDE_NOT_ALLOWED ou LICENCE_NL_NOT_ALLOWED)',
   })
   @ApiResponse({ status: 502, description: 'HelloAsso indisponible ou access_token rejeté' })
   createCheckoutIntent(
