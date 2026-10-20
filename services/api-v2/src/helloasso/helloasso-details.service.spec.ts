@@ -3,364 +3,256 @@ import { randomBytes } from 'node:crypto';
 import { DataSource, FindOperator, Repository } from 'typeorm';
 
 import { HelloAssoDetailsEntity } from './entities/helloasso-details.entity';
+import { HelloAssoOrganizationEntity } from './entities/helloasso-organization.entity';
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoDetailsService } from './helloasso-details.service';
 import { decryptToken, encryptToken } from './util/token-crypto.util';
 
-interface Mocks {
-  service: HelloAssoDetailsService;
-  repo: {
-    find: jest.Mock;
-    findOne: jest.Mock;
-    update: jest.Mock;
-    save: jest.Mock;
-    create: jest.Mock;
-    remove: jest.Mock;
-  };
-  // Capture du dernier `manager` passé à `dataSource.transaction(cb)` pour
-  // assertions dans les tests de cascade.
-  capturedManager: { lastManager: MockManager | null };
-  key: Buffer;
+/** Repository TypeORM mocké : seules les méthodes utilisées par le service. */
+interface RepoMock {
+  find: jest.Mock;
+  findOne: jest.Mock;
+  findOneOrFail: jest.Mock;
+  update: jest.Mock;
+  save: jest.Mock;
+  create: jest.Mock;
 }
 
-// Mock minimal du manager TypeORM utilisé par `deleteByClubId` :
-// - `createQueryBuilder().update(Entity).set({...}).where(...).andWhere(...).execute()` pour la cascade
-// - `remove(entity)` pour la suppression du lien HA
-interface MockQueryBuilder {
+function makeRepo(): RepoMock {
+  return {
+    find: jest.fn(),
+    findOne: jest.fn().mockResolvedValue(null),
+    findOneOrFail: jest.fn(),
+    update: jest.fn().mockResolvedValue({ affected: 1 }),
+    save: jest.fn().mockImplementation(<T>(e: T) => Promise.resolve({ id: 99, ...e })),
+    create: jest.fn().mockImplementation(<T>(data: T) => ({ ...data })),
+  };
+}
+
+interface QbMock {
   update: jest.Mock;
   set: jest.Mock;
   where: jest.Mock;
   andWhere: jest.Mock;
   execute: jest.Mock;
 }
-interface MockManager {
-  createQueryBuilder: jest.Mock<MockQueryBuilder, []>;
-  remove: jest.Mock;
-  /** Référence directe au QB renvoyé par `createQueryBuilder()` (évite
-   * `createQueryBuilder.mock.results[0].value` qui force un typage `any`). */
-  qb: MockQueryBuilder;
-  /** Setter utilisé par les tests pour piloter `execute().affected`. */
-  __setAffected: (n: number) => void;
+
+interface ManagerMock {
+  getRepository: jest.Mock;
+  /** SQL brut : upsert atomique de l'orga, verrou de l'orga à la déliaison. */
+  query: jest.Mock;
+  createQueryBuilder: jest.Mock;
+  delete: jest.Mock;
+  count: jest.Mock;
+  qb: QbMock;
 }
 
-function makeMockManager(): MockManager {
-  let affected = 0;
-  const execute = jest.fn(() => Promise.resolve({ affected, raw: [] }));
-  const where = jest.fn().mockReturnThis();
-  const andWhere = jest.fn().mockReturnThis();
-  const set = jest.fn().mockReturnThis();
-  const update = jest.fn().mockReturnThis();
-  const qb: MockQueryBuilder = { update, set, where, andWhere, execute };
-  const createQueryBuilder = jest.fn<MockQueryBuilder, []>(() => qb);
-  const remove = jest.fn().mockResolvedValue(undefined);
-  return {
-    createQueryBuilder,
-    remove,
-    qb,
-    __setAffected: (n: number) => {
-      affected = n;
-    },
-  };
+interface Mocks {
+  service: HelloAssoDetailsService;
+  /** Repos injectés ET renvoyés par `manager.getRepository` dans les transactions. */
+  links: RepoMock;
+  orgs: RepoMock;
+  manager: ManagerMock;
+  key: Buffer;
 }
 
 function makeService(): Mocks {
-  const repo = {
-    find: jest.fn(),
-    findOne: jest.fn(),
-    update: jest.fn(),
-    save: jest.fn().mockImplementation((e: HelloAssoDetailsEntity) => Promise.resolve(e)),
-    create: jest
-      .fn()
-      .mockImplementation((data: Partial<HelloAssoDetailsEntity>) => ({ id: 1, ...data })),
-    remove: jest.fn().mockResolvedValue(undefined),
+  const links = makeRepo();
+  const orgs = makeRepo();
+  const qb: QbMock = {
+    update: jest.fn().mockReturnThis(),
+    set: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    execute: jest.fn().mockResolvedValue({ affected: 0, raw: [] }),
+  };
+  const manager: ManagerMock = {
+    getRepository: jest.fn((entity: unknown) =>
+      entity === HelloAssoOrganizationEntity ? orgs : links,
+    ),
+    createQueryBuilder: jest.fn(() => qb),
+    delete: jest.fn().mockResolvedValue({ affected: 1 }),
+    count: jest.fn().mockResolvedValue(0),
+    query: jest.fn().mockResolvedValue([{ id: 7 }]),
+    qb,
+  };
+  const dataSource = {
+    transaction: jest.fn(<T>(cb: (m: ManagerMock) => Promise<T>) => cb(manager)),
   };
   const key = randomBytes(32);
-  const config = { tokenEncryptionKey: key } as HelloAssoConfig;
-  const capturedManager: { lastManager: MockManager | null } = { lastManager: null };
-  const dataSource = {
-    transaction: jest.fn(async <T>(cb: (m: MockManager) => Promise<T>): Promise<T> => {
-      const manager = makeMockManager();
-      capturedManager.lastManager = manager;
-      return cb(manager);
-    }),
-  };
   const service = new HelloAssoDetailsService(
-    repo as unknown as Repository<HelloAssoDetailsEntity>,
-    config,
+    links as unknown as Repository<HelloAssoDetailsEntity>,
+    orgs as unknown as Repository<HelloAssoOrganizationEntity>,
+    { tokenEncryptionKey: key } as HelloAssoConfig,
     dataSource as unknown as DataSource,
   );
-  return { service, repo, capturedManager, key };
+  return { service, links, orgs, manager, key };
 }
 
-function makeDetails(
-  key: Buffer,
-  accessToken: string,
-  refreshToken: string,
-): HelloAssoDetailsEntity {
+function makeOrg(key: Buffer, overrides: Partial<HelloAssoOrganizationEntity> = {}) {
+  return {
+    id: 7,
+    organizationSlug: 'velo-club-roquettois',
+    accessTokenEncrypted: encryptToken('AT_OLD', key),
+    refreshTokenEncrypted: encryptToken('RT_OLD', key),
+    accessTokenExpiresAt: new Date('2026-10-20T12:30:00Z'),
+    refreshTokenExpiresAt: new Date('2026-11-19T12:00:00Z'),
+    lastRefreshedAt: new Date('2026-10-01T03:00:00Z'),
+    isCashInCompliant: true,
+    createdAt: new Date('2026-09-01T00:00:00Z'),
+    updatedAt: new Date('2026-09-01T00:00:00Z'),
+    ...overrides,
+  } as HelloAssoOrganizationEntity;
+}
+
+function makeLink(org: HelloAssoOrganizationEntity, clubId = 782): HelloAssoDetailsEntity {
   return {
     id: 1,
-    clubId: 782,
-    organizationSlug: 'cyclo-club-castaneen',
-    accessTokenEncrypted: encryptToken(accessToken, key),
-    refreshTokenEncrypted: encryptToken(refreshToken, key),
-    accessTokenExpiresAt: new Date('2026-05-12T12:00:00Z'),
-    refreshTokenExpiresAt: new Date('2026-06-11T12:00:00Z'),
+    clubId,
+    organizationId: org.id,
+    organization: org,
     linkedByUserId: 55,
-    linkedAt: new Date('2026-05-12T11:30:00Z'),
-    lastRefreshedAt: null,
-    isCashInCompliant: null,
-    createdAt: new Date('2026-05-12T11:30:00Z'),
-    updatedAt: new Date('2026-05-12T11:30:00Z'),
+    linkedAt: new Date('2026-09-01T00:00:00Z'),
+    createdAt: new Date('2026-09-01T00:00:00Z'),
+    updatedAt: new Date('2026-09-01T00:00:00Z'),
   };
 }
 
-describe('HelloAssoDetailsService — upsertLink (lot 3 : refus re-liaison slug différent)', () => {
-  const baseInput = {
-    clubId: 782,
-    organizationSlug: 'cyclo-club-castaneen',
-    accessToken: 'a',
-    refreshToken: 'r',
-    expiresInSeconds: 1800,
-    linkedByUserId: 55,
-    isCashInCompliant: true,
-  };
+const INPUT = {
+  clubId: 782,
+  organizationSlug: 'velo-club-roquettois',
+  accessToken: 'AT_NEW',
+  refreshToken: 'RT_NEW',
+  expiresInSeconds: 1800,
+  linkedByUserId: 55,
+  isCashInCompliant: true,
+};
 
-  it('passe et UPDATE si aucune liaison existante', async () => {
+describe('HelloAssoDetailsService — upsertLink', () => {
+  /** SQL et paramètres de l'écriture de l'orga. */
+  function orgWrite(m: Mocks): { sql: string; params: unknown[] } {
+    const [sql, params] = m.manager.query.mock.calls[0] as [string, unknown[]];
+    return { sql, params };
+  }
+
+  it('upsert atomique de l’orga (création ou mise à jour), puis rattachement du club', async () => {
     const m = makeService();
-    m.repo.findOne.mockResolvedValueOnce(null);
-    await expect(m.service.upsertLink(baseInput)).resolves.toBeDefined();
-    expect(m.repo.create).toHaveBeenCalled();
-    expect(m.repo.save).toHaveBeenCalled();
+    m.orgs.findOneOrFail.mockResolvedValueOnce(makeOrg(m.key));
+
+    const link = await m.service.upsertLink(INPUT);
+
+    const { sql, params } = orgWrite(m);
+    expect(sql).toContain('ON CONFLICT (organization_slug) DO UPDATE');
+    expect(params[0]).toBe('velo-club-roquettois');
+    expect(decryptToken(params[2] as string, m.key)).toBe('RT_NEW');
+    expect(params[5]).toBe(true);
+    expect(link).toMatchObject({ clubId: 782, organizationId: 7, linkedByUserId: 55 });
   });
 
-  it('passe si liaison existante avec le même slug (re-liaison normale, refresh expiré)', async () => {
+  it('conformité illisible (null) : transmise null, la valeur en place est conservée en SQL', async () => {
     const m = makeService();
-    m.repo.findOne.mockResolvedValueOnce(makeDetails(m.key, 'old', 'old'));
-    await expect(m.service.upsertLink(baseInput)).resolves.toBeDefined();
-    expect(m.repo.save).toHaveBeenCalled();
-    expect(m.repo.create).not.toHaveBeenCalled();
+    m.orgs.findOneOrFail.mockResolvedValueOnce(makeOrg(m.key));
+
+    await m.service.upsertLink({ ...INPUT, isCashInCompliant: null });
+
+    const { sql, params } = orgWrite(m);
+    expect(params[5]).toBeNull();
+    expect(sql).toContain('COALESCE(EXCLUDED.is_cash_in_compliant');
   });
 
-  it('refuse avec ConflictException si liaison existante avec un slug DIFFÉRENT', async () => {
+  it('re-liaison d’un club déjà rattaché à la même orga : rattachement mis à jour', async () => {
     const m = makeService();
-    m.repo.findOne.mockResolvedValueOnce(makeDetails(m.key, 'old', 'old'));
-    await expect(
-      m.service.upsertLink({ ...baseInput, organizationSlug: 'orga-frauduleuse' }),
-    ).rejects.toBeInstanceOf(ConflictException);
-    expect(m.repo.save).not.toHaveBeenCalled();
+    const org = makeOrg(m.key);
+    m.links.findOne.mockResolvedValueOnce(makeLink(org));
+    m.orgs.findOneOrFail.mockResolvedValueOnce(org);
+
+    const link = await m.service.upsertLink({ ...INPUT, linkedByUserId: 60 });
+
+    expect(m.links.create).not.toHaveBeenCalled();
+    expect(link).toMatchObject({ id: 1, organizationId: 7, linkedByUserId: 60 });
   });
 
-  it('persiste isCashInCompliant à la création (true)', async () => {
+  it('garde D1 : club rattaché à une AUTRE orga → ConflictException, rattachement intact', async () => {
     const m = makeService();
-    m.repo.findOne.mockResolvedValueOnce(null);
-    await m.service.upsertLink({ ...baseInput, isCashInCompliant: true });
-    expect(m.repo.create).toHaveBeenCalledWith(
-      expect.objectContaining({ isCashInCompliant: true }),
+    m.links.findOne.mockResolvedValueOnce(
+      makeLink(makeOrg(m.key, { id: 3, organizationSlug: 'autre-orga' })),
     );
-  });
 
-  it('persiste isCashInCompliant à la création (false)', async () => {
-    const m = makeService();
-    m.repo.findOne.mockResolvedValueOnce(null);
-    await m.service.upsertLink({ ...baseInput, isCashInCompliant: false });
-    expect(m.repo.create).toHaveBeenCalledWith(
-      expect.objectContaining({ isCashInCompliant: false }),
-    );
-  });
+    await expect(m.service.upsertLink(INPUT)).rejects.toBeInstanceOf(ConflictException);
 
-  it('persiste isCashInCompliant=null si la valeur HA n’a pas pu être lue', async () => {
-    const m = makeService();
-    m.repo.findOne.mockResolvedValueOnce(null);
-    await m.service.upsertLink({ ...baseInput, isCashInCompliant: null });
-    expect(m.repo.create).toHaveBeenCalledWith(
-      expect.objectContaining({ isCashInCompliant: null }),
-    );
-  });
-
-  it('met à jour isCashInCompliant sur re-liaison (même slug)', async () => {
-    const m = makeService();
-    const existing = makeDetails(m.key, 'a', 'r');
-    existing.isCashInCompliant = false;
-    m.repo.findOne.mockResolvedValueOnce(existing);
-    await m.service.upsertLink({ ...baseInput, isCashInCompliant: true });
-    expect(m.repo.save).toHaveBeenCalledWith(expect.objectContaining({ isCashInCompliant: true }));
+    expect(m.links.save).not.toHaveBeenCalled();
+    // simple UPDATE de l'orga autorisée si elle existe : jamais de création
+    const { sql } = orgWrite(m);
+    expect(sql).not.toContain('INSERT');
+    expect(sql).toContain('UPDATE helloasso_organization');
   });
 });
 
-describe('HelloAssoDetailsService — setIsCashInCompliantBySlug', () => {
-  it('UPDATE par slug et renvoie le nombre de lignes affectées', async () => {
+describe('HelloAssoDetailsService — getStatus', () => {
+  it('lit la liaison sur l’orga et la date de rattachement sur le club', async () => {
     const m = makeService();
-    m.repo.update.mockResolvedValue({ affected: 1, raw: [], generatedMaps: [] });
+    m.links.findOne.mockResolvedValueOnce(makeLink(makeOrg(m.key)));
 
-    const affected = await m.service.setIsCashInCompliantBySlug('club-de-judo', true);
-
-    expect(m.repo.update).toHaveBeenCalledWith(
-      { organizationSlug: 'club-de-judo' },
-      { isCashInCompliant: true },
-    );
-    expect(affected).toBe(1);
-  });
-
-  it('renvoie 0 quand aucune ligne ne correspond (slug orphelin)', async () => {
-    const m = makeService();
-    m.repo.update.mockResolvedValue({ affected: 0, raw: [], generatedMaps: [] });
-
-    const affected = await m.service.setIsCashInCompliantBySlug('unknown-slug', false);
-
-    expect(affected).toBe(0);
-  });
-});
-
-describe('HelloAssoDetailsService — setIsCashInCompliantByClubId', () => {
-  it('UPDATE par clubId et renvoie le nombre de lignes affectées', async () => {
-    const m = makeService();
-    m.repo.update.mockResolvedValue({ affected: 1, raw: [], generatedMaps: [] });
-
-    const affected = await m.service.setIsCashInCompliantByClubId(1239, true);
-
-    expect(m.repo.update).toHaveBeenCalledWith({ clubId: 1239 }, { isCashInCompliant: true });
-    expect(affected).toBe(1);
-  });
-
-  it('enregistre aussi false (retour à non conforme)', async () => {
-    const m = makeService();
-    m.repo.update.mockResolvedValue({ affected: 1, raw: [], generatedMaps: [] });
-
-    await m.service.setIsCashInCompliantByClubId(1239, false);
-
-    expect(m.repo.update).toHaveBeenCalledWith({ clubId: 1239 }, { isCashInCompliant: false });
-  });
-
-  it('renvoie 0 quand le club n’a pas de liaison', async () => {
-    const m = makeService();
-    m.repo.update.mockResolvedValue({ affected: 0, raw: [], generatedMaps: [] });
-
-    const affected = await m.service.setIsCashInCompliantByClubId(999, true);
-
-    expect(affected).toBe(0);
-  });
-});
-
-describe('HelloAssoDetailsService — deleteByClubId (cascade onlineRegistrationEnabled)', () => {
-  it('throw NotFoundException si pas de lien HA pour ce clubId', async () => {
-    const m = makeService();
-    m.repo.findOne.mockResolvedValueOnce(null);
-    await expect(m.service.deleteByClubId(999)).rejects.toBeInstanceOf(NotFoundException);
-  });
-
-  it('désactive online_registration_enabled sur les compets du club ET supprime le lien, dans la même transaction', async () => {
-    const m = makeService();
-    const existing = makeDetails(m.key, 'a', 'r');
-    m.repo.findOne.mockResolvedValueOnce(existing);
-
-    await m.service.deleteByClubId(782);
-
-    // Manager capturé ; on inspecte les appels QB
-    const manager = m.capturedManager.lastManager!;
-    expect(manager).not.toBeNull();
-    // UPDATE competition SET online_registration_enabled = false WHERE club_id = 782 AND online_registration_enabled = true
-    expect(manager.qb.set).toHaveBeenCalledWith({ onlineRegistrationEnabled: false });
-    expect(manager.qb.where).toHaveBeenCalledWith('club_id = :clubId', { clubId: 782 });
-    expect(manager.qb.andWhere).toHaveBeenCalledWith('online_registration_enabled = true');
-    // Puis remove du lien HA
-    expect(manager.remove).toHaveBeenCalledWith(existing);
-  });
-
-  it("scope strictement par club : le WHERE filtre sur club_id (pas d'update global)", async () => {
-    const m = makeService();
-    m.repo.findOne.mockResolvedValueOnce(makeDetails(m.key, 'a', 'r'));
-
-    await m.service.deleteByClubId(42);
-
-    // Vérification explicite : l'UPDATE n'est jamais appelé sans WHERE club_id
-    expect(m.capturedManager.lastManager!.qb.where).toHaveBeenCalledTimes(1);
-    expect(m.capturedManager.lastManager!.qb.where).toHaveBeenCalledWith('club_id = :clubId', {
-      clubId: 42,
+    await expect(m.service.getStatus(782)).resolves.toEqual({
+      linked: true,
+      slug: 'velo-club-roquettois',
+      linkedAt: '2026-09-01T00:00:00.000Z',
+      refreshTokenExpiresAt: '2026-11-19T12:00:00.000Z',
+      expired: false,
+      isCashInCompliant: true,
     });
   });
+
+  it('club non rattaché', async () => {
+    const m = makeService();
+    await expect(m.service.getStatus(782)).resolves.toEqual({ linked: false });
+  });
 });
 
-/** Forme de l'argument passé à `repo.find` par `findExpiringLinks`. */
-interface FindArg {
-  where: { refreshTokenExpiresAt: FindOperator<Date> };
-  order: { refreshTokenExpiresAt: 'ASC' | 'DESC' };
-}
+describe('HelloAssoDetailsService — findExpiringOrganizations', () => {
+  afterEach(() => jest.useRealTimers());
 
-/** Forme du patch passé à `repo.update` par `applyRefreshedTokens`. */
-interface TokenPatch {
-  accessTokenEncrypted: string;
-  refreshTokenEncrypted: string;
-  accessTokenExpiresAt: Date;
-  refreshTokenExpiresAt: Date;
-  lastRefreshedAt: Date;
-}
-
-describe('HelloAssoDetailsService — findExpiringLinks', () => {
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
-  it('sélectionne la fenêtre ]now, now+N jours[ et trie par expiration croissante', async () => {
+  it('sélectionne les orgas dans ]now, now+N jours[, les plus urgentes d’abord', async () => {
     const m = makeService();
-    m.repo.find.mockResolvedValueOnce([]);
+    m.orgs.find.mockResolvedValueOnce([]);
     jest.useFakeTimers().setSystemTime(new Date('2026-08-22T03:00:00Z'));
 
-    await m.service.findExpiringLinks(10);
+    await m.service.findExpiringOrganizations(10);
 
-    const [arg] = m.repo.find.mock.calls[0] as [FindArg];
+    const [arg] = m.orgs.find.mock.calls[0] as [
+      { where: { refreshTokenExpiresAt: FindOperator<Date> }; order: unknown },
+    ];
     expect(arg.order).toEqual({ refreshTokenExpiresAt: 'ASC' });
-
-    const criteria = arg.where.refreshTokenExpiresAt;
-    expect(criteria.type).toBe('and');
-    // And(a, b) porte les deux opérandes dans `value`
-    const [lower, upper] = criteria.value as unknown as FindOperator<Date>[];
-    // borne basse = now → exclut les liaisons DÉJÀ expirées (HelloAsso les rejetterait)
+    const [lower, upper] = arg.where.refreshTokenExpiresAt.value as unknown as FindOperator<Date>[];
     expect(lower.type).toBe('moreThan');
     expect(lower.value).toEqual(new Date('2026-08-22T03:00:00Z'));
-    // borne haute = now + 10j
     expect(upper.type).toBe('lessThan');
     expect(upper.value).toEqual(new Date('2026-09-01T03:00:00Z'));
-  });
-
-  it('remonte les liaisons telles que renvoyées par le repo', async () => {
-    const m = makeService();
-    const rows = [makeDetails(m.key, 'a', 'b')];
-    m.repo.find.mockResolvedValueOnce(rows);
-
-    await expect(m.service.findExpiringLinks(10)).resolves.toBe(rows);
   });
 });
 
 describe('HelloAssoDetailsService — applyRefreshedTokens', () => {
-  afterEach(() => {
-    jest.useRealTimers();
-  });
+  afterEach(() => jest.useRealTimers());
 
   const tokens = { accessToken: 'AT2', refreshToken: 'RT2', expiresInSeconds: 1800 };
+  const from = { id: 7, refreshTokenEncrypted: 'iv.tag.RT1' };
 
-  it('chiffre les nouveaux tokens et positionne lastRefreshedAt', async () => {
+  it('écrit sur l’orga si sa chaîne est toujours celle qui a été rafraîchie', async () => {
     const m = makeService();
-    m.repo.update.mockResolvedValueOnce({ affected: 1 });
     jest.useFakeTimers().setSystemTime(new Date('2026-08-22T03:00:00Z'));
 
-    await m.service.applyRefreshedTokens(782, tokens);
+    await expect(m.service.applyRefreshedTokens(from, tokens)).resolves.toBe(true);
 
-    const [criteria, patch] = m.repo.update.mock.calls[0] as [{ clubId: number }, TokenPatch];
-    expect(criteria).toEqual({ clubId: 782 });
-    expect(decryptToken(patch.accessTokenEncrypted, m.key)).toBe('AT2');
+    const [criteria, patch] = m.orgs.update.mock.calls[0] as [
+      object,
+      Record<string, string & Date>,
+    ];
+    expect(criteria).toEqual({ id: 7, refreshTokenEncrypted: 'iv.tag.RT1' });
     expect(decryptToken(patch.refreshTokenEncrypted, m.key)).toBe('RT2');
     expect(patch.accessTokenExpiresAt).toEqual(new Date('2026-08-22T03:30:00Z'));
     expect(patch.refreshTokenExpiresAt).toEqual(new Date('2026-09-21T03:00:00Z'));
     expect(patch.lastRefreshedAt).toEqual(new Date('2026-08-22T03:00:00Z'));
-  });
-
-  it("n'écrit QUE les 5 colonnes de tokens — jamais le slug ni l'audit de liaison", async () => {
-    const m = makeService();
-    m.repo.update.mockResolvedValueOnce({ affected: 1 });
-
-    await m.service.applyRefreshedTokens(782, tokens);
-
-    const [, patch] = m.repo.update.mock.calls[0] as [unknown, TokenPatch];
+    // ni slug ni conformité : le webhook peut écrire la même ligne
     expect(Object.keys(patch).sort()).toEqual([
       'accessTokenEncrypted',
       'accessTokenExpiresAt',
@@ -368,22 +260,76 @@ describe('HelloAssoDetailsService — applyRefreshedTokens', () => {
       'refreshTokenEncrypted',
       'refreshTokenExpiresAt',
     ]);
-    // garde D1 (slug), audit de liaison, drapeau piloté par webhook : intouchés
-    expect(patch).not.toHaveProperty('organizationSlug');
-    expect(patch).not.toHaveProperty('linkedAt');
-    expect(patch).not.toHaveProperty('linkedByUserId');
-    expect(patch).not.toHaveProperty('isCashInCompliant');
   });
 
-  it("n'utilise pas save() — un UPDATE ciblé, pour ne pas écraser isCashInCompliant", async () => {
+  it('chaîne remplacée entre-temps par un passage par la mire : rien écrit, false', async () => {
     const m = makeService();
-    m.repo.update.mockResolvedValueOnce({ affected: 1 });
+    m.orgs.update.mockResolvedValueOnce({ affected: 0 });
 
-    await m.service.applyRefreshedTokens(782, tokens);
+    await expect(m.service.applyRefreshedTokens(from, tokens)).resolves.toBe(false);
+  });
+});
 
-    // le webhook Organization.IsCashinCompliant peut écrire la même ligne
-    // pendant le run ; un load→mutate→save réécrirait sa valeur périmée
-    expect(m.repo.save).not.toHaveBeenCalled();
-    expect(m.repo.findOne).not.toHaveBeenCalled();
+describe('HelloAssoDetailsService — deleteByClubId', () => {
+  it('NotFoundException si le club n’est pas rattaché', async () => {
+    const m = makeService();
+    await expect(m.service.deleteByClubId(782)).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('désactive le paiement en ligne des compets DU club et supprime le rattachement', async () => {
+    const m = makeService();
+    m.links.findOne.mockResolvedValueOnce(makeLink(makeOrg(m.key)));
+
+    await m.service.deleteByClubId(782);
+
+    // l'orga est verrouillée avant de compter ses clubs restants
+    expect(m.manager.query).toHaveBeenCalledWith(expect.stringContaining('FOR UPDATE'), [7]);
+    expect(m.manager.qb.set).toHaveBeenCalledWith({ onlineRegistrationEnabled: false });
+    expect(m.manager.qb.where).toHaveBeenCalledWith('club_id = :clubId', { clubId: 782 });
+    expect(m.manager.delete).toHaveBeenCalledWith(HelloAssoDetailsEntity, { id: 1 });
+  });
+
+  it('dernier club de l’orga : l’orga est supprimée', async () => {
+    const m = makeService();
+    m.links.findOne.mockResolvedValueOnce(makeLink(makeOrg(m.key)));
+    m.manager.count.mockResolvedValueOnce(0);
+
+    await m.service.deleteByClubId(782);
+
+    expect(m.manager.delete).toHaveBeenCalledWith(HelloAssoOrganizationEntity, { id: 7 });
+  });
+
+  it('d’autres clubs restent rattachés : l’orga est conservée', async () => {
+    const m = makeService();
+    m.links.findOne.mockResolvedValueOnce(makeLink(makeOrg(m.key)));
+    m.manager.count.mockResolvedValueOnce(1);
+
+    await m.service.deleteByClubId(782);
+
+    expect(m.manager.delete).not.toHaveBeenCalledWith(
+      HelloAssoOrganizationEntity,
+      expect.anything(),
+    );
+  });
+});
+
+describe('HelloAssoDetailsService — setIsCashInCompliantBySlug', () => {
+  it('met à jour l’orga par slug et renvoie le nombre de lignes affectées', async () => {
+    const m = makeService();
+
+    await expect(m.service.setIsCashInCompliantBySlug('velo-club-roquettois', false)).resolves.toBe(
+      1,
+    );
+    expect(m.orgs.update).toHaveBeenCalledWith(
+      { organizationSlug: 'velo-club-roquettois' },
+      { isCashInCompliant: false },
+    );
+  });
+
+  it('renvoie 0 pour une orga inconnue (webhook orphelin)', async () => {
+    const m = makeService();
+    m.orgs.update.mockResolvedValueOnce({ affected: 0 });
+
+    await expect(m.service.setIsCashInCompliantBySlug('inconnue', true)).resolves.toBe(0);
   });
 });

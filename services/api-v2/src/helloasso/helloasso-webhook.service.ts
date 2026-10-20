@@ -103,7 +103,7 @@ export class HelloAssoWebhookService {
 
     // Event `Organization.IsCashinCompliant` : HA notifie un changement
     // d'éligibilité à l'encaissement pour une orga (slug + booléen). Mis à
-    // jour en best-effort dans `helloasso_details` ; un slug inconnu côté
+    // jour en best-effort dans `helloasso_organization` ; un slug inconnu côté
     // OpenDossard donne un 200 + no-op (orga liée à un autre partenaire HA
     // mais notifiée à cause de notre souscription partenaire-wide).
     if (eventType === 'Organization.IsCashinCompliant') {

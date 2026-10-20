@@ -8,6 +8,7 @@ import {
 import { randomBytes } from 'node:crypto';
 
 import { HelloAssoDetailsEntity } from './entities/helloasso-details.entity';
+import { HelloAssoOrganizationEntity } from './entities/helloasso-organization.entity';
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoApiClient } from './helloasso-api.client';
 import { HelloAssoCashInComplianceService } from './helloasso-cash-in-compliance.service';
@@ -31,7 +32,7 @@ interface Mocks {
   details: {
     findByClubId: jest.Mock;
     applyRefreshedTokens: jest.Mock;
-    setIsCashInCompliantByClubId: jest.Mock;
+    setIsCashInCompliantBySlug: jest.Mock;
     getStatus: jest.Mock;
   };
   oauth: { refreshAccessToken: jest.Mock };
@@ -44,8 +45,8 @@ function makeService(): Mocks {
   const config = { tokenEncryptionKey: key } as HelloAssoConfig;
   const details = {
     findByClubId: jest.fn(),
-    applyRefreshedTokens: jest.fn().mockResolvedValue(undefined),
-    setIsCashInCompliantByClubId: jest.fn().mockResolvedValue(1),
+    applyRefreshedTokens: jest.fn().mockResolvedValue(true),
+    setIsCashInCompliantBySlug: jest.fn().mockResolvedValue(1),
     getStatus: jest.fn().mockResolvedValue(STATUS),
   };
   const oauth = { refreshAccessToken: jest.fn() };
@@ -60,18 +61,25 @@ function makeService(): Mocks {
 }
 
 function makeLink(key: Buffer, accessTokenExpiresAt: Date): HelloAssoDetailsEntity {
-  return {
-    id: 1,
-    clubId: CLUB_ID,
+  const organization: HelloAssoOrganizationEntity = {
+    id: 7,
     organizationSlug: SLUG,
     accessTokenEncrypted: encryptToken('AT_STORED', key),
     refreshTokenEncrypted: encryptToken('RT_STORED', key),
     accessTokenExpiresAt,
     refreshTokenExpiresAt: new Date(Date.now() + 20 * 24 * 3600 * 1000),
-    linkedByUserId: 55,
-    linkedAt: new Date('2026-09-29T15:36:07Z'),
     lastRefreshedAt: null,
     isCashInCompliant: false,
+    createdAt: new Date('2026-09-29T15:36:07Z'),
+    updatedAt: new Date('2026-09-29T15:36:07Z'),
+  };
+  return {
+    id: 1,
+    clubId: CLUB_ID,
+    organizationId: organization.id,
+    organization,
+    linkedByUserId: 55,
+    linkedAt: new Date('2026-09-29T15:36:07Z'),
     createdAt: new Date('2026-09-29T15:36:07Z'),
     updatedAt: new Date('2026-09-29T15:36:07Z'),
   };
@@ -122,11 +130,34 @@ describe('HelloAssoCashInComplianceService.refresh', () => {
     await m.service.refresh(CLUB_ID);
 
     expect(m.oauth.refreshAccessToken).toHaveBeenCalledWith('RT_STORED');
-    expect(m.details.applyRefreshedTokens).toHaveBeenCalledWith(CLUB_ID, {
+    // écriture conditionnée à la chaîne lue sur l'orga
+    expect(m.details.applyRefreshedTokens).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 7, organizationSlug: SLUG }),
+      {
+        accessToken: 'AT_NEW',
+        refreshToken: 'RT_NEW',
+        expiresInSeconds: 1800,
+      },
+    );
+    expect(m.api.getOrganization).toHaveBeenCalledWith({
+      organizationSlug: SLUG,
+      accessToken: 'AT_NEW',
+    });
+  });
+
+  it('chaîne remplacée pendant le refresh : rien enregistré, la lecture aboutit quand même', async () => {
+    const m = makeService();
+    m.details.findByClubId.mockResolvedValue(makeLink(m.key, inMinutes(-5)));
+    m.oauth.refreshAccessToken.mockResolvedValue({
       accessToken: 'AT_NEW',
       refreshToken: 'RT_NEW',
-      expiresInSeconds: 1800,
+      tokenType: 'bearer',
+      expiresIn: 1800,
     });
+    m.details.applyRefreshedTokens.mockResolvedValue(false);
+    jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+
+    await expect(m.service.refresh(CLUB_ID)).resolves.toEqual(STATUS);
     expect(m.api.getOrganization).toHaveBeenCalledWith({
       organizationSlug: SLUG,
       accessToken: 'AT_NEW',
@@ -160,7 +191,7 @@ describe('HelloAssoCashInComplianceService.refresh', () => {
 
     await expect(m.service.refresh(CLUB_ID)).rejects.toBeInstanceOf(BadGatewayException);
     expect(m.details.applyRefreshedTokens).not.toHaveBeenCalled();
-    expect(m.details.setIsCashInCompliantByClubId).not.toHaveBeenCalled();
+    expect(m.details.setIsCashInCompliantBySlug).not.toHaveBeenCalled();
   });
 
   it('refresh refusé par HelloAsso → ConflictException (liaison à refaire)', async () => {
@@ -169,7 +200,7 @@ describe('HelloAssoCashInComplianceService.refresh', () => {
     m.oauth.refreshAccessToken.mockRejectedValue(new UnauthorizedException());
 
     await expect(m.service.refresh(CLUB_ID)).rejects.toBeInstanceOf(ConflictException);
-    expect(m.details.setIsCashInCompliantByClubId).not.toHaveBeenCalled();
+    expect(m.details.setIsCashInCompliantBySlug).not.toHaveBeenCalled();
   });
 
   it('jeton club refusé à la lecture → ConflictException, jamais un 401 vers le front', async () => {
@@ -195,7 +226,7 @@ describe('HelloAssoCashInComplianceService.refresh', () => {
 
     await m.service.refresh(CLUB_ID);
 
-    expect(m.details.setIsCashInCompliantByClubId).toHaveBeenCalledWith(CLUB_ID, value);
+    expect(m.details.setIsCashInCompliantBySlug).toHaveBeenCalledWith(SLUG, value);
   });
 
   it('réponse sans drapeau booléen → BadGatewayException, drapeau inchangé', async () => {
@@ -204,7 +235,7 @@ describe('HelloAssoCashInComplianceService.refresh', () => {
     m.api.getOrganization.mockResolvedValue({});
 
     await expect(m.service.refresh(CLUB_ID)).rejects.toBeInstanceOf(BadGatewayException);
-    expect(m.details.setIsCashInCompliantByClubId).not.toHaveBeenCalled();
+    expect(m.details.setIsCashInCompliantBySlug).not.toHaveBeenCalled();
   });
 
   it('renvoie le statut de liaison à jour', async () => {

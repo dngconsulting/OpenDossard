@@ -6,7 +6,7 @@ import { UserClubEntity } from '../src/auth/entities/user-club.entity';
 import { ClubEntity } from '../src/clubs/entities/club.entity';
 import { CompetitionType, Federation } from '../src/common/enums';
 import { CompetitionEntity } from '../src/competitions/entities/competition.entity';
-import { HelloAssoDetailsEntity } from '../src/helloasso/entities/helloasso-details.entity';
+import { seedHelloAssoLink } from './helpers/helloasso-link.seed';
 
 interface PaginatedResponse<T> {
   data: T[];
@@ -111,21 +111,13 @@ describe('Clubs (e2e)', () => {
       isCashInCompliant: boolean | null = true,
     ): Promise<void> {
       // Tokens factices jamais déchiffrés : la liste ne lit que les dates.
-      await getApp()
-        .get(DataSource)
-        .getRepository(HelloAssoDetailsEntity)
-        .save({
-          clubId,
-          organizationSlug: `orga-${clubId}`,
-          accessTokenEncrypted: 'iv.tag.ct',
-          refreshTokenEncrypted: 'iv.tag.ct',
-          accessTokenExpiresAt: new Date(Date.now() + 30 * 60 * 1000),
-          refreshTokenExpiresAt: new Date(Date.now() + expiresInDays * DAY_MS),
-          linkedByUserId: null,
-          linkedAt: new Date('2026-09-01T10:00:00Z'),
-          lastRefreshedAt: null,
-          isCashInCompliant,
-        });
+      await seedHelloAssoLink(getApp().get(DataSource), {
+        clubId,
+        organizationSlug: `orga-${clubId}`,
+        refreshTokenExpiresAt: new Date(Date.now() + expiresInDays * DAY_MS),
+        linkedAt: new Date('2026-09-01T10:00:00Z'),
+        isCashInCompliant,
+      });
     }
 
     async function seedCompetitionFor(clubId: number): Promise<void> {
@@ -165,7 +157,9 @@ describe('Clubs (e2e)', () => {
     afterEach(async () => {
       // helloasso_details n'a pas de FK vers club en schéma e2e (pas de relation
       // TypeORM) : le TRUNCATE club CASCADE du afterEach global ne la vide pas.
-      await getApp().get(DataSource).query('TRUNCATE TABLE "helloasso_details" CASCADE');
+      await getApp()
+        .get(DataSource)
+        .query('TRUNCATE TABLE "helloasso_details", "helloasso_organization" CASCADE');
       await getSeedHelper().cleanCompetitions();
     });
 

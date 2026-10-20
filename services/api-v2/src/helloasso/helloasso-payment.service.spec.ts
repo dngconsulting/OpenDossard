@@ -130,7 +130,11 @@ function competitionFixture(overrides: Partial<CompetitionEntity> = {}): Competi
 }
 
 function detailsFixture(): HelloAssoDetailsEntity {
-  return { id: 1, clubId: 782, organizationSlug: 'cyclo-club-castaneen' } as HelloAssoDetailsEntity;
+  return {
+    id: 1,
+    clubId: 782,
+    organization: { organizationSlug: 'cyclo-club-castaneen' },
+  } as HelloAssoDetailsEntity;
 }
 
 function userFixture(overrides: Partial<UserEntity> = {}): UserEntity {

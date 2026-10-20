@@ -194,7 +194,7 @@ describe('CompetitionsService — scope enforcement (lot 2)', () => {
     function linkClub(isCashInCompliant: boolean | null): void {
       detailsRepo.findOne.mockResolvedValue({
         clubId: 42,
-        isCashInCompliant,
+        organization: { isCashInCompliant },
       } as HelloAssoDetailsEntity);
     }
 
@@ -276,7 +276,7 @@ describe('CompetitionsService — scope enforcement (lot 2)', () => {
       existing(true);
       detailsRepo.findOne.mockResolvedValue({
         clubId: 43,
-        isCashInCompliant: false,
+        organization: { isCashInCompliant: false },
       } as HelloAssoDetailsEntity);
       await expect(service.update(100, { clubId: 43 }, ORGA)).rejects.toBeInstanceOf(
         UnprocessableEntityException,

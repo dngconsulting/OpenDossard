@@ -3,7 +3,7 @@ import { DataSource, In } from 'typeorm';
 
 import { Federation } from '../src/common/enums';
 import { ClubEntity } from '../src/clubs/entities/club.entity';
-import { HelloAssoDetailsEntity } from '../src/helloasso/entities/helloasso-details.entity';
+import { HelloAssoOrganizationEntity } from '../src/helloasso/entities/helloasso-organization.entity';
 import { HelloAssoConfig } from '../src/helloasso/helloasso.config';
 import { HelloAssoDetailsService } from '../src/helloasso/helloasso-details.service';
 import { HelloAssoOAuthService } from '../src/helloasso/helloasso-oauth.service';
@@ -12,6 +12,7 @@ import {
   RefreshRunSummary,
 } from '../src/helloasso/helloasso-token-refresh.service';
 import { encryptToken } from '../src/helloasso/util/token-crypto.util';
+import { cleanHelloAssoLinks, seedHelloAssoLink } from './helpers/helloasso-link.seed';
 import { getApp, getAuthHelper } from './setup-e2e';
 
 const RUN_URL = '/api/v2/helloasso/admin/token-refresh/run';
@@ -51,12 +52,15 @@ describe('HelloAsso — renouvellement des tokens (e2e)', () => {
 
   async function cleanup(): Promise<void> {
     if (seededClubIds.length === 0) return;
-    await dataSource.getRepository(HelloAssoDetailsEntity).delete({ clubId: In(seededClubIds) });
+    await cleanHelloAssoLinks(dataSource, seededClubIds);
     await dataSource.getRepository(ClubEntity).delete({ id: In(seededClubIds) });
     seededClubIds = [];
   }
 
-  /** Crée un club + sa liaison HelloAsso expirant dans `expiresInDays` jours. */
+  /**
+   * Crée un club rattaché à sa propre orga, dont le refresh token expire dans
+   * `expiresInDays` jours. Renvoie l'id de l'orga.
+   */
   async function seedLink(expiresInDays: number, refreshToken?: string): Promise<number> {
     clubIdSeq += 1;
     const suffix = `${Date.now()}-${clubIdSeq}`;
@@ -66,38 +70,32 @@ describe('HelloAsso — renouvellement des tokens (e2e)', () => {
       dept: '31',
       federation: Federation.FSGT,
     });
-    await dataSource.getRepository(HelloAssoDetailsEntity).save({
+    seededClubIds.push(club.id);
+    const { organization } = await seedHelloAssoLink(dataSource, {
       clubId: club.id,
       organizationSlug: `orga-${suffix}`,
-      accessTokenEncrypted: 'iv.tag.ct',
       // Chiffré pour de vrai quand le test doit traverser `decryptToken` (run
       // complet via l'endpoint) ; sinon valeur factice, jamais déchiffrée.
       refreshTokenEncrypted: refreshToken
         ? encryptToken(refreshToken, getApp().get(HelloAssoConfig).tokenEncryptionKey)
         : 'iv.tag.ct',
-      accessTokenExpiresAt: new Date(Date.now() + 30 * 60 * 1000),
       refreshTokenExpiresAt: new Date(Date.now() + expiresInDays * DAY_MS),
-      linkedByUserId: null,
-      linkedAt: new Date(),
-      lastRefreshedAt: null,
-      isCashInCompliant: true,
     });
-    seededClubIds.push(club.id);
-    return club.id;
+    return organization.id;
   }
 
   it('le job est bien enregistré dans le contexte Nest', () => {
     expect(getApp().get(HelloAssoTokenRefreshService)).toBeInstanceOf(HelloAssoTokenRefreshService);
   });
 
-  it('findExpiringLinks(10) ne retient que la fenêtre ]now, now+10j[', async () => {
+  it('findExpiringOrganizations(10) ne retient que la fenêtre ]now, now+10j[', async () => {
     await seedLink(-1); // expirée hier → hors fenêtre (borne basse)
     const inWindow = await seedLink(5); // dans la fenêtre
     await seedLink(25); // trop loin → hors fenêtre (borne haute)
 
-    const found = await detailsService.findExpiringLinks(10);
+    const found = await detailsService.findExpiringOrganizations(10);
 
-    expect(found.map(l => l.clubId)).toEqual([inWindow]);
+    expect(found.map(o => o.id)).toEqual([inWindow]);
   });
 
   it("trie par expiration croissante — les plus urgents d'abord", async () => {
@@ -105,34 +103,33 @@ describe('HelloAsso — renouvellement des tokens (e2e)', () => {
     const near = await seedLink(2);
     const middle = await seedLink(6);
 
-    const found = await detailsService.findExpiringLinks(10);
+    const found = await detailsService.findExpiringOrganizations(10);
 
-    expect(found.map(l => l.clubId)).toEqual([near, middle, far]);
+    expect(found.map(o => o.id)).toEqual([near, middle, far]);
   });
 
-  it("applyRefreshedTokens repousse l'expiration de 30j sans toucher au slug ni à linkedAt", async () => {
-    const clubId = await seedLink(3);
-    const repo = dataSource.getRepository(HelloAssoDetailsEntity);
-    const before = await repo.findOneOrFail({ where: { clubId } });
+  it("applyRefreshedTokens repousse l'expiration de 30j sans toucher au slug", async () => {
+    const orgId = await seedLink(3);
+    const repo = dataSource.getRepository(HelloAssoOrganizationEntity);
+    const before = await repo.findOneOrFail({ where: { id: orgId } });
 
-    await detailsService.applyRefreshedTokens(clubId, {
+    await detailsService.applyRefreshedTokens(before, {
       accessToken: 'AT_NEW',
       refreshToken: 'RT_NEW',
       expiresInSeconds: 1800,
     });
 
-    const after = await repo.findOneOrFail({ where: { clubId } });
+    const after = await repo.findOneOrFail({ where: { id: orgId } });
     // la liaison sort de la fenêtre : ~30 jours devant elle
     const remainingDays = (after.refreshTokenExpiresAt.getTime() - Date.now()) / DAY_MS;
     expect(remainingDays).toBeGreaterThan(29);
     expect(after.lastRefreshedAt).not.toBeNull();
-    // audit de liaison et garde D1 : intouchés
+    // slug et conformité : intouchés
     expect(after.organizationSlug).toBe(before.organizationSlug);
-    expect(after.linkedAt.getTime()).toBe(before.linkedAt.getTime());
     expect(after.isCashInCompliant).toBe(before.isCashInCompliant);
-    // et la liaison n'est plus candidate
-    const found = await detailsService.findExpiringLinks(10);
-    expect(found.map(l => l.clubId)).not.toContain(clubId);
+    // et l'orga n'est plus candidate
+    const found = await detailsService.findExpiringOrganizations(10);
+    expect(found.map(o => o.id)).not.toContain(orgId);
   });
 
   describe(`POST ${RUN_URL} — déclenchement manuel`, () => {
@@ -163,7 +160,7 @@ describe('HelloAsso — renouvellement des tokens (e2e)', () => {
 
     it('ADMIN : exécute réellement le run et retourne le résumé', async () => {
       setRefreshEnabled(true);
-      const clubId = await seedLink(5, 'RT_OLD');
+      const orgId = await seedLink(5, 'RT_OLD');
       const spy = jest
         .spyOn(getApp().get(HelloAssoOAuthService), 'refreshAccessToken')
         .mockResolvedValue({
@@ -185,8 +182,8 @@ describe('HelloAsso — renouvellement des tokens (e2e)', () => {
         expect(summary.candidates).toBeGreaterThanOrEqual(1);
 
         const after = await dataSource
-          .getRepository(HelloAssoDetailsEntity)
-          .findOneOrFail({ where: { clubId } });
+          .getRepository(HelloAssoOrganizationEntity)
+          .findOneOrFail({ where: { id: orgId } });
         expect(after.lastRefreshedAt).not.toBeNull();
       } finally {
         spy.mockRestore();

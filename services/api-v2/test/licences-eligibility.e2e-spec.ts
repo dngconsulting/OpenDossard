@@ -8,7 +8,7 @@ import { CompetitionEntity } from '../src/competitions/entities/competition.enti
 import { LicenceEntity } from '../src/licences/entities/licence.entity';
 import { LicenceSearchResultDto } from '../src/licences/dto';
 import { ClubEntity } from '../src/clubs/entities/club.entity';
-import { HelloAssoDetailsEntity } from '../src/helloasso/entities/helloasso-details.entity';
+import { seedHelloAssoLink } from './helpers/helloasso-link.seed';
 import { HelloAssoPaymentEntity } from '../src/helloasso/entities/helloasso-payment.entity';
 
 const API = '/api/v2/licences/search';
@@ -209,17 +209,9 @@ describe('Licences — éligibilité selon la fédé de l’épreuve (e2e)', () 
         dept: '31',
         federation: Federation.FSGT,
       });
-      await dataSource.getRepository(HelloAssoDetailsEntity).save({
+      await seedHelloAssoLink(dataSource, {
         clubId: club.id,
         organizationSlug: `orga-eligibilite-${club.id}`,
-        accessTokenEncrypted: 'iv.tag.ct',
-        refreshTokenEncrypted: 'iv.tag.ct',
-        accessTokenExpiresAt: new Date(Date.now() + 30 * 60 * 1000),
-        refreshTokenExpiresAt: new Date(Date.now() + 20 * 24 * 3600 * 1000),
-        linkedByUserId: null,
-        linkedAt: new Date(),
-        lastRefreshedAt: null,
-        isCashInCompliant: true,
       });
       return seedCompetition(access, {
         clubId: club.id,

@@ -1,7 +1,7 @@
 import { BadGatewayException, Logger, UnauthorizedException } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
 
-import { HelloAssoDetailsEntity } from './entities/helloasso-details.entity';
+import { HelloAssoOrganizationEntity } from './entities/helloasso-organization.entity';
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoDetailsService } from './helloasso-details.service';
 import { HelloAssoOAuthService } from './helloasso-oauth.service';
@@ -11,7 +11,7 @@ import { encryptToken } from './util/token-crypto.util';
 interface Mocks {
   service: HelloAssoTokenRefreshService;
   oauth: { refreshAccessToken: jest.Mock };
-  details: { findExpiringLinks: jest.Mock; applyRefreshedTokens: jest.Mock };
+  details: { findExpiringOrganizations: jest.Mock; applyRefreshedTokens: jest.Mock };
   key: Buffer;
 }
 
@@ -23,8 +23,8 @@ function makeService(opts: { enabled?: boolean } = {}): Mocks {
   } as HelloAssoConfig;
   const oauth = { refreshAccessToken: jest.fn() };
   const details = {
-    findExpiringLinks: jest.fn().mockResolvedValue([]),
-    applyRefreshedTokens: jest.fn().mockResolvedValue(undefined),
+    findExpiringOrganizations: jest.fn().mockResolvedValue([]),
+    applyRefreshedTokens: jest.fn().mockResolvedValue(true),
   };
   const service = new HelloAssoTokenRefreshService(
     config,
@@ -34,17 +34,14 @@ function makeService(opts: { enabled?: boolean } = {}): Mocks {
   return { service, oauth, details, key };
 }
 
-function makeLink(key: Buffer, clubId: number, refreshToken: string): HelloAssoDetailsEntity {
+function makeOrg(key: Buffer, id: number, refreshToken: string): HelloAssoOrganizationEntity {
   return {
-    id: clubId,
-    clubId,
-    organizationSlug: `club-${clubId}`,
+    id,
+    organizationSlug: `orga-${id}`,
     accessTokenEncrypted: encryptToken('AT', key),
     refreshTokenEncrypted: encryptToken(refreshToken, key),
     accessTokenExpiresAt: new Date('2026-08-22T03:30:00Z'),
     refreshTokenExpiresAt: new Date('2026-08-27T03:00:00Z'),
-    linkedByUserId: 55,
-    linkedAt: new Date('2026-07-28T03:00:00Z'),
     lastRefreshedAt: null,
     isCashInCompliant: true,
     createdAt: new Date('2026-07-28T03:00:00Z'),
@@ -64,7 +61,7 @@ describe('HelloAssoTokenRefreshService — garde-fous', () => {
 
     await m.service.handleCron();
 
-    expect(m.details.findExpiringLinks).not.toHaveBeenCalled();
+    expect(m.details.findExpiringOrganizations).not.toHaveBeenCalled();
     expect(m.oauth.refreshAccessToken).not.toHaveBeenCalled();
     expect(m.details.applyRefreshedTokens).not.toHaveBeenCalled();
   });
@@ -74,7 +71,7 @@ describe('HelloAssoTokenRefreshService — garde-fous', () => {
 
     await m.service.handleCron();
 
-    expect(m.details.findExpiringLinks).toHaveBeenCalledWith(10);
+    expect(m.details.findExpiringOrganizations).toHaveBeenCalledWith(10);
   });
 
   it('aucun candidat : run vide, synthèse à zéro', async () => {
@@ -89,7 +86,7 @@ describe('HelloAssoTokenRefreshService — garde-fous', () => {
   it('ré-entrance : un second run concurrent est ignoré', async () => {
     const m = makeService();
     let release!: () => void;
-    m.details.findExpiringLinks.mockReturnValueOnce(
+    m.details.findExpiringOrganizations.mockReturnValueOnce(
       new Promise(resolve => {
         release = () => resolve([]);
       }),
@@ -99,7 +96,7 @@ describe('HelloAssoTokenRefreshService — garde-fous', () => {
     const second = await m.service.refreshExpiringLinks();
 
     expect(second.candidates).toBe(0);
-    expect(m.details.findExpiringLinks).toHaveBeenCalledTimes(1);
+    expect(m.details.findExpiringOrganizations).toHaveBeenCalledTimes(1);
 
     release();
     await first;
@@ -107,12 +104,12 @@ describe('HelloAssoTokenRefreshService — garde-fous', () => {
 
   it('libère le garde de ré-entrance même si le run échoue', async () => {
     const m = makeService();
-    m.details.findExpiringLinks.mockRejectedValueOnce(new Error('DB down'));
+    m.details.findExpiringOrganizations.mockRejectedValueOnce(new Error('DB down'));
 
     await expect(m.service.refreshExpiringLinks()).rejects.toThrow('DB down');
 
     // le garde doit être relâché, sinon le job est mort jusqu'au redémarrage
-    m.details.findExpiringLinks.mockResolvedValueOnce([]);
+    m.details.findExpiringOrganizations.mockResolvedValueOnce([]);
     await expect(m.service.refreshExpiringLinks()).resolves.toMatchObject({ candidates: 0 });
   });
 });
@@ -122,14 +119,16 @@ describe('HelloAssoTokenRefreshService — cas nominal', () => {
 
   it('déchiffre le RT, appelle HelloAsso, persiste les nouveaux tokens', async () => {
     const m = makeService();
-    m.details.findExpiringLinks.mockResolvedValueOnce([makeLink(m.key, 782, 'RT_CLAIR')]);
+    const org = makeOrg(m.key, 782, 'RT_CLAIR');
+    m.details.findExpiringOrganizations.mockResolvedValueOnce([org]);
     m.oauth.refreshAccessToken.mockResolvedValueOnce(okTokens('RT2'));
 
     const summary = await m.service.refreshExpiringLinks();
 
     // le token est passé EN CLAIR à HelloAsso, donc déchiffré depuis la DB
     expect(m.oauth.refreshAccessToken).toHaveBeenCalledWith('RT_CLAIR');
-    expect(m.details.applyRefreshedTokens).toHaveBeenCalledWith(782, {
+    // écriture conditionnée à la chaîne lue
+    expect(m.details.applyRefreshedTokens).toHaveBeenCalledWith(org, {
       accessToken: 'AT_NEW',
       refreshToken: 'RT2',
       expiresInSeconds: 1800,
@@ -139,10 +138,10 @@ describe('HelloAssoTokenRefreshService — cas nominal', () => {
 
   it("traite les clubs séquentiellement, dans l'ordre reçu", async () => {
     const m = makeService();
-    m.details.findExpiringLinks.mockResolvedValueOnce([
-      makeLink(m.key, 1, 'RT1'),
-      makeLink(m.key, 2, 'RT2'),
-      makeLink(m.key, 3, 'RT3'),
+    m.details.findExpiringOrganizations.mockResolvedValueOnce([
+      makeOrg(m.key, 1, 'RT1'),
+      makeOrg(m.key, 2, 'RT2'),
+      makeOrg(m.key, 3, 'RT3'),
     ]);
     m.oauth.refreshAccessToken.mockResolvedValue(okTokens());
 
@@ -158,9 +157,9 @@ describe('HelloAssoTokenRefreshService — cas nominal', () => {
 
   it("n'appelle jamais HelloAsso en parallèle (rate limit + lisibilité des logs)", async () => {
     const m = makeService();
-    m.details.findExpiringLinks.mockResolvedValueOnce([
-      makeLink(m.key, 1, 'RT1'),
-      makeLink(m.key, 2, 'RT2'),
+    m.details.findExpiringOrganizations.mockResolvedValueOnce([
+      makeOrg(m.key, 1, 'RT1'),
+      makeOrg(m.key, 2, 'RT2'),
     ]);
     let inFlight = 0;
     let maxInFlight = 0;
@@ -183,9 +182,9 @@ describe('HelloAssoTokenRefreshService — erreurs', () => {
 
   it("un 401 sur un club n'interrompt pas le run", async () => {
     const m = makeService();
-    m.details.findExpiringLinks.mockResolvedValueOnce([
-      makeLink(m.key, 1, 'RT_MORT'),
-      makeLink(m.key, 2, 'RT_OK'),
+    m.details.findExpiringOrganizations.mockResolvedValueOnce([
+      makeOrg(m.key, 1, 'RT_MORT'),
+      makeOrg(m.key, 2, 'RT_OK'),
     ]);
     m.oauth.refreshAccessToken
       .mockRejectedValueOnce(new UnauthorizedException('HelloAsso rejected the token request'))
@@ -195,12 +194,27 @@ describe('HelloAssoTokenRefreshService — erreurs', () => {
 
     expect(summary).toMatchObject({ candidates: 2, refreshed: 1, rejected: 1, failed: 0 });
     expect(m.details.applyRefreshedTokens).toHaveBeenCalledTimes(1);
-    expect(m.details.applyRefreshedTokens).toHaveBeenCalledWith(2, expect.anything());
+    expect(m.details.applyRefreshedTokens).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 2 }),
+      expect.anything(),
+    );
+  });
+
+  it('chaîne remplacée par un passage par la mire pendant le refresh : comptée à part', async () => {
+    const m = makeService();
+    m.details.findExpiringOrganizations.mockResolvedValueOnce([makeOrg(m.key, 1, 'RT')]);
+    m.oauth.refreshAccessToken.mockResolvedValueOnce(okTokens());
+    m.details.applyRefreshedTokens.mockResolvedValueOnce(false);
+    jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+
+    const summary = await m.service.refreshExpiringLinks();
+
+    expect(summary).toMatchObject({ refreshed: 0, failed: 0, rejected: 0, superseded: 1 });
   });
 
   it("un 502 compte en échec et n'écrit rien", async () => {
     const m = makeService();
-    m.details.findExpiringLinks.mockResolvedValueOnce([makeLink(m.key, 1, 'RT')]);
+    m.details.findExpiringOrganizations.mockResolvedValueOnce([makeOrg(m.key, 1, 'RT')]);
     m.oauth.refreshAccessToken.mockRejectedValueOnce(
       new BadGatewayException('HelloAsso token endpoint failed'),
     );
@@ -213,7 +227,7 @@ describe('HelloAssoTokenRefreshService — erreurs', () => {
 
   it('réponse 200 sans refresh_token : AUCUNE écriture, on ne casse pas un lien valide', async () => {
     const m = makeService();
-    m.details.findExpiringLinks.mockResolvedValueOnce([makeLink(m.key, 1, 'RT')]);
+    m.details.findExpiringOrganizations.mockResolvedValueOnce([makeOrg(m.key, 1, 'RT')]);
     m.oauth.refreshAccessToken.mockResolvedValueOnce({
       accessToken: 'AT_NEW',
       refreshToken: '',
@@ -229,9 +243,12 @@ describe('HelloAssoTokenRefreshService — erreurs', () => {
 
   it('ligne indéchiffrable : échec isolé, le run continue', async () => {
     const m = makeService();
-    const corrupted = makeLink(m.key, 1, 'RT');
+    const corrupted = makeOrg(m.key, 1, 'RT');
     corrupted.refreshTokenEncrypted = 'nimporte.quoi.ici';
-    m.details.findExpiringLinks.mockResolvedValueOnce([corrupted, makeLink(m.key, 2, 'RT_OK')]);
+    m.details.findExpiringOrganizations.mockResolvedValueOnce([
+      corrupted,
+      makeOrg(m.key, 2, 'RT_OK'),
+    ]);
     m.oauth.refreshAccessToken.mockResolvedValueOnce(okTokens());
 
     const summary = await m.service.refreshExpiringLinks();
@@ -242,7 +259,7 @@ describe('HelloAssoTokenRefreshService — erreurs', () => {
 
   it('un échec de persistance ne compte pas comme un refresh réussi', async () => {
     const m = makeService();
-    m.details.findExpiringLinks.mockResolvedValueOnce([makeLink(m.key, 1, 'RT')]);
+    m.details.findExpiringOrganizations.mockResolvedValueOnce([makeOrg(m.key, 1, 'RT')]);
     m.oauth.refreshAccessToken.mockResolvedValueOnce(okTokens());
     m.details.applyRefreshedTokens.mockRejectedValueOnce(new Error('deadlock'));
 
@@ -256,8 +273,8 @@ describe('HelloAssoTokenRefreshService — erreurs', () => {
     const warn = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
     const log = jest.spyOn(Logger.prototype, 'log').mockImplementation();
     const error = jest.spyOn(Logger.prototype, 'error').mockImplementation();
-    const link = makeLink(m.key, 1, 'RT_SECRET');
-    m.details.findExpiringLinks.mockResolvedValueOnce([link]);
+    const link = makeOrg(m.key, 1, 'RT_SECRET');
+    m.details.findExpiringOrganizations.mockResolvedValueOnce([link]);
     m.oauth.refreshAccessToken.mockRejectedValueOnce(new UnauthorizedException());
 
     await m.service.refreshExpiringLinks();
@@ -265,8 +282,7 @@ describe('HelloAssoTokenRefreshService — erreurs', () => {
     const emitted = [...warn.mock.calls, ...log.mock.calls, ...error.mock.calls].flat().join(' ');
     expect(emitted).not.toContain('RT_SECRET');
     expect(emitted).not.toContain(link.refreshTokenEncrypted);
-    expect(emitted).toContain('clubId=1');
-    expect(emitted).toContain('club-1');
+    expect(emitted).toContain('slug=orga-1');
   });
 });
 
@@ -275,9 +291,9 @@ describe('HelloAssoTokenRefreshService — observabilité', () => {
 
   it('renseigne durationMs et désigne le club le plus lent', async () => {
     const m = makeService();
-    m.details.findExpiringLinks.mockResolvedValueOnce([
-      makeLink(m.key, 1, 'RT1'),
-      makeLink(m.key, 2, 'RT2'),
+    m.details.findExpiringOrganizations.mockResolvedValueOnce([
+      makeOrg(m.key, 1, 'RT1'),
+      makeOrg(m.key, 2, 'RT2'),
     ]);
     m.oauth.refreshAccessToken.mockResolvedValue(okTokens());
 
@@ -292,7 +308,7 @@ describe('HelloAssoTokenRefreshService — observabilité', () => {
     const summary = await m.service.refreshExpiringLinks();
 
     expect(summary.durationMs).toBe(5_200);
-    expect(summary.slowestClubId).toBe(2);
+    expect(summary.slowestSlug).toBe('orga-2');
     expect(summary.slowestMs).toBe(5_000);
   });
 
@@ -337,13 +353,13 @@ describe('HelloAssoTokenRefreshService — observabilité', () => {
   it('logge la durée de chaque club, sans jamais exposer de token', async () => {
     const m = makeService();
     const log = jest.spyOn(Logger.prototype, 'log').mockImplementation();
-    m.details.findExpiringLinks.mockResolvedValueOnce([makeLink(m.key, 7, 'RT_SECRET')]);
+    m.details.findExpiringOrganizations.mockResolvedValueOnce([makeOrg(m.key, 7, 'RT_SECRET')]);
     m.oauth.refreshAccessToken.mockResolvedValueOnce(okTokens());
 
     await m.service.refreshExpiringLinks();
 
     const emitted = log.mock.calls.flat().join(' ');
-    expect(emitted).toMatch(/clubId=7 slug=club-7.*durationMs=\d+/);
+    expect(emitted).toMatch(/slug=orga-7.*durationMs=\d+/);
     expect(emitted).not.toContain('RT_SECRET');
   });
 });

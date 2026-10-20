@@ -58,7 +58,8 @@ export class OnlinePaymentActivationPolicy {
         'Paiement en ligne impossible : le club organisateur n’est pas lié à HelloAsso.',
       );
     }
-    if (link.isCashInCompliant !== true) {
+    // Conformité de l'orga HelloAsso à laquelle le club est rattaché.
+    if (link.organization.isCashInCompliant !== true) {
       throw new UnprocessableEntityException(
         'Paiement en ligne impossible : le compte HelloAsso du club n’est pas vérifié. ' +
           'Une fois les démarches faites auprès de HelloAsso, rafraîchissez le statut du club.',

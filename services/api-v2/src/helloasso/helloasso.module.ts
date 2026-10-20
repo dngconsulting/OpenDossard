@@ -11,6 +11,7 @@ import { HelloAssoApiClient } from './helloasso-api.client';
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoController } from './helloasso.controller';
 import { HelloAssoDetailsEntity } from './entities/helloasso-details.entity';
+import { HelloAssoOrganizationEntity } from './entities/helloasso-organization.entity';
 import { HelloAssoPaymentEntity } from './entities/helloasso-payment.entity';
 import { HelloAssoDetailsService } from './helloasso-details.service';
 import { HelloAssoOAuthService } from './helloasso-oauth.service';
@@ -36,6 +37,7 @@ import { HelloAssoWebhookService } from './helloasso-webhook.service';
   imports: [
     TypeOrmModule.forFeature([
       HelloAssoDetailsEntity,
+      HelloAssoOrganizationEntity,
       HelloAssoPaymentEntity,
       CompetitionEntity,
       LicenceEntity,

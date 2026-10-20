@@ -239,7 +239,7 @@ export class HelloAssoPaymentService {
     try {
       const accessToken = await this.oauth.getPartnerAccessToken();
       intentResponse = await this.helloAssoApi.createCheckoutIntent({
-        organizationSlug: details.organizationSlug,
+        organizationSlug: details.organization.organizationSlug,
         accessToken,
         body: this.buildCheckoutBody({
           payment,
@@ -413,7 +413,7 @@ export class HelloAssoPaymentService {
     const intentId = payment.helloAssoCheckoutIntentId;
     const accessToken = await this.oauth.getPartnerAccessToken();
     const data = await this.helloAssoApi.getCheckoutIntent({
-      organizationSlug: details.organizationSlug,
+      organizationSlug: details.organization.organizationSlug,
       accessToken,
       checkoutIntentId: intentId,
     });

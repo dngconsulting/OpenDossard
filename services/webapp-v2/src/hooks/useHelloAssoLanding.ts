@@ -7,6 +7,9 @@ const REASON_LABEL: Record<string, string> = {
   no_matching_club: "Aucun club ne correspond à l'association HelloAsso",
   access_denied: 'Autorisation refusée côté HelloAsso',
   exchange_failed: 'Échange du code OAuth échoué',
+  link_failed: 'Enregistrement de la liaison HelloAsso échoué',
+  linked_to_other_org:
+    'Ce club est déjà lié à une autre association HelloAsso — déliez-le avant de le relier',
   missing_params: 'Paramètres OAuth manquants',
   missing_origin_club:
     "Aucun club d'origine n'est associé à cette autorisation — relancez la liaison depuis la fiche du club concerné",

@@ -3,10 +3,45 @@ import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { And, DataSource, LessThan, MoreThan, Repository } from 'typeorm';
 import { CompetitionEntity } from '../competitions/entities/competition.entity';
 import { HelloAssoDetailsEntity } from './entities/helloasso-details.entity';
+import { HelloAssoOrganizationEntity } from './entities/helloasso-organization.entity';
 import { HelloAssoConfig } from './helloasso.config';
 import { encryptToken } from './util/token-crypto.util';
 
 const REFRESH_TOKEN_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 jours
+
+/**
+ * Nouvelle chaîne de tokens d'une orga (passage par la mire). Paramètres :
+ * slug, access, refresh, expiration access, expiration refresh, conformité
+ * (`null` = inconnue, conserve la valeur en place).
+ */
+const UPDATE_ORG_CHAIN_SQL = `
+  UPDATE helloasso_organization SET
+    access_token = $2,
+    refresh_token = $3,
+    access_token_expires_at = $4,
+    refresh_token_expires_at = $5,
+    last_refreshed_at = NULL,
+    is_cash_in_compliant = COALESCE($6, is_cash_in_compliant),
+    updated_at = now()
+  WHERE organization_slug = $1`;
+
+/** Idem, en créant l'orga si elle n'existe pas encore. Renvoie son id. */
+const UPSERT_ORG_CHAIN_SQL = `
+  INSERT INTO helloasso_organization (
+    organization_slug, access_token, refresh_token,
+    access_token_expires_at, refresh_token_expires_at, last_refreshed_at, is_cash_in_compliant
+  ) VALUES ($1, $2, $3, $4, $5, NULL, $6)
+  ON CONFLICT (organization_slug) DO UPDATE SET
+    access_token = EXCLUDED.access_token,
+    refresh_token = EXCLUDED.refresh_token,
+    access_token_expires_at = EXCLUDED.access_token_expires_at,
+    refresh_token_expires_at = EXCLUDED.refresh_token_expires_at,
+    last_refreshed_at = NULL,
+    is_cash_in_compliant = COALESCE(EXCLUDED.is_cash_in_compliant, helloasso_organization.is_cash_in_compliant),
+    updated_at = now()
+  RETURNING id`;
+
+const LOCK_ORG_SQL = 'SELECT id FROM helloasso_organization WHERE id = $1 FOR UPDATE';
 
 export interface UpsertLinkInput {
   clubId: number;
@@ -16,10 +51,10 @@ export interface UpsertLinkInput {
   expiresInSeconds: number;
   linkedByUserId: number | null;
   /**
-   * Valeur initiale de `isCashInCompliant` lue côté HelloAsso au moment de
-   * la liaison. `null` autorisé : si le GET orga échoue, on persiste null
-   * pour ne pas casser la liaison — la valeur sera rattrapée par le webhook
-   * `Organization.IsCashinCompliant` au prochain changement côté HA.
+   * Valeur de `isCashInCompliant` lue côté HelloAsso au moment de la liaison.
+   * `null` autorisé : si le GET orga échoue, on ne casse pas la liaison — une
+   * orga déjà connue garde sa valeur, une nouvelle orga part de null, rattrapée
+   * par le webhook `Organization.IsCashinCompliant` au prochain changement.
    */
   isCashInCompliant: boolean | null;
 }
@@ -44,22 +79,25 @@ export type HelloAssoLinkStatus =
     };
 
 /**
- * Persistance des liaisons HelloAsso ↔ Club. Les tokens sont chiffrés au
- * repos (AES-256-GCM) via `util/token-crypto.util` + `HelloAssoConfig.tokenEncryptionKey`.
+ * Persistance des liaisons HelloAsso, en deux niveaux :
+ *  - l'**orga** (`helloasso_organization`) porte la liaison OAuth (tokens
+ *    chiffrés AES-256-GCM via `util/token-crypto.util`) et la conformité ;
+ *  - le **rattachement** (`helloasso_details`) relie un club à une orga.
+ * Plusieurs clubs peuvent se rattacher à la même orga (un par fédération).
  *
- * Trois opérations d'écriture distinctes :
- *  - `upsertLink` : re-passage explicite par la mire OAuth (initial OU re-liaison
- *    par l'admin). Reset `linked_at`, `linked_by_user_id`, `last_refreshed_at = null`.
- *  - `applyRefreshedTokens` : renouvellement technique par le job planifié.
- *    N'écrit QUE les colonnes de tokens — ni slug, ni audit de liaison.
- *  - `deleteByClubId` : déliaison par l'admin (bouton "Délier" côté UI).
+ * Opérations d'écriture :
+ *  - `upsertLink` : passage par la mire pour un club. Met la chaîne de tokens
+ *    de l'orga à jour (créée si besoin), puis le rattachement du club.
+ *  - `applyRefreshedTokens` : renouvellement technique d'une orga (job planifié,
+ *    rafraîchissement manuel de conformité).
+ *  - `deleteByClubId` : déliaison d'un club ; l'orga est supprimée quand plus
+ *    aucun club n'y est rattaché.
  *
- * Note : les tokens club ne sont pas utilisés au runtime — les appels HelloAsso
+ * Note : les tokens ne sont pas utilisés au runtime — les appels HelloAsso
  * (checkout, lecture d'intent) passent par le token PARTENAIRE
- * (`HelloAssoOAuthService.getPartnerAccessToken`), résilient à l'expiration du
- * lien OAuth de l'asso. Ils restent la **preuve du lien**, et sont renouvelés
- * par `HelloAssoTokenRefreshService` pour que la liaison ne meure pas
- * d'expiration (fenêtre refresh de 30 jours).
+ * (`HelloAssoOAuthService.getPartnerAccessToken`). Ils restent la **preuve du
+ * lien**, renouvelés par `HelloAssoTokenRefreshService` pour que la liaison ne
+ * meure pas d'expiration (fenêtre refresh de 30 jours).
  */
 @Injectable()
 export class HelloAssoDetailsService {
@@ -68,30 +106,34 @@ export class HelloAssoDetailsService {
   constructor(
     @InjectRepository(HelloAssoDetailsEntity)
     private readonly repo: Repository<HelloAssoDetailsEntity>,
+    @InjectRepository(HelloAssoOrganizationEntity)
+    private readonly orgRepo: Repository<HelloAssoOrganizationEntity>,
     private readonly config: HelloAssoConfig,
     @InjectDataSource()
     private readonly dataSource: DataSource,
   ) {}
 
+  /** Rattachement d'un club, avec son orga (eager). */
   async findByClubId(clubId: number): Promise<HelloAssoDetailsEntity | null> {
     return this.repo.findOne({ where: { clubId } });
   }
 
   /**
-   * Liaisons dont le refresh token arrive à expiration dans moins de
-   * `withinDays` jours — candidates au renouvellement par le job planifié.
+   * Orgas dont le refresh token arrive à expiration dans moins de `withinDays`
+   * jours — candidates au renouvellement par le job planifié. Une ligne par
+   * orga : ses clubs partagent la chaîne.
    *
-   * Les liaisons **déjà expirées sont exclues** (borne basse `> now`) :
-   * HelloAsso rejetterait leur refresh token, et le lien est de toute façon
-   * perdu — l'admin doit repasser par la mire.
+   * Les orgas **déjà expirées sont exclues** (borne basse `> now`) : HelloAsso
+   * rejetterait leur refresh token, et le lien est de toute façon perdu —
+   * l'admin doit repasser par la mire.
    *
    * Tri par expiration croissante : si un run est interrompu, les liens les
    * plus urgents ont déjà été traités.
    */
-  async findExpiringLinks(withinDays: number): Promise<HelloAssoDetailsEntity[]> {
+  async findExpiringOrganizations(withinDays: number): Promise<HelloAssoOrganizationEntity[]> {
     const now = new Date();
     const limit = new Date(now.getTime() + withinDays * 24 * 60 * 60 * 1000);
-    return this.repo.find({
+    return this.orgRepo.find({
       where: { refreshTokenExpiresAt: And(MoreThan(now), LessThan(limit)) },
       order: { refreshTokenExpiresAt: 'ASC' },
     });
@@ -100,112 +142,128 @@ export class HelloAssoDetailsService {
   /**
    * Statut local de la liaison pour ce club. Aucune requête HelloAsso ;
    * on se contente des dates stockées en DB. `expired = true` ssi le
-   * refresh_token est hors fenêtre 30j (cas où l'admin doit repasser par la mire).
+   * refresh_token de l'orga est hors fenêtre 30j (l'admin doit repasser par
+   * la mire).
    */
   async getStatus(clubId: number): Promise<HelloAssoLinkStatus> {
-    const details = await this.repo.findOne({ where: { clubId } });
-    if (!details) return { linked: false };
+    const link = await this.findByClubId(clubId);
+    if (!link) return { linked: false };
+    const org = link.organization;
     return {
       linked: true,
-      slug: details.organizationSlug,
-      linkedAt: details.linkedAt.toISOString(),
-      refreshTokenExpiresAt: details.refreshTokenExpiresAt.toISOString(),
-      expired: details.refreshTokenExpiresAt.getTime() < Date.now(),
-      isCashInCompliant: details.isCashInCompliant,
+      slug: org.organizationSlug,
+      linkedAt: link.linkedAt.toISOString(),
+      refreshTokenExpiresAt: org.refreshTokenExpiresAt.toISOString(),
+      expired: org.refreshTokenExpiresAt.getTime() < Date.now(),
+      isCashInCompliant: org.isCashInCompliant,
     };
   }
 
   /**
-   * UPSERT silencieux. Si une liaison existe pour ce club, ses tokens sont
-   * remplacés. `linked_at` est rafraîchi à chaque liaison initiale ou
-   * ré-initiée (= passage par la mire). `last_refreshed_at` reste null tant
-   * qu'aucun refresh OAuth automatique n'a eu lieu.
+   * Passage par la mire pour un club : enregistre la chaîne de tokens de l'orga
+   * (créée au premier club), puis rattache le club. `linked_at` date le passage
+   * par la mire de CE club ; `last_refreshed_at` de l'orga repart à null.
+   *
+   * Garde D1 (threat model) : un club déjà rattaché à une AUTRE orga n'est
+   * jamais re-rattaché silencieusement — sinon un user ayant gardé l'accès au
+   * club pourrait détourner ses paiements vers une orga qu'il contrôle. Délier
+   * d'abord. Même dans ce cas, la chaîne de l'orga autorisée est enregistrée si
+   * l'orga est déjà connue : HelloAsso vient de révoquer sa chaîne précédente,
+   * la jeter couperait la liaison des clubs qui y sont rattachés. (Cas rare via
+   * le callback : il exige `club.helloAssoSlug` = slug autorisé, champ que l'on
+   * ne peut pas modifier tant que le club est lié.)
    */
   async upsertLink(input: UpsertLinkInput): Promise<HelloAssoDetailsEntity> {
     const now = new Date();
-    const accessTokenExpiresAt = new Date(now.getTime() + input.expiresInSeconds * 1000);
-    const refreshTokenExpiresAt = new Date(now.getTime() + REFRESH_TOKEN_TTL_SECONDS * 1000);
-
     const key = this.config.tokenEncryptionKey;
-    const accessTokenEncrypted = encryptToken(input.accessToken, key);
-    const refreshTokenEncrypted = encryptToken(input.refreshToken, key);
+    const chain = {
+      accessTokenEncrypted: encryptToken(input.accessToken, key),
+      refreshTokenEncrypted: encryptToken(input.refreshToken, key),
+      accessTokenExpiresAt: new Date(now.getTime() + input.expiresInSeconds * 1000),
+      refreshTokenExpiresAt: new Date(now.getTime() + REFRESH_TOKEN_TTL_SECONDS * 1000),
+    };
 
-    const existing = await this.repo.findOne({ where: { clubId: input.clubId } });
-    if (existing) {
-      // Lot 3 — protection contre le scénario D1 du threat model : ne JAMAIS
-      // écraser silencieusement un slug existant par un slug différent. Sinon,
-      // un user qui aurait conservé l'accès au club côté OD pourrait re-lier
-      // le club vers une orga HelloAsso qu'il contrôle, et détourner les
-      // futurs paiements. Exiger un DELETE explicite avant pour acter le
-      // changement d'organisation HelloAsso.
-      if (existing.organizationSlug !== input.organizationSlug) {
-        this.logger.warn(
-          `upsertLink REJECTED: clubId=${input.clubId} déjà lié à slug=${existing.organizationSlug}, tentative de re-liaison vers slug=${input.organizationSlug} par user=${input.linkedByUserId}`,
-        );
-        throw new ConflictException(
-          `Ce club est déjà lié à une autre organisation HelloAsso (${existing.organizationSlug}). Délie d'abord la liaison existante avant de re-lier à une orga différente.`,
-        );
+    const result = await this.dataSource.transaction(async manager => {
+      const links = manager.getRepository(HelloAssoDetailsEntity);
+      const orgs = manager.getRepository(HelloAssoOrganizationEntity);
+
+      const existingLink = await links.findOne({ where: { clubId: input.clubId } });
+      const conflictSlug =
+        existingLink && existingLink.organization.organizationSlug !== input.organizationSlug
+          ? existingLink.organization.organizationSlug
+          : null;
+
+      // Écriture atomique de l'orga, qui verrouille sa ligne jusqu'au commit :
+      // deux liaisons simultanées sur une même orga ne se marchent pas dessus
+      // (pas de violation d'unicité à la création), et une déliaison
+      // concurrente (qui verrouille la même ligne) est sérialisée. Limite : on
+      // ne connaît pas l'ordre d'émission des grants chez HelloAsso — si deux
+      // mires de la même orga aboutissent au même instant, la dernière écrite
+      // gagne, même si HelloAsso a gardé l'autre.
+      const params = [
+        input.organizationSlug,
+        chain.accessTokenEncrypted,
+        chain.refreshTokenEncrypted,
+        chain.accessTokenExpiresAt,
+        chain.refreshTokenExpiresAt,
+        // Une lecture HelloAsso en échec (null) ne remplace pas une valeur connue.
+        input.isCashInCompliant,
+      ];
+      if (conflictSlug) {
+        // Club refusé (garde D1) : on n'enregistre la chaîne que si l'orga est
+        // déjà connue — jamais de création pour un club qu'on refuse.
+        await manager.query(UPDATE_ORG_CHAIN_SQL, params);
+        return { conflictSlug };
       }
-      existing.organizationSlug = input.organizationSlug;
-      existing.accessTokenEncrypted = accessTokenEncrypted;
-      existing.refreshTokenEncrypted = refreshTokenEncrypted;
-      existing.accessTokenExpiresAt = accessTokenExpiresAt;
-      existing.refreshTokenExpiresAt = refreshTokenExpiresAt;
-      existing.linkedByUserId = input.linkedByUserId;
-      existing.linkedAt = now;
-      existing.lastRefreshedAt = null;
-      existing.isCashInCompliant = input.isCashInCompliant;
-      const saved = await this.repo.save(existing);
-      this.logger.log(
-        `upsertLink: refreshed link clubId=${input.clubId} slug=${input.organizationSlug} by user=${input.linkedByUserId}`,
-      );
-      return saved;
-    }
+      const rows: { id: number }[] = await manager.query(UPSERT_ORG_CHAIN_SQL, params);
 
-    const created = this.repo.create({
-      clubId: input.clubId,
-      organizationSlug: input.organizationSlug,
-      accessTokenEncrypted,
-      refreshTokenEncrypted,
-      accessTokenExpiresAt,
-      refreshTokenExpiresAt,
-      linkedByUserId: input.linkedByUserId,
-      linkedAt: now,
-      lastRefreshedAt: null,
-      isCashInCompliant: input.isCashInCompliant,
+      const org = await orgs.findOneOrFail({ where: { id: rows[0].id } });
+      const link = existingLink ?? links.create({ clubId: input.clubId });
+      link.organizationId = org.id;
+      link.organization = org;
+      link.linkedByUserId = input.linkedByUserId;
+      link.linkedAt = now;
+      return { link: await links.save(link) };
     });
-    const saved = await this.repo.save(created);
+
+    if (!result.link) {
+      this.logger.warn(
+        `upsertLink REJECTED: clubId=${input.clubId} déjà lié à slug=${result.conflictSlug}, tentative vers slug=${input.organizationSlug} par user=${input.linkedByUserId}`,
+      );
+      throw new ConflictException(
+        `Ce club est déjà lié à une autre organisation HelloAsso (${result.conflictSlug}). Délie d'abord la liaison existante avant de re-lier à une orga différente.`,
+      );
+    }
     this.logger.log(
-      `upsertLink: created link id=${saved.id} clubId=${input.clubId} slug=${input.organizationSlug} by user=${input.linkedByUserId}`,
+      `upsertLink: clubId=${input.clubId} rattaché à slug=${input.organizationSlug} (orgId=${result.link.organizationId}) by user=${input.linkedByUserId}`,
     );
-    return saved;
+    return result.link;
   }
 
   /**
-   * Applique un renouvellement de tokens sur une liaison existante.
+   * Applique un renouvellement de tokens sur une orga.
    *
-   * **Volontairement distincte de `upsertLink`.** Cette dernière porte la
-   * sémantique « passage par la mire » : elle remet `linked_at`, réécrit
-   * `linked_by_user_id`, remet `last_refreshed_at` à null et compare le slug
-   * (garde D1). Un refresh technique ne doit rien faire de tout cela —
-   * `linked_at` conserve ainsi son sens de date de liaison, lisible dans l'UI.
+   * **Volontairement distincte de `upsertLink`** (sémantique « passage par la
+   * mire » : `linked_at`, audit, garde D1). Le slug n'est jamais écrit ici : le
+   * grant `refresh_token` ne renvoie pas `organization_slug`.
    *
-   * Le slug n'est jamais écrit ici : le grant `refresh_token` ne renvoie pas
-   * `organization_slug`
+   * **Écriture conditionnelle** : n'écrit que si le refresh token en base est
+   * toujours celui qui a été rafraîchi (`refreshedFrom`). Si un passage par la
+   * mire l'a remplacé entre la lecture et l'écriture, HelloAsso a révoqué
+   * l'ancienne chaîne : écrire son successeur écraserait la chaîne vivante.
+   * Renvoie `false` dans ce cas (rien d'écrit).
    *
-   * `update()` ciblé plutôt que `load → mutate → save` : le webhook
-   * `Organization.IsCashinCompliant` peut modifier la même ligne pendant que le
-   * job tient l'entité en mémoire, et un `save(entity)` réécrirait sa valeur
-   * périmée.
+   * `update()` ciblé plutôt que `save(entity)` : le webhook
+   * `Organization.IsCashinCompliant` peut modifier la même ligne entre-temps.
    */
   async applyRefreshedTokens(
-    clubId: number,
+    refreshedFrom: Pick<HelloAssoOrganizationEntity, 'id' | 'refreshTokenEncrypted'>,
     tokens: { accessToken: string; refreshToken: string; expiresInSeconds: number },
-  ): Promise<void> {
+  ): Promise<boolean> {
     const now = new Date();
     const key = this.config.tokenEncryptionKey;
-    await this.repo.update(
-      { clubId },
+    const result = await this.orgRepo.update(
+      { id: refreshedFrom.id, refreshTokenEncrypted: refreshedFrom.refreshTokenEncrypted },
       {
         accessTokenEncrypted: encryptToken(tokens.accessToken, key),
         refreshTokenEncrypted: encryptToken(tokens.refreshToken, key),
@@ -214,79 +272,76 @@ export class HelloAssoDetailsService {
         lastRefreshedAt: now,
       },
     );
+    return (result.affected ?? 0) > 0;
   }
 
   /**
-   * Supprime la liaison HelloAsso d'un club. Réversible via re-passage par la mire.
-   * Pas de révocation côté HelloAsso : leurs tokens deviennent simplement orphelins
-   * côté OpenDossard mais restent valides côté HelloAsso jusqu'à expiration normale.
+   * Délie un club. Réversible via re-passage par la mire. Pas de révocation
+   * côté HelloAsso. L'orga est supprimée quand plus aucun club n'y est
+   * rattaché ; sinon elle reste liée pour les autres clubs.
    *
    * **Effet de bord** : désactive aussi `online_registration_enabled` sur toutes
    * les compétitions de ce club, dans la même transaction. Sans cette cascade,
    * les compets gardent leur flag à `true` après le délink, l'UI cache le switch
    * (car le club n'a plus de lien HA) mais les utilisateurs peuvent quand même
    * initier des paiements qui échoueront au moment du POST checkout-intent avec
-   * "Paiement en ligne indisponible". On normalise donc l'état en DB pour
-   * matcher l'UI.
+   * "Paiement en ligne indisponible".
    *
    * **Hors scope** (intentionnel) : les paiements HelloAsso `pending` au moment
-   * du délink ne sont PAS annulés. Ils restent dans leur état actuel ; HelloAsso
-   * les traitera (ou pas) côté leur infra selon leur propre logique.
+   * du délink ne sont PAS annulés.
    */
   async deleteByClubId(clubId: number): Promise<void> {
-    const existing = await this.repo.findOne({ where: { clubId } });
+    const existing = await this.findByClubId(clubId);
     if (!existing) {
       throw new NotFoundException(`Aucune liaison HelloAsso pour le club ${clubId}`);
     }
-    // TypeORM `repo.remove(entity)` mute l'entité et efface son `id` après
-    // suppression (cf. doc : l'entité peut être ré-insérée comme une fresh entity).
-    // Donc on capture les valeurs AVANT le remove pour le log.
-    const removedId = existing.id;
-    const removedSlug = existing.organizationSlug;
+    const { id: linkId, organizationId } = existing;
+    const slug = existing.organization.organizationSlug;
 
-    const competitionsDisabled = await this.dataSource.transaction(async manager => {
-      const updateResult = await manager
-        .createQueryBuilder()
-        .update(CompetitionEntity)
-        .set({ onlineRegistrationEnabled: false })
-        .where('club_id = :clubId', { clubId })
-        .andWhere('online_registration_enabled = true')
-        .execute();
-      await manager.remove(existing);
-      return updateResult.affected ?? 0;
-    });
+    const { competitionsDisabled, orgRemoved } = await this.dataSource.transaction(
+      async manager => {
+        // Verrou sur l'orga avant de compter ses clubs : deux déliaisons
+        // simultanées des derniers clubs ne laissent pas d'orga orpheline, et
+        // une liaison concurrente (qui verrouille la même ligne) est sérialisée.
+        await manager.query(LOCK_ORG_SQL, [organizationId]);
+        const updateResult = await manager
+          .createQueryBuilder()
+          .update(CompetitionEntity)
+          .set({ onlineRegistrationEnabled: false })
+          .where('club_id = :clubId', { clubId })
+          .andWhere('online_registration_enabled = true')
+          .execute();
+        await manager.delete(HelloAssoDetailsEntity, { id: linkId });
+        const remaining = await manager.count(HelloAssoDetailsEntity, {
+          where: { organizationId },
+        });
+        if (remaining === 0) {
+          await manager.delete(HelloAssoOrganizationEntity, { id: organizationId });
+        }
+        return { competitionsDisabled: updateResult.affected ?? 0, orgRemoved: remaining === 0 };
+      },
+    );
 
     this.logger.log(
-      `deleteByClubId: removed link id=${removedId} clubId=${clubId} slug=${removedSlug} | ` +
+      `deleteByClubId: removed link id=${linkId} clubId=${clubId} slug=${slug}` +
+        `${orgRemoved ? ' (orga supprimée, plus aucun club rattaché)' : ''} | ` +
         `disabled online_registration_enabled on ${competitionsDisabled} competition(s)`,
     );
   }
 
   /**
-   * Met à jour le drapeau `isCashInCompliant` d'une liaison existante, identifiée
-   * par son `organizationSlug`. Renvoie le nombre de lignes affectées (0 si
-   * aucune liaison locale ne correspond au slug — webhook orphelin).
+   * Met à jour le drapeau `isCashInCompliant` d'une orga, identifiée par son
+   * slug. Vaut pour tous les clubs qui y sont rattachés. Renvoie le nombre de
+   * lignes affectées (0 si l'orga n'est pas liée chez nous — webhook orphelin).
    *
-   * Appelé par le receiver webhook `Organization.IsCashinCompliant`.
+   * Appelé par le receiver webhook `Organization.IsCashinCompliant` et par le
+   * rafraîchissement manuel du statut de conformité.
    */
   async setIsCashInCompliantBySlug(
     organizationSlug: string,
     isCashInCompliant: boolean,
   ): Promise<number> {
-    const result = await this.repo.update({ organizationSlug }, { isCashInCompliant });
-    return result.affected ?? 0;
-  }
-
-  /**
-   * Met à jour le drapeau `isCashInCompliant` de la liaison d'un club. Renvoie
-   * le nombre de lignes affectées (0 si le club n'a pas de liaison).
-   *
-   * Appelé par le rafraîchissement manuel du statut de conformité. `update()`
-   * ciblé sur la seule colonne : ne touche jamais aux tokens qu'un refresh
-   * concurrent pourrait être en train d'écrire.
-   */
-  async setIsCashInCompliantByClubId(clubId: number, isCashInCompliant: boolean): Promise<number> {
-    const result = await this.repo.update({ clubId }, { isCashInCompliant });
+    const result = await this.orgRepo.update({ organizationSlug }, { isCashInCompliant });
     return result.affected ?? 0;
   }
 }

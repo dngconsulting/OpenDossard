@@ -7,7 +7,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 
-import { HelloAssoDetailsEntity } from './entities/helloasso-details.entity';
+import { HelloAssoOrganizationEntity } from './entities/helloasso-organization.entity';
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoApiClient } from './helloasso-api.client';
 import { HelloAssoDetailsService, type HelloAssoLinkStatus } from './helloasso-details.service';
@@ -29,7 +29,7 @@ const ACCESS_TOKEN_MARGIN_MS = 60 * 1000;
  * ses démarches auprès de HelloAsso.
  *
  * HelloAsso ne renvoie ce drapeau qu'à un administrateur de l'organisation :
- * la lecture exige le jeton CLUB (le jeton partenaire ne le voit pas). Le
+ * la lecture exige le jeton de l'ORGA (le jeton partenaire ne le voit pas). Le
  * jeton stocké est réutilisé tant qu'il est valide ; sinon il est renouvelé et
  * les nouveaux jetons sont réenregistrés exactement comme le fait le cron
  * (`HelloAssoTokenRefreshService`).
@@ -59,15 +59,16 @@ export class HelloAssoCashInComplianceService {
     if (!link) {
       throw new NotFoundException(`Club ${clubId} non lié à HelloAsso`);
     }
-    const label = `clubId=${clubId} slug=${link.organizationSlug}`;
+    const org = link.organization;
+    const label = `clubId=${clubId} slug=${org.organizationSlug}`;
 
     let isCashInCompliant: boolean;
     let refreshed: boolean;
     try {
-      const token = await this.getClubAccessToken(link);
+      const token = await this.getOrganizationAccessToken(org);
       refreshed = token.refreshed;
       const organization = await this.api.getOrganization({
-        organizationSlug: link.organizationSlug,
+        organizationSlug: org.organizationSlug,
         accessToken: token.accessToken,
       });
       if (typeof organization.isCashInCompliant !== 'boolean') {
@@ -87,34 +88,42 @@ export class HelloAssoCashInComplianceService {
       throw e;
     }
 
-    await this.details.setIsCashInCompliantByClubId(clubId, isCashInCompliant);
+    // Drapeau de l'orga : vaut pour tous les clubs qui y sont rattachés.
+    await this.details.setIsCashInCompliantBySlug(org.organizationSlug, isCashInCompliant);
     this.logger.log(
-      `refresh ${label}: isCashInCompliant ${String(link.isCashInCompliant)} → ${isCashInCompliant} (refreshToken=${refreshed})`,
+      `refresh ${label}: isCashInCompliant ${String(org.isCashInCompliant)} → ${isCashInCompliant} (refreshToken=${refreshed})`,
     );
     return this.details.getStatus(clubId);
   }
 
-  private async getClubAccessToken(
-    link: HelloAssoDetailsEntity,
+  private async getOrganizationAccessToken(
+    org: HelloAssoOrganizationEntity,
   ): Promise<{ accessToken: string; refreshed: boolean }> {
     const key = this.config.tokenEncryptionKey;
-    if (link.accessTokenExpiresAt.getTime() - Date.now() > ACCESS_TOKEN_MARGIN_MS) {
-      return { accessToken: decryptToken(link.accessTokenEncrypted, key), refreshed: false };
+    if (org.accessTokenExpiresAt.getTime() - Date.now() > ACCESS_TOKEN_MARGIN_MS) {
+      return { accessToken: decryptToken(org.accessTokenEncrypted, key), refreshed: false };
     }
 
     const tokens = await this.oauth.refreshAccessToken(
-      decryptToken(link.refreshTokenEncrypted, key),
+      decryptToken(org.refreshTokenEncrypted, key),
     );
     // Même garde-fou que le cron : écraser un refresh token valide par une
     // valeur vide tuerait la liaison.
     if (!tokens.refreshToken) {
       throw new BadGatewayException('Réponse HelloAsso sans refresh_token — aucune écriture');
     }
-    await this.details.applyRefreshedTokens(link.clubId, {
+    // Écriture conditionnelle : ignorée si la chaîne a été modifiée pendant
+    // l'appel (passage par la mire, cron). Le jeton obtenu reste utilisable pour la lecture.
+    const written = await this.details.applyRefreshedTokens(org, {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       expiresInSeconds: tokens.expiresIn,
     });
+    if (!written) {
+      this.logger.warn(
+        `refresh slug=${org.organizationSlug}: chaîne modifiée entre-temps — résultat non enregistré`,
+      );
+    }
     return { accessToken: tokens.accessToken, refreshed: true };
   }
 }

@@ -58,7 +58,7 @@ export class ClubsService {
     const linked = await this.helloAssoDetailsRepository.findOne({ where: { clubId } });
     if (linked) {
       throw new ConflictException(
-        `Ce club est lié à HelloAsso (${linked.organizationSlug}). Délier d'abord pour ${action === 'update' ? 'modifier' : 'supprimer'}.`,
+        `Ce club est lié à HelloAsso (${linked.organization.organizationSlug}). Délier d'abord pour ${action === 'update' ? 'modifier' : 'supprimer'}.`,
       );
     }
   }
@@ -104,18 +104,23 @@ export class ClubsService {
 
     // Champs calculés exposés par la liste paginée, en sous-requêtes scalaires :
     // pas de join (voir buildFilteredQuery), une ligne raw par entité corrélée
-    // par l'id. Les deux sous-requêtes sur helloasso_details ne renvoient au
-    // plus qu'une ligne grâce à l'index unique sur club_id.
+    // par l'id. Les sous-requêtes sur helloasso_details ne renvoient au plus
+    // qu'une ligne grâce à l'index unique sur club_id ; expiration et conformité
+    // viennent de l'orga à laquelle le club est rattaché.
     qb.addSelect(
       '(SELECT d.linked_at FROM helloasso_details d WHERE d.club_id = club.id)',
       'ha_linked_at',
     )
       .addSelect(
-        '(SELECT d.refresh_token_expires_at FROM helloasso_details d WHERE d.club_id = club.id)',
+        `(SELECT o.refresh_token_expires_at FROM helloasso_details d
+           JOIN helloasso_organization o ON o.id = d.organization_id
+           WHERE d.club_id = club.id)`,
         'ha_expires_at',
       )
       .addSelect(
-        '(SELECT d.is_cash_in_compliant FROM helloasso_details d WHERE d.club_id = club.id)',
+        `(SELECT o.is_cash_in_compliant FROM helloasso_details d
+           JOIN helloasso_organization o ON o.id = d.organization_id
+           WHERE d.club_id = club.id)`,
         'ha_cash_in_compliant',
       )
       .addSelect('EXISTS (SELECT 1 FROM competition c WHERE c.club_id = club.id)', 'organizer')

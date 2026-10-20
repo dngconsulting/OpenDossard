@@ -3,22 +3,25 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
+import { HelloAssoOrganizationEntity } from './helloasso-organization.entity';
+
 /**
- * Liaison HelloAsso d'un club OpenDossard.
+ * Rattachement d'un club OpenDossard à une organisation HelloAsso.
  *
- * Une seule ligne par club (`club_id` UNIQUE). Le slug HelloAsso est lui aussi
- * UNIQUE pour empêcher qu'une même asso HelloAsso soit liée à deux clubs.
+ * Une seule ligne par club (`club_id` UNIQUE) ; plusieurs clubs peuvent se
+ * rattacher à la même orga. La liaison OAuth (tokens) et la conformité
+ * d'encaissement appartiennent à l'orga (`HelloAssoOrganizationEntity`,
+ * chargée en eager) ; cette ligne ne date que le rattachement du club.
  *
- * Les tokens sont **chiffrés au repos** (AES-256-GCM via `util/token-crypto.util`).
- * Ne JAMAIS persister les valeurs en clair.
- *
- * Pas de relation TypeORM `@OneToOne(() => ClubEntity)` ici : les contraintes
- * FK (avec `ON DELETE CASCADE` côté club, `SET NULL` côté user) sont décrites
- * dans la migration. La navigation se fait côté service via les repos respectifs.
+ * Pas de relation TypeORM vers `ClubEntity` : les contraintes FK (avec
+ * `ON DELETE CASCADE` côté club, `SET NULL` côté user, `RESTRICT` côté orga)
+ * sont décrites dans les migrations.
  */
 @Entity('helloasso_details')
 export class HelloAssoDetailsEntity {
@@ -29,45 +32,24 @@ export class HelloAssoDetailsEntity {
   @Index({ unique: true })
   clubId: number;
 
-  @Column({ name: 'organization_slug', type: 'varchar', length: 255 })
-  @Index({ unique: true })
-  organizationSlug: string;
+  @Column({ name: 'organization_id', type: 'int' })
+  @Index('IDX_helloasso_details_organization_id')
+  organizationId: number;
 
-  /** Token d'accès HelloAsso chiffré (AES-256-GCM, format `iv.tag.ct`). */
-  @Column({ name: 'access_token', type: 'text' })
-  accessTokenEncrypted: string;
+  @ManyToOne(() => HelloAssoOrganizationEntity, { eager: true, onDelete: 'RESTRICT' })
+  @JoinColumn({
+    name: 'organization_id',
+    foreignKeyConstraintName: 'FK_helloasso_details_organization',
+  })
+  organization: HelloAssoOrganizationEntity;
 
-  /** Refresh token HelloAsso chiffré (AES-256-GCM, format `iv.tag.ct`). */
-  @Column({ name: 'refresh_token', type: 'text' })
-  refreshTokenEncrypted: string;
-
-  @Column({ name: 'access_token_expires_at', type: 'timestamp' })
-  @Index()
-  accessTokenExpiresAt: Date;
-
-  @Column({ name: 'refresh_token_expires_at', type: 'timestamp' })
-  refreshTokenExpiresAt: Date;
-
-  /** Audit : user qui a initié la liaison. NULL si user supprimé (RGPD). */
+  /** Audit : user qui a initié le rattachement. NULL si user supprimé (RGPD). */
   @Column({ name: 'linked_by_user_id', type: 'int', nullable: true })
   linkedByUserId: number | null;
 
+  /** Date du (dernier) passage par la mire pour ce club. */
   @Column({ name: 'linked_at', type: 'timestamp' })
   linkedAt: Date;
-
-  /** Dernier refresh OAuth réussi. NULL tant que pas encore rafraîchi. */
-  @Column({ name: 'last_refreshed_at', type: 'timestamp', nullable: true })
-  lastRefreshedAt: Date | null;
-
-  /**
-   * Éligibilité HelloAsso à encaisser. Reflet de `isCashInCompliant` côté HA.
-   * NULL = inconnu (liaison antérieure à l'intégration, ou échec du GET orga
-   * au moment de la liaison). `false` = l'asso n'a pas finalisé ses exigences
-   * administratives → aucun paiement ne sera encaissé. Mise à jour par webhook
-   * `Organization.IsCashinCompliant`.
-   */
-  @Column({ name: 'is_cash_in_compliant', type: 'boolean', nullable: true })
-  isCashInCompliant: boolean | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

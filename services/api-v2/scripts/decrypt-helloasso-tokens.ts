@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /**
  * Inspecte les liaisons HelloAsso stockées en DB.
  *
@@ -67,7 +66,9 @@ function loadKey(): Buffer {
   }
   const key = Buffer.from(b64, 'base64');
   if (key.length !== 32) {
-    throw new Error(`HELLOASSO_TOKEN_ENCRYPTION_KEY doit faire 32 octets une fois décodé en base64, reçu ${key.length}`);
+    throw new Error(
+      `HELLOASSO_TOKEN_ENCRYPTION_KEY doit faire 32 octets une fois décodé en base64, reçu ${key.length}`,
+    );
   }
   return key;
 }
@@ -84,28 +85,43 @@ async function main(): Promise<void> {
       : await repo.find({ where: { clubId: args.clubId } });
 
     if (rows.length === 0) {
-      console.error(args.all ? 'Aucune liaison HelloAsso en base.' : `Aucune liaison pour clubId=${args.clubId}.`);
+      console.error(
+        args.all
+          ? 'Aucune liaison HelloAsso en base.'
+          : `Aucune liaison pour clubId=${args.clubId}.`,
+      );
       process.exit(2);
     }
 
     if (args.showTokens) {
-      console.error('⚠️  --show-tokens activé : tokens en clair ci-dessous. NE PAS partager cette sortie.');
+      console.error(
+        '⚠️  --show-tokens activé : tokens en clair ci-dessous. NE PAS partager cette sortie.',
+      );
     }
     for (const row of rows) {
-      const accessToken = args.showTokens ? decryptToken(row.accessTokenEncrypted, key) : '****';
-      const refreshToken = args.showTokens ? decryptToken(row.refreshTokenEncrypted, key) : '****';
-      console.log(JSON.stringify({
-        id: row.id,
-        clubId: row.clubId,
-        slug: row.organizationSlug,
-        accessToken,
-        refreshToken,
-        accessTokenExpiresAt: row.accessTokenExpiresAt.toISOString(),
-        refreshTokenExpiresAt: row.refreshTokenExpiresAt.toISOString(),
-        linkedAt: row.linkedAt.toISOString(),
-        lastRefreshedAt: row.lastRefreshedAt?.toISOString() ?? null,
-        linkedByUserId: row.linkedByUserId,
-      }, null, 2));
+      // Les tokens appartiennent à l'orga, partagée par les clubs qui y sont rattachés.
+      const org = row.organization;
+      const accessToken = args.showTokens ? decryptToken(org.accessTokenEncrypted, key) : '****';
+      const refreshToken = args.showTokens ? decryptToken(org.refreshTokenEncrypted, key) : '****';
+      console.log(
+        JSON.stringify(
+          {
+            id: row.id,
+            clubId: row.clubId,
+            organizationId: org.id,
+            slug: org.organizationSlug,
+            accessToken,
+            refreshToken,
+            accessTokenExpiresAt: org.accessTokenExpiresAt.toISOString(),
+            refreshTokenExpiresAt: org.refreshTokenExpiresAt.toISOString(),
+            linkedAt: row.linkedAt.toISOString(),
+            lastRefreshedAt: org.lastRefreshedAt?.toISOString() ?? null,
+            linkedByUserId: row.linkedByUserId,
+          },
+          null,
+          2,
+        ),
+      );
     }
   } finally {
     await dataSource.destroy();

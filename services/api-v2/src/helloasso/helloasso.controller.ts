@@ -121,9 +121,10 @@ refresh_token est hors fenêtre 30j et nécessite un re-passage par la mire.`,
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Délier le club de HelloAsso',
-    description: `Supprime la ligne \`helloasso_details\` correspondante. Action réversible
-en re-passant par la mire. Les tokens HelloAsso restent valides côté HelloAsso jusqu'à
-leur expiration normale (pas de révocation explicite).`,
+    description: `Supprime le rattachement du club à son organisation HelloAsso. Action
+réversible en re-passant par la mire. L'organisation reste liée pour les autres clubs qui
+y sont rattachés ; elle est supprimée quand plus aucun club n'y est rattaché. Pas de
+révocation côté HelloAsso.`,
   })
   async unlink(
     @Param('clubId', ParseIntPipe) clubId: number,
@@ -213,8 +214,13 @@ exécuter (garde anti-concurrence du service).`,
 
     // Cas 3 : exchange + persist
     let originClubId: number | null = null;
+    // Distingue l'échec de l'échange OAuth (`exchange_failed`) de celui de la
+    // suite (contrôles, enregistrement de la liaison → `link_failed`) : un
+    // même code pour les deux a fait chercher côté HelloAsso une erreur de base.
+    let exchanged = false;
     try {
       const result = await this.oauth.consumeCallback({ code, state });
+      exchanged = true;
       originClubId = result.originClubId;
       this.logger.log(
         `callback: state consumed, userId=${result.userId} originClubId=${originClubId ?? 'null'} slug=${result.organizationSlug}`,
@@ -331,6 +337,15 @@ exécuter (garde anti-concurrence du service).`,
       return this.redirectSuccess(res, { clubId: club.id, slug: result.organizationSlug });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
+      if (exchanged && e instanceof ConflictException) {
+        // Garde D1 : club déjà lié à une autre orga HelloAsso.
+        this.logger.warn(`callback: club déjà lié à une autre orga: ${msg}`);
+        return this.redirectError(res, 'linked_to_other_org', originClubId);
+      }
+      if (exchanged) {
+        this.logger.warn(`callback: link failed: ${msg}`);
+        return this.redirectError(res, 'link_failed', originClubId);
+      }
       this.logger.warn(`callback: exchange failed: ${msg}`);
       return this.redirectError(res, 'exchange_failed', originClubId);
     }

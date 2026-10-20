@@ -4,10 +4,11 @@ import { DataSource, In } from 'typeorm';
 
 import { Federation } from '../src/common/enums';
 import { ClubEntity } from '../src/clubs/entities/club.entity';
-import { HelloAssoDetailsEntity } from '../src/helloasso/entities/helloasso-details.entity';
+import { HelloAssoOrganizationEntity } from '../src/helloasso/entities/helloasso-organization.entity';
 import { HelloAssoConfig } from '../src/helloasso/helloasso.config';
 import { HelloAssoApiClient } from '../src/helloasso/helloasso-api.client';
 import { encryptToken } from '../src/helloasso/util/token-crypto.util';
+import { cleanHelloAssoLinks, seedHelloAssoLink } from './helpers/helloasso-link.seed';
 import { getApp, getAuthHelper, getSeedHelper } from './setup-e2e';
 
 const refreshUrl = (clubId: number) =>
@@ -42,7 +43,7 @@ describe('HelloAsso — rafraîchissement manuel de la conformité encaissement 
     getOrganization.mockRestore();
     await getSeedHelper().cleanUserClubs();
     if (seededClubIds.length > 0) {
-      await dataSource.getRepository(HelloAssoDetailsEntity).delete({ clubId: In(seededClubIds) });
+      await cleanHelloAssoLinks(dataSource, seededClubIds);
       await dataSource.getRepository(ClubEntity).delete({ id: In(seededClubIds) });
       seededClubIds = [];
     }
@@ -64,26 +65,25 @@ describe('HelloAsso — rafraîchissement manuel de la conformité encaissement 
   async function seedLinkedClub(): Promise<number> {
     const clubId = await seedClub();
     const key = getApp().get(HelloAssoConfig).tokenEncryptionKey;
-    await dataSource.getRepository(HelloAssoDetailsEntity).save({
+    await seedHelloAssoLink(dataSource, {
       clubId,
-      organizationSlug: `orga-conformite-${clubId}`,
+      organizationSlug: orgaSlug(clubId),
       accessTokenEncrypted: encryptToken('AT_CLUB', key),
       refreshTokenEncrypted: encryptToken('RT_CLUB', key),
       accessTokenExpiresAt: new Date(Date.now() + 20 * 60 * 1000),
-      refreshTokenExpiresAt: new Date(Date.now() + 20 * 24 * 3600 * 1000),
-      linkedByUserId: null,
-      linkedAt: new Date(),
-      lastRefreshedAt: null,
       isCashInCompliant: false,
     });
     return clubId;
   }
 
+  const orgaSlug = (clubId: number) => `orga-conformite-${clubId}`;
+
+  /** Conformité de l'orga à laquelle le club est rattaché. */
   async function storedFlag(clubId: number): Promise<boolean | null> {
-    const link = await dataSource
-      .getRepository(HelloAssoDetailsEntity)
-      .findOneOrFail({ where: { clubId } });
-    return link.isCashInCompliant;
+    const org = await dataSource
+      .getRepository(HelloAssoOrganizationEntity)
+      .findOneOrFail({ where: { organizationSlug: orgaSlug(clubId) } });
+    return org.isCashInCompliant;
   }
 
   it('refuse un appel anonyme', async () => {
@@ -110,8 +110,8 @@ describe('HelloAsso — rafraîchissement manuel de la conformité encaissement 
   it('enregistre aussi un retour à false', async () => {
     const clubId = await seedLinkedClub();
     await dataSource
-      .getRepository(HelloAssoDetailsEntity)
-      .update({ clubId }, { isCashInCompliant: true });
+      .getRepository(HelloAssoOrganizationEntity)
+      .update({ organizationSlug: orgaSlug(clubId) }, { isCashInCompliant: true });
     getOrganization.mockResolvedValue({ isCashInCompliant: false });
 
     await request(getApp().getHttpServer())

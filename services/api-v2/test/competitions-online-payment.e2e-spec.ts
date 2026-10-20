@@ -1,9 +1,9 @@
 import * as request from 'supertest';
-import { DataSource, In } from 'typeorm';
+import { DataSource } from 'typeorm';
 
 import { ClubEntity } from '../src/clubs/entities/club.entity';
 import { CompetitionEntity } from '../src/competitions/entities/competition.entity';
-import { HelloAssoDetailsEntity } from '../src/helloasso/entities/helloasso-details.entity';
+import { cleanHelloAssoLinks, seedHelloAssoLink } from './helpers/helloasso-link.seed';
 import { getApp, getAuthHelper, getSeedHelper } from './setup-e2e';
 
 const API = '/api/v2/competitions';
@@ -29,24 +29,15 @@ describe('Competitions — verrou d’activation du paiement en ligne (e2e)', ()
 
   afterEach(async () => {
     const clubIds = (await dataSource.getRepository(ClubEntity).find()).map(c => c.id);
-    if (clubIds.length > 0) {
-      await dataSource.getRepository(HelloAssoDetailsEntity).delete({ clubId: In(clubIds) });
-    }
+    await cleanHelloAssoLinks(dataSource, clubIds);
     await getSeedHelper().cleanCompetitions();
     await getSeedHelper().cleanClubs();
   });
 
   async function linkClub(isCashInCompliant: boolean | null): Promise<void> {
-    await dataSource.getRepository(HelloAssoDetailsEntity).save({
+    await seedHelloAssoLink(dataSource, {
       clubId: club.id,
       organizationSlug: `orga-verrou-${club.id}`,
-      accessTokenEncrypted: 'iv.tag.ct',
-      refreshTokenEncrypted: 'iv.tag.ct',
-      accessTokenExpiresAt: new Date(Date.now() + 30 * 60 * 1000),
-      refreshTokenExpiresAt: new Date(Date.now() + 20 * 24 * 3600 * 1000),
-      linkedByUserId: null,
-      linkedAt: new Date(),
-      lastRefreshedAt: null,
       isCashInCompliant,
     });
   }

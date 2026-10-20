@@ -12,7 +12,7 @@ import { decryptToken } from './util/token-crypto.util';
  *
  * Le seuil se raisonne avec la cadence, pas isolément. Le refresh token vit 30
  * jours ; après un refresh il redevient éligible 20 jours plus tard, d'où ~1,5
- * refresh par club et par mois — le minimum atteignable. Surtout, il reste 10
+ * refresh par orga et par mois — le minimum atteignable. Surtout, il reste 10
  * jours de rattrapage : le job peut échouer 9 jours d'affilée sans qu'aucune
  * liaison ne soit perdue.
  */
@@ -26,18 +26,25 @@ export interface RefreshRunSummary {
   refreshed: number;
   rejected: number;
   failed: number;
+  /**
+   * Chaîne modifiée entre la lecture et l'écriture (passage par la mire, ou
+   * refresh concurrent de la conformité manuelle) : résultat ignoré, l'écrire
+   * pourrait écraser la chaîne vivante. Rien à retenter.
+   */
+  superseded: number;
   durationMs: number;
-  /** Club ayant pris le plus de temps sur ce run — isole un appel HelloAsso lent. */
-  slowestClubId: number | null;
+  /** Orga ayant pris le plus de temps sur ce run — isole un appel HelloAsso lent. */
+  slowestSlug: string | null;
   slowestMs: number;
 }
 
 /**
- * Job planifié de renouvellement des tokens HelloAsso des clubs.
+ * Job planifié de renouvellement des tokens HelloAsso, **une fois par orga** :
+ * les clubs rattachés à une même orga partagent sa chaîne de tokens.
  *
  * Empêche les liaisons de mourir d'expiration : sans refresh, le refresh token
  * périme au bout de 30 jours et l'admin du club doit repasser par la mire
- * OAuth. Les tokens club ne servent pas au runtime paiement (qui passe par le
+ * OAuth. Les tokens ne servent pas au runtime paiement (qui passe par le
  * token partenaire) — ils sont la preuve du lien.
  *
  * **Désarmé par défaut** (`HELLOASSO_TOKEN_REFRESH_ENABLED`). Ne l'activer que
@@ -94,8 +101,9 @@ export class HelloAssoTokenRefreshService implements OnModuleInit {
         refreshed: 0,
         rejected: 0,
         failed: 0,
+        superseded: 0,
         durationMs: 0,
-        slowestClubId: null,
+        slowestSlug: null,
         slowestMs: 0,
       };
     }
@@ -105,25 +113,26 @@ export class HelloAssoTokenRefreshService implements OnModuleInit {
     let refreshed = 0;
     let rejected = 0;
     let failed = 0;
-    let slowestClubId: number | null = null;
+    let superseded = 0;
+    let slowestSlug: string | null = null;
     let slowestMs = 0;
 
     try {
-      const links = await this.details.findExpiringLinks(REFRESH_THRESHOLD_DAYS);
+      const orgs = await this.details.findExpiringOrganizations(REFRESH_THRESHOLD_DAYS);
 
       // Séquentiel et jamais `Promise.all` : reste sous le rate limit HelloAsso,
-      // garde des logs lisibles club par club, et limite à un seul club le
+      // garde des logs lisibles orga par orga, et limite à une seule orga le
       // rayon d'explosion d'un crash en cours de run.
-      for (const link of links) {
-        const label = `clubId=${link.clubId} slug=${link.organizationSlug}`;
-        const clubStartedAt = Date.now();
+      for (const org of orgs) {
+        const label = `slug=${org.organizationSlug}`;
+        const orgStartedAt = Date.now();
 
-        // try/catch PAR itération : un club en échec ne doit jamais avorter le
+        // try/catch PAR itération : une orga en échec ne doit jamais avorter le
         // run. Le déchiffrement est dans le try — une ligne corrompue ou une
         // clé tournée est un échec isolé, pas un crash global.
         try {
           const refreshToken = decryptToken(
-            link.refreshTokenEncrypted,
+            org.refreshTokenEncrypted,
             this.config.tokenEncryptionKey,
           );
           const tokens = await this.oauth.refreshAccessToken(refreshToken);
@@ -138,11 +147,18 @@ export class HelloAssoTokenRefreshService implements OnModuleInit {
             continue;
           }
 
-          await this.details.applyRefreshedTokens(link.clubId, {
+          const written = await this.details.applyRefreshedTokens(org, {
             accessToken: tokens.accessToken,
             refreshToken: tokens.refreshToken,
             expiresInSeconds: tokens.expiresIn,
           });
+          if (!written) {
+            superseded += 1;
+            this.logger.warn(
+              `refresh ${label}: chaîne modifiée entre-temps (passage par la mire ou refresh concurrent) — résultat ignoré`,
+            );
+            continue;
+          }
           refreshed += 1;
         } catch (e) {
           if (e instanceof UnauthorizedException) {
@@ -161,30 +177,31 @@ export class HelloAssoTokenRefreshService implements OnModuleInit {
         } finally {
           // `finally` s'exécute aussi sur le `continue` du cas sans
           // refresh_token, donc le suivi du plus lent reste exhaustif.
-          const clubMs = Date.now() - clubStartedAt;
-          this.logger.log(`refresh ${label}: durationMs=${clubMs}`);
-          if (clubMs > slowestMs) {
-            slowestMs = clubMs;
-            slowestClubId = link.clubId;
+          const orgMs = Date.now() - orgStartedAt;
+          this.logger.log(`refresh ${label}: durationMs=${orgMs}`);
+          if (orgMs > slowestMs) {
+            slowestMs = orgMs;
+            slowestSlug = org.organizationSlug;
           }
         }
       }
 
       const durationMs = Date.now() - startedAt;
       const summary: RefreshRunSummary = {
-        candidates: links.length,
+        candidates: orgs.length,
         refreshed,
         rejected,
         failed,
+        superseded,
         durationMs,
-        slowestClubId,
+        slowestSlug,
         slowestMs,
       };
 
       const line =
-        `run terminé — candidats=${links.length} rafraîchis=${refreshed} ` +
-        `rejetés=${rejected} échecs=${failed} durationMs=${durationMs} ` +
-        `slowestClubId=${slowestClubId ?? '-'} slowestMs=${slowestMs}`;
+        `run terminé — candidats=${orgs.length} rafraîchis=${refreshed} ` +
+        `rejetés=${rejected} échecs=${failed} remplacés=${superseded} durationMs=${durationMs} ` +
+        `slowestSlug=${slowestSlug ?? '-'} slowestMs=${slowestMs}`;
       this.logger.log(line);
       if (durationMs > SLOW_RUN_WARN_MS) {
         this.logger.warn(`run anormalement long (> ${SLOW_RUN_WARN_MS} ms) — ${line}`);
