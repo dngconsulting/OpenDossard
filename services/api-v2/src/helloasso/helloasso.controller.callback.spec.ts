@@ -28,7 +28,11 @@ describe('HelloAssoController — callback : raison d’erreur', () => {
         tokens: { accessToken: 'AT', refreshToken: 'RT', expiresIn: 1800 },
       }),
     };
-    const details = { upsertLink: jest.fn().mockResolvedValue({}) };
+    const details = {
+      upsertLink: jest.fn().mockResolvedValue({}),
+      saveChainIfOrganizationKnown: jest.fn().mockResolvedValue(false),
+      findByClubId: jest.fn().mockResolvedValue(null),
+    };
     const clubs = {
       findById: jest.fn().mockResolvedValue({ id: 42, helloAssoSlug: 'velo-club-roquettois' }),
     };
@@ -49,17 +53,20 @@ describe('HelloAssoController — callback : raison d’erreur', () => {
       {} as HelloAssoTokenRefreshService,
       userRepository as unknown as Repository<UserEntity>,
     );
-    return { controller, oauth, details };
+    return { controller, oauth, details, clubs };
   }
 
-  async function reasonOf(controller: HelloAssoController): Promise<string | null> {
+  async function redirectOf(controller: HelloAssoController): Promise<URLSearchParams> {
     const redirect = jest.fn();
     await controller.callback('code', 'state', undefined, undefined, undefined, {
       redirect,
     } as unknown as Response);
     const [url] = redirect.mock.calls[0] as [string];
-    return new URL(url).searchParams.get('reason');
+    return new URL(url).searchParams;
   }
+
+  const reasonOf = async (controller: HelloAssoController) =>
+    (await redirectOf(controller)).get('reason');
 
   beforeEach(() => {
     jest.spyOn(Logger.prototype, 'warn').mockImplementation();
@@ -95,5 +102,69 @@ describe('HelloAssoController — callback : raison d’erreur', () => {
     expect(m.details.upsertLink).toHaveBeenCalledWith(
       expect.objectContaining({ clubId: 42, organizationSlug: 'velo-club-roquettois' }),
     );
+  });
+
+  describe('mire aboutie sur une autre association que celle du club', () => {
+    it('slug du club différent : confirmation à proposer, avec les deux associations', async () => {
+      const m = makeController();
+      m.clubs.findById.mockResolvedValueOnce({ id: 42, helloAssoSlug: 'cyclo-club-castaneen' });
+
+      const params = await redirectOf(m.controller);
+
+      expect(params.get('reason')).toBe('no_matching_club');
+      expect(params.get('slug')).toBe('velo-club-roquettois');
+      expect(params.get('clubSlug')).toBe('cyclo-club-castaneen');
+      expect(params.get('clubId')).toBe('42');
+      expect(m.details.upsertLink).not.toHaveBeenCalled();
+    });
+
+    it('club sans slug : confirmation sans association précédente', async () => {
+      const m = makeController();
+      m.clubs.findById.mockResolvedValueOnce({ id: 42, helloAssoSlug: null });
+
+      const params = await redirectOf(m.controller);
+
+      expect(params.get('originClubHasSlug')).toBe('false');
+      expect(params.has('clubSlug')).toBe(false);
+    });
+
+    it('enregistre la nouvelle chaîne si l’orga est déjà liée (HelloAsso a révoqué l’ancienne)', async () => {
+      const m = makeController();
+      m.clubs.findById.mockResolvedValueOnce({ id: 42, helloAssoSlug: null });
+
+      await redirectOf(m.controller);
+
+      expect(m.details.saveChainIfOrganizationKnown).toHaveBeenCalledWith({
+        organizationSlug: 'velo-club-roquettois',
+        accessToken: 'AT',
+        refreshToken: 'RT',
+        expiresInSeconds: 1800,
+      });
+    });
+
+    it('un échec de cet enregistrement n’empêche pas la confirmation', async () => {
+      const m = makeController();
+      m.clubs.findById.mockResolvedValueOnce({ id: 42, helloAssoSlug: null });
+      m.details.saveChainIfOrganizationKnown.mockRejectedValueOnce(new Error('db down'));
+
+      expect(await reasonOf(m.controller)).toBe('no_matching_club');
+    });
+
+    it('club déjà lié à une autre association : signalé, la webapp n’offre pas la confirmation', async () => {
+      const m = makeController();
+      m.clubs.findById.mockResolvedValueOnce({ id: 42, helloAssoSlug: 'cyclo-club-castaneen' });
+      m.details.findByClubId.mockResolvedValueOnce({ clubId: 42 });
+
+      const params = await redirectOf(m.controller);
+
+      expect(params.get('clubLinked')).toBe('true');
+    });
+
+    it('club non lié : pas de drapeau clubLinked', async () => {
+      const m = makeController();
+      m.clubs.findById.mockResolvedValueOnce({ id: 42, helloAssoSlug: null });
+
+      expect((await redirectOf(m.controller)).has('clubLinked')).toBe(false);
+    });
   });
 });

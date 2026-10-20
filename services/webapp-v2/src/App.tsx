@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Toaster } from 'sonner';
 
 import { AuthProvider } from '@/components/auth/AuthProvider';
+import { HelloAssoSlugConfirmDialog } from '@/components/HelloAssoSlugConfirmDialog';
 import { AdminRoute } from '@/components/navigation/AdminRoute';
 import { ProtectedRoute } from '@/components/navigation/ProtectedRoute.tsx';
 import { OfflineBanner } from '@/components/pwa/OfflineBanner';
@@ -58,8 +59,10 @@ const queryClient = new QueryClient({
 });
 
 function HelloAssoLandingHandler() {
-  useHelloAssoLanding();
-  return null;
+  const { slugConfirmation, closeSlugConfirmation } = useHelloAssoLanding();
+  return (
+    <HelloAssoSlugConfirmDialog confirmation={slugConfirmation} onClose={closeSlugConfirmation} />
+  );
 }
 
 export default function App() {

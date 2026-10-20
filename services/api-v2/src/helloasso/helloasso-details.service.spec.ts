@@ -313,6 +313,34 @@ describe('HelloAssoDetailsService — deleteByClubId', () => {
   });
 });
 
+describe('HelloAssoDetailsService — saveChainIfOrganizationKnown', () => {
+  const input = {
+    organizationSlug: 'velo-club-roquettois',
+    accessToken: 'AT_NEW',
+    refreshToken: 'RT_NEW',
+    expiresInSeconds: 1800,
+  };
+
+  it('orga connue : chaîne neuve enregistrée (UPDATE par slug, jamais de création)', async () => {
+    const m = makeService();
+
+    await expect(m.service.saveChainIfOrganizationKnown(input)).resolves.toBe(true);
+
+    const [criteria, patch] = m.orgs.update.mock.calls[0] as [object, Record<string, unknown>];
+    expect(criteria).toEqual({ organizationSlug: 'velo-club-roquettois' });
+    expect(decryptToken(patch.refreshTokenEncrypted as string, m.key)).toBe('RT_NEW');
+    expect(patch.lastRefreshedAt).toBeNull();
+    expect(m.orgs.create).not.toHaveBeenCalled();
+  });
+
+  it('orga inconnue : rien écrit, false', async () => {
+    const m = makeService();
+    m.orgs.update.mockResolvedValueOnce({ affected: 0 });
+
+    await expect(m.service.saveChainIfOrganizationKnown(input)).resolves.toBe(false);
+  });
+});
+
 describe('HelloAssoDetailsService — setIsCashInCompliantBySlug', () => {
   it('met à jour l’orga par slug et renvoie le nombre de lignes affectées', async () => {
     const m = makeService();

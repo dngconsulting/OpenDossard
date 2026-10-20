@@ -241,6 +241,34 @@ export class HelloAssoDetailsService {
   }
 
   /**
+   * Enregistre une nouvelle chaîne de tokens sur une orga **déjà liée**, sans
+   * jamais la créer ni rattacher de club. Utilisé quand une mire aboutit sans
+   * liaison (slug du club différent) : HelloAsso a révoqué la chaîne
+   * précédente, les clubs déjà rattachés à l'orga doivent garder une chaîne
+   * vivante. Renvoie `false` si l'orga n'est pas connue (rien d'écrit).
+   */
+  async saveChainIfOrganizationKnown(input: {
+    organizationSlug: string;
+    accessToken: string;
+    refreshToken: string;
+    expiresInSeconds: number;
+  }): Promise<boolean> {
+    const now = new Date();
+    const key = this.config.tokenEncryptionKey;
+    const result = await this.orgRepo.update(
+      { organizationSlug: input.organizationSlug },
+      {
+        accessTokenEncrypted: encryptToken(input.accessToken, key),
+        refreshTokenEncrypted: encryptToken(input.refreshToken, key),
+        accessTokenExpiresAt: new Date(now.getTime() + input.expiresInSeconds * 1000),
+        refreshTokenExpiresAt: new Date(now.getTime() + REFRESH_TOKEN_TTL_SECONDS * 1000),
+        lastRefreshedAt: null,
+      },
+    );
+    return (result.affected ?? 0) > 0;
+  }
+
+  /**
    * Applique un renouvellement de tokens sur une orga.
    *
    * **Volontairement distincte de `upsertLink`** (sémantique « passage par la

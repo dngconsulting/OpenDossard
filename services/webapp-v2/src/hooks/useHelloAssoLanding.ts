@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
+import type { HelloAssoSlugConfirmation } from '@/components/HelloAssoSlugConfirmDialog';
 import { showErrorToast, showSuccessToast } from '@/utils/error-handler/error-handler';
 
 const REASON_LABEL: Record<string, string> = {
@@ -24,6 +25,8 @@ const HELLOASSO_QUERY_KEYS = [
   'clubId',
   'slug',
   'originClubHasSlug',
+  'clubSlug',
+  'clubLinked',
   'error_description',
   'error_uri',
 ];
@@ -32,14 +35,25 @@ const HELLOASSO_QUERY_KEYS = [
  * Détecte un atterrissage post-callback HelloAsso (?status=success|error&...),
  * affiche le toast correspondant puis nettoie les query params de l'URL.
  *
+ * Cas particulier `no_matching_club` (mire aboutie sur une association qui
+ * n'est pas celle du club) : pas d'erreur, mais une confirmation à présenter —
+ * renvoyée dans `slugConfirmation` (cf. `HelloAssoSlugConfirmDialog`).
+ *
  * Le backend redirige vers `/club/{clubId}?status=success` en succès et vers
  * `/clubs?status=error&reason=...` en erreur — ce hook fonctionne sur les deux
  * routes (et n'importe quelle autre route où l'URL aurait ces params).
  *
  * À monter UNE SEULE FOIS dans l'arbre (ex: <HelloAssoLandingHandler /> dans App).
  */
-export function useHelloAssoLanding(): void {
+export function useHelloAssoLanding(): {
+  slugConfirmation: HelloAssoSlugConfirmation | null;
+  closeSlugConfirmation: () => void;
+} {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [slugConfirmation, setSlugConfirmation] = useState<HelloAssoSlugConfirmation | null>(
+    null,
+  );
+  const closeSlugConfirmation = useCallback(() => setSlugConfirmation(null), []);
 
   useEffect(() => {
     const status = searchParams.get('status');
@@ -62,6 +76,9 @@ export function useHelloAssoLanding(): void {
     const reason = searchParams.get('reason') ?? 'inconnue';
     const slug = searchParams.get('slug') ?? '';
     const originClubHasSlug = searchParams.get('originClubHasSlug');
+    const clubSlug = searchParams.get('clubSlug');
+    const clubLinked = searchParams.get('clubLinked') === 'true';
+    const clubId = Number(searchParams.get('clubId'));
     const errorDescription = searchParams.get('error_description') ?? undefined;
     const errorUri = searchParams.get('error_uri') ?? undefined;
 
@@ -95,18 +112,10 @@ export function useHelloAssoLanding(): void {
           id: toastId,
         });
       } else if (status === 'error') {
-        if (reason === 'no_matching_club') {
-          // Deux sous-cas distingués par `originClubHasSlug` (propagé par le
-          // backend) : le champ HelloAsso slug du club d'origine est vide OU
-          // il est rempli mais ne matche pas le slug retourné par HelloAsso.
-          // Dans les deux cas, c'est un ADMIN/ORGA du club qui doit corriger
-          // le champ "HelloAsso slug" sur la fiche, plus un "contacter l'admin".
-          const slugLabel = slug || 'inconnu';
-          const detail =
-            originClubHasSlug === 'false'
-              ? `HelloAsso a retourné l'association « ${slugLabel} ». Renseignez ce slug exact dans le champ « HelloAsso slug » de la fiche club, puis relancez la liaison.`
-              : `Le slug retourné par HelloAsso (« ${slugLabel} ») ne correspond pas à celui enregistré sur ce club. Vérifiez et corrigez le champ « HelloAsso slug » de la fiche club, puis relancez la liaison.`;
-          showErrorToast('Liaison HelloAsso échouée', detail, { id: toastId });
+        if (reason === 'no_matching_club' && slug && Number.isInteger(clubId) && clubId > 0) {
+          // Mire aboutie, mais sur une association différente de celle du club
+          // (ou club sans association) : confirmation, pas erreur.
+          setSlugConfirmation({ clubId, slug, clubSlug: clubSlug || null, clubLinked });
         } else {
           const label = REASON_LABEL[reason] ?? reason;
           const detail = errorDescription ? `${label} — ${errorDescription}` : label;
@@ -128,4 +137,6 @@ export function useHelloAssoLanding(): void {
     // en StrictMode (le 1er cleanup tuerait le timer scheduled par le 2e run).
     void timer;
   }, [searchParams, setSearchParams]);
+
+  return { slugConfirmation, closeSlugConfirmation };
 }

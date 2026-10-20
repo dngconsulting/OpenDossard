@@ -252,23 +252,24 @@ exécuter (garde anti-concurrence du service).`,
         });
       }
 
+      // Slug du club vide ou différent de l'orga autorisée : pas de liaison,
+      // la webapp propose de confirmer cette orga pour le club (le slug est
+      // enregistré sur la fiche, puis une seconde mire valide la liaison).
       const expectedSlug = club.helloAssoSlug?.trim() ?? '';
-      if (expectedSlug === '') {
-        this.logger.warn(
-          `callback: no_matching_club (helloAssoSlug vide) clubId=${club.id} slug=${result.organizationSlug} (user=${result.userId})`,
-        );
-        return this.redirectError(res, 'no_matching_club', originClubId, {
-          slug: result.organizationSlug,
-          originClubHasSlug: 'false',
-        });
-      }
       if (expectedSlug !== result.organizationSlug) {
         this.logger.warn(
-          `callback: no_matching_club (helloAssoSlug mismatch) clubId=${club.id} expected=${expectedSlug} got=${result.organizationSlug} (user=${result.userId})`,
+          `callback: no_matching_club clubId=${club.id} expected=${expectedSlug || '<vide>'} got=${result.organizationSlug} (user=${result.userId})`,
         );
+        await this.saveChainIfOrganizationKnown(result);
+        // Club déjà lié (liaison expirée, reconnexion avec un autre compte) :
+        // la webapp n'offre pas la confirmation, il faut délier d'abord.
+        const clubLinked = (await this.details.findByClubId(club.id)) !== null;
         return this.redirectError(res, 'no_matching_club', originClubId, {
           slug: result.organizationSlug,
-          originClubHasSlug: 'true',
+          originClubHasSlug: expectedSlug === '' ? 'false' : 'true',
+          ...(expectedSlug === '' ? {} : { clubSlug: expectedSlug }),
+          ...(clubLinked ? { clubLinked: 'true' } : {}),
+          clubId: String(club.id),
         });
       }
 
@@ -356,6 +357,36 @@ exécuter (garde anti-concurrence du service).`,
     url.searchParams.set('status', 'success');
     url.searchParams.set('slug', params.slug);
     res.redirect(url.toString());
+  }
+
+  /**
+   * HelloAsso vient de révoquer la chaîne précédente de l'orga autorisée : si
+   * elle est déjà liée chez nous (à d'autres clubs), on enregistre la nouvelle
+   * pour ne pas couper leur liaison. Best-effort : un échec ne doit pas
+   * empêcher la webapp de proposer la confirmation.
+   */
+  private async saveChainIfOrganizationKnown(result: {
+    organizationSlug: string;
+    tokens: { accessToken: string; refreshToken: string; expiresIn: number };
+  }): Promise<void> {
+    try {
+      const saved = await this.details.saveChainIfOrganizationKnown({
+        organizationSlug: result.organizationSlug,
+        accessToken: result.tokens.accessToken,
+        refreshToken: result.tokens.refreshToken,
+        expiresInSeconds: result.tokens.expiresIn,
+      });
+      if (saved) {
+        this.logger.log(
+          `callback: chaîne de l'orga slug=${result.organizationSlug} mise à jour (orga déjà liée)`,
+        );
+      }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.logger.warn(
+        `callback: mise à jour de la chaîne slug=${result.organizationSlug} impossible — ${msg}`,
+      );
+    }
   }
 
   /**

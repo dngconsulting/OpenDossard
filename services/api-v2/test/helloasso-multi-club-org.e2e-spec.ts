@@ -202,4 +202,34 @@ describe('HelloAsso — plusieurs clubs rattachés à la même orga (e2e)', () =
 
     expect(await orgOf(slug)).toBeNull();
   });
+  it('mire aboutie sur une orga déjà liée mais sans liaison : la chaîne de l’orga est mise à jour', async () => {
+    const slug = `roquettes-${Date.now()}`;
+    const fsgt = await seedClub(Federation.FSGT);
+    await link(fsgt, slug, 'RT_1');
+
+    const saved = await details.saveChainIfOrganizationKnown({
+      organizationSlug: slug,
+      accessToken: 'AT_2',
+      refreshToken: 'RT_2',
+      expiresInSeconds: 1800,
+    });
+
+    expect(saved).toBe(true);
+    expect(decryptToken((await orgOf(slug))!.refreshTokenEncrypted, key)).toBe('RT_2');
+    expect(await details.getStatus(fsgt)).toMatchObject({ linked: true, slug });
+  });
+
+  it('mire aboutie sur une orga inconnue sans liaison : rien n’est créé', async () => {
+    const slug = `inconnue-${Date.now()}`;
+
+    const saved = await details.saveChainIfOrganizationKnown({
+      organizationSlug: slug,
+      accessToken: 'AT',
+      refreshToken: 'RT',
+      expiresInSeconds: 1800,
+    });
+
+    expect(saved).toBe(false);
+    expect(await orgOf(slug)).toBeNull();
+  });
 });
