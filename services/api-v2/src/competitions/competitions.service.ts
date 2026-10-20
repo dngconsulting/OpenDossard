@@ -1,13 +1,14 @@
 import { randomUUID } from 'node:crypto';
 
 import {
+  ConflictException,
   Injectable,
   Logger,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, QueryFailedError, Repository } from 'typeorm';
 
 import { AuthorizationService } from '../auth/authorization.service';
 import { AuthenticatedUser } from '../auth/types/authenticated-user';
@@ -339,7 +340,36 @@ export class CompetitionsService {
   async remove(id: number, user: AuthenticatedUser): Promise<void> {
     const competition = await this.findOne(id);
     await this.authorizationService.assertCompetitionAccess(user, competition);
-    await this.competitionRepository.remove(competition);
+    // Une épreuve avec des engagés (pré-inscrits ou non) ou des paiements
+    // HelloAsso (traces comptables, FK RESTRICT en base) n'est jamais
+    // supprimée : refus explicite plutôt qu'une erreur 500 ou des orphelins.
+    const [engagements, payments] = await Promise.all([
+      this.raceRepository.count({ where: { competitionId: id } }),
+      this.helloAssoPaymentRepository.count({ where: { competitionId: id } }),
+    ]);
+    // Libellés exacts : une ligne `race` est un engagement (un coureur peut en
+    // avoir plusieurs), un paiement peut être abandonné ou refusé.
+    const blockers = [
+      engagements > 0 ? `${engagements} engagement${engagements > 1 ? 's' : ''}` : null,
+      payments > 0 ? `${payments} paiement${payments > 1 ? 's' : ''} HelloAsso` : null,
+    ].filter(Boolean);
+    if (blockers.length > 0) {
+      throw new ConflictException(
+        `Cette épreuve a ${blockers.join(' et ')} : elle ne peut pas être supprimée.`,
+      );
+    }
+    try {
+      await this.competitionRepository.remove(competition);
+    } catch (e) {
+      // Engagement ou paiement créé entre le comptage et la suppression : la
+      // contrainte de clé étrangère refuse, on répond 409 plutôt que 500.
+      if (e instanceof QueryFailedError && (e.driverError as { code?: string }).code === '23503') {
+        throw new ConflictException(
+          'Cette épreuve a des engagements ou des paiements HelloAsso : elle ne peut pas être supprimée.',
+        );
+      }
+      throw e;
+    }
   }
 
   async duplicate(id: number, user: AuthenticatedUser): Promise<CompetitionEntity> {

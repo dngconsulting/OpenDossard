@@ -117,6 +117,10 @@ export class CompetitionsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a competition' })
   @ApiResponse({ status: 200, description: 'Competition deleted' })
+  @ApiResponse({
+    status: 409,
+    description: 'Épreuve avec des engagements ou des paiements HelloAsso : non supprimable',
+  })
   async remove(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: AuthenticatedUser,

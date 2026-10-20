@@ -1,7 +1,12 @@
 import * as request from 'supertest';
+import { DataSource } from 'typeorm';
 
 import { getApp, getAuthHelper, getSeedHelper } from './setup-e2e';
 import { CompetitionEntity } from '../src/competitions/entities/competition.entity';
+import {
+  HelloAssoPaymentEntity,
+  HelloAssoPaymentStatus,
+} from '../src/helloasso/entities/helloasso-payment.entity';
 
 interface PaginatedResponse<T> {
   data: T[];
@@ -503,6 +508,59 @@ describe('Competitions (e2e)', () => {
         .delete(`${API}/${comp.id}`)
         .set('Authorization', `Bearer ${mobileToken}`)
         .expect(403);
+    });
+
+    describe('épreuve avec des engagements ou des paiements HelloAsso', () => {
+      afterEach(async () => {
+        await getSeedHelper().cleanRaces();
+        await getSeedHelper().cleanLicences();
+      });
+
+      const remove = (id: number) =>
+        request(getApp().getHttpServer())
+          .delete(`${API}/${id}`)
+          .set('Authorization', `Bearer ${adminToken}`);
+
+      it('refuse (409) une épreuve avec des engagements, même sans paiement en ligne', async () => {
+        const competitions = await getSeedHelper().seedCompetitions();
+        await getSeedHelper().seedRaces(competitions, await getSeedHelper().seedLicences());
+
+        const res = await remove(competitions[0].id).expect(409);
+
+        expect((res.body as { message: string }).message).toBe(
+          'Cette épreuve a 2 engagements : elle ne peut pas être supprimée.',
+        );
+        await request(getApp().getHttpServer())
+          .get(`${API}/${competitions[0].id}`)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .expect(200);
+      });
+
+      it('refuse (409) une épreuve avec un paiement HelloAsso', async () => {
+        const [comp] = await getSeedHelper().seedCompetitions();
+        const [licence] = await getSeedHelper().seedLicences();
+        const payments = getApp().get(DataSource).getRepository(HelloAssoPaymentEntity);
+        await payments.save(
+          payments.create({
+            competitionId: comp.id,
+            licenceId: licence.id,
+            status: HelloAssoPaymentStatus.PAID,
+            tarifId: 'Adulte',
+            amountCents: 1000,
+            paidAt: new Date('2026-06-01T10:00:00Z'),
+          }),
+        );
+
+        const res = await remove(comp.id).expect(409);
+
+        expect((res.body as { message: string }).message).toBe(
+          'Cette épreuve a 1 paiement HelloAsso : elle ne peut pas être supprimée.',
+        );
+        await request(getApp().getHttpServer())
+          .get(`${API}/${comp.id}`)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .expect(200);
+      });
     });
   });
 

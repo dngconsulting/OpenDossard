@@ -107,9 +107,9 @@ export default function CompetitionsPage() {
         showSuccessToast(`Épreuve "${deleteCompetition.name}" supprimée`);
         setDeleteCompetition(undefined);
       },
-      onError: () => {
-        showErrorToast(`Erreur lors de la suppression de l'épreuve`);
-      },
+      // Message (dont le 409 « engagements / paiements HelloAsso ») affiché par
+      // le gestionnaire global des mutations : pas de second toast ici.
+      onError: () => setDeleteCompetition(undefined),
     });
   };
 

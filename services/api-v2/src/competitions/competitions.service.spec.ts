@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/unbound-method -- assertions sur mocks Jest */
 import {
+  ConflictException,
   ForbiddenException,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 
 import { AuthorizationService } from '../auth/authorization.service';
 import { AuthenticatedUser } from '../auth/types/authenticated-user';
@@ -22,6 +23,7 @@ import { OnlinePaymentActivationPolicy } from './online-payment-activation.polic
 describe('CompetitionsService — scope enforcement (lot 2)', () => {
   let service: CompetitionsService;
   let competitionRepo: jest.Mocked<Repository<CompetitionEntity>>;
+  let raceRepo: jest.Mocked<Repository<RaceEntity>>;
   let paymentRepo: jest.Mocked<Repository<HelloAssoPaymentEntity>>;
   let detailsRepo: jest.Mocked<Repository<HelloAssoDetailsEntity>>;
   let authz: jest.Mocked<AuthorizationService>;
@@ -60,7 +62,7 @@ describe('CompetitionsService — scope enforcement (lot 2)', () => {
         },
         {
           provide: getRepositoryToken(RaceEntity),
-          useValue: { find: jest.fn(), save: jest.fn() },
+          useValue: { find: jest.fn(), save: jest.fn(), count: jest.fn().mockResolvedValue(0) },
         },
         {
           provide: getRepositoryToken(HelloAssoPaymentEntity),
@@ -88,6 +90,7 @@ describe('CompetitionsService — scope enforcement (lot 2)', () => {
 
     service = module.get(CompetitionsService);
     competitionRepo = module.get(getRepositoryToken(CompetitionEntity));
+    raceRepo = module.get(getRepositoryToken(RaceEntity));
     paymentRepo = module.get(getRepositoryToken(HelloAssoPaymentEntity));
     detailsRepo = module.get(getRepositoryToken(HelloAssoDetailsEntity));
     authz = module.get(AuthorizationService);
@@ -154,6 +157,26 @@ describe('CompetitionsService — scope enforcement (lot 2)', () => {
   });
 
   describe('remove / duplicate / validate', () => {
+    it('remove : refuse (409) une épreuve avec engagements et paiements, sans rien supprimer', async () => {
+      competitionRepo.findOne.mockResolvedValue(baseCompetition);
+      raceRepo.count.mockResolvedValueOnce(2);
+      paymentRepo.count.mockResolvedValueOnce(1);
+
+      await expect(service.remove(100, ORGA)).rejects.toThrow(
+        'Cette épreuve a 2 engagements et 1 paiement HelloAsso : elle ne peut pas être supprimée.',
+      );
+      expect(competitionRepo.remove).not.toHaveBeenCalled();
+    });
+
+    it('remove : violation de clé étrangère à la suppression → 409, pas 500', async () => {
+      competitionRepo.findOne.mockResolvedValue(baseCompetition);
+      competitionRepo.remove.mockRejectedValueOnce(
+        new QueryFailedError('DELETE', [], Object.assign(new Error('fk'), { code: '23503' })),
+      );
+
+      await expect(service.remove(100, ORGA)).rejects.toBeInstanceOf(ConflictException);
+    });
+
     it('remove : délègue assertCompetitionAccess avec la compet fetchée', async () => {
       competitionRepo.findOne.mockResolvedValue(baseCompetition);
       await expect(service.remove(100, ORGA)).resolves.toBeUndefined();
