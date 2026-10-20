@@ -182,7 +182,11 @@ export default function CompetitionDetailPage() {
       };
 
       if (isCreating) {
-        const newCompetition = await createCompetition.mutateAsync(formData as any);
+        const newCompetition = await createCompetition.mutateAsync({
+          data: formData as any,
+          // Duplication : le backend copie les tracés GPX de l'épreuve source.
+          duplicateFrom: isDuplicating ? duplicateFromId : undefined,
+        });
         showSuccessToast('Epreuve créée avec succès');
         navigate(`/competition/${newCompetition.id}`, { replace: true });
       } else {

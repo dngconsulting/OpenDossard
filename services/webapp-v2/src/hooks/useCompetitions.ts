@@ -242,7 +242,8 @@ export function useCreateCompetition() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CompetitionFormData) => competitionsApi.create(data),
+    mutationFn: ({ data, duplicateFrom }: { data: CompetitionFormData; duplicateFrom?: number }) =>
+      competitionsApi.create(data, duplicateFrom),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['competitions'] });
     },

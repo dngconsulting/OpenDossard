@@ -72,11 +72,20 @@ export const competitionsApi = {
       body: JSON.stringify({ ids }),
     }),
 
-  create: (data: CompetitionFormData): Promise<CompetitionDetailType> =>
-    apiClient<CompetitionDetailType>('/competitions', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
+  /**
+   * `duplicateFrom` : épreuve source quand la création vient d'une duplication
+   * — le backend copie alors les tracés GPX des circuits.
+   */
+  create: (data: CompetitionFormData, duplicateFrom?: number): Promise<CompetitionDetailType> =>
+    apiClient<CompetitionDetailType>(
+      duplicateFrom === undefined
+        ? '/competitions'
+        : `/competitions?duplicateFrom=${duplicateFrom}`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      },
+    ),
 
   update: (id: number, data: Partial<CompetitionFormData>): Promise<CompetitionDetailType> =>
     apiClient<CompetitionDetailType>(`/competitions/${id}`, {

@@ -378,5 +378,79 @@ describe('Traces (e2e)', () => {
         .set('Authorization', `Bearer ${mobile()}`)
         .expect(200);
     });
+
+    describe('duplication from the form (POST /competitions?duplicateFrom=)', () => {
+      const createFrom = (source: number, competitionInfo: CompetitionInfo[], token = orga()) =>
+        request(server())
+          .post(`/api/v2/competitions?duplicateFrom=${source}`)
+          .set('Authorization', `Bearer ${token}`)
+          .send({
+            name: 'Épreuve dupliquée',
+            eventDate: '2026-07-01T09:00:00Z',
+            zipCode: '31000',
+            categories: '1,2',
+            races: '1,2',
+            fede: 'FSGT',
+            competitionType: 'ROUTE',
+            clubId: clubs[0].id,
+            competitionInfo,
+          });
+
+      it('copies the source circuit traces under new ids, once for circuits sharing a GPX', async () => {
+        const { id: gpxTraceId } = (await upload(competitions[0].id, lineGpx(1)).expect(201))
+          .body as UploadedGpxTrace;
+        await setCircuitGpxTrace(competitions[0], gpxTraceId);
+
+        const res = await createFrom(competitions[0].id, [
+          { course: '1ère', gpxTraceId },
+          { course: '2e', gpxTraceId },
+        ]).expect(201);
+        const copy = res.body as CompetitionEntity;
+        const copyGpxTraceId = copy.competitionInfo[0].gpxTraceId!;
+
+        expect(copyGpxTraceId).not.toBe(gpxTraceId);
+        expect(copy.competitionInfo[1].gpxTraceId).toBe(copyGpxTraceId);
+        await request(server())
+          .get(`${base(copy.id)}/${copyGpxTraceId}`)
+          .set('Authorization', `Bearer ${mobile()}`)
+          .expect(200);
+        // L'original garde son tracé.
+        await request(server())
+          .get(`${base(competitions[0].id)}/${gpxTraceId}`)
+          .set('Authorization', `Bearer ${mobile()}`)
+          .expect(200);
+      });
+
+      it('still rejects a GPX trace that does not belong to the source', async () => {
+        const { id: gpxTraceId } = (
+          await upload(competitions[2].id, lineGpx(1), getAuthHelper().getAdminToken()).expect(201)
+        ).body as UploadedGpxTrace;
+
+        await createFrom(competitions[0].id, [{ course: '1ère', gpxTraceId }]).expect(400);
+      });
+
+      it('lets an organiser use another club’s competition without GPX as a template', async () => {
+        const res = await createFrom(competitions[2].id, [{ course: '1ère' }]).expect(201);
+
+        expect((res.body as CompetitionEntity).competitionInfo).toEqual([{ course: '1ère' }]);
+      });
+
+      it('copies the traces of another club’s competition used as a template (read-only on the source)', async () => {
+        const { id: gpxTraceId } = (
+          await upload(competitions[2].id, lineGpx(1), getAuthHelper().getAdminToken()).expect(201)
+        ).body as UploadedGpxTrace;
+
+        const res = await createFrom(competitions[2].id, [{ course: '1ère', gpxTraceId }]).expect(
+          201,
+        );
+        const copy = res.body as CompetitionEntity;
+
+        expect(copy.competitionInfo[0].gpxTraceId).not.toBe(gpxTraceId);
+        await request(server())
+          .get(`${base(copy.id)}/${copy.competitionInfo[0].gpxTraceId}`)
+          .set('Authorization', `Bearer ${mobile()}`)
+          .expect(200);
+      });
+    });
   });
 });

@@ -12,7 +12,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiQuery, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { CompetitionsService } from './competitions.service';
 import {
   CompetitionIdsDto,
@@ -69,12 +69,20 @@ export class CompetitionsController {
   @Post()
   @Roles(Role.ADMIN, Role.ORGANISATEUR)
   @ApiOperation({ summary: 'Create a new competition' })
+  @ApiQuery({
+    name: 'duplicateFrom',
+    required: false,
+    type: Number,
+    description:
+      'Épreuve source d’une duplication faite dans le formulaire : les tracés GPX de ses circuits sont copiés',
+  })
   @ApiResponse({ status: 201, description: 'Competition created' })
   async create(
     @Body() competitionData: Partial<CompetitionEntity>,
     @CurrentUser() user: AuthenticatedUser,
+    @Query('duplicateFrom', new ParseIntPipe({ optional: true })) duplicateFrom?: number,
   ): Promise<CompetitionEntity> {
-    return this.competitionsService.create(competitionData, user);
+    return this.competitionsService.create(competitionData, user, duplicateFrom);
   }
 
   @Patch(':id')

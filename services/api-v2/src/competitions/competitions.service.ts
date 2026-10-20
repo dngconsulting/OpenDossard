@@ -201,9 +201,15 @@ export class CompetitionsService {
     });
   }
 
+  /**
+   * @param duplicateFrom épreuve source quand la création vient d'une
+   *   duplication faite dans le formulaire : ses circuits peuvent alors pointer
+   *   vers les tracés GPX de la source, copiés pour la nouvelle épreuve.
+   */
   async create(
     competitionData: Partial<CompetitionEntity>,
     user: AuthenticatedUser,
+    duplicateFrom?: number,
   ): Promise<CompetitionEntity> {
     const { id: _id, ...data } = competitionData;
     void _id;
@@ -220,15 +226,29 @@ export class CompetitionsService {
     if (Array.isArray(data.photoUrls) && data.photoUrls.length === 0) {
       data.photoUrls = null;
     }
+    let gpxTraceCopies = new Map<string, string>();
+    let sourceId: number | undefined;
     if (Array.isArray(data.competitionInfo)) {
-      data.competitionInfo = await this.gpxTracesService.validateCircuits(
-        undefined,
-        data.competitionInfo,
-      );
+      sourceId = duplicateFrom;
+      const circuits = await this.gpxTracesService.validateCircuits(sourceId, data.competitionInfo);
+      ({ circuits: data.competitionInfo, copies: gpxTraceCopies } = withCopiedGpxTraces(circuits));
     }
     const competition = this.competitionRepository.create(data);
     this.stampAudit(competition, user.email);
-    const saved = await this.competitionRepository.save(competition);
+    const saved =
+      sourceId === undefined || gpxTraceCopies.size === 0
+        ? await this.competitionRepository.save(competition)
+        : // Épreuve et tracés ensemble : jamais de circuit pointant vers un tracé absent.
+          await this.competitionRepository.manager.transaction(async manager => {
+            const created = await manager.save(competition);
+            await this.gpxTracesService.copyToCompetition(
+              manager,
+              sourceId,
+              created.id,
+              gpxTraceCopies,
+            );
+            return created;
+          });
     this.logger.log(
       `Création de la compétition #${saved.id} par ${user.email} | ` +
         `${saved.name ?? '-'} | Date: ${saved.eventDate ? new Date(saved.eventDate).toLocaleDateString('fr-FR') : '-'} | ` +
@@ -327,16 +347,10 @@ export class CompetitionsService {
     await this.authorizationService.assertCompetitionAccess(user, original);
     const { id: _, ...competitionData } = original;
     void _;
-    // Chaque tracé de circuit est copié sous un nouvel id : la copie ne doit pas
-    // pointer vers les tracés de l'original (servis par épreuve, d'où une 404).
-    const gpxTraceCopies = new Map<string, string>();
-    const competitionInfo = original.competitionInfo?.map(circuit => {
-      if (!circuit.gpxTraceId) return circuit;
-      // Deux circuits sur le même GPX partagent aussi la copie.
-      const copyId = gpxTraceCopies.get(circuit.gpxTraceId) ?? randomUUID();
-      gpxTraceCopies.set(circuit.gpxTraceId, copyId);
-      return { ...circuit, gpxTraceId: copyId };
-    });
+    // Épreuve sans circuits (null) : la copie reste à null.
+    const { circuits: competitionInfo, copies: gpxTraceCopies } = original.competitionInfo
+      ? withCopiedGpxTraces(original.competitionInfo)
+      : { circuits: original.competitionInfo, copies: new Map<string, string>() };
     const duplicate = this.competitionRepository.create({
       ...competitionData,
       competitionInfo,
@@ -444,4 +458,23 @@ export class CompetitionsService {
     entity.lastChanged = new Date();
     return entity;
   }
+}
+
+/**
+ * Circuits d'une copie d'épreuve : chaque tracé GPX référencé reçoit un nouvel
+ * id (la copie ne doit pas pointer vers les tracés de l'original, servis par
+ * épreuve, d'où une 404). Renvoie aussi `originalId → copyId` pour copier les
+ * tracés. Deux circuits sur le même GPX partagent la même copie.
+ */
+function withCopiedGpxTraces<T extends { gpxTraceId?: string }>(
+  circuits: T[],
+): { circuits: T[]; copies: Map<string, string> } {
+  const copies = new Map<string, string>();
+  const remapped = circuits.map(circuit => {
+    if (!circuit.gpxTraceId) return circuit;
+    const copyId = copies.get(circuit.gpxTraceId) ?? randomUUID();
+    copies.set(circuit.gpxTraceId, copyId);
+    return { ...circuit, gpxTraceId: copyId };
+  });
+  return { circuits: remapped, copies };
 }
