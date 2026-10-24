@@ -19,7 +19,7 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, password: string): Promise<UserEntity | null> {
-    const user = await this.findWithPassword({ email });
+    const user = await this.findByLoginEmailWithPassword(email);
 
     if (!user || !user.password) {
       return null;
@@ -129,7 +129,16 @@ export class AuthService {
     await this.userRepository.save(user);
   }
 
-  /** `password` est en `select: false` : seuls ces deux usages le chargent. */
+  /**
+   * Lookup du login email/password (email exact), avec le hash. Partagé avec la
+   * réinitialisation de mot de passe : le compte réinitialisé doit être
+   * exactement celui auquel on se connecte ensuite.
+   */
+  findByLoginEmailWithPassword(email: string): Promise<UserEntity | null> {
+    return this.findWithPassword({ email });
+  }
+
+  /** `password` est en `select: false` : seuls le login, le changement et la réinitialisation le chargent. */
   private findWithPassword(where: { email: string } | { id: number }): Promise<UserEntity | null> {
     return this.userRepository
       .createQueryBuilder('user')

@@ -26,6 +26,16 @@ interface ClubListRawRow {
 const toIso = (value: Date | null | undefined): string | null =>
   value ? value.toISOString() : null;
 
+/**
+ * Nom de club normalisé en SQL, pour la détection de doublons : minuscules,
+ * sans accents, toute suite de caractères non alphanumériques (tiret,
+ * apostrophe, point, espaces multiples) réduite à un espace.
+ * « Saint-Juéry  O.C. » → « saint juery o c ».
+ * À garder aligné avec `normalizeClubName` (webapp-v2/src/utils/club-name.ts).
+ */
+const normalizedClubName = (expr: string): string =>
+  `TRIM(REGEXP_REPLACE(LOWER(unaccent(${expr})), '[^a-z0-9]+', ' ', 'g'))`;
+
 @Injectable()
 export class ClubsService {
   private readonly logger = new Logger(ClubsService.name);
@@ -59,6 +69,35 @@ export class ClubsService {
     if (linked) {
       throw new ConflictException(
         `Ce club est lié à HelloAsso (${linked.organization.organizationSlug}). Délier d'abord pour ${action === 'update' ? 'modifier' : 'supprimer'}.`,
+      );
+    }
+  }
+
+  /**
+   * Refuse un nom de club déjà pris dans la fédération (toutes fédérations si
+   * `fede` est absente), à la normalisation près (voir `normalizedClubName`).
+   * `excludeId` écarte le club lui-même lors d'un renommage.
+   */
+  private async assertNoDuplicateName(
+    longName: string,
+    fede: Federation | null | undefined,
+    excludeId?: number,
+  ): Promise<void> {
+    const qb = this.clubRepository
+      .createQueryBuilder('club')
+      .where(`${normalizedClubName('club.long_name')} = ${normalizedClubName(':longName')}`, {
+        longName,
+      });
+    if (fede) {
+      qb.andWhere('club.fede = :fede', { fede });
+    }
+    if (excludeId !== undefined) {
+      qb.andWhere('club.id <> :excludeId', { excludeId });
+    }
+    const existing = await qb.getOne();
+    if (existing) {
+      throw new ConflictException(
+        `Le club « ${existing.longName} » existe déjà` + (fede ? ' pour cette fédération' : ''),
       );
     }
   }
@@ -258,16 +297,7 @@ export class ClubsService {
     void _id;
 
     if (data.longName) {
-      const qb = this.clubRepository
-        .createQueryBuilder('club')
-        .where('LOWER(TRIM(club.longName)) = LOWER(TRIM(:longName))', { longName: data.longName });
-      if (data.fede) {
-        qb.andWhere('club.fede = :fede', { fede: data.fede });
-      }
-      const existing = await qb.getOne();
-      if (existing) {
-        throw new ConflictException('Ce club existe déjà pour cette fédération');
-      }
+      await this.assertNoDuplicateName(data.longName, data.fede);
     }
 
     const shouldAutoLink =
@@ -304,6 +334,12 @@ export class ClubsService {
   ): Promise<ClubEntity & { racesUpdated?: number; licencesUpdated?: number }> {
     const club = await this.findOne(id);
     await this.assertNotLinkedToHelloAsso(id, 'update');
+
+    // Seulement si le nom change : l'édition des autres champs d'un doublon
+    // historique reste possible (le front renvoie toujours longName).
+    if (dto.longName && dto.longName.trim() !== club.longName.trim()) {
+      await this.assertNoDuplicateName(dto.longName, club.fede, id);
+    }
 
     // Propagate longName change to races/licences BEFORE updating the club
     let racesUpdated: number | undefined;

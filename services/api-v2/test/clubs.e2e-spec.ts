@@ -396,6 +396,53 @@ describe('Clubs (e2e)', () => {
       expect(link).not.toBeNull();
     });
 
+    describe('détection de doublon sur le nom', () => {
+      const existing = {
+        longName: 'Saint-Juéry Olympique Cyclisme',
+        dept: '81',
+        fede: 'FSGT',
+      };
+
+      beforeEach(async () => {
+        await request(getApp().getHttpServer())
+          .post(API)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send(existing)
+          .expect(201);
+      });
+
+      it.each([
+        'Saint Juery Olympique Cyclisme',
+        'saint-juery olympique cyclisme',
+        '  SAINT JUÉRY   Olympique Cyclisme ',
+        "Saint-Juéry Olympique' Cyclisme",
+      ])('refuse « %s » (accents, casse, tirets, espaces ignorés)', async longName => {
+        const res = await request(getApp().getHttpServer())
+          .post(API)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ ...existing, longName })
+          .expect(409);
+
+        expect((res.body as { message: string }).message).toContain(existing.longName);
+      });
+
+      it('accepte le même nom sous une autre fédération', async () => {
+        await request(getApp().getHttpServer())
+          .post(API)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ ...existing, longName: 'Saint Juery Olympique Cyclisme', fede: 'UFOLEP' })
+          .expect(201);
+      });
+
+      it('accepte un nom différent', async () => {
+        await request(getApp().getHttpServer())
+          .post(API)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ ...existing, longName: 'Saint-Juéry Olympique Cyclisme 2' })
+          .expect(201);
+      });
+    });
+
     it('should reject MOBILE role', async () => {
       const mobileToken = getAuthHelper().getMobileToken();
       await request(getApp().getHttpServer())
@@ -458,6 +505,58 @@ describe('Clubs (e2e)', () => {
         .set('Authorization', `Bearer ${orgaToken}`)
         .send({ shortName: 'BAD' })
         .expect(403);
+    });
+
+    describe('détection de doublon au renommage', () => {
+      // Seed : VCT et CCG en FSGT, RCB en FFC.
+      it('refuse de renommer en un nom déjà pris dans la fédération (accents ignorés)', async () => {
+        const [, ccg] = await getSeedHelper().seedClubs();
+
+        const res = await request(getApp().getHttpServer())
+          .patch(`${API}/${ccg.id}`)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ longName: 'velo-club toulousain' })
+          .expect(409);
+
+        expect((res.body as { message: string }).message).toContain('Vélo Club Toulousain');
+      });
+
+      it('accepte un nom pris dans une autre fédération', async () => {
+        const [, , rcb] = await getSeedHelper().seedClubs();
+
+        await request(getApp().getHttpServer())
+          .patch(`${API}/${rcb.id}`)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ longName: 'Vélo Club Toulousain' })
+          .expect(200);
+      });
+
+      it('accepte de corriger les accents de son propre nom', async () => {
+        const [vct] = await getSeedHelper().seedClubs();
+
+        const res = await request(getApp().getHttpServer())
+          .patch(`${API}/${vct.id}`)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ longName: 'Velo Club Toulousain' })
+          .expect(200);
+
+        expect((res.body as ClubEntity).longName).toBe('Velo Club Toulousain');
+      });
+
+      it("n'empêche pas d'éditer un doublon historique sans changer son nom", async () => {
+        const [vct] = await getSeedHelper().seedClubs();
+        const dup = await getApp()
+          .get(DataSource)
+          .getRepository(ClubEntity)
+          .save({ longName: 'Velo Club Toulousain', dept: '31', fede: Federation.FSGT });
+        expect(dup.id).not.toBe(vct.id);
+
+        await request(getApp().getHttpServer())
+          .patch(`${API}/${dup.id}`)
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ longName: 'Velo Club Toulousain', shortName: 'VCT2' })
+          .expect(200);
+      });
     });
   });
 

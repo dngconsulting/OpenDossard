@@ -18,6 +18,7 @@ import { DeepLinksModule } from './deep-links/deep-links.module';
 import { HelloAssoModule } from './helloasso/helloasso.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { LoggingModule } from './common/logging';
+import { MailModule } from './common/mail';
 
 @Module({
   imports: [
@@ -74,6 +75,9 @@ import { LoggingModule } from './common/logging';
 
     // Firebase Admin (global, injectable everywhere via FIREBASE_ADMIN token)
     FirebaseModule,
+
+    // Envoi d'emails transactionnels (global, mode piloté par MAIL_MODE)
+    MailModule,
 
     // Feature modules
     AuthModule,

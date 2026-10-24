@@ -12,7 +12,9 @@ import { UpdatePrompt } from '@/components/pwa/UpdatePrompt';
 import { ThemeProvider } from '@/components/theme-provider';
 import { useHelloAssoLanding } from '@/hooks/useHelloAssoLanding';
 import AccountPage from '@/pages/account/AccountPage.tsx';
+import ForgotPasswordPage from '@/pages/account/ForgotPasswordPage.tsx';
 import LoginPage from '@/pages/account/LoginPage.tsx';
+import ResetPasswordPage from '@/pages/account/ResetPasswordPage.tsx';
 import UserDetailPage from '@/pages/account/UserDetailPage.tsx';
 import ChallengePage from '@/pages/challenge/ChallengePage.tsx';
 import ChallengesPage from '@/pages/challenge/ChallengesPage.tsx';
@@ -74,6 +76,9 @@ export default function App() {
             <HelloAssoLandingHandler />
             <Routes>
               <Route path="/login" element={<LoginPage />} />
+              {/* Mot de passe oublié — publiques, accessibles connecté ou non. */}
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
 
               {/* Pages fallback retour paiement HelloAsso — publiques, statiques
                   (l'app mobile poll côté backend). Atteintes quand le deep link
