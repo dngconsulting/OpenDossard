@@ -75,6 +75,48 @@ describe('Clubs (e2e)', () => {
       expect(body.data[0].dept).toBe('31');
     });
 
+    describe.each(['longName', 'search'])(
+      '%s : même normalisation que la recherche de club',
+      param => {
+        beforeEach(async () => {
+          for (const longName of ['Saint-Juéry Olympique Cyclisme', 'saint juery olympique']) {
+            await request(getApp().getHttpServer())
+              .post(API)
+              .set('Authorization', `Bearer ${adminToken}`)
+              .send({ longName, dept: '81', fede: 'FSGT' })
+              .expect(201);
+          }
+        });
+
+        it.each(['jue', 'JUÉ', 'saint jue', 'Saint-JUE', "saint'juery"])(
+          '« %s » trouve les deux orthographes',
+          async value => {
+            const res = await request(getApp().getHttpServer())
+              .get(API)
+              .query({ [param]: value })
+              .set('Authorization', `Bearer ${adminToken}`)
+              .expect(200);
+
+            const names = (res.body as PaginatedResponse<ClubEntity>).data.map(c => c.longName);
+            expect(names.sort()).toEqual([
+              'Saint-Juéry Olympique Cyclisme',
+              'saint juery olympique',
+            ]);
+          },
+        );
+
+        it('ne remonte rien sans correspondance', async () => {
+          const res = await request(getApp().getHttpServer())
+            .get(API)
+            .query({ [param]: 'toulouse' })
+            .set('Authorization', `Bearer ${adminToken}`)
+            .expect(200);
+
+          expect((res.body as PaginatedResponse<ClubEntity>).data).toHaveLength(0);
+        });
+      },
+    );
+
     it('should sort by longName DESC', async () => {
       await getSeedHelper().seedClubs();
 

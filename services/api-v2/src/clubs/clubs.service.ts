@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, ConflictException } from '@nestjs/common';
+import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository, SelectQueryBuilder } from 'typeorm';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
@@ -9,7 +9,7 @@ import { CompetitionEntity } from '../competitions/entities/competition.entity';
 import { HelloAssoDetailsEntity } from '../helloasso/entities/helloasso-details.entity';
 import { UserClubEntity } from '../auth/entities/user-club.entity';
 import { AuthenticatedUser } from '../auth/types/authenticated-user';
-import { Role, Federation } from '../common/enums';
+import { Federation, Role } from '../common/enums';
 import { PaginatedResponseDto } from '../common/dto/pagination.dto';
 import { FilterClubDto } from './dto/filter-club.dto';
 import { UpdateClubDto } from './dto/update-club.dto';
@@ -219,9 +219,11 @@ export class ClubsService {
     const qb = this.clubRepository.createQueryBuilder('club');
 
     if (search) {
+      const contains = (col: string): string =>
+        `${normalizedClubName(col)} LIKE '%' || ${normalizedClubName(':search')} || '%'`;
       qb.andWhere(
-        '(LOWER(club.shortName) LIKE LOWER(:search) OR LOWER(club.longName) LIKE LOWER(:search) OR LOWER(club.elicenceName) LIKE LOWER(:search))',
-        { search: `%${search}%` },
+        `(${contains('club.short_name')} OR ${contains('club.long_name')} OR ${contains('club.elicence_name')})`,
+        { search },
       );
     }
 
@@ -229,7 +231,14 @@ export class ClubsService {
     if (shortName) this.applyFilter(qb, 'shortName', shortName);
     if (dept) this.applyFilter(qb, 'dept', dept, { multiValue: true });
     if (fede) this.applyFilter(qb, 'fede', fede, { multiValue: true, cast: 'text' });
-    if (longName) this.applyFilter(qb, 'longName', longName);
+    if (longName === '__empty__') {
+      this.applyFilter(qb, 'longName', longName);
+    } else if (longName) {
+      qb.andWhere(
+        `${normalizedClubName('club.long_name')} LIKE '%' || ${normalizedClubName(':longName')} || '%'`,
+        { longName },
+      );
+    }
     if (elicenceName) this.applyFilter(qb, 'elicenceName', elicenceName);
 
     // Liaison HelloAsso : la ligne `helloasso_details` fait foi (expirée ou
