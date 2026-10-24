@@ -1,4 +1,5 @@
 import { INestApplication, ValidationPipe, VersioningType } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test, TestingModule } from '@nestjs/testing';
 import { GenericContainer, StartedTestContainer, Wait } from 'testcontainers';
 import { DataSource } from 'typeorm';
@@ -71,6 +72,11 @@ beforeAll(async () => {
   process.env.HELLOASSO_PAYMENT_RETURN_URL_SUCCESS = 'https://e2e.local/payment/success';
   process.env.HELLOASSO_PAYMENT_RETURN_URL_ERROR = 'https://e2e.local/payment/error';
   process.env.HELLOASSO_PAYMENT_RETURN_URL_CANCELLED = 'https://e2e.local/payment/cancelled';
+  // Mot de passe oublié : sans WEBAPP_PUBLIC_URL valide, `PasswordResetService`
+  // désactive la demande de lien (erreur loguée, API démarrée). La limite du throttle est relevée car
+  // toutes les requêtes e2e partagent la même IP.
+  process.env.WEBAPP_PUBLIC_URL = 'https://e2e.local';
+  process.env.PASSWORD_RESET_THROTTLE_LIMIT = '1000';
 
   // 4. Create the module — AppModule reads env vars via ConfigService.
   //    Override FIREBASE_ADMIN with a stub so FirebaseModule's factory never
@@ -105,9 +111,11 @@ beforeAll(async () => {
   await dataSource.query('CREATE EXTENSION IF NOT EXISTS unaccent');
   await dataSource.synchronize(true);
 
-  app = moduleFixture.createNestApplication();
-
+  const expressApp = moduleFixture.createNestApplication<NestExpressApplication>();
   // Apply same config as main.ts
+  expressApp.set('trust proxy', 1);
+  app = expressApp as unknown as INestApplication<App>;
+
   app.setGlobalPrefix('api');
   app.enableVersioning({
     type: VersioningType.URI,

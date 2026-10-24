@@ -103,6 +103,12 @@ services:
       - HELLOASSO_PAYMENT_RETURN_URL_ERROR
       - HELLOASSO_PAYMENT_RETURN_URL_CANCELLED
       - HELLOASSO_TOKEN_REFRESH_ENABLED
+      - BREVO_API_KEY
+      - MAIL_MODE
+      - MAIL_FROM
+      - MAIL_FROM_NAME
+      - MAIL_REDIRECT_TO
+      - WEBAPP_PUBLIC_URL
       - NODE_ENV=production
     depends_on:
       - dossarddb

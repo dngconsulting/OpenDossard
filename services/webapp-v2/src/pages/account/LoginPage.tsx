@@ -3,15 +3,19 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { showInfoToast } from '@/utils/error-handler/error-handler';
 import { z } from 'zod';
 
-import { EnvironmentBanner } from '@/components/layout/EnvironmentBanner';
+import {
+  authInputClassName,
+  authLinkClassName,
+  authPasswordToggleClassName,
+  authSubmitButtonClassName,
+} from '@/components/layout/auth-card.styles';
+import { AuthCardLayout } from '@/components/layout/AuthCardLayout';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { appData } from '@/statics/app-data';
 import useUserStore from '@/store/UserStore';
 
 const loginSchema = z.object({
@@ -34,6 +38,7 @@ export default function LoginPage() {
     register,
     handleSubmit,
     setValue,
+    getValues,
     watch,
     formState: { errors },
   } = useForm<LoginFormData>({
@@ -59,166 +64,100 @@ export default function LoginPage() {
     }
   };
 
-  const handleForgotPassword = () => {
-    showInfoToast('Fonctionnalité à venir', 'La réinitialisation de mot de passe sera bientôt disponible.');
+  const goToForgotPassword = () => {
+    // Pré-remplit l'email déjà saisi sur la page « mot de passe oublié ».
+    navigate('/forgot-password', { state: { email: getValues('email').trim() } });
   };
 
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-center p-4 bg-gradient-hero relative overflow-hidden">
-      <EnvironmentBanner fixed />
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-radial from-primary/20 to-transparent rounded-full blur-3xl" />
-        <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-gradient-radial from-sidebar-primary/10 to-transparent rounded-full blur-3xl" />
-      </div>
+    <AuthCardLayout
+      title="Connexion"
+      subtitle="Accédez à votre espace de gestion"
+      cardClassName={isShaking ? 'animate-shake' : ''}
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+        {/* Message d'erreur */}
+        {error && (
+          <div className="bg-destructive/20 border border-destructive/30 rounded-lg p-3 text-sm text-white">
+            {error}
+          </div>
+        )}
 
-      {/* Content */}
-      <div className="relative z-10 w-full max-w-md space-y-8">
-        {/* Logo and branding */}
-        <div className="text-center fade-in">
-          <div className="flex justify-center">
-            <img
-              src={appData.app.logoUrl}
-              alt={appData.app.name}
-              className="w-24 h-24 object-contain"
-            />
-          </div>
-          <div>
-            <h1 className="text-4xl font-bold text-white tracking-tight">{appData.app.name}</h1>
-            <p className="mt-2 text-white/70 text-lg">
-              Gestion des licences et compétitions cyclistes
-            </p>
-          </div>
+        {/* Email */}
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-white/90">
+            Adresse email
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="vous@example.com"
+            autoComplete="email"
+            disabled={isLoading}
+            className={authInputClassName}
+            {...register('email')}
+          />
+          {errors.email && <p className="text-sm text-red-300">{errors.email.message}</p>}
         </div>
 
-        {/* Login card */}
-        <div
-          className={`backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl p-8 space-y-6 fade-in ${
-            isShaking ? 'animate-shake' : ''
-          }`}
-          style={{ animationDelay: '0.1s' }}
-        >
-          <div className="text-center">
-            <h2 className="text-xl font-semibold text-white">Connexion</h2>
-            <p className="text-white/60 text-sm mt-1">Accédez à votre espace de gestion</p>
+        {/* Mot de passe */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password" className="text-white/90">
+              Mot de passe
+            </Label>
+            <button type="button" onClick={goToForgotPassword} className={authLinkClassName}>
+              Mot de passe oublié ?
+            </button>
           </div>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
-            {/* Error message */}
-            {error && (
-              <div className="bg-destructive/20 border border-destructive/30 rounded-lg p-3 text-sm text-white">
-                {error}
-              </div>
-            )}
-
-            {/* Email field */}
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-white/90">
-                Adresse email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="vous@example.com"
-                autoComplete="email"
-                disabled={isLoading}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-white/40 focus:ring-white/20 h-11"
-                {...register('email')}
-              />
-              {errors.email && <p className="text-sm text-red-300">{errors.email.message}</p>}
-            </div>
-
-            {/* Password field */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-white/90">
-                  Mot de passe
-                </Label>
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="text-sm text-white/60 hover:text-white transition-colors underline-offset-4 hover:underline"
-                >
-                  Mot de passe oublié ?
-                </button>
-              </div>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Votre mot de passe"
-                  autoComplete="current-password"
-                  disabled={isLoading}
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-white/40 focus:ring-white/20 h-11 pr-10"
-                  {...register('password')}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-              {errors.password && <p className="text-sm text-red-300">{errors.password.message}</p>}
-            </div>
-
-            {/* Remember me */}
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="rememberMe"
-                checked={rememberMe}
-                onCheckedChange={checked => setValue('rememberMe', checked === true)}
-                disabled={isLoading}
-                className="border-white/30 data-[state=checked]:bg-white data-[state=checked]:text-primary"
-              />
-              <Label
-                htmlFor="rememberMe"
-                className="text-sm text-white/70 cursor-pointer select-none"
-              >
-                Se souvenir de moi
-              </Label>
-            </div>
-
-            {/* Submit button */}
-            <Button
-              type="submit"
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Votre mot de passe"
+              autoComplete="current-password"
               disabled={isLoading}
-              className="w-full h-11 bg-white text-primary hover:bg-white/90 font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5"
+              className={`${authInputClassName} pr-10`}
+              {...register('password')}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className={authPasswordToggleClassName}
+              tabIndex={-1}
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Connexion en cours...
-                </>
-              ) : (
-                'Se connecter'
-              )}
-            </Button>
-          </form>
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+          {errors.password && <p className="text-sm text-red-300">{errors.password.message}</p>}
         </div>
 
-        {/* Footer */}
-        <p className="text-center text-white/40 text-sm fade-in" style={{ animationDelay: '0.2s' }}>
-          &copy; {new Date().getFullYear()} {appData.app.name} &bull; v{appData.app.version}
-        </p>
-      </div>
+        {/* Se souvenir de moi */}
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="rememberMe"
+            checked={rememberMe}
+            onCheckedChange={checked => setValue('rememberMe', checked === true)}
+            disabled={isLoading}
+            className="border-white/30 data-[state=checked]:bg-white data-[state=checked]:text-primary"
+          />
+          <Label htmlFor="rememberMe" className="text-sm text-white/70 cursor-pointer select-none">
+            Se souvenir de moi
+          </Label>
+        </div>
 
-      {/* Custom shake animation */}
-      <style>{`
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
-          20%, 40%, 60%, 80% { transform: translateX(4px); }
-        }
-        .animate-shake {
-          animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-        }
-        .bg-gradient-radial {
-          background: radial-gradient(circle, var(--tw-gradient-from), var(--tw-gradient-to));
-        }
-      `}</style>
-    </div>
+        {/* Bouton de soumission */}
+        <Button type="submit" disabled={isLoading} className={authSubmitButtonClassName}>
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Connexion en cours...
+            </>
+          ) : (
+            'Se connecter'
+          )}
+        </Button>
+      </form>
+    </AuthCardLayout>
   );
 }

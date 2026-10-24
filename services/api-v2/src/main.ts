@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { Logger, RequestMethod, ValidationPipe, VersioningType } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as compression from 'compression';
 import { existsSync, readFileSync } from 'node:fs';
@@ -40,7 +41,7 @@ async function bootstrap() {
   // — requis pour vérifier la signature HMAC du webhook HelloAsso sur les bytes
   // bruts avant tout reparsing. Le body parser JSON continue de fonctionner
   // normalement en parallèle (les autres endpoints reçoivent toujours @Body() parsé).
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     rawBody: true,
     // Bufferise les logs du bootstrap jusqu'au branchement de JsonLogger
     // ci-dessous, pour qu'ils soient eux aussi au bon format.
@@ -51,6 +52,12 @@ async function bootstrap() {
   // Branche le logger applicatif unique : tous les `new Logger(ctx)` existants
   // passent désormais par JsonLogger (JSON corrélé en prod, lisible en dev).
   app.useLogger(app.get(JsonLogger));
+
+  // L'API est derrière nginx, qui pose X-Forwarded-For : on fait confiance au
+  // premier proxy pour que `req.ip` soit l'IP du client. Sans ça, toutes les
+  // requêtes auraient l'IP du proxy et le throttle (forgot/reset-password)
+  // deviendrait global à tous les utilisateurs.
+  app.set('trust proxy', 1);
 
   // Compression
   app.use(compression());
