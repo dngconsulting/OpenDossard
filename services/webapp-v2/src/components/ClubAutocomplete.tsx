@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useClubsByFedeAndDept, useCreateClub } from '@/hooks/useClubs';
 import { cn } from '@/lib/utils';
+import { normalizeClubName } from '@/utils/club-name';
 
 type ClubAutocompleteProps = {
   value: number | null;
@@ -43,27 +44,27 @@ export function ClubAutocomplete({
   // Disable if no fede or department
   const isDisabled = disabled || !fede || !department;
 
+  // Trimmed search value for display, normalized one for comparisons
+  // (accents, casse, tirets et espaces ignorés : « Saint JUE » trouve « Saint-Juéry »)
+  const trimmedSearch = search.trim();
+  const normalizedSearch = normalizeClubName(search);
+
   // Filter clubs locally based on search input
   const filteredClubs = useMemo(() => {
     if (!clubs) return [];
-    if (!search.trim()) return clubs;
-    const lowerSearch = search.trim().toLowerCase();
-    return clubs.filter(club => club.longName.toLowerCase().includes(lowerSearch));
-  }, [clubs, search]);
+    if (!normalizedSearch) return clubs;
+    return clubs.filter(club => normalizeClubName(club.longName).includes(normalizedSearch));
+  }, [clubs, normalizedSearch]);
 
-  // Trimmed search value for comparisons
-  const trimmedSearch = search.trim();
-  const lowerSearch = trimmedSearch.toLowerCase();
-
-  // Check if exact match exists (trimmed, case-insensitive)
+  // Check if exact match exists (same normalized name)
   const exactMatchExists = useMemo(() => {
-    if (!trimmedSearch || !clubs) return false;
-    return clubs.some(club => club.longName.trim().toLowerCase() === lowerSearch);
-  }, [clubs, trimmedSearch, lowerSearch]);
+    if (!normalizedSearch || !clubs) return false;
+    return clubs.some(club => normalizeClubName(club.longName) === normalizedSearch);
+  }, [clubs, normalizedSearch]);
 
   // Should show the create button?
   // Only if: there's a non-empty trimmed search, no exact match exists, and fede+dept are selected
-  const showCreateButton = trimmedSearch && !exactMatchExists && fede && department && !isLoading;
+  const showCreateButton = normalizedSearch && !exactMatchExists && fede && department && !isLoading;
 
   // Find the selected club by ID
   const selectedClub = useMemo(() => {

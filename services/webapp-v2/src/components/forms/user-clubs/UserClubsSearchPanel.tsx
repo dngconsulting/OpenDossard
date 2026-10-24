@@ -10,6 +10,7 @@ import { groupClubsByDept } from '@/lib/group-clubs-by-dept';
 import { pluralize } from '@/lib/pluralize';
 import type { ClubType } from '@/types/clubs';
 import type { DepartmentType } from '@/types/departments';
+import { normalizeClubName } from '@/utils/club-name';
 
 // Fédérations sélectionnables pour la recherche de clubs gérés.
 const FEDES = ['FSGT', 'UFOLEP', 'FFC', 'FFVELO', 'CYCLOS', 'FFTRI'] as const;
@@ -59,12 +60,12 @@ export function UserClubsSearchPanel({
   // Filtre par nom côté client (l'endpoint legacy ne supporte pas search).
   const filteredResults: ClubType[] = useMemo(() => {
     const raw = searchQuery.data ?? [];
-    const q = searchName.trim().toLowerCase();
+    const q = normalizeClubName(searchName);
     if (!q) {return raw;}
     return raw.filter(
       c =>
-        c.longName.toLowerCase().includes(q) ||
-        (c.shortName?.toLowerCase().includes(q) ?? false),
+        normalizeClubName(c.longName).includes(q) ||
+        (c.shortName ? normalizeClubName(c.shortName).includes(q) : false),
     );
   }, [searchQuery.data, searchName]);
 
