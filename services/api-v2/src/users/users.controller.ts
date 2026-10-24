@@ -27,7 +27,7 @@ import { PaginatedResponseDto } from '../common/dto/pagination.dto';
 import { Role } from '../common/enums';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { SetUserClubsDto } from './dto/set-user-clubs.dto';
-import { UserEntity } from './entities/user.entity';
+import { UserResponseDto, toUserResponse } from './dto/user-response.dto';
 import { UsersService, CreateUserDto, UpdateUserDto } from './users.service';
 
 @ApiTags('Users')
@@ -41,8 +41,9 @@ export class UsersController {
   @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Get all users with pagination (admin only)' })
   @ApiResponse({ status: 200, description: 'Paginated list of users' })
-  async findAll(@Query() filterDto: FilterUserDto): Promise<PaginatedResponseDto<UserEntity>> {
-    return this.usersService.findAll(filterDto);
+  async findAll(@Query() filterDto: FilterUserDto): Promise<PaginatedResponseDto<UserResponseDto>> {
+    const page = await this.usersService.findAll(filterDto);
+    return { data: page.data.map(toUserResponse), meta: page.meta };
   }
 
   @Get(':id')
@@ -50,8 +51,8 @@ export class UsersController {
   @ApiOperation({ summary: 'Get user by ID (admin only)' })
   @ApiResponse({ status: 200, description: 'User details' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<UserEntity> {
-    return this.usersService.findOne(id);
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<UserResponseDto> {
+    return toUserResponse(await this.usersService.findOne(id));
   }
 
   @Post()
@@ -62,8 +63,8 @@ export class UsersController {
   async create(
     @Body() createUserDto: CreateUserDto,
     @CurrentUser('email') author: string,
-  ): Promise<UserEntity> {
-    return this.usersService.create(createUserDto, author);
+  ): Promise<UserResponseDto> {
+    return toUserResponse(await this.usersService.create(createUserDto, author));
   }
 
   @Patch(':id')
@@ -74,8 +75,8 @@ export class UsersController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
     @CurrentUser('email') author: string,
-  ): Promise<UserEntity> {
-    return this.usersService.update(id, updateUserDto, author);
+  ): Promise<UserResponseDto> {
+    return toUserResponse(await this.usersService.update(id, updateUserDto, author));
   }
 
   @Post(':id/reset-password')

@@ -19,7 +19,7 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, password: string): Promise<UserEntity | null> {
-    const user = await this.userRepository.findOne({ where: { email } });
+    const user = await this.findWithPassword({ email });
 
     if (!user || !user.password) {
       return null;
@@ -114,7 +114,7 @@ export class AuthService {
     currentPassword: string,
     newPassword: string,
   ): Promise<void> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+    const user = await this.findWithPassword({ id: userId });
 
     if (!user || !user.password) {
       throw new UnauthorizedException('User not found');
@@ -127,6 +127,15 @@ export class AuthService {
 
     user.password = bcrypt.hashSync(newPassword, 12);
     await this.userRepository.save(user);
+  }
+
+  /** `password` est en `select: false` : seuls ces deux usages le chargent. */
+  private findWithPassword(where: { email: string } | { id: number }): Promise<UserEntity | null> {
+    return this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where(where)
+      .getOne();
   }
 
   private toProfileResponse(user: UserEntity) {

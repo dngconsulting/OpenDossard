@@ -1,6 +1,5 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Exclude } from 'class-transformer';
 
 @Entity('user')
 export class UserEntity {
@@ -26,9 +25,10 @@ export class UserEntity {
   @Column({ type: 'varchar', nullable: true })
   email: string | null;
 
-  @ApiPropertyOptional()
-  @Column({ nullable: true })
-  @Exclude()
+  // Hash bcrypt, jamais chargé par défaut : seules la connexion et le changement
+  // de mot de passe le demandent explicitement (`addSelect`). Les réponses
+  // d'API passent par des DTO en liste blanche (`UserResponseDto`, profils).
+  @Column({ nullable: true, select: false })
   password: string;
 
   @ApiPropertyOptional()

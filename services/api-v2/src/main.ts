@@ -1,12 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import {
-  ClassSerializerInterceptor,
-  Logger,
-  RequestMethod,
-  ValidationPipe,
-  VersioningType,
-} from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
+import { Logger, RequestMethod, ValidationPipe, VersioningType } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as compression from 'compression';
 import { existsSync, readFileSync } from 'node:fs';
@@ -58,8 +51,6 @@ async function bootstrap() {
   // Branche le logger applicatif unique : tous les `new Logger(ctx)` existants
   // passent désormais par JsonLogger (JSON corrélé en prod, lisible en dev).
   app.useLogger(app.get(JsonLogger));
-
-  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   // Compression
   app.use(compression());
