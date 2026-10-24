@@ -6,6 +6,7 @@ import { Search, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { ClubType } from '@/types/clubs';
+import { normalizeClubName } from '@/utils/club-name';
 
 type ClubAutocompleteProps = {
   clubs: ClubType[];
@@ -30,11 +31,11 @@ export function ClubAutocomplete({
   const listRef = useRef<HTMLDivElement>(null);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return [];
-    const q = search.toLowerCase();
+    const q = normalizeClubName(search);
+    if (!q) return [];
     return clubs
       .filter(c => {
-        const name = (c.longName || c.shortName || '').toLowerCase();
+        const name = normalizeClubName(c.longName || c.shortName || '');
         return name.includes(q) && !selected.includes(c.longName);
       })
       .slice(0, 20);
