@@ -31,7 +31,12 @@ const AGE_CATEGORIES_FFC = [
   { min: 35, max: Infinity, code: 'Master' },
 ] as const;
 
-export const computeAgeCategory = (gender: string, birthYear: number, season: string, fede?: string): string => {
+export const computeAgeCategory = (
+  gender: string,
+  birthYear: number,
+  season: string,
+  fede?: string,
+): string => {
   const seasonYear = season ? parseInt(season) : new Date().getFullYear();
   const age = seasonYear - birthYear;
 
@@ -40,20 +45,24 @@ export const computeAgeCategory = (gender: string, birthYear: number, season: st
   }
 
   const prefix = gender === 'F' ? 'F' : '';
-  const ageCategory = AGE_CATEGORIES.find(({ min, max }) => age >= min && age <= max);
-  const computed = prefix + (ageCategory?.code ?? '');
+  const index = AGE_CATEGORIES.findIndex(({ min, max }) => age >= min && age <= max);
+  const computed = index >= 0 ? prefix + AGE_CATEGORIES[index].code : '';
 
-  // Si la fédération est renseignée, vérifier que la catégorie existe
-  if (fede && computed) {
-    const validOptions = getCateaOptions(fede, gender);
-    const isValid = validOptions.some(opt => opt.value === computed);
-    if (!isValid && validOptions.length > 0) {
-      // Retourner la dernière catégorie disponible (ex: "A" pour UFOLEP au lieu de "SA")
-      return validOptions[0].value;
-    }
+  if (!fede || !computed) {
+    return computed;
   }
 
-  return computed;
+  const validValues = new Set(getCateaOptions(fede, gender).map(opt => opt.value));
+  if (validValues.size === 0) {
+    return computed;
+  }
+  for (let i = index; i >= 0; i--) {
+    const candidate = prefix + AGE_CATEGORIES[i].code;
+    if (validValues.has(candidate)) {
+      return candidate;
+    }
+  }
+  return validValues.has('NC') ? 'NC' : '';
 };
 
 /**

@@ -118,6 +118,10 @@ const CATEA_UFOLEP: CategoryAge[] = [
   { label: 'Féminine jeune', value: 'FJ', gender: 'F' },
   { label: 'Féminine cadet', value: 'FC', gender: 'F' },
   { label: 'Féminine minime', value: 'FM', gender: 'F' },
+  { label: 'Féminine benjamin', value: 'FB', gender: 'F' },
+  { label: 'Féminine pupille', value: 'FPU', gender: 'F' },
+  { label: 'Féminine poussin', value: 'FPO', gender: 'F' },
+  { label: 'Féminine moustic', value: 'FMO', gender: 'F' },
   { label: 'NC', value: 'NC', gender: 'F' },
   // Hommes
   { label: 'Ancien', value: 'A', gender: 'H' },
@@ -128,6 +132,10 @@ const CATEA_UFOLEP: CategoryAge[] = [
   { label: 'Jeune', value: 'J', gender: 'H' },
   { label: 'Cadet', value: 'C', gender: 'H' },
   { label: 'Minime', value: 'M', gender: 'H' },
+  { label: 'Benjamin', value: 'B', gender: 'H' },
+  { label: 'Pupille', value: 'PU', gender: 'H' },
+  { label: 'Poussin', value: 'PO', gender: 'H' },
+  { label: 'Moustic', value: 'MO', gender: 'H' },
   { label: 'NC', value: 'NC', gender: 'H' },
 ];
 
