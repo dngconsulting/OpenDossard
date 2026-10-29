@@ -306,6 +306,34 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; letter-spacing:
 .ha-foot p { color: var(--ink-soft); font-size: .95rem; margin: 0; }
 
 /* =========================================================
+   PROTECTION DES DONNÉES
+   ========================================================= */
+.section.donnees { background: #fff; }
+.cards-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 26px; }
+.donnees .card p + p { margin-top: 12px; }
+.donnees .card p strong { color: var(--ink); font-weight: 600; }
+.card-link { display: inline-block; margin-top: 18px; font-weight: 600; }
+.data-fields { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.data-fields li {
+    font-family: var(--font-display); font-weight: 700; font-size: .85rem;
+    color: var(--accent); background: rgba(22, 154, 90, .10);
+    padding: 5px 13px; border-radius: 999px;
+}
+
+.data-commit {
+    margin-top: 36px; border-radius: var(--radius); padding: 36px 34px;
+    background: linear-gradient(135deg, rgba(68, 114, 196, .08), rgba(22, 154, 90, .08));
+}
+.data-commit h3 { font-size: 1.35rem; margin-bottom: 24px; text-align: center; }
+.commit-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 24px; }
+.commit-grid > div { background: var(--card); border-radius: var(--radius-sm); padding: 20px 22px; box-shadow: var(--shadow-sm); }
+.commit-grid strong { display: block; font-family: var(--font-display); font-size: 1.05rem; color: var(--accent); margin-bottom: 6px; }
+.commit-grid p { color: var(--ink-soft); font-size: .95rem; }
+.data-commit > p { color: var(--ink-soft); }
+.data-commit > p + p { margin-top: 12px; }
+.data-commit > p strong { color: var(--ink); font-weight: 600; }
+
+/* =========================================================
    FAQ
    ========================================================= */
 .faq-list { display: flex; flex-direction: column; gap: 14px; }
@@ -431,7 +459,8 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; letter-spacing:
     .hero-sub { margin-left: auto; margin-right: auto; }
     .store-badges { justify-content: center; }
     .hero-visual .phone-float img { max-width: 320px; }
-    .cards-3, .steps-3 { grid-template-columns: 1fr; }
+    .cards-3, .cards-2, .steps-3, .commit-grid { grid-template-columns: 1fr; }
+    .data-commit { padding: 28px 22px; }
     .ha-foot { flex-direction: column; text-align: center; }
     .split { grid-template-columns: 1fr; gap: 36px; text-align: center; }
     .split.reverse .split-media { order: 0; }
