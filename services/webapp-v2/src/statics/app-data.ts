@@ -1,6 +1,7 @@
 import {
   Building2,
   Calendar,
+  CircleHelp,
   CreditCard,
   Home,
   IdCard,
@@ -69,6 +70,13 @@ export const appData = {
       url: '/payments',
       icon: CreditCard,
       requiredRoles: ['ADMIN'],
+    },
+    {
+      // Guide de l'organisateur, publié sur le site public : ouvert dans un nouvel onglet.
+      name: 'Aide',
+      url: 'https://www.opendossard.com/guide/',
+      icon: CircleHelp,
+      external: true,
     },
   ],
 };

@@ -3,3 +3,14 @@ https://www.opendossard.com/index.html
 https://www.opendossard.com/product.html
 https://www.opendossard.com/techno.html
 https://www.opendossard.com/dossardeur
+https://www.opendossard.com/guide/
+https://www.opendossard.com/guide/demarrer.html
+https://www.opendossard.com/guide/club.html
+https://www.opendossard.com/guide/epreuves.html
+https://www.opendossard.com/guide/licencies.html
+https://www.opendossard.com/guide/engagements.html
+https://www.opendossard.com/guide/classements.html
+https://www.opendossard.com/guide/commissaires.html
+https://www.opendossard.com/guide/challenges.html
+https://www.opendossard.com/guide/statistiques.html
+https://www.opendossard.com/guide/faq.html

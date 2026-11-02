@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Questions fréquentes des organisateurs Open Dossard : coureur introuvable, dossard déjà pris, paiement en ligne indisponible, épreuve impossible à supprimer…">
+  <title>Open Dossard — Questions fréquentes</title>
+  <link rel="canonical" href="https://www.opendossard.com/guide/faq.html">
+  <link rel="icon" href="../assets/favicon.ico">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#4472C4', light: '#5B8DEF', dark: '#2d4889' },
+            navy: { DEFAULT: '#1e3a5f', dark: '#0f172a', light: '#2d5a87' },
+            accent: { DEFAULT: '#10B981', light: '#34D399', teal: '#14B8A6' },
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/guide.css?v=20261102e">
+</head>
+<body class="font-sans antialiased">
+
+  <!-- Nav -->
+  <nav class="nav-main py-4 px-6 lg:px-12">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <a href="../index.html" class="flex items-center gap-3">
+        <img src="../assets/images/logoblanc.svg" alt="Open Dossard" class="h-8">
+        <span class="text-white font-bold text-lg hidden sm:inline">Open Dossard</span>
+      </a>
+      <div class="hidden xl:flex items-center gap-8">
+        <a href="../index.html" class="text-white/90 hover:text-white text-sm font-medium transition">Accueil</a>
+        <a href="../product.html" class="text-white/90 hover:text-white text-sm font-medium transition">Fonctionnalités</a>
+        <a href="../calendrier.html" class="text-white/90 hover:text-white text-sm font-medium transition">Calendrier</a>
+        <a href="../licences.html" class="text-white/90 hover:text-white text-sm font-medium transition">Licences</a>
+        <a href="../engagements-classements.html" class="text-white/90 hover:text-white text-sm font-medium transition">Engagements & Classements</a>
+        <a href="../challenges-palmares.html" class="text-white/90 hover:text-white text-sm font-medium transition">Challenges & Palmarès</a>
+        <a href="index.html" class="text-white hover:text-white text-sm font-semibold transition">Guide</a>
+      </div>
+      <button id="nav-burger" class="xl:hidden text-white" aria-label="Menu">
+        <i data-lucide="menu" class="w-6 h-6"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile nav -->
+  <div id="mobile-nav" class="mobile-nav">
+    <button id="nav-close" class="absolute top-6 right-6 text-white" aria-label="Fermer">
+      <i data-lucide="x" class="w-7 h-7"></i>
+    </button>
+    <a href="../index.html">Accueil</a>
+    <a href="../product.html">Fonctionnalités</a>
+    <a href="../calendrier.html">Calendrier</a>
+    <a href="../licences.html">Licences</a>
+    <a href="../engagements-classements.html">Engagements & Classements</a>
+    <a href="../challenges-palmares.html">Challenges & Palmarès</a>
+    <a href="index.html">Guide</a>
+  </div>
+
+  <!-- Hero compact -->
+  <section class="pt-32 pb-14 px-6" style="background: var(--gradient-hero);">
+    <div class="max-w-4xl mx-auto text-center">
+      <span class="badge-v2 bg-accent/20 text-accent-light border border-accent/30 mb-6">
+        <i data-lucide="circle-help" class="w-3.5 h-3.5"></i> Questions fréquentes</span>
+      <h1 class="text-3xl md:text-5xl font-extrabold text-white mt-4 mb-4">Questions fréquentes</h1>
+      <p class="text-white/60 text-lg max-w-2xl mx-auto">Les réponses aux situations les plus courantes, du compte au jour de la course.</p>
+    </div>
+  </section>
+
+  <!-- Corps du guide -->
+  <div class="px-6 pt-4 pb-12 lg:py-12 bg-[#f8fafc]">
+    <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-5 lg:gap-10">
+
+      <!-- Menu latéral -->
+      <aside class="guide-aside lg:w-64 flex-shrink-0">
+        <label for="guide-select" class="lg:hidden block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Dans ce guide</label>
+        <select id="guide-select" class="lg:hidden w-full rounded-lg bg-white px-3 py-2.5 text-sm shadow-sm"></select>
+        <nav id="guide-nav" class="hidden lg:block sticky top-24" aria-label="Pages du guide"></nav>
+      </aside>
+
+      <!-- Contenu -->
+      <main class="guide-content flex-1 min-w-0 max-w-3xl">
+        <div class="guide-summary">
+          <div class="guide-summary-title"><i data-lucide="zap" class="w-4 h-4 text-primary"></i> En bref</div>
+          <ul class="space-y-1.5 text-sm text-gray-600">
+            <li>• Cliquez sur une question pour afficher sa réponse.</li>
+            <li>• Votre question n'y est pas ? Écrivez à <a href="mailto:contact@opendossard.com">contact@opendossard.com</a>.</li>
+          </ul>
+        </div>
+
+        <h2 id="compte">Compte et droits</h2>
+        <div class="space-y-3">
+          <details class="guide-faq">
+            <summary>Le lien de réinitialisation du mot de passe ne fonctionne pas.</summary>
+            <p>Le lien expire au bout d'une heure et ne sert qu'une fois. Refaites une demande depuis <span class="guide-ui">Mot de passe oublié ?</span> et utilisez le dernier email reçu. Voir <a href="demarrer.html#mot-de-passe">Mot de passe oublié</a>.</p>
+          </details>
+          <details class="guide-faq">
+            <summary>La fiche de mon club est en lecture seule.</summary>
+            <p>Deux cas : votre compte n'est pas rattaché à ce club (message « Vous n'êtes pas lié à ce club » ; demandez le rattachement à un administrateur), ou le club est connecté à HelloAsso, ce qui verrouille la fiche (cliquez sur <span class="guide-ui">Délier</span> pour la modifier). Voir <a href="club.html#apres">Mon club</a>.</p>
+          </details>
+          <details class="guide-faq">
+            <summary>Je ne peux pas modifier une épreuve d'un autre club.</summary>
+            <p>C'est normal : seuls les organisateurs rattachés au club organisateur modifient sa fiche épreuve. Les engagements et les classements, eux, restent ouverts à tous. Voir <a href="demarrer.html#droits">Vos droits</a>.</p>
+          </details>
+        </div>
+
+        <h2 id="epreuves">Épreuves</h2>
+        <div class="space-y-3">
+          <details class="guide-faq">
+            <summary>Je me suis trompé de type ou de fédération.</summary>
+            <p>Ces deux informations ne se modifient plus après l'enregistrement. Supprimez l'épreuve et recréez-la, ou dupliquez-la puis corrigez la copie avant de supprimer l'originale.</p>
+          </details>
+          <details class="guide-faq">
+            <summary>Impossible de supprimer une épreuve.</summary>
+            <p>Une épreuve qui a des engagés ou des paiements HelloAsso est conservée pour préserver l'historique et la comptabilité. Désengagez d'abord les coureurs ; si des paiements existent, contactez un administrateur.</p>
+          </details>
+          <details class="guide-faq">
+            <summary>Je ne trouve pas le dépôt du fichier GPX.</summary>
+            <p>Il n'est disponible qu'une fois l'épreuve enregistrée. Enregistrez, puis retournez dans l'onglet <strong>Horaires &amp; Circuits</strong>. Voir <a href="epreuves.html#horaires">Horaires &amp; Circuits</a>.</p>
+          </details>
+        </div>
+
+        <div class="space-y-3 mt-3">
+          <details class="guide-faq">
+            <summary>Comment prévenir les coureurs d'un changement d'horaire ?</summary>
+            <p>Envoyez une notification aux coureurs qui suivent l'épreuve dans Dossardeur : onglet <strong>Infos</strong> de l'épreuve, bouton <span class="guide-ui">Notifier les abonnés de cette épreuve</span>. Voir <a href="epreuves.html#notifier">Prévenir les coureurs abonnés</a>.</p>
+          </details>
+          <details class="guide-faq">
+            <summary>Je ne vois pas le bouton « Notifier les abonnés ».</summary>
+            <p>Il n'apparaît que pour les organisateurs du club de l'épreuve. Si vous êtes commissaire ou organisateur d'un autre club, demandez à l'organisateur de l'épreuve d'envoyer le message.</p>
+          </details>
+        </div>
+
+        <h2 id="paiement">Paiement en ligne</h2>
+        <div class="space-y-3">
+          <details class="guide-faq">
+            <summary>L'option de paiement en ligne n'apparaît pas sur mon épreuve.</summary>
+            <p>Elle n'apparaît que si le club organisateur est <a href="club.html#helloasso">connecté à HelloAsso</a>.</p>
+          </details>
+          <details class="guide-faq">
+            <summary>L'interrupteur de paiement en ligne est grisé.</summary>
+            <p>Le compte HelloAsso de l'association n'est pas encore vérifié par HelloAsso. Complétez le dossier de vérification sur HelloAsso via le bouton <span class="guide-ui">Vérifier mon compte HelloAsso</span> de la fiche club, puis rafraîchissez le statut.</p>
+          </details>
+          <details class="guide-faq">
+            <summary>Mes tarifs ont été vidés quand j'ai activé le paiement en ligne.</summary>
+            <p>Avec le paiement en ligne, chaque montant doit être un nombre (8, 12,50…). Les tarifs écrits en texte libre (« 10 € sur place ») sont vidés : ressaisissez un montant, puis enregistrez.</p>
+          </details>
+          <details class="guide-faq">
+            <summary>Un coureur a payé en ligne mais n'a pas de dossard.</summary>
+            <p>Le paiement en ligne est une pré-inscription. Le jour de la course, engagez le coureur sur son départ : son dossard apparaît alors dans l'onglet HelloAsso. Voir <a href="engagements.html#en-ligne">Pré-inscriptions payées en ligne</a>.</p>
+          </details>
+          <details class="guide-faq">
+            <summary>La fiche club indique « Liaison HelloAsso expirée ».</summary>
+            <p>Les paiements en ligne sont suspendus. Cliquez sur <span class="guide-ui">Reconnexion HelloAsso</span> en haut de la fiche du club et reconnectez-vous avec le compte de l'association.</p>
+          </details>
+        </div>
+
+        <h2 id="engagements">Engagements</h2>
+        <div class="space-y-3">
+          <details class="guide-faq">
+            <summary>Le coureur est introuvable dans la recherche.</summary>
+            <p>Il n'est pas encore dans la base : créez sa fiche dans <a href="licencies.html#ajouter">Licences</a>, puis engagez-le. Vérifiez aussi l'orthographe (nom sans accents).</p>
+          </details>
+          <details class="guide-faq">
+            <summary>Un coureur d'une autre fédération, ou sans licence, n'est pas accepté.</summary>
+            <p>L'épreuve n'est pas ouverte aux autres fédérations ou aux non licenciés. Cochez l'option correspondante dans l'onglet <strong>Infos</strong> de l'épreuve. Voir <a href="epreuves.html#infos">Contact et options</a>.</p>
+          </details>
+          <details class="guide-faq">
+            <summary>« Déjà pris » s'affiche à côté du dossard.</summary>
+            <p>Ce numéro est déjà attribué à un autre coureur du même départ. Choisissez un autre numéro, ou vérifiez dans la liste qui le porte.</p>
+          </details>
+          <details class="guide-faq">
+            <summary>Je ne peux pas désengager un coureur.</summary>
+            <p>Il est déjà classé ou marqué abandon. Retirez-le d'abord du classement avec <span class="guide-ui">Déclasser</span> dans l'écran des classements, puis désengagez-le.</p>
+          </details>
+          <details class="guide-faq">
+            <summary>« Impossible de réorganiser : des classements existent ».</summary>
+            <p>La réorganisation des départs n'est possible qu'avant la saisie des arrivées. Si nécessaire, déclassez les coureurs saisis, réorganisez, puis saisissez à nouveau.</p>
+          </details>
+          <details class="guide-faq">
+            <summary>Mes corrections sur une licence ont disparu.</summary>
+            <p>Certains comités FSGT importent leurs licences depuis la plateforme e-licence d'Exalto ; chaque import écrase les modifications locales. Signalez l'erreur au comité pour qu'elle soit corrigée à la source.</p>
+          </details>
+        </div>
+
+        <h2 id="classements">Classements</h2>
+        <div class="space-y-3">
+          <details class="guide-faq">
+            <summary>« Le dossard n'existe pas dans les engagés ».</summary>
+            <p>Le coureur n'est pas engagé sur ce départ. Engagez-le (bouton <span class="guide-ui">Engagés</span>), puis revenez saisir son arrivée.</p>
+          </details>
+          <details class="guide-faq">
+            <summary>Le PDF imprimé ne contient pas les dernières arrivées.</summary>
+            <p>Le PDF reprend ce qui est affiché à l'écran. Si quelqu'un saisit sur un autre appareil, cliquez sur le bouton de rafraîchissement avant d'imprimer.</p>
+          </details>
+          <details class="guide-faq">
+            <summary>J'ai inversé deux coureurs à l'arrivée.</summary>
+            <p>Faites glisser la ligne du coureur à sa bonne place par sa poignée, à gauche. Voir <a href="classements.html#corriger">Corriger un classement</a>.</p>
+          </details>
+        </div>
+
+        <!-- Précédent / suivant -->
+        <div id="guide-pager" class="grid sm:grid-cols-2 gap-4 mt-12"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="relative py-16 px-6" style="background: var(--gradient-hero);">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+        <div>
+          <div class="flex items-center gap-3 mb-4">
+            <img src="../assets/images/logoblanc.svg" alt="Open Dossard" class="h-8">
+            <span class="text-white font-bold text-lg">Open Dossard</span>
+          </div>
+          <p class="text-white/50 text-sm max-w-sm">Plateforme open source de gestion d'épreuves cyclistes multi-fédérations.</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-8 text-sm">
+          <div>
+            <h4 class="text-white font-semibold mb-3">Navigation</h4>
+            <div class="flex flex-col gap-2">
+              <a href="../index.html" class="text-white/50 hover:text-white transition">Accueil</a>
+              <a href="../product.html" class="text-white/50 hover:text-white transition">Fonctionnalités</a>
+              <a href="../calendrier.html" class="text-white/50 hover:text-white transition">Calendrier</a>
+              <a href="../licences.html" class="text-white/50 hover:text-white transition">Licences</a>
+              <a href="../engagements-classements.html" class="text-white/50 hover:text-white transition">Engagements & Classements</a>
+              <a href="../challenges-palmares.html" class="text-white/50 hover:text-white transition">Challenges & Palmarès</a>
+              <a href="index.html" class="text-white/50 hover:text-white transition">Guide de l'organisateur</a>
+            </div>
+          </div>
+          <div>
+            <h4 class="text-white font-semibold mb-3">Contact</h4>
+            <div class="flex flex-col gap-2">
+              <a href="mailto:contact@opendossard.com" class="text-white/50 hover:text-white transition">contact@opendossard.com</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-white/30 text-xs">&copy; 2024 Open Dossard. Projet open source.</p>
+        <p class="text-white/30 text-xs">Sponsor : <a href="http://www.dng-consulting.com" class="hover:text-white/60 transition">DNG Consulting</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="../js/guide.js?v=20261102e"></script>
+  <script src="../js/main.js"></script>
+</body>
+</html>

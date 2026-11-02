@@ -1,0 +1,358 @@
+/* OpenDossard — Guide organisateurs */
+
+/* ---- Menu latéral ---- */
+/* Fixé à l'écran : jamais plus haut que la fenêtre, défilement interne sinon */
+#guide-nav {
+  max-height: calc(100vh - 7rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 1rem;
+  scrollbar-width: thin;
+}
+.guide-nav-group {
+  background: #fff;
+  border-radius: 0.875rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 14px rgba(15, 23, 42, 0.05);
+  padding: 0.5rem;
+}
+.guide-nav-group + .guide-nav-group { margin-top: 0.75rem; }
+.guide-nav-section {
+  padding: 0.5rem 0.75rem 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--navy-dark);
+}
+
+.guide-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #64748b;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.guide-nav-link svg { color: #94a3b8; }
+.guide-nav-link:hover svg,
+.guide-nav-link.active svg { color: currentColor; }
+.guide-nav-link:hover { background: #eef2ff; color: var(--primary-dark); }
+.guide-nav-link.active {
+  background: rgba(68, 114, 196, 0.12);
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+.guide-nav-link.pending { color: #94a3b8; cursor: default; }
+.guide-nav-link.pending:hover { background: transparent; color: #94a3b8; }
+.guide-nav-link svg { width: 1rem; height: 1rem; flex-shrink: 0; }
+.guide-nav-soon {
+  margin-left: auto;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #94a3b8;
+  background: #f1f5f9;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+}
+
+/* ---- Contenu ---- */
+.guide-content h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--navy-dark);
+  margin: 2.5rem 0 1rem;
+  scroll-margin-top: 6rem;
+}
+.guide-content h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--navy-mid);
+  margin: 1.75rem 0 0.75rem;
+  scroll-margin-top: 6rem;
+}
+.guide-content p { color: #475569; line-height: 1.7; margin-bottom: 1rem; }
+.guide-content a:not(.guide-card):not(.guide-pager-link) { color: var(--primary); font-weight: 500; }
+.guide-content a:not(.guide-card):not(.guide-pager-link):hover { text-decoration: underline; }
+.guide-content strong { color: var(--fg); }
+.guide-content kbd,
+.guide-ui {
+  display: inline-block;
+  font-size: 0.8em;
+  font-weight: 600;
+  color: var(--navy-mid);
+  background: #f1f5f9;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  padding: 0.05rem 0.45rem;
+}
+
+/* ---- Encart « En bref » ---- */
+.guide-summary {
+  background: linear-gradient(135deg, #eef4ff 0%, #e6f7f1 100%);
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0 2rem;
+}
+.guide-summary-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  color: var(--navy-dark);
+  margin-bottom: 0.5rem;
+}
+.guide-summary p:last-child,
+.guide-summary ul:last-child { margin-bottom: 0; }
+
+/* ---- Encarts « À savoir » / « Attention » (fond teinté + icône, sans liseré) ---- */
+.guide-callout {
+  display: flex;
+  gap: 0.875rem;
+  border-radius: 0.875rem;
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  font-size: 0.925rem;
+}
+.guide-callout-icon {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.guide-callout-icon svg { width: 1rem; height: 1rem; }
+.guide-callout-title { font-weight: 700; margin-bottom: 0.25rem; }
+.guide-callout p { margin-bottom: 0.5rem; }
+.guide-callout p:last-child { margin-bottom: 0; }
+
+.guide-callout.info { background: #eff6ff; }
+.guide-callout.info .guide-callout-icon { background: #dbeafe; color: var(--primary-dark); }
+.guide-callout.info .guide-callout-title { color: var(--primary-dark); }
+
+.guide-callout.tip { background: #ecfdf5; }
+.guide-callout.tip .guide-callout-icon { background: #d1fae5; color: #047857; }
+.guide-callout.tip .guide-callout-title { color: #047857; }
+
+.guide-callout.warn { background: #fffbeb; }
+.guide-callout.warn .guide-callout-icon { background: #fef3c7; color: #b45309; }
+.guide-callout.warn .guide-callout-title { color: #b45309; }
+
+/* ---- Étapes numérotées ---- */
+.guide-steps { counter-reset: step; list-style: none; padding: 0; margin: 1.5rem 0; }
+.guide-steps > li {
+  counter-increment: step;
+  position: relative;
+  padding-left: 3rem;
+  margin-bottom: 1.5rem;
+  color: #475569;
+  line-height: 1.7;
+}
+.guide-steps > li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background: var(--gradient-primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- Captures annotées ---- */
+.guide-shot { margin: 1.25rem 0 0.5rem; }
+.guide-shot-frame { position: relative; display: block; overflow: hidden; border-radius: 0.75rem; }
+.guide-shot-frame .screenshot:hover { transform: none; }
+.guide-shot figcaption { font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem; text-align: center; }
+.guide-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background: #f59e0b;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.3);
+  pointer-events: none;
+}
+.guide-highlight {
+  position: absolute;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 0 3px #f59e0b, 0 0 0 9999px rgba(15, 23, 42, 0.08);
+  pointer-events: none;
+}
+
+/* ---- Cartes du sommaire ---- */
+.guide-card {
+  display: flex;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 16px rgba(15, 23, 42, 0.04);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+a.guide-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.1);
+}
+.guide-card.pending { opacity: 0.6; }
+.guide-card-icon {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(68, 114, 196, 0.1);
+  color: var(--primary);
+}
+.guide-card-icon svg { width: 1.25rem; height: 1.25rem; }
+
+/* ---- Cycle d'une épreuve ---- */
+.guide-cycle-step {
+  text-align: center;
+  padding: 1.25rem 1rem;
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+.guide-cycle-num {
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: 0 auto 0.75rem;
+  border-radius: 9999px;
+  background: var(--gradient-accent);
+  color: #fff;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- Précédent / suivant ---- */
+.guide-pager-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 1.25rem;
+  border-radius: 0.875rem;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  transition: box-shadow 0.2s ease;
+}
+.guide-pager-link:hover { box-shadow: 0 6px 20px rgba(15, 23, 42, 0.1); }
+.guide-pager-label { font-size: 0.75rem; color: var(--muted); }
+.guide-pager-title { font-weight: 600; color: var(--primary-dark); }
+
+/* ---- FAQ (questions dépliables) ---- */
+.guide-faq {
+  background: #fff;
+  border-radius: 0.875rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  padding: 0 1.25rem;
+}
+.guide-faq summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 0;
+  font-weight: 600;
+  color: var(--navy-dark);
+}
+.guide-faq summary::-webkit-details-marker { display: none; }
+.guide-faq summary::after {
+  content: '+';
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background: rgba(68, 114, 196, 0.1);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+.guide-faq[open] summary::after { content: '−'; }
+.guide-faq p { padding-bottom: 1rem; margin: 0; }
+
+/* ===================================================================
+   Mobile et tablette (sous 1024 px : menu latéral remplacé par la liste)
+   =================================================================== */
+@media (max-width: 1023px) {
+  /* Liste « Dans ce guide » collée sous la barre de navigation fixe (64 px) */
+  .guide-aside {
+    position: sticky;
+    top: 64px;
+    z-index: 30;
+    margin: 0 -1.5rem;
+    padding: 0.625rem 1.5rem;
+    background: rgba(248, 250, 252, 0.94);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .guide-aside label {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  .guide-content h2 { scroll-margin-top: 8.5rem; }
+  .guide-content h3 { scroll-margin-top: 8.5rem; }
+}
+
+@media (max-width: 640px) {
+  .guide-content h2 { font-size: 1.3rem; margin-top: 2rem; }
+  .guide-content h3 { font-size: 1.05rem; }
+  .guide-summary { padding: 1rem 1.125rem; margin: 1rem 0 1.5rem; }
+  .guide-callout { padding: 0.875rem 1rem; gap: 0.75rem; }
+  .guide-callout-icon { width: 1.75rem; height: 1.75rem; }
+  .guide-steps > li { padding-left: 2.5rem; }
+  .guide-steps > li::before { width: 1.75rem; height: 1.75rem; font-size: 0.8rem; }
+  .guide-card { padding: 1rem; gap: 0.75rem; }
+  .guide-card-icon { width: 2.25rem; height: 2.25rem; }
+  .guide-faq { padding: 0 1rem; }
+
+  /* Cycle d'une épreuve : liste verticale (numéro à gauche, intitulé à droite) */
+  .guide-cycle-step {
+    display: grid;
+    grid-template-columns: 2.25rem 1fr;
+    column-gap: 0.875rem;
+    align-items: center;
+    text-align: left;
+    padding: 0.75rem 1rem;
+  }
+  .guide-cycle-num { grid-row: span 2; margin: 0; }
+  .guide-cycle-step > div:not(.guide-cycle-num) { margin-top: 0 !important; }
+
+  /* Captures : réduites à la largeur d'un téléphone, elles s'agrandissent au toucher */
+  .guide-shot figcaption::after { content: ' · Touchez pour agrandir'; }
+  .lightbox { overflow: auto; justify-content: flex-start; }
+  .lightbox img {
+    max-width: none;
+    max-height: none;
+    height: min(78vh, 900px);
+    width: auto;
+    margin: auto 1rem;
+  }
+  .lightbox-close { position: fixed; z-index: 1; background: rgba(0, 0, 0, 0.55); }
+}

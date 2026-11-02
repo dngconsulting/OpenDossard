@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Le tableau de bord statistique d'Open Dossard : participation par épreuve et par club, répartition par catégorie, coureurs les plus assidus, avec filtres et export PDF.">
+  <title>Open Dossard — Statistiques</title>
+  <link rel="canonical" href="https://www.opendossard.com/guide/statistiques.html">
+  <link rel="icon" href="../assets/favicon.ico">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#4472C4', light: '#5B8DEF', dark: '#2d4889' },
+            navy: { DEFAULT: '#1e3a5f', dark: '#0f172a', light: '#2d5a87' },
+            accent: { DEFAULT: '#10B981', light: '#34D399', teal: '#14B8A6' },
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/guide.css?v=20261102e">
+</head>
+<body class="font-sans antialiased">
+
+  <!-- Nav -->
+  <nav class="nav-main py-4 px-6 lg:px-12">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <a href="../index.html" class="flex items-center gap-3">
+        <img src="../assets/images/logoblanc.svg" alt="Open Dossard" class="h-8">
+        <span class="text-white font-bold text-lg hidden sm:inline">Open Dossard</span>
+      </a>
+      <div class="hidden xl:flex items-center gap-8">
+        <a href="../index.html" class="text-white/90 hover:text-white text-sm font-medium transition">Accueil</a>
+        <a href="../product.html" class="text-white/90 hover:text-white text-sm font-medium transition">Fonctionnalités</a>
+        <a href="../calendrier.html" class="text-white/90 hover:text-white text-sm font-medium transition">Calendrier</a>
+        <a href="../licences.html" class="text-white/90 hover:text-white text-sm font-medium transition">Licences</a>
+        <a href="../engagements-classements.html" class="text-white/90 hover:text-white text-sm font-medium transition">Engagements & Classements</a>
+        <a href="../challenges-palmares.html" class="text-white/90 hover:text-white text-sm font-medium transition">Challenges & Palmarès</a>
+        <a href="index.html" class="text-white hover:text-white text-sm font-semibold transition">Guide</a>
+      </div>
+      <button id="nav-burger" class="xl:hidden text-white" aria-label="Menu">
+        <i data-lucide="menu" class="w-6 h-6"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile nav -->
+  <div id="mobile-nav" class="mobile-nav">
+    <button id="nav-close" class="absolute top-6 right-6 text-white" aria-label="Fermer">
+      <i data-lucide="x" class="w-7 h-7"></i>
+    </button>
+    <a href="../index.html">Accueil</a>
+    <a href="../product.html">Fonctionnalités</a>
+    <a href="../calendrier.html">Calendrier</a>
+    <a href="../licences.html">Licences</a>
+    <a href="../engagements-classements.html">Engagements & Classements</a>
+    <a href="../challenges-palmares.html">Challenges & Palmarès</a>
+    <a href="index.html">Guide</a>
+  </div>
+
+  <!-- Hero compact -->
+  <section class="pt-32 pb-14 px-6" style="background: var(--gradient-hero);">
+    <div class="max-w-4xl mx-auto text-center">
+      <span class="badge-v2 bg-accent/20 text-accent-light border border-accent/30 mb-6">
+        <i data-lucide="chart-column" class="w-3.5 h-3.5"></i> Statistiques</span>
+      <h1 class="text-3xl md:text-5xl font-extrabold text-white mt-4 mb-4">Statistiques</h1>
+      <p class="text-white/60 text-lg max-w-2xl mx-auto">Mesurer la participation sur une saison, une région ou un club.</p>
+    </div>
+  </section>
+
+  <!-- Corps du guide -->
+  <div class="px-6 pt-4 pb-12 lg:py-12 bg-[#f8fafc]">
+    <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-5 lg:gap-10">
+
+      <!-- Menu latéral -->
+      <aside class="guide-aside lg:w-64 flex-shrink-0">
+        <label for="guide-select" class="lg:hidden block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Dans ce guide</label>
+        <select id="guide-select" class="lg:hidden w-full rounded-lg bg-white px-3 py-2.5 text-sm shadow-sm"></select>
+        <nav id="guide-nav" class="hidden lg:block sticky top-24" aria-label="Pages du guide"></nav>
+      </aside>
+
+      <!-- Contenu -->
+      <main class="guide-content flex-1 min-w-0 max-w-3xl">
+        <div class="guide-summary">
+          <div class="guide-summary-title"><i data-lucide="zap" class="w-4 h-4 text-primary"></i> En bref</div>
+          <ul class="space-y-1.5 text-sm text-gray-600">
+            <li>• Le tableau de bord compte les participations (coureurs engagés) sur toutes les épreuves de la période choisie.</li>
+            <li>• Cinq graphiques, filtrables par date, fédération, discipline, région et club.</li>
+            <li>• Chaque graphique s'exporte en PDF, pour un bilan de saison ou une assemblée générale.</li>
+          </ul>
+        </div>
+
+        <h2 id="ouvrir">Ouvrir le tableau de bord</h2>
+        <p>Dans le menu, cliquez sur <span class="guide-ui">Statistiques</span>, ou sur <span class="guide-ui">Tableau de bord</span> depuis l'accueil. Par défaut, il couvre les <strong>douze derniers mois</strong> et les épreuves sur route.</p>
+        <figure class="guide-shot">
+          <img src="img/stats-tableau-de-bord.webp" alt="Tableau de bord avec la barre de filtres, deux graphiques repliés et les répartitions par catégorie d'âge et de valeur" class="screenshot w-full" loading="lazy" width="1280" height="800">
+          <figcaption>Le tableau de bord : les filtres en haut, les graphiques en dessous.</figcaption>
+        </figure>
+
+        <h2 id="filtres">Les filtres</h2>
+        <ul class="list-disc pl-6 space-y-1 text-gray-600 mb-4">
+          <li><strong>Date de début</strong> et <strong>date de fin</strong> : la période des épreuves prises en compte ;</li>
+          <li><strong>Fédérations</strong> et <strong>disciplines</strong> (route, cyclo-cross, VTT…), plusieurs choix possibles ;</li>
+          <li><strong>Région épreuves</strong> : les départements où se courent les épreuves ;</li>
+          <li><strong>Région coureurs</strong> : les départements des coureurs, quel que soit le lieu de l'épreuve ;</li>
+          <li><strong>Club</strong> : ne garde que les participations des coureurs de ce club.</li>
+        </ul>
+        <p>Le bouton <span class="guide-ui">Réinitialiser</span> revient aux réglages par défaut.</p>
+
+        <div class="guide-callout tip">
+          <div class="guide-callout-icon"><i data-lucide="link"></i></div>
+          <div>
+            <div class="guide-callout-title">Partager une vue</div>
+            <p>Les filtres sont enregistrés dans l'adresse de la page : copiez-la pour envoyer exactement la même vue à un autre membre du club.</p>
+          </div>
+        </div>
+
+        <h2 id="graphiques">Les graphiques</h2>
+        <p>Chaque graphique se replie ou se déplie avec la flèche à droite de son titre ; l'icône voisine l'<strong>exporte en PDF</strong>. Le sous-titre résume les chiffres clés.</p>
+        <figure class="guide-shot">
+          <img src="img/stats-graphiques.webp" alt="Graphique déplié du nombre de coureurs par épreuve, avec une barre par épreuve" class="screenshot w-full" loading="lazy" width="1280" height="800">
+          <figcaption>Le nombre de coureurs par épreuve, déplié.</figcaption>
+        </figure>
+        <div class="grid sm:grid-cols-2 gap-4 my-6">
+          <div class="guide-card">
+            <div class="guide-card-icon"><i data-lucide="chart-bar"></i></div>
+            <div>
+              <div class="font-semibold text-navy-dark">Coureurs par épreuve</div>
+              <div class="text-sm text-gray-500 mt-1">Le nombre d'engagés de chaque épreuve de la période (100 épreuves au plus).</div>
+            </div>
+          </div>
+          <div class="guide-card">
+            <div class="guide-card-icon"><i data-lucide="shield"></i></div>
+            <div>
+              <div class="font-semibold text-navy-dark">Participation des clubs</div>
+              <div class="text-sm text-gray-500 mt-1">Les clubs dont les coureurs participent le plus.</div>
+            </div>
+          </div>
+          <div class="guide-card">
+            <div class="guide-card-icon"><i data-lucide="users"></i></div>
+            <div>
+              <div class="font-semibold text-navy-dark">Catégories d'âge</div>
+              <div class="text-sm text-gray-500 mt-1">La part de chaque catégorie d'âge (sénior, vétéran…) dans les participations.</div>
+            </div>
+          </div>
+          <div class="guide-card">
+            <div class="guide-card-icon"><i data-lucide="layers"></i></div>
+            <div>
+              <div class="font-semibold text-navy-dark">Catégories de valeur</div>
+              <div class="text-sm text-gray-500 mt-1">La part de chaque catégorie de valeur, utile pour équilibrer les départs.</div>
+            </div>
+          </div>
+          <div class="guide-card sm:col-span-2">
+            <div class="guide-card-icon"><i data-lucide="medal"></i></div>
+            <div>
+              <div class="font-semibold text-navy-dark">Coureurs les plus assidus</div>
+              <div class="text-sm text-gray-500 mt-1">Les 50 coureurs qui ont le plus de participations sur la période : un classement de fidélité, pas de résultats.</div>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="usages">Quelques usages</h2>
+        <ul class="list-disc pl-6 space-y-2 text-gray-600 mb-4">
+          <li><strong>Bilan de saison du club</strong> : filtrez sur votre club et la saison, puis exportez les graphiques pour l'assemblée générale.</li>
+          <li><strong>Préparer une épreuve</strong> : la répartition par catégorie de valeur, filtrée sur votre département, aide à prévoir les regroupements de départs.</li>
+          <li><strong>Suivre la fréquentation</strong> : comparez le nombre de coureurs de votre épreuve d'une année sur l'autre en changeant la période.</li>
+        </ul>
+
+        <div class="guide-callout info">
+          <div class="guide-callout-icon"><i data-lucide="info"></i></div>
+          <div>
+            <div class="guide-callout-title">Ce qui est compté</div>
+            <p>Une participation correspond à un coureur engagé sur un départ d'une épreuve de la période. Les statistiques couvrent toutes les épreuves d'Open Dossard, pas seulement celles de votre club : utilisez les filtres pour restreindre.</p>
+          </div>
+        </div>
+
+        <!-- Précédent / suivant -->
+        <div id="guide-pager" class="grid sm:grid-cols-2 gap-4 mt-12"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="relative py-16 px-6" style="background: var(--gradient-hero);">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+        <div>
+          <div class="flex items-center gap-3 mb-4">
+            <img src="../assets/images/logoblanc.svg" alt="Open Dossard" class="h-8">
+            <span class="text-white font-bold text-lg">Open Dossard</span>
+          </div>
+          <p class="text-white/50 text-sm max-w-sm">Plateforme open source de gestion d'épreuves cyclistes multi-fédérations.</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-8 text-sm">
+          <div>
+            <h4 class="text-white font-semibold mb-3">Navigation</h4>
+            <div class="flex flex-col gap-2">
+              <a href="../index.html" class="text-white/50 hover:text-white transition">Accueil</a>
+              <a href="../product.html" class="text-white/50 hover:text-white transition">Fonctionnalités</a>
+              <a href="../calendrier.html" class="text-white/50 hover:text-white transition">Calendrier</a>
+              <a href="../licences.html" class="text-white/50 hover:text-white transition">Licences</a>
+              <a href="../engagements-classements.html" class="text-white/50 hover:text-white transition">Engagements & Classements</a>
+              <a href="../challenges-palmares.html" class="text-white/50 hover:text-white transition">Challenges & Palmarès</a>
+              <a href="index.html" class="text-white/50 hover:text-white transition">Guide de l'organisateur</a>
+            </div>
+          </div>
+          <div>
+            <h4 class="text-white font-semibold mb-3">Contact</h4>
+            <div class="flex flex-col gap-2">
+              <a href="mailto:contact@opendossard.com" class="text-white/50 hover:text-white transition">contact@opendossard.com</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-white/30 text-xs">&copy; 2024 Open Dossard. Projet open source.</p>
+        <p class="text-white/30 text-xs">Sponsor : <a href="http://www.dng-consulting.com" class="hover:text-white/60 transition">DNG Consulting</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="../js/guide.js?v=20261102e"></script>
+  <script src="../js/main.js"></script>
+</body>
+</html>
