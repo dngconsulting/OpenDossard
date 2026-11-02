@@ -93,6 +93,7 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; letter-spacing:
 
 .nav-links { display: flex; align-items: center; gap: 30px; }
 .nav-links > a:not(.btn) {
+    white-space: nowrap;
     color: rgba(255, 255, 255, .82); font-weight: 600; font-size: .95rem;
     position: relative; transition: color .2s ease;
 }
@@ -473,7 +474,8 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; letter-spacing:
     .socials a { display: inline-block; margin: 0 10px 10px; }
 }
 
-@media (max-width: 720px) {
+/* Menu burger : dès 1080 px, le menu complet (6 entrées) ne tient plus à côté du logo */
+@media (max-width: 1080px) {
     .nav-toggle { display: flex; }
     .nav-links {
         position: absolute; top: 100%; left: 0; right: 0;
@@ -482,8 +484,11 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; letter-spacing:
         padding: 0 24px; max-height: 0; overflow: hidden;
         transition: max-height .35s ease, padding .35s ease;
     }
-    .nav-links.open { max-height: 360px; padding-top: 16px; padding-bottom: 24px; }
+    .nav-links.open { max-height: 440px; padding-top: 16px; padding-bottom: 24px; }
     .nav-links > a:not(.btn) { padding: 12px 0; }
     .nav-links .btn { margin-top: 8px; }
+}
+
+@media (max-width: 720px) {
     .hero { padding: 120px 0 90px; }
 }

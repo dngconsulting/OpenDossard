@@ -19,6 +19,8 @@ type PageItem = {
   url: string;
   icon: LucideIcon;
   requiredRoles?: string[];
+  /** Lien hors de l'application (ex. guide sur le site public) : ouvert dans un nouvel onglet. */
+  external?: boolean;
 };
 
 export function NavPages({
@@ -48,17 +50,30 @@ export function NavPages({
       <SidebarMenu>
         {visiblePages.map(item => {
           const isActive =
-            location.pathname === item.url ||
-            (item.url !== '/' && location.pathname.startsWith(item.url));
+            !item.external &&
+            (location.pathname === item.url ||
+              (item.url !== '/' && location.pathname.startsWith(item.url)));
+
+          const content = (
+            <>
+              <div className="nav-icon-wrapper shrink-0">
+                <item.icon />
+              </div>
+              {!isCollapsed && <span className="text-sidebar-foreground">{item.name}</span>}
+            </>
+          );
 
           const menuButton = (
             <SidebarMenuButton asChild isActive={isActive}>
-              <Link to={item.url} className="relative">
-                <div className="nav-icon-wrapper shrink-0">
-                  <item.icon />
-                </div>
-                {!isCollapsed && <span className="text-sidebar-foreground">{item.name}</span>}
-              </Link>
+              {item.external ? (
+                <a href={item.url} target="_blank" rel="noopener noreferrer" className="relative">
+                  {content}
+                </a>
+              ) : (
+                <Link to={item.url} className="relative">
+                  {content}
+                </Link>
+              )}
             </SidebarMenuButton>
           );
 

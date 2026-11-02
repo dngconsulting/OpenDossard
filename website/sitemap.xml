@@ -46,4 +46,59 @@
     <priority>1.00</priority>
   </url>
 
+<url>
+  <loc>https://www.opendossard.com/guide/</loc>
+  <lastmod>2026-11-02T00:00:00+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.opendossard.com/guide/demarrer.html</loc>
+  <lastmod>2026-11-02T00:00:00+00:00</lastmod>
+  <priority>0.70</priority>
+</url>
+<url>
+  <loc>https://www.opendossard.com/guide/club.html</loc>
+  <lastmod>2026-11-02T00:00:00+00:00</lastmod>
+  <priority>0.70</priority>
+</url>
+<url>
+  <loc>https://www.opendossard.com/guide/epreuves.html</loc>
+  <lastmod>2026-11-02T00:00:00+00:00</lastmod>
+  <priority>0.70</priority>
+</url>
+<url>
+  <loc>https://www.opendossard.com/guide/licencies.html</loc>
+  <lastmod>2026-11-02T00:00:00+00:00</lastmod>
+  <priority>0.70</priority>
+</url>
+<url>
+  <loc>https://www.opendossard.com/guide/engagements.html</loc>
+  <lastmod>2026-11-02T00:00:00+00:00</lastmod>
+  <priority>0.70</priority>
+</url>
+<url>
+  <loc>https://www.opendossard.com/guide/classements.html</loc>
+  <lastmod>2026-11-02T00:00:00+00:00</lastmod>
+  <priority>0.70</priority>
+</url>
+<url>
+  <loc>https://www.opendossard.com/guide/commissaires.html</loc>
+  <lastmod>2026-11-02T00:00:00+00:00</lastmod>
+  <priority>0.70</priority>
+</url>
+<url>
+  <loc>https://www.opendossard.com/guide/challenges.html</loc>
+  <lastmod>2026-11-02T00:00:00+00:00</lastmod>
+  <priority>0.70</priority>
+</url>
+<url>
+  <loc>https://www.opendossard.com/guide/faq.html</loc>
+  <lastmod>2026-11-02T00:00:00+00:00</lastmod>
+  <priority>0.70</priority>
+</url>
+<url>
+  <loc>https://www.opendossard.com/guide/statistiques.html</loc>
+  <lastmod>2026-11-02T00:00:00+00:00</lastmod>
+  <priority>0.70</priority>
+</url>
 </urlset>

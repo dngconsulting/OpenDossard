@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Obtenir un compte organisateur Open Dossard, se connecter, retrouver son mot de passe et comprendre ses droits sur les clubs et les épreuves.">
+  <title>Open Dossard — Démarrer</title>
+  <link rel="canonical" href="https://www.opendossard.com/guide/demarrer.html">
+  <link rel="icon" href="../assets/favicon.ico">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#4472C4', light: '#5B8DEF', dark: '#2d4889' },
+            navy: { DEFAULT: '#1e3a5f', dark: '#0f172a', light: '#2d5a87' },
+            accent: { DEFAULT: '#10B981', light: '#34D399', teal: '#14B8A6' },
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/guide.css?v=20261102e">
+</head>
+<body class="font-sans antialiased">
+
+  <!-- Nav -->
+  <nav class="nav-main py-4 px-6 lg:px-12">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <a href="../index.html" class="flex items-center gap-3">
+        <img src="../assets/images/logoblanc.svg" alt="Open Dossard" class="h-8">
+        <span class="text-white font-bold text-lg hidden sm:inline">Open Dossard</span>
+      </a>
+      <div class="hidden xl:flex items-center gap-8">
+        <a href="../index.html" class="text-white/90 hover:text-white text-sm font-medium transition">Accueil</a>
+        <a href="../product.html" class="text-white/90 hover:text-white text-sm font-medium transition">Fonctionnalités</a>
+        <a href="../calendrier.html" class="text-white/90 hover:text-white text-sm font-medium transition">Calendrier</a>
+        <a href="../licences.html" class="text-white/90 hover:text-white text-sm font-medium transition">Licences</a>
+        <a href="../engagements-classements.html" class="text-white/90 hover:text-white text-sm font-medium transition">Engagements & Classements</a>
+        <a href="../challenges-palmares.html" class="text-white/90 hover:text-white text-sm font-medium transition">Challenges & Palmarès</a>
+        <a href="index.html" class="text-white hover:text-white text-sm font-semibold transition">Guide</a>
+      </div>
+      <button id="nav-burger" class="xl:hidden text-white" aria-label="Menu">
+        <i data-lucide="menu" class="w-6 h-6"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile nav -->
+  <div id="mobile-nav" class="mobile-nav">
+    <button id="nav-close" class="absolute top-6 right-6 text-white" aria-label="Fermer">
+      <i data-lucide="x" class="w-7 h-7"></i>
+    </button>
+    <a href="../index.html">Accueil</a>
+    <a href="../product.html">Fonctionnalités</a>
+    <a href="../calendrier.html">Calendrier</a>
+    <a href="../licences.html">Licences</a>
+    <a href="../engagements-classements.html">Engagements & Classements</a>
+    <a href="../challenges-palmares.html">Challenges & Palmarès</a>
+    <a href="index.html">Guide</a>
+  </div>
+
+  <!-- Hero compact -->
+  <section class="pt-32 pb-14 px-6" style="background: var(--gradient-hero);">
+    <div class="max-w-4xl mx-auto text-center">
+      <span class="badge-v2 bg-accent/20 text-accent-light border border-accent/30 mb-6">
+        <i data-lucide="log-in" class="w-3.5 h-3.5"></i> Démarrer</span>
+      <h1 class="text-3xl md:text-5xl font-extrabold text-white mt-4 mb-4">Démarrer avec Open Dossard</h1>
+      <p class="text-white/60 text-lg max-w-2xl mx-auto">Votre compte, la connexion et ce que vous pouvez faire dans le back-office.</p>
+    </div>
+  </section>
+
+  <!-- Corps du guide -->
+  <div class="px-6 pt-4 pb-12 lg:py-12 bg-[#f8fafc]">
+    <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-5 lg:gap-10">
+
+      <!-- Menu latéral -->
+      <aside class="guide-aside lg:w-64 flex-shrink-0">
+        <label for="guide-select" class="lg:hidden block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Dans ce guide</label>
+        <select id="guide-select" class="lg:hidden w-full rounded-lg bg-white px-3 py-2.5 text-sm shadow-sm"></select>
+        <nav id="guide-nav" class="hidden lg:block sticky top-24" aria-label="Pages du guide"></nav>
+      </aside>
+
+      <!-- Contenu -->
+      <main class="guide-content flex-1 min-w-0 max-w-3xl">
+        <div class="guide-summary">
+          <div class="guide-summary-title"><i data-lucide="zap" class="w-4 h-4 text-primary"></i> En bref</div>
+          <ul class="space-y-1.5 text-sm text-gray-600">
+            <li>• Votre compte est créé par un administrateur Open Dossard, qui le rattache à votre ou vos clubs.</li>
+            <li>• Vous vous connectez sur <strong>app.opendossard.com</strong> avec votre adresse email et votre mot de passe.</li>
+            <li>• Mot de passe perdu ? Un lien de réinitialisation vous est envoyé par email.</li>
+          </ul>
+        </div>
+
+        <h2 id="compte">Obtenir un compte</h2>
+        <p>Les comptes organisateurs ne se créent pas en libre-service : ils sont ouverts par l'équipe Open Dossard. Écrivez à <a href="mailto:contact@opendossard.com">contact@opendossard.com</a> en précisant :</p>
+        <ul class="list-disc pl-6 space-y-1 text-gray-600 mb-4">
+          <li>vos nom et prénom ;</li>
+          <li>l'adresse email qui vous servira d'identifiant ;</li>
+          <li>le ou les clubs pour lesquels vous organisez des épreuves.</li>
+        </ul>
+        <p>Vous recevez ensuite vos accès. Votre compte est <strong>rattaché à vos clubs</strong> : c'est ce rattachement qui détermine les épreuves que vous pouvez créer et modifier (voir <a href="#droits">Vos droits</a>).</p>
+
+        <div class="guide-callout tip">
+          <div class="guide-callout-icon"><i data-lucide="flag"></i></div>
+          <div>
+            <div class="guide-callout-title">Arbitres et commissaires</div>
+            <p>Un commissaire qui saisit les arrivées n'a pas besoin d'être rattaché au club organisateur. Un compte organisateur suffit, même sans club. Voir <a href="commissaires.html">Arbitres &amp; commissaires</a>.</p>
+          </div>
+        </div>
+
+        <h2 id="connexion">Se connecter</h2>
+        <ol class="guide-steps">
+          <li>Ouvrez <a href="https://app.opendossard.com" target="_blank" rel="noopener">app.opendossard.com</a> dans votre navigateur, sur ordinateur, tablette ou téléphone.</li>
+          <li>Saisissez votre <strong>adresse email</strong> et votre <strong>mot de passe</strong>.</li>
+          <li>Cochez <span class="guide-ui">Se souvenir de moi</span> si vous êtes sur votre appareil personnel : vous resterez connecté après la fermeture du navigateur. Sans cette case, la session se termine à la fermeture du navigateur.</li>
+          <li>Cliquez sur <span class="guide-ui">Se connecter</span>.</li>
+        </ol>
+        <figure class="guide-shot">
+          <div class="guide-shot-frame">
+            <img src="img/demarrer-connexion.webp" alt="Écran de connexion d'Open Dossard avec les champs adresse email et mot de passe, la case Se souvenir de moi et le bouton Se connecter" class="screenshot w-full" loading="lazy" width="1280" height="800">
+            <span class="guide-highlight" style="left:53.4%;top:58.6%;width:11.8%;height:3.6%"></span>
+          </div>
+          <figcaption>L'écran de connexion. Le lien « Mot de passe oublié ? » est encadré.</figcaption>
+        </figure>
+
+        <div class="guide-callout warn">
+          <div class="guide-callout-icon"><i data-lucide="triangle-alert"></i></div>
+          <div>
+            <div class="guide-callout-title">Ordinateur partagé</div>
+            <p>Sur l'ordinateur de la salle des fêtes ou du club, ne cochez pas « Se souvenir de moi » et déconnectez-vous en fin de journée depuis le menu en bas à gauche de l'écran.</p>
+          </div>
+        </div>
+
+        <h2 id="mot-de-passe">Mot de passe oublié</h2>
+        <ol class="guide-steps">
+          <li>Sur l'écran de connexion, cliquez sur <span class="guide-ui">Mot de passe oublié ?</span>.</li>
+          <li>Saisissez l'adresse email de votre compte, puis cliquez sur <span class="guide-ui">Envoyer le lien</span>.</li>
+          <li>Ouvrez l'email reçu et cliquez sur le lien. Pensez à regarder dans vos courriers indésirables.</li>
+          <li>Choisissez votre nouveau mot de passe, saisissez-le une seconde fois, puis cliquez sur <span class="guide-ui">Enregistrer le mot de passe</span>.</li>
+          <li>Reconnectez-vous avec ce nouveau mot de passe.</li>
+        </ol>
+        <figure class="guide-shot">
+          <img src="img/demarrer-mot-de-passe-oublie.webp" alt="Écran Mot de passe oublié avec le champ adresse email et le bouton Envoyer le lien" class="screenshot w-full" loading="lazy" width="1280" height="800">
+          <figcaption>La demande de lien de réinitialisation.</figcaption>
+        </figure>
+
+        <div class="guide-callout info">
+          <div class="guide-callout-icon"><i data-lucide="clock"></i></div>
+          <div>
+            <div class="guide-callout-title">Lien valable une heure</div>
+            <p>Le lien reçu par email ne sert qu'une fois et expire au bout d'une heure. Passé ce délai, refaites simplement une demande.</p>
+          </div>
+        </div>
+
+        <h2 id="navigation">Se repérer dans le back-office</h2>
+        <p>Une fois connecté, vous arrivez sur l'<strong>accueil</strong>. Le menu de gauche donne accès à toutes les rubriques :</p>
+        <ul class="list-disc pl-6 space-y-1 text-gray-600 mb-4">
+          <li><strong>Licences</strong> : la base des coureurs (voir <a href="licencies.html">Licenciés</a>) ;</li>
+          <li><strong>Clubs</strong> : les fiches des clubs (voir <a href="club.html">Mon club</a>) ;</li>
+          <li><strong>Épreuves</strong> : vos courses, avec leurs engagements et leurs classements ;</li>
+          <li><strong>Challenges</strong> et <strong>Palmarès</strong> : les classements sur plusieurs épreuves et l'historique d'un coureur ;</li>
+          <li><strong>Statistiques</strong> : le tableau de bord de la saison (voir <a href="statistiques.html">Statistiques</a>).</li>
+          <li><strong>Aide</strong> : ouvre ce guide dans un nouvel onglet.</li>
+        </ul>
+        <figure class="guide-shot">
+          <img src="img/demarrer-accueil.webp" alt="Accueil du back-office avec le menu de navigation à gauche, le nombre de licenciés et d'épreuves, et les accès rapides" class="screenshot w-full" loading="lazy" width="1280" height="800">
+          <figcaption>L'accueil du back-office.</figcaption>
+        </figure>
+
+        <div class="guide-callout tip">
+          <div class="guide-callout-icon"><i data-lucide="lightbulb"></i></div>
+          <div>
+            <div class="guide-callout-title">À savoir</div>
+            <p>Le bouton en haut à gauche, à côté du titre de la page, replie le menu pour laisser plus de place aux tableaux, pratique sur un petit écran le jour de la course.</p>
+          </div>
+        </div>
+
+        <h2 id="mon-compte">Mon compte</h2>
+        <p>Cliquez sur votre nom en bas du menu, puis sur <span class="guide-ui">Mon compte</span>. Vous pouvez y :</p>
+        <ul class="list-disc pl-6 space-y-1 text-gray-600 mb-4">
+          <li>corriger votre nom, votre prénom, votre téléphone et votre organisation ;</li>
+          <li>changer votre mot de passe : saisissez l'actuel, puis le nouveau deux fois (6 caractères minimum) ;</li>
+          <li>consulter la liste de <strong>vos clubs gérés</strong>.</li>
+        </ul>
+        <p>Cliquez sur <span class="guide-ui">Enregistrer</span> en bas de page pour valider vos modifications. L'adresse email, qui sert d'identifiant, ne se modifie pas depuis cet écran.</p>
+        <figure class="guide-shot">
+          <img src="img/demarrer-mon-compte.webp" alt="Écran Mon compte avec les informations personnelles, le changement de mot de passe et la liste des clubs gérés" class="screenshot w-full" loading="lazy" width="1280" height="1220">
+          <figcaption>L'écran « Mon compte » et la liste des clubs gérés.</figcaption>
+        </figure>
+
+        <h2 id="droits">Vos droits</h2>
+        <p>Votre compte organisateur vous donne deux niveaux d'accès :</p>
+        <div class="grid sm:grid-cols-2 gap-4 my-6">
+          <div class="guide-card">
+            <div class="guide-card-icon"><i data-lucide="shield"></i></div>
+            <div>
+              <div class="font-semibold text-navy-dark">Sur vos clubs uniquement</div>
+              <ul class="text-sm text-gray-500 mt-2 space-y-1">
+                <li>• Modifier la fiche du club</li>
+                <li>• Connecter le club à HelloAsso</li>
+                <li>• Créer, modifier, dupliquer ou supprimer une épreuve</li>
+                <li>• Déposer les circuits GPX</li>
+              </ul>
+            </div>
+          </div>
+          <div class="guide-card">
+            <div class="guide-card-icon"><i data-lucide="users"></i></div>
+            <div>
+              <div class="font-semibold text-navy-dark">Sur toutes les épreuves</div>
+              <ul class="text-sm text-gray-500 mt-2 space-y-1">
+                <li>• Consulter et compléter les licenciés</li>
+                <li>• Engager des coureurs</li>
+                <li>• Saisir les classements</li>
+                <li>• Déclarer les arbitres et commissaires</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <p>Les tâches du jour de la course sont donc ouvertes à toute l'équipe présente, même si chacun n'est pas rattaché au club organisateur. En revanche, seul un organisateur du club peut modifier l'épreuve elle-même.</p>
+
+        <div class="guide-callout info">
+          <div class="guide-callout-icon"><i data-lucide="mail"></i></div>
+          <div>
+            <div class="guide-callout-title">Un club manque dans votre liste ?</div>
+            <p>Seul un administrateur peut ajouter ou retirer un club rattaché à votre compte. Écrivez à <a href="mailto:contact@opendossard.com">contact@opendossard.com</a>.</p>
+          </div>
+        </div>
+
+        <!-- Précédent / suivant -->
+        <div id="guide-pager" class="grid sm:grid-cols-2 gap-4 mt-12"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="relative py-16 px-6" style="background: var(--gradient-hero);">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+        <div>
+          <div class="flex items-center gap-3 mb-4">
+            <img src="../assets/images/logoblanc.svg" alt="Open Dossard" class="h-8">
+            <span class="text-white font-bold text-lg">Open Dossard</span>
+          </div>
+          <p class="text-white/50 text-sm max-w-sm">Plateforme open source de gestion d'épreuves cyclistes multi-fédérations.</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-8 text-sm">
+          <div>
+            <h4 class="text-white font-semibold mb-3">Navigation</h4>
+            <div class="flex flex-col gap-2">
+              <a href="../index.html" class="text-white/50 hover:text-white transition">Accueil</a>
+              <a href="../product.html" class="text-white/50 hover:text-white transition">Fonctionnalités</a>
+              <a href="../calendrier.html" class="text-white/50 hover:text-white transition">Calendrier</a>
+              <a href="../licences.html" class="text-white/50 hover:text-white transition">Licences</a>
+              <a href="../engagements-classements.html" class="text-white/50 hover:text-white transition">Engagements & Classements</a>
+              <a href="../challenges-palmares.html" class="text-white/50 hover:text-white transition">Challenges & Palmarès</a>
+              <a href="index.html" class="text-white/50 hover:text-white transition">Guide de l'organisateur</a>
+            </div>
+          </div>
+          <div>
+            <h4 class="text-white font-semibold mb-3">Contact</h4>
+            <div class="flex flex-col gap-2">
+              <a href="mailto:contact@opendossard.com" class="text-white/50 hover:text-white transition">contact@opendossard.com</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-white/30 text-xs">&copy; 2024 Open Dossard. Projet open source.</p>
+        <p class="text-white/30 text-xs">Sponsor : <a href="http://www.dng-consulting.com" class="hover:text-white/60 transition">DNG Consulting</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="../js/guide.js?v=20261102e"></script>
+  <script src="../js/main.js"></script>
+</body>
+</html>

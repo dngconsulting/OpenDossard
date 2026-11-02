@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Guide Open Dossard pour les arbitres et commissaires : obtenir un compte, retrouver l'épreuve du jour, déclarer les officiels et saisir les arrivées au bord de la course.">
+  <title>Open Dossard — Arbitres & commissaires</title>
+  <link rel="canonical" href="https://www.opendossard.com/guide/commissaires.html">
+  <link rel="icon" href="../assets/favicon.ico">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#4472C4', light: '#5B8DEF', dark: '#2d4889' },
+            navy: { DEFAULT: '#1e3a5f', dark: '#0f172a', light: '#2d5a87' },
+            accent: { DEFAULT: '#10B981', light: '#34D399', teal: '#14B8A6' },
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/guide.css?v=20261102e">
+</head>
+<body class="font-sans antialiased">
+
+  <!-- Nav -->
+  <nav class="nav-main py-4 px-6 lg:px-12">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <a href="../index.html" class="flex items-center gap-3">
+        <img src="../assets/images/logoblanc.svg" alt="Open Dossard" class="h-8">
+        <span class="text-white font-bold text-lg hidden sm:inline">Open Dossard</span>
+      </a>
+      <div class="hidden xl:flex items-center gap-8">
+        <a href="../index.html" class="text-white/90 hover:text-white text-sm font-medium transition">Accueil</a>
+        <a href="../product.html" class="text-white/90 hover:text-white text-sm font-medium transition">Fonctionnalités</a>
+        <a href="../calendrier.html" class="text-white/90 hover:text-white text-sm font-medium transition">Calendrier</a>
+        <a href="../licences.html" class="text-white/90 hover:text-white text-sm font-medium transition">Licences</a>
+        <a href="../engagements-classements.html" class="text-white/90 hover:text-white text-sm font-medium transition">Engagements & Classements</a>
+        <a href="../challenges-palmares.html" class="text-white/90 hover:text-white text-sm font-medium transition">Challenges & Palmarès</a>
+        <a href="index.html" class="text-white hover:text-white text-sm font-semibold transition">Guide</a>
+      </div>
+      <button id="nav-burger" class="xl:hidden text-white" aria-label="Menu">
+        <i data-lucide="menu" class="w-6 h-6"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile nav -->
+  <div id="mobile-nav" class="mobile-nav">
+    <button id="nav-close" class="absolute top-6 right-6 text-white" aria-label="Fermer">
+      <i data-lucide="x" class="w-7 h-7"></i>
+    </button>
+    <a href="../index.html">Accueil</a>
+    <a href="../product.html">Fonctionnalités</a>
+    <a href="../calendrier.html">Calendrier</a>
+    <a href="../licences.html">Licences</a>
+    <a href="../engagements-classements.html">Engagements & Classements</a>
+    <a href="../challenges-palmares.html">Challenges & Palmarès</a>
+    <a href="index.html">Guide</a>
+  </div>
+
+  <!-- Hero compact -->
+  <section class="pt-32 pb-14 px-6" style="background: var(--gradient-hero);">
+    <div class="max-w-4xl mx-auto text-center">
+      <span class="badge-v2 bg-accent/20 text-accent-light border border-accent/30 mb-6">
+        <i data-lucide="flag" class="w-3.5 h-3.5"></i> Arbitres & commissaires</span>
+      <h1 class="text-3xl md:text-5xl font-extrabold text-white mt-4 mb-4">Arbitres &amp; commissaires</h1>
+      <p class="text-white/60 text-lg max-w-2xl mx-auto">Ce qu'il faut savoir quand on tient la feuille d'arrivée le jour de la course.</p>
+    </div>
+  </section>
+
+  <!-- Corps du guide -->
+  <div class="px-6 pt-4 pb-12 lg:py-12 bg-[#f8fafc]">
+    <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-5 lg:gap-10">
+
+      <!-- Menu latéral -->
+      <aside class="guide-aside lg:w-64 flex-shrink-0">
+        <label for="guide-select" class="lg:hidden block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Dans ce guide</label>
+        <select id="guide-select" class="lg:hidden w-full rounded-lg bg-white px-3 py-2.5 text-sm shadow-sm"></select>
+        <nav id="guide-nav" class="hidden lg:block sticky top-24" aria-label="Pages du guide"></nav>
+      </aside>
+
+      <!-- Contenu -->
+      <main class="guide-content flex-1 min-w-0 max-w-3xl">
+        <div class="guide-summary">
+          <div class="guide-summary-title"><i data-lucide="zap" class="w-4 h-4 text-primary"></i> En bref</div>
+          <ul class="space-y-1.5 text-sm text-gray-600">
+            <li>• Un compte organisateur suffit, même sans être rattaché au club qui organise.</li>
+            <li>• Vous pouvez engager des coureurs, déclarer les officiels et saisir les classements de n'importe quelle épreuve.</li>
+            <li>• Une tablette ou un ordinateur portable au bord de la ligne d'arrivée suffit.</li>
+          </ul>
+        </div>
+
+        <h2 id="compte">Votre compte</h2>
+        <p>Les commissaires sont souvent extérieurs au club organisateur. C'est prévu : la saisie des engagements, des officiels et des classements est <strong>ouverte à tout compte organisateur</strong>, sans rattachement à un club. Pour obtenir un compte, écrivez à <a href="mailto:contact@opendossard.com">contact@opendossard.com</a> (voir <a href="demarrer.html#compte">Démarrer</a>).</p>
+        <p>En revanche, la fiche de l'épreuve elle-même (horaires, tarifs, lieu…) reste modifiable uniquement par les organisateurs du club.</p>
+
+        <h2 id="epreuve">Retrouver l'épreuve du jour</h2>
+        <ol class="guide-steps">
+          <li>Connectez-vous sur <a href="https://app.opendossard.com" target="_blank" rel="noopener">app.opendossard.com</a>.</li>
+          <li>Ouvrez <span class="guide-ui">Épreuves</span> : l'épreuve du jour est juste autour de la ligne <strong>Aujourd'hui</strong>.</li>
+          <li>Cliquez sur <strong>« Classer »</strong> pour la saisie des arrivées, ou sur le nombre d'engagés pour l'accueil des coureurs.</li>
+        </ol>
+
+        <h2 id="officiels">Déclarer les officiels</h2>
+        <p>Depuis l'écran des <a href="engagements.html">engagements</a>, cliquez sur <span class="guide-ui">Arbitres/Commissaires</span> et renseignez :</p>
+        <ul class="list-disc pl-6 space-y-1 text-gray-600 mb-4">
+          <li>les <strong>commissaires</strong> (noms et rôles, par exemple « président du jury ») ;</li>
+          <li>le <strong>speaker</strong> ;</li>
+          <li>l'<strong>aboyeur</strong>, pour les épreuves de cyclo-cross ;</li>
+          <li>une <strong>note des commissaires</strong>, pour consigner un incident de course ou une décision.</li>
+        </ul>
+        <figure class="guide-shot">
+          <img src="img/commissaires-officiels.webp" alt="Fenêtre Arbitres/Commissaires avec les champs commissaires, speaker et note des commissaires" class="screenshot w-full" loading="lazy" width="1280" height="800">
+          <figcaption>Les officiels sont repris sur les classements et la fiche épreuve.</figcaption>
+        </figure>
+        <p>Cliquez sur <span class="guide-ui">Enregistrer</span>. Ces informations restent modifiables à tout moment, y compris après la course.</p>
+
+        <h2 id="arrivees">Saisir les arrivées</h2>
+        <p>La saisie est détaillée dans la page <a href="classements.html">Classements</a>. En résumé : un onglet par départ, un dossard par ligne dans l'ordre d'arrivée, <kbd>Entrée</kbd> pour valider, et le bouton <span class="guide-ui">Saisir DNF/ABD</span> pour les abandons.</p>
+
+        <h3>Bonnes pratiques au bord de la ligne</h3>
+        <ul class="list-disc pl-6 space-y-2 text-gray-600 mb-4">
+          <li><strong>Une seule personne saisit un même départ.</strong> Si deux appareils saisissent en même temps, rafraîchissez l'écran avant chaque vérification.</li>
+          <li><strong>Gardez la feuille papier</strong> du juge à l'arrivée : elle fait foi en cas de doute et permet de vérifier la saisie.</li>
+          <li><strong>Saisissez les abandons en fin de course</strong>, une fois tous les arrivants classés : ils se rangent automatiquement en bas.</li>
+          <li><strong>Relisez avant d'imprimer</strong> : les coupes de podium par catégorie permettent de repérer rapidement une catégorie mal renseignée.</li>
+          <li>Prévoyez une <strong>connexion de secours</strong> (partage de connexion d'un téléphone) : la saisie s'enregistre en ligne, au fil de l'eau.</li>
+        </ul>
+
+        <div class="guide-callout warn">
+          <div class="guide-callout-icon"><i data-lucide="shuffle"></i></div>
+          <div>
+            <div class="guide-callout-title">Regroupement de départs</div>
+            <p>Si des catégories doivent être regroupées ou séparées, faites-le <strong>avant</strong> la première arrivée, avec <a href="engagements.html#reorganiser">Réorganiser les départs</a> : la réorganisation devient impossible dès qu'un classement a été saisi.</p>
+          </div>
+        </div>
+
+        <h2 id="apres">Après la course</h2>
+        <p>Imprimez le PDF des classements pour le speaker et l'affichage (menu <span class="guide-ui">Télécharger</span> de l'écran Classements). Les corrections restent possibles ensuite : le PDF suivant les intégrera.</p>
+
+        <!-- Précédent / suivant -->
+        <div id="guide-pager" class="grid sm:grid-cols-2 gap-4 mt-12"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="relative py-16 px-6" style="background: var(--gradient-hero);">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+        <div>
+          <div class="flex items-center gap-3 mb-4">
+            <img src="../assets/images/logoblanc.svg" alt="Open Dossard" class="h-8">
+            <span class="text-white font-bold text-lg">Open Dossard</span>
+          </div>
+          <p class="text-white/50 text-sm max-w-sm">Plateforme open source de gestion d'épreuves cyclistes multi-fédérations.</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-8 text-sm">
+          <div>
+            <h4 class="text-white font-semibold mb-3">Navigation</h4>
+            <div class="flex flex-col gap-2">
+              <a href="../index.html" class="text-white/50 hover:text-white transition">Accueil</a>
+              <a href="../product.html" class="text-white/50 hover:text-white transition">Fonctionnalités</a>
+              <a href="../calendrier.html" class="text-white/50 hover:text-white transition">Calendrier</a>
+              <a href="../licences.html" class="text-white/50 hover:text-white transition">Licences</a>
+              <a href="../engagements-classements.html" class="text-white/50 hover:text-white transition">Engagements & Classements</a>
+              <a href="../challenges-palmares.html" class="text-white/50 hover:text-white transition">Challenges & Palmarès</a>
+              <a href="index.html" class="text-white/50 hover:text-white transition">Guide de l'organisateur</a>
+            </div>
+          </div>
+          <div>
+            <h4 class="text-white font-semibold mb-3">Contact</h4>
+            <div class="flex flex-col gap-2">
+              <a href="mailto:contact@opendossard.com" class="text-white/50 hover:text-white transition">contact@opendossard.com</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-white/30 text-xs">&copy; 2024 Open Dossard. Projet open source.</p>
+        <p class="text-white/30 text-xs">Sponsor : <a href="http://www.dng-consulting.com" class="hover:text-white/60 transition">DNG Consulting</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="../js/guide.js?v=20261102e"></script>
+  <script src="../js/main.js"></script>
+</body>
+</html>

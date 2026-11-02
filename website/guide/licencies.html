@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Rechercher un coureur dans la base Open Dossard, ajouter un licencié ou un non-licencié, corriger une fiche et consulter son palmarès.">
+  <title>Open Dossard — Licenciés</title>
+  <link rel="canonical" href="https://www.opendossard.com/guide/licencies.html">
+  <link rel="icon" href="../assets/favicon.ico">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#4472C4', light: '#5B8DEF', dark: '#2d4889' },
+            navy: { DEFAULT: '#1e3a5f', dark: '#0f172a', light: '#2d5a87' },
+            accent: { DEFAULT: '#10B981', light: '#34D399', teal: '#14B8A6' },
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/guide.css?v=20261102e">
+</head>
+<body class="font-sans antialiased">
+
+  <!-- Nav -->
+  <nav class="nav-main py-4 px-6 lg:px-12">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <a href="../index.html" class="flex items-center gap-3">
+        <img src="../assets/images/logoblanc.svg" alt="Open Dossard" class="h-8">
+        <span class="text-white font-bold text-lg hidden sm:inline">Open Dossard</span>
+      </a>
+      <div class="hidden xl:flex items-center gap-8">
+        <a href="../index.html" class="text-white/90 hover:text-white text-sm font-medium transition">Accueil</a>
+        <a href="../product.html" class="text-white/90 hover:text-white text-sm font-medium transition">Fonctionnalités</a>
+        <a href="../calendrier.html" class="text-white/90 hover:text-white text-sm font-medium transition">Calendrier</a>
+        <a href="../licences.html" class="text-white/90 hover:text-white text-sm font-medium transition">Licences</a>
+        <a href="../engagements-classements.html" class="text-white/90 hover:text-white text-sm font-medium transition">Engagements & Classements</a>
+        <a href="../challenges-palmares.html" class="text-white/90 hover:text-white text-sm font-medium transition">Challenges & Palmarès</a>
+        <a href="index.html" class="text-white hover:text-white text-sm font-semibold transition">Guide</a>
+      </div>
+      <button id="nav-burger" class="xl:hidden text-white" aria-label="Menu">
+        <i data-lucide="menu" class="w-6 h-6"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile nav -->
+  <div id="mobile-nav" class="mobile-nav">
+    <button id="nav-close" class="absolute top-6 right-6 text-white" aria-label="Fermer">
+      <i data-lucide="x" class="w-7 h-7"></i>
+    </button>
+    <a href="../index.html">Accueil</a>
+    <a href="../product.html">Fonctionnalités</a>
+    <a href="../calendrier.html">Calendrier</a>
+    <a href="../licences.html">Licences</a>
+    <a href="../engagements-classements.html">Engagements & Classements</a>
+    <a href="../challenges-palmares.html">Challenges & Palmarès</a>
+    <a href="index.html">Guide</a>
+  </div>
+
+  <!-- Hero compact -->
+  <section class="pt-32 pb-14 px-6" style="background: var(--gradient-hero);">
+    <div class="max-w-4xl mx-auto text-center">
+      <span class="badge-v2 bg-accent/20 text-accent-light border border-accent/30 mb-6">
+        <i data-lucide="id-card" class="w-3.5 h-3.5"></i> Licenciés</span>
+      <h1 class="text-3xl md:text-5xl font-extrabold text-white mt-4 mb-4">Les licenciés</h1>
+      <p class="text-white/60 text-lg max-w-2xl mx-auto">Retrouver un coureur, l'ajouter s'il manque, corriger sa fiche.</p>
+    </div>
+  </section>
+
+  <!-- Corps du guide -->
+  <div class="px-6 pt-4 pb-12 lg:py-12 bg-[#f8fafc]">
+    <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-5 lg:gap-10">
+
+      <!-- Menu latéral -->
+      <aside class="guide-aside lg:w-64 flex-shrink-0">
+        <label for="guide-select" class="lg:hidden block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Dans ce guide</label>
+        <select id="guide-select" class="lg:hidden w-full rounded-lg bg-white px-3 py-2.5 text-sm shadow-sm"></select>
+        <nav id="guide-nav" class="hidden lg:block sticky top-24" aria-label="Pages du guide"></nav>
+      </aside>
+
+      <!-- Contenu -->
+      <main class="guide-content flex-1 min-w-0 max-w-3xl">
+        <div class="guide-summary">
+          <div class="guide-summary-title"><i data-lucide="zap" class="w-4 h-4 text-primary"></i> En bref</div>
+          <ul class="space-y-1.5 text-sm text-gray-600">
+            <li>• La base des licenciés est commune à tous les organisateurs : elle n'est pas limitée à vos clubs.</li>
+            <li>• Un coureur absent de la base ? Créez sa fiche, même s'il n'a pas de licence.</li>
+            <li>• Open Dossard vous prévient si le coureur semble déjà exister.</li>
+          </ul>
+        </div>
+
+        <h2 id="rechercher">Rechercher un coureur</h2>
+        <ol class="guide-steps">
+          <li>Dans le menu, cliquez sur <span class="guide-ui">Licences</span>.</li>
+          <li>Tapez le nom, le prénom ou le numéro de licence dans la barre de recherche, ou utilisez les filtres sous chaque colonne (fédération, club, catégorie…).</li>
+          <li>Sur la ligne du coureur, cliquez sur le crayon pour ouvrir sa fiche, ou sur l'icône <strong>Palmarès</strong> pour voir ses résultats.</li>
+        </ol>
+        <figure class="guide-shot">
+          <img src="img/licencies-liste.webp" alt="Liste des licences avec la recherche, les colonnes fédération, numéro, nom, prénom, club, catégories et saison" class="screenshot w-full" loading="lazy" width="1280" height="800">
+          <figcaption>La liste des licenciés.</figcaption>
+        </figure>
+        <p>Les boutons <span class="guide-ui">Export PDF</span> et <span class="guide-ui">Export CSV</span> téléchargent la liste des licenciés.</p>
+
+        <h2 id="ajouter">Ajouter un coureur</h2>
+        <ol class="guide-steps">
+          <li>Cliquez sur <span class="guide-ui">Ajouter une licence</span>.</li>
+          <li>Choisissez d'abord la <strong>fédération</strong> : les champs suivants s'adaptent à ce choix.</li>
+          <li>Renseignez le numéro de licence, la saison, l'identité, le département et le club, puis les catégories.</li>
+          <li>Cliquez sur <span class="guide-ui">Créer la licence</span>.</li>
+        </ol>
+        <figure class="guide-shot">
+          <img src="img/licencies-fiche.webp" alt="Fiche d'un licencié avec la fédération, le numéro de licence, la saison, l'identité et les catégories" class="screenshot w-full" loading="lazy" width="1280" height="800">
+          <figcaption>La fiche d'un licencié, avec les consignes de saisie sous chaque champ.</figcaption>
+        </figure>
+
+        <h3>Règles de saisie</h3>
+        <ul class="list-disc pl-6 space-y-1 text-gray-600 mb-4">
+          <li><strong>Nom</strong> en majuscules, sans accents ; tiret sans espace pour les noms composés (DURAND-SOL) ;</li>
+          <li><strong>Prénom</strong> avec une majuscule initiale (Jean-Paul) ;</li>
+          <li><strong>Saison</strong> sur quatre chiffres (2026) ;</li>
+          <li><strong>catégorie d'âge</strong> et <strong>catégorie de valeur</strong> selon la fédération. La catégorie cyclo-cross est facultative.</li>
+        </ul>
+        <p>Ces règles évitent les doublons et garantissent des classements et des palmarès justes.</p>
+
+        <h3>Coureur non licencié</h3>
+        <p>Choisissez la fédération <span class="guide-ui">Non Licencié</span> : le numéro de licence et le club disparaissent, la saison et la catégorie de valeur deviennent facultatives. Un non-licencié ne peut être engagé que sur une épreuve <a href="epreuves.html#infos">ouverte aux non licenciés</a>.</p>
+
+        <div class="guide-callout warn">
+          <div class="guide-callout-icon"><i data-lucide="copy-check"></i></div>
+          <div>
+            <div class="guide-callout-title">Licence potentiellement en doublon</div>
+            <p>Si un coureur de même nom, même prénom, même fédération et même département existe déjà, une fenêtre vous le signale avec un lien <span class="guide-ui">Voir la fiche</span>. Vérifiez avant de cliquer sur <span class="guide-ui">Créer quand même</span> : le plus souvent, il suffit d'utiliser la fiche existante.</p>
+          </div>
+        </div>
+
+        <h2 id="modifier">Corriger ou supprimer une fiche</h2>
+        <p>Ouvrez la fiche, modifiez les champs voulus, puis cliquez sur <span class="guide-ui">Sauvegarder</span>. Le cadre <strong>Commentaires</strong>, en bas de fiche, accueille les informations utiles à l'équipe (certificat médical, changement de club…).</p>
+
+        <div class="guide-callout info">
+          <div class="guide-callout-icon"><i data-lucide="refresh-cw"></i></div>
+          <div>
+            <div class="guide-callout-title">Licences importées</div>
+            <p>Certains comités FSGT importent leurs licences depuis la plateforme e-licence d'Exalto. Pour ces licences, vos corrections risquent d'être écrasées au prochain import : signalez plutôt l'erreur au comité. L'import lui-même est réservé aux administrateurs.</p>
+          </div>
+        </div>
+
+        <p>L'icône de corbeille supprime une licence, à condition qu'elle n'ait jamais été engagée sur une épreuve ni classée dans un challenge clôturé. Dans le cas contraire, la suppression est impossible, pour préserver l'historique.</p>
+
+        <!-- Précédent / suivant -->
+        <div id="guide-pager" class="grid sm:grid-cols-2 gap-4 mt-12"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="relative py-16 px-6" style="background: var(--gradient-hero);">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+        <div>
+          <div class="flex items-center gap-3 mb-4">
+            <img src="../assets/images/logoblanc.svg" alt="Open Dossard" class="h-8">
+            <span class="text-white font-bold text-lg">Open Dossard</span>
+          </div>
+          <p class="text-white/50 text-sm max-w-sm">Plateforme open source de gestion d'épreuves cyclistes multi-fédérations.</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-8 text-sm">
+          <div>
+            <h4 class="text-white font-semibold mb-3">Navigation</h4>
+            <div class="flex flex-col gap-2">
+              <a href="../index.html" class="text-white/50 hover:text-white transition">Accueil</a>
+              <a href="../product.html" class="text-white/50 hover:text-white transition">Fonctionnalités</a>
+              <a href="../calendrier.html" class="text-white/50 hover:text-white transition">Calendrier</a>
+              <a href="../licences.html" class="text-white/50 hover:text-white transition">Licences</a>
+              <a href="../engagements-classements.html" class="text-white/50 hover:text-white transition">Engagements & Classements</a>
+              <a href="../challenges-palmares.html" class="text-white/50 hover:text-white transition">Challenges & Palmarès</a>
+              <a href="index.html" class="text-white/50 hover:text-white transition">Guide de l'organisateur</a>
+            </div>
+          </div>
+          <div>
+            <h4 class="text-white font-semibold mb-3">Contact</h4>
+            <div class="flex flex-col gap-2">
+              <a href="mailto:contact@opendossard.com" class="text-white/50 hover:text-white transition">contact@opendossard.com</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-white/30 text-xs">&copy; 2024 Open Dossard. Projet open source.</p>
+        <p class="text-white/30 text-xs">Sponsor : <a href="http://www.dng-consulting.com" class="hover:text-white/60 transition">DNG Consulting</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="../js/guide.js?v=20261102e"></script>
+  <script src="../js/main.js"></script>
+</body>
+</html>
