@@ -248,7 +248,9 @@ body {
 .mobile-nav {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  /* Au-dessus de la barre de navigation fixe (.nav-main, z-index 50) : sinon le burger
+     recouvre la croix de fermeture et le menu ne peut plus être fermé. */
+  z-index: 60;
   background: rgba(15, 23, 42, 0.97);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
