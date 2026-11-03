@@ -95,7 +95,7 @@
           <ul class="space-y-1.5 text-sm text-gray-600">
             <li>• Un onglet par départ : choisissez la course, cherchez le coureur, saisissez son dossard, ajoutez.</li>
             <li>• Les coureurs qui ont payé en ligne apparaissent dans l'onglet HelloAsso ; engagez-les le jour J pour leur donner un dossard.</li>
-            <li>• Listes d'engagés et feuilles d'émargement se téléchargent en PDF ou en CSV.</li>
+            <li>• Listes d'engagés et feuilles d'émargement se téléchargent en PDF ou en CSV : rafraîchissez l'écran avant d'imprimer si vous êtes plusieurs à engager.</li>
           </ul>
         </div>
 
@@ -135,6 +135,24 @@
           <li><strong>Licence pas à jour</strong> : si sa saison n'est pas celle en cours, un lien <span class="guide-ui">Mettre à jour la licence</span> ouvre sa fiche.</li>
         </ul>
 
+        <h3 id="commentaire">Commentaire sur la licence</h3>
+        <p>Une fiche licence peut porter un <strong>commentaire</strong> laissé par un organisateur : coureur récemment monté de catégorie, certificat médical à présenter, changement de club… Après avoir choisi le coureur, une ligne récapitule sa licence. Si elle contient un commentaire, une <strong>bulle orange</strong> apparaît au bout de cette ligne.</p>
+        <figure class="guide-shot">
+          <div class="guide-shot-frame">
+            <img src="img/engagements-commentaire.webp" alt="Coureur sélectionné dont la licence porte un commentaire : la bulle orange survolée indique que le coureur a été récemment monté de catégorie et qu'il faut bien vérifier sa catégorie" class="screenshot w-full" loading="lazy" width="1280" height="800">
+            <span class="guide-highlight" style="left:66.4%;top:41.6%;width:2.6%;height:4%"></span>
+          </div>
+          <figcaption>La bulle orange (encadrée) survolée affiche le commentaire de la licence.</figcaption>
+        </figure>
+
+        <div class="guide-callout warn">
+          <div class="guide-callout-icon"><i data-lucide="message-circle-warning"></i></div>
+          <div>
+            <div class="guide-callout-title">Lisez le commentaire avant d'ajouter</div>
+            <p>Placez le pointeur sur la bulle orange (ou touchez-la sur tablette) : le commentaire s'affiche en grand. Prenez-en connaissance <strong>avant</strong> de cliquer sur <span class="guide-ui">Ajouter</span>, il peut conditionner l'engagement du coureur.</p>
+          </div>
+        </div>
+
         <h3>Désengager</h3>
         <p>Cochez un ou plusieurs coureurs, puis cliquez sur <span class="guide-ui">Désengager</span>. Un coureur déjà classé, ou marqué abandon, ne peut pas être désengagé : sa case n'est pas proposée.</p>
 
@@ -158,7 +176,12 @@
           </div>
         </div>
 
-        <p>Le bouton de rafraîchissement, à gauche de la barre d'outils, recharge les engagés et les paiements sans quitter l'écran.</p>
+        <h2 id="plusieurs-postes">Plusieurs personnes aux engagements</h2>
+        <p>Le jour de la course, plusieurs bénévoles engagent souvent en même temps, chacun sur son ordinateur ou sa tablette. Chaque écran n'affiche que ce qu'il a chargé : les engagements saisis sur un autre poste n'y apparaissent qu'après un <strong>rafraîchissement</strong>.</p>
+        <ul class="list-disc pl-6 space-y-1 text-gray-600 mb-4">
+          <li>cliquez <strong>régulièrement</strong> sur le bouton de rafraîchissement, à gauche de la barre d'outils : il recharge les engagés et les paiements en ligne sans quitter l'écran ;</li>
+          <li>rafraîchissez <strong>toujours avant d'imprimer</strong> une liste ou une feuille d'émargement, pour qu'elle contienne la totalité des engagés.</li>
+        </ul>
 
         <h2 id="telecharger">Imprimer et exporter</h2>
         <p>Le menu <span class="guide-ui">Télécharger</span> propose, pour le départ affiché ou pour tous les départs :</p>
@@ -167,6 +190,14 @@
           <li>les <strong>feuilles d'émargement</strong> en PDF, à faire signer au retrait des dossards ;</li>
           <li>la liste des engagés en <strong>CSV</strong>, pour un tableur.</li>
         </ul>
+
+        <div class="guide-callout warn">
+          <div class="guide-callout-icon"><i data-lucide="refresh-cw"></i></div>
+          <div>
+            <div class="guide-callout-title">Rafraîchissez avant d'imprimer</div>
+            <p>Les PDF reprennent les engagés affichés à l'écran. Si d'autres personnes engagent en même temps que vous, cliquez d'abord sur le bouton de rafraîchissement : sinon, les derniers engagés manqueront sur la liste ou la feuille d'émargement.</p>
+          </div>
+        </div>
         <figure class="guide-shot">
           <img src="img/engagements-telecharger.webp" alt="Menu Télécharger ouvert sur PDF : liste des engagés et feuilles d'émargement, pour le départ 3/4 ou toutes les courses" class="screenshot w-full" loading="lazy" width="1280" height="800">
           <figcaption>Les documents PDF à imprimer avant la course.</figcaption>
