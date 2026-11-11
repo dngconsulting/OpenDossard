@@ -7,7 +7,9 @@ import {
   HelloAssoPaymentStatus,
   PaymentStatusSource,
 } from './entities/helloasso-payment.entity';
+import { NotificationService } from '../notifications/notification.service';
 import { HelloAssoDetailsService } from './helloasso-details.service';
+import { HelloAssoPaymentTransitionService } from './helloasso-payment-transition.service';
 import { HelloAssoWebhookKeysService } from './helloasso-webhook-keys.service';
 import { HelloAssoWebhookService } from './helloasso-webhook.service';
 
@@ -61,11 +63,17 @@ function makeService(signatureKeys: string[] = [SIGNATURE_KEY]): Mocks {
     sendToUser: jest.fn().mockResolvedValue(undefined),
   };
 
+  // Service de transition RÉEL sur les mêmes mocks : les tests couvrent
+  // toujours l'UPDATE gardé et la push de bout en bout.
+  const transitions = new HelloAssoPaymentTransitionService(
+    paymentRepo as unknown as Repository<HelloAssoPaymentEntity>,
+    notifications as unknown as NotificationService,
+  );
   const service = new HelloAssoWebhookService(
     paymentRepo as unknown as Repository<HelloAssoPaymentEntity>,
     keysProvider as unknown as HelloAssoWebhookKeysService,
     detailsService as unknown as HelloAssoDetailsService,
-    notifications as unknown as import('../notifications/notification.service').NotificationService,
+    transitions,
   );
 
   return {

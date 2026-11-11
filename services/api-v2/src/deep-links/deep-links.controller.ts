@@ -1,6 +1,6 @@
-import { Controller, Get, Param, Req, Res, Header, VERSION_NEUTRAL } from '@nestjs/common';
+import { Controller, Get, Param, Res, Header, VERSION_NEUTRAL } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { join } from 'path';
@@ -174,7 +174,7 @@ export class DeepLinksController {
   @Get('app/classement/:id')
   async classementDeepLink(@Param('id') id: string, @Res() res: Response) {
     let title = 'Classement';
-    let description = 'Voir le classement sur Dossardeur';
+    const description = 'Voir le classement sur Dossardeur';
 
     try {
       const row = await this.dataSource.query('SELECT name FROM competition WHERE id = $1', [id]);
@@ -193,51 +193,10 @@ export class DeepLinksController {
     );
   }
 
-  /**
-   * Retour HelloAsso post-paiement.
-   *
-   * Comportement :
-   * - iOS app installée + AASA en cache → Universal Link intercepté avant que
-   *   cette route soit atteinte (associatedDomains + AASA /payment/*) → app
-   *   ouverte directement.
-   * - Sinon → 302 vers `dossardeur://payment/...?<query>` : le navigateur
-   *   reçoit le redirect et ouvre le scheme custom (intercepté par l'OS) sans
-   *   afficher la moindre page. Edge case "app non installée" : l'OS affiche
-   *   une erreur browser (assumé acceptable, le user vient de l'app).
-   *
-   * Les query params reçus de HelloAsso (checkoutIntentId, code, orderId…)
-   * sont propagés tels quels au deep link pour que `PaymentReturnRedirect`
-   * côté app puisse les exploiter si besoin.
-   */
-  @Get('payment/success')
-  paymentSuccess(@Req() req: Request, @Res() res: Response) {
-    this.redirectToDeepLink(req, res, 'success');
-  }
-
-  @Get('payment/error')
-  paymentError(@Req() req: Request, @Res() res: Response) {
-    this.redirectToDeepLink(req, res, 'error');
-  }
-
-  @Get('payment/cancelled')
-  paymentCancelled(@Req() req: Request, @Res() res: Response) {
-    this.redirectToDeepLink(req, res, 'cancelled');
-  }
-
-  private redirectToDeepLink(
-    req: Request,
-    res: Response,
-    variant: 'success' | 'error' | 'cancelled',
-  ) {
-    const queryIdx = req.originalUrl.indexOf('?');
-    const queryString = queryIdx >= 0 ? req.originalUrl.substring(queryIdx) : '';
-    res.redirect(302, `${APP_SCHEME}payment/${variant}${queryString}`);
-  }
-
   @Get('app/palmares/:id')
   async palmaresDeepLink(@Param('id') id: string, @Res() res: Response) {
     let title = 'Palmarès';
-    let description = 'Voir le palmarès sur Dossardeur';
+    const description = 'Voir le palmarès sur Dossardeur';
 
     try {
       const row = await this.dataSource.query(

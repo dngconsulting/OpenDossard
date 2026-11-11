@@ -41,6 +41,11 @@ export enum PaymentStatusSource {
   SUPERSEDED = 'superseded',
   /** Re-synchronisation déclenchée par un ADMIN / ORGANISATEUR. */
   ADMIN_REFRESH = 'admin_refresh',
+  /**
+   * Retour navigateur `/payment/success` confirmé par un `GET checkout-intent`
+   * HelloAsso : arrive avant le webhook, qui peut traîner plusieurs minutes.
+   */
+  RETURN_URL = 'return_url',
 }
 
 /**
