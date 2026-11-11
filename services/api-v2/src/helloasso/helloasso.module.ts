@@ -17,6 +17,9 @@ import { HelloAssoDetailsService } from './helloasso-details.service';
 import { HelloAssoOAuthService } from './helloasso-oauth.service';
 import { HelloAssoPaymentController } from './helloasso-payment.controller';
 import { HelloAssoPaymentService } from './helloasso-payment.service';
+import { HelloAssoPaymentReturnController } from './helloasso-payment-return.controller';
+import { HelloAssoPaymentReturnService } from './helloasso-payment-return.service';
+import { HelloAssoPaymentTransitionService } from './helloasso-payment-transition.service';
 import { HelloAssoPaymentsAdminService } from './helloasso-payments-admin.service';
 import { HelloAssoStateStore } from './helloasso-state.store';
 import { HelloAssoCashInComplianceController } from './helloasso-cash-in-compliance.controller';
@@ -52,6 +55,7 @@ import { HelloAssoWebhookService } from './helloasso-webhook.service';
     HelloAssoCashInComplianceController,
     HelloAssoPaymentController,
     HelloAssoWebhookController,
+    HelloAssoPaymentReturnController,
   ],
   providers: [
     HelloAssoConfig,
@@ -60,6 +64,8 @@ import { HelloAssoWebhookService } from './helloasso-webhook.service';
     HelloAssoDetailsService,
     HelloAssoApiClient,
     HelloAssoPaymentService,
+    HelloAssoPaymentTransitionService,
+    HelloAssoPaymentReturnService,
     HelloAssoPaymentsAdminService,
     HelloAssoWebhookKeysService,
     HelloAssoWebhookService,

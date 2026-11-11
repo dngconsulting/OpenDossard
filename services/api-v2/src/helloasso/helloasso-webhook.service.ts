@@ -1,21 +1,13 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
-import {
-  HelloAssoPaymentEntity,
-  HelloAssoPaymentStatus,
-  PaymentStatusSource,
-} from './entities/helloasso-payment.entity';
+import { HelloAssoPaymentEntity, PaymentStatusSource } from './entities/helloasso-payment.entity';
 import { HelloAssoDetailsService } from './helloasso-details.service';
+import { HelloAssoPaymentTransitionService } from './helloasso-payment-transition.service';
 import { HelloAssoWebhookKeysService } from './helloasso-webhook-keys.service';
-import {
-  mapHelloAssoState,
-  prerequisitesForStatus,
-  recordHelloAssoState as recordState,
-} from './helloasso-state.util';
+import { mapHelloAssoState, recordHelloAssoState as recordState } from './helloasso-state.util';
 import { verifyHelloAssoSignature } from './util/webhook-signature.util';
-import { NotificationService, type PushContent } from '../notifications/notification.service';
 
 export interface WebhookResult {
   /** `true` si la signature est valide. `false` ⇒ 401 côté controller. */
@@ -51,7 +43,7 @@ interface WebhookPayload {
  * qu'on injecte dans le checkout-intent à la création. HelloAsso renvoie cette
  * metadata telle quelle dans le body du webhook → zéro appel HelloAsso ici.
  *
- * Idempotence : `applyStatusTransition` ne UPDATE que si `status = prerequisite`.
+ * Idempotence : `HelloAssoPaymentTransitionService.apply` ne UPDATE que si `status = prerequisite`.
  * Un webhook rejoué sur un payment déjà transitionné = no-op silencieux.
  *
  * Toujours répondre 200 (sauf signature KO) — sinon HelloAsso retry 24h.
@@ -65,7 +57,7 @@ export class HelloAssoWebhookService {
     private readonly paymentRepo: Repository<HelloAssoPaymentEntity>,
     private readonly keysProvider: HelloAssoWebhookKeysService,
     private readonly details: HelloAssoDetailsService,
-    private readonly notifications: NotificationService,
+    private readonly transitions: HelloAssoPaymentTransitionService,
   ) {}
 
   private verifySignature(
@@ -173,16 +165,17 @@ export class HelloAssoWebhookService {
       // État ignoré par le mapping (`Pending`, `WaitingAuthentication`,
       // `Registered`…) : aucune transition, mais c'est précisément ce que le
       // support cherche devant un paiement figé. On ne trace QUE sur ce chemin —
-      // les états mappés voient leur trace écrite par `applyStatusTransition`,
+      // les états mappés voient leur trace écrite par `transitions.apply`,
       // dans le même UPDATE que le statut.
       await recordState(this.paymentRepo, this.logger, payment.id, state);
       this.logger.log(`handleWebhook: state=${state} maps to no-op`);
       return { signatureValid: true, outcome: `noop_state:${state}` };
     }
 
-    const transition = await this.applyStatusTransition({
+    const transition = await this.transitions.apply({
       payment,
       newStatus: mappedStatus,
+      statusSource: PaymentStatusSource.HELLOASSO_WEBHOOK,
       helloAssoPaymentId,
       helloAssoOrderId: typeof orderId === 'number' ? orderId : undefined,
       helloAssoState: state,
@@ -204,7 +197,7 @@ export class HelloAssoWebhookService {
     // doublon si HelloAsso rejoue le même webhook. Best-effort et isolé : un
     // échec FCM ne doit JAMAIS faire échouer/rejouer le webhook (réponse 200).
     if (updated) {
-      await this.notifyPaymentTransition(payment, mappedStatus);
+      await this.transitions.notify(payment, mappedStatus);
     }
 
     return {
@@ -215,27 +208,6 @@ export class HelloAssoWebhookService {
           ? `conflict_active_payment_exists:${payment.status}`
           : `noop_no_transition_from:${payment.status}`,
     };
-  }
-
-  /**
-   * Notifie le payeur du résultat de son paiement. Cible ses appareils via
-   * `payerUserId`. `paid`/`refused`/`refunded` → push ; les états transitoires
-   * (`refunding`) ne notifient pas. Jamais throw : tout échec est loggé et
-   * absorbé pour ne pas perturber la réponse webhook.
-   */
-  private async notifyPaymentTransition(
-    payment: HelloAssoPaymentEntity,
-    newStatus: HelloAssoPaymentStatus,
-  ): Promise<void> {
-    try {
-      if (payment.payerUserId == null) return;
-      const content = buildPaymentPushContent(payment, newStatus);
-      if (!content) return;
-      await this.notifications.sendToUser(payment.payerUserId, content);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      this.logger.warn(`notifyPaymentTransition: échec push paymentId=${payment.id}: ${msg}`);
-    }
   }
 
   /**
@@ -275,129 +247,6 @@ export class HelloAssoWebhookService {
       outcome: `cashin_compliance_updated:${slug}:${value}`,
     };
   }
-
-  /**
-   * UPDATE atomique idempotent : ne transite que si `status` est dans la liste
-   * des pré-requis autorisés pour `newStatus` (cf. `prerequisitesForStatus`).
-   * Replay ou transition invalide = no-op silencieux (0 row affected).
-   */
-  private async applyStatusTransition(args: {
-    payment: HelloAssoPaymentEntity;
-    newStatus: HelloAssoPaymentStatus;
-    helloAssoPaymentId: number;
-    helloAssoOrderId: number | undefined;
-    helloAssoState: string;
-  }): Promise<'updated' | 'noop' | 'conflict'> {
-    const { payment, newStatus, helloAssoPaymentId, helloAssoOrderId, helloAssoState } = args;
-
-    const prerequisites = prerequisitesForStatus(newStatus);
-    if (prerequisites.length === 0) {
-      this.logger.warn(`applyStatusTransition: ignore ${newStatus}, not found in existing states`);
-      return 'noop';
-    }
-
-    const update: Partial<HelloAssoPaymentEntity> = {
-      status: newStatus,
-      helloAssoPaymentId: String(helloAssoPaymentId),
-      // Tracées dans le MÊME UPDATE que le statut : une transition et sa cause
-      // ne doivent jamais pouvoir diverger, y compris si le process meurt entre
-      // deux écritures.
-      statusSource: PaymentStatusSource.HELLOASSO_WEBHOOK,
-      helloAssoLastState: helloAssoState,
-      helloAssoLastStateAt: new Date(),
-    };
-    if (typeof helloAssoOrderId === 'number') {
-      update.helloAssoOrderId = String(helloAssoOrderId);
-    }
-    if (newStatus === HelloAssoPaymentStatus.PAID) {
-      update.paidAt = new Date();
-    }
-
-    let result: { affected?: number | null };
-    try {
-      result = await this.paymentRepo
-        .createQueryBuilder()
-        .update(HelloAssoPaymentEntity)
-        .set(update)
-        .where('id = :id AND status IN (:...prerequisites)', {
-          id: payment.id,
-          prerequisites,
-        })
-        .execute();
-    } catch (e: unknown) {
-      // Chemin ouvert par l'expiration : la ligne expirée a libéré le créneau de
-      // `UQ_helloasso_payment_active`, le coureur s'est réinscrit, puis
-      // l'`Authorized` tardif arrive sur l'ancienne ligne. `refused → paid` est
-      // autorisé et viole l'index unique.
-      //
-      // On répond 200 : rejouer le webhook ne réparerait rien et HelloAsso le
-      // rejouerait indéfiniment. Mais l'argent est engagé sur un paiement qui ne
-      // peut pas être marqué payé — seul un humain peut trancher, d'où le ERROR.
-      if (isUniqueViolation(e)) {
-        // Identifier la ligne qui bloque : sans elle, l'exploitant doit fouiller
-        // la base pour savoir QUOI arbitrer. C'est la seule information qui
-        // transforme cette alerte en action.
-        const blocking = await this.paymentRepo.findOne({
-          where: {
-            competitionId: payment.competitionId,
-            licenceId: payment.licenceId,
-            status: In([
-              HelloAssoPaymentStatus.PENDING,
-              HelloAssoPaymentStatus.PAID,
-              HelloAssoPaymentStatus.REFUNDING,
-            ]),
-          },
-        });
-        this.logger.error(
-          `ARBITRAGE REQUIS — paiement #${payment.id} autorisé chez HelloAsso ` +
-            `(state=${helloAssoState}, helloAssoPaymentId=${helloAssoPaymentId}) mais NON ` +
-            `enregistré : le créneau (competition=${payment.competitionId}, ` +
-            `licence=${payment.licenceId}) est occupé par le paiement #${blocking?.id ?? '?'} ` +
-            `(statut ${blocking?.status ?? 'inconnu'}). Argent encaissé sans engagement : ` +
-            `rembourser l'un des deux ou rapprocher les lignes.`,
-        );
-        return 'conflict';
-      }
-      throw e;
-    }
-
-    return (result.affected ?? 0) > 0 ? 'updated' : 'noop';
-  }
-}
-
-/**
- * Construit le contenu de la push selon le statut atteint. `null` = pas de push
- * (statut transitoire `refunding`). Les valeurs `data` sont des strings
- * (contrainte FCM) ; `competitionId` sert au deeplink vers l'épreuve.
- */
-function buildPaymentPushContent(
-  payment: HelloAssoPaymentEntity,
-  newStatus: HelloAssoPaymentStatus,
-): PushContent | null {
-  const data: Record<string, string> = {
-    type: 'payment',
-    competitionId: String(payment.competitionId),
-    paymentId: String(payment.id),
-    status: newStatus,
-  };
-  switch (newStatus) {
-    case HelloAssoPaymentStatus.PAID:
-      return { title: 'Inscription confirmée', body: 'Votre paiement a été enregistré.', data };
-    case HelloAssoPaymentStatus.REFUSED:
-      return {
-        title: 'Paiement annulé ou refusé',
-        body: 'Vous pouvez réessayer depuis l’épreuve.',
-        data,
-      };
-    case HelloAssoPaymentStatus.REFUNDED:
-      return {
-        title: 'Paiement remboursé',
-        body: 'Votre inscription a été annulée.',
-        data,
-      };
-    default:
-      return null;
-  }
 }
 
 /**
@@ -408,12 +257,4 @@ function buildPaymentPushContent(
 function isRefundNotification(data: WebhookPayload['data']): boolean {
   if (data?.state === 'Refunded') return true;
   return Array.isArray(data?.refundOperations) && data.refundOperations.length > 0;
-}
-
-/**
- * Violation de contrainte d'unicité PostgreSQL (SQLSTATE 23505). TypeORM
- * enveloppe l'erreur du driver mais conserve le `code` du pilote `pg`.
- */
-function isUniqueViolation(e: unknown): boolean {
-  return typeof e === 'object' && e !== null && (e as { code?: unknown }).code === '23505';
 }

@@ -1,5 +1,6 @@
 import {
   BadGatewayException,
+  Logger,
   ConflictException,
   ForbiddenException,
   NotFoundException,
@@ -23,6 +24,8 @@ import {
   PaymentStatusSource,
 } from './entities/helloasso-payment.entity';
 import { HelloAssoPaymentService } from './helloasso-payment.service';
+import { HelloAssoPaymentTransitionService } from './helloasso-payment-transition.service';
+import { NotificationService } from '../notifications/notification.service';
 
 function makeDto(overrides: Partial<CreateCheckoutIntentDto> = {}): CreateCheckoutIntentDto {
   return {
@@ -94,6 +97,7 @@ function makeService(): Mocks {
   // Les checkouts utilisent le token PARTENAIRE (client_credentials), pas le token club.
   const oauth = { getPartnerAccessToken: jest.fn().mockResolvedValue('partner-tok') };
   const api = { createCheckoutIntent: jest.fn(), getCheckoutIntent: jest.fn() };
+  const notifications = { sendToUser: jest.fn().mockResolvedValue(undefined) };
   const config = {
     apiBaseUrl: 'https://api.helloasso-sandbox.com',
     paymentReturnUrlSuccess: 'dossardeur://payment/success',
@@ -110,6 +114,10 @@ function makeService(): Mocks {
     api as unknown as HelloAssoApiClient,
     oauth as unknown as HelloAssoOAuthService,
     config,
+    new HelloAssoPaymentTransitionService(
+      paymentRepo as unknown as Repository<HelloAssoPaymentEntity>,
+      notifications as unknown as NotificationService,
+    ),
   );
 
   return { service, paymentRepo, competitionRepo, licenceRepo, userRepo, details, oauth, api };
@@ -497,6 +505,51 @@ describe('HelloAssoPaymentService', () => {
         status: HelloAssoPaymentStatus.PENDING,
         outcome: 'still_pending',
       });
+    });
+
+    /**
+     * Incident du 11/11/2026 : refresh admin sur une ligne `refused` payée chez
+     * HelloAsso alors qu'un autre paiement occupe le créneau → `refused → paid`
+     * viole `UQ_helloasso_payment_active`. L'admin prenait une 500.
+     */
+    it('un conflit d’unicité renvoie confirmed au lieu de remonter en 500', async () => {
+      const m = makeService();
+      const refused = {
+        id: 1413,
+        competitionId: 32,
+        licenceId: 1234,
+        status: HelloAssoPaymentStatus.REFUSED,
+        paidAt: null,
+        helloAssoCheckoutIntentId: '8211204',
+      } as HelloAssoPaymentEntity;
+      m.paymentRepo.findOne
+        .mockResolvedValueOnce(refused) // lecture initiale
+        .mockResolvedValueOnce({ id: 1414, status: HelloAssoPaymentStatus.PAID }) // ligne bloquante (log)
+        .mockResolvedValueOnce(refused); // relecture finale
+      m.competitionRepo.findOne.mockResolvedValue(competitionFixture());
+      m.details.findByClubId.mockResolvedValue(detailsFixture());
+      m.api.getCheckoutIntent.mockResolvedValue({
+        order: { id: 197921544, payments: [{ id: 100496969, state: 'Authorized' }] },
+      });
+      m.paymentRepo.createQueryBuilder.mockReturnValue({
+        update: jest.fn().mockReturnThis(),
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        execute: jest
+          .fn()
+          .mockRejectedValue(Object.assign(new Error('duplicate key'), { code: '23505' })),
+      });
+      const errorSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+
+      const result = await m.service.refreshStatusFromHelloAsso(1413);
+
+      expect(result).toMatchObject({
+        id: 1413,
+        status: HelloAssoPaymentStatus.REFUSED,
+        outcome: 'confirmed',
+      });
+      expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('ARBITRAGE REQUIS'));
+      errorSpy.mockRestore();
     });
   });
 

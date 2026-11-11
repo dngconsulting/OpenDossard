@@ -5,6 +5,11 @@ import {
   HelloAssoPaymentEntity,
   HelloAssoPaymentStatus,
 } from './entities/helloasso-payment.entity';
+import type { CheckoutIntentDetailsResponse } from './helloasso-api.client';
+
+type CheckoutIntentPayment = NonNullable<
+  NonNullable<CheckoutIntentDetailsResponse['order']>['payments']
+>[number];
 
 /**
  * Mapping `PaymentState` HelloAsso → statuts internes OpenDossard.
@@ -35,8 +40,23 @@ export function mapHelloAssoState(
 }
 
 /**
+ * Paiement HelloAsso qui fait foi pour un checkout-intent : le PLUS RÉCENT dont
+ * l'état est mappé. HelloAsso peut empiler plusieurs entrées en cas de retry
+ * (ex. `Refused` puis `Authorized`). Règle unique pour le refresh admin et le
+ * retour `/payment/success` : deux règles finiraient par conclure différemment
+ * sur le même intent.
+ */
+export function findLatestMappedPayment(
+  intent: CheckoutIntentDetailsResponse,
+): CheckoutIntentPayment | undefined {
+  return [...(intent.order?.payments ?? [])]
+    .reverse()
+    .find(p => mapHelloAssoState(p.state) !== undefined);
+}
+
+/**
  * Statuts pré-requis autorisés pour transiter vers `newStatus`. Utilisé par
- * `applyStatusTransition` (webhook + payment service) pour construire un
+ * `HelloAssoPaymentTransitionService.apply` pour construire un
  * `WHERE status IN (...)` qui rend l'UPDATE atomique et idempotent.
  *
  * Transitions valides :

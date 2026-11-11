@@ -18,13 +18,18 @@ import { CheckoutIntentCreatedDto } from './dto/checkout-intent-created.dto';
 import { CreateCheckoutIntentDto } from './dto/create-checkout-intent.dto';
 import { HelloAssoPaymentDto } from './dto/helloasso-payment.dto';
 import { RefreshPaymentStatusDto } from './dto/refresh-payment-status.dto';
-import { HelloAssoApiClient, CheckoutIntentRequestBody } from './helloasso-api.client';
+import {
+  CheckoutIntentDetailsResponse,
+  CheckoutIntentRequestBody,
+  HelloAssoApiClient,
+} from './helloasso-api.client';
 import { HelloAssoConfig } from './helloasso.config';
 import { HelloAssoDetailsService } from './helloasso-details.service';
 import { HelloAssoOAuthService } from './helloasso-oauth.service';
+import { HelloAssoPaymentTransitionService } from './helloasso-payment-transition.service';
 import {
+  findLatestMappedPayment,
   mapHelloAssoState,
-  prerequisitesForStatus,
   recordHelloAssoState as recordState,
 } from './helloasso-state.util';
 import { truncate } from '../common/utils/string.util';
@@ -76,6 +81,7 @@ export class HelloAssoPaymentService {
     private readonly helloAssoApi: HelloAssoApiClient,
     private readonly oauth: HelloAssoOAuthService,
     private readonly config: HelloAssoConfig,
+    private readonly transitions: HelloAssoPaymentTransitionService,
   ) {}
 
   async createCheckoutIntent(input: CreatePaymentInput): Promise<CheckoutIntentCreatedDto> {
@@ -293,7 +299,7 @@ export class HelloAssoPaymentService {
    *
    * Idempotent et race-safe :
    *  - UPDATE atomique guarded par `status = 'pending'` (même pattern
-   *    que `applyStatusTransition` côté webhook)
+   *    que `HelloAssoPaymentTransitionService.apply`)
    *  - Si le webhook a transitioné entre-temps (paid/refused/refunded),
    *    le WHERE ne matche pas → 0 row affected → on retourne l'état
    *    courant rafraîchi sans erreur
@@ -369,10 +375,10 @@ export class HelloAssoPaymentService {
    *  - payment sans `intentId` (rollback orphelin) → 422
    *  - HelloAsso renvoie un `payment` dans un état mappé (Authorized, Refused,
    *    Abandoned, Canceled, Refunded) → tente la transition via
-   *    `applyStatusTransition` (UPDATE guarded, idempotent, race-safe).
+   *    `HelloAssoPaymentTransitionService.apply` (UPDATE guarded, idempotent, race-safe).
    *    - Si le statut local est déjà à jour ou si la transition n'est pas
-   *      autorisée (ex: `refused → paid` jamais autorisé) → no-op DB,
-   *      `outcome: confirmed` avec le statut courant.
+   *      autorisée (cf. `prerequisitesForStatus` ; `refused → paid` EST
+   *      autorisé) → no-op DB, `outcome: confirmed` avec le statut courant.
    *  - HelloAsso ne renvoie aucun payment ou un état non mappé :
    *    - statut local `pending` → `outcome: still_pending`
    *    - statut local terminal → `outcome: confirmed` (HA n'a rien de nouveau)
@@ -388,43 +394,10 @@ export class HelloAssoPaymentService {
     if (!payment) {
       throw new NotFoundException(`Paiement #${paymentId} introuvable`);
     }
-    if (!payment.helloAssoCheckoutIntentId) {
-      throw new UnprocessableEntityException(
-        `Paiement #${paymentId} sans helloAssoCheckoutIntentId — refresh impossible (rollback orphelin ?)`,
-      );
-    }
+    const data = await this.fetchCheckoutIntent(payment);
 
-    const competition = await this.competitionRepo.findOne({
-      where: { id: payment.competitionId },
-    });
-    if (!competition?.clubId) {
-      throw new UnprocessableEntityException(
-        `Compétition #${payment.competitionId} sans clubId — refresh impossible`,
-      );
-    }
-
-    const details = await this.helloAssoDetails.findByClubId(competition.clubId);
-    if (!details) {
-      throw new UnprocessableEntityException(
-        `Club ${competition.clubId} non lié à HelloAsso — refresh impossible`,
-      );
-    }
-
-    const intentId = payment.helloAssoCheckoutIntentId;
-    const accessToken = await this.oauth.getPartnerAccessToken();
-    const data = await this.helloAssoApi.getCheckoutIntent({
-      organizationSlug: details.organization.organizationSlug,
-      accessToken,
-      checkoutIntentId: intentId,
-    });
-
-    // Dernier payment côté HelloAsso qui mappe vers un statut terminal.
-    // HelloAsso peut empiler plusieurs entries en cas de retry (cf. doc
-    // PaymentState) ; on prend le plus récent avec un état exploitable.
+    const terminalPayment = findLatestMappedPayment(data);
     const haPayments = data.order?.payments ?? [];
-    const terminalPayment = [...haPayments]
-      .reverse()
-      .find(p => mapHelloAssoState(p.state) !== undefined);
     const helloAssoState =
       terminalPayment?.state ?? haPayments[haPayments.length - 1]?.state ?? null;
     const mappedStatus = mapHelloAssoState(helloAssoState ?? undefined);
@@ -437,7 +410,7 @@ export class HelloAssoPaymentService {
         payment.status === HelloAssoPaymentStatus.PENDING ? 'still_pending' : 'confirmed';
       // Aucune transition ne suivra : c'est ici, et seulement ici, qu'il faut
       // tracer ce que HelloAsso vient de répondre. Sur le chemin de transition
-      // (cas C), `applyStatusTransition` l'écrit dans le même UPDATE que le
+      // (cas C), `transitions.apply` l'écrit dans le même UPDATE que le
       // statut — le faire deux fois coûterait un aller-retour et ferait porter à
       // `helloAssoLastStateAt` l'heure de la seconde écriture, pas de la lecture.
       if (helloAssoState) {
@@ -474,23 +447,26 @@ export class HelloAssoPaymentService {
     }
 
     // Cas C : HA state diffère du local — tente la transition.
-    // `applyStatusTransition` autorise pending→paid/refused, refused→paid
+    // `transitions.apply` autorise pending→paid/refused, refused→paid
     // (2e tentative réussie) et paid→refunding/refunded. Une transition non
-    // listée (cf. `prerequisitesForStatus`) sera no-op DB et tombera en
-    // `confirmed` avec le statut local inchangé.
-    const updated = await this.applyStatusTransition({
+    // listée (cf. `prerequisitesForStatus`) est un no-op DB ; un conflit
+    // d'unicité (créneau occupé par un autre paiement) est loggé en
+    // `ARBITRAGE REQUIS` au lieu de remonter en 500. Dans les deux cas : outcome
+    // `confirmed` avec le statut local inchangé. Pas de push ici : action admin.
+    const transition = await this.transitions.apply({
       payment,
       newStatus: mappedStatus,
+      statusSource: PaymentStatusSource.ADMIN_REFRESH,
       helloAssoPaymentId: typeof terminalPayment.id === 'number' ? terminalPayment.id : undefined,
       helloAssoOrderId: typeof data.order?.id === 'number' ? data.order.id : undefined,
-      statusSource: PaymentStatusSource.ADMIN_REFRESH,
       helloAssoState,
     });
+    const updated = transition === 'updated';
 
     const fresh = await this.paymentRepo.findOne({ where: { id: paymentId } });
     if (!updated) {
       this.logger.log(
-        `refreshStatusFromHelloAsso: paymentId=${paymentId} HA=${mappedStatus} but transition rejected (race-with-webhook or invalid), current=${fresh?.status ?? 'gone'}`,
+        `refreshStatusFromHelloAsso: paymentId=${paymentId} HA=${mappedStatus} but transition rejected (${transition}), current=${fresh?.status ?? 'gone'}`,
       );
       return {
         id: payment.id,
@@ -514,56 +490,38 @@ export class HelloAssoPaymentService {
   }
 
   /**
-   * UPDATE atomique idempotent — duplique volontairement la logique de
-   * `HelloAssoWebhookService.applyStatusTransition` pour découpler les deux
-   * surfaces (webhook receiver vs action admin). Si les règles de transition
-   * divergent un jour entre les deux chemins, on n'a pas à toucher l'autre.
+   * Lit le checkout-intent d'un paiement chez HelloAsso, avec le token
+   * PARTENAIRE et l'intent stocké EN BASE. Partagé par le refresh admin et la
+   * confirmation au retour `/payment/success` : une seule façon de résoudre
+   * compétition → club → organisation HelloAsso.
    *
-   * Transitions autorisées : cf. `prerequisitesForStatus` dans le util.
+   * 422 si le paiement n'a pas d'intent (rollback orphelin) ou si son club
+   * n'est pas (ou plus) lié à HelloAsso.
    */
-
-  private async applyStatusTransition(args: {
-    payment: HelloAssoPaymentEntity;
-    newStatus: HelloAssoPaymentStatus;
-    helloAssoPaymentId: number | undefined;
-    statusSource: PaymentStatusSource;
-    helloAssoState?: string | null;
-    helloAssoOrderId: number | undefined;
-  }): Promise<boolean> {
-    const { payment, newStatus, helloAssoPaymentId, helloAssoOrderId, statusSource } = args;
-
-    const prerequisites = prerequisitesForStatus(newStatus);
-    if (prerequisites.length === 0) {
-      return false;
+  async fetchCheckoutIntent(
+    payment: HelloAssoPaymentEntity,
+  ): Promise<CheckoutIntentDetailsResponse> {
+    if (!payment.helloAssoCheckoutIntentId) {
+      throw new UnprocessableEntityException(
+        `Paiement #${payment.id} sans helloAssoCheckoutIntentId (rollback orphelin ?)`,
+      );
     }
-
-    // Statut et cause dans le MÊME UPDATE : ils ne doivent jamais diverger.
-    const update: Partial<HelloAssoPaymentEntity> = { status: newStatus, statusSource };
-    if (args.helloAssoState) {
-      update.helloAssoLastState = args.helloAssoState;
-      update.helloAssoLastStateAt = new Date();
+    const competition = await this.competitionRepo.findOne({
+      where: { id: payment.competitionId },
+    });
+    if (!competition?.clubId) {
+      throw new UnprocessableEntityException(`Compétition #${payment.competitionId} sans clubId`);
     }
-    if (typeof helloAssoPaymentId === 'number') {
-      update.helloAssoPaymentId = String(helloAssoPaymentId);
+    const details = await this.helloAssoDetails.findByClubId(competition.clubId);
+    if (!details) {
+      throw new UnprocessableEntityException(`Club ${competition.clubId} non lié à HelloAsso`);
     }
-    if (typeof helloAssoOrderId === 'number') {
-      update.helloAssoOrderId = String(helloAssoOrderId);
-    }
-    if (newStatus === HelloAssoPaymentStatus.PAID) {
-      update.paidAt = new Date();
-    }
-
-    const result = await this.paymentRepo
-      .createQueryBuilder()
-      .update(HelloAssoPaymentEntity)
-      .set(update)
-      .where('id = :id AND status IN (:...prerequisites)', {
-        id: payment.id,
-        prerequisites,
-      })
-      .execute();
-
-    return (result.affected ?? 0) > 0;
+    const accessToken = await this.oauth.getPartnerAccessToken();
+    return this.helloAssoApi.getCheckoutIntent({
+      organizationSlug: details.organization.organizationSlug,
+      accessToken,
+      checkoutIntentId: payment.helloAssoCheckoutIntentId,
+    });
   }
 
   /**

@@ -22,6 +22,7 @@ export const PAYMENT_SOURCE_LABEL: Record<string, string> = {
   user_cancel: 'Annulation par le coureur',
   superseded: 'Remplacé par une nouvelle tentative',
   admin_refresh: 'Re-synchronisation manuelle',
+  return_url: 'Retour de paiement HelloAsso',
 };
 
 /**
