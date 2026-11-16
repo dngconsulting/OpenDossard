@@ -94,7 +94,7 @@
           <div class="guide-summary-title"><i data-lucide="zap" class="w-4 h-4 text-primary"></i> En bref</div>
           <ul class="space-y-1.5 text-sm text-gray-600">
             <li>• Vous pouvez modifier la fiche des clubs rattachés à votre compte ; les autres sont en lecture seule.</li>
-            <li>• Connecter le club à HelloAsso permet aux coureurs de s'inscrire et de payer en ligne.</li>
+            <li>• Connecter le club à HelloAsso permet aux coureurs ayant un compte créé dans Dossardeur, et existant dans la base de données des licenciés, de s'inscrire et de payer en ligne.</li>
             <li>• La connexion se fait en quelques clics, avec le compte HelloAsso de l'association.</li>
           </ul>
         </div>
@@ -109,12 +109,12 @@
           <img src="img/club-liste.webp" alt="Liste des clubs avec la recherche, les filtres de pré-inscription et les boutons d'export" class="screenshot w-full" loading="lazy" width="1280" height="800">
           <figcaption>La liste des clubs.</figcaption>
         </figure>
-        <p>Les boutons au-dessus du tableau filtrent les clubs selon leur connexion à HelloAsso : <span class="guide-ui">Pré-inscription possible</span> (club connecté) ou <span class="guide-ui">Pré-inscription non configurée</span>. La case <span class="guide-ui">Clubs organisateurs uniquement</span> ne garde que les clubs qui organisent des épreuves.</p>
+        <p>Les boutons au-dessus du tableau filtrent les clubs selon leur connexion à HelloAsso : <span class="guide-ui">Pré-inscription possible</span> (club connecté) ou <span class="guide-ui">Pré-inscription non configurée</span>. La case à cocher <span class="guide-ui">Clubs organisateurs uniquement</span> ne garde que les clubs qui organisent des épreuves.</p>
 
         <h2 id="fiche">Compléter la fiche du club</h2>
         <p>La fiche regroupe :</p>
         <ul class="list-disc pl-6 space-y-1 text-gray-600 mb-4">
-          <li>le <strong>nom court</strong> (sigle) et le <strong>nom long</strong>, obligatoire ;</li>
+          <li>le <strong>nom court</strong> (sigle) et le <strong>nom long</strong>, obligatoire. <strong>N'utilisez pas d'acronyme dans le nom long</strong> : écrivez « Association Cycliste Démo Toulouse » ou « Vélo-Club Exemple », et non « AC Démo Toulouse » ou « VC Exemple » ;</li>
           <li>le <strong>nom eLicence</strong>, tel qu'il apparaît dans les fichiers de licences de la fédération ;</li>
           <li>l'<strong>identifiant HelloAsso</strong> de l'association (voir plus bas) ;</li>
           <li>le <strong>département</strong>, obligatoire. La fédération est affichée à titre indicatif.</li>
@@ -122,7 +122,7 @@
         <p>Cliquez sur <span class="guide-ui">Enregistrer</span> en haut à droite. Le lien en bas de fiche affiche toutes les épreuves organisées par le club.</p>
         <figure class="guide-shot">
           <div class="guide-shot-frame">
-            <img src="img/club-fiche.webp" alt="Fiche du club VC Exemple avec ses informations et le bouton Connecter à HelloAsso en haut à droite" class="screenshot w-full" loading="lazy" width="1280" height="800">
+            <img src="img/club-fiche.webp" alt="Fiche du club Vélo-Club Exemple avec ses informations et le bouton Connecter à HelloAsso en haut à droite" class="screenshot w-full" loading="lazy" width="1280" height="800">
             <span class="guide-highlight" style="left:73.4%;top:8.6%;width:16.1%;height:5.3%"></span>
           </div>
           <figcaption>La fiche du club. Le bouton « Connecter à HelloAsso » est encadré.</figcaption>
@@ -138,6 +138,19 @@
 
         <h2 id="helloasso">Connecter le club à HelloAsso</h2>
         <p>HelloAsso encaisse les inscriptions en ligne pour le compte de votre association. Le service est <strong>gratuit</strong> pour le club : HelloAsso prend en charge les frais de transaction, et vit des contributions volontaires laissées par les payeurs.</p>
+
+        <div class="guide-callout warn">
+          <div class="guide-callout-icon"><i data-lucide="user-round-check"></i></div>
+          <div>
+            <div class="guide-callout-title">Qui peut s'inscrire en ligne ?</div>
+            <p>Le paiement en ligne n'est proposé qu'aux coureurs qui remplissent <strong>deux conditions</strong> :</p>
+            <ul class="list-disc pl-6 space-y-1 mt-2">
+              <li>avoir un <strong>compte créé dans l'application Dossardeur</strong> ;</li>
+              <li><strong>exister dans la base de données des licenciés</strong> d'Open Dossard (menu <a href="licencies.html">Licences</a>).</li>
+            </ul>
+            <p class="mt-2">Un coureur figure dans cette base s'il a <strong>déjà participé à une épreuve</strong>, ou si sa licence a été <strong>créée automatiquement par l'import des données eLicence</strong> (FSGT). Un coureur absent de la base ne peut pas se pré-inscrire en ligne : créez d'abord sa fiche dans <a href="licencies.html#ajouter">Licences</a>.</p>
+          </div>
+        </div>
 
         <h3>Avant de commencer</h3>
         <ul class="list-disc pl-6 space-y-1 text-gray-600 mb-4">
