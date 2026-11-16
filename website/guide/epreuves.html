@@ -93,14 +93,14 @@
         <div class="guide-summary">
           <div class="guide-summary-title"><i data-lucide="zap" class="w-4 h-4 text-primary"></i> En bref</div>
           <ul class="space-y-1.5 text-sm text-gray-600">
-            <li>• Une épreuve se crée depuis <strong>Épreuves</strong>, avec le bouton <strong>Créer une épreuve</strong> ou en dupliquant celle de l'an dernier.</li>
+            <li>• Une épreuve se crée depuis <strong>Épreuves</strong>, avec le bouton <strong>Créer une épreuve</strong>, ou en dupliquant l'une de vos épreuves de l'an dernier.</li>
             <li>• Elle se remplit en cinq onglets : Infos, Horaires &amp; Circuits, Tarifs, Medias, Lieu.</li>
             <li>• Pensez à cliquer sur <strong>Enregistrer</strong> après chaque série de modifications.</li>
           </ul>
         </div>
 
         <h2 id="liste">La liste des épreuves</h2>
-        <p>Dans le menu, cliquez sur <span class="guide-ui">Épreuves</span>. Les épreuves à venir apparaissent au-dessus de la ligne <strong>Aujourd'hui</strong>, les épreuves passées en dessous. Les cases <span class="guide-ui">Futures</span> et <span class="guide-ui">Passées</span>, les dates et les filtres de colonnes affinent la liste.</p>
+        <p>Dans le menu, cliquez sur <span class="guide-ui">Épreuves</span>. Les épreuves à venir apparaissent au-dessus de la ligne <strong>Aujourd'hui</strong>, les épreuves passées en dessous. Les cases à cocher <span class="guide-ui">Futures</span> et <span class="guide-ui">Passées</span>, les dates et les filtres de colonnes affinent la liste.</p>
         <figure class="guide-shot">
           <div class="guide-shot-frame">
             <img src="img/epreuve-liste.webp" alt="Liste des épreuves avec les colonnes engagements, classements, date, nom, lieu, club, fédération et type" class="screenshot w-full" loading="lazy" width="1280" height="800">
@@ -112,22 +112,39 @@
         <ul class="list-disc pl-6 space-y-1 text-gray-600 mb-4">
           <li>le crayon ouvre l'épreuve ;</li>
           <li><strong>« 24 Eng. »</strong> ouvre les <a href="engagements.html">engagements</a> et <strong>« Classer »</strong> (ou « 36 Class ») les <a href="classements.html">classements</a> ;</li>
-          <li>les icônes de fin de ligne permettent de <strong>dupliquer</strong> l'épreuve, de télécharger sa <strong>fiche épreuve</strong> en PDF ou de la <strong>supprimer</strong> (seulement si elle n'a encore aucun engagé ni paiement).</li>
+          <li>les icônes de fin de ligne permettent de <a href="#dupliquer"><strong>dupliquer</strong></a> l'épreuve, de télécharger sa <strong>fiche épreuve</strong> en PDF ou de la <strong>supprimer</strong> (seulement si elle n'a encore aucun engagé ni paiement).</li>
         </ul>
 
-        <h2 id="creer">Créer ou dupliquer une épreuve</h2>
+        <h2 id="creer">Créer une épreuve</h2>
         <ol class="guide-steps">
-          <li>Cliquez sur <span class="guide-ui">Créer une épreuve</span>, ou sur l'icône <strong>Dupliquer</strong> d'une épreuve existante.</li>
+          <li>Cliquez sur <span class="guide-ui">Créer une épreuve</span>, en haut à droite de la liste.</li>
           <li>Remplissez l'onglet <strong>Infos</strong> (voir ci-dessous). Les champs marqués d'une étoile rouge sont obligatoires.</li>
           <li>Cliquez sur <span class="guide-ui">Enregistrer</span> : l'épreuve est créée et les autres onglets deviennent pleinement utilisables (dépôt des fichiers GPX notamment).</li>
           <li>Complétez les horaires, les tarifs, le lieu et les médias, puis enregistrez à nouveau.</li>
         </ol>
 
+        <h2 id="dupliquer">Dupliquer une épreuve</h2>
+        <p>Pour une épreuve qui revient chaque année, partez de l'édition précédente plutôt que d'une fiche vide.</p>
+        <ol class="guide-steps">
+          <li>Dans la liste, sélectionnez <strong>une épreuve vous appartenant</strong>, par exemple celle de la saison précédente (cochez <span class="guide-ui">Passées</span> pour l'afficher).</li>
+          <li>Cliquez sur le pictogramme <span class="guide-ui"><i data-lucide="copy" class="inline w-3.5 h-3.5 align-[-2px]"></i> Dupliquer</span>, à droite de sa ligne, puis confirmez.</li>
+          <li>Une nouvelle épreuve s'ouvre, déjà remplie avec les informations de l'épreuve d'origine. Saisissez la <strong>nouvelle date</strong> et apportez vos éventuelles modifications.</li>
+          <li>Cliquez sur <span class="guide-ui">Enregistrer</span> : la nouvelle épreuve n'existe qu'à partir de ce moment.</li>
+        </ol>
+
+        <div class="guide-callout warn">
+          <div class="guide-callout-icon"><i data-lucide="lock"></i></div>
+          <div>
+            <div class="guide-callout-title">Vous devez avoir les droits sur l'épreuve dupliquée</div>
+            <p>Vous ne pouvez dupliquer que les épreuves <strong>qui vous appartiennent</strong>, c'est-à-dire organisées par un club rattaché à votre compte. L'enregistrement de la copie est refusé pour l'épreuve d'un autre club.</p>
+          </div>
+        </div>
+
         <div class="guide-callout tip">
           <div class="guide-callout-icon"><i data-lucide="copy"></i></div>
           <div>
             <div class="guide-callout-title">Gagnez du temps avec la duplication</div>
-            <p>Dupliquer l'épreuve de l'an dernier reprend toutes ses informations : horaires, tarifs, lieu, contacts. Seule la date est à ressaisir.</p>
+            <p>Dupliquer l'épreuve de l'an dernier reprend toutes ses informations : horaires, tarifs, lieu, contacts. Seule la date est à ressaisir, ainsi que les éventuelles modifications.</p>
           </div>
         </div>
 
@@ -155,13 +172,13 @@
         <h3>Contact et options</h3>
         <p>Le <strong>contact</strong> (nom, téléphone, e-mail, site web, Facebook) est affiché aux coureurs. Les <strong>options</strong> conditionnent qui peut s'engager :</p>
         <ul class="list-disc pl-6 space-y-1 text-gray-600 mb-4">
-          <li><span class="guide-ui">Ouvert aux autres fédérations</span> : sans cette case, seuls les licenciés de la fédération de l'épreuve peuvent être engagés ;</li>
+          <li><span class="guide-ui">Ouvert aux autres fédérations</span> : si cette case à cocher est décochée, seuls les licenciés de la fédération de l'épreuve peuvent être engagés ;</li>
           <li><span class="guide-ui">Ouvert aux non licenciés</span> : autorise l'engagement de coureurs sans licence ;</li>
           <li><span class="guide-ui">Compétition chronométrée</span> : ajoute la saisie des temps dans les classements.</li>
         </ul>
 
         <h3 id="paiement">Paiement en ligne via HelloAsso</h3>
-        <p>Si le club est <a href="club.html#helloasso">connecté à HelloAsso</a>, un encadré permet d'<strong>activer le paiement en ligne</strong> : les coureurs paient alors leur inscription directement depuis l'application Dossardeur.</p>
+        <p>Si le club est <a href="club.html#helloasso">connecté à HelloAsso</a>, un encadré permet d'<strong>activer le paiement en ligne</strong> : les coureurs paient alors leur inscription directement depuis l'application Dossardeur. Seuls ceux qui ont un compte Dossardeur <strong>et</strong> qui existent dans la base de données des licenciés y ont accès : voir <a href="club.html#helloasso">Qui peut s'inscrire en ligne ?</a></p>
         <figure class="guide-shot">
           <img src="img/epreuve-paiement-en-ligne.webp" alt="Encadré Paiement en ligne via HelloAsso activé, avec le statut Compte HelloAsso vérifié, puis l'encadré Notifications push" class="screenshot w-full" loading="lazy" width="1280" height="800">
           <figcaption>Le paiement en ligne activé, et l'envoi de notifications aux abonnés.</figcaption>

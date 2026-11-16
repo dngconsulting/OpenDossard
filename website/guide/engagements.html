@@ -111,7 +111,7 @@
         <ol class="guide-steps">
           <li>Cliquez sur l'onglet du <strong>départ</strong> concerné.</li>
           <li>Dans <span class="guide-ui">Saisir coureur</span>, tapez le début du nom, du prénom ou le numéro de licence, puis choisissez le coureur dans la liste proposée.</li>
-          <li>Saisissez son <strong>numéro de dossard</strong>. La <strong>catégorie</strong> est reprise de sa licence : modifiez-la si besoin.</li>
+          <li>Saisissez son <strong>numéro de dossard</strong>. Le champ <span class="guide-ui">Catégorie</span> est repris de sa licence : vérifiez qu'il correspond à l'une des <a href="#pelotons">catégories du départ</a>, et modifiez-le si besoin.</li>
           <li>Cliquez sur <span class="guide-ui">Ajouter</span>. Le coureur apparaît dans la liste et le compteur de l'onglet augmente.</li>
         </ol>
         <figure class="guide-shot">
@@ -124,6 +124,18 @@
           <div>
             <div class="guide-callout-title">Coureur introuvable ?</div>
             <p>Créez d'abord sa fiche dans <a href="licencies.html#ajouter">Licences</a>, puis revenez l'engager. Pour un coureur sans licence, l'épreuve doit être <a href="epreuves.html#infos">ouverte aux non licenciés</a>.</p>
+          </div>
+        </div>
+
+        <h3 id="pelotons">Des pelotons à votre main</h3>
+        <p>Vous n'êtes pas limité aux catégories de la fédération : vous pouvez créer les <strong>pelotons de votre choix</strong> (« 40-50 ans », « Senior 1 », « Senior 2 »…) avec <a href="#reorganiser">Réorganiser les départs</a>. Chaque départ regroupe une ou plusieurs catégories.</p>
+        <p>Lors de l'engagement, le champ <span class="guide-ui">Catégorie</span> doit contenir <strong>l'une des catégories définies pour le départ</strong>. Dans la liste déroulante, vos catégories apparaissent en premier, sous <strong>Mes Catés</strong>, avant celles de la fédération.</p>
+
+        <div class="guide-callout warn">
+          <div class="guide-callout-icon"><i data-lucide="circle-alert"></i></div>
+          <div>
+            <div class="guide-callout-title">Alerte : catégorie absente du départ</div>
+            <p>Si un coureur est engagé dans une catégorie qui n'a pas été définie pour le départ, sa ligne passe sur <strong>fond rouge</strong> et une icône d'alerte s'affiche dans la colonne <strong>Caté. V.</strong> : « Attention, cette catégorie n'existe pas dans cette course ». Désengagez le coureur et réengagez-le dans la bonne catégorie, ou ajoutez cette catégorie au départ.</p>
           </div>
         </div>
 
@@ -154,10 +166,11 @@
         </div>
 
         <h3>Désengager</h3>
-        <p>Cochez un ou plusieurs coureurs, puis cliquez sur <span class="guide-ui">Désengager</span>. Un coureur déjà classé, ou marqué abandon, ne peut pas être désengagé : sa case n'est pas proposée.</p>
+        <p>Cochez un ou plusieurs coureurs, puis cliquez sur <span class="guide-ui">Désengager</span>. Un coureur déjà classé, ou marqué abandon, ne peut pas être désengagé : sa case à cocher n'est pas proposée.</p>
 
         <h2 id="en-ligne">Pré-inscriptions payées en ligne</h2>
         <p>Si le <a href="epreuves.html#paiement">paiement en ligne</a> est activé, les coureurs se pré-inscrivent et paient depuis l'application Dossardeur. Dès le premier paiement, un onglet <strong>HelloAsso</strong> apparaît à droite des départs.</p>
+        <p>Seuls les coureurs qui ont un compte Dossardeur <strong>et</strong> qui existent dans la base de données des licenciés peuvent se pré-inscrire : voir <a href="club.html#helloasso">Qui peut s'inscrire en ligne ?</a></p>
         <figure class="guide-shot">
           <img src="img/engagements-paiements.webp" alt="Onglet HelloAsso avec la recette, cinq paiements payés et un paiement en attente, et les colonnes statut, participant, dates, montant, tarif et payeur" class="screenshot w-full" loading="lazy" width="1280" height="800">
           <figcaption>L'onglet HelloAsso : la recette et le détail des paiements.</figcaption>
