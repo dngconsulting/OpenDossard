@@ -1,5 +1,5 @@
 import * as request from 'supertest';
-import { DataSource } from 'typeorm';
+import { DataSource, Not } from 'typeorm';
 
 import { getApp, getAuthHelper, getSeedHelper } from './setup-e2e';
 import { CompetitionEntity } from '../src/competitions/entities/competition.entity';
@@ -169,6 +169,34 @@ describe('Competitions (e2e)', () => {
       const body = res.body as PaginatedResponse<CompetitionRow>;
       const names = body.data.map(c => c.name);
       expect(names[0]).toBe('Gravel des Pyrénées');
+    });
+
+    it('épreuves du même jour : départagées par nom, pagination stable', async () => {
+      const repo = getApp().get(DataSource).getRepository(CompetitionEntity);
+      const sameInstant = new Date('2026-05-10T10:00:00Z');
+      // Insérées dans le désordre : sans tri secondaire, l'ordre suit l'insertion.
+      const [template] = await getSeedHelper().seedCompetitions();
+      await repo.delete({ id: Not(template.id) });
+      await repo.update({ id: template.id }, { name: 'Prix Delta', eventDate: sameInstant });
+      for (const name of ['Prix Alpha', 'Prix Charlie', 'Prix Bravo']) {
+        await repo.save(repo.create({ ...template, id: undefined, name, eventDate: sameInstant }));
+      }
+
+      const page = async (offset: number) => {
+        const res = await request(getApp().getHttpServer())
+          .get(API)
+          .query({ orderDirection: 'DESC', offset, limit: 2 })
+          .set('Authorization', `Bearer ${adminToken}`)
+          .expect(200);
+        return (res.body as PaginatedResponse<CompetitionRow>).data.map(c => c.name);
+      };
+
+      expect([...(await page(0)), ...(await page(2))]).toEqual([
+        'Prix Alpha',
+        'Prix Bravo',
+        'Prix Charlie',
+        'Prix Delta',
+      ]);
     });
 
     it('should allow MOBILE role', async () => {

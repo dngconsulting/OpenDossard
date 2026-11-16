@@ -44,7 +44,12 @@ export const COMPETITION_TYPE_OPTIONS = COMPETITION_TYPE_VALUES.map(t => ({
 // Zod schema for the form
 export const competitionSchema = z.object({
   name: z.string().min(1, "Le nom de l'épreuve est requis"),
-  eventDate: z.string().min(1, 'La date est requise'),
+  // AAAA-MM-JJ strict : le champ date de Chrome accepte une année à 5 ou 6
+  // chiffres, qui ne se convertit pas en instant valide.
+  eventDate: z
+    .string()
+    .min(1, 'La date est requise')
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'La date est invalide'),
   competitionType: z.string().min(1, 'Le type est requis'),
   fede: z.string().min(1, 'La fédération est requise'),
   zipCode: z

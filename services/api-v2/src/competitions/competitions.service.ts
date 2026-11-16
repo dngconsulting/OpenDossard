@@ -152,6 +152,13 @@ export class CompetitionsService {
     const validOrderFields = ['eventDate', 'name', 'zipCode', 'fede', 'competitionType', 'dept'];
     const orderField = validOrderFields.includes(orderBy) ? orderBy : 'eventDate';
     queryBuilder.orderBy(`competition.${orderField}`, orderDirection as 'ASC' | 'DESC');
+    // Départage : les épreuves d'un même jour partagent le même horodatage (la
+    // date est saisie sans heure). Sans critère secondaire, la pagination peut
+    // répéter ou sauter des lignes d'une page à l'autre.
+    if (orderField !== 'name') {
+      queryBuilder.addOrderBy('competition.name', 'ASC');
+    }
+    queryBuilder.addOrderBy('competition.id', 'ASC');
 
     // Get total count before pagination
     const total = await queryBuilder.getCount();
@@ -198,7 +205,7 @@ export class CompetitionsService {
     return this.competitionRepository.find({
       where: { id: In(ids) },
       relations: ['club'],
-      order: { eventDate: 'ASC' },
+      order: { eventDate: 'ASC', name: 'ASC', id: 'ASC' },
     });
   }
 
