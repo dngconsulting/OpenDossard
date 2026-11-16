@@ -25,6 +25,7 @@ import { COMPETITION_TYPE_LABELS } from '@/types/api';
 import { downloadFromApi } from '@/utils/download';
 import { showErrorToast, showSuccessToast } from '@/utils/error-handler/error-handler';
 
+import { toEventDateInput, toEventDateIso } from './event-date';
 import { competitionFormErrorMessages } from './form-error-messages';
 import { GeneralTab } from './GeneralTab';
 import { HorairesTab } from './HorairesTab';
@@ -120,16 +121,9 @@ export default function CompetitionDetailPage() {
     const source = isDuplicating ? sourceCompetition : competition;
     if (!source) {return;}
 
-    let eventDateLocal = '';
-    if (!isDuplicating && source.eventDate) {
-      const date = new Date(source.eventDate);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      eventDateLocal = `${year}-${month}-${day}T${hours}:${minutes}`;
-    }
+    // Duplication : la date est à ressaisir.
+    const eventDateLocal =
+      !isDuplicating && source.eventDate ? toEventDateInput(source.eventDate) : '';
 
     form.reset({
       name: source.name || '',
@@ -175,7 +169,7 @@ export default function CompetitionDetailPage() {
         ...data,
         // clubDept ne sert qu'à filtrer les clubs : non persisté (undefined → absent du JSON)
         clubDept: undefined,
-        eventDate: new Date(data.eventDate).toISOString(),
+        eventDate: toEventDateIso(data.eventDate),
         races: isCreating ? defaultRaces : competition?.races || '',
         categories: '["Toutes"]',
         dept: deptFromZipCode(data.zipCode),

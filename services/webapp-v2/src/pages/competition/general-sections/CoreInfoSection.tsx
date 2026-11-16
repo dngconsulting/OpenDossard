@@ -81,11 +81,11 @@ export function CoreInfoSection({ isCreating, isDuplicating }: CoreInfoSectionPr
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Date et heure <span className="text-destructive">*</span>
+              Date <span className="text-destructive">*</span>
             </FormLabel>
             <FormControl>
               <Input
-                type="datetime-local"
+                type="date"
                 {...field}
                 className={isDuplicating && !field.value ? HIGHLIGHT_CLASS : ''}
               />
