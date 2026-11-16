@@ -33,6 +33,9 @@ interface WebhookPayload {
     organization_slug?: unknown;
     /** Présent sur l'event `Organization.IsCashinCompliant` (snake_case côté HA). */
     is_cashin_compliant?: unknown;
+    /** Présents sur l'event `Organization` (changement de slug, snake_case côté HA). */
+    old_slug_organization?: unknown;
+    new_slug_organization?: unknown;
   };
 }
 
@@ -100,6 +103,18 @@ export class HelloAssoWebhookService {
     // mais notifiée à cause de notre souscription partenaire-wide).
     if (eventType === 'Organization.IsCashinCompliant') {
       return this.handleCashinComplianceEvent(parsed);
+    }
+
+    // Event `Organization` : fourre-tout côté HelloAsso, reçu en masse pour
+    // toutes les orgas du partenaire. Seul le changement de slug nous concerne,
+    // et il ne se reconnaît qu'à son payload (ancien + nouveau slug). Tout le
+    // reste sort ici sans log ni accès base.
+    if (eventType === 'Organization') {
+      const slugChange = readSlugChange(parsed.data);
+      if (!slugChange) {
+        return { signatureValid: true, outcome: 'ignored_event_type:Organization' };
+      }
+      return this.handleOrganizationSlugChange(slugChange.oldSlug, slugChange.newSlug);
     }
 
     if (eventType !== 'Payment') {
@@ -247,6 +262,52 @@ export class HelloAssoWebhookService {
       outcome: `cashin_compliance_updated:${slug}:${value}`,
     };
   }
+
+  /**
+   * Applique un changement de slug notifié par HelloAsso (l'asso a changé de
+   * nom). Sans ce suivi, le checkout continue d'appeler l'ancien slug et échoue
+   * alors que la liaison est valide. Une orga inconnue sous l'ancien slug (orga
+   * étrangère à OD — souscription partenaire-wide — ou rejeu d'un event déjà
+   * appliqué) sort sans log.
+   */
+  private async handleOrganizationSlugChange(
+    oldSlug: string,
+    newSlug: string,
+  ): Promise<WebhookResult> {
+    const rename = await this.details.renameOrganizationSlug(oldSlug, newSlug);
+    if (rename === 'unknown') {
+      return { signatureValid: true, outcome: `orphan_no_local_link:${oldSlug}` };
+    }
+    if (rename === 'conflict') {
+      // Deux orgas liées finiraient sous le même slug : intervention manuelle.
+      this.logger.warn(
+        `handleOrganizationSlugChange: slug=${newSlug} déjà porté par une autre orga liée — slug=${oldSlug} NON renommé`,
+      );
+      return {
+        signatureValid: true,
+        outcome: `organization_slug_conflict:${oldSlug}→${newSlug}`,
+      };
+    }
+
+    this.logger.log(`handleOrganizationSlugChange: slug ${oldSlug} → ${newSlug}`);
+    return { signatureValid: true, outcome: `organization_slug_renamed:${oldSlug}→${newSlug}` };
+  }
+}
+
+/**
+ * Reconnaît, parmi les events `Organization`, celui du changement de slug :
+ *   { eventType: 'Organization',
+ *     data: { old_slug_organization: '…', new_slug_organization: '…' } }
+ * Renvoie `null` pour tout autre payload.
+ */
+function readSlugChange(data: WebhookPayload['data']): { oldSlug: string; newSlug: string } | null {
+  const oldSlug = data?.old_slug_organization;
+  const newSlug = data?.new_slug_organization;
+  if (typeof oldSlug !== 'string' || typeof newSlug !== 'string') return null;
+  if (oldSlug.trim().length === 0 || newSlug.trim().length === 0 || oldSlug === newSlug) {
+    return null;
+  }
+  return { oldSlug, newSlug };
 }
 
 /**
