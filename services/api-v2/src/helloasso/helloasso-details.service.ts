@@ -43,6 +43,27 @@ const UPSERT_ORG_CHAIN_SQL = `
 
 const LOCK_ORG_SQL = 'SELECT id FROM helloasso_organization WHERE id = $1 FOR UPDATE';
 
+/** Verrouille l'orga à renommer et, si elle existe, celle qui porte déjà le nouveau slug. */
+const LOCK_ORGS_BY_SLUG_SQL = `
+  SELECT id, organization_slug AS slug FROM helloasso_organization
+  WHERE organization_slug IN ($1, $2)
+  ORDER BY id
+  FOR UPDATE`;
+
+const RENAME_ORG_SLUG_SQL = `
+  UPDATE helloasso_organization SET organization_slug = $2, updated_at = now() WHERE id = $1`;
+
+/** Slug attendu par le callback de liaison, porté par la fiche de chaque club rattaché. */
+const RENAME_CLUBS_SLUG_SQL = `
+  UPDATE club SET helloasso_slug = $2
+  WHERE id IN (SELECT club_id FROM helloasso_details WHERE organization_id = $1)`;
+
+/**
+ * Issue d'un renommage de slug : `unknown` = aucune orga liée sous l'ancien
+ * slug, `conflict` = le nouveau slug est déjà porté par une autre orga liée.
+ */
+export type OrganizationSlugRename = 'renamed' | 'unknown' | 'conflict';
+
 export interface UpsertLinkInput {
   clubId: number;
   organizationSlug: string;
@@ -355,6 +376,29 @@ export class HelloAssoDetailsService {
         `${orgRemoved ? ' (orga supprimée, plus aucun club rattaché)' : ''} | ` +
         `disabled online_registration_enabled on ${competitionsDisabled} competition(s)`,
     );
+  }
+
+  /**
+   * Suit un changement de slug côté HelloAsso (l'asso a changé de nom) : l'orga
+   * garde sa ligne, sa chaîne de tokens et ses clubs, seul le slug change — sur
+   * l'orga (utilisé pour le checkout) et sur la fiche des clubs rattachés
+   * (comparé au slug autorisé lors d'une re-liaison).
+   *
+   * Appelé par le receiver webhook `Organization`.
+   */
+  async renameOrganizationSlug(oldSlug: string, newSlug: string): Promise<OrganizationSlugRename> {
+    return this.dataSource.transaction(async manager => {
+      const orgs: { id: number; slug: string }[] = await manager.query(LOCK_ORGS_BY_SLUG_SQL, [
+        oldSlug,
+        newSlug,
+      ]);
+      const org = orgs.find(o => o.slug === oldSlug);
+      if (!org) return 'unknown';
+      if (orgs.length > 1) return 'conflict';
+      await manager.query(RENAME_ORG_SLUG_SQL, [org.id, newSlug]);
+      await manager.query(RENAME_CLUBS_SLUG_SQL, [org.id, newSlug]);
+      return 'renamed';
+    });
   }
 
   /**

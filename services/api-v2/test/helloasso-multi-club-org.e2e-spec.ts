@@ -232,4 +232,59 @@ describe('HelloAsso — plusieurs clubs rattachés à la même orga (e2e)', () =
     expect(saved).toBe(false);
     expect(await orgOf(slug)).toBeNull();
   });
+
+  describe('changement de slug côté HelloAsso (webhook Organization)', () => {
+    const clubSlug = async (clubId: number) =>
+      (await dataSource.getRepository(ClubEntity).findOneByOrFail({ id: clubId })).helloAssoSlug;
+
+    async function seedLinkedClub(federation: Federation, slug: string): Promise<number> {
+      const clubId = await seedClub(federation);
+      await dataSource.getRepository(ClubEntity).update({ id: clubId }, { helloAssoSlug: slug });
+      await link(clubId, slug, `RT-${clubId}`);
+      return clubId;
+    }
+
+    it('renomme l’orga et le slug de tous ses clubs, sans toucher à la liaison', async () => {
+      const oldSlug = `roquettes-${Date.now()}`;
+      const newSlug = `${oldSlug}-renomme`;
+      const fsgt = await seedLinkedClub(Federation.FSGT, oldSlug);
+      const ufolep = await seedLinkedClub(Federation.UFOLEP, oldSlug);
+      const before = (await orgOf(oldSlug))!;
+
+      expect(await details.renameOrganizationSlug(oldSlug, newSlug)).toBe('renamed');
+
+      expect(await orgOf(oldSlug)).toBeNull();
+      const after = (await orgOf(newSlug))!;
+      expect(after.id).toBe(before.id);
+      expect(after.refreshTokenEncrypted).toBe(before.refreshTokenEncrypted);
+      expect(await clubSlug(fsgt)).toBe(newSlug);
+      expect(await clubSlug(ufolep)).toBe(newSlug);
+      expect(await details.getStatus(fsgt)).toMatchObject({ linked: true, slug: newSlug });
+    });
+
+    it('rejeu du même événement : orga introuvable sous l’ancien slug, rien ne change', async () => {
+      const oldSlug = `roquettes-${Date.now()}`;
+      const newSlug = `${oldSlug}-renomme`;
+      const club = await seedLinkedClub(Federation.FSGT, oldSlug);
+      await details.renameOrganizationSlug(oldSlug, newSlug);
+
+      expect(await details.renameOrganizationSlug(oldSlug, newSlug)).toBe('unknown');
+
+      expect(await clubSlug(club)).toBe(newSlug);
+      expect(await orgOf(newSlug)).not.toBeNull();
+    });
+
+    it('nouveau slug déjà porté par une autre orga liée : conflit, rien ne change', async () => {
+      const slugA = `roquettes-a-${Date.now()}`;
+      const slugB = `roquettes-b-${Date.now()}`;
+      const clubA = await seedLinkedClub(Federation.FSGT, slugA);
+      const clubB = await seedLinkedClub(Federation.UFOLEP, slugB);
+
+      expect(await details.renameOrganizationSlug(slugA, slugB)).toBe('conflict');
+
+      expect(await orgOf(slugA)).not.toBeNull();
+      expect(await clubSlug(clubA)).toBe(slugA);
+      expect(await clubSlug(clubB)).toBe(slugB);
+    });
+  });
 });

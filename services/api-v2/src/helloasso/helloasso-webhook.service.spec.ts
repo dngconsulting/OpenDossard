@@ -29,6 +29,7 @@ interface Mocks {
   updateQbSet: jest.Mock;
   detailsService: {
     setIsCashInCompliantBySlug: jest.Mock;
+    renameOrganizationSlug: jest.Mock;
   };
   keysProvider: {
     getKeys: jest.Mock;
@@ -58,6 +59,7 @@ function makeService(signatureKeys: string[] = [SIGNATURE_KEY]): Mocks {
   };
   const detailsService = {
     setIsCashInCompliantBySlug: jest.fn().mockResolvedValue(1),
+    renameOrganizationSlug: jest.fn().mockResolvedValue('renamed'),
   };
   const notifications = {
     sendToUser: jest.fn().mockResolvedValue(undefined),
@@ -602,5 +604,88 @@ describe('HelloAssoWebhookService', () => {
       expect(result.outcome).toBe('malformed_cashin_compliance_payload');
       expect(m.detailsService.setIsCashInCompliantBySlug).not.toHaveBeenCalled();
     });
+  });
+
+  describe('event Organization (changement de slug)', () => {
+    function renameBody(oldSlug: unknown, newSlug: unknown): string {
+      return JSON.stringify({
+        eventType: 'Organization',
+        data: { old_slug_organization: oldSlug, new_slug_organization: newSlug },
+      });
+    }
+
+    it('renomme le slug de l’orga liée', async () => {
+      const m = makeService();
+      const body = renameBody('bordeauxchess', 'bordeauxchessgame');
+
+      const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
+
+      expect(m.detailsService.renameOrganizationSlug).toHaveBeenCalledWith(
+        'bordeauxchess',
+        'bordeauxchessgame',
+      );
+      expect(result.outcome).toBe('organization_slug_renamed:bordeauxchess→bordeauxchessgame');
+      expect(m.paymentRepo.findOne).not.toHaveBeenCalled();
+    });
+
+    it('orga inconnue chez nous (étrangère ou rejeu) : ignorée sans log', async () => {
+      const m = makeService();
+      m.detailsService.renameOrganizationSlug.mockResolvedValue('unknown');
+      const logSpy = jest.spyOn(Logger.prototype, 'log').mockImplementation();
+      const warnSpy = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+      const body = renameBody('asso-etrangere', 'asso-etrangere-2');
+
+      const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
+
+      expect(result.outcome).toBe('orphan_no_local_link:asso-etrangere');
+      expect(logSpy).not.toHaveBeenCalled();
+      expect(warnSpy).not.toHaveBeenCalled();
+      logSpy.mockRestore();
+      warnSpy.mockRestore();
+    });
+
+    it('nouveau slug déjà pris par une autre orga liée : 200 avec warning, rien renommé', async () => {
+      const m = makeService();
+      m.detailsService.renameOrganizationSlug.mockResolvedValue('conflict');
+      const warnSpy = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+      const body = renameBody('bordeauxchess', 'bordeauxchessgame');
+
+      const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
+
+      expect(result.outcome).toBe('organization_slug_conflict:bordeauxchess→bordeauxchessgame');
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      warnSpy.mockRestore();
+    });
+
+    it.each([
+      ['autre notification Organization', { organization_slug: 'bordeauxchess', name: 'Chess' }],
+      ['data absente', undefined],
+      ['ancien slug absent', { new_slug_organization: 'bordeauxchessgame' }],
+      ['nouveau slug absent', { old_slug_organization: 'bordeauxchess' }],
+      ['nouveau slug vide', { old_slug_organization: 'bordeauxchess', new_slug_organization: ' ' }],
+      ['slug non textuel', { old_slug_organization: 'bordeauxchess', new_slug_organization: 42 }],
+      [
+        'slugs identiques',
+        { old_slug_organization: 'bordeauxchess', new_slug_organization: 'bordeauxchess' },
+      ],
+    ])(
+      'event Organization qui n’est pas un changement de slug (%s) : ignoré sans log ni accès base',
+      async (_label, data) => {
+        const m = makeService();
+        const logSpy = jest.spyOn(Logger.prototype, 'log').mockImplementation();
+        const warnSpy = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+        const body = JSON.stringify({ eventType: 'Organization', data });
+
+        const result = await m.service.handleWebhook(Buffer.from(body), headers(body));
+
+        expect(result.outcome).toBe('ignored_event_type:Organization');
+        expect(m.detailsService.renameOrganizationSlug).not.toHaveBeenCalled();
+        expect(m.paymentRepo.findOne).not.toHaveBeenCalled();
+        expect(logSpy).not.toHaveBeenCalled();
+        expect(warnSpy).not.toHaveBeenCalled();
+        logSpy.mockRestore();
+        warnSpy.mockRestore();
+      },
+    );
   });
 });
