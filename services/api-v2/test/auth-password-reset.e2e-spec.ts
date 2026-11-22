@@ -61,7 +61,7 @@ describe('Mot de passe oublié (e2e)', () => {
   };
 
   beforeAll(() => {
-    adminToken = getAuthHelper().getAdminToken();
+    adminToken = getAuthHelper().getSuperAdminToken();
   });
 
   beforeEach(() => {

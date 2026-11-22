@@ -15,6 +15,7 @@ import { UserClubService } from '../auth/user-club.service';
 import { ClubsService } from '../clubs/clubs.service';
 import { ClubEntity } from '../clubs/entities/club.entity';
 import { PaginatedResponseDto } from '../common/dto/pagination.dto';
+import { Role } from '../common/enums';
 import { FIREBASE_ADMIN } from '../firebase/firebase.module';
 import { FilterUserDto, UserSource } from './dto/filter-user.dto';
 import { UserEntity } from './entities/user.entity';
@@ -198,6 +199,13 @@ export class UsersService {
     });
   }
 
+  /** Un super admin est toujours aussi admin. */
+  private withImpliedRoles(roles: string[]): string[] {
+    return roles.includes(Role.SUPER_ADMIN) && !roles.includes(Role.ADMIN)
+      ? [...roles, Role.ADMIN]
+      : roles;
+  }
+
   async create(createUserDto: CreateUserDto, author?: string): Promise<UserEntity> {
     const existingUser = await this.findByEmail(createUserDto.email);
     if (existingUser) {
@@ -205,7 +213,9 @@ export class UsersService {
     }
 
     const hashedPassword = await bcrypt.hash(createUserDto.password, 12);
-    const roles = createUserDto.roles ? createUserDto.roles.join(',') : 'ORGANISATEUR';
+    const roles = createUserDto.roles
+      ? this.withImpliedRoles(createUserDto.roles).join(',')
+      : 'ORGANISATEUR';
 
     const user = this.userRepository.create({
       email: createUserDto.email,
@@ -243,7 +253,9 @@ export class UsersService {
     if (updateUserDto.lastName !== undefined) user.lastName = updateUserDto.lastName;
     if (updateUserDto.phone !== undefined) user.phone = updateUserDto.phone;
     if (updateUserDto.organisation !== undefined) user.organisation = updateUserDto.organisation;
-    if (updateUserDto.roles !== undefined) user.roles = updateUserDto.roles.join(',');
+    if (updateUserDto.roles !== undefined) {
+      user.roles = this.withImpliedRoles(updateUserDto.roles).join(',');
+    }
 
     const saved = await this.userRepository.save(user);
     const fields = Object.keys(updateUserDto)

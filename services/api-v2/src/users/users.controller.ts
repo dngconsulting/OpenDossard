@@ -38,8 +38,8 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @Roles(Role.ADMIN)
-  @ApiOperation({ summary: 'Get all users with pagination (admin only)' })
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Get all users with pagination (super admin only)' })
   @ApiResponse({ status: 200, description: 'Paginated list of users' })
   async findAll(@Query() filterDto: FilterUserDto): Promise<PaginatedResponseDto<UserResponseDto>> {
     const page = await this.usersService.findAll(filterDto);
@@ -47,8 +47,8 @@ export class UsersController {
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN)
-  @ApiOperation({ summary: 'Get user by ID (admin only)' })
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Get user by ID (super admin only)' })
   @ApiResponse({ status: 200, description: 'User details' })
   @ApiResponse({ status: 404, description: 'User not found' })
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<UserResponseDto> {
@@ -56,8 +56,8 @@ export class UsersController {
   }
 
   @Post()
-  @Roles(Role.ADMIN)
-  @ApiOperation({ summary: 'Create a new user (admin only)' })
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Create a new user (super admin only)' })
   @ApiResponse({ status: 201, description: 'User created' })
   @ApiResponse({ status: 409, description: 'Email already exists' })
   async create(
@@ -68,8 +68,8 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN)
-  @ApiOperation({ summary: 'Update a user (admin only)' })
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Update a user (super admin only)' })
   @ApiResponse({ status: 200, description: 'User updated' })
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -80,8 +80,8 @@ export class UsersController {
   }
 
   @Post(':id/reset-password')
-  @Roles(Role.ADMIN)
-  @ApiOperation({ summary: 'Reset user password (admin only)' })
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Reset user password (super admin only)' })
   @ApiResponse({ status: 200, description: 'Password reset' })
   async resetPassword(
     @Param('id', ParseIntPipe) id: number,
@@ -91,9 +91,9 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN)
+  @Roles(Role.SUPER_ADMIN)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Delete a user (admin only)' })
+  @ApiOperation({ summary: 'Delete a user (super admin only)' })
   @ApiResponse({ status: 200, description: 'User deleted' })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<{ success: boolean }> {
     await this.usersService.remove(id);
@@ -103,9 +103,9 @@ export class UsersController {
   @Get(':id/clubs')
   @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
   @ApiOperation({
-    summary: 'Lister les clubs liés à un user (ADMIN, ou le user lui-même)',
+    summary: 'Lister les clubs liés à un user (SUPER_ADMIN, ou le user lui-même)',
     description:
-      "ADMIN peut consulter les clubs de n'importe quel user. Les autres rôles ne peuvent consulter QUE leur propre profil (`:id == currentUser.id`). Utilisé par l'écran 'Mon compte' pour afficher la liste read-only des clubs gérés.",
+      "SUPER_ADMIN peut consulter les clubs de n'importe quel user. Les autres rôles ne peuvent consulter QUE leur propre profil (`:id == currentUser.id`). Utilisé par l'écran 'Mon compte' pour afficher la liste read-only des clubs gérés.",
   })
   @ApiResponse({ status: 200, description: 'Liste des clubs (triés alphabétiquement)' })
   @ApiResponse({ status: 403, description: 'Pas le droit de consulter les clubs de cet user' })
@@ -114,17 +114,18 @@ export class UsersController {
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<ClubEntity[]> {
-    if (!user.roles.includes(Role.ADMIN) && user.id !== id) {
+    if (!user.roles.includes(Role.SUPER_ADMIN) && user.id !== id) {
       throw new ForbiddenException('Vous ne pouvez consulter que vos propres clubs');
     }
     return this.usersService.findUserClubs(id);
   }
 
   @Put(':id/clubs')
-  @Roles(Role.ADMIN)
+  @Roles(Role.SUPER_ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: "Définir l'ensemble complet des clubs liés à un user (set, idempotent, admin only)",
+    summary:
+      "Définir l'ensemble complet des clubs liés à un user (set, idempotent, super admin only)",
   })
   @ApiResponse({ status: 200, description: "Liens mis à jour, retourne l'état final + diff" })
   @ApiResponse({ status: 404, description: 'User ou clubs introuvables' })

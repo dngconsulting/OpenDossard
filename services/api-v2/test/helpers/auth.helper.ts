@@ -30,6 +30,14 @@ export class AuthHelper {
     return this.generateToken(1, 'admin@test.com', [Role.ADMIN]);
   }
 
+  /**
+   * Token SUPER_ADMIN : même identité que l'ADMIN seedé (user ID 1), avec le
+   * rôle cumulatif `ADMIN,SUPER_ADMIN`. Les rôles font foi dans le JWT, pas en base.
+   */
+  getSuperAdminToken(): string {
+    return this.generateToken(1, 'admin@test.com', [Role.ADMIN, Role.SUPER_ADMIN]);
+  }
+
   /** Token ORGANISATEUR (user ID 2, seedé par SeedHelper) */
   getOrgaToken(): string {
     return this.generateToken(2, 'orga@test.com', [Role.ORGANISATEUR]);

@@ -58,7 +58,7 @@ export const appData = {
       name: 'Utilisateurs',
       url: '/users',
       icon: User2,
-      requiredRoles: ['ADMIN'],
+      requiredRoles: ['SUPER_ADMIN'],
     },
     {
       name: 'Statistiques',

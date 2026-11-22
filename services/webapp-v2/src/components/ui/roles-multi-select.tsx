@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const AVAILABLE_ROLES = [
+  { value: 'SUPER_ADMIN', label: 'Super admin' },
   { value: 'ADMIN', label: 'Admin' },
   { value: 'ORGANISATEUR', label: 'Organisateur' },
 ] as const;
@@ -19,13 +20,20 @@ export function RolesMultiSelect({ roles, onChange, disabled = false }: RolesMul
   const rolesArray = roles ? roles.split(',').filter(Boolean) : [];
 
   const handleToggleRole = (role: string, checked: boolean) => {
-    if (!onChange) return;
+    if (!onChange) {return;}
 
     let newRoles: string[];
     if (checked) {
       newRoles = [...rolesArray, role];
     } else {
       newRoles = rolesArray.filter(r => r !== role);
+    }
+    // SUPER_ADMIN est cumulatif : il ne va jamais sans ADMIN.
+    if (role === 'SUPER_ADMIN' && checked && !newRoles.includes('ADMIN')) {
+      newRoles.push('ADMIN');
+    }
+    if (role === 'ADMIN' && !checked) {
+      newRoles = newRoles.filter(r => r !== 'SUPER_ADMIN');
     }
     onChange(newRoles.join(','));
   };

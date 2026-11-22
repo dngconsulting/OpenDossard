@@ -26,7 +26,7 @@ describe('Mot de passe : exposition et authentification (e2e)', () => {
     http().post('/api/v2/auth/login').send({ email, password });
 
   beforeAll(() => {
-    adminToken = getAuthHelper().getAdminToken();
+    adminToken = getAuthHelper().getSuperAdminToken();
   });
 
   afterEach(async () => {

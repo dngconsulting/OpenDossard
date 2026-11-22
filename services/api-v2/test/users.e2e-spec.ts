@@ -1,4 +1,5 @@
 import * as request from 'supertest';
+import { DataSource } from 'typeorm';
 
 import { getApp, getAuthHelper, getSeedHelper } from './setup-e2e';
 import { UserEntity } from '../src/users/entities/user.entity';
@@ -11,11 +12,13 @@ interface PaginatedResponse<T> {
 const API = '/api/v2/users';
 
 describe('Users (e2e)', () => {
+  let superAdminToken: string;
   let adminToken: string;
   let orgaToken: string;
   let mobileToken: string;
 
   beforeAll(() => {
+    superAdminToken = getAuthHelper().getSuperAdminToken();
     adminToken = getAuthHelper().getAdminToken();
     orgaToken = getAuthHelper().getOrgaToken();
     mobileToken = getAuthHelper().getMobileToken();
@@ -27,11 +30,11 @@ describe('Users (e2e)', () => {
 
   // ==================== GET /users ====================
 
-  describe('GET /users (admin only)', () => {
+  describe('GET /users (super admin only)', () => {
     it('should return paginated users', async () => {
       const res = await request(getApp().getHttpServer())
         .get(API)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .expect(200);
 
       const body = res.body as PaginatedResponse<UserEntity>;
@@ -46,7 +49,7 @@ describe('Users (e2e)', () => {
       const res = await request(getApp().getHttpServer())
         .get(API)
         .query({ search: 'admin' })
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .expect(200);
 
       const body = res.body as PaginatedResponse<UserEntity>;
@@ -60,7 +63,7 @@ describe('Users (e2e)', () => {
       const res = await request(getApp().getHttpServer())
         .get(API)
         .query({ source: 'dossardeur' })
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .expect(200);
 
       const body = res.body as PaginatedResponse<UserEntity>;
@@ -75,7 +78,7 @@ describe('Users (e2e)', () => {
       const res = await request(getApp().getHttpServer())
         .get(API)
         .query({ source: 'opendossard' })
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .expect(200);
 
       const body = res.body as PaginatedResponse<UserEntity>;
@@ -91,7 +94,7 @@ describe('Users (e2e)', () => {
       const res = await request(getApp().getHttpServer())
         .get(API)
         .query({ search: 'searchable-uid' })
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .expect(200);
 
       const body = res.body as PaginatedResponse<UserEntity>;
@@ -105,7 +108,7 @@ describe('Users (e2e)', () => {
       const res = await request(getApp().getHttpServer())
         .get(API)
         .query({ source: 'dossardeur', orderBy: 'firebaseUid', orderDirection: 'ASC' })
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .expect(200);
 
       const body = res.body as PaginatedResponse<UserEntity>;
@@ -117,7 +120,7 @@ describe('Users (e2e)', () => {
       await request(getApp().getHttpServer())
         .get(API)
         .query({ source: 'invalid' })
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .expect(400);
     });
 
@@ -147,7 +150,7 @@ describe('Users (e2e)', () => {
       ]) {
         await request(getApp().getHttpServer())
           .post(API)
-          .set('Authorization', `Bearer ${adminToken}`)
+          .set('Authorization', `Bearer ${superAdminToken}`)
           .send({ ...body, password: 'password123' })
           .expect(201);
       }
@@ -156,7 +159,7 @@ describe('Users (e2e)', () => {
         const res = await request(getApp().getHttpServer())
           .get(API)
           .query({ search: 'vélo-club', orderBy: 'organisation', orderDirection })
-          .set('Authorization', `Bearer ${adminToken}`)
+          .set('Authorization', `Bearer ${superAdminToken}`)
           .expect(200);
         return (res.body as PaginatedResponse<UserEntity>).data.map(u => u.organisation);
       };
@@ -172,7 +175,7 @@ describe('Users (e2e)', () => {
     it('should return a user by ID', async () => {
       const res = await request(getApp().getHttpServer())
         .get(`${API}/1`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .expect(200);
 
       const body = res.body as UserEntity;
@@ -183,7 +186,7 @@ describe('Users (e2e)', () => {
     it('should return 404 for non-existent user', async () => {
       await request(getApp().getHttpServer())
         .get(`${API}/99999`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .expect(404);
     });
   });
@@ -194,7 +197,7 @@ describe('Users (e2e)', () => {
     it('should persist organisation', async () => {
       const res = await request(getApp().getHttpServer())
         .post(API)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .send({
           email: 'orga-create@test.com',
           password: 'password123',
@@ -208,10 +211,10 @@ describe('Users (e2e)', () => {
       expect(body.organisation).toBe('TOAC Cyclisme');
     });
 
-    it('should create a user as ADMIN', async () => {
+    it('should create a user as SUPER_ADMIN', async () => {
       const res = await request(getApp().getHttpServer())
         .post(API)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .send({
           email: 'newuser@test.com',
           password: 'password123',
@@ -229,7 +232,7 @@ describe('Users (e2e)', () => {
     it('should reject duplicate email (409)', async () => {
       await request(getApp().getHttpServer())
         .post(API)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .send({
           email: 'admin@test.com',
           password: 'password123',
@@ -256,7 +259,7 @@ describe('Users (e2e)', () => {
       // Create a test user first
       const createRes = await request(getApp().getHttpServer())
         .post(API)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .send({
           email: 'toupdate@test.com',
           password: 'password123',
@@ -269,7 +272,7 @@ describe('Users (e2e)', () => {
 
       const res = await request(getApp().getHttpServer())
         .patch(`${API}/${userId}`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .send({ firstName: 'After', roles: ['ADMIN', 'ORGANISATEUR'] })
         .expect(200);
 
@@ -281,21 +284,21 @@ describe('Users (e2e)', () => {
     it('should update and clear organisation', async () => {
       const createRes = await request(getApp().getHttpServer())
         .post(API)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .send({ email: 'orga-update@test.com', password: 'password123', organisation: 'Avant' })
         .expect(201);
       const userId = (createRes.body as UserEntity).id;
 
       const updated = await request(getApp().getHttpServer())
         .patch(`${API}/${userId}`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .send({ organisation: 'Balma Olympique Cyclisme' })
         .expect(200);
       expect((updated.body as UserEntity).organisation).toBe('Balma Olympique Cyclisme');
 
       const nulled = await request(getApp().getHttpServer())
         .patch(`${API}/${userId}`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .send({ organisation: null })
         .expect(200);
       expect((nulled.body as UserEntity).organisation).toBeNull();
@@ -304,14 +307,14 @@ describe('Users (e2e)', () => {
     it('should clear phone when null is sent', async () => {
       const createRes = await request(getApp().getHttpServer())
         .post(API)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .send({ email: 'phone-clear@test.com', password: 'password123', phone: '0612345678' })
         .expect(201);
       const userId = (createRes.body as UserEntity).id;
 
       const cleared = await request(getApp().getHttpServer())
         .patch(`${API}/${userId}`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .send({ phone: null })
         .expect(200);
       expect((cleared.body as UserEntity).phone).toBeNull();
@@ -321,11 +324,11 @@ describe('Users (e2e)', () => {
   // ==================== POST /users/:id/reset-password ====================
 
   describe('POST /users/:id/reset-password', () => {
-    it('should reset password as ADMIN', async () => {
+    it('should reset password as SUPER_ADMIN', async () => {
       // Create a test user
       const createRes = await request(getApp().getHttpServer())
         .post(API)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .send({
           email: 'resetme@test.com',
           password: 'oldpassword',
@@ -338,7 +341,7 @@ describe('Users (e2e)', () => {
 
       const res = await request(getApp().getHttpServer())
         .post(`${API}/${userId}/reset-password`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .send({ newPassword: 'newpassword123' })
         .expect(201);
 
@@ -352,7 +355,7 @@ describe('Users (e2e)', () => {
     it('should delete a user', async () => {
       const createRes = await request(getApp().getHttpServer())
         .post(API)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .send({
           email: 'deleteme@test.com',
           password: 'password123',
@@ -365,20 +368,83 @@ describe('Users (e2e)', () => {
 
       await request(getApp().getHttpServer())
         .delete(`${API}/${userId}`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .expect(200);
 
       await request(getApp().getHttpServer())
         .get(`${API}/${userId}`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .expect(404);
     });
 
     it('should return 404 for non-existent user', async () => {
       await request(getApp().getHttpServer())
         .delete(`${API}/99999`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
         .expect(404);
+    });
+  });
+
+  // ==================== SUPER_ADMIN implique ADMIN ====================
+
+  describe('SUPER_ADMIN implique ADMIN', () => {
+    it('ajoute ADMIN à la création et à la mise à jour quand seul SUPER_ADMIN est envoyé', async () => {
+      const created = await request(getApp().getHttpServer())
+        .post(API)
+        .set('Authorization', `Bearer ${superAdminToken}`)
+        .send({ email: 'super@test.com', password: 'password123', roles: ['SUPER_ADMIN'] })
+        .expect(201);
+      const body = created.body as UserEntity;
+      expect(body.roles).toBe('SUPER_ADMIN,ADMIN');
+
+      const other = await request(getApp().getHttpServer())
+        .post(API)
+        .set('Authorization', `Bearer ${superAdminToken}`)
+        .send({ email: 'promu@test.com', password: 'password123', roles: ['ORGANISATEUR'] })
+        .expect(201);
+
+      const updated = await request(getApp().getHttpServer())
+        .patch(`${API}/${(other.body as UserEntity).id}`)
+        .set('Authorization', `Bearer ${superAdminToken}`)
+        .send({ roles: ['ORGANISATEUR', 'SUPER_ADMIN'] })
+        .expect(200);
+      expect((updated.body as UserEntity).roles).toBe('ORGANISATEUR,SUPER_ADMIN,ADMIN');
+    });
+  });
+
+  // ==================== ADMIN simple : gestion des utilisateurs interdite ====================
+
+  describe('ADMIN sans SUPER_ADMIN', () => {
+    const asAdmin = (method: 'get' | 'post' | 'patch' | 'put' | 'delete', path: string) =>
+      request(getApp().getHttpServer())[method](path).set('Authorization', `Bearer ${adminToken}`);
+
+    it.each([
+      ['get', API],
+      ['get', `${API}/2`],
+      ['post', API],
+      ['patch', `${API}/2`],
+      ['post', `${API}/2/reset-password`],
+      ['delete', `${API}/2`],
+      ['put', `${API}/2/clubs`],
+    ] as const)('%s %s → 403', async (method, path) => {
+      await asAdmin(method, path).send({}).expect(403);
+    });
+
+    it("ne peut pas s'auto-promouvoir SUPER_ADMIN", async () => {
+      await asAdmin('patch', `${API}/1`)
+        .send({ roles: ['ADMIN', 'SUPER_ADMIN'] })
+        .expect(403);
+
+      const me = await getApp()
+        .get(DataSource)
+        .getRepository(UserEntity)
+        .findOneByOrFail({ id: 1 });
+      expect(me.roles).toBe('ADMIN');
+    });
+
+    it("ne peut pas consulter les clubs d'un autre user, mais peut consulter les siens", async () => {
+      await asAdmin('get', `${API}/2/clubs`).expect(403);
+      await asAdmin('get', `${API}/1/clubs`).expect(200);
     });
   });
 });

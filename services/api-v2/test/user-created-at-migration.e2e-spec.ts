@@ -57,7 +57,7 @@ describe('Migration user.created_at (e2e)', () => {
   }
 
   beforeAll(async () => {
-    adminToken = getAuthHelper().getAdminToken();
+    adminToken = getAuthHelper().getSuperAdminToken();
     dataSource = getApp().get(DataSource);
 
     // Remplace le schéma `synchronize` par celui des migrations (= PROD).

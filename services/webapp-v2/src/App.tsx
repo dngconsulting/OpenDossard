@@ -104,11 +104,14 @@ export default function App() {
                 <Route path="/competition/:id/engagements" element={<EngagementsPage />} />
                 <Route path="/competition/:id/classements" element={<ClassementsPage />} />
                 <Route path="/palmares/:licenceId?" element={<PalmaresPage />} />
-                {/* Admin-only routes */}
-                <Route element={<AdminRoute />}>
+                {/* Gestion des utilisateurs : réservée au SUPER_ADMIN */}
+                <Route element={<AdminRoute role="SUPER_ADMIN" />}>
                   <Route path="/users" element={<UsersPage />} />
                   <Route path="/user/new" element={<UserDetailPage />} />
                   <Route path="/user/:id" element={<UserDetailPage />} />
+                </Route>
+                {/* Admin-only routes */}
+                <Route element={<AdminRoute />}>
                   <Route path="/payments" element={<PaymentsHistoryPage />} />
                 </Route>
                 <Route path="/account" element={<AccountPage />} />
