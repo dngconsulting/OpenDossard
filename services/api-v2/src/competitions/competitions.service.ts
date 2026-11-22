@@ -19,10 +19,16 @@ import {
   HelloAssoPaymentStatus,
 } from '../helloasso/entities/helloasso-payment.entity';
 import { RaceEntity } from '../races/entities/race.entity';
+import {
+  COMPETITION_SUMMARY_FIELDS,
+  CompetitionSummaryDto,
+  FilterCompetitionSummariesDto,
+} from './dto/competition-summary.dto';
 import { FilterCompetitionDto } from './dto/filter-competition.dto';
 import { ReorganizeCompetitionDto } from './dto/reorganize-competition.dto';
 import { UpdateCompetitionOfficialsDto } from './dto/update-competition-officials.dto';
 import { CompetitionEntity } from './entities/competition.entity';
+import { startOfEventDay } from './event-day';
 import { OnlinePaymentActivationPolicy } from './online-payment-activation.policy';
 
 const ACTIVE_PAYMENT_STATUSES: HelloAssoPaymentStatus[] = [
@@ -178,6 +184,76 @@ export class CompetitionsService {
       engagementsCount: parseInt(rawRows[index]?.engagementsCount || '0', 10),
       classementsCount: parseInt(rawRows[index]?.classementsCount || '0', 10),
     }));
+
+    return new PaginatedResponseDto(data, total, offset, limit);
+  }
+
+  /**
+   * Résumés d'épreuves pour les listes de l'app mobile (liste, calendrier,
+   * carte). Requête volontairement minimale, appelée à chaque défilement :
+   *  - seules les colonnes du résumé sont lues (ni club, ni tarifs, ni circuits) ;
+   *  - aucun comptage d'engagés ou de classés par ligne ;
+   *  - bornes de dates comparées à la colonne nue, pour que l'index sur
+   *    `event_date` serve (un `DATE(event_date)` l'en empêcherait).
+   *
+   * `startDate` / `endDate` sont des jours en heure de Paris, bornes incluses :
+   * le même jour que celui affiché dans l'app. Une épreuve enregistrée à minuit
+   * (stockée la veille à 22 h ou 23 h UTC) reste donc dans son jour.
+   */
+  async findSummaries(
+    filterDto: FilterCompetitionSummariesDto,
+  ): Promise<PaginatedResponseDto<CompetitionSummaryDto>> {
+    const { offset = 0, limit = 20, search, orderDirection = 'ASC' } = filterDto;
+    const { fedes, competitionTypes, depts, startDate, endDate, openedToOtherFede } = filterDto;
+
+    const queryBuilder = this.competitionRepository
+      .createQueryBuilder('competition')
+      .select(COMPETITION_SUMMARY_FIELDS.map(field => `competition.${field}`));
+
+    if (search) {
+      // `%`, `_` et `\` saisis par l'utilisateur sont cherchés tels quels.
+      const pattern = `%${search.replace(/[\\%_]/g, '\\$&')}%`;
+      queryBuilder.andWhere(
+        '(competition.name ILIKE :search OR competition.zipCode ILIKE :search)',
+        { search: pattern },
+      );
+    }
+    if (fedes?.length) {
+      queryBuilder.andWhere('competition.fede IN (:...fedes)', { fedes });
+    }
+    if (competitionTypes?.length) {
+      queryBuilder.andWhere('competition.competitionType IN (:...competitionTypes)', {
+        competitionTypes,
+      });
+    }
+    if (depts?.length) {
+      queryBuilder.andWhere('competition.dept IN (:...depts)', { depts });
+    }
+    if (openedToOtherFede) {
+      queryBuilder.andWhere('competition.openedToOtherFede = TRUE');
+    }
+    if (startDate) {
+      queryBuilder.andWhere('competition.eventDate >= :from', { from: startOfEventDay(startDate) });
+    }
+    if (endDate) {
+      queryBuilder.andWhere('competition.eventDate < :before', {
+        before: startOfEventDay(endDate, 1),
+      });
+    }
+
+    // Départage par nom puis id : les épreuves d'un même jour partagent le même
+    // horodatage, la pagination doit rester stable d'une page à l'autre.
+    queryBuilder
+      .orderBy('competition.eventDate', orderDirection)
+      .addOrderBy('competition.name', 'ASC')
+      .addOrderBy('competition.id', 'ASC')
+      .offset(offset)
+      .limit(limit);
+
+    const [competitions, total] = await queryBuilder.getManyAndCount();
+    const data = competitions.map(competition =>
+      Object.fromEntries(COMPETITION_SUMMARY_FIELDS.map(field => [field, competition[field]])),
+    ) as unknown as CompetitionSummaryDto[];
 
     return new PaginatedResponseDto(data, total, offset, limit);
   }

@@ -16,7 +16,9 @@ import { ApiTags, ApiOperation, ApiQuery, ApiResponse, ApiBearerAuth } from '@ne
 import { CompetitionsService } from './competitions.service';
 import {
   CompetitionIdsDto,
+  CompetitionSummaryDto,
   FilterCompetitionDto,
+  FilterCompetitionSummariesDto,
   ReorganizeCompetitionDto,
   UpdateCompetitionOfficialsDto,
 } from './dto';
@@ -46,6 +48,19 @@ export class CompetitionsController {
     PaginatedResponseDto<CompetitionEntity & { engagementsCount: number; classementsCount: number }>
   > {
     return this.competitionsService.findAll(filterDto);
+  }
+
+  // Déclarée AVANT `:id`, qui capterait sinon « summaries » comme identifiant.
+  @Get('summaries')
+  @Roles(Role.ADMIN, Role.ORGANISATEUR, Role.MOBILE)
+  @ApiOperation({
+    summary: "Résumés d'épreuves (champs réduits) pour les listes de l'app mobile",
+  })
+  @ApiResponse({ status: 200, description: "Liste paginée de résumés d'épreuves" })
+  async findSummaries(
+    @Query() filterDto: FilterCompetitionSummariesDto,
+  ): Promise<PaginatedResponseDto<CompetitionSummaryDto>> {
+    return this.competitionsService.findSummaries(filterDto);
   }
 
   @Get(':id')
