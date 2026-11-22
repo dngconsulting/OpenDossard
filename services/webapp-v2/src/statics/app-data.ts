@@ -69,7 +69,7 @@ export const appData = {
       name: 'Paiements',
       url: '/payments',
       icon: CreditCard,
-      requiredRoles: ['ADMIN'],
+      requiredRoles: ['SUPER_ADMIN'],
     },
     {
       // Guide de l'organisateur, publié sur le site public : ouvert dans un nouvel onglet.
